@@ -53,17 +53,6 @@ dependencies = [
     
     # Optional: System metrics
     "psutil>=5.9.0; sys_platform != 'win32'",
-    
-    # Development and testing
-    "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0",
-    "pytest-cov>=4.0.0",
-    "pytest-benchmark>=4.0.0",
-    
-    # Code quality
-    "ruff>=0.1.0",
-    "mypy>=1.5.0",
-    "pre-commit>=3.3.0",
 ]
 
 [project.optional-dependencies]
@@ -93,6 +82,7 @@ siem = [
 
 # Development tools
 dev = [
+    "hatch>=1.7.0",
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.0.0",
@@ -144,6 +134,7 @@ include = [
 
 [tool.hatch.envs.default]
 dependencies = [
+    "hatch>=1.7.0",
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.0.0",
