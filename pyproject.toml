@@ -155,12 +155,47 @@ dependencies = [
 
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
-test-cov = "pytest --cov=fapilog --cov-report=html --cov-report=term {args:tests}"
+test-cov = "pytest --cov=src/fapilog --cov-report=html --cov-report=term {args:tests}"
 test-benchmark = "pytest --benchmark-only {args:tests}"
 lint = "ruff check {args:src tests}"
 format = "ruff format {args:src tests}"
 typecheck = "mypy {args:src}"
 pre-commit = "pre-commit run --all-files"
+
+# Lint environment
+[tool.hatch.envs.lint]
+dependencies = [
+    "ruff>=0.1.0",
+]
+
+[tool.hatch.envs.lint.scripts]
+lint = "ruff check src tests"
+format = "ruff format src tests"
+
+# Type checking environment  
+[tool.hatch.envs.typecheck]
+dependencies = [
+    "mypy>=1.5.0",
+    "types-requests",
+    "types-PyYAML",
+]
+
+[tool.hatch.envs.typecheck.scripts]
+typecheck = "mypy src"
+
+# Test environment
+[tool.hatch.envs.test]
+dependencies = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0", 
+    "pytest-cov>=4.0.0",
+    "pytest-benchmark>=4.0.0",
+]
+
+[tool.hatch.envs.test.scripts]
+test = "pytest tests"
+test-cov = "pytest --cov=src/fapilog --cov-report=html --cov-report=term tests"
+test-benchmark = "pytest --benchmark-only tests"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
