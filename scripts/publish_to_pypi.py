@@ -149,7 +149,7 @@ def get_package_info() -> Dict[str, str]:
         return {}
 
 
-def main():
+def main() -> None:
     """Main function."""
     print("🚀 fapilog PyPI Publishing Helper")
     print("=" * 50)

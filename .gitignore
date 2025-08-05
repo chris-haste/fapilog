@@ -252,4 +252,3 @@ htmlcov/
 # Test artifacts
 .pytest_cache/
 .tox/ 
-.DS_Store

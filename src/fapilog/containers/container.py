@@ -41,7 +41,7 @@ class AsyncLoggingContainer:
         """Cleanup isolated container resources."""
         async with self._async_lock:
             for component in self._components.values():
-                if hasattr(component, 'cleanup'):
+                if hasattr(component, "cleanup"):
                     await component.cleanup()
             self._components.clear()
             self._configured = False
@@ -66,4 +66,4 @@ class AsyncLoggingContainer:
 
     async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Async context manager exit."""
-        await self.cleanup() 
+        await self.cleanup()

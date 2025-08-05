@@ -106,7 +106,7 @@ def check_release_guardrails(commit_msg: Optional[str] = None) -> Tuple[bool, st
     return True, f"All checks passed for version {version}"
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Check release guardrails")
     parser.add_argument(
         "--commit-msg", help="Commit message to check (default: get from git)"

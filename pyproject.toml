@@ -182,6 +182,8 @@ markers = [
 [tool.ruff]
 target-version = "py38"
 line-length = 88
+
+[tool.ruff.lint]
 select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
@@ -197,11 +199,11 @@ ignore = [
     "C901",  # too complex
 ]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
@@ -232,6 +234,7 @@ omit = [
 ]
 
 [tool.coverage.report]
+fail_under = 90
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
@@ -262,3 +265,15 @@ extend-exclude = '''
   | dist
 )/
 '''
+
+[tool.vulture]
+exclude = [
+    "src/fapilog/__init__.py",  # VERSION is used for compatibility
+    "src/fapilog/containers/container.py",  # API methods intentionally unused
+    "src/fapilog/core/events.py",  # Enum values and API methods
+    "src/fapilog/core/logger.py",  # API methods and context manager params
+    "src/fapilog/core/settings.py",  # Enum values and validator methods
+    "src/fapilog/plugins/marketplace.py",  # API methods
+    "src/fapilog/plugins/registry.py",  # API methods
+    "tests/",  # Test files have expected unused imports and mocks
+]

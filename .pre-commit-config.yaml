@@ -23,6 +23,30 @@ repos:
       - id: vulture
         args: [src/, tests/]
 
+  # Code coverage check
+  - repo: local
+    hooks:
+      - id: coverage-check
+        name: Code Coverage Check
+        entry: python scripts/check_coverage.py
+        language: system
+        stages: [pre-commit]
+        description: "Ensure minimum 90% code coverage"
+        always_run: true
+        pass_filenames: false
+
+  # Pydantic v1 syntax detection
+  - repo: local
+    hooks:
+      - id: pydantic-v1-check
+        name: Pydantic v1 Syntax Check
+        entry: python scripts/check_pydantic_v1.py
+        language: system
+        stages: [pre-commit]
+        description: "Check for deprecated Pydantic v1 syntax patterns"
+        always_run: true
+        types: [python]
+
   # Release guardrails check
   - repo: local
     hooks:

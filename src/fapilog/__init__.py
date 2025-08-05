@@ -5,12 +5,12 @@ This module provides the core async-first logging functionality with zero-copy
 operations, universal plugin ecosystem, and enterprise compliance features.
 """
 
+from .containers.container import AsyncLoggingContainer
+from .core.events import EventCategory, EventSeverity, LogEvent
 from .core.logger import AsyncLogger
 from .core.settings import UniversalSettings
-from .core.events import LogEvent, EventCategory, EventSeverity
-from .containers.container import AsyncLoggingContainer
-from .plugins.registry import PluginRegistry
 from .plugins.marketplace import PluginMarketplace
+from .plugins.registry import PluginRegistry
 
 __version__ = "3.0.0-alpha.1"
 __author__ = "Chris Haste"
@@ -21,12 +21,10 @@ __all__ = [
     "AsyncLogger",
     "UniversalSettings",
     "LogEvent",
-    "EventCategory", 
+    "EventCategory",
     "EventSeverity",
-    
     # Container architecture
     "AsyncLoggingContainer",
-    
     # Plugin ecosystem
     "PluginRegistry",
     "PluginMarketplace",

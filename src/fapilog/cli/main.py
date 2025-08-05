@@ -8,10 +8,9 @@ logging system.
 
 import asyncio
 import sys
-from typing import Optional
 
-from ..core.settings import UniversalSettings
 from ..core.logger import AsyncLogger
+from ..core.settings import UniversalSettings
 
 
 async def main() -> int:
@@ -19,11 +18,12 @@ async def main() -> int:
     try:
         # TODO: Implement CLI argument parsing
         settings = UniversalSettings()
-        
-        async with AsyncLogger.create(settings) as logger:
+
+        logger = await AsyncLogger.create(settings)
+        async with logger as logger:
             await logger.info("Fapilog v3 CLI started")
             await logger.info("Async-first logging system initialized")
-            
+
         return 0
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
@@ -36,4 +36,4 @@ def cli_main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(cli_main()) 
+    sys.exit(cli_main())
