@@ -1,0 +1,29 @@
+# Global owners - you as the primary maintainer
+* @chris-haste
+
+# CI/CD and GitHub configuration files require maintainer review
+.github/ @chris-haste
+.github/workflows/ @chris-haste
+.github/CODEOWNERS @chris-haste
+
+# Core library files require maintainer review
+src/fapilog/ @chris-haste
+pyproject.toml @chris-haste
+tox.ini @chris-haste
+setup.py @chris-haste
+
+# Documentation and project structure
+README.md @chris-haste
+CHANGELOG.md @chris-haste
+LICENSE @chris-haste
+CONTRIBUTING.md @chris-haste
+
+# Tests and examples can be modified by contributors
+tests/ 
+examples/
+
+# Documentation can be improved by contributors
+docs/
+
+# Scripts and tools
+scripts/ 

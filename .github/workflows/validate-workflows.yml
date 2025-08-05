@@ -1,0 +1,69 @@
+name: Validate Workflows
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  validate:
+    name: Validate Workflow Syntax
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install dependencies
+      run: |
+        pip install PyYAML
+    
+    - name: Validate workflow syntax
+      run: |
+        echo "🔍 Validating workflow files..."
+        for file in .github/workflows/*.yml; do
+          echo "Checking $file..."
+          python -c "
+        import yaml
+        import sys
+        try:
+            with open('$file', 'r') as f:
+                yaml.safe_load(f)
+            print('✅ $file is valid')
+        except Exception as e:
+            print(f'❌ $file has syntax errors: {e}')
+            sys.exit(1)
+        "
+        done
+        echo "✅ All workflow files are valid!"
+    
+    - name: Check for potential secrets
+      run: |
+        echo "🔍 Checking for potential secrets in workflows..."
+        if grep -r -i "password\|secret\|key\|token" .github/workflows/ --exclude="*.md"; then
+          echo "⚠️  Warning: Potential secrets found in workflow files"
+          echo "Please review the following files:"
+          grep -r -i "password\|secret\|key\|token" .github/workflows/ --exclude="*.md" || true
+          echo "This is just a warning - please ensure no actual secrets are committed"
+        else
+          echo "✅ No potential secrets found in workflow files"
+        fi
+    
+    - name: Validate required jobs exist
+      run: |
+        echo "🔍 Checking for required CI jobs..."
+        required_jobs=("lint" "test" "typecheck" "tox")
+        
+        for job in "${required_jobs[@]}"; do
+          if grep -q "^  $job:" .github/workflows/ci.yml; then
+            echo "✅ Found job: $job"
+          else
+            echo "❌ Missing required job: $job"
+            exit 1
+          fi
+        done
+        echo "✅ All required CI jobs are present!" 

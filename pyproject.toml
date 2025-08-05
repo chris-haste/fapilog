@@ -1,0 +1,264 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fapilog"
+version = "3.0.0-alpha.1"
+description = "Revolutionary async-first logging library for Python applications"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Chris Haste", email = "chris@haste.dev"}
+]
+maintainers = [
+    {name = "Chris Haste", email = "chris@haste.dev"}
+]
+keywords = ["logging", "async", "fastapi", "observability", "enterprise"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Logging",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Framework :: FastAPI",
+    "Typing :: Typed",
+]
+requires-python = ">=3.8"
+dependencies = [
+    # Core async support
+    "asyncio-mqtt>=0.16.0",
+    "aiofiles>=23.0.0",
+    
+    # FastAPI and Pydantic v2
+    "fastapi>=0.100.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    
+    # HTTP client for sinks
+    "httpx>=0.24.0",
+    
+    # JSON and serialization
+    "orjson>=3.9.0",
+    
+    # Metrics and monitoring
+    "prometheus-client>=0.17.0",
+    
+    # Optional: System metrics
+    "psutil>=5.9.0; sys_platform != 'win32'",
+    
+    # Development and testing
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "pytest-benchmark>=4.0.0",
+    
+    # Code quality
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+    "pre-commit>=3.3.0",
+]
+
+[project.optional-dependencies]
+# Enterprise features
+enterprise = [
+    "cryptography>=41.0.0",
+    "python-jose[cryptography]>=3.3.0",
+]
+
+# Loki integration
+loki = [
+    "prometheus-client>=0.17.0",
+]
+
+# Cloud integrations
+cloud = [
+    "boto3>=1.28.0",
+    "google-cloud-logging>=3.8.0",
+    "azure-monitor-opentelemetry>=1.0.0",
+]
+
+# SIEM integrations
+siem = [
+    "elasticsearch>=8.0.0",
+    "pysplunk>=1.0.0",
+]
+
+# Development tools
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "pytest-benchmark>=4.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+    "pre-commit>=3.3.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "vulture>=2.9.0",
+]
+
+# Documentation
+docs = [
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.0.0",
+    "mkdocstrings[python]>=0.22.0",
+]
+
+# All optional dependencies
+all = [
+    "fapilog[enterprise,loki,cloud,siem,dev,docs]",
+]
+
+[project.urls]
+Homepage = "https://github.com/chris-haste/fapilog"
+Documentation = "https://fapilog.readthedocs.io/"
+Repository = "https://github.com/chris-haste/fapilog"
+"Bug Tracker" = "https://github.com/chris-haste/fapilog/issues"
+"Plugin Marketplace" = "https://plugins.fapilog.dev/"
+Discord = "https://discord.gg/fapilog"
+
+[project.scripts]
+fapilog = "fapilog.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fapilog"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/tests",
+    "/docs",
+    "/examples",
+    "README.md",
+    "LICENSE",
+    "pyproject.toml",
+]
+
+[tool.hatch.envs.default]
+dependencies = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "pytest-benchmark>=4.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+    "pre-commit>=3.3.0",
+]
+
+[tool.hatch.envs.default.scripts]
+test = "pytest {args:tests}"
+test-cov = "pytest --cov=fapilog --cov-report=html --cov-report=term {args:tests}"
+test-benchmark = "pytest --benchmark-only {args:tests}"
+lint = "ruff check {args:src tests}"
+format = "ruff format {args:src tests}"
+typecheck = "mypy {args:src}"
+pre-commit = "pre-commit run --all-files"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--asyncio-mode=auto",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "benchmark: marks tests as benchmark tests",
+    "enterprise: marks tests as enterprise features",
+]
+
+[tool.ruff]
+target-version = "py38"
+line-length = 88
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "tests.*",
+    "examples.*",
+]
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''

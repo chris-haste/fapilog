@@ -1,0 +1,121 @@
+name: "📋 Story"
+description: Create a new development story for the backlog
+title: "Story: [Brief Description]"
+labels: ["story"]
+body:
+  - type: input
+    id: epic
+    attributes:
+      label: "Epic"
+      description: "Which epic does this story belong to?"
+      placeholder: "e.g., Core Library Foundation, Performance Optimization, Developer Experience"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: story_points
+    attributes:
+      label: "Story Points"
+      description: "Estimated complexity/effort"
+      options:
+        - "1"
+        - "2"
+        - "3"
+        - "5"
+        - "8"
+        - "13"
+        - "21"
+    validations:
+      required: true
+
+  - type: input
+    id: sprint_target
+    attributes:
+      label: "Sprint Target"
+      description: "Target sprint for completion"
+      placeholder: "Sprint #⟪next⟫"
+      value: "Sprint #⟪next⟫"
+
+  - type: textarea
+    id: user_story
+    attributes:
+      label: "User Story"
+      description: "As a [role] I want [functionality] So that [benefit]"
+      placeholder: |
+        **As a** [role]
+        **I want** [functionality]
+        **So that** [benefit/value]
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: "Acceptance Criteria"
+      description: "List the conditions that must be met for this story to be considered complete"
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+        - [ ] Criterion 3
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical_tasks
+    attributes:
+      label: "Tasks / Technical Checklist"
+      description: "Detailed implementation tasks and technical requirements"
+      placeholder: |
+        1. **Task Category 1**
+           - [ ] Specific implementation step
+           - [ ] Another step
+           
+        2. **Task Category 2**
+           - [ ] Configuration task
+           - [ ] Testing task
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: dev_notes
+    attributes:
+      label: "Dev Notes"
+      description: "Additional context, technical decisions, architecture notes, or implementation guidance"
+      placeholder: |
+        - Technical architecture decisions
+        - Dependencies or constraints
+        - Links to relevant documentation
+        - Implementation approach notes
+      render: markdown
+    validations:
+      required: false
+
+  - type: textarea
+    id: testing_notes
+    attributes:
+      label: "Testing Strategy"
+      description: "How should this story be tested?"
+      placeholder: |
+        - Unit tests needed for...
+        - Integration tests for...
+        - Manual verification steps
+        - Performance benchmarks (if applicable)
+      render: markdown
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: definition_of_done
+    attributes:
+      label: "Definition of Done"
+      description: "Standard completion criteria"
+      options:
+        - label: "Code follows project standards and best practices"
+        - label: "All acceptance criteria are met"
+        - label: "Tests are written and passing"
+        - label: "Code is reviewed and approved"
+        - label: "Documentation is updated (if needed)"
+        - label: "No new linting errors or warnings" 

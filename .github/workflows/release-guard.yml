@@ -1,0 +1,28 @@
+name: Release Guardrails
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  release-guard:
+    name: Release Guardrails Check
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Need full history to check commit messages
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Run release guardrails check
+      run: |
+        python scripts/check_release_guardrails.py --verbose 
