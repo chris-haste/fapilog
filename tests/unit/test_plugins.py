@@ -20,22 +20,22 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from src.fapilog.containers.container import create_container
-from src.fapilog.plugins.discovery import AsyncPluginDiscovery, PluginDiscoveryError
-from src.fapilog.plugins.lifecycle import (
+from fapilog.containers.container import create_container
+from fapilog.plugins.discovery import AsyncPluginDiscovery, PluginDiscoveryError
+from fapilog.plugins.lifecycle import (
     AsyncComponentLifecycleManager,
     ComponentIsolationMixin,
     PluginLifecycleState,
     create_lifecycle_manager,
 )
-from src.fapilog.plugins.metadata import (
+from fapilog.plugins.metadata import (
     PluginCompatibility,
     PluginInfo,
     PluginMetadata,
     create_plugin_metadata,
     validate_fapilog_compatibility,
 )
-from src.fapilog.plugins.registry import (
+from fapilog.plugins.registry import (
     AsyncComponentRegistry,
     PluginLoadError,
     PluginRegistryError,
@@ -167,7 +167,7 @@ class TestPluginMetadata:
         assert metadata.plugin_type == "processor"
         assert metadata.compatibility.min_fapilog_version == "3.0.0"
 
-    @patch("src.fapilog.plugins.metadata.importlib.metadata.version")
+    @patch("fapilog.plugins.metadata.importlib.metadata.version")
     def test_validate_fapilog_compatibility_compatible(self, mock_version):
         """Test compatibility validation with compatible versions."""
         mock_version.return_value = "3.1.0"
@@ -184,7 +184,7 @@ class TestPluginMetadata:
 
         assert validate_fapilog_compatibility(metadata) is True
 
-    @patch("src.fapilog.plugins.metadata.importlib.metadata.version")
+    @patch("fapilog.plugins.metadata.importlib.metadata.version")
     def test_validate_fapilog_compatibility_incompatible(self, mock_version):
         """Test compatibility validation with incompatible versions."""
         mock_version.return_value = "2.9.0"
@@ -201,7 +201,7 @@ class TestPluginMetadata:
 
         assert validate_fapilog_compatibility(metadata) is False
 
-    @patch("src.fapilog.plugins.metadata.importlib.metadata.version")
+    @patch("fapilog.plugins.metadata.importlib.metadata.version")
     def test_validate_fapilog_compatibility_max_version(self, mock_version):
         """Test compatibility validation with max version constraint."""
         mock_version.return_value = "4.1.0"
@@ -787,8 +787,8 @@ import nonexistent_module
         await registry.initialize()
 
         # Create a mock plugin info with entry_point source
-        from src.fapilog.plugins.discovery import PluginInfo
-        from src.fapilog.plugins.metadata import PluginCompatibility, PluginMetadata
+        from fapilog.plugins.discovery import PluginInfo
+        from fapilog.plugins.metadata import PluginCompatibility, PluginMetadata
 
         metadata = PluginMetadata(
             name="entry-point-plugin",
@@ -816,8 +816,8 @@ import nonexistent_module
             registry = AsyncComponentRegistry(container)
         await registry.initialize()
 
-        from src.fapilog.plugins.discovery import PluginInfo
-        from src.fapilog.plugins.metadata import PluginCompatibility, PluginMetadata
+        from fapilog.plugins.discovery import PluginInfo
+        from fapilog.plugins.metadata import PluginCompatibility, PluginMetadata
 
         metadata = PluginMetadata(
             name="missing-local-plugin",
@@ -966,7 +966,7 @@ def some_function():
         """Test various edge cases to improve coverage."""
 
         # Test lifecycle manager error scenarios
-        from src.fapilog.plugins.lifecycle import AsyncComponentLifecycleManager
+        from fapilog.plugins.lifecycle import AsyncComponentLifecycleManager
 
         async with create_container() as container:
             lifecycle_manager = AsyncComponentLifecycleManager("test-container")
@@ -1198,8 +1198,8 @@ PLUGIN_METADATA = {
     async def test_global_discovery_instance_singleton(self):
         """Test global discovery instance and convenience functions (lines 311-325)."""
         # Clear the global instance first
-        import src.fapilog.plugins.discovery as discovery_module
-        from src.fapilog.plugins.discovery import (
+        import fapilog.plugins.discovery as discovery_module
+        from fapilog.plugins.discovery import (
             discover_plugins,
             discover_plugins_by_type,
             get_discovery_instance,
