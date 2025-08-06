@@ -5,7 +5,7 @@ Unit tests for AsyncLoggingContainer.
 import pytest
 
 from fapilog.containers.container import AsyncLoggingContainer
-from fapilog.core.settings import UniversalSettings
+from fapilog.core.settings import LogLevel, UniversalSettings
 
 
 class TestAsyncLoggingContainer:
@@ -14,7 +14,7 @@ class TestAsyncLoggingContainer:
     @pytest.fixture  # type: ignore[misc]
     def container_settings(self) -> UniversalSettings:
         """Create test settings."""
-        return UniversalSettings(level="INFO", sinks=["stdout"], max_workers=2)
+        return UniversalSettings(level=LogLevel.INFO, sinks=["stdout"], max_workers=2)
 
     @pytest.fixture  # type: ignore[misc]
     def container(self, container_settings: UniversalSettings) -> AsyncLoggingContainer:

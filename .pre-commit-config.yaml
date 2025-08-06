@@ -1,12 +1,15 @@
+# Pre-commit configuration
+default_install_hook_types: [pre-commit, pre-push, commit-msg]
+default_stages: [pre-commit]
+
 repos:
   # Ruff for linting and formatting
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.12.4
     hooks:
       - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
+        args: [--fix]
       - id: ruff-format
-        args: [--exit-non-zero-on-format]
 
   # MyPy for type checking
   - repo: https://github.com/pre-commit/mirrors-mypy
