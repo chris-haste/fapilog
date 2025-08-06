@@ -38,8 +38,8 @@ dependencies = [
     "aiofiles>=23.0.0",
     
     # FastAPI and Pydantic v2
-    "fastapi>=0.100.0",
-    "pydantic>=2.0.0",
+    "fastapi>=0.115.0",
+    "pydantic>=2.11.0",
     "pydantic-settings>=2.0.0",
     
     # HTTP client for sinks
@@ -83,11 +83,11 @@ siem = [
 # Development tools
 dev = [
     "hatch>=1.7.0",
-    "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0",
-    "pytest-cov>=4.0.0",
+    "pytest>=8.4.0",
+    "pytest-asyncio>=1.1.0",
+    "pytest-cov>=6.2.0",
     "pytest-benchmark>=4.0.0",
-    "ruff>=0.1.0",
+    "ruff>=0.12.0",
     "mypy>=1.17.1",
     "pre-commit>=3.3.0",
     "black>=23.0.0",
@@ -135,11 +135,11 @@ include = [
 [tool.hatch.envs.default]
 dependencies = [
     "hatch>=1.7.0",
-    "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0",
-    "pytest-cov>=4.0.0",
+    "pytest>=8.4.0",
+    "pytest-asyncio>=1.1.0",
+    "pytest-cov>=6.2.0",
     "pytest-benchmark>=4.0.0",
-    "ruff>=0.1.0",
+    "ruff>=0.12.0",
     "mypy>=1.17.1",
     "pre-commit>=3.3.0",
 ]
@@ -157,7 +157,7 @@ check = "pre-commit run --all-files"
 [tool.hatch.envs.lint]
 detached = true
 dependencies = [
-    "ruff>=0.1.0",
+    "ruff>=0.12.0",
 ]
 
 [tool.hatch.envs.lint.env-vars]
@@ -185,13 +185,13 @@ typecheck = "mypy src tests examples"
 # Test environment
 [tool.hatch.envs.test]
 dependencies = [
-    "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0", 
-    "pytest-cov>=4.0.0",
+    "pytest>=8.4.0",
+    "pytest-asyncio>=1.1.0", 
+    "pytest-cov>=6.2.0",
     "pytest-benchmark>=4.0.0",
     # Core runtime dependencies needed for tests
-    "fastapi>=0.100.0",
-    "pydantic>=2.0.0",
+    "fastapi>=0.115.0",
+    "pydantic>=2.11.0",
     "pydantic-settings>=2.0.0",
     "httpx>=0.24.0",
     "orjson>=3.9.0",

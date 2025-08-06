@@ -6,7 +6,7 @@ sphinx-autodoc-typehints>=1.19.0
 
 # Project dependencies needed for autodoc
 structlog
-pydantic>=2.0.0
+pydantic>=2.11.0
 pydantic-settings>=2.0.0
 anyio
 
