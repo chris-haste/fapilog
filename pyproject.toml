@@ -346,10 +346,14 @@ extend-exclude = '''
 exclude = [
     "src/fapilog/__init__.py",  # VERSION is used for compatibility
     "src/fapilog/containers/container.py",  # API methods intentionally unused
+    "src/fapilog/containers/lifecycle.py",  # API methods for container lifecycle
     "src/fapilog/core/events.py",  # Enum values and API methods
     "src/fapilog/core/logger.py",  # API methods and context manager params
     "src/fapilog/core/settings.py",  # Enum values and validator methods
     "src/fapilog/plugins/marketplace.py",  # API methods
     "src/fapilog/plugins/registry.py",  # API methods
+    "src/fapilog/plugins/discovery.py",  # Plugin discovery API methods
+    "src/fapilog/plugins/lifecycle.py",  # Component lifecycle API methods
+    "src/fapilog/plugins/metadata.py",  # Plugin metadata models with Pydantic fields
     "tests/",  # Test files have expected unused imports and mocks
 ]
