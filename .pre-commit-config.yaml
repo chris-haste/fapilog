@@ -16,7 +16,14 @@ repos:
     rev: v1.17.0
     hooks:
       - id: mypy
-        additional_dependencies: [types-requests, types-PyYAML]
+        additional_dependencies: [
+          types-requests, 
+          types-PyYAML,
+          pydantic>=2.11.0,
+          packaging>=23.0,
+          fastapi>=0.115.0,
+          httpx>=0.24.0
+        ]
         args: [--ignore-missing-imports]
 
   # Vulture for dead code detection

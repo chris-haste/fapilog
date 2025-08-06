@@ -232,7 +232,7 @@ class AsyncComponentRegistry(ComponentIsolationMixin):
         """
         instance = await self._lifecycle_manager.get_component(plugin_name)
         if instance and isinstance(instance, plugin_type):
-            return instance
+            return instance  # type: ignore[no-any-return]
         return None
 
     async def load_plugins_by_type(self, plugin_type: str) -> Dict[str, Any]:
