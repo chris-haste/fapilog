@@ -94,7 +94,9 @@ class AsyncComponentRegistry(ComponentIsolationMixin):
                 self._initialized = True
 
             except Exception as e:
-                raise PluginRegistryError(f"Failed to initialize plugin registry: {e}") from e
+                raise PluginRegistryError(
+                    f"Failed to initialize plugin registry: {e}"
+                ) from e
 
     async def cleanup(self) -> None:
         """Clean up the registry and all loaded plugins."""
@@ -185,7 +187,9 @@ class AsyncComponentRegistry(ComponentIsolationMixin):
 
             except Exception as e:
                 plugin_info.load_error = str(e)
-                raise PluginLoadError(f"Failed to load plugin '{plugin_name}': {e}") from e
+                raise PluginLoadError(
+                    f"Failed to load plugin '{plugin_name}': {e}"
+                ) from e
 
     async def unload_plugin(self, plugin_name: str) -> None:
         """

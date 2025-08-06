@@ -100,7 +100,9 @@ class AsyncPluginDiscovery:
                     print(f"Error processing entry point {entry_point.name}: {e}")
 
         except Exception as e:
-            raise PluginDiscoveryError(f"Failed to discover entry point plugins: {e}") from e
+            raise PluginDiscoveryError(
+                f"Failed to discover entry point plugins: {e}"
+            ) from e
 
     async def _process_entry_point(
         self, entry_point: importlib.metadata.EntryPoint
@@ -173,7 +175,9 @@ class AsyncPluginDiscovery:
                 await self._process_local_plugin_file(plugin_file)
 
         except Exception as e:
-            raise PluginDiscoveryError(f"Failed to scan directory {directory}: {e}") from e
+            raise PluginDiscoveryError(
+                f"Failed to scan directory {directory}: {e}"
+            ) from e
 
     async def _process_local_plugin_file(self, plugin_file: Path) -> None:
         """
