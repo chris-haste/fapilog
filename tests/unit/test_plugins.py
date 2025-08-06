@@ -1,0 +1,1443 @@
+"""
+Comprehensive async tests for the plugin system.
+
+Tests cover:
+- Plugin metadata validation
+- Plugin discovery from multiple sources
+- Component lifecycle management
+- Thread-safe component management
+- Plugin loading and isolation
+- Memory leak prevention
+- Type safety validation
+"""
+
+import asyncio
+import tempfile
+import uuid
+from pathlib import Path
+from typing import Any, Dict
+from unittest.mock import Mock, patch
+
+import pytest
+
+from fapilog.containers.container import create_container
+from fapilog.plugins.discovery import AsyncPluginDiscovery, PluginDiscoveryError
+from fapilog.plugins.lifecycle import (
+    AsyncComponentLifecycleManager,
+    ComponentIsolationMixin,
+    PluginLifecycleState,
+    create_lifecycle_manager,
+)
+from fapilog.plugins.metadata import (
+    PluginCompatibility,
+    PluginInfo,
+    PluginMetadata,
+    create_plugin_metadata,
+    validate_fapilog_compatibility,
+)
+from fapilog.plugins.registry import (
+    AsyncComponentRegistry,
+    PluginLoadError,
+    PluginRegistryError,
+    create_component_registry,
+)
+
+
+class MockPlugin:
+    """Mock plugin for testing."""
+
+    def __init__(self, name: str = "test_plugin"):
+        self.name = name
+        self.initialized = False
+        self.cleaned_up = False
+
+    async def initialize(self) -> None:
+        """Async initialization."""
+        self.initialized = True
+
+    async def cleanup(self) -> None:
+        """Async cleanup."""
+        self.cleaned_up = True
+
+    def get_status(self) -> Dict[str, Any]:
+        """Get plugin status."""
+        return {
+            "name": self.name,
+            "initialized": self.initialized,
+            "cleaned_up": self.cleaned_up,
+        }
+
+
+class SyncMockPlugin:
+    """Mock plugin with sync lifecycle for testing."""
+
+    def __init__(self, name: str = "sync_test_plugin"):
+        self.name = name
+        self.initialized = False
+        self.cleaned_up = False
+
+    def initialize(self) -> None:
+        """Sync initialization."""
+        self.initialized = True
+
+    def cleanup(self) -> None:
+        """Sync cleanup."""
+        self.cleaned_up = True
+
+
+# Plugin Metadata Tests
+
+
+class TestPluginMetadata:
+    """Test plugin metadata validation and creation."""
+
+    def test_plugin_compatibility_validation(self):
+        """Test plugin compatibility validation."""
+        # Valid compatibility
+        compatibility = PluginCompatibility(min_fapilog_version="3.0.0")
+        assert compatibility.min_fapilog_version == "3.0.0"
+        assert compatibility.max_fapilog_version is None
+
+        # With max version
+        compatibility = PluginCompatibility(
+            min_fapilog_version="3.0.0", max_fapilog_version="4.0.0"
+        )
+        assert compatibility.max_fapilog_version == "4.0.0"
+
+    def test_plugin_compatibility_invalid_version(self):
+        """Test plugin compatibility with invalid version."""
+        with pytest.raises(ValueError, match="Invalid version string"):
+            PluginCompatibility(min_fapilog_version="invalid-version")
+
+    def test_plugin_metadata_creation(self):
+        """Test plugin metadata creation and validation."""
+        metadata = PluginMetadata(
+            name="test-plugin",
+            version="1.0.0",
+            description="Test plugin",
+            author="Test Author",
+            plugin_type="sink",
+            entry_point="test_plugin.main",
+            compatibility=PluginCompatibility(min_fapilog_version="3.0.0"),
+        )
+
+        assert metadata.name == "test-plugin"
+        assert metadata.version == "1.0.0"
+        assert metadata.plugin_type == "sink"
+        assert metadata.compatibility.min_fapilog_version == "3.0.0"
+
+    def test_plugin_metadata_invalid_type(self):
+        """Test plugin metadata with invalid plugin type."""
+        with pytest.raises(ValueError, match="Invalid plugin type"):
+            PluginMetadata(
+                name="test-plugin",
+                version="1.0.0",
+                description="Test plugin",
+                author="Test Author",
+                plugin_type="invalid_type",
+                entry_point="test_plugin.main",
+                compatibility=PluginCompatibility(min_fapilog_version="3.0.0"),
+            )
+
+    def test_plugin_metadata_invalid_version(self):
+        """Test plugin metadata with invalid version."""
+        with pytest.raises(ValueError, match="Invalid version string"):
+            PluginMetadata(
+                name="test-plugin",
+                version="invalid-version",
+                description="Test plugin",
+                author="Test Author",
+                plugin_type="sink",
+                entry_point="test_plugin.main",
+                compatibility=PluginCompatibility(min_fapilog_version="3.0.0"),
+            )
+
+    def test_create_plugin_metadata_helper(self):
+        """Test create_plugin_metadata helper function."""
+        metadata = create_plugin_metadata(
+            name="helper-plugin",
+            version="1.0.0",
+            plugin_type="processor",
+            entry_point="helper.main",
+            description="Helper plugin",
+            author="Helper Author",
+        )
+
+        assert metadata.name == "helper-plugin"
+        assert metadata.plugin_type == "processor"
+        assert metadata.compatibility.min_fapilog_version == "3.0.0"
+
+    @patch("fapilog.plugins.metadata.importlib.metadata.version")
+    def test_validate_fapilog_compatibility_compatible(self, mock_version):
+        """Test compatibility validation with compatible versions."""
+        mock_version.return_value = "3.1.0"
+
+        metadata = PluginMetadata(
+            name="test-plugin",
+            version="1.0.0",
+            description="Test plugin",
+            author="Test Author",
+            plugin_type="sink",
+            entry_point="test_plugin.main",
+            compatibility=PluginCompatibility(min_fapilog_version="3.0.0"),
+        )
+
+        assert validate_fapilog_compatibility(metadata) is True
+
+    @patch("fapilog.plugins.metadata.importlib.metadata.version")
+    def test_validate_fapilog_compatibility_incompatible(self, mock_version):
+        """Test compatibility validation with incompatible versions."""
+        mock_version.return_value = "2.9.0"
+
+        metadata = PluginMetadata(
+            name="test-plugin",
+            version="1.0.0",
+            description="Test plugin",
+            author="Test Author",
+            plugin_type="sink",
+            entry_point="test_plugin.main",
+            compatibility=PluginCompatibility(min_fapilog_version="3.0.0"),
+        )
+
+        assert validate_fapilog_compatibility(metadata) is False
+
+    @patch("fapilog.plugins.metadata.importlib.metadata.version")
+    def test_validate_fapilog_compatibility_max_version(self, mock_version):
+        """Test compatibility validation with max version constraint."""
+        mock_version.return_value = "4.1.0"
+
+        metadata = PluginMetadata(
+            name="test-plugin",
+            version="1.0.0",
+            description="Test plugin",
+            author="Test Author",
+            plugin_type="sink",
+            entry_point="test_plugin.main",
+            compatibility=PluginCompatibility(
+                min_fapilog_version="3.0.0", max_fapilog_version="4.0.0"
+            ),
+        )
+
+        assert validate_fapilog_compatibility(metadata) is False
+
+
+# Plugin Discovery Tests
+
+
+@pytest.mark.asyncio
+class TestPluginDiscovery:
+    """Test plugin discovery functionality."""
+
+    @pytest.fixture
+    def discovery(self):
+        """Create a plugin discovery instance."""
+        return AsyncPluginDiscovery()
+
+    @pytest.fixture
+    def temp_plugin_dir(self):
+        """Create a temporary directory with test plugins."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            plugin_dir = Path(temp_dir)
+
+            # Create a test plugin file
+            plugin_file = plugin_dir / "test_plugin.py"
+            plugin_content = f"""
+PLUGIN_METADATA = {{
+    "name": "test-local-plugin",
+    "version": "1.0.0",
+    "description": "Test local plugin",
+    "author": "Test Author",
+    "plugin_type": "sink",
+    "entry_point": "{plugin_file}",
+    "compatibility": {{
+        "min_fapilog_version": "3.0.0a1"
+    }}
+}}
+
+class Plugin:
+    def __init__(self):
+        self.name = "test-local-plugin"
+"""
+            plugin_file.write_text(plugin_content)
+            yield plugin_dir
+
+    async def test_discover_all_plugins_empty(self, discovery):
+        """Test discovering plugins when none are available."""
+        plugins = await discovery.discover_all_plugins()
+        # Should return empty dict when no plugins found
+        assert isinstance(plugins, dict)
+
+    async def test_discover_plugins_by_type(self, discovery):
+        """Test discovering plugins by type."""
+        plugins = await discovery.discover_plugins_by_type("sink")
+        assert isinstance(plugins, dict)
+
+    async def test_add_remove_discovery_path(self, discovery, temp_plugin_dir):
+        """Test adding and removing discovery paths."""
+        # Add path
+        discovery.add_discovery_path(temp_plugin_dir)
+        paths = discovery.get_discovery_paths()
+        assert temp_plugin_dir in paths
+
+        # Remove path
+        discovery.remove_discovery_path(temp_plugin_dir)
+        paths = discovery.get_discovery_paths()
+        assert temp_plugin_dir not in paths
+
+    async def test_discover_local_plugins(self, discovery, temp_plugin_dir):
+        """Test discovering local plugins from filesystem."""
+        discovery.add_discovery_path(temp_plugin_dir)
+        plugins = await discovery.discover_all_plugins()
+
+        # Should find the test plugin
+        assert "test-local-plugin" in plugins
+        plugin_info = plugins["test-local-plugin"]
+        assert plugin_info.metadata.name == "test-local-plugin"
+        assert plugin_info.metadata.plugin_type == "sink"
+        assert plugin_info.source == "local"
+
+    async def test_get_plugin_info(self, discovery, temp_plugin_dir):
+        """Test getting specific plugin info."""
+        discovery.add_discovery_path(temp_plugin_dir)
+        await discovery.discover_all_plugins()
+
+        plugin_info = await discovery.get_plugin_info("test-local-plugin")
+        assert plugin_info is not None
+        assert plugin_info.metadata.name == "test-local-plugin"
+
+        # Test non-existent plugin
+        plugin_info = await discovery.get_plugin_info("non-existent")
+        assert plugin_info is None
+
+    async def test_list_discovered_plugins(self, discovery, temp_plugin_dir):
+        """Test listing discovered plugins."""
+        discovery.add_discovery_path(temp_plugin_dir)
+        await discovery.discover_all_plugins()
+
+        plugin_names = discovery.list_discovered_plugins()
+        assert "test-local-plugin" in plugin_names
+
+    async def test_get_plugins_by_type(self, discovery, temp_plugin_dir):
+        """Test getting plugins by type."""
+        discovery.add_discovery_path(temp_plugin_dir)
+        await discovery.discover_all_plugins()
+
+        sink_plugins = discovery.get_plugins_by_type("sink")
+        assert "test-local-plugin" in sink_plugins
+
+        processor_plugins = discovery.get_plugins_by_type("processor")
+        assert len(processor_plugins) == 0
+
+
+# Component Lifecycle Tests
+
+
+@pytest.mark.asyncio
+class TestComponentLifecycle:
+    """Test component lifecycle management."""
+
+    @pytest.fixture
+    def container_id(self):
+        """Generate a unique container ID."""
+        return str(uuid.uuid4())
+
+    @pytest.fixture
+    def plugin_info(self):
+        """Create test plugin info."""
+        metadata = create_plugin_metadata(
+            name="lifecycle-test",
+            version="1.0.0",
+            plugin_type="sink",
+            entry_point="test.Plugin",
+        )
+        return PluginInfo(metadata=metadata, source="test")
+
+    async def test_lifecycle_manager_initialization(self, container_id):
+        """Test lifecycle manager initialization."""
+        manager = AsyncComponentLifecycleManager(container_id)
+        assert manager.container_id == container_id
+        assert not manager.is_initialized
+        assert manager.component_count == 0
+
+        await manager.initialize_all()
+        assert manager.is_initialized
+
+        await manager.cleanup_all()
+        assert not manager.is_initialized
+
+    async def test_component_registration(self, container_id, plugin_info):
+        """Test component registration and lifecycle."""
+        manager = AsyncComponentLifecycleManager(container_id)
+        plugin = MockPlugin()
+
+        # Register component
+        await manager.register_component("test-plugin", plugin_info, plugin)
+        assert manager.component_count == 1
+        assert "test-plugin" in manager.list_components()
+
+        # Initialize all components
+        await manager.initialize_all()
+        assert plugin.initialized
+
+        # Get component
+        retrieved = await manager.get_component("test-plugin")
+        assert retrieved is plugin
+
+        # Cleanup
+        await manager.cleanup_all()
+        assert plugin.cleaned_up
+
+    async def test_component_unregistration(self, container_id, plugin_info):
+        """Test component unregistration."""
+        manager = AsyncComponentLifecycleManager(container_id)
+        plugin = MockPlugin()
+
+        await manager.register_component("test-plugin", plugin_info, plugin)
+        await manager.initialize_all()
+
+        # Unregister component
+        await manager.unregister_component("test-plugin")
+        assert manager.component_count == 0
+        assert plugin.cleaned_up
+
+    async def test_sync_plugin_lifecycle(self, container_id, plugin_info):
+        """Test lifecycle with sync plugin methods."""
+        manager = AsyncComponentLifecycleManager(container_id)
+        plugin = SyncMockPlugin()
+
+        await manager.register_component("sync-plugin", plugin_info, plugin)
+        await manager.initialize_all()
+        assert plugin.initialized
+
+        await manager.cleanup_all()
+        assert plugin.cleaned_up
+
+    async def test_cleanup_callbacks(self, container_id, plugin_info):
+        """Test cleanup callbacks."""
+        manager = AsyncComponentLifecycleManager(container_id)
+        plugin = MockPlugin()
+        callback_called = False
+
+        async def cleanup_callback():
+            nonlocal callback_called
+            callback_called = True
+
+        await manager.register_component("test-plugin", plugin_info, plugin)
+        manager.add_cleanup_callback("test-plugin", cleanup_callback)
+
+        await manager.initialize_all()
+        await manager.cleanup_all()
+
+        assert callback_called
+
+    async def test_plugin_lifecycle_state(self, plugin_info):
+        """Test plugin lifecycle state management."""
+        plugin = MockPlugin()
+        state = PluginLifecycleState(plugin_info, plugin, "test-container")
+
+        assert not state.initialized
+        await state.initialize()
+        assert state.initialized
+        assert plugin.initialized
+
+        await state.cleanup()
+        assert not state.initialized
+        assert plugin.cleaned_up
+
+    async def test_create_lifecycle_manager_context(self, container_id):
+        """Test lifecycle manager context manager."""
+        async with create_lifecycle_manager(container_id) as manager:
+            assert isinstance(manager, AsyncComponentLifecycleManager)
+            assert manager.container_id == container_id
+
+
+# Component Isolation Tests
+
+
+class TestComponentIsolation:
+    """Test component isolation between containers."""
+
+    def test_isolation_mixin(self):
+        """Test component isolation mixin."""
+        container_id = "test-container-123"
+        mixin = ComponentIsolationMixin(container_id)
+
+        assert mixin.container_id == container_id
+
+        # Test isolated naming
+        isolated_name = mixin.get_isolated_name("plugin-name")
+        assert isolated_name == f"container_{container_id}_plugin-name"
+
+        # Test container comparison
+        assert mixin.is_same_container(container_id)
+        assert not mixin.is_same_container("different-container")
+
+    async def test_container_isolation(self):
+        """Test that different containers have isolated components."""
+        # Create two different lifecycle managers
+        manager1 = AsyncComponentLifecycleManager("container-1")
+        manager2 = AsyncComponentLifecycleManager("container-2")
+
+        plugin_info = PluginInfo(
+            metadata=create_plugin_metadata(
+                name="isolation-test",
+                version="1.0.0",
+                plugin_type="sink",
+                entry_point="test.Plugin",
+            ),
+            source="test",
+        )
+
+        plugin1 = MockPlugin("plugin1")
+        plugin2 = MockPlugin("plugin2")
+
+        # Register same plugin name in both containers
+        await manager1.register_component("test-plugin", plugin_info, plugin1)
+        await manager2.register_component("test-plugin", plugin_info, plugin2)
+
+        await manager1.initialize_all()
+        await manager2.initialize_all()
+
+        # Each container should have its own instance
+        retrieved1 = await manager1.get_component("test-plugin")
+        retrieved2 = await manager2.get_component("test-plugin")
+
+        assert retrieved1 is plugin1
+        assert retrieved2 is plugin2
+        assert retrieved1 is not retrieved2
+
+        # Cleanup
+        await manager1.cleanup_all()
+        await manager2.cleanup_all()
+
+
+# Plugin Registry Tests
+
+
+@pytest.mark.asyncio
+class TestPluginRegistry:
+    """Test the complete plugin registry functionality."""
+
+    @pytest.fixture
+    async def container(self):
+        """Create an async container for testing."""
+        async with create_container() as container:
+            yield container
+
+    @pytest.fixture
+    async def registry(self, container):
+        """Create a plugin registry for testing."""
+        registry = await create_component_registry(container)
+        yield registry
+        await registry.cleanup()
+
+    @pytest.fixture
+    def temp_plugin_dir(self):
+        """Create a temporary directory with test plugins."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            plugin_dir = Path(temp_dir)
+
+            # Create a test plugin file
+            plugin_file = plugin_dir / "registry_test_plugin.py"
+            plugin_content = f"""
+PLUGIN_METADATA = {{
+    "name": "registry-test-plugin",
+    "version": "1.0.0",
+    "description": "Registry test plugin",
+    "author": "Test Author",
+    "plugin_type": "sink",
+    "entry_point": "{plugin_file}",
+    "compatibility": {{
+        "min_fapilog_version": "3.0.0a1"
+    }}
+}}
+
+class Plugin:
+    def __init__(self):
+        self.name = "registry-test-plugin"
+        self.initialized = False
+
+    async def initialize(self):
+        self.initialized = True
+
+    async def cleanup(self):
+        self.initialized = False
+"""
+            plugin_file.write_text(plugin_content)
+            yield plugin_dir
+
+    async def test_registry_initialization(self, registry):
+        """Test registry initialization."""
+        assert registry.is_initialized
+        assert registry.loaded_plugin_count == 0
+
+    async def test_discover_plugins(self, registry, temp_plugin_dir):
+        """Test plugin discovery through registry."""
+        registry.add_discovery_path(temp_plugin_dir)
+        plugins = await registry.discover_plugins()
+
+        assert isinstance(plugins, dict)
+        # Should rediscover and include our test plugin
+        assert "registry-test-plugin" in plugins
+
+    async def test_discover_plugins_by_type(self, registry, temp_plugin_dir):
+        """Test discovering plugins by type through registry."""
+        registry.add_discovery_path(temp_plugin_dir)
+        sink_plugins = await registry.discover_plugins("sink")
+
+        assert "registry-test-plugin" in sink_plugins
+
+        processor_plugins = await registry.discover_plugins("processor")
+        assert "registry-test-plugin" not in processor_plugins
+
+    async def test_load_plugin(self, registry, temp_plugin_dir):
+        """Test loading a plugin."""
+        registry.add_discovery_path(temp_plugin_dir)
+        await registry.discover_plugins()
+
+        # Load the plugin
+        plugin_instance = await registry.load_plugin("registry-test-plugin")
+        assert plugin_instance is not None
+        assert plugin_instance.name == "registry-test-plugin"
+        assert registry.loaded_plugin_count == 1
+
+        # Check plugin is in loaded list
+        loaded_plugins = registry.list_loaded_plugins()
+        assert "registry-test-plugin" in loaded_plugins
+
+    async def test_load_nonexistent_plugin(self, registry):
+        """Test loading a non-existent plugin."""
+        with pytest.raises(PluginRegistryError, match="Plugin 'nonexistent' not found"):
+            await registry.load_plugin("nonexistent")
+
+    async def test_get_plugin_with_type_safety(self, registry, temp_plugin_dir):
+        """Test getting plugin with type safety."""
+        registry.add_discovery_path(temp_plugin_dir)
+        await registry.load_plugin("registry-test-plugin")
+
+        # Should work with correct type (using object as base type)
+        plugin = await registry.get_plugin("registry-test-plugin", object)
+        assert plugin is not None
+
+        # Should return None for wrong type
+        plugin = await registry.get_plugin("registry-test-plugin", int)
+        assert plugin is None
+
+    async def test_unload_plugin(self, registry, temp_plugin_dir):
+        """Test unloading a plugin."""
+        registry.add_discovery_path(temp_plugin_dir)
+        await registry.load_plugin("registry-test-plugin")
+        assert registry.loaded_plugin_count == 1
+
+        # Unload the plugin
+        await registry.unload_plugin("registry-test-plugin")
+        assert registry.loaded_plugin_count == 0
+
+        # Should not be in loaded list anymore
+        loaded_plugins = registry.list_loaded_plugins()
+        assert "registry-test-plugin" not in loaded_plugins
+
+    async def test_load_plugins_by_type(self, registry, temp_plugin_dir):
+        """Test loading all plugins of a specific type."""
+        registry.add_discovery_path(temp_plugin_dir)
+        sink_plugins = await registry.load_plugins_by_type("sink")
+
+        assert "registry-test-plugin" in sink_plugins
+        assert registry.loaded_plugin_count >= 1
+
+    async def test_registry_cleanup(self, container):
+        """Test registry cleanup and memory management."""
+        registry = await create_component_registry(container)
+
+        # Create a weakref to check if registry is properly cleaned up
+        import weakref
+
+        weak_registry = weakref.ref(registry)
+        assert weak_registry() is not None
+
+        await registry.cleanup()
+        del registry
+
+        # Force garbage collection to ensure cleanup
+        import gc
+
+        gc.collect()
+
+        # Note: weakref test might not work in all Python implementations
+        # The important thing is that cleanup() doesn't raise exceptions
+
+    async def test_plugin_info_retrieval(self, registry, temp_plugin_dir):
+        """Test retrieving plugin information."""
+        registry.add_discovery_path(temp_plugin_dir)
+        await registry.load_plugin("registry-test-plugin")
+
+        plugin_info = registry.get_plugin_info("registry-test-plugin")
+        assert plugin_info is not None
+        assert plugin_info.metadata.name == "registry-test-plugin"
+        assert plugin_info.loaded
+
+    async def test_discovery_path_management(self, registry, temp_plugin_dir):
+        """Test adding and removing discovery paths."""
+        # Initially no plugins discovered
+        plugins = await registry.discover_plugins()
+        assert "registry-test-plugin" not in plugins
+
+        # Add discovery path
+        registry.add_discovery_path(temp_plugin_dir)
+        plugins = await registry.discover_plugins()
+        assert "registry-test-plugin" in plugins
+
+        # Remove discovery path
+        registry.remove_discovery_path(temp_plugin_dir)
+        # Note: plugins already discovered remain in the registry until rediscovery
+
+
+# Memory and Performance Tests
+
+
+@pytest.mark.asyncio
+class TestCoverageImprovement:
+    """Test cases to improve code coverage for registry and discovery."""
+
+    @pytest.mark.asyncio
+    async def test_registry_initialization_failure(self, tmp_path):
+        """Test registry initialization failure handling."""
+        async with create_container() as container:
+            registry = AsyncComponentRegistry(container)
+
+        # Mock discovery to raise an exception
+        with patch.object(
+            registry._discovery,
+            "discover_all_plugins",
+            side_effect=Exception("Discovery failed"),
+        ):
+            with pytest.raises(
+                PluginRegistryError, match="Failed to initialize plugin registry"
+            ):
+                await registry.initialize()
+
+    @pytest.mark.asyncio
+    async def test_registry_cleanup_when_not_initialized(self):
+        """Test cleanup when registry is not initialized."""
+        async with create_container() as container:
+            registry = AsyncComponentRegistry(container)
+            # Should not raise an exception
+            await registry.cleanup()
+
+    @pytest.mark.asyncio
+    async def test_registry_cleanup_with_exception(self):
+        """Test cleanup with exception handling."""
+        async with create_container() as container:
+            registry = AsyncComponentRegistry(container)
+        await registry.initialize()
+
+        # Mock lifecycle manager to raise exception during cleanup
+        with patch.object(
+            registry._lifecycle_manager,
+            "cleanup_all",
+            side_effect=Exception("Cleanup failed"),
+        ):
+            # Should not raise an exception - errors are swallowed
+            await registry.cleanup()
+
+    @pytest.mark.asyncio
+    async def test_unload_nonexistent_plugin(self):
+        """Test unloading a plugin that doesn't exist."""
+        async with create_container() as container:
+            registry = AsyncComponentRegistry(container)
+        await registry.initialize()
+        # Should not raise an exception
+        await registry.unload_plugin("nonexistent-plugin")
+
+    @pytest.mark.asyncio
+    async def test_plugin_load_failure_error_tracking(self, tmp_path):
+        """Test that plugin load errors are tracked properly."""
+        async with create_container() as container:
+            registry = AsyncComponentRegistry(container)
+        # Create a broken plugin file
+        broken_plugin = tmp_path / "broken_plugin.py"
+        broken_content = """
+PLUGIN_METADATA = {
+    "name": "broken-plugin",
+    "version": "1.0.0",
+    "plugin_type": "sink",
+    "entry_point": "broken_plugin.py",
+    "compatibility": {"min_fapilog_version": "3.0.0a1"}
+}
+
+# This will cause an import error
+import nonexistent_module
+"""
+        broken_plugin.write_text(broken_content)
+
+        registry.add_discovery_path(tmp_path)
+        await registry.initialize()
+        await registry.discover_plugins()
+
+        # Check that the plugin was discovered but with an error
+        plugin_info = await registry._discovery.get_plugin_info("broken_plugin")
+        assert plugin_info is not None
+        assert plugin_info.load_error is not None
+
+    @pytest.mark.asyncio
+    async def test_entry_point_loading_path(self):
+        """Test entry point loading path (though we can't test real entry points)."""
+        async with create_container() as container:
+            registry = AsyncComponentRegistry(container)
+        await registry.initialize()
+
+        # Create a mock plugin info with entry_point source
+        from fapilog.plugins.discovery import PluginInfo
+        from fapilog.plugins.metadata import PluginCompatibility, PluginMetadata
+
+        metadata = PluginMetadata(
+            name="entry-point-plugin",
+            version="1.0.0",
+            plugin_type="sink",
+            entry_point="test_plugin",
+            description="Test entry point plugin",
+            author="Test",
+            compatibility=PluginCompatibility(min_fapilog_version="3.0.0a1"),
+        )
+
+        plugin_info = PluginInfo(metadata=metadata, loaded=False, source="entry_point")
+
+        # Add to discovery manually
+        registry._discovery._discovered_plugins["entry-point-plugin"] = plugin_info
+
+        # This should fail because the entry point doesn't actually exist
+        with pytest.raises(PluginLoadError):
+            await registry.load_plugin("entry-point-plugin")
+
+    @pytest.mark.asyncio
+    async def test_local_plugin_file_not_found(self):
+        """Test loading local plugin when file doesn't exist."""
+        async with create_container() as container:
+            registry = AsyncComponentRegistry(container)
+        await registry.initialize()
+
+        from fapilog.plugins.discovery import PluginInfo
+        from fapilog.plugins.metadata import PluginCompatibility, PluginMetadata
+
+        metadata = PluginMetadata(
+            name="missing-local-plugin",
+            version="1.0.0",
+            plugin_type="sink",
+            entry_point="/nonexistent/path/plugin.py",
+            description="Test missing local plugin",
+            author="Test",
+            compatibility=PluginCompatibility(min_fapilog_version="3.0.0a1"),
+        )
+
+        plugin_info = PluginInfo(metadata=metadata, loaded=False, source="local")
+
+        registry._discovery._discovered_plugins["missing-local-plugin"] = plugin_info
+
+        with pytest.raises(PluginLoadError, match="Plugin file not found"):
+            await registry.load_plugin("missing-local-plugin")
+
+    @pytest.mark.asyncio
+    async def test_discovery_entry_point_error_handling(self):
+        """Test discovery error handling for entry points."""
+        discovery = AsyncPluginDiscovery()
+
+        # Mock entry points to test error handling
+        mock_entry_point = Mock()
+        mock_entry_point.name = "test-plugin"
+        mock_entry_point.load.side_effect = ImportError("Module not found")
+
+        # This should handle the error gracefully
+        await discovery._process_entry_point(mock_entry_point)
+
+        # Check that an error plugin was created
+        assert "test-plugin" in discovery._discovered_plugins
+        plugin_info = discovery._discovered_plugins["test-plugin"]
+        assert plugin_info.load_error is not None
+
+    @pytest.mark.asyncio
+    async def test_discovery_entry_point_incompatible_version(self):
+        """Test discovery of entry point with incompatible version."""
+        discovery = AsyncPluginDiscovery()
+
+        # Mock entry point with incompatible plugin
+        mock_module = Mock()
+        mock_module.PLUGIN_METADATA = {
+            "name": "incompatible-plugin",
+            "version": "1.0.0",
+            "plugin_type": "sink",
+            "entry_point": "test",
+            "description": "Incompatible plugin",
+            "author": "Test",
+            "compatibility": {"min_fapilog_version": "99.0.0"},  # Way too high
+        }
+
+        mock_entry_point = Mock()
+        mock_entry_point.name = "incompatible-plugin"
+        mock_entry_point.load.return_value = mock_module
+
+        await discovery._process_entry_point(mock_entry_point)
+
+        # Check that plugin was discovered but marked as incompatible
+        assert "incompatible-plugin" in discovery._discovered_plugins
+        plugin_info = discovery._discovered_plugins["incompatible-plugin"]
+        assert plugin_info.load_error == "Incompatible with current Fapilog version"
+
+    @pytest.mark.asyncio
+    async def test_discovery_local_plugin_import_error(self, tmp_path):
+        """Test discovery of local plugin with import error."""
+        discovery = AsyncPluginDiscovery()
+        discovery.add_discovery_path(tmp_path)
+
+        # Create a plugin with import error
+        broken_plugin = tmp_path / "import_error_plugin.py"
+        broken_content = """
+import this_module_does_not_exist
+
+PLUGIN_METADATA = {
+    "name": "import-error-plugin",
+    "version": "1.0.0",
+    "plugin_type": "sink"
+}
+"""
+        broken_plugin.write_text(broken_content)
+
+        await discovery._discover_local_plugins()
+
+        # Check that error plugin was created
+        assert "import_error_plugin" in discovery._discovered_plugins
+        plugin_info = discovery._discovered_plugins["import_error_plugin"]
+        assert plugin_info.load_error is not None
+
+    @pytest.mark.asyncio
+    async def test_discovery_local_plugin_no_metadata(self, tmp_path):
+        """Test discovery of local plugin without metadata."""
+        discovery = AsyncPluginDiscovery()
+        discovery.add_discovery_path(tmp_path)
+
+        # Create a plugin without PLUGIN_METADATA
+        no_metadata_plugin = tmp_path / "no_metadata_plugin.py"
+        no_metadata_content = """
+# This plugin has no PLUGIN_METADATA
+def some_function():
+    pass
+"""
+        no_metadata_plugin.write_text(no_metadata_content)
+
+        await discovery._discover_local_plugins()
+
+        # Plugin should not be discovered (no metadata)
+        assert "no_metadata_plugin" not in discovery._discovered_plugins
+
+    @pytest.mark.asyncio
+    async def test_discovery_directory_scan_error(self, tmp_path):
+        """Test discovery error when scanning directory fails."""
+        discovery = AsyncPluginDiscovery()
+
+        # Add a non-existent directory
+        nonexistent_dir = tmp_path / "nonexistent"
+        discovery.add_discovery_path(nonexistent_dir)
+
+        # This should not raise an error for non-existent directory (it just skips it)
+        # The directory doesn't exist, so no plugins will be discovered
+        await discovery._discover_local_plugins()
+        # Verify no plugins were discovered
+        assert len(discovery._discovered_plugins) == 0
+
+    @pytest.mark.asyncio
+    async def test_discovery_python_version_compatibility(self):
+        """Test discovery with different Python versions for entry points."""
+        discovery = AsyncPluginDiscovery()
+
+        # Mock different Python version behavior
+        with patch("importlib.metadata.entry_points") as mock_ep:
+            # Test Python 3.8-3.9 path (no select method)
+            mock_entry_points = Mock()
+            mock_entry_points.select = None  # No select method
+            mock_entry_points.get.return_value = []
+
+            mock_ep.return_value = mock_entry_points
+
+            # Should handle gracefully - need to mock hasattr to return False
+            with patch("builtins.hasattr", return_value=False):
+                await discovery._discover_entry_point_plugins()
+
+    @pytest.mark.asyncio
+    async def test_missing_coverage_lines(self):
+        """Test various edge cases to improve coverage."""
+
+        # Test lifecycle manager error scenarios
+        from fapilog.plugins.lifecycle import AsyncComponentLifecycleManager
+
+        async with create_container() as container:
+            lifecycle_manager = AsyncComponentLifecycleManager("test-container")
+
+            # Test cleanup with no registered plugins
+            await lifecycle_manager.cleanup_all()
+
+            # Test initialize with no plugins
+            await lifecycle_manager.initialize_all()
+
+        # Test discovery edge cases
+        discovery = AsyncPluginDiscovery()
+
+        # Test entry point discovery with empty list
+        with patch("importlib.metadata.entry_points") as mock_ep:
+            mock_entry_points = Mock()
+            mock_entry_points.select.return_value = []
+            mock_ep.return_value = mock_entry_points
+
+            await discovery._discover_entry_point_plugins()
+
+        # Test registry with no plugins
+        async with create_container() as container:
+            registry = AsyncComponentRegistry(container)
+            await registry.initialize()
+
+            # Test unloading from empty registry
+            await registry.unload_plugin("nonexistent")
+
+            # Test getting plugin info for nonexistent plugin
+            info = registry.get_plugin_info("nonexistent")
+            assert info is None
+
+            # Test creating instance factory error handling
+            plugin_info = await registry._discovery.get_plugin_info("nonexistent")
+            assert plugin_info is None
+
+            # Test discovery API calls through the discovery object
+            assert len(registry._discovery._discovered_plugins) == 0
+            discovered = registry._discovery.get_plugins_by_type("sink")
+            assert len(discovered) == 0
+
+
+class TestDiscoveryDetailedCoverage:
+    """Targeted tests to improve discovery.py coverage to 90%+."""
+
+    @pytest.mark.asyncio
+    async def test_entry_point_processing_error_print(self):
+        """Test error printing in entry point processing."""
+        discovery = AsyncPluginDiscovery()
+
+        # Mock the process_entry_point method to raise an exception
+        with patch.object(
+            discovery,
+            "_process_entry_point",
+            side_effect=RuntimeError("Plugin load failed"),
+        ):
+            # Mock entry_points to return a failing entry point
+            with patch("importlib.metadata.entry_points") as mock_ep:
+                mock_entry_point = Mock()
+                mock_entry_point.name = "failing-plugin"
+
+                mock_entry_points = Mock()
+                mock_entry_points.select.return_value = [mock_entry_point]
+                mock_ep.return_value = mock_entry_points
+
+                # Capture print output
+                with patch("builtins.print") as mock_print:
+                    await discovery._discover_entry_point_plugins()
+
+                    # Verify error was printed (covers lines 96-100)
+                    mock_print.assert_called_once()
+                    call_args = mock_print.call_args[0][0]
+                    assert "Error processing entry point failing-plugin" in call_args
+
+    @pytest.mark.asyncio
+    async def test_compatible_entry_point_plugin(self):
+        """Test discovery of compatible entry point plugin (line 127)."""
+        discovery = AsyncPluginDiscovery()
+
+        # Mock compatible entry point plugin
+        mock_module = Mock()
+        mock_module.PLUGIN_METADATA = {
+            "name": "compatible-plugin",
+            "version": "1.0.0",
+            "plugin_type": "sink",
+            "entry_point": "compatible_plugin",
+            "description": "Compatible plugin",
+            "author": "Test",
+            "compatibility": {"min_fapilog_version": "3.0.0a1"},  # Compatible
+        }
+
+        mock_entry_point = Mock()
+        mock_entry_point.name = "compatible-plugin"
+        mock_entry_point.load.return_value = mock_module
+
+        await discovery._process_entry_point(mock_entry_point)
+
+        # Verify plugin was discovered as compatible (covers line 127)
+        assert "compatible-plugin" in discovery._discovered_plugins
+        plugin_info = discovery._discovered_plugins["compatible-plugin"]
+        assert plugin_info.load_error is None
+        assert plugin_info.source == "entry_point"
+
+    @pytest.mark.asyncio
+    async def test_private_file_skipping(self, tmp_path):
+        """Test skipping of private files during discovery (line 171)."""
+        discovery = AsyncPluginDiscovery()
+        discovery.add_discovery_path(tmp_path)
+
+        # Create a private file (starts with underscore)
+        private_plugin = tmp_path / "_private_plugin.py"
+        private_content = """
+PLUGIN_METADATA = {
+    "name": "private-plugin",
+    "version": "1.0.0",
+    "plugin_type": "sink"
+}
+"""
+        private_plugin.write_text(private_content)
+
+        # Create a normal file
+        normal_plugin = tmp_path / "normal_plugin.py"
+        normal_content = """
+PLUGIN_METADATA = {
+    "name": "normal-plugin",
+    "version": "1.0.0",
+    "plugin_type": "sink",
+    "entry_point": "normal_plugin.py",
+    "description": "Normal plugin",
+    "author": "Test",
+    "compatibility": {"min_fapilog_version": "3.0.0a1"}
+}
+"""
+        normal_plugin.write_text(normal_content)
+
+        await discovery._discover_local_plugins()
+
+        # Verify private file was skipped, normal file was processed
+        # Plugins are indexed by metadata name, not filename
+        assert "_private_plugin" not in discovery._discovered_plugins
+        assert "normal-plugin" in discovery._discovered_plugins
+
+    @pytest.mark.asyncio
+    async def test_directory_scan_exception_handling(self, tmp_path):
+        """Test directory scanning exception handling (lines 175-176)."""
+        discovery = AsyncPluginDiscovery()
+
+        # Mock the _process_local_plugin_file to raise an exception
+        with patch.object(
+            discovery,
+            "_process_local_plugin_file",
+            side_effect=RuntimeError("Scan error"),
+        ):
+            # Create a plugin file to trigger the scanning
+            plugin_file = tmp_path / "test_plugin.py"
+            plugin_file.write_text("# test content")
+
+            # This should trigger the exception handling in _scan_directory_for_plugins
+            with pytest.raises(PluginDiscoveryError, match="Failed to scan directory"):
+                await discovery._scan_directory_for_plugins(tmp_path)
+
+    @pytest.mark.asyncio
+    async def test_path_already_in_sys_path(self, tmp_path):
+        """Test scenario where path is already in sys.path (line 192)."""
+        discovery = AsyncPluginDiscovery()
+
+        plugin_file = tmp_path / "test_plugin.py"
+        plugin_content = """
+PLUGIN_METADATA = {
+    "name": "test-plugin",
+    "version": "1.0.0",
+    "plugin_type": "sink",
+    "entry_point": "test_plugin.py",
+    "description": "Test plugin",
+    "author": "Test",
+    "compatibility": {"min_fapilog_version": "3.0.0a1"}
+}
+"""
+        plugin_file.write_text(plugin_content)
+
+        # Add the path to sys.path first
+        import sys
+
+        parent_dir = str(tmp_path)
+        sys.path.insert(0, parent_dir)
+
+        try:
+            await discovery._process_local_plugin_file(plugin_file)
+
+            # Verify plugin was processed (covers line 192 path_added = False)
+            # Plugins are indexed by metadata name, not filename
+            assert "test-plugin" in discovery._discovered_plugins
+
+        finally:
+            # Clean up
+            if parent_dir in sys.path:
+                sys.path.remove(parent_dir)
+
+    @pytest.mark.asyncio
+    async def test_incompatible_local_plugin(self, tmp_path):
+        """Test discovery of incompatible local plugin (line 209)."""
+        discovery = AsyncPluginDiscovery()
+
+        plugin_file = tmp_path / "incompatible_plugin.py"
+        plugin_content = """
+PLUGIN_METADATA = {
+    "name": "incompatible-plugin",
+    "version": "1.0.0",
+    "plugin_type": "sink",
+    "entry_point": "incompatible_plugin.py",
+    "description": "Incompatible plugin",
+    "author": "Test",
+    "compatibility": {"min_fapilog_version": "99.0.0"}  # Way too high
+}
+"""
+        plugin_file.write_text(plugin_content)
+
+        await discovery._process_local_plugin_file(plugin_file)
+
+        # Verify plugin was discovered but marked as incompatible (covers line 209)
+        # Plugins are indexed by metadata name, not filename
+        assert "incompatible-plugin" in discovery._discovered_plugins
+        plugin_info = discovery._discovered_plugins["incompatible-plugin"]
+        assert plugin_info.load_error == "Incompatible with current Fapilog version"
+        assert plugin_info.source == "local"
+
+    @pytest.mark.asyncio
+    async def test_global_discovery_instance_singleton(self):
+        """Test global discovery instance and convenience functions (lines 311-325)."""
+        # Clear the global instance first
+        import fapilog.plugins.discovery as discovery_module
+        from fapilog.plugins.discovery import (
+            discover_plugins,
+            discover_plugins_by_type,
+            get_discovery_instance,
+        )
+
+        discovery_module._discovery_instance = None
+
+        # Test singleton behavior (covers lines 311-313)
+        instance1 = await get_discovery_instance()
+        instance2 = await get_discovery_instance()
+        assert instance1 is instance2
+
+        # Test convenience functions (covers lines 318-319, 324-325)
+        with patch.object(
+            instance1, "discover_all_plugins", return_value={}
+        ) as mock_discover_all:
+            await discover_plugins()
+            mock_discover_all.assert_called_once()
+
+        with patch.object(
+            instance1, "discover_plugins_by_type", return_value={}
+        ) as mock_discover_by_type:
+            await discover_plugins_by_type("sink")
+            mock_discover_by_type.assert_called_once_with("sink")
+
+
+class TestMemoryAndPerformance:
+    """Test memory management and performance characteristics."""
+
+    async def test_memory_leak_prevention(self):
+        """Test that the registry doesn't leak memory with repeated operations."""
+        # This is a basic test - in practice you'd use memory profiling tools
+        async with create_container() as container:
+            for i in range(10):
+                registry = await create_component_registry(container, f"container-{i}")
+                await registry.cleanup()
+
+        # If we get here without issues, basic memory management works
+
+    async def test_concurrent_access(self):
+        """Test thread-safe concurrent access to registry."""
+        async with create_container() as container:
+            registry = await create_component_registry(container)
+
+            # Simulate concurrent operations
+            async def concurrent_operation(operation_id: int):
+                await registry.discover_plugins()
+                return operation_id
+
+            # Run multiple concurrent operations
+            tasks = [concurrent_operation(i) for i in range(5)]
+            results = await asyncio.gather(*tasks)
+
+            assert len(results) == 5
+            await registry.cleanup()
+
+    async def test_large_number_of_plugins(self):
+        """Test performance with a larger number of mock plugins."""
+        # Create a temporary directory with multiple plugins
+        with tempfile.TemporaryDirectory() as temp_dir:
+            plugin_dir = Path(temp_dir)
+
+            # Create multiple test plugins
+            for i in range(10):
+                plugin_file = plugin_dir / f"test_plugin_{i}.py"
+                plugin_content = f"""
+PLUGIN_METADATA = {{
+    "name": "test-plugin-{i}",
+    "version": "1.0.0",
+    "description": "Test plugin {i}",
+    "author": "Test Author",
+    "plugin_type": "sink",
+    "entry_point": "{plugin_file}",
+    "compatibility": {{
+        "min_fapilog_version": "3.0.0a1"
+    }}
+}}
+
+class Plugin:
+    def __init__(self):
+        self.name = "test-plugin-{i}"
+"""
+                plugin_file.write_text(plugin_content)
+
+            async with create_container() as container:
+                registry = await create_component_registry(container)
+                registry.add_discovery_path(plugin_dir)
+
+                # Discover all plugins
+                plugins = await registry.discover_plugins()
+                assert len(plugins) == 10
+
+                # Load all plugins
+                for i in range(10):
+                    await registry.load_plugin(f"test-plugin-{i}")
+
+                assert registry.loaded_plugin_count == 10
+                await registry.cleanup()
+
+
+# Integration Tests
+
+
+@pytest.mark.asyncio
+class TestIntegration:
+    """Test integration between all plugin system components."""
+
+    @pytest.fixture
+    def complex_plugin_dir(self):
+        """Create a directory with multiple types of plugins."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            plugin_dir = Path(temp_dir)
+
+            # Sink plugin
+            sink_plugin = plugin_dir / "file_sink.py"
+            sink_content = f"""
+PLUGIN_METADATA = {{
+    "name": "file-sink",
+    "version": "1.0.0",
+    "description": "File output sink",
+    "author": "Test Author",
+    "plugin_type": "sink",
+    "entry_point": "{sink_plugin}",
+    "compatibility": {{
+        "min_fapilog_version": "3.0.0a1"
+    }}
+}}
+
+class Plugin:
+    def __init__(self):
+        self.name = "file-sink"
+        self.logs = []
+
+    async def write_log(self, log_entry):
+        self.logs.append(log_entry)
+"""
+
+            # Processor plugin
+            processor_plugin = plugin_dir / "json_processor.py"
+            processor_content = f"""
+PLUGIN_METADATA = {{
+    "name": "json-processor",
+    "version": "1.0.0",
+    "description": "JSON log processor",
+    "author": "Test Author",
+    "plugin_type": "processor",
+    "entry_point": "{processor_plugin}",
+    "compatibility": {{
+        "min_fapilog_version": "3.0.0a1"
+    }}
+}}
+
+class Plugin:
+    def __init__(self):
+        self.name = "json-processor"
+
+    async def process_log(self, log_entry):
+        return {{"processed": True, "original": log_entry}}
+"""
+
+            sink_plugin.write_text(sink_content)
+            processor_plugin.write_text(processor_content)
+            yield plugin_dir
+
+    async def test_full_plugin_lifecycle(self, complex_plugin_dir):
+        """Test the complete plugin lifecycle with multiple plugin types."""
+        async with create_container() as container:
+            registry = await create_component_registry(container)
+            registry.add_discovery_path(complex_plugin_dir)
+
+            # Discover all plugins
+            plugins = await registry.discover_plugins()
+            assert "file-sink" in plugins
+            assert "json-processor" in plugins
+
+            # Test discovery by type
+            sinks = await registry.discover_plugins("sink")
+            processors = await registry.discover_plugins("processor")
+
+            assert "file-sink" in sinks
+            assert "json-processor" in processors
+            assert "file-sink" not in processors
+            assert "json-processor" not in sinks
+
+            # Load plugins
+            sink_plugin = await registry.load_plugin("file-sink")
+            processor_plugin = await registry.load_plugin("json-processor")
+
+            assert sink_plugin.name == "file-sink"
+            assert processor_plugin.name == "json-processor"
+
+            # Test plugin functionality
+            test_log = {"message": "test log", "level": "info"}
+            processed_log = await processor_plugin.process_log(test_log)
+            await sink_plugin.write_log(processed_log)
+
+            assert len(sink_plugin.logs) == 1
+            assert sink_plugin.logs[0]["processed"] is True
+
+            # Test type-safe retrieval
+            sink = await registry.get_plugin("file-sink", object)
+            assert sink is sink_plugin
+
+            # Cleanup
+            await registry.cleanup()
+
+    async def test_container_integration(self, complex_plugin_dir):
+        """Test integration with the async container."""
+        async with create_container() as container:
+            registry = await create_component_registry(container)
+            registry.add_discovery_path(complex_plugin_dir)
+
+            # Load a plugin
+            await registry.load_plugin("file-sink")
+
+            # Plugin should be registered with container under isolated name
+            assert registry.loaded_plugin_count == 1
+
+            # Test cleanup through registry
+            await registry.cleanup()
+            assert registry.loaded_plugin_count == 0
+
+    async def test_error_handling_and_recovery(self, complex_plugin_dir):
+        """Test error handling and recovery scenarios."""
+        async with create_container() as container:
+            registry = await create_component_registry(container)
+            registry.add_discovery_path(complex_plugin_dir)
+
+            # Test loading non-existent plugin
+            with pytest.raises(PluginRegistryError):
+                await registry.load_plugin("non-existent-plugin")
+
+            # Successful operations should still work after errors
+            sink_plugin = await registry.load_plugin("file-sink")
+            assert sink_plugin is not None
+
+            await registry.cleanup()
+
+
+if __name__ == "__main__":
+    pytest.main([__file__])
