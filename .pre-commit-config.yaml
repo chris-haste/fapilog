@@ -22,9 +22,12 @@ repos:
           pydantic>=2.11.0,
           packaging>=23.0,
           fastapi>=0.115.0,
-          httpx>=0.24.0
+          httpx>=0.24.0,
+          pytest>=8.4.0,
+          pytest-asyncio>=1.1.0
         ]
-        args: [--ignore-missing-imports]
+        files: ^src/
+        args: [--config-file, pyproject.toml, --explicit-package-bases]
 
   # Vulture for dead code detection
   - repo: https://github.com/jendrikseipp/vulture
