@@ -150,7 +150,7 @@ test-cov = "pytest --cov=src/fapilog --cov-report=html --cov-report=term {args:t
 test-benchmark = "pytest --benchmark-only {args:tests}"
 lint = "ruff check {args:src tests}"
 format = "ruff format {args:src tests}"
-typecheck = "mypy {args:src}"
+typecheck = "mypy {args:src tests examples}"
 check = "pre-commit run --all-files"
 
 # Lint environment
@@ -174,7 +174,7 @@ dependencies = [
 ]
 
 [tool.hatch.envs.typecheck.scripts]
-typecheck = "mypy src"
+typecheck = "mypy src tests examples"
 
 # Test environment
 [tool.hatch.envs.test]
@@ -245,6 +245,11 @@ warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
 strict_equality = true
+# Package resolution
+explicit_package_bases = true
+namespace_packages = true
+mypy_path = "src"
+packages = ["fapilog"]
 
 [[tool.mypy.overrides]]
 module = [
@@ -258,6 +263,7 @@ warn_return_any = false
 warn_unused_ignores = false
 warn_unreachable = false
 strict_equality = false
+ignore_missing_imports = true
 
 [tool.coverage.run]
 source = ["src"]

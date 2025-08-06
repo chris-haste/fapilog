@@ -10,7 +10,7 @@ import pytest
 
 from fapilog.core.events import EventCategory, LogEvent
 from fapilog.core.logger import AsyncLogger
-from fapilog.core.settings import UniversalSettings
+from fapilog.core.settings import LogLevel, UniversalSettings
 
 
 class TestAsyncLogger:
@@ -20,7 +20,7 @@ class TestAsyncLogger:
     async def logger_settings(self) -> UniversalSettings:
         """Create test settings."""
         return UniversalSettings(
-            level="DEBUG",
+            level=LogLevel.DEBUG,
             sinks=["stdout"],
             async_processing=True,
             zero_copy_operations=True,
