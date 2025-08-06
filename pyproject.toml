@@ -88,7 +88,7 @@ dev = [
     "pytest-cov>=4.0.0",
     "pytest-benchmark>=4.0.0",
     "ruff>=0.1.0",
-    "mypy>=1.5.0",
+    "mypy>=1.17.1",
     "pre-commit>=3.3.0",
     "black>=23.0.0",
     "isort>=5.12.0",
@@ -140,7 +140,7 @@ dependencies = [
     "pytest-cov>=4.0.0",
     "pytest-benchmark>=4.0.0",
     "ruff>=0.1.0",
-    "mypy>=1.5.0",
+    "mypy>=1.17.1",
     "pre-commit>=3.3.0",
 ]
 
@@ -171,7 +171,7 @@ format = "ruff format src tests"
 [tool.hatch.envs.typecheck]
 detached = true
 dependencies = [
-    "mypy>=1.5.0",
+    "mypy>=1.17.1",
     "types-requests",
     "types-PyYAML",
 ]
@@ -283,7 +283,8 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = ["fapilog.core.settings"]
-warn_unused_ignores = false  # Pydantic field_validator decorators vary between MyPy versions
+# Pydantic v2 field_validator decorators need type ignores until MyPy catches up
+warn_unused_ignores = false
 
 [tool.coverage.run]
 source = ["src"]
