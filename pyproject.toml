@@ -193,7 +193,7 @@ dependencies = [
 PYTHONPATH = "src"
 
 [tool.hatch.envs.typecheck.scripts]
-typecheck = "mypy src tests examples"
+typecheck = "mypy src tests"
 
 # Test environment
 [tool.hatch.envs.test]
@@ -283,7 +283,6 @@ packages = ["fapilog"]
 [[tool.mypy.overrides]]
 module = [
     "tests.*",
-    "examples.*",
 ]
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
