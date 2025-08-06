@@ -161,10 +161,9 @@ class TestAsyncLoggingContainer:
             dependencies=["missing_dependency"],
         )
 
-        await container.initialize()
-
+        # The error should be raised during initialization when creating singleton instances
         with pytest.raises(KeyError, match="Dependency 'missing_dependency' not found"):
-            await container.get_component("main_component", MockComponentWithDependency)
+            await container.initialize()
 
     async def test_type_safety_check(self, container: AsyncLoggingContainer):
         """Test type safety when retrieving components."""
