@@ -193,11 +193,8 @@ dependencies = [
     "pytest-benchmark>=4.0.0",
 ]
 
-[tool.hatch.envs.typecheck.env-vars]
-PYTHONPATH = "src"
-
 [tool.hatch.envs.typecheck.scripts]
-typecheck = "mypy src tests"
+typecheck = "mypy --config-file pyproject.toml --explicit-package-bases src"
 
 # Test environment
 [tool.hatch.envs.test]
