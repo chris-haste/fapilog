@@ -281,6 +281,10 @@ warn_unreachable = false
 strict_equality = false
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = ["fapilog.core.settings"]
+warn_unused_ignores = false  # Pydantic field_validator decorators vary between MyPy versions
+
 [tool.coverage.run]
 source = ["src"]
 omit = [
