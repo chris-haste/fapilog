@@ -452,21 +452,19 @@ class TestMemoryEfficiency:
         assert len(new_container.list_components()) == 0
 
 
-# Benchmark tests for performance validation
+# Performance tests for validation
 class TestPerformance:
     """Performance tests for the container."""
 
-    @pytest.mark.benchmark
-    async def test_container_creation_performance(self, benchmark):
-        """Benchmark container creation performance."""
+    async def test_container_creation_performance(self):
+        """Test container creation performance."""
 
         async def create_and_initialize():
             container = AsyncLoggingContainer()
             await container.initialize()
             await container.cleanup()
 
-        # Note: This would need pytest-benchmark and proper async support
-        # For now, just test that creation is reasonably fast
+        # Test that creation is reasonably fast
         import time
 
         start = time.time()
