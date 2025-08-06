@@ -13,6 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from fapilog import AsyncLogger, UniversalSettings
+from fapilog.core.settings import LogLevel
 
 
 async def main() -> None:
@@ -20,7 +21,7 @@ async def main() -> None:
 
     # Configure async-first logging
     settings = UniversalSettings(
-        level="INFO",
+        level=LogLevel.INFO,
         sinks=["stdout"],
         async_processing=True,
         zero_copy_operations=True,
