@@ -48,6 +48,9 @@ dependencies = [
     # JSON and serialization
     "orjson>=3.9.0",
     
+    # Version parsing for plugin compatibility
+    "packaging>=23.0",
+    
     # Metrics and monitoring
     "prometheus-client>=0.17.0",
     
