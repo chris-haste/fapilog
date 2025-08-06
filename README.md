@@ -36,13 +36,13 @@ async def main():
         sinks=["stdout", "file"],
         async_processing=True
     )
-    
+
     # Create isolated container
     logger = await AsyncLogger.create(settings)
-    
+
     # Log with rich metadata
-    await logger.info("Application started", 
-                     source="api", 
+    await logger.info("Application started",
+                     source="api",
                      category="system",
                      tags={"environment": "production"})
 
@@ -55,13 +55,13 @@ if __name__ == "__main__":
 Fapilog v3 uses a revolutionary async-first pipeline architecture:
 
 ```
-┌─────────────┐ ┌──────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
-│ Log Event   │───▶│ Enrichment   │───▶│ Processing   │───▶│ Queue        │───▶│ Sinks        │
-│             │ │ │             │ │ │             │ │ │ Async buffer│ │ │ File/Stdout │
-│ log.info()  │ │ │ Add context │ │ │ Redaction   │ │ │ Batching    │ │ │ Loki/Custom │
-│ log.error() │ │ │ Trace IDs   │ │ │ Formatting  │ │ │ Overflow    │ │ │             │
-└─────────────┘ │ │ User data   │ │ │ Validation  │ │ │             │ │ │             │
-                └──────────────┘ └─────────────┘ └─────────────┘ └─────────────┘
+┌─────────────┐    ┌──────────────┐    ┌─────────────┐    ┌──────────────┐    ┌─────────────┐
+│ Log Event   │───▶│ Enrichment   │───▶│ Processing  │───▶│ Queue        │───▶│ Sinks       │
+│             │    │              │    │             │    │              │    │             │
+│ log.info()  │    │ Add context  │    │ Redaction   │    │ Async buffer │    │ File/Stdout │
+│ log.error() │    │ Trace IDs    │    │ Formatting  │    │ Batching     │    │ Loki/Custom │
+|             |    │ User data    │    │ Validation  │    │ Overflow     │    │             │
+└─────────────┘    └──────────────┘    └─────────────┘    └──────────────┘    └─────────────┘
 ```
 
 ## 🔧 Configuration
@@ -73,21 +73,21 @@ settings = UniversalSettings(
     # Core settings
     level="INFO",
     sinks=["stdout", "file", "loki"],
-    
+
     # Async processing
     async_processing=True,
     batch_size=100,
     batch_timeout=1.0,
-    
+
     # Performance
     zero_copy_operations=True,
     parallel_processing=True,
-    
+
     # Enterprise features
     compliance_standard="PCI_DSS",
     data_minimization=True,
     audit_trail=True,
-    
+
     # Plugin ecosystem
     plugins_enabled=True,
     plugin_marketplace=True
@@ -99,18 +99,21 @@ settings = UniversalSettings(
 Fapilog v3 features a universal plugin ecosystem:
 
 ### **Sink Plugins**
+
 - File rotation, compression, encryption
 - Database sinks (PostgreSQL, MongoDB)
 - Cloud services (AWS CloudWatch, Azure Monitor)
 - SIEM integration (Splunk, ELK, QRadar)
 
 ### **Processor Plugins**
+
 - Log filtering, transformation, aggregation
 - Performance monitoring, metrics collection
 - Compliance validation, data redaction
 - Custom business logic processors
 
 ### **Enricher Plugins**
+
 - Request context, user information
 - System metrics, resource monitoring
 - Trace correlation, distributed tracing
