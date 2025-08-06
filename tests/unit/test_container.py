@@ -262,8 +262,8 @@ class TestCreateContainerFactory:
 class TestAsyncComponentBase:
     """Test cases for AsyncComponentBase."""
 
-    class TestComponent(AsyncComponentBase):
-        """Test implementation of AsyncComponentBase."""
+    class SampleComponent(AsyncComponentBase):
+        """Sample implementation of AsyncComponentBase for testing."""
 
         def __init__(self):
             super().__init__()
@@ -278,7 +278,7 @@ class TestAsyncComponentBase:
 
     async def test_component_lifecycle(self):
         """Test component lifecycle management."""
-        component = self.TestComponent()
+        component = self.SampleComponent()
 
         assert not component.is_initialized
         assert not component.init_called
@@ -293,7 +293,7 @@ class TestAsyncComponentBase:
 
     async def test_double_initialization_protection(self):
         """Test that double initialization is protected."""
-        component = self.TestComponent()
+        component = self.SampleComponent()
 
         await component.initialize()
         init_count_before = 1 if component.init_called else 0
@@ -305,7 +305,7 @@ class TestAsyncComponentBase:
 
     async def test_double_cleanup_protection(self):
         """Test that double cleanup is protected."""
-        component = self.TestComponent()
+        component = self.SampleComponent()
 
         await component.initialize()
         await component.cleanup()
