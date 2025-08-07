@@ -642,7 +642,7 @@ class TestCircuitBreaker:
         circuit_breaker = AsyncCircuitBreaker("test-service", config)
 
         async def slow_operation():
-            await asyncio.sleep(0.2)  # Longer than timeout
+            await asyncio.sleep(0.15)  # Longer than timeout (reduced for CI)
             return "should not reach here"
 
         # Test timeout functionality with explicit exception handling
@@ -1055,8 +1055,8 @@ class TestCircuitBreaker:
 
         assert circuit_breaker.state == CircuitState.OPEN
 
-        # Test transition to half-open
-        await asyncio.sleep(0.15)
+        # Test transition to half-open (reduced for CI)
+        await asyncio.sleep(0.02)
         await circuit_breaker._transition_to_half_open()
         assert circuit_breaker.state == CircuitState.HALF_OPEN
 
@@ -1284,8 +1284,8 @@ class TestCircuitBreaker:
 
         assert cb.state == CircuitState.OPEN
 
-        # Wait for half-open transition time
-        await asyncio.sleep(0.02)
+        # Wait for half-open transition time (reduced for CI)
+        await asyncio.sleep(0.015)
 
         # Next call should trigger half-open state check
         async def success_op():
@@ -1863,7 +1863,7 @@ class TestFallbackMechanisms:
         wrapper = AsyncFallbackWrapper("test-operation", fallback_provider, config)
 
         async def slow_operation():
-            await asyncio.sleep(0.2)  # Longer than timeout
+            await asyncio.sleep(0.15)  # Longer than timeout (reduced for CI)
             return "should_not_reach"
 
         result = await wrapper.execute(slow_operation)
@@ -2110,7 +2110,7 @@ class TestFallbackMechanisms:
         wrapper = AsyncFallbackWrapper("test-operation", provider, config)
 
         async def slow_operation():
-            await asyncio.sleep(0.2)
+            await asyncio.sleep(0.15)  # Reduced for CI
             return "should_not_reach"
 
         result = await wrapper.execute(slow_operation)
@@ -2254,7 +2254,7 @@ class TestFallbackMechanisms:
 
         # Test timeout trigger
         async def slow_op():
-            await asyncio.sleep(0.2)
+            await asyncio.sleep(0.12)  # Reduced for CI
             return "should not reach"
 
         result = await wrapper.execute(slow_op)
@@ -2844,8 +2844,8 @@ class TestAuditTrails:
                     AuditEventType.DATA_ACCESS, f"Access event {i}", user_id=f"user-{i}"
                 )
 
-            # Allow some time for background flushing
-            await asyncio.sleep(0.1)
+            # Allow some time for background flushing (reduced for CI)
+            await asyncio.sleep(0.05)
 
             # Check that events were processed
             assert audit_trail._event_count == 5
@@ -2868,8 +2868,8 @@ class TestAuditTrails:
                 ComponentError("Test error", component_name="test")
             )
 
-            # Allow time for automatic flushing
-            await asyncio.sleep(0.1)
+            # Allow time for automatic flushing (reduced for CI)
+            await asyncio.sleep(0.05)
 
             # Check that files were created
             assert storage_path.exists()
@@ -3157,8 +3157,8 @@ class TestAuditTrails:
                     "Critical error",
                     log_level=AuditLogLevel.CRITICAL,
                 )
-                # Wait for async event processing
-                await asyncio.sleep(0.1)
+                # Wait for async event processing (reduced for CI)
+                await asyncio.sleep(0.05)
                 mock_alert.assert_called()
 
                 mock_alert.reset_mock()
@@ -3169,8 +3169,8 @@ class TestAuditTrails:
                     "Security issue",
                     log_level=AuditLogLevel.SECURITY,
                 )
-                # Wait for async event processing
-                await asyncio.sleep(0.1)
+                # Wait for async event processing (reduced for CI)
+                await asyncio.sleep(0.05)
                 mock_alert.assert_called()
 
                 mock_alert.reset_mock()
@@ -3179,8 +3179,8 @@ class TestAuditTrails:
                 await audit_trail.log_event(
                     AuditEventType.DATA_ACCESS, "PII access", contains_pii=True
                 )
-                # Wait for async event processing
-                await asyncio.sleep(0.1)
+                # Wait for async event processing (reduced for CI)
+                await asyncio.sleep(0.05)
                 mock_alert.assert_called()
 
             await audit_trail.stop()
@@ -3207,8 +3207,8 @@ class TestAuditTrails:
                 await audit_trail.log_event(
                     AuditEventType.DATA_ACCESS, "PHI access", contains_phi=True
                 )
-                # Wait for async event processing
-                await asyncio.sleep(0.1)
+                # Wait for async event processing (reduced for CI)
+                await asyncio.sleep(0.05)
                 mock_alert.assert_called()
 
             await audit_trail.stop()
@@ -3271,8 +3271,8 @@ class TestAuditTrails:
                 log_level=AuditLogLevel.ERROR,
             )
 
-            # Wait for events to be processed
-            await asyncio.sleep(0.1)
+            # Wait for events to be processed (reduced for CI)
+            await asyncio.sleep(0.05)
 
             # Test querying all events (exercise the get_events method)
             events = await audit_trail.get_events()

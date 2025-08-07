@@ -55,7 +55,7 @@ repos:
   - repo: local
     hooks:
       - id: pydantic-v1-check
-        name: Pydantic v1 Syntax Check
+        name: Project Guardrails (Pydantic v1 Syntax Check)
         entry: python scripts/check_pydantic_v1.py
         language: system
         stages: [pre-commit]
