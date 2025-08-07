@@ -3136,8 +3136,6 @@ class TestAuditTrails:
         import tempfile
         from unittest.mock import AsyncMock, patch
 
-        print("DEBUG: Starting test_audit_trail_compliance_alerts")
-
         with tempfile.TemporaryDirectory() as temp_dir:
             policy = CompliancePolicy(
                 level=ComplianceLevel.GDPR,
@@ -3147,28 +3145,22 @@ class TestAuditTrails:
             )
             audit_trail = AuditTrail(storage_path=Path(temp_dir), policy=policy)
 
-            print("DEBUG: Created audit trail, starting...")
             await audit_trail.start()
-            print("DEBUG: Audit trail started successfully")
 
             # Mock the alert sending method
             with patch.object(
                 audit_trail, "_send_compliance_alert", new_callable=AsyncMock
             ) as mock_alert:
-                print("DEBUG: Mock created, logging critical error event...")
                 # Test critical error alert
                 await audit_trail.log_event(
                     AuditEventType.ERROR_OCCURRED,
                     "Critical error",
                     log_level=AuditLogLevel.CRITICAL,
                 )
-                print("DEBUG: Event logged, waiting for processing...")
                 # Wait for async event processing (minimal for CI)
                 await asyncio.sleep(0.01)
-                print("DEBUG: Sleep complete, checking mock...")
                 # Simplified assertion - just check it was called
                 assert mock_alert.called
-                print("DEBUG: First assertion passed")
 
                 mock_alert.reset_mock()
 
@@ -3194,9 +3186,7 @@ class TestAuditTrails:
                 # Simplified assertion - just check it was called
                 assert mock_alert.called
 
-            print("DEBUG: Stopping audit trail...")
             await audit_trail.stop()
-            print("DEBUG: Audit trail stopped, test complete!")
 
     @pytest.mark.asyncio
     async def test_audit_trail_hipaa_phi_alerts(self):
