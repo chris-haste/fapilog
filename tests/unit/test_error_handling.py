@@ -3130,12 +3130,13 @@ class TestAuditTrails:
                     )
                     assert event_id  # Should still work despite exceptions
 
-    @pytest.mark.skip(reason="Hangs in CI due to background task processing with mocks")
     @pytest.mark.asyncio
     async def test_audit_trail_compliance_alerts(self):
         """Test compliance alert triggering."""
         import tempfile
         from unittest.mock import AsyncMock, patch
+
+        print("DEBUG: Starting test_audit_trail_compliance_alerts")
 
         with tempfile.TemporaryDirectory() as temp_dir:
             policy = CompliancePolicy(
@@ -3146,21 +3147,28 @@ class TestAuditTrails:
             )
             audit_trail = AuditTrail(storage_path=Path(temp_dir), policy=policy)
 
+            print("DEBUG: Created audit trail, starting...")
             await audit_trail.start()
+            print("DEBUG: Audit trail started successfully")
 
             # Mock the alert sending method
             with patch.object(
                 audit_trail, "_send_compliance_alert", new_callable=AsyncMock
             ) as mock_alert:
+                print("DEBUG: Mock created, logging critical error event...")
                 # Test critical error alert
                 await audit_trail.log_event(
                     AuditEventType.ERROR_OCCURRED,
                     "Critical error",
                     log_level=AuditLogLevel.CRITICAL,
                 )
-                # Wait for async event processing (reduced for CI)
-                await asyncio.sleep(0.05)
-                mock_alert.assert_called()
+                print("DEBUG: Event logged, waiting for processing...")
+                # Wait for async event processing (minimal for CI)
+                await asyncio.sleep(0.01)
+                print("DEBUG: Sleep complete, checking mock...")
+                # Simplified assertion - just check it was called
+                assert mock_alert.called
+                print("DEBUG: First assertion passed")
 
                 mock_alert.reset_mock()
 
@@ -3170,9 +3178,10 @@ class TestAuditTrails:
                     "Security issue",
                     log_level=AuditLogLevel.SECURITY,
                 )
-                # Wait for async event processing (reduced for CI)
-                await asyncio.sleep(0.05)
-                mock_alert.assert_called()
+                # Wait for async event processing (minimal for CI)
+                await asyncio.sleep(0.01)
+                # Simplified assertion - just check it was called
+                assert mock_alert.called
 
                 mock_alert.reset_mock()
 
@@ -3180,13 +3189,15 @@ class TestAuditTrails:
                 await audit_trail.log_event(
                     AuditEventType.DATA_ACCESS, "PII access", contains_pii=True
                 )
-                # Wait for async event processing (reduced for CI)
-                await asyncio.sleep(0.05)
-                mock_alert.assert_called()
+                # Wait for async event processing (minimal for CI)
+                await asyncio.sleep(0.01)
+                # Simplified assertion - just check it was called
+                assert mock_alert.called
 
+            print("DEBUG: Stopping audit trail...")
             await audit_trail.stop()
+            print("DEBUG: Audit trail stopped, test complete!")
 
-    @pytest.mark.skip(reason="Hangs in CI due to background task processing with mocks")
     @pytest.mark.asyncio
     async def test_audit_trail_hipaa_phi_alerts(self):
         """Test HIPAA PHI compliance alerts."""
@@ -3209,9 +3220,10 @@ class TestAuditTrails:
                 await audit_trail.log_event(
                     AuditEventType.DATA_ACCESS, "PHI access", contains_phi=True
                 )
-                # Wait for async event processing (reduced for CI)
-                await asyncio.sleep(0.05)
-                mock_alert.assert_called()
+                # Wait for async event processing (minimal for CI)
+                await asyncio.sleep(0.01)
+                # Simplified assertion - just check it was called
+                assert mock_alert.called
 
             await audit_trail.stop()
 
@@ -3240,7 +3252,6 @@ class TestAuditTrails:
                 )
                 mock_alert.assert_not_called()
 
-    @pytest.mark.skip(reason="Hangs in CI due to complex async event processing")
     @pytest.mark.asyncio
     async def test_audit_trail_event_querying(self):
         """Test audit event querying and filtering."""
@@ -3274,8 +3285,8 @@ class TestAuditTrails:
                 log_level=AuditLogLevel.ERROR,
             )
 
-            # Wait for events to be processed (reduced for CI)
-            await asyncio.sleep(0.05)
+            # Wait for events to be processed (minimal for CI)
+            await asyncio.sleep(0.01)
 
             # Test querying all events (exercise the get_events method)
             events = await audit_trail.get_events()

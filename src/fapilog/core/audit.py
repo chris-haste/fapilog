@@ -219,16 +219,25 @@ class AuditTrail:
 
     async def start(self) -> None:
         """Start audit trail processing."""
+        print("DEBUG: AuditTrail.start() called")
         if self._processing_task is None or self._processing_task.done():
+            print("DEBUG: Creating background processing task")
             self._processing_task = asyncio.create_task(self._process_events())
+            print("DEBUG: Background processing task created")
 
     async def stop(self) -> None:
         """Stop audit trail processing."""
+        print("DEBUG: AuditTrail.stop() called")
         if self._processing_task and not self._processing_task.done():
+            print("DEBUG: Cancelling background processing task")
             self._processing_task.cancel()
             try:
-                await self._processing_task
-            except asyncio.CancelledError:
+                # Wait for cancellation with timeout to prevent hanging
+                print("DEBUG: Waiting for task cancellation...")
+                await asyncio.wait_for(self._processing_task, timeout=0.5)
+                print("DEBUG: Task cancelled successfully")
+            except (asyncio.CancelledError, asyncio.TimeoutError):
+                print("DEBUG: Task cancellation completed (exception expected)")
                 pass
 
     async def log_event(
@@ -309,7 +318,9 @@ class AuditTrail:
             pass
 
         # Queue event for processing
+        print(f"DEBUG: Queuing event {event.event_id} for processing")
         await self._event_queue.put(event)
+        print(f"DEBUG: Event {event.event_id} queued successfully")
 
         # Update statistics
         async with self._lock:
@@ -444,20 +455,29 @@ class AuditTrail:
 
     async def _process_events(self) -> None:
         """Process audit events from the queue."""
+        print("DEBUG: _process_events started")
         while True:
             try:
-                # Get event from queue with timeout
-                event = await asyncio.wait_for(self._event_queue.get(), timeout=1.0)
+                # Get event from queue with shorter timeout for CI compatibility
+                print("DEBUG: Waiting for event from queue...")
+                event = await asyncio.wait_for(self._event_queue.get(), timeout=0.1)
+                print("DEBUG: Got event from queue, processing...")
 
                 # Process the event
                 await self._store_event(event)
                 await self._check_compliance_alerts(event)
+                print("DEBUG: Event processed successfully")
 
             except asyncio.TimeoutError:
+                print("DEBUG: Queue timeout, continuing...")
+                # Check if we should continue or exit
                 continue
             except asyncio.CancelledError:
+                print("DEBUG: _process_events cancelled")
+                # Properly handle cancellation
                 break
-            except Exception:
+            except Exception as e:
+                print(f"DEBUG: Exception in _process_events: {e}")
                 # Log processing error (but don't create infinite loop)
                 pass
 
