@@ -9,7 +9,7 @@ import asyncio
 import uuid
 import weakref
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union
+from typing import Any, Dict, List, Optional, Type, TypeVar, Union, cast
 
 from ..containers.container import AsyncLoggingContainer
 from .discovery import AsyncPluginDiscovery
@@ -232,7 +232,7 @@ class AsyncComponentRegistry(ComponentIsolationMixin):
         """
         instance = await self._lifecycle_manager.get_component(plugin_name)
         if instance and isinstance(instance, plugin_type):
-            return instance  # type: ignore[no-any-return]
+            return cast(Optional[T], instance)
         return None
 
     async def load_plugins_by_type(self, plugin_type: str) -> Dict[str, Any]:

@@ -356,3 +356,105 @@ exclude = [
     "src/fapilog/plugins/metadata.py",  # Plugin metadata models with Pydantic fields
     "tests/",  # Test files have expected unused imports and mocks
 ]
+
+# Whitelist for false positives - legitimate API components
+ignore_names = [
+    # Audit enum values - part of public API
+    "ERROR_RECOVERED",
+    "ERROR_ESCALATED", 
+    "SYSTEM_STARTUP",
+    "SYSTEM_SHUTDOWN",
+    "COMPONENT_FAILURE",
+    "COMPONENT_RECOVERY",
+    "CONFIG_CHANGED",
+    "PLUGIN_LOADED", 
+    "PLUGIN_UNLOADED",
+    "COMPLIANCE_CHECK",
+    "AUDIT_LOG_ACCESS",
+    "RETENTION_POLICY_APPLIED",
+    "SOX",
+    "PCI_DSS",
+    "SOC2",
+    "ISO27001",
+    "DEBUG",
+    
+    # Audit model fields - used via Pydantic serialization
+    "archive_after_days",
+    "require_integrity_check",
+    "audit_access_roles",
+    "gdpr_data_subject_rights",
+    "hipaa_minimum_necessary",
+    "sox_change_control",
+    "hostname",
+    "process_id",
+    "error_category", 
+    "error_severity",
+    "compliance_level",
+    "retention_category",
+    "checksum",
+    "signature",
+    "model_config",
+    
+    # Audit public API methods
+    "log_data_access",
+    "get_events",
+    "get_statistics", 
+    "cleanup",
+    
+    # Circuit breaker public API
+    "call",
+    "_can_execute",
+    "_record_success",
+    "is_closed",
+    "is_open", 
+    "is_half_open",
+    "remove",
+    "reset_all",
+    "get_all_stats",
+    "list_circuit_breakers",
+    
+    # Context management API
+    "error_chain_var",
+    "is_completed",
+    "operation_duration",
+    "add_error_to_current_context",
+    "get_context_chain",
+    "get_statistics",
+    
+    # Error handling enum values
+    "PLUGIN_CONFIG",
+    "SERIALIZATION",
+    "DATABASE",
+    "SETUP", 
+    "ESCALATE",
+    "task_name",
+    "coroutine_name",
+    "call_stack",
+    "operation_start_time",
+    "to_dict",
+    
+    # Fallback enum values and config
+    "FUNCTION_CALL",
+    "DEGRADED_SERVICE", 
+    "CHAIN",
+    "CIRCUIT_OPEN",
+    "RATE_LIMIT",
+    "CUSTOM",
+    "static_value",
+    "fallback_function",
+    "cache_ttl",
+    "track_fallback_usage",
+    
+    # Fallback public API methods
+    "unregister",
+    "get_all_stats",
+    "reset_all_stats", 
+    "list_fallback_wrappers",
+    
+    # Retry configuration
+    "jitter_factor",
+    
+    # Context manager protocol parameters (required by __aexit__)
+    "exc_val",
+    "exc_tb",
+]

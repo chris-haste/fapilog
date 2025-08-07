@@ -13,6 +13,22 @@ import sys
 from pathlib import Path
 
 
+# ANSI color codes for terminal output
+class Colors:
+    """ANSI color codes."""
+
+    RED = "\033[91m"
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    BLUE = "\033[94m"
+    MAGENTA = "\033[95m"
+    CYAN = "\033[96m"
+    WHITE = "\033[97m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
+    END = "\033[0m"  # End color formatting
+
+
 def run_coverage() -> tuple[bool, float]:
     """Run tests with coverage and return success status and coverage percentage."""
     try:
@@ -104,16 +120,17 @@ def main() -> int:
 
     args = parser.parse_args()
 
-    print("🔍 Checking code coverage...")
-
     # Check if tests exist
     if not check_tests_exist():
         if args.skip_if_no_tests:
-            print("⚠️  No tests found, skipping coverage check")
+            print(
+                f"{Colors.YELLOW}⚠️  No tests found, skipping coverage check{Colors.END}"
+            )
             return 0
         else:
+            print(f"{Colors.RED}❌ No tests found{Colors.END}")
             print(
-                "💡 Add --skip-if-no-tests to allow commits without tests during initial development"
+                f"{Colors.BLUE}💡 Add --skip-if-no-tests to allow commits without tests during initial development{Colors.END}"
             )
             return 1
 
@@ -122,25 +139,50 @@ def main() -> int:
 
     if not success:
         if coverage > 0:
-            print("❌ Code coverage check failed!")
-            print(f"   Current coverage: {coverage:.1f}%")
-            print(f"   Required coverage: {args.min_coverage:.1f}%")
-            print(f"   Shortfall: {args.min_coverage - coverage:.1f}%")
+            # Print status message for pre-commit
+            print(
+                f"FAILED: Coverage {coverage:.1f}% < {args.min_coverage:.1f}% required"
+            )
+            # Print with red color for failure
+            print(
+                f"{Colors.RED}{Colors.BOLD}Coverage: {coverage:.1f}% (Failed - Required: {args.min_coverage:.1f}%){Colors.END}"
+            )
+            print(
+                f"{Colors.RED}   Shortfall: {args.min_coverage - coverage:.1f}%{Colors.END}"
+            )
         else:
-            print("❌ Failed to run coverage tests")
+            print("FAILED: Could not run coverage tests")
+            print(f"{Colors.RED}{Colors.BOLD}Coverage: Failed to run tests{Colors.END}")
 
-        print("\n💡 To improve coverage:")
-        print("   1. Add tests for uncovered code")
-        print("   2. Remove unused code")
+        print(f"\n{Colors.BLUE}💡 To improve coverage:{Colors.END}")
+        print(f"{Colors.BLUE}   1. Add tests for uncovered code{Colors.END}")
+        print(f"{Colors.BLUE}   2. Remove unused code{Colors.END}")
         print(
-            "   3. Run 'pytest --cov=src/fapilog --cov-report=html' for detailed report"
+            f"{Colors.BLUE}   3. Run 'pytest --cov=src/fapilog --cov-report=html' for detailed report{Colors.END}"
         )
 
         return 1
 
-    print("✅ Code coverage check passed!")
-    print(f"   Current coverage: {coverage:.1f}%")
-    print(f"   Required coverage: {args.min_coverage:.1f}%")
+    # Print status message for pre-commit
+    if coverage >= args.min_coverage + 5:
+        print(
+            f"PASSED: Coverage {coverage:.1f}% (🎉 Excellent! +{coverage - args.min_coverage:.1f}%)"
+        )
+    else:
+        print(
+            f"PASSED: Coverage {coverage:.1f}% (✅ +{coverage - args.min_coverage:.1f}%)"
+        )
+
+    # Print with green color for success
+    print(f"{Colors.GREEN}{Colors.BOLD}Coverage: {coverage:.1f}% (Passed){Colors.END}")
+    if coverage >= args.min_coverage + 5:
+        print(
+            f"{Colors.GREEN}   🎉 Excellent coverage! ({coverage - args.min_coverage:.1f}% above minimum){Colors.END}"
+        )
+    elif coverage >= args.min_coverage:
+        print(
+            f"{Colors.GREEN}   ✅ Good coverage! ({coverage - args.min_coverage:.1f}% above minimum){Colors.END}"
+        )
 
     return 0
 
