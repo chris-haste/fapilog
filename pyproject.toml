@@ -469,4 +469,15 @@ ignore_names = [
     "allowed_data_classifications",
     # Observability metrics field referenced via Pydantic and external exporters
     "port",
+    # Advanced config API components used externally or in tests
+    "validate_advanced_settings",
+    "ConfigHotReloader",
+    "_last_good",
+    "subscribe",
+    "register_migration",
+    "migrate_to_latest",
+    # Migration dataclass fields serialized/returned
+    "migrated",
+    "to_version",
+    "did_migrate",
 ]

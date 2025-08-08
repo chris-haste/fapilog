@@ -16,7 +16,7 @@ async def test_load_settings_defaults_env_prefix() -> None:
     assert settings.core.max_queue_size == 10_000
     # New groups exist with defaults
     assert settings.security.encryption.enabled is True
-    assert settings.observability.metrics.enabled is True
+    assert settings.observability.metrics.enabled is False
 
 
 @pytest.mark.asyncio

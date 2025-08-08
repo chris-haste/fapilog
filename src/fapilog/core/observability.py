@@ -19,7 +19,7 @@ class MonitoringSettings(BaseModel):
 
 
 class MetricsSettings(BaseModel):
-    enabled: bool = Field(default=True)
+    enabled: bool = Field(default=False)
     exporter: Literal["prometheus", "none"] = Field(default="prometheus")
     port: int = Field(default=8000, ge=1, le=65535)
 
