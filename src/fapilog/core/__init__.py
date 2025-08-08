@@ -26,6 +26,14 @@ from .circuit_breaker import (
     circuit_breaker,
     get_circuit_breaker_manager,
 )
+from .config import (
+    ConfigurationManager,
+    ConfigurationWatcher,
+    SchemaVersionManager,
+    cleanup_global_configuration,
+    get_configuration_manager,
+    initialize_global_configuration,
+)
 from .context import (
     ContextManager,
     ExecutionContext,
@@ -90,6 +98,28 @@ from .fallback import (
     get_fallback_manager,
     with_fallback,
 )
+from .marketplace import (
+    MarketplaceClient,
+    MarketplaceEndpoint,
+    MarketplaceManager,
+    MarketplacePluginInfo,
+    PluginDownloadInfo,
+    PluginPublishRequest,
+    PluginRating,
+    PluginSearchCriteria,
+    cleanup_marketplace_manager,
+    get_marketplace_manager,
+    initialize_marketplace_manager,
+)
+from .plugin_config import (
+    PluginConfigurationManager,
+    PluginConfigurationValidator,
+    PluginDependency,
+    PluginMetadata,
+    PluginQualityMetrics,
+    PluginVersion,
+    get_plugin_configuration_manager,
+)
 from .retry import (
     DATABASE_RETRY_CONFIG,
     EXTERNAL_SERVICE_RETRY_CONFIG,
@@ -102,6 +132,34 @@ from .retry import (
     RetryStrategy,
     retry,
     retry_async,
+)
+from .settings import (
+    ComplianceConfig,
+    ComplianceStandard,
+    CoreConfig,
+    EncryptionMethod,
+    FapilogSettings,
+    LogLevel,
+    MarketplaceConfig,
+    ObservabilityConfig,
+    PluginConfig,
+    PluginDiscoveryMethod,
+    SecurityConfig,
+    get_settings,
+    load_settings,
+    reload_settings,
+    reset_settings,
+)
+from .validation import (
+    AsyncValidator,
+    ComplianceValidator,
+    FieldValidationRule,
+    ModelValidationRule,
+    QualityGateValidator,
+    ValidationRule,
+    get_async_validator,
+    get_compliance_validator,
+    get_quality_gate_validator,
 )
 
 __all__ = [
@@ -193,4 +251,57 @@ __all__ = [
     "audit_error",
     "audit_security_event",
     "get_audit_trail",
+    # Configuration and settings
+    "FapilogSettings",
+    "CoreConfig",
+    "PluginConfig",
+    "ComplianceConfig",
+    "SecurityConfig",
+    "ObservabilityConfig",
+    "MarketplaceConfig",
+    "LogLevel",
+    "PluginDiscoveryMethod",
+    "ComplianceStandard",
+    "EncryptionMethod",
+    "load_settings",
+    "get_settings",
+    "reload_settings",
+    "reset_settings",
+    # Configuration management
+    "ConfigurationManager",
+    "ConfigurationWatcher",
+    "SchemaVersionManager",
+    "get_configuration_manager",
+    "initialize_global_configuration",
+    "cleanup_global_configuration",
+    # Validation
+    "AsyncValidator",
+    "ComplianceValidator",
+    "QualityGateValidator",
+    "ValidationRule",
+    "FieldValidationRule",
+    "ModelValidationRule",
+    "get_async_validator",
+    "get_compliance_validator",
+    "get_quality_gate_validator",
+    # Plugin configuration
+    "PluginMetadata",
+    "PluginVersion",
+    "PluginDependency",
+    "PluginQualityMetrics",
+    "PluginConfigurationValidator",
+    "PluginConfigurationManager",
+    "get_plugin_configuration_manager",
+    # Marketplace
+    "MarketplaceEndpoint",
+    "MarketplacePluginInfo",
+    "PluginSearchCriteria",
+    "PluginRating",
+    "PluginDownloadInfo",
+    "PluginPublishRequest",
+    "MarketplaceClient",
+    "MarketplaceManager",
+    "get_marketplace_manager",
+    "initialize_marketplace_manager",
+    "cleanup_marketplace_manager",
 ]
