@@ -457,4 +457,6 @@ ignore_names = [
     # Context manager protocol parameters (required by __aexit__)
     "exc_val",
     "exc_tb",
+    # Config validation helper used dynamically
+    "ensure_path_exists",
 ]

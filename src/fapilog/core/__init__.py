@@ -26,6 +26,7 @@ from .circuit_breaker import (
     circuit_breaker,
     get_circuit_breaker_manager,
 )
+from .config import load_settings
 from .context import (
     ContextManager,
     ExecutionContext,
@@ -103,6 +104,7 @@ from .retry import (
     retry,
     retry_async,
 )
+from .settings import LATEST_CONFIG_SCHEMA_VERSION, CoreSettings, Settings
 
 __all__ = [
     # Error handling core
@@ -183,6 +185,11 @@ __all__ = [
     "fallback",
     "get_fallback_manager",
     "with_fallback",
+    # Configuration
+    "Settings",
+    "CoreSettings",
+    "LATEST_CONFIG_SCHEMA_VERSION",
+    "load_settings",
     # Audit trails
     "AuditEvent",
     "AuditEventType",
