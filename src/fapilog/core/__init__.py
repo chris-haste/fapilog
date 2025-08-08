@@ -26,6 +26,13 @@ from .circuit_breaker import (
     circuit_breaker,
     get_circuit_breaker_manager,
 )
+from .compliance import (
+    AuditConfig,
+    DataHandlingSettings,
+    validate_audit_config,
+    validate_compliance_policy,
+    validate_data_handling,
+)
 from .config import load_settings
 from .context import (
     ContextManager,
@@ -198,6 +205,12 @@ __all__ = [
     "CoreSettings",
     "LATEST_CONFIG_SCHEMA_VERSION",
     "load_settings",
+    # Compliance configuration validation
+    "AuditConfig",
+    "DataHandlingSettings",
+    "validate_compliance_policy",
+    "validate_data_handling",
+    "validate_audit_config",
     # Plugin configuration validation
     "ValidationIssue",
     "ValidationResult",

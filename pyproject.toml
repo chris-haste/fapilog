@@ -465,4 +465,6 @@ ignore_names = [
     "verify_tls",
     # Validation API used across modules
     "raise_if_error",
+    # Compliance configuration fields validated via Pydantic
+    "allowed_data_classifications",
 ]
