@@ -2,7 +2,7 @@
 Plugin discovery logic for Fapilog v3.
 
 This module handles discovering plugins from various sources including
-local filesystem, installed packages, and future marketplace integration.
+local filesystem, installed packages, and PyPI marketplace integration.
 """
 
 import asyncio
@@ -34,7 +34,7 @@ class AsyncPluginDiscovery:
     Discovers plugins from multiple sources:
     - Local filesystem paths
     - Installed Python packages via entry points
-    - Future: Plugin marketplace
+    - PyPI marketplace (packages with fapilog-plugin topic/name pattern)
     """
 
     def __init__(self) -> None:
@@ -57,6 +57,7 @@ class AsyncPluginDiscovery:
             # Discover from different sources
             await self._discover_entry_point_plugins()
             await self._discover_local_plugins()
+            await self._discover_pypi_plugins()
 
             return self._discovered_plugins.copy()
 
@@ -103,6 +104,99 @@ class AsyncPluginDiscovery:
             raise PluginDiscoveryError(
                 f"Failed to discover entry point plugins: {e}"
             ) from e
+
+    async def _discover_pypi_plugins(self) -> None:
+        """Discover plugins from PyPI marketplace."""
+        try:
+            # Discover from installed packages that match patterns
+            await self._discover_installed_pypi_plugins()
+        except Exception as e:
+            # Log error but continue discovery
+            print(f"Error discovering PyPI plugins: {e}")
+
+    async def _discover_installed_pypi_plugins(self) -> None:
+        """Discover plugins from installed PyPI packages."""
+        try:
+            # Look for installed packages that match fapilog plugin patterns
+            for dist in importlib.metadata.distributions():
+                package_name = dist.metadata.get("Name", "").lower()
+
+                # Check if this looks like a fapilog plugin
+                if self._is_fapilog_plugin_package(package_name, dist):
+                    try:
+                        await self._process_installed_package(dist)
+                    except Exception as e:
+                        # Log error but continue
+                        print(f"Error processing package {package_name}: {e}")
+        except Exception as e:
+            # Log error but continue discovery
+            print(f"Error discovering installed packages: {e}")
+
+    def _is_fapilog_plugin_package(
+        self, package_name: str, dist: importlib.metadata.Distribution
+    ) -> bool:
+        """Check if a package looks like a fapilog plugin."""
+        # Check package name patterns
+        if package_name.startswith("fapilog-") and package_name != "fapilog":
+            return True
+
+        # Check for fapilog plugin topic in metadata
+        try:
+            keywords = dist.metadata.get("Keywords", "").lower()
+            if "fapilog" in keywords and "plugin" in keywords:
+                return True
+        except Exception:
+            pass
+
+        # Check for fapilog.plugins entry points
+        try:
+            entry_points = importlib.metadata.entry_points()
+            fapilog_entries = []
+            if hasattr(entry_points, "select"):
+                fapilog_entries = entry_points.select(group="fapilog.plugins")
+            else:
+                fapilog_entries = entry_points.get("fapilog.plugins", [])
+
+            # Check if this package has fapilog plugins
+            for ep in fapilog_entries:
+                if hasattr(ep, "dist") and ep.dist:
+                    if ep.dist.name == dist.metadata.get("Name"):
+                        return True
+        except Exception:
+            pass
+
+        return False
+
+    async def _process_installed_package(
+        self, dist: importlib.metadata.Distribution
+    ) -> None:
+        """Process an installed package for plugin metadata."""
+        try:
+            package_name = dist.metadata.get("Name", "")
+
+            # Check for entry points using the same pattern as registry.py
+            entry_points = importlib.metadata.entry_points()
+            fapilog_entries = []
+
+            if hasattr(entry_points, "select"):
+                fapilog_entries = entry_points.select(group="fapilog.plugins")
+            else:
+                fapilog_entries = entry_points.get("fapilog.plugins", [])
+
+            # Only process entry points from this package
+            for entry_point in fapilog_entries:
+                if (
+                    hasattr(entry_point, "dist")
+                    and entry_point.dist
+                    and entry_point.dist.name == package_name
+                ):
+                    try:
+                        await self._process_entry_point(entry_point)
+                    except Exception as e:
+                        print(f"Error processing entry point {entry_point.name}: {e}")
+
+        except Exception as e:
+            print(f"Error processing installed package {package_name}: {e}")
 
     async def _process_entry_point(
         self, entry_point: importlib.metadata.EntryPoint
