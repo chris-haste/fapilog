@@ -8,12 +8,12 @@ quality gates, compatibility checks, and security validation.
 import asyncio
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
-from packaging import version
 
+from packaging import version
 from pydantic import BaseModel, Field, field_validator
 
-from .errors import PluginError, ValidationError, ErrorCategory, ErrorSeverity
-from .validation import get_quality_gate_validator, QualityGateValidator
+from .errors import PluginError, ValidationError
+from .validation import get_quality_gate_validator
 
 
 class PluginVersion(BaseModel):
@@ -393,11 +393,11 @@ class PluginConfigurationValidator:
                 import importlib
 
                 importlib.import_module(dependency.name.replace("-", "_"))
-            except ImportError:
+            except ImportError as e:
                 if not dependency.optional:
                     raise ValidationError(
                         f"Required dependency not found: {dependency.name}"
-                    )
+                    ) from e
 
         # Check for system dependencies
         for sys_dep in metadata.system_dependencies:
@@ -502,7 +502,6 @@ class PluginConfigurationValidator:
 
     async def _check_system_dependency(self, dependency: str) -> bool:
         """Check if system dependency is available."""
-        import subprocess
 
         try:
             # Check if command exists

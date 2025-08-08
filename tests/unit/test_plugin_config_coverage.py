@@ -9,22 +9,19 @@ import asyncio
 import json
 import tempfile
 from pathlib import Path
-from unittest.mock import AsyncMock, Mock, patch
-from typing import Dict, Any
 
 import pytest
-from packaging import version
 
+from fapilog.core.errors import PluginError, ValidationError
 from fapilog.core.plugin_config import (
-    PluginVersion,
+    PluginConfigurationManager,
+    PluginConfigurationValidator,
     PluginDependency,
     PluginMetadata,
     PluginQualityMetrics,
-    PluginConfigurationValidator,
-    PluginConfigurationManager,
+    PluginVersion,
     get_plugin_configuration_manager,
 )
-from fapilog.core.errors import PluginError, ValidationError
 
 
 class TestPluginVersion:

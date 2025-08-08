@@ -7,12 +7,12 @@ with async field validation, quality gates, and enterprise compliance validation
 
 import asyncio
 import re
-from typing import Any, Callable, Dict, List, Set, Awaitable
+from typing import Any, Awaitable, Callable, Dict, List, Set
 
 from pydantic import BaseModel, Field
 from pydantic.functional_validators import AfterValidator
 
-from .errors import ErrorCategory, ErrorSeverity, ValidationError
+from .errors import ErrorSeverity, ValidationError
 
 
 class ValidationRule(BaseModel):

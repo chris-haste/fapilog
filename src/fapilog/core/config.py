@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Union
 from weakref import WeakSet
 
-from .errors import ConfigurationError, ErrorCategory, ErrorSeverity
+from .errors import ConfigurationError
 from .settings import FapilogSettings, load_settings
 
 

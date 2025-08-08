@@ -5,9 +5,6 @@ These tests focus on increasing coverage for all validation functions,
 async validators, quality gates, and compliance validators.
 """
 
-import asyncio
-import json
-import re
 import tempfile
 from pathlib import Path
 from unittest.mock import AsyncMock, Mock, patch

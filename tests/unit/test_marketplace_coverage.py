@@ -6,7 +6,6 @@ including models, caching, client operations, and manager features.
 """
 
 import asyncio
-import json
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -16,9 +15,6 @@ import pytest
 
 from fapilog.core.errors import (
     PluginError,
-    ValidationError,
-    ErrorCategory,
-    ErrorSeverity,
 )
 from fapilog.core.marketplace import (
     MarketplaceCache,
@@ -36,7 +32,6 @@ from fapilog.core.marketplace import (
 )
 from fapilog.core.plugin_config import (
     PluginMetadata,
-    PluginQualityMetrics,
     PluginVersion,
 )
 

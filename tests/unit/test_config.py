@@ -14,17 +14,13 @@ import asyncio
 import json
 import os
 import tempfile
-from pathlib import Path
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import patch
 
 import pytest
 
 from fapilog.core.config import (
     ConfigurationManager,
     ConfigurationWatcher,
-    SchemaVersionManager,
-    get_configuration_manager,
-    initialize_global_configuration,
 )
 from fapilog.core.errors import ConfigurationError, ValidationError
 from fapilog.core.marketplace import (
@@ -44,16 +40,10 @@ from fapilog.core.settings import (
     CoreConfig,
     FapilogSettings,
     LogLevel,
-    ObservabilityConfig,
     SecurityConfig,
-    get_settings,
     load_settings,
-    reload_settings,
 )
 from fapilog.core.validation import (
-    AsyncValidator,
-    ComplianceValidator,
-    QualityGateValidator,
     get_async_validator,
     get_compliance_validator,
     get_quality_gate_validator,

@@ -16,7 +16,7 @@ from urllib.parse import urljoin
 import httpx
 from pydantic import BaseModel, Field, field_validator
 
-from .errors import PluginError, ValidationError, ErrorCategory, ErrorSeverity
+from .errors import ErrorCategory, ErrorSeverity, PluginError
 from .plugin_config import PluginMetadata, PluginQualityMetrics
 
 
@@ -692,7 +692,7 @@ class MarketplaceManager:
         # Download plugin
         download_dir = install_dir / "downloads"
         assert self._client is not None
-        plugin_file = await self._client.download_plugin(plugin_info, download_dir)
+        await self._client.download_plugin(plugin_info, download_dir)
 
         # Extract and install (simplified)
         extracted_dir = install_dir / plugin_info.metadata.name

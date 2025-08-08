@@ -1,28 +1,23 @@
 """Comprehensive tests for fapilog.core.fallback module."""
 
 import asyncio
-import time
-from unittest.mock import AsyncMock, Mock, patch
-from typing import Any
 
 import pytest
 
 from fapilog.core.fallback import (
-    FallbackStrategy,
-    FallbackTrigger,
-    FallbackConfig,
-    FallbackStats,
-    FallbackError,
-    FallbackProvider,
-    StaticValueFallback,
-    FunctionFallback,
+    AsyncFallbackWrapper,
     CacheFallback,
     ChainedFallback,
-    AsyncFallbackWrapper,
+    FallbackConfig,
+    FallbackError,
     FallbackManager,
+    FallbackStats,
+    FallbackStrategy,
+    FallbackTrigger,
+    FunctionFallback,
+    StaticValueFallback,
     fallback,
 )
-from fapilog.core.errors import ErrorCategory, ErrorSeverity, FapilogError
 
 
 class TestFallbackEnums:
