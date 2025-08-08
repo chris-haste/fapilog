@@ -607,6 +607,6 @@ async def reload_settings(
 
 
 def reset_settings() -> None:
-    """Reset settings to force reload on next access."""
+    """Reset settings to force reload on next access"""
     global _settings
     _settings = None

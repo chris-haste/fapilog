@@ -375,7 +375,7 @@ class ConfigurationManager:
         # Compliance downgrades
         if (
             old_settings.compliance.compliance_enabled
-            and not new_settings.compliance_enabled
+            and not new_settings.compliance.compliance_enabled
         ):
             breaking_changes.append("Cannot disable compliance after it was enabled")
 
