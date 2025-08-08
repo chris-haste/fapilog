@@ -6,6 +6,7 @@ features including circuit breakers, retry mechanisms, fallback patterns,
 audit trails, and context preservation for enterprise-grade logging systems.
 """
 
+from .access_control import AccessControlSettings, validate_access_control
 from .audit import (
     AuditEvent,
     AuditEventType,
@@ -26,6 +27,14 @@ from .circuit_breaker import (
     circuit_breaker,
     get_circuit_breaker_manager,
 )
+from .compliance import (
+    AuditConfig,
+    DataHandlingSettings,
+    validate_audit_config,
+    validate_compliance_policy,
+    validate_data_handling,
+)
+from .config import load_settings
 from .context import (
     ContextManager,
     ExecutionContext,
@@ -43,6 +52,7 @@ from .context import (
     with_context,
     with_request_context,
 )
+from .encryption import EncryptionSettings, validate_encryption_async
 from .errors import (
     AsyncErrorContext,
     AuthenticationError,
@@ -90,6 +100,15 @@ from .fallback import (
     get_fallback_manager,
     with_fallback,
 )
+from .marketplace import MarketplaceSettings
+from .observability import ObservabilitySettings, validate_observability
+from .plugin_config import (
+    ValidationIssue,
+    ValidationResult,
+    check_dependencies,
+    validate_plugin_configuration,
+    validate_quality_gates,
+)
 from .retry import (
     DATABASE_RETRY_CONFIG,
     EXTERNAL_SERVICE_RETRY_CONFIG,
@@ -103,6 +122,8 @@ from .retry import (
     retry,
     retry_async,
 )
+from .security import SecuritySettings, validate_security
+from .settings import LATEST_CONFIG_SCHEMA_VERSION, CoreSettings, Settings
 
 __all__ = [
     # Error handling core
@@ -183,6 +204,34 @@ __all__ = [
     "fallback",
     "get_fallback_manager",
     "with_fallback",
+    # Configuration
+    "Settings",
+    "CoreSettings",
+    "SecuritySettings",
+    "ObservabilitySettings",
+    "EncryptionSettings",
+    "AccessControlSettings",
+    "LATEST_CONFIG_SCHEMA_VERSION",
+    "load_settings",
+    # Compliance configuration validation
+    "AuditConfig",
+    "DataHandlingSettings",
+    "validate_compliance_policy",
+    "validate_data_handling",
+    "validate_audit_config",
+    # Plugin configuration validation
+    "ValidationIssue",
+    "ValidationResult",
+    "validate_quality_gates",
+    "validate_plugin_configuration",
+    "check_dependencies",
+    # Security & Observability validation
+    "validate_security",
+    "validate_observability",
+    "validate_encryption_async",
+    "validate_access_control",
+    # Marketplace configuration
+    "MarketplaceSettings",
     # Audit trails
     "AuditEvent",
     "AuditEventType",

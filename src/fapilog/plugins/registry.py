@@ -49,14 +49,17 @@ class AsyncComponentRegistry(ComponentIsolationMixin):
     """
 
     def __init__(
-        self, container: AsyncLoggingContainer, container_id: Optional[str] = None
+        self,
+        container: AsyncLoggingContainer,
+        container_id: Optional[str] = None,
     ) -> None:
         """
         Initialize the component registry.
 
         Args:
             container: The async logging container to integrate with
-            container_id: Unique container identifier (generated if not provided)
+            container_id: Unique container identifier
+            (generated if not provided)
         """
         if container_id is None:
             container_id = str(uuid.uuid4())
@@ -162,7 +165,8 @@ class AsyncComponentRegistry(ComponentIsolationMixin):
             # Validate compatibility
             if not validate_fapilog_compatibility(plugin_info.metadata):
                 raise PluginRegistryError(
-                    f"Plugin '{plugin_name}' is incompatible with current Fapilog version"
+                    f"Plugin '{plugin_name}' is incompatible with current "
+                    "Fapilog version"
                 )
 
             try:
@@ -171,8 +175,18 @@ class AsyncComponentRegistry(ComponentIsolationMixin):
 
                 # Register with lifecycle manager
                 await self._lifecycle_manager.register_component(
-                    plugin_name, plugin_info, instance
+                    plugin_name,
+                    plugin_info,
+                    instance,
                 )
+
+                # Validate plugin configuration after loading
+                from ..core.plugin_config import (
+                    validate_plugin_configuration,
+                )
+
+                validation = validate_plugin_configuration(plugin_info)
+                validation.raise_if_error(plugin_name=plugin_name)
 
                 # Store loaded state
                 plugin_info.loaded = True
@@ -181,7 +195,11 @@ class AsyncComponentRegistry(ComponentIsolationMixin):
                 self._plugin_instances[plugin_name] = instance
 
                 # Register with container if appropriate
-                await self._register_with_container(plugin_name, plugin_info, instance)
+                await self._register_with_container(
+                    plugin_name,
+                    plugin_info,
+                    instance,
+                )
 
                 return instance
 

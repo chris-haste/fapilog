@@ -457,4 +457,27 @@ ignore_names = [
     # Context manager protocol parameters (required by __aexit__)
     "exc_val",
     "exc_tb",
+    # Config validation helper used dynamically
+    "ensure_path_exists",
+    # Marketplace settings fields referenced via Pydantic
+    "index_url",
+    "timeout_seconds",
+    "verify_tls",
+    # Validation API used across modules
+    "raise_if_error",
+    # Compliance configuration fields validated via Pydantic
+    "allowed_data_classifications",
+    # Observability metrics field referenced via Pydantic and external exporters
+    "port",
+    # Advanced config API components used externally or in tests
+    "validate_advanced_settings",
+    "ConfigHotReloader",
+    "_last_good",
+    "subscribe",
+    "register_migration",
+    "migrate_to_latest",
+    # Migration dataclass fields serialized/returned
+    "migrated",
+    "to_version",
+    "did_migrate",
 ]
