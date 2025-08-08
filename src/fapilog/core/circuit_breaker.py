@@ -39,7 +39,7 @@ class CircuitBreakerConfig:
     failure_rate_threshold: float = 0.5  # Failure rate threshold (0.0-1.0)
 
     # Timeout settings
-    timeout: float = 30.0  # Timeout for protected operations
+    timeout: Optional[float] = 30.0  # Timeout for protected operations (None disables)
     open_timeout: float = 60.0  # How long to keep circuit open
 
     # Recovery settings
