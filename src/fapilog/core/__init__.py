@@ -91,6 +91,14 @@ from .fallback import (
     get_fallback_manager,
     with_fallback,
 )
+from .marketplace import MarketplaceSettings
+from .plugin_config import (
+    ValidationIssue,
+    ValidationResult,
+    check_dependencies,
+    validate_plugin_configuration,
+    validate_quality_gates,
+)
 from .retry import (
     DATABASE_RETRY_CONFIG,
     EXTERNAL_SERVICE_RETRY_CONFIG,
@@ -190,6 +198,14 @@ __all__ = [
     "CoreSettings",
     "LATEST_CONFIG_SCHEMA_VERSION",
     "load_settings",
+    # Plugin configuration validation
+    "ValidationIssue",
+    "ValidationResult",
+    "validate_quality_gates",
+    "validate_plugin_configuration",
+    "check_dependencies",
+    # Marketplace configuration
+    "MarketplaceSettings",
     # Audit trails
     "AuditEvent",
     "AuditEventType",

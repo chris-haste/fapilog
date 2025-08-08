@@ -459,4 +459,10 @@ ignore_names = [
     "exc_tb",
     # Config validation helper used dynamically
     "ensure_path_exists",
+    # Marketplace settings fields referenced via Pydantic
+    "index_url",
+    "timeout_seconds",
+    "verify_tls",
+    # Validation API used across modules
+    "raise_if_error",
 ]

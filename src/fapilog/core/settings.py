@@ -89,11 +89,15 @@ class Settings(BaseSettings):
 
     # Convenience serialization helpers
     def to_json(self) -> str:
+        import json
+
+        # Use json.dumps to provide a concrete str return type for type checkers
+        return json.dumps(self.model_dump(by_alias=True, exclude_none=True))
+
+    def to_dict(self) -> dict[str, object]:
         from typing import cast
 
-        return cast(str, self.model_dump_json(by_alias=True, exclude_none=True))
-
-    def to_dict(self) -> dict:
-        from typing import Any, cast
-
-        return cast(dict[str, Any], self.model_dump(by_alias=True, exclude_none=True))
+        return cast(
+            dict[str, object],
+            self.model_dump(by_alias=True, exclude_none=True),
+        )
