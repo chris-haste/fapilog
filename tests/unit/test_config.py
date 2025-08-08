@@ -14,6 +14,9 @@ async def test_load_settings_defaults_env_prefix() -> None:
     assert settings.core.app_name == "fapilog"
     assert settings.core.log_level == "INFO"
     assert settings.core.max_queue_size == 10_000
+    # New groups exist with defaults
+    assert settings.security.encryption.enabled is True
+    assert settings.observability.metrics.enabled is True
 
 
 @pytest.mark.asyncio
@@ -27,6 +30,8 @@ async def test_env_nested_overrides_take_effect() -> None:
     assert settings.core.app_name == "demo-app"
     assert settings.core.log_level == "DEBUG"
     assert settings.core.max_queue_size == 1234
+    # Observability defaults apply
+    assert settings.observability.metrics.port == 8000
 
 
 @pytest.mark.asyncio
@@ -52,6 +57,8 @@ async def test_runtime_overrides_merge_safely(tmp_path: Any) -> None:
     assert settings.core.app_name == "override-name"
     assert settings.core.enable_metrics is True
     assert settings.core.benchmark_file_path == str(existing)
+    # Security default remains
+    assert settings.security.access_control.enabled is True
 
 
 @pytest.mark.asyncio

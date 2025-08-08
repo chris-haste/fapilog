@@ -467,4 +467,6 @@ ignore_names = [
     "raise_if_error",
     # Compliance configuration fields validated via Pydantic
     "allowed_data_classifications",
+    # Observability metrics field referenced via Pydantic and external exporters
+    "port",
 ]

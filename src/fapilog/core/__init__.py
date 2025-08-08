@@ -6,6 +6,7 @@ features including circuit breakers, retry mechanisms, fallback patterns,
 audit trails, and context preservation for enterprise-grade logging systems.
 """
 
+from .access_control import AccessControlSettings, validate_access_control
 from .audit import (
     AuditEvent,
     AuditEventType,
@@ -51,6 +52,7 @@ from .context import (
     with_context,
     with_request_context,
 )
+from .encryption import EncryptionSettings, validate_encryption_async
 from .errors import (
     AsyncErrorContext,
     AuthenticationError,
@@ -99,6 +101,7 @@ from .fallback import (
     with_fallback,
 )
 from .marketplace import MarketplaceSettings
+from .observability import ObservabilitySettings, validate_observability
 from .plugin_config import (
     ValidationIssue,
     ValidationResult,
@@ -119,6 +122,7 @@ from .retry import (
     retry,
     retry_async,
 )
+from .security import SecuritySettings, validate_security
 from .settings import LATEST_CONFIG_SCHEMA_VERSION, CoreSettings, Settings
 
 __all__ = [
@@ -203,6 +207,10 @@ __all__ = [
     # Configuration
     "Settings",
     "CoreSettings",
+    "SecuritySettings",
+    "ObservabilitySettings",
+    "EncryptionSettings",
+    "AccessControlSettings",
     "LATEST_CONFIG_SCHEMA_VERSION",
     "load_settings",
     # Compliance configuration validation
@@ -217,6 +225,11 @@ __all__ = [
     "validate_quality_gates",
     "validate_plugin_configuration",
     "check_dependencies",
+    # Security & Observability validation
+    "validate_security",
+    "validate_observability",
+    "validate_encryption_async",
+    "validate_access_control",
     # Marketplace configuration
     "MarketplaceSettings",
     # Audit trails

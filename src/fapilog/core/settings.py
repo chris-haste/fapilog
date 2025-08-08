@@ -15,6 +15,14 @@ from pydantic_settings import (  # type: ignore[import-not-found]
     SettingsConfigDict,
 )
 
+from .observability import (
+    ObservabilitySettings,
+    validate_observability,
+)
+from .security import (
+    SecuritySettings,
+    validate_security,
+)
 from .validation import ensure_path_exists
 
 # Keep explicit version to allow schema gating and forward migrations later
@@ -43,7 +51,8 @@ class CoreSettings(BaseModel):
         description="Maximum in-memory queue size for async processing",
     )
     enable_metrics: bool = Field(
-        default=False, description="Enable Prometheus-compatible metrics"
+        default=False,
+        description="Enable Prometheus-compatible metrics",
     )
     # Example of a field requiring async validation
     benchmark_file_path: str | None = Field(
@@ -68,6 +77,8 @@ class Settings(BaseSettings):
 
     # Namespaced settings groups
     core: CoreSettings = Field(default_factory=CoreSettings)
+    security: SecuritySettings = Field(default_factory=SecuritySettings)
+    observability: ObservabilitySettings = Field(default_factory=ObservabilitySettings)
 
     # Settings behavior
     model_config = SettingsConfigDict(
@@ -87,11 +98,20 @@ class Settings(BaseSettings):
                 message="benchmark_file_path does not exist",
             )
 
+        # Validate security (async, aggregates issues)
+        sec_result = await validate_security(self.security)
+        sec_result.raise_if_error(plugin_name="security")
+
+        # Validate observability (sync)
+        obs_result = validate_observability(self.observability)
+        obs_result.raise_if_error(plugin_name="observability")
+
     # Convenience serialization helpers
     def to_json(self) -> str:
         import json
 
-        # Use json.dumps to provide a concrete str return type for type checkers
+        # Use json.dumps to provide a concrete str return type for
+        # type checkers
         return json.dumps(self.model_dump(by_alias=True, exclude_none=True))
 
     def to_dict(self) -> dict[str, object]:
