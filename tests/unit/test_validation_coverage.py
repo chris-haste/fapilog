@@ -231,7 +231,7 @@ class TestAsyncValidators:
             await validate_url_accessibility(
                 "http://127.0.0.1:9999/nonexistent", timeout=0.1
             )
-            assert False, "Should have raised ValueError"
+            pytest.fail("Should have raised ValueError")
         except ValueError as e:
             assert "URL not accessible" in str(e)
 

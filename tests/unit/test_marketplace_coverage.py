@@ -696,7 +696,7 @@ class TestClientAdvancedFeatures:
 
         try:
             await client.search_plugins(criteria)
-            assert False, "Should have raised PluginError"
+            pytest.fail("Should have raised PluginError")
         except PluginError as e:
             # Verify error details
             assert "Failed to search" in str(e)

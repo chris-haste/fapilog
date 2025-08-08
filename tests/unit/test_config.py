@@ -296,8 +296,8 @@ class TestConfigurationManager:
         manager = ConfigurationManager()
 
         # Initialize and make changes
-        config1 = await manager.initialize(environment="development")
-        config2 = await manager.reload_configuration(environment="staging")
+        await manager.initialize(environment="development")
+        await manager.reload_configuration(environment="staging")
 
         # Check history exists
         history = manager.get_configuration_history()

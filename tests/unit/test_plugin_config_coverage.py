@@ -634,7 +634,7 @@ class TestPluginConfigurationValidator:
             assert True
         except ValidationError:
             # If exception is raised, validation failed
-            assert False, "Metadata validation should have passed"
+            pytest.fail("Metadata validation should have passed")
 
     @pytest.mark.asyncio
     async def test_validate_dependencies(self, validator):
@@ -762,7 +762,10 @@ class TestPluginConfigurationManager:
         """Test loading plugin configuration from YAML file."""
         # Skip test if PyYAML is not available
         try:
-            import yaml
+            import importlib.util
+
+            if importlib.util.find_spec("yaml") is None:
+                pytest.skip("PyYAML not available")
         except ImportError:
             pytest.skip("PyYAML not available")
 
@@ -1068,7 +1071,7 @@ class TestPluginConfigurationValidatorEdgeCases:
             await validator._validate_metadata(minimal_metadata)
             assert True
         except ValidationError:
-            assert False, "Minimal metadata validation should pass"
+            pytest.fail("Minimal metadata validation should pass")
 
     @pytest.mark.asyncio
     async def test_validate_dependencies_circular(self, validator):
@@ -1094,7 +1097,7 @@ class TestPluginConfigurationValidatorEdgeCases:
         # The method will fail because plugin-b is not available, which is expected
         try:
             await validator._validate_dependencies(metadata)
-            assert False, "Should have failed due to missing dependency"
+            pytest.fail("Should have failed due to missing dependency")
         except ValidationError as e:
             assert "Required dependency not found" in str(e)
 
@@ -1117,7 +1120,7 @@ class TestPluginConfigurationValidatorEdgeCases:
             await validator._validate_security(metadata)
             assert True
         except ValidationError:
-            assert False, "Security validation should pass for trusted plugin"
+            pytest.fail("Security validation should pass for trusted plugin")
 
     def test_validator_initialization(self, validator):
         """Test validator initialization."""
@@ -1172,7 +1175,7 @@ class TestPluginConfigurationValidatorEdgeCases:
             await validator._validate_metadata(metadata_with_interfaces)
             assert True
         except ValidationError:
-            assert False, "Valid interface should pass validation"
+            pytest.fail("Valid interface should pass validation")
 
         # Test with invalid interface
         metadata_invalid_interface = PluginMetadata(

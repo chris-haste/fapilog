@@ -283,7 +283,7 @@ class TestConfigurationManagerAdvanced:
 
         # Initial setup
         await manager.initialize(environment="development")
-        initial_settings = manager.get_current_settings()
+        manager.get_current_settings()
 
         # Reload with different config
         new_settings = await manager.reload_configuration(environment="production")
@@ -322,13 +322,13 @@ class TestConfigurationManagerAdvanced:
 
         # Setup multiple configurations (avoid production to avoid breaking change validation)
         # initialize(dev): current=dev, history=[dev]
-        settings1 = await manager.initialize(environment="development")
+        await manager.initialize(environment="development")
 
         # reload(staging): history.append(dev) -> [dev, dev], current=staging
-        settings2 = await manager.reload_configuration(environment="staging")
+        await manager.reload_configuration(environment="staging")
 
         # reload(testing): history.append(staging) -> [dev, dev, staging], current=testing
-        settings3 = await manager.reload_configuration(environment="testing")
+        await manager.reload_configuration(environment="testing")
 
         assert len(manager.get_configuration_history()) == 3
 
@@ -574,6 +574,10 @@ class TestSchemaVersionManager:
         """Test schema version manager defaults."""
         manager = SchemaVersionManager()
 
+        # Test that manager was created with defaults
+        assert manager.current_version == "3.0.0"
+        assert "3.0.0" in manager.supported_versions
+
         # Test default version extraction behavior
         config_with_version = {"config_version": "2.0.0", "environment": "development"}
         source_version = config_with_version.get("config_version", "3.0.0")
@@ -771,7 +775,7 @@ class TestConfigurationManagerConcurrency:
             return await manager.reload_configuration(environment=env)
 
         # Run multiple reload tasks (later ones should win)
-        results = await asyncio.gather(
+        await asyncio.gather(
             reload_task("staging"),
             reload_task("testing"),
             reload_task("production"),
