@@ -492,4 +492,11 @@ ignore_names = [
     "write_offset",
     "total_bytes_written",
     "append_line",
+    # Advanced serialization helpers referenced by API/tests
+    "SegmentedSerialized",
+    "total_length",
+    "iter_memoryviews",
+    "serialize_protobuf_like",
+    "convert_json_bytes_to_jsonl",
+    "serialize_custom_fapilog_v1",
 ]
