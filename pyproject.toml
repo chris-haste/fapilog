@@ -499,4 +499,7 @@ ignore_names = [
     "serialize_protobuf_like",
     "convert_json_bytes_to_jsonl",
     "serialize_custom_fapilog_v1",
+    # Plugin zero-copy processor API symbols
+    "ZeroCopyProcessor",
+    "process_many",
 ]
