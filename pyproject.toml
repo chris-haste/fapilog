@@ -487,4 +487,9 @@ ignore_names = [
     "SerializedView",
     "serialize_mapping_to_json_bytes",
     "view",
+    # Persistence stats dataclass fields and API names referenced indirectly
+    "file_size_bytes",
+    "write_offset",
+    "total_bytes_written",
+    "append_line",
 ]
