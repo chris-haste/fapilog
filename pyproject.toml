@@ -499,6 +499,12 @@ ignore_names = [
     "serialize_protobuf_like",
     "convert_json_bytes_to_jsonl",
     "serialize_custom_fapilog_v1",
+    # Parallel processing public API
+    "gather_with_limit",
+    "process_in_parallel",
+    # Plugin parallel helpers used by callers/tests
+    "enrich_parallel",
+    "process_parallel",
     # Plugin zero-copy processor API symbols
     "ZeroCopyProcessor",
     "process_many",
