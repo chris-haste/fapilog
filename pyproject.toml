@@ -277,6 +277,8 @@ warn_unreachable = true
 strict_equality = true
 # Pydantic plugin for v2 support
 plugins = ["pydantic.mypy"]
+# Allow optional 3rd-party imports like orjson in environments without types
+ignore_missing_imports = true
 # Package resolution
 explicit_package_bases = true
 namespace_packages = true
@@ -480,4 +482,9 @@ ignore_names = [
     "migrated",
     "to_version",
     "did_migrate",
+    
+    # Core serialization public API used by callers/tests
+    "SerializedView",
+    "serialize_mapping_to_json_bytes",
+    "view",
 ]

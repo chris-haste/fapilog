@@ -21,6 +21,15 @@ so that I can achieve maximum memory efficiency and performance without data cop
 7. Batch processing with zero-copy operations for maximum throughput
 8. Memory usage monitoring and optimization throughout pipeline
 
+**Architecture Compliance Requirements:**
+
+- **Zero-Copy Operations Pattern**: Implement memory views and efficient serialization throughout pipeline as defined in architecture
+- **Container Isolation**: Maintain perfect isolation with zero global state using async context managers
+- **Async-First Design**: Pure async/await throughout the logging pipeline with no sync/async mixing
+- **V2 Excellence Preservation**: Recreate the excellent v2 patterns while achieving revolutionary memory efficiency
+- **Coding Standards Compliance**: Follow all critical rules from coding-standards.md, especially zero-copy operations
+- **Pattern Validation**: Ensure implementation follows established architectural patterns from high-level-architecture.md
+
 ## Story 2.2: Parallel Processing Pipeline
 
 As a developer,
