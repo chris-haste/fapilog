@@ -539,4 +539,8 @@ ignore_names = [
     "in_use",
     "idle",
     "errors",
+    # Lock-free concurrency APIs used by callers/tests
+    "LockFreeRingBuffer",
+    "await_push",
+    "await_pop",
 ]

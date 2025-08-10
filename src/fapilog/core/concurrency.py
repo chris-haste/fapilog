@@ -1,13 +1,17 @@
 """
-Concurrency control utilities with backpressure for the async pipeline
-(Story 2.2b).
-Provides:
+Concurrency control and lock-free utilities for the async pipeline.
+
+This module now contains:
 - BackpressurePolicy: WAIT or REJECT
 - AsyncBoundedExecutor: bounded-concurrency executor with a bounded queue
+- LockFreeRingBuffer: single-producer/single-consumer lock-free ring buffer
+
 Design:
 - Async-first using asyncio primitives
 - Controlled concurrency via semaphore and worker tasks
 - Backpressure on queue full with configurable policy
+- Lock-free ring buffer uses atomic-like index arithmetic under the GIL for
+  SPSC scenarios without locks; provides async helpers for awaiting space/data
 """
 
 from __future__ import annotations
@@ -168,3 +172,82 @@ class AsyncBoundedExecutor(Generic[T]):
             w.cancel()
         await asyncio.gather(*self._workers, return_exceptions=True)
         self._workers.clear()
+
+
+class LockFreeRingBuffer(Generic[T]):
+    """Single-producer/single-consumer lock-free ring buffer.
+
+    - Fixed capacity; overwriting is not allowed (push fails when full).
+    - Implemented using modulo arithmetic indices guarded by GIL (CPython),
+      avoiding explicit locks for SPSC.
+    - Provides async helpers ``await_push`` and ``await_pop`` that spin/yield
+      cooperatively without blocking the event loop.
+    """
+
+    __slots__ = ("_buffer", "_capacity", "_head", "_tail")
+
+    def __init__(self, capacity: int) -> None:
+        if capacity <= 0:
+            raise ValueError("capacity must be > 0")
+        # Use list with pre-allocated None slots
+        self._buffer: list[T | None] = [None] * capacity
+        self._capacity = capacity
+        self._head = 0  # next index to read
+        self._tail = 0  # next index to write
+
+    @property
+    def capacity(self) -> int:
+        return self._capacity
+
+    def _size(self) -> int:
+        return (self._tail - self._head) % (2 * self._capacity)
+
+    def is_empty(self) -> bool:
+        return self._head == self._tail
+
+    def is_full(self) -> bool:
+        return self._size() == self._capacity
+
+    def try_push(self, item: T) -> bool:
+        """Attempt to push an item; returns False if buffer is full."""
+        if self.is_full():
+            return False
+        idx = self._tail % self._capacity
+        self._buffer[idx] = item
+        # Advance tail; modulo arithmetic on potentially unbounded tail
+        self._tail = (self._tail + 1) % (2 * self._capacity)
+        return True
+
+    def try_pop(self) -> tuple[bool, T | None]:
+        """Attempt to pop an item; returns (False, None) if empty."""
+        if self.is_empty():
+            return False, None
+        idx = self._head % self._capacity
+        item = self._buffer[idx]
+        self._buffer[idx] = None
+        self._head = (self._head + 1) % (2 * self._capacity)
+        return True, item
+
+    async def await_push(self, item: T, *, yield_every: int = 8) -> None:
+        """Async push that yields to loop while waiting for space.
+
+        yield_every controls how often to ``await asyncio.sleep(0)`` while
+        spinning to avoid starving the loop under high contention.
+        """
+        spins = 0
+        while not self.try_push(item):
+            spins += 1
+            if (spins % yield_every) == 0:
+                await asyncio.sleep(0)
+
+    async def await_pop(self, *, yield_every: int = 8) -> T:
+        """Async pop that yields to loop while waiting for data."""
+        spins = 0
+        while True:
+            ok, item = self.try_pop()
+            if ok:
+                # mypy: item may be Optional; guarded by ok
+                return item  # type: ignore[return-value]
+            spins += 1
+            if (spins % yield_every) == 0:
+                await asyncio.sleep(0)

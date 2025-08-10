@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from fapilog.core.errors import BackpressureError
+from fapilog.core.errors import BackpressureError, FapilogError
 from fapilog.core.resources import (
     AsyncResourcePool,
     HttpClientPool,
@@ -84,3 +84,131 @@ async def test_resource_manager_register_and_cleanup():
     await manager.cleanup_all()
     stats = await manager.stats()
     assert "p1" in stats
+
+
+@pytest.mark.asyncio
+async def test_pool_acquire_timeout_backpressure():
+    created: list[int] = []
+
+    async def create_item() -> int:
+        item = len(created) + 1
+        created.append(item)
+        await asyncio.sleep(0)
+        return item
+
+    async def close_item(item: int) -> None:
+        await asyncio.sleep(0)
+
+    # Single-capacity pool so second acquire must wait and then time out
+    pool = AsyncResourcePool[int](
+        name="timeout",
+        create_resource=create_item,
+        close_resource=close_item,
+        max_size=1,
+        acquire_timeout_seconds=0.05,
+    )
+
+    # Hold the only resource
+    cm = pool.acquire()
+    await cm.__aenter__()
+
+    async def try_second_acquire() -> bool:
+        second = pool.acquire()
+        try:
+            await second.__aenter__()
+        except BackpressureError:
+            return True
+        finally:
+            # Ensure context closed if it ever succeeded unexpectedly
+            try:
+                await second.__aexit__(None, None, None)
+            except Exception:
+                pass
+        return False
+
+    ok = await try_second_acquire()
+    assert ok is True
+
+    # Cleanup while first resource is still in use
+    await pool.cleanup()
+
+
+@pytest.mark.asyncio
+async def test_cleanup_closes_in_use_resource():
+    closed: list[int] = []
+
+    async def create_item() -> int:
+        return 1
+
+    async def close_item(item: int) -> None:
+        closed.append(item)
+
+    pool = AsyncResourcePool[int](
+        name="inuse",
+        create_resource=create_item,
+        close_resource=close_item,
+        max_size=1,
+        acquire_timeout_seconds=0.1,
+    )
+
+    # Acquire but do not release so it's considered in-use
+    cm = pool.acquire()
+    await cm.__aenter__()
+
+    await pool.cleanup()
+    assert closed == [1]
+
+
+@pytest.mark.asyncio
+async def test_resource_manager_duplicate_register_error():
+    created: list[int] = []
+
+    async def create_item() -> int:
+        item = len(created) + 1
+        created.append(item)
+        return item
+
+    async def close_item(item: int) -> None:
+        pass
+
+    pool = AsyncResourcePool[int](
+        name="dup",
+        create_resource=create_item,
+        close_resource=close_item,
+        max_size=1,
+        acquire_timeout_seconds=0.1,
+    )
+
+    manager = ResourceManager()
+    await manager.register_pool("p", pool)
+    with pytest.raises(FapilogError):
+        await manager.register_pool("p", pool)
+
+
+@pytest.mark.asyncio
+async def test_http_client_pool_cleanup_calls_aclose(monkeypatch):
+    import fapilog.core.resources as res
+
+    closed = {"count": 0}
+
+    class FakeClient:
+        def __init__(self, *args, **kwargs) -> None:  # noqa: D401
+            pass
+
+        async def aclose(self) -> None:  # noqa: D401
+            closed["count"] += 1
+
+    monkeypatch.setattr(res.httpx, "AsyncClient", FakeClient)
+
+    pool = res.HttpClientPool(max_size=2, acquire_timeout_seconds=0.1)
+    # Create two distinct clients by holding the first while acquiring the second
+    cm1 = pool.acquire()
+    await cm1.__aenter__()
+    cm2 = pool.acquire()
+    await cm2.__aenter__()
+    # Release both
+    await cm2.__aexit__(None, None, None)
+    await cm1.__aexit__(None, None, None)
+
+    await pool.cleanup()
+    assert closed["count"] >= 2
