@@ -521,4 +521,22 @@ ignore_names = [
     # Metrics utilities referenced by tests or external integrations
     "create_metrics_collector_from_settings",
     "snapshot",
+    # New resource management APIs
+    "AsyncResourcePool",
+    "HttpClientPool",
+    "ResourceManager",
+    "acquire",
+    "acquire_nowait",
+    "release",
+    "stats",
+    "post_json",
+    "AsyncHttpSender",
+    # ResourceManager methods and PoolStats fields referenced indirectly
+    "register_pool",
+    "get_pool",
+    "cleanup_all",
+    "created",
+    "in_use",
+    "idle",
+    "errors",
 ]
