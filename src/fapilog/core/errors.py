@@ -314,7 +314,10 @@ class TimeoutError(FapilogError):
     """Operation timeout errors."""
 
     def __init__(
-        self, message: str, timeout_duration: Optional[float] = None, **kwargs: Any
+        self,
+        message: str,
+        timeout_duration: Optional[float] = None,
+        **kwargs: Any,
     ) -> None:
         super().__init__(
             message,
@@ -336,6 +339,19 @@ class ValidationError(FapilogError):
             category=ErrorCategory.VALIDATION,
             severity=ErrorSeverity.LOW,
             recovery_strategy=ErrorRecoveryStrategy.NONE,
+            **kwargs,
+        )
+
+
+class BackpressureError(FapilogError):
+    """Backpressure condition encountered (queue/full or timeout)."""
+
+    def __init__(self, message: str, **kwargs: Any) -> None:  # noqa: D401
+        super().__init__(
+            message,
+            category=ErrorCategory.SYSTEM,
+            severity=ErrorSeverity.HIGH,
+            recovery_strategy=ErrorRecoveryStrategy.RETRY,
             **kwargs,
         )
 
@@ -438,7 +454,9 @@ def create_error_context(
 ) -> AsyncErrorContext:
     """Create error context with current async environment information."""
     context = AsyncErrorContext(
-        category=category, severity=severity, recovery_strategy=recovery_strategy
+        category=category,
+        severity=severity,
+        recovery_strategy=recovery_strategy,
     )
 
     # Add current context variables

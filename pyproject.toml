@@ -502,6 +502,11 @@ ignore_names = [
     # Parallel processing public API
     "gather_with_limit",
     "process_in_parallel",
+    # Concurrency control public API
+    "AsyncBoundedExecutor",
+    "BackpressurePolicy",
+    "BackpressureError",
+    "run_all",
     # Plugin parallel helpers used by callers/tests
     "enrich_parallel",
     "process_parallel",
