@@ -36,6 +36,7 @@ from .compliance import (
 )
 from .concurrency import (
     AsyncBoundedExecutor,
+    AsyncWorkStealingExecutor,
     BackpressurePolicy,
     LockFreeRingBuffer,
 )
@@ -240,6 +241,7 @@ __all__ = [
     # Concurrency utilities
     "BackpressurePolicy",
     "AsyncBoundedExecutor",
+    "AsyncWorkStealingExecutor",
     "LockFreeRingBuffer",
     # Audit trails
     "AuditEvent",
