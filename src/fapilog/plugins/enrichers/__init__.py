@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Iterable, List
+from typing import Iterable, Optional
 
 from ...core.processing import process_in_parallel
+from ...metrics.metrics import MetricsCollector
 
 
 class BaseEnricher:
@@ -13,7 +14,11 @@ class BaseEnricher:
 
 
 async def enrich_parallel(
-    event: dict, enrichers: Iterable[BaseEnricher], *, concurrency: int = 5
+    event: dict,
+    enrichers: Iterable[BaseEnricher],
+    *,
+    concurrency: int = 5,
+    metrics: MetricsCollector | None = None,
 ) -> dict:
     """
     Run multiple enrichers in parallel on the same event with controlled
@@ -34,6 +39,12 @@ async def enrich_parallel(
     for res in results:
         if isinstance(res, BaseException):
             # Skip failed enricher to preserve pipeline resilience
+            if metrics is not None and metrics.is_enabled:
+                await metrics.record_plugin_error(
+                    plugin_name=getattr(type(res), "__name__", "enricher_error")
+                )
             continue
         merged.update(res)
+        if metrics is not None:
+            await metrics.record_event_processed()
     return merged

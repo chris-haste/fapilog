@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Iterable, List
+from typing import Iterable, Optional
 
 from ...core.processing import process_in_parallel
+from ...metrics.metrics import MetricsCollector
 
 
 class BaseProcessor:
@@ -24,6 +25,7 @@ async def process_parallel(
     processors: Iterable[BaseProcessor],
     *,
     concurrency: int = 5,
+    metrics: MetricsCollector | None = None,
 ) -> list[memoryview]:
     """
     Run each processor across views in parallel, returning processed views per
@@ -40,7 +42,16 @@ async def process_parallel(
         # parallelism is across processors
         out: list[memoryview] = []
         for v in current_views:
-            out.append(await p.process(v))
+            try:
+                processed = await p.process(v)
+            except Exception:
+                if metrics is not None:
+                    await metrics.record_plugin_error(plugin_name=p.__class__.__name__)
+                raise
+            else:
+                out.append(processed)
+                if metrics is not None:
+                    await metrics.record_event_processed()
         return out
 
     processed_lists_raw = await process_in_parallel(

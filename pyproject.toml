@@ -518,4 +518,7 @@ ignore_names = [
     # Plugin zero-copy processor API symbols
     "ZeroCopyProcessor",
     "process_many",
+    # Metrics utilities referenced by tests or external integrations
+    "create_metrics_collector_from_settings",
+    "snapshot",
 ]

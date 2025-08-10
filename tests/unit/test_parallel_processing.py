@@ -3,6 +3,8 @@ import asyncio
 import pytest
 
 from fapilog.core.processing import gather_with_limit, process_in_parallel
+from fapilog.metrics.metrics import MetricsCollector
+from fapilog.plugins.processors import BaseProcessor, process_parallel
 
 
 @pytest.mark.asyncio
@@ -47,3 +49,46 @@ async def test_gather_with_limit_raises_on_bad_limit():
 
     with pytest.raises(ValueError):
         await gather_with_limit([lambda: foo()], limit=0)
+
+
+class RaiseProcessor(BaseProcessor):
+    async def process(  # type: ignore[override]
+        self, view: memoryview
+    ) -> memoryview:
+        raise RuntimeError("boom")
+
+
+@pytest.mark.asyncio
+async def test_process_parallel_records_metrics_on_success_and_error():
+    class Passthrough(BaseProcessor):
+        async def process(  # type: ignore[override]
+            self, view: memoryview
+        ) -> memoryview:
+            await asyncio.sleep(0.005)
+            return view
+
+    views = [memoryview(b"abc"), memoryview(b"def")]
+    metrics = MetricsCollector(enabled=True)
+
+    # Success path
+    out = await process_parallel(
+        views,
+        [Passthrough()],
+        concurrency=2,
+        metrics=metrics,
+    )
+    assert [bytes(v) for v in out] == [b"abc", b"def"]
+    snap = await metrics.snapshot()
+    assert snap.events_processed == 2
+
+    # Error path increments plugin_errors and gracefully degrades
+    metrics_err = MetricsCollector(enabled=True)
+    out2 = await process_parallel(
+        views,
+        [RaiseProcessor()],
+        concurrency=2,
+        metrics=metrics_err,
+    )
+    assert [bytes(v) for v in out2] == [b"abc", b"def"]
+    snap_err = await metrics_err.snapshot()
+    assert snap_err.plugin_errors == 1
