@@ -22,6 +22,8 @@ from typing import (
 
 from pydantic import BaseModel
 
+from ..core.resources import ResourceManager
+
 T = TypeVar("T")
 ComponentFactory = Callable[..., Awaitable[T]]
 
@@ -59,6 +61,9 @@ class AsyncLoggingContainer:
         # Use weakref to avoid circular references and memory leaks
         self._weakref_self = weakref.ref(self)
 
+        # Resource manager for pooled external resources within this container
+        self._resources = ResourceManager()
+
     async def __aenter__(self) -> "AsyncLoggingContainer":
         """Async context manager entry."""
         await self.initialize()
@@ -95,6 +100,13 @@ class AsyncLoggingContainer:
                 except Exception:
                     # Log error but continue cleanup
                     pass
+
+            # Cleanup pooled resources last to ensure components can release
+            try:
+                await self._resources.cleanup_all()
+            except Exception:
+                # Defensive: never fail cleanup
+                pass
 
             # Clear all instances
             self._instances.clear()
@@ -219,6 +231,11 @@ class AsyncLoggingContainer:
     def list_components(self) -> list[str]:
         """List all registered component names."""
         return list(self._components.keys())
+
+    @property
+    def resources(self) -> ResourceManager:
+        """Access the container-scoped resource manager."""
+        return self._resources
 
 
 @asynccontextmanager

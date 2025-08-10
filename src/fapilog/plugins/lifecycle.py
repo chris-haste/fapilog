@@ -11,6 +11,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any, Awaitable, Callable, Dict, List, Optional, TypeVar
 
+from ..core.resources import ResourceManager
 from .metadata import PluginInfo
 
 T = TypeVar("T")
@@ -65,9 +66,10 @@ class PluginLifecycleState:
                 self.initialized = True
 
             except Exception as e:
-                raise ComponentLifecycleError(
+                msg = (
                     f"Failed to initialize plugin {self.plugin_info.metadata.name}: {e}"
-                ) from e
+                )
+                raise ComponentLifecycleError(msg) from e
 
     async def cleanup(self) -> None:
         """Clean up the plugin component."""
@@ -131,6 +133,9 @@ class AsyncComponentLifecycleManager:
         # Use weakref to avoid circular references
         self._weakref_self = weakref.ref(self)
 
+        # Resource manager dedicated to plugins under this lifecycle
+        self._resources = ResourceManager()
+
     async def register_component(
         self, plugin_name: str, plugin_info: PluginInfo, instance: Any
     ) -> None:
@@ -181,7 +186,7 @@ class AsyncComponentLifecycleManager:
             if self._initialized:
                 return
 
-            initialization_errors = []
+            initialization_errors: list[str] = []
 
             for plugin_name, lifecycle_state in self._components.items():
                 try:
@@ -190,9 +195,8 @@ class AsyncComponentLifecycleManager:
                     initialization_errors.append(f"{plugin_name}: {e}")
 
             if initialization_errors:
-                raise ComponentLifecycleError(
-                    f"Failed to initialize plugins: {'; '.join(initialization_errors)}"
-                )
+                joined = "; ".join(initialization_errors)
+                raise ComponentLifecycleError(f"Failed to initialize plugins: {joined}")
 
             self._initialized = True
 
@@ -212,6 +216,12 @@ class AsyncComponentLifecycleManager:
 
             self._components.clear()
             self._initialized = False
+
+            # Cleanup pooled plugin resources after components are down
+            try:
+                await self._resources.cleanup_all()
+            except Exception:
+                pass
 
     async def get_component(self, plugin_name: str) -> Optional[Any]:
         """
@@ -271,13 +281,18 @@ class AsyncComponentLifecycleManager:
             return lifecycle_state.plugin_info
         return None
 
+    @property
+    def resources(self) -> ResourceManager:
+        """Access plugin-scoped resource manager."""
+        return self._resources
+
 
 @asynccontextmanager
 async def create_lifecycle_manager(
     container_id: str,
 ) -> AsyncIterator[AsyncComponentLifecycleManager]:
     """
-    Factory function to create and manage a lifecycle manager with proper cleanup.
+    Factory to create and manage a lifecycle manager with proper cleanup.
 
     Args:
         container_id: Unique identifier for the container instance
