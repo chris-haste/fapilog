@@ -153,7 +153,7 @@ test-cov = "pytest --cov=src/fapilog --cov-report=html --cov-report=term {args:t
 test-benchmark = "pytest --benchmark-only {args:tests}"
 lint = "ruff check {args:src tests}"
 format = "ruff format {args:src tests}"
-typecheck = "mypy {args:src tests examples}"
+typecheck = "mypy --config-file pyproject.toml --explicit-package-bases src"
 check = "pre-commit run --all-files"
 
 # Lint environment
