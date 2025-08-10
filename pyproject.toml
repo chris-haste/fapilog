@@ -507,6 +507,11 @@ ignore_names = [
     "BackpressurePolicy",
     "BackpressureError",
     "run_all",
+    # Adaptive processing public API
+    "AdaptiveBatchSizer",
+    "AdaptiveController",
+    "process_with_adaptive_batches",
+    "advise_backpressure",
     # Plugin parallel helpers used by callers/tests
     "enrich_parallel",
     "process_parallel",
