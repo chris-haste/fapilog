@@ -83,6 +83,11 @@ class MetricsCollector:
     def is_enabled(self) -> bool:
         return self._enabled
 
+    @property
+    def registry(self) -> CollectorRegistry | None:
+        """Expose the isolated Prometheus registry when enabled."""
+        return self._registry
+
     async def record_event_processed(
         self, *, duration_seconds: float | None = None
     ) -> None:
