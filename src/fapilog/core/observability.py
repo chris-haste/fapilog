@@ -10,6 +10,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from ..metrics.metrics import MetricsCollector
 from .plugin_config import ValidationIssue, ValidationResult
 
 
@@ -51,7 +52,9 @@ class ObservabilitySettings(BaseModel):
     alerting: AlertingSettings = Field(default_factory=AlertingSettings)
 
 
-def validate_observability(settings: ObservabilitySettings) -> ValidationResult:
+def validate_observability(
+    settings: ObservabilitySettings,
+) -> ValidationResult:
     """Validate observability configuration for enterprise readiness."""
     result = ValidationResult(ok=True)
 
@@ -69,7 +72,7 @@ def validate_observability(settings: ObservabilitySettings) -> ValidationResult:
         result.add_issue(
             ValidationIssue(
                 field="metrics.exporter",
-                message="exporter must not be 'none' when metrics are enabled",
+                message=("exporter must not be 'none' when metrics are enabled"),
             )
         )
 
@@ -108,9 +111,22 @@ def validate_observability(settings: ObservabilitySettings) -> ValidationResult:
         result.add_issue(
             ValidationIssue(
                 field="logging.format",
-                message="text format with include_correlation may be hard to parse",
+                message=("text format with include_correlation may be hard to parse"),
                 severity="warn",
             )
         )
 
     return result
+
+
+def create_metrics_collector_from_settings(
+    settings: ObservabilitySettings,
+) -> MetricsCollector:
+    """Factory helper to provision a `MetricsCollector`.
+
+    Enables metrics only when both the metrics group is enabled and a valid
+    exporter is selected. The collector does not start any HTTP server;
+    exporting is left to application integration.
+    """
+    enabled = bool(settings.metrics.enabled and settings.metrics.exporter != "none")
+    return MetricsCollector(enabled=enabled)
