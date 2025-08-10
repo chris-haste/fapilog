@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import asyncio
 import types
+from collections import deque
 from enum import Enum
 from typing import Awaitable, Callable, Generic, Iterable, TypeVar
 
@@ -174,6 +175,14 @@ class AsyncBoundedExecutor(Generic[T]):
         await asyncio.gather(*self._workers, return_exceptions=True)
         self._workers.clear()
 
+    async def close(self) -> None:
+        """Alias for ``_shutdown`` for symmetry with context management.
+
+        This mirrors the behavior of ``__aexit__`` and is provided as a
+        convenience when using the executor outside ``async with`` blocks.
+        """
+        await self._shutdown()
+
 
 class LockFreeRingBuffer(Generic[T]):
     """Single-producer/single-consumer lock-free ring buffer.
@@ -284,3 +293,229 @@ class LockFreeRingBuffer(Generic[T]):
             spins += 1
             if (spins % yield_every) == 0:
                 await asyncio.sleep(0)
+
+
+class AsyncWorkStealingExecutor(Generic[T]):
+    """Async work-stealing executor with bounded capacity.
+
+    Design principles:
+    - Pure async/await, no blocking calls
+    - Zero global state; all state lives within the executor instance
+    - Lock-free operations based on deque operations executed within the
+      single-threaded asyncio event loop (atomic per step under GIL)
+
+    Behavior:
+    - Submissions target a shard (queue). By default, shard is chosen via
+      round-robin. Callers may explicitly target a shard via ``shard_key``.
+    - Workers primarily consume from their own shard; when empty they steal
+      from other shards (oldest-first) to maximize utilization.
+    - Backpressure is enforced across the total of running + queued items via
+      a capacity semaphore, mirroring ``AsyncBoundedExecutor``.
+
+    Notes:
+    - Asyncio-only: This executor is designed for a single asyncio event loop
+      and is not thread-safe. Do not submit work from multiple threads.
+    - Fairness: Work distribution is best-effort. Stealing improves overall
+      utilization but does not guarantee strict fairness across shards.
+    """
+
+    def __init__(
+        self,
+        *,
+        max_concurrency: int,
+        max_queue_size: int,
+        backpressure_policy: BackpressurePolicy = BackpressurePolicy.WAIT,
+        num_shards: int | None = None,
+    ) -> None:
+        if max_concurrency <= 0:
+            raise ValueError("max_concurrency must be > 0")
+        if max_queue_size <= 0:
+            raise ValueError("max_queue_size must be > 0")
+        if num_shards is None:
+            num_shards = max_concurrency
+        if num_shards <= 0:
+            raise ValueError("num_shards must be > 0")
+
+        self._max_concurrency = max_concurrency
+        self._num_shards = num_shards
+        self._policy = backpressure_policy
+
+        # Capacity semaphore accounts for both running and queued items
+        self._capacity_sem = asyncio.Semaphore(max_concurrency + max_queue_size)
+        # Sharded local deques (each primarily used by corresponding worker)
+        self._shards: list[
+            deque[tuple[Callable[[], Awaitable[T]], asyncio.Future[T]]]
+        ] = [deque() for _ in range(self._num_shards)]
+
+        # Worker control
+        self._workers: list[asyncio.Task[None]] = []
+        self._semaphore = asyncio.Semaphore(max_concurrency)
+        self._closed = False
+        self._rr_index = 0
+        # Condition variable to wake idle workers upon new task submissions
+        self._cv = asyncio.Condition()
+
+    async def __aenter__(self) -> AsyncWorkStealingExecutor[T]:
+        # Spawn worker tasks equal to max_concurrency
+        for worker_index in range(self._max_concurrency):
+            self._workers.append(asyncio.create_task(self._worker_loop(worker_index)))
+        return self
+
+    async def __aexit__(
+        self,
+        _exc_type: type[BaseException] | None,
+        _exc: BaseException | None,
+        _tb: types.TracebackType | None,
+    ) -> None:
+        await self._shutdown()
+
+    async def submit(
+        self,
+        factory: Callable[[], Awaitable[T]],
+        *,
+        timeout: float | None = None,
+        shard_key: int | None = None,
+    ) -> asyncio.Future[T]:
+        """Submit a coroutine factory to be executed.
+
+        If ``shard_key`` is provided, the target shard will be
+        ``shard_key % num_shards``; otherwise round-robin assignment is used.
+        """
+        if self._closed:
+            raise RuntimeError("Executor is closed")
+
+        loop = asyncio.get_event_loop()
+        future: asyncio.Future[T] = loop.create_future()
+
+        # Acquire capacity slot according to policy
+        try:
+            if self._policy is BackpressurePolicy.REJECT:
+                available = getattr(self._capacity_sem, "_value", 0)
+                if available <= 0:
+                    raise BackpressureError("Queue is full; submission rejected")
+                await self._capacity_sem.acquire()
+            else:
+                if timeout is not None:
+                    await asyncio.wait_for(
+                        self._capacity_sem.acquire(), timeout=timeout
+                    )
+                else:
+                    await self._capacity_sem.acquire()
+        except asyncio.TimeoutError as e:
+            raise BackpressureError("Timed out waiting for queue space") from e
+
+        # Choose shard and enqueue
+        if shard_key is not None:
+            shard_index = shard_key % self._num_shards
+        else:
+            shard_index = self._rr_index % self._num_shards
+            self._rr_index = (self._rr_index + 1) % (1 << 30)
+
+        self._shards[shard_index].append((factory, future))
+
+        # Notify workers that new work is available
+        async with self._cv:
+            self._cv.notify_all()
+
+        return future
+
+    async def run_all(
+        self,
+        factories: Iterable[Callable[[], Awaitable[T]]],
+        *,
+        shard_key: int | None = None,
+    ) -> list[T]:
+        futures: list[asyncio.Future[T]] = []
+        for f in factories:
+            fut = await self.submit(f, shard_key=shard_key)
+            futures.append(fut)
+        results: list[T] = await asyncio.gather(*futures)
+        return list(results)
+
+    def _try_take_from_shard(
+        self, shard_index: int
+    ) -> tuple[bool, tuple[Callable[[], Awaitable[T]], asyncio.Future[T]] | None]:
+        shard = self._shards[shard_index]
+        if shard:
+            # Pop newest from own shard
+            item = shard.pop()
+            return True, item
+        return False, None
+
+    def _try_steal_from_others(
+        self, self_index: int
+    ) -> tuple[bool, tuple[Callable[[], Awaitable[T]], asyncio.Future[T]] | None]:
+        # Oldest-first from other shards
+        for offset in range(1, self._num_shards + 1):
+            idx = (self_index + offset) % self._num_shards
+            shard = self._shards[idx]
+            if shard:
+                item = shard.popleft()
+                return True, item
+        return False, None
+
+    async def _worker_loop(self, worker_index: int) -> None:
+        try:
+            while True:
+                # Attempt to get work from own shard first
+                got, item = self._try_take_from_shard(worker_index % self._num_shards)
+                if not got:
+                    # Steal from others if own shard empty
+                    got, item = self._try_steal_from_others(
+                        worker_index % self._num_shards
+                    )
+
+                if not got:
+                    # No work available; wait for signal
+                    async with self._cv:
+                        await self._cv.wait()
+                    continue
+
+                assert item is not None
+                factory, future = item
+                if future.cancelled():
+                    # Release capacity for cancelled work
+                    self._capacity_sem.release()
+                    continue
+
+                async with self._semaphore:
+                    try:
+                        result = await factory()
+                    except Exception as e:  # noqa: BLE001
+                        if not future.done():
+                            future.set_exception(e)
+                    else:
+                        if not future.done():
+                            future.set_result(result)
+                    finally:
+                        # Release capacity slot
+                        self._capacity_sem.release()
+        except asyncio.CancelledError:
+            return
+
+    async def _shutdown(self) -> None:
+        if self._closed:
+            return
+        self._closed = True
+        # Wait until all shards are drained
+        # Signal workers in case they are waiting
+        async with self._cv:
+            self._cv.notify_all()
+
+        # Busy-wait cooperatively until all shards empty
+        while any(self._shards):
+            await asyncio.sleep(0)
+
+        # Cancel workers and await completion
+        for w in self._workers:
+            w.cancel()
+        await asyncio.gather(*self._workers, return_exceptions=True)
+        self._workers.clear()
+
+    async def close(self) -> None:
+        """Alias for ``_shutdown`` for symmetry with context management.
+
+        This mirrors the behavior of ``__aexit__`` and is provided as a
+        convenience when using the executor outside ``async with`` blocks.
+        """
+        await self._shutdown()
