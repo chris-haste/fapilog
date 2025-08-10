@@ -201,7 +201,8 @@ async def test_http_client_pool_cleanup_calls_aclose(monkeypatch):
     monkeypatch.setattr(res.httpx, "AsyncClient", FakeClient)
 
     pool = res.HttpClientPool(max_size=2, acquire_timeout_seconds=0.1)
-    # Create two distinct clients by holding the first while acquiring the second
+    # Create two distinct clients by holding the first while acquiring the
+    # second
     cm1 = pool.acquire()
     await cm1.__aenter__()
     cm2 = pool.acquire()
@@ -212,3 +213,50 @@ async def test_http_client_pool_cleanup_calls_aclose(monkeypatch):
 
     await pool.cleanup()
     assert closed["count"] >= 2
+
+
+@pytest.mark.asyncio
+async def test_manager_parallel_cleanup_two_pools(monkeypatch):
+    import fapilog.core.resources as res
+
+    closed_counts = {"http": 0, "other": 0}
+
+    class FakeClient:
+        def __init__(self, *args, **kwargs) -> None:  # noqa: D401
+            pass
+
+        async def aclose(self) -> None:  # noqa: D401
+            closed_counts["http"] += 1
+
+    monkeypatch.setattr(res.httpx, "AsyncClient", FakeClient)
+
+    http_pool = res.HttpClientPool(max_size=1, acquire_timeout_seconds=0.1)
+
+    async def create_other() -> int:
+        return 1
+
+    async def close_other(_: int) -> None:
+        closed_counts["other"] += 1
+
+    other_pool = res.AsyncResourcePool[int](
+        name="other",
+        create_resource=create_other,
+        close_resource=close_other,
+        max_size=1,
+        acquire_timeout_seconds=0.1,
+    )
+
+    mgr = res.ResourceManager()
+    await mgr.register_pool("http", http_pool)
+    await mgr.register_pool("other", other_pool)
+
+    # Create both resources
+    async with http_pool.acquire():
+        pass
+    async with other_pool.acquire():
+        pass
+
+    # Ensure cleanup_all does not raise
+    await mgr.cleanup_all()
+    assert closed_counts["http"] >= 1
+    assert closed_counts["other"] >= 1

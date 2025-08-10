@@ -543,4 +543,6 @@ ignore_names = [
     "LockFreeRingBuffer",
     "await_push",
     "await_pop",
+    # Metrics API accessor
+    "registry",
 ]

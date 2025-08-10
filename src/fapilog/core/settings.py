@@ -54,6 +54,17 @@ class CoreSettings(BaseModel):
         default=False,
         description="Enable Prometheus-compatible metrics",
     )
+    # Resource pool defaults (can be overridden per pool at construction)
+    resource_pool_max_size: int = Field(
+        default=8,
+        ge=1,
+        description="Default max size for resource pools",
+    )
+    resource_pool_acquire_timeout_seconds: float = Field(
+        default=2.0,
+        gt=0.0,
+        description="Default acquire timeout for pools",
+    )
     # Example of a field requiring async validation
     benchmark_file_path: str | None = Field(
         default=None,
