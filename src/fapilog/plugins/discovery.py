@@ -11,7 +11,7 @@ import importlib.metadata
 import importlib.util
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Optional, Protocol, Set, Union
 
 from .metadata import (
     PluginCompatibility,
@@ -19,6 +19,20 @@ from .metadata import (
     PluginMetadata,
     validate_fapilog_compatibility,
 )
+
+
+class DistributionLike(Protocol):
+    """Protocol for objects that expose package metadata via ``.metadata``.
+
+    This loosens strict dependency on
+    ``importlib.metadata.Distribution`` for improved testability while
+    preserving structural typing guarantees. The ``metadata`` object is
+    expected to provide ``get(str, str) -> str``.
+    """
+
+    @property
+    def metadata(self) -> Any:  # pragma: no cover - structural only
+        ...
 
 
 class PluginDiscoveryError(Exception):
@@ -66,7 +80,8 @@ class AsyncPluginDiscovery:
         Discover plugins of a specific type.
 
         Args:
-            plugin_type: Type of plugins to discover (sink, processor, enricher, etc.)
+            plugin_type: Type of plugins to discover (sink, processor,
+                enricher, etc.)
 
         Returns:
             Dictionary mapping plugin names to PluginInfo
@@ -98,7 +113,8 @@ class AsyncPluginDiscovery:
                     await self._process_entry_point(entry_point)
                 except Exception as e:
                     # Log error but continue discovery
-                    print(f"Error processing entry point {entry_point.name}: {e}")
+                    msg = f"Error processing entry point {entry_point.name}: {e}"
+                    print(msg)
 
         except Exception as e:
             raise PluginDiscoveryError(
@@ -133,7 +149,7 @@ class AsyncPluginDiscovery:
             print(f"Error discovering installed packages: {e}")
 
     def _is_fapilog_plugin_package(
-        self, package_name: str, dist: importlib.metadata.Distribution
+        self, package_name: str, dist: Optional[DistributionLike]
     ) -> bool:
         """Check if a package looks like a fapilog plugin."""
         # Check package name patterns
@@ -142,9 +158,10 @@ class AsyncPluginDiscovery:
 
         # Check for fapilog plugin topic in metadata
         try:
-            keywords = dist.metadata.get("Keywords", "").lower()
-            if "fapilog" in keywords and "plugin" in keywords:
-                return True
+            if dist is not None:
+                keywords = dist.metadata.get("Keywords", "").lower()
+                if "fapilog" in keywords and "plugin" in keywords:
+                    return True
         except Exception:
             pass
 
@@ -158,18 +175,17 @@ class AsyncPluginDiscovery:
                 fapilog_entries = entry_points.get("fapilog.plugins", [])
 
             # Check if this package has fapilog plugins
-            for ep in fapilog_entries:
-                if hasattr(ep, "dist") and ep.dist:
-                    if ep.dist.name == dist.metadata.get("Name"):
-                        return True
+            if dist is not None:
+                for ep in fapilog_entries:
+                    if hasattr(ep, "dist") and ep.dist:
+                        if ep.dist.name == dist.metadata.get("Name"):
+                            return True
         except Exception:
             pass
 
         return False
 
-    async def _process_installed_package(
-        self, dist: importlib.metadata.Distribution
-    ) -> None:
+    async def _process_installed_package(self, dist: DistributionLike) -> None:
         """Process an installed package for plugin metadata."""
         try:
             package_name = dist.metadata.get("Name", "")
@@ -185,18 +201,21 @@ class AsyncPluginDiscovery:
 
             # Only process entry points from this package
             for entry_point in fapilog_entries:
-                if (
+                name_matches = (
                     hasattr(entry_point, "dist")
                     and entry_point.dist
                     and entry_point.dist.name == package_name
-                ):
+                )
+                if name_matches:
                     try:
                         await self._process_entry_point(entry_point)
                     except Exception as e:
-                        print(f"Error processing entry point {entry_point.name}: {e}")
+                        msg = f"Error processing entry point {entry_point.name}: {e}"
+                        print(msg)
 
         except Exception as e:
-            print(f"Error processing installed package {package_name}: {e}")
+            msg = f"Error processing installed package {package_name}: {e}"
+            print(msg)
 
     async def _process_entry_point(
         self, entry_point: importlib.metadata.EntryPoint
@@ -307,7 +326,9 @@ class AsyncPluginDiscovery:
                             plugin_info = PluginInfo(
                                 metadata=metadata,
                                 loaded=False,
-                                load_error="Incompatible with current Fapilog version",
+                                load_error=(
+                                    "Incompatible with current Fapilog version"
+                                ),
                                 source="local",
                             )
                         else:
@@ -335,7 +356,10 @@ class AsyncPluginDiscovery:
             )
 
             plugin_info = PluginInfo(
-                metadata=error_metadata, loaded=False, load_error=str(e), source="local"
+                metadata=error_metadata,
+                loaded=False,
+                load_error=str(e),
+                source="local",
             )
 
             self._discovered_plugins[plugin_file.stem] = plugin_info

@@ -34,6 +34,11 @@ from .compliance import (
     validate_compliance_policy,
     validate_data_handling,
 )
+from .concurrency import (
+    AsyncBoundedExecutor,
+    BackpressurePolicy,
+    LockFreeRingBuffer,
+)
 from .config import load_settings
 from .context import (
     ContextManager,
@@ -232,6 +237,10 @@ __all__ = [
     "validate_access_control",
     # Marketplace configuration
     "MarketplaceSettings",
+    # Concurrency utilities
+    "BackpressurePolicy",
+    "AsyncBoundedExecutor",
+    "LockFreeRingBuffer",
     # Audit trails
     "AuditEvent",
     "AuditEventType",

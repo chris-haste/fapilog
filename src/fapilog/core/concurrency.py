@@ -110,7 +110,8 @@ class AsyncBoundedExecutor(Generic[T]):
             else:
                 if timeout is not None:
                     await asyncio.wait_for(
-                        self._capacity_sem.acquire(), timeout=timeout
+                        self._capacity_sem.acquire(),
+                        timeout=timeout,
                     )
                 else:
                     await self._capacity_sem.acquire()
@@ -228,26 +229,58 @@ class LockFreeRingBuffer(Generic[T]):
         self._head = (self._head + 1) % (2 * self._capacity)
         return True, item
 
-    async def await_push(self, item: T, *, yield_every: int = 8) -> None:
+    async def await_push(
+        self,
+        item: T,
+        *,
+        yield_every: int = 8,
+        timeout: float | None = None,
+    ) -> None:
         """Async push that yields to loop while waiting for space.
 
         yield_every controls how often to ``await asyncio.sleep(0)`` while
         spinning to avoid starving the loop under high contention.
         """
         spins = 0
+        start: float | None = None
+        if timeout is not None:
+            start = asyncio.get_event_loop().time()
         while not self.try_push(item):
+            if timeout is not None and start is not None:
+                now = asyncio.get_event_loop().time()
+                if (now - start) >= timeout:
+                    from .errors import TimeoutError
+
+                    raise TimeoutError("Timed out waiting to push to ring buffer")
             spins += 1
             if (spins % yield_every) == 0:
                 await asyncio.sleep(0)
 
-    async def await_pop(self, *, yield_every: int = 8) -> T:
-        """Async pop that yields to loop while waiting for data."""
+    async def await_pop(
+        self,
+        *,
+        yield_every: int = 8,
+        timeout: float | None = None,
+    ) -> T:
+        """Async pop that yields to loop while waiting for data.
+
+        Raises TimeoutError if timeout elapses before an item is available.
+        """
         spins = 0
+        start: float | None = None
+        if timeout is not None:
+            start = asyncio.get_event_loop().time()
         while True:
             ok, item = self.try_pop()
             if ok:
                 # mypy: item may be Optional; guarded by ok
                 return item  # type: ignore[return-value]
+            if timeout is not None and start is not None:
+                now = asyncio.get_event_loop().time()
+                if (now - start) >= timeout:
+                    from .errors import TimeoutError
+
+                    raise TimeoutError("Timed out waiting to pop from ring buffer")
             spins += 1
             if (spins % yield_every) == 0:
                 await asyncio.sleep(0)
