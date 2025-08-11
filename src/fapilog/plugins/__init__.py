@@ -15,6 +15,9 @@ from .discovery import (
     discover_plugins_by_type,
     get_discovery_instance,
 )
+
+# Public protocols for plugin authors
+from .enrichers import BaseEnricher
 from .lifecycle import (
     AsyncComponentLifecycleManager,
     ComponentIsolationMixin,
@@ -29,12 +32,14 @@ from .metadata import (
     create_plugin_metadata,
     validate_fapilog_compatibility,
 )
+from .processors import BaseProcessor
 from .registry import (
     AsyncComponentRegistry,
     PluginLoadError,
     PluginRegistryError,
     create_component_registry,
 )
+from .sinks import BaseSink
 
 __all__ = [
     # Discovery
@@ -60,4 +65,8 @@ __all__ = [
     "PluginLoadError",
     "PluginRegistryError",
     "create_component_registry",
+    # Public authoring contracts
+    "BaseEnricher",
+    "BaseProcessor",
+    "BaseSink",
 ]

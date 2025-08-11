@@ -94,27 +94,30 @@ class AsyncPluginDiscovery:
         }
 
     async def _discover_entry_point_plugins(self) -> None:
-        """Discover plugins via Python entry points."""
+        """Discover plugins via Python entry points (v3 groups)."""
+        group_to_type = {
+            "fapilog.sinks": "sink",
+            "fapilog.processors": "processor",
+            "fapilog.enrichers": "enricher",
+            "fapilog.alerting": "alerting",
+        }
         try:
-            # Discover Fapilog plugins via entry points
             entry_points = importlib.metadata.entry_points()
 
-            # Look for fapilog plugins
-            fapilog_entries = []
-            if hasattr(entry_points, "select"):
-                # Python 3.10+
-                fapilog_entries = entry_points.select(group="fapilog.plugins")
-            else:
-                # Python 3.8-3.9
-                fapilog_entries = entry_points.get("fapilog.plugins", [])
+            # Enumerate groups deterministically
+            for group, derived_type in group_to_type.items():
+                if hasattr(entry_points, "select"):
+                    eps = entry_points.select(group=group)
+                else:
+                    eps = entry_points.get(group, [])
 
-            for entry_point in fapilog_entries:
-                try:
-                    await self._process_entry_point(entry_point)
-                except Exception as e:
-                    # Log error but continue discovery
-                    msg = f"Error processing entry point {entry_point.name}: {e}"
-                    print(msg)
+                for entry_point in eps:
+                    try:
+                        await self._process_entry_point(
+                            entry_point, group, derived_type
+                        )
+                    except Exception as e:
+                        print(f"Error processing entry point {entry_point.name}: {e}")
 
         except Exception as e:
             raise PluginDiscoveryError(
@@ -190,14 +193,21 @@ class AsyncPluginDiscovery:
         try:
             package_name = dist.metadata.get("Name", "")
 
-            # Check for entry points using the same pattern as registry.py
+            # Check for entry points across v3 groups
             entry_points = importlib.metadata.entry_points()
+            groups = [
+                "fapilog.sinks",
+                "fapilog.processors",
+                "fapilog.enrichers",
+                "fapilog.alerting",
+            ]
             fapilog_entries = []
-
             if hasattr(entry_points, "select"):
-                fapilog_entries = entry_points.select(group="fapilog.plugins")
+                for g in groups:
+                    fapilog_entries.extend(entry_points.select(group=g))
             else:
-                fapilog_entries = entry_points.get("fapilog.plugins", [])
+                for g in groups:
+                    fapilog_entries.extend(entry_points.get(g, []))
 
             # Only process entry points from this package
             for entry_point in fapilog_entries:
@@ -208,7 +218,25 @@ class AsyncPluginDiscovery:
                 )
                 if name_matches:
                     try:
-                        await self._process_entry_point(entry_point)
+                        group_name = getattr(entry_point, "group", None) or getattr(
+                            entry_point, "group_name", None
+                        )
+                        # Derive type from group suffix
+                        derived_type = "sink"
+                        if isinstance(group_name, str):
+                            if group_name.endswith("sinks"):
+                                derived_type = "sink"
+                            elif group_name.endswith("processors"):
+                                derived_type = "processor"
+                            elif group_name.endswith("enrichers"):
+                                derived_type = "enricher"
+                            elif group_name.endswith("alerting"):
+                                derived_type = "alerting"
+                        await self._process_entry_point(
+                            entry_point,
+                            group_name or "fapilog.sinks",
+                            derived_type,
+                        )
                     except Exception as e:
                         msg = f"Error processing entry point {entry_point.name}: {e}"
                         print(msg)
@@ -218,7 +246,10 @@ class AsyncPluginDiscovery:
             print(msg)
 
     async def _process_entry_point(
-        self, entry_point: importlib.metadata.EntryPoint
+        self,
+        entry_point: importlib.metadata.EntryPoint,
+        group: Optional[str] = None,
+        derived_type: Optional[str] = None,
     ) -> None:
         """Process a single entry point for plugin metadata."""
         try:
@@ -228,6 +259,36 @@ class AsyncPluginDiscovery:
             # Look for plugin metadata
             if hasattr(plugin_module, "PLUGIN_METADATA"):
                 metadata_dict = plugin_module.PLUGIN_METADATA
+                # Map or validate plugin_type from entry point group
+                declared_type = metadata_dict.get("plugin_type")
+                effective_type = derived_type or "sink"
+                if declared_type is None:
+                    metadata_dict = {
+                        **metadata_dict,
+                        "plugin_type": effective_type,
+                    }
+                elif declared_type != effective_type:
+                    # Contradictory declaration — record error info
+                    error_metadata = PluginMetadata(
+                        name=metadata_dict.get("name", entry_point.name),
+                        version=str(metadata_dict.get("version", "0.0.0")),
+                        plugin_type=declared_type,
+                        entry_point=str(entry_point),
+                        description=(
+                            "Contradictory plugin_type "
+                            f"'{declared_type}' for group "
+                            f"'{(group or 'fapilog.sinks')}'"
+                        ),
+                        author=str(metadata_dict.get("author", "unknown")),
+                        compatibility=PluginCompatibility(min_fapilog_version="3.0.0"),
+                    )
+                    self._discovered_plugins[error_metadata.name] = PluginInfo(
+                        metadata=error_metadata,
+                        loaded=False,
+                        load_error=error_metadata.description,
+                        source="entry_point",
+                    )
+                    return
                 metadata = PluginMetadata(**metadata_dict)
 
                 # Validate compatibility
@@ -243,16 +304,49 @@ class AsyncPluginDiscovery:
                         metadata=metadata, loaded=False, source="entry_point"
                     )
 
-                self._discovered_plugins[metadata.name] = plugin_info
+                # Collision handling across groups
+                if metadata.name in self._discovered_plugins:
+                    collision = PluginInfo(
+                        metadata=metadata,
+                        loaded=False,
+                        load_error=(
+                            f"Duplicate plugin name '{metadata.name}' across groups"
+                        ),
+                        source="entry_point",
+                    )
+                    self._discovered_plugins[metadata.name] = collision
+                else:
+                    self._discovered_plugins[metadata.name] = plugin_info
+            else:
+                # No explicit metadata; attempt to derive minimal metadata
+                derived_name = getattr(entry_point, "name", "unknown")
+                error_metadata = PluginMetadata(
+                    name=derived_name,
+                    version="0.0.0",
+                    plugin_type=(derived_type or "sink"),
+                    entry_point=str(entry_point),
+                    description=("Missing PLUGIN_METADATA"),
+                    author="unknown",
+                    compatibility=PluginCompatibility(min_fapilog_version="3.0.0"),
+                )
+
+                plugin_info = PluginInfo(
+                    metadata=error_metadata,
+                    loaded=False,
+                    load_error="Missing PLUGIN_METADATA",
+                    source="entry_point",
+                )
+
+                self._discovered_plugins[derived_name] = plugin_info
 
         except Exception as e:
             # Create error plugin info
             error_metadata = PluginMetadata(
                 name=entry_point.name,
                 version="0.0.0",
-                plugin_type="sink",
+                plugin_type=(derived_type or "sink"),
                 entry_point=str(entry_point),
-                description=f"Failed to load: {e}",
+                description=(f"Failed to load: {e}"),
                 author="unknown",
                 compatibility=PluginCompatibility(min_fapilog_version="3.0.0"),
             )

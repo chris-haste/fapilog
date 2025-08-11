@@ -13,11 +13,14 @@ from typing import Any, Dict, List, Optional, Type, TypeVar, Union, cast
 
 from ..containers.container import AsyncLoggingContainer
 from .discovery import AsyncPluginDiscovery
+from .enrichers import BaseEnricher
 from .lifecycle import (
     AsyncComponentLifecycleManager,
     ComponentIsolationMixin,
 )
 from .metadata import PluginInfo, validate_fapilog_compatibility
+from .processors import BaseProcessor
+from .sinks import BaseSink
 
 T = TypeVar("T")
 
@@ -363,10 +366,19 @@ class AsyncComponentRegistry(ComponentIsolationMixin):
             # Get isolated component name
             isolated_name = self.get_isolated_name(plugin_name)
 
-            # Register with container
+            # Register with container with type classification hints
+            component_type = type(instance)
+            # Best-effort: map to known protocol categories where possible
+            if isinstance(instance, BaseSink):
+                component_type = BaseSink
+            elif isinstance(instance, BaseProcessor):
+                component_type = BaseProcessor
+            elif isinstance(instance, BaseEnricher):
+                component_type = BaseEnricher
+
             self._container.register_component(
                 name=isolated_name,
-                component_type=type(instance),
+                component_type=component_type,
                 factory=plugin_factory,
                 is_singleton=True,
             )
