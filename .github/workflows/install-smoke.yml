@@ -6,6 +6,9 @@ on:
   push:
     branches: [ main, "feat/**", "feature/**" ]
 
+permissions:
+  contents: read
+
 jobs:
   matrix-install:
     name: Install Matrix (pip/uv, extras/plugins)
