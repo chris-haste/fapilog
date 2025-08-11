@@ -30,7 +30,9 @@ jobs:
 
       - name: Install uv
         if: matrix.installer == 'uv'
-        run: pipx install uv
+        run: |
+          python -m pip install --upgrade pip
+          pip install uv
 
       - name: Install with pip
         if: matrix.installer == 'pip'
@@ -74,9 +76,9 @@ jobs:
       - name: Import check
         run: |
           python - <<'PY'
-from importlib import import_module
-import_module('fapilog')
-print('ok: core import')
-PY
+          from importlib import import_module
+          import_module('fapilog')
+          print('ok: core import')
+          PY
 
 
