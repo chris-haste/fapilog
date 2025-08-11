@@ -57,6 +57,8 @@ class MemoryMappedPersistence:
         initial_size_bytes: int = 1024 * 1024,
         growth_chunk_bytes: int = 1024 * 1024,
         max_size_bytes: int | None = None,
+        flush_on_close: bool = True,
+        periodic_flush_bytes: int | None = None,
     ) -> None:
         if initial_size_bytes <= 0 or growth_chunk_bytes <= 0:
             raise ValueError("initial_size_bytes and growth_chunk_bytes must be > 0")
@@ -71,6 +73,10 @@ class MemoryMappedPersistence:
         self._offset: int = 0
         self._lock = asyncio.Lock()
         self._closed: bool = True
+        self._flush_on_close = bool(flush_on_close)
+        self._periodic_flush_bytes = (
+            int(periodic_flush_bytes) if (periodic_flush_bytes) else None
+        )
 
     async def __aenter__(self) -> MemoryMappedPersistence:
         await self.open()
@@ -152,7 +158,8 @@ class MemoryMappedPersistence:
         async with self._lock:
             try:
                 if self._mmap is not None:
-                    await asyncio.to_thread(self._mmap.flush)
+                    if self._flush_on_close:
+                        await asyncio.to_thread(self._mmap.flush)
                     await asyncio.to_thread(self._mmap.close)
                 if self._fd is not None:
                     # Trim file to actual written length to avoid trailing NULs
@@ -232,6 +239,13 @@ class MemoryMappedPersistence:
                 self._mmap[start:end] = mv  # type: ignore[index]
 
             await asyncio.to_thread(_write)
+            # Optional periodic flush hint for durability-sensitive cases
+            if (
+                self._periodic_flush_bytes is not None
+                and self._offset % self._periodic_flush_bytes == 0
+                and self._mmap is not None
+            ):
+                await asyncio.to_thread(self._mmap.flush)
             self._offset = end
             return start, len(mv)
 
