@@ -23,7 +23,7 @@ class BaseSink(Protocol):
     async def stop(self) -> None:  # Optional lifecycle hook
         ...
 
-    async def write(self, entry: dict) -> None:  # noqa: ARG002, D401
+    async def write(self, _entry: dict) -> None:  # noqa: ARG002, D401
         """Write a single structured log entry to the sink destination."""
         ...
 

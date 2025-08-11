@@ -351,7 +351,8 @@ exclude = [
     "src/fapilog/core/events.py",  # Enum values and API methods
     "src/fapilog/core/logger.py",  # API methods and context manager params
     "src/fapilog/core/settings.py",  # Enum values and validator methods
-    "src/fapilog/plugins/marketplace.py",  # API methods
+  "src/fapilog/plugins/marketplace.py",  # API methods
+  "src/fapilog/fastapi/integration.py",  # FastAPI router functions are public API
     "src/fapilog/plugins/registry.py",  # API methods
     "src/fapilog/plugins/discovery.py",  # Plugin discovery API methods
     "src/fapilog/plugins/lifecycle.py",  # Component lifecycle API methods
