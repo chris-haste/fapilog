@@ -1,0 +1,82 @@
+name: Install Smoke Tests
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main, "feat/**", "feature/**" ]
+
+jobs:
+  matrix-install:
+    name: Install Matrix (pip/uv, extras/plugins)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11"]
+        installer: ["pip", "uv"]
+        target:
+          - core
+          - extra-enterprise
+          - extra-all
+          - plugin-local
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        if: matrix.installer == 'uv'
+        run: pipx install uv
+
+      - name: Install with pip
+        if: matrix.installer == 'pip'
+        run: |
+          python -m pip install --upgrade pip
+          case "${{ matrix.target }}" in
+            core)
+              pip install "./[dev]"
+              ;;
+            extra-enterprise)
+              pip install "./[enterprise,dev]"
+              ;;
+            extra-all)
+              pip install "./[all,dev]"
+              ;;
+            plugin-local)
+              pip install -e .
+              pip install tests/plugin_examples/fapilog-sample-plugin
+              ;;
+          esac
+
+      - name: Install with uv
+        if: matrix.installer == 'uv'
+        run: |
+          case "${{ matrix.target }}" in
+            core)
+              uv pip install -e ".[dev]"
+              ;;
+            extra-enterprise)
+              uv pip install -e ".[enterprise,dev]"
+              ;;
+            extra-all)
+              uv pip install -e ".[all,dev]"
+              ;;
+            plugin-local)
+              uv pip install -e .
+              uv pip install tests/plugin_examples/fapilog-sample-plugin
+              ;;
+          esac
+
+      - name: Import check
+        run: |
+          python - <<'PY'
+from importlib import import_module
+import_module('fapilog')
+print('ok: core import')
+PY
+
+
