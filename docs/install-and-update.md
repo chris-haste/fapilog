@@ -45,6 +45,7 @@ uv add "fapilog[all]"
 ```
 
 Notes:
+
 - Extras install optional dependencies only. Core logging works without extras.
 - Use a single command to combine extras, e.g. `pip install "fapilog[cloud,siem]"`.
 
@@ -154,6 +155,7 @@ uv sync
 ```
 
 Compatibility tips:
+
 - Keep plugins within the same major range as core, e.g., `fapilog (>=3,<4)`.
 - Prefer constraints/locks in CI to avoid surprise minor bumps.
 - When enabling extras, confirm optional deps are compatible with your Python version.
@@ -163,5 +165,3 @@ Compatibility tips:
 - "No matching distribution found": Verify Python version and indexes.
 - Import errors after install: Confirm the correct extra was installed.
 - Private index auth issues: Provide credentials via netrc, keychain, or per-tool auth config.
-
-
