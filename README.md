@@ -3,6 +3,29 @@
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
+
+### Installation
+
+Copy-ready commands:
+
+```bash
+pip install "fapilog>=3,<4"
+# or
+uv add "fapilog>=3,<4"
+```
+
+Optional extras:
+
+```bash
+pip install "fapilog[fastapi]"
+pip install "fapilog[enterprise]"
+pip install "fapilog[all]"
+# or with uv
+uv add "fapilog[fastapi]"
+uv add "fapilog[all]"
+```
+
+See full guide: docs/install-and-update.md
 [![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-green.svg)](https://docs.pydantic.dev/)
 
 **Revolutionary async-first logging library for Python applications**

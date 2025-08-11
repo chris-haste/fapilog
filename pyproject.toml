@@ -80,7 +80,6 @@ cloud = [
 # SIEM integrations
 siem = [
     "elasticsearch>=8.0.0",
-    "pysplunk>=1.0.0",
 ]
 
 # Development tools
