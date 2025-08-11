@@ -1,5 +1,37 @@
 # 📌 Fapilog Milestone Tracker
 
+## Prometheus Exporter Integration Example (FastAPI)
+
+Expose Prometheus metrics from the collector's isolated registry via FastAPI:
+
+```python
+from fastapi import FastAPI, Response
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+
+from fapilog.core.observability import (
+    ObservabilitySettings,
+    create_metrics_collector_from_settings,
+)
+
+app = FastAPI()
+metrics = create_metrics_collector_from_settings(
+    ObservabilitySettings(metrics={"enabled": True, "exporter": "prometheus"})
+)
+
+@app.get("/metrics")
+async def metrics_endpoint() -> Response:
+    registry = metrics.registry
+    if registry is None:
+        return Response(status_code=204)
+    data = generate_latest(registry)
+    return Response(content=data, media_type=CONTENT_TYPE_LATEST)
+```
+
+Notes:
+
+- The collector is container-scoped; this example wires a process-level instance for demonstration.
+- For production, create the collector from your container settings and inject it where needed.
+
 This document outlines the prioritized roadmap for `fapilog`, including core development, FastAPI integration, enterprise plugin support, and documentation milestones.
 
 ---
