@@ -1,16 +1,22 @@
 from __future__ import annotations
 
-from typing import Iterable
+from typing import Iterable, Protocol, runtime_checkable
 
 from ...core.processing import process_in_parallel
 from ...metrics.metrics import MetricsCollector, plugin_timer
 
 
-class BaseEnricher:
+@runtime_checkable
+class BaseEnricher(Protocol):
     """Base interface for enrichers with async API."""
 
-    async def enrich(self, event: dict) -> dict:
-        return event
+    async def start(self) -> None:  # Optional lifecycle hook
+        ...
+
+    async def stop(self) -> None:  # Optional lifecycle hook
+        ...
+
+    async def enrich(self, event: dict) -> dict: ...
 
 
 async def enrich_parallel(

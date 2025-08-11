@@ -1,16 +1,22 @@
 from __future__ import annotations
 
-from typing import Iterable
+from typing import Iterable, Protocol, runtime_checkable
 
 from ...core.processing import process_in_parallel
 from ...metrics.metrics import MetricsCollector, plugin_timer
 
 
-class BaseProcessor:
+@runtime_checkable
+class BaseProcessor(Protocol):
     """Base interface for processors with async API."""
 
-    async def process(self, view: memoryview) -> memoryview:
-        return view
+    async def start(self) -> None:  # Optional lifecycle hook
+        ...
+
+    async def stop(self) -> None:  # Optional lifecycle hook
+        ...
+
+    async def process(self, view: memoryview) -> memoryview: ...
 
     async def process_many(self, views: Iterable[memoryview]) -> int:
         count = 0
@@ -46,6 +52,7 @@ async def process_parallel(
                 async with plugin_timer(metrics, p.__class__.__name__):
                     processed = await p.process(v)
             except Exception:
+                # Propagate to caller; upstream handles isolation and metrics
                 raise
             else:
                 out.append(processed)

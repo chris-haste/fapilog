@@ -1509,6 +1509,166 @@ class TestDiscoveryDetailedCoverage:
         assert plugin_info.source == "entry_point"
 
     @pytest.mark.asyncio
+    async def test_per_group_entry_point_mapping(self):
+        """Discovery maps entry point groups to plugin_type and loads both."""
+        discovery = AsyncPluginDiscovery()
+
+        # Modules without explicit plugin_type → should be derived from group
+        class SinkModule:
+            PLUGIN_METADATA = {
+                "name": "sink-a",
+                "version": "1.0.0",
+                "entry_point": "sink_a",
+                "description": "sink",
+                "author": "t",
+                "compatibility": {"min_fapilog_version": "3.0.0"},
+            }
+
+        class ProcessorModule:
+            PLUGIN_METADATA = {
+                "name": "proc-a",
+                "version": "1.0.0",
+                "entry_point": "proc_a",
+                "description": "proc",
+                "author": "t",
+                "compatibility": {"min_fapilog_version": "3.0.0"},
+            }
+
+        class EP:
+            def __init__(self, name: str, module) -> None:
+                self.name = name
+                self._module = module
+
+            def load(self):
+                return self._module
+
+        class Eps:
+            def __init__(self, mapping: dict[str, list]) -> None:
+                self.mapping = mapping
+
+            def select(self, *, group: str):
+                return self.mapping.get(group, [])
+
+        eps = Eps(
+            {
+                "fapilog.sinks": [EP("sink-a", SinkModule)],
+                "fapilog.processors": [EP("proc-a", ProcessorModule)],
+            }
+        )
+
+        with patch("importlib.metadata.entry_points", return_value=eps), patch(
+            "fapilog.plugins.discovery.validate_fapilog_compatibility",
+            return_value=True,
+        ):
+            plugins = await discovery.discover_all_plugins()
+
+        assert "sink-a" in plugins and plugins["sink-a"].metadata.plugin_type == "sink"
+        assert (
+            "proc-a" in plugins
+            and plugins["proc-a"].metadata.plugin_type == "processor"
+        )
+
+    @pytest.mark.asyncio
+    async def test_contradictory_plugin_type_error(self):
+        """Contradictory plugin_type vs group produces actionable error."""
+        discovery = AsyncPluginDiscovery()
+
+        class BadSinkModule:
+            PLUGIN_METADATA = {
+                "name": "bad-sink",
+                "version": "1.0.0",
+                "plugin_type": "processor",  # contradicts sink group
+                "entry_point": "bad",
+                "description": "bad",
+                "author": "t",
+                "compatibility": {"min_fapilog_version": "3.0.0"},
+            }
+
+        class EP:
+            def __init__(self, name: str, module) -> None:
+                self.name = name
+                self._module = module
+
+            def load(self):
+                return self._module
+
+        class Eps:
+            def __init__(self, mapping: dict[str, list]) -> None:
+                self.mapping = mapping
+
+            def select(self, *, group: str):
+                return self.mapping.get(group, [])
+
+        eps = Eps({"fapilog.sinks": [EP("bad-sink", BadSinkModule)]})
+
+        with patch("importlib.metadata.entry_points", return_value=eps), patch(
+            "fapilog.plugins.discovery.validate_fapilog_compatibility",
+            return_value=True,
+        ):
+            await discovery.discover_all_plugins()
+
+        assert "bad-sink" in discovery._discovered_plugins
+        info = discovery._discovered_plugins["bad-sink"]
+        assert info.load_error and "Contradictory plugin_type" in info.load_error
+
+    @pytest.mark.asyncio
+    async def test_duplicate_name_collision_across_groups(self):
+        """Duplicate plugin names across groups produce collision error."""
+        discovery = AsyncPluginDiscovery()
+
+        class M1:
+            PLUGIN_METADATA = {
+                "name": "dup",
+                "version": "1.0.0",
+                "entry_point": "dup1",
+                "description": "",
+                "author": "t",
+                "compatibility": {"min_fapilog_version": "3.0.0"},
+            }
+
+        class M2:
+            PLUGIN_METADATA = {
+                "name": "dup",
+                "version": "1.0.0",
+                "entry_point": "dup2",
+                "description": "",
+                "author": "t",
+                "compatibility": {"min_fapilog_version": "3.0.0"},
+            }
+
+        class EP:
+            def __init__(self, name: str, module) -> None:
+                self.name = name
+                self._module = module
+
+            def load(self):
+                return self._module
+
+        class Eps:
+            def __init__(self, mapping: dict[str, list]) -> None:
+                self.mapping = mapping
+
+            def select(self, *, group: str):
+                return self.mapping.get(group, [])
+
+        eps = Eps(
+            {
+                "fapilog.sinks": [EP("dup", M1)],
+                "fapilog.processors": [EP("dup", M2)],
+            }
+        )
+
+        with patch("importlib.metadata.entry_points", return_value=eps), patch(
+            "fapilog.plugins.discovery.validate_fapilog_compatibility",
+            return_value=True,
+        ):
+            await discovery.discover_all_plugins()
+
+        assert "dup" in discovery._discovered_plugins
+        collision = discovery._discovered_plugins["dup"]
+        assert collision.load_error and "Duplicate plugin name" in collision.load_error
+
+    @pytest.mark.asyncio
     async def test_private_file_skipping(self, tmp_path):
         """Test skipping of private files during discovery (line 171)."""
         discovery = AsyncPluginDiscovery()

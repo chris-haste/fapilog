@@ -48,7 +48,7 @@ class PluginMetadata(BaseModel):
 
     # Plugin type and interface
     plugin_type: str = Field(
-        description="Plugin type (sink, processor, enricher, etc.)"
+        description="Plugin type (sink, processor, enricher, alerting)"
     )
     entry_point: str = Field(description="Entry point for plugin loading")
 
@@ -57,7 +57,8 @@ class PluginMetadata(BaseModel):
         description="Plugin compatibility information"
     )
     dependencies: List[str] = Field(
-        default_factory=list, description="Additional Python package dependencies"
+        default_factory=list,
+        description="Additional Python package dependencies",
     )
 
     # Plugin configuration
@@ -103,7 +104,7 @@ class PluginInfo(BaseModel):
     loaded: bool = Field(default=False, description="Whether plugin is loaded")
     instance: Optional[Any] = Field(default=None, description="Plugin instance")
     load_error: Optional[str] = Field(default=None, description="Load error message")
-    source: str = Field(description="Plugin source (local, marketplace, etc.)")
+    source: str = Field(description=("Plugin source (local, marketplace, etc.)"))
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
