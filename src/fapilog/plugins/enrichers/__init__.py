@@ -33,7 +33,9 @@ async def enrich_parallel(
         # pass a shallow copy to preserve isolation
         return await e.enrich(dict(event))
 
-    results = await process_in_parallel(enricher_list, run_enricher, limit=concurrency)
+    results = await process_in_parallel(
+        enricher_list, run_enricher, limit=concurrency, return_exceptions=True
+    )
     # Shallow merge results into a new dict
     merged: dict = dict(event)
     for res in results:

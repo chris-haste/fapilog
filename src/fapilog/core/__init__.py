@@ -39,6 +39,7 @@ from .concurrency import (
     AsyncWorkStealingExecutor,
     BackpressurePolicy,
     LockFreeRingBuffer,
+    NonBlockingRingQueue,
 )
 from .config import load_settings
 from .context import (
@@ -243,6 +244,7 @@ __all__ = [
     "AsyncBoundedExecutor",
     "AsyncWorkStealingExecutor",
     "LockFreeRingBuffer",
+    "NonBlockingRingQueue",
     # Audit trails
     "AuditEvent",
     "AuditEventType",

@@ -24,6 +24,7 @@ from typing import Any, AsyncIterator, Awaitable, Callable, Generic, TypeVar
 
 import httpx
 
+from ..metrics.metrics import MetricsCollector
 from .errors import (
     BackpressureError,
     ErrorCategory,
@@ -64,6 +65,7 @@ class AsyncResourcePool(Generic[T]):
         close_resource: Callable[[T], Awaitable[None]] | None = None,
         max_size: int = 10,
         acquire_timeout_seconds: float = 5.0,
+        metrics: MetricsCollector | None = None,
     ) -> None:
         if max_size <= 0:
             raise ValueError("max_size must be > 0")
@@ -84,6 +86,7 @@ class AsyncResourcePool(Generic[T]):
         self._errors = 0
         self._lock = asyncio.Lock()
         self._closed = False
+        self._metrics = metrics
 
     @property
     def name(self) -> str:
@@ -133,7 +136,13 @@ class AsyncResourcePool(Generic[T]):
                 ErrorSeverity.HIGH,
             )
             raise BackpressureError(
-                (f"Resource pool '{self._name}' exhausted (max_size={self._max_size})"),
+                (
+                    "Resource pool '"
+                    + self._name
+                    + "' exhausted (max_size="
+                    + str(self._max_size)
+                    + ")"
+                ),
                 error_context=ctx,
             ) from e
 
@@ -155,6 +164,9 @@ class AsyncResourcePool(Generic[T]):
         resource = await self._create_or_wait()
         try:
             self._in_use_count += 1
+            # Metrics: track acquisitions
+            if self._metrics is not None:
+                await self._metrics.record_event_processed()
             yield resource
         finally:
             self._in_use_count -= 1
@@ -228,6 +240,10 @@ class AsyncResourcePool(Generic[T]):
         # Reset counts except created (historical) and errors/timeouts
         self._in_use_count = 0
         # Keep _created_count as historical; new acquires can recreate.
+
+    async def close(self) -> None:
+        """Alias for ``cleanup`` for API symmetry."""
+        await self.cleanup()
 
     async def stats(self) -> PoolStats:
         """Return a snapshot of current pool stats."""
