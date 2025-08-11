@@ -11,25 +11,26 @@
 **FR7:** Create comprehensive error handling hierarchy with enhanced async patterns and zero-copy error operations
 **FR8:** Build component factory pattern with revolutionary async component factory and zero-copy operations
 **FR9:** Create container isolation excellence with perfect isolation and zero global state in async context
-**FR10:** Implement built-in core features (stdout, file, JSON, filtering, correlation) for immediate productivity
-**FR11:** Create universal plugin ecosystem with developer-friendly and enterprise-ready plugins  
-**FR12:** Create plugin marketplace infrastructure for community-driven ecosystem growth
-**FR13:** Implement enterprise compliance plugins with PCI-DSS, HIPAA, SOX compliance support (optional)
-**FR14:** Create enterprise observability plugins with canonical log formats and correlation (optional)
-**FR15:** Implement enterprise platform integration plugins with SIEM, Splunk, ELK support (optional)
-**FR16:** Establish future alerting plugins foundation with event categories and severity levels (optional)
-**FR17:** Achieve 500K-2M events/second throughput with parallel processing and zero-copy operations
-**FR18:** Implement async-first pipeline with parallel enrichment, processing, and sink delivery
-**FR19:** Create comprehensive async testing framework with plugin testing utilities
-**FR20:** Implement async configuration with plugin configuration validation and marketplace integration
-**FR21:** Implement built-in security model with input validation, safe file operations, and memory safety (no PII/encryption - plugins only)
-**FR22:** Implement FastAPI middleware for logger injection and correlation ID propagation
-**FR23:** Create request/response logger plugin compatible with FastAPI
-**FR24:** Provide FastAPI-compatible logger lifecycle hooks
-**FR25:** Create optional exception handler integration for FastAPI
-**FR26:** Add Depends-based logger DI for FastAPI endpoints
-**FR27:** Provide test fixture for verifying FastAPI log behavior
-**FR28:** Establish community contribution framework with plugin development guidelines and CI/CD pipeline
+**FR10:** Distribution & Packaging Policy
+**FR11:** Implement built-in core features (stdout, file, JSON, filtering, correlation) for immediate productivity
+**FR12:** Create universal plugin ecosystem with developer-friendly and enterprise-ready plugins  
+**FR13:** Create plugin marketplace infrastructure for community-driven ecosystem growth
+**FR14:** Implement enterprise compliance plugins with PCI-DSS, HIPAA, SOX compliance support (optional)
+**FR15:** Create enterprise observability plugins with canonical log formats and correlation (optional)
+**FR16:** Implement enterprise platform integration plugins with SIEM, Splunk, ELK support (optional)
+**FR17:** Establish future alerting plugins foundation with event categories and severity levels (optional)
+**FR18:** Achieve 500K-2M events/second throughput with parallel processing and zero-copy operations
+**FR19:** Implement async-first pipeline with parallel enrichment, processing, and sink delivery
+**FR20:** Create comprehensive async testing framework with plugin testing utilities
+**FR21:** Implement async configuration with plugin configuration validation and marketplace integration
+**FR22:** Implement built-in security model with input validation, safe file operations, and memory safety (no PII/encryption - plugins only)
+**FR23:** Implement FastAPI middleware for logger injection and correlation ID propagation
+**FR24:** Create request/response logger plugin compatible with FastAPI
+**FR25:** Provide FastAPI-compatible logger lifecycle hooks
+**FR26:** Create optional exception handler integration for FastAPI
+**FR27:** Add Depends-based logger DI for FastAPI endpoints
+**FR28:** Provide test fixture for verifying FastAPI log behavior
+**FR29:** Establish community contribution framework with plugin development guidelines and CI/CD pipeline
 
 ## Non Functional
 

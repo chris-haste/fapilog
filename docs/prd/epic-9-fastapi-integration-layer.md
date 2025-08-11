@@ -20,6 +20,8 @@ so that I can trace logs easily without boilerplate.
 6. Async context preservation across middleware chain
 7. Performance impact <1ms per request initialization
 8. Compatible with FastAPI dependency injection system
+9. The FastAPI integration MUST be installed via a first‑party extra: `pip install fapilog[fastapi]`. All integration code paths MUST be import‑guarded so the core functions without the extra.
+10. When FastAPI integration is referenced but not installed, the system MUST emit a clear, structured diagnostic instructing the developer to install the extra (e.g., `Install with: pip install fapilog[fastapi]`).
 
 ## Story 9.2: Request/Response Logging Plugin
 
