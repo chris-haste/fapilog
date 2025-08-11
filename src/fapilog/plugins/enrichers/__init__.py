@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import Iterable, Optional
+from typing import Iterable
 
 from ...core.processing import process_in_parallel
-from ...metrics.metrics import MetricsCollector
+from ...metrics.metrics import MetricsCollector, plugin_timer
 
 
 class BaseEnricher:
@@ -31,7 +31,9 @@ async def enrich_parallel(
 
     async def run_enricher(e: BaseEnricher) -> dict:
         # pass a shallow copy to preserve isolation
-        return await e.enrich(dict(event))
+        async with plugin_timer(metrics, e.__class__.__name__):
+            result = await e.enrich(dict(event))
+        return result
 
     results = await process_in_parallel(
         enricher_list, run_enricher, limit=concurrency, return_exceptions=True
@@ -42,9 +44,8 @@ async def enrich_parallel(
         if isinstance(res, BaseException):
             # Skip failed enricher to preserve pipeline resilience
             if metrics is not None and metrics.is_enabled:
-                await metrics.record_plugin_error(
-                    plugin_name=getattr(type(res), "__name__", "enricher_error")
-                )
+                plugin_label = getattr(type(res), "__name__", "enricher_error")
+                await metrics.record_plugin_error(plugin_name=plugin_label)
             continue
         merged.update(res)
         if metrics is not None:

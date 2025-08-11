@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import Iterable, Optional
+from typing import Iterable
 
 from ...core.processing import process_in_parallel
-from ...metrics.metrics import MetricsCollector
+from ...metrics.metrics import MetricsCollector, plugin_timer
 
 
 class BaseProcessor:
@@ -43,10 +43,9 @@ async def process_parallel(
         out: list[memoryview] = []
         for v in current_views:
             try:
-                processed = await p.process(v)
+                async with plugin_timer(metrics, p.__class__.__name__):
+                    processed = await p.process(v)
             except Exception:
-                if metrics is not None:
-                    await metrics.record_plugin_error(plugin_name=p.__class__.__name__)
                 raise
             else:
                 out.append(processed)
