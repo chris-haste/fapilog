@@ -52,6 +52,16 @@ Notes:
 - Use a single command to combine extras, e.g. `pip install "fapilog[cloud,siem]"`.
 - The FastAPI integration is import-guarded. If the extra is not installed, `fapilog.fastapi.AVAILABLE` will be `False` and the integration will remain inactive.
 
+### Enabling internal diagnostics (development)
+
+To surface structured WARN diagnostics for internal, non-fatal errors:
+
+```bash
+export FAPILOG_CORE__INTERNAL_LOGGING_ENABLED=true
+```
+
+These messages aid debugging without affecting application stability.
+
 ### Separate Plugin Packages
 
 The ecosystem also supports separate `fapilog-*` plugin packages. Install them alongside core:

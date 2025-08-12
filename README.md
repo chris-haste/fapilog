@@ -87,6 +87,23 @@ logger = get_logger(name="api", settings=settings)
 logger.info("configured", queue=settings.core.max_queue_size)
 ```
 
+### Internal diagnostics (optional)
+
+Enable structured WARN diagnostics for internal, non-fatal errors (worker/sink):
+
+```bash
+export FAPILOG_CORE__INTERNAL_LOGGING_ENABLED=true
+```
+
+When enabled, you may see messages like:
+
+```
+[fapilog][worker][WARN] worker_main error: ...
+[fapilog][sink][WARN] flush error: ...
+```
+
+Apps will not crash; these logs are for development visibility.
+
 ## 🔌 Plugin Ecosystem
 
 Fapilog v3 features a universal plugin ecosystem:
