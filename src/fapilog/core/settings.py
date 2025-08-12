@@ -75,6 +75,10 @@ class CoreSettings(BaseModel):
         default=False,
         description=("Enable Prometheus-compatible metrics"),
     )
+    # Structured internal diagnostics for non-fatal errors (worker/sink/metrics)
+    internal_logging_enabled: bool = Field(
+        default=False, description=("Emit DEBUG/WARN diagnostics for internal errors")
+    )
     # Resource pool defaults (can be overridden per pool at construction)
     resource_pool_max_size: int = Field(
         default=8,

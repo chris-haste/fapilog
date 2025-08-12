@@ -25,6 +25,8 @@ These standards are **MANDATORY for AI agents** and critical for maintaining cod
 - **Container Isolation:** Never use global state - all state must be container-scoped
 - **Zero-Copy Operations:** Pass LogEvent by reference, never copy event data unnecessarily
 - **Correlation ID Propagation:** All async operations must propagate correlation_id for tracing
+  - The default pipeline reads `request_id` from the async context and assigns it to `LogEvent.correlation_id`
+  - Sinks should include `correlation_id` in emitted records when present
 - **Plugin Entry Points:** All plugins must use standard Python entry points, never dynamic imports
 - **Configuration Validation:** All settings must use Pydantic v2 validation with clear error messages
 - **Emergency Fallbacks:** All critical paths must have fallback mechanisms that never crash user apps

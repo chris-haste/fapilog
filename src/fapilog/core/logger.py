@@ -16,6 +16,7 @@ from typing import Any, Iterable
 from ..metrics.metrics import MetricsCollector
 from .concurrency import NonBlockingRingQueue
 from .events import LogEvent
+from .settings import Settings
 
 
 class AsyncLogger:
@@ -178,11 +179,19 @@ class SyncLoggerFacade:
 
     # Public sync API
     def _enqueue(self, level: str, message: str, **metadata: Any) -> None:
+        from .context import request_id_var
+
+        try:
+            current_corr = request_id_var.get()
+        except LookupError:
+            current_corr = None
+
         event = LogEvent(
             level=level,
             message=message,
             logger=self._name,
             metadata=metadata,
+            correlation_id=current_corr,
         )
         payload = event.to_mapping()
         self._submitted += 1
@@ -285,8 +294,18 @@ class SyncLoggerFacade:
                 await asyncio.sleep(0.001)
         except asyncio.CancelledError:
             return
-        except Exception:
-            # Contain worker failures
+        except Exception as exc:
+            # Contain worker failures; optionally emit diagnostics
+            try:
+                from .settings import Settings  # local import to avoid cycles
+
+                if Settings().core.internal_logging_enabled:
+                    print(
+                        f"[fapilog][worker][WARN] worker_main error: {type(exc).__name__}: {exc}",
+                        flush=True,
+                    )
+            except Exception:
+                pass
             return
 
     async def _flush_batch(self, batch: list[dict[str, Any]]) -> None:
@@ -297,7 +316,7 @@ class SyncLoggerFacade:
             for entry in batch:
                 await self._sink_write(entry)
                 self._processed += 1
-        except Exception:
+        except Exception as exc:
             # Contain sink errors; count as dropped
             self._dropped += len(batch)
             if self._metrics is not None:
@@ -305,6 +324,15 @@ class SyncLoggerFacade:
                     await self._metrics.record_sink_error(sink="stdout")
                 except Exception:
                     pass
+            # Optional diagnostics
+            try:
+                if Settings().core.internal_logging_enabled:
+                    print(
+                        f"[fapilog][sink][WARN] flush error: {type(exc).__name__}: {exc}",
+                        flush=True,
+                    )
+            except Exception:
+                pass
         finally:
             if self._metrics is not None:
                 try:
