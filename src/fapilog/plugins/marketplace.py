@@ -92,6 +92,14 @@ class MarketplacePluginIndexItem(BaseModel):
         default=None, description="ISO8601 last release date"
     )
 
+    # Quality signals
+    class RatingSummary(BaseModel):
+        average: float = Field(ge=0.0, le=5.0, description="Average rating 0-5")
+        count: int = Field(ge=0, description="Number of ratings")
+
+    rating: RatingSummary | None = Field(default=None, description="Rating data")
+    benchmark: dict | None = Field(default=None, description="Benchmark summary blob")
+
     entry_points: EntryPointSignal
     install_commands: InstallCommands
 
@@ -194,6 +202,22 @@ class CIStatusProvider:
         return ([], None)
 
 
+class RatingsProvider:
+    def get_rating(
+        self, package_name: str
+    ) -> dict | None:  # pragma: no cover - interface
+        """Return rating summary dict: {"average": float, "count": int}."""
+        return None
+
+
+class BenchmarkProvider:
+    def get_benchmark(
+        self, package_name: str
+    ) -> dict | None:  # pragma: no cover - interface
+        """Return benchmark summary blob for display."""
+        return None
+
+
 class ExtrasProvider:
     def list_extras(self) -> dict[str, list[str]]:  # pragma: no cover - interface
         """Return mapping of extra name to dependency list."""
@@ -278,11 +302,15 @@ class MarketplaceIndexBuilder:
         package_provider: PackageProvider | None = None,
         extras_provider: ExtrasProvider | None = None,
         ci_provider: CIStatusProvider | None = None,
+        ratings_provider: RatingsProvider | None = None,
+        benchmark_provider: BenchmarkProvider | None = None,
         schema_version: str = "1.0",
     ) -> None:
         self.package_provider = package_provider or InstalledPackagesProvider()
         self.extras_provider = extras_provider or PyProjectExtrasProvider()
         self.ci_provider = ci_provider or CIStatusProvider()
+        self.ratings_provider = ratings_provider or RatingsProvider()
+        self.benchmark_provider = benchmark_provider or BenchmarkProvider()
         self.schema_version = schema_version
 
     def build_index(self) -> MarketplaceIndex:
@@ -326,6 +354,8 @@ class MarketplaceIndexBuilder:
             declared = _extract_declared_fapilog(pkg.requires_dist)
             verified, ci_status = self.ci_provider.get_ci_verification(pkg.name)
             entry_present = len(pkg.entry_point_names) > 0
+            rating_dict = self.ratings_provider.get_rating(pkg.name)
+            bench = self.benchmark_provider.get_benchmark(pkg.name)
 
             # Derive type from entry point names if possible; default to "sink"
             derived_type: PluginType = "sink"
@@ -362,6 +392,12 @@ class MarketplaceIndexBuilder:
                 ci_status=ci_status,
                 downloads=pkg.download_count,
                 last_updated=pkg.last_release_date,
+                rating=(
+                    MarketplacePluginIndexItem.RatingSummary(**rating_dict)
+                    if isinstance(rating_dict, dict)
+                    else None
+                ),
+                benchmark=bench,
                 entry_points=EntryPointSignal(
                     present=entry_present,
                     names=pkg.entry_point_names,
