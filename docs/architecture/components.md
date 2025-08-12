@@ -52,7 +52,7 @@ Based on the architectural patterns, tech stack, and data models defined above, 
 - `async def validate_plugin_compliance(plugin: Plugin) -> bool` - Enterprise validation
 
 **Dependencies:** PluginMetadata, ComplianceEngine, PluginMarketplace  
-**Technology Stack:** importlib.metadata, setuptools entry points, async validation
+**Technology Stack:** importlib.metadata, setuptools entry points (multi-group: `fapilog.sinks`, `fapilog.processors`, `fapilog.enrichers`, `fapilog.alerting`), async validation
 
 ## ComplianceEngine
 
@@ -119,7 +119,7 @@ Based on the architectural patterns, tech stack, and data models defined above, 
 - `def fapilog_test_fixture() -> AsyncLogger` - Test fixture for FastAPI applications
 
 **Dependencies:** AsyncLogger, AsyncLoggingContainer, FastAPI application instance  
-**Technology Stack:** FastAPI middleware, dependency injection, async context variables, pytest fixtures
+**Technology Stack:** FastAPI middleware, dependency injection, async context variables, pytest fixtures; optional extra with import guard (`fapilog.fastapi.AVAILABLE`)
 
 **Key Features:**
 

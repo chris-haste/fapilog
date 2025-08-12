@@ -20,7 +20,7 @@ fapilog/
 │       │
 │       ├── plugins/                    # Universal plugin system
 │       │   ├── __init__.py
-│       │   ├── registry.py             # Plugin discovery via entry points
+│       │   ├── registry.py             # Plugin discovery via entry points (multi-group)
 │       │   ├── base.py                 # Base plugin classes
 │       │   ├── sinks/                  # Built-in sinks (stdout, file)
 │       │   │   ├── __init__.py
@@ -43,7 +43,7 @@ fapilog/
 │       │   └── collector.py            # Basic performance tracking
 │       │
 │       ├── fastapi/                    # FastAPI integration layer
-│       │   ├── __init__.py
+│       │   ├── __init__.py             # Import guard (AVAILABLE flag) for optional extra
 │       │   ├── middleware.py           # FapilogMiddleware for request context
 │       │   ├── lifecycle.py            # App startup/shutdown hooks
 │       │   ├── exceptions.py           # Exception logging integration
@@ -131,3 +131,18 @@ fapilog/
         ├── feature_request.md
         └── plugin_request.md
 ```
+
+## Plugin entry points (v3)
+
+- Registration uses multiple entry point groups to classify plugins by type:
+  - `fapilog.sinks`
+  - `fapilog.processors`
+  - `fapilog.enrichers`
+  - `fapilog.alerting`
+- Legacy `fapilog.plugins` is heuristically supported for back-compat.
+
+## Optional FastAPI integration
+
+- Declared as an extra in `pyproject.toml`: `[project.optional-dependencies].fastapi`.
+- `fapilog.fastapi` uses an import guard and exposes `AVAILABLE` and `get_router`.
+- If FastAPI is not installed, `AVAILABLE` is `False` and integration remains inactive.
