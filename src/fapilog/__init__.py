@@ -17,20 +17,29 @@ from .plugins.sinks.stdout_json import StdoutJsonSink
 __all__ = ["get_logger", "runtime", "__version__", "VERSION"]
 
 
-_GLOBAL_DEFAULTS = Settings()  # evaluate env once for defaults
+def get_logger(
+    name: str | None = None,
+    *,
+    settings: Settings | None = None,
+) -> SyncLoggerFacade:
+    """Return a ready-to-use sync logger facade wired to a container-scoped pipeline.
 
-
-def get_logger(name: str | None = None) -> SyncLoggerFacade:
-    """Return a ready-to-use sync logger facade wired to default pipeline."""
+    - Zero-config: if `settings` is not provided, a fresh `Settings()` is created
+      (reads env at call time) and treated as immutable for the lifetime of the
+      returned logger instance.
+    - Container-scoped: no global mutable state is retained; each logger owns its
+      own configuration, metrics, and sink wiring.
+    """
     # Default pipeline: stdout JSON sink
     sink = StdoutJsonSink()
 
     async def _sink_write(entry: dict) -> None:
         await sink.write(entry)
 
-    cfg = _GLOBAL_DEFAULTS.core
+    cfg_source = settings or Settings()
+    cfg = cfg_source.core
     metrics: MetricsCollector | None = None
-    if _GLOBAL_DEFAULTS.core.enable_metrics:
+    if cfg.enable_metrics:
         metrics = MetricsCollector(enabled=True)
     logger = SyncLoggerFacade(
         name=name,
@@ -47,13 +56,13 @@ def get_logger(name: str | None = None) -> SyncLoggerFacade:
 
 
 @contextmanager
-def runtime() -> Iterator[SyncLoggerFacade]:
+def runtime(*, settings: Settings | None = None) -> Iterator[SyncLoggerFacade]:
     """Context manager that initializes and drains the default runtime.
 
     Yields a default logger; on exit, flushes and returns a drain result via
     StopIteration.value for advanced callers.
     """
-    logger = get_logger()
+    logger = get_logger(settings=settings)
     try:
         yield logger
     finally:

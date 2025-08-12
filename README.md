@@ -49,28 +49,15 @@ pip install fapilog
 ## 🎯 Quick Start
 
 ```python
-import asyncio
-from fapilog import AsyncLogger, UniversalSettings
+from fapilog import get_logger, runtime
 
-async def main():
-    # Configure async-first logging
-    settings = UniversalSettings(
-        level="INFO",
-        sinks=["stdout", "file"],
-        async_processing=True
-    )
+# Zero-config logger with isolated background worker and stdout JSON sink
+logger = get_logger(name="app")
+logger.info("Application started", environment="production")
 
-    # Create isolated container
-    logger = await AsyncLogger.create(settings)
-
-    # Log with rich metadata
-    await logger.info("Application started",
-                     source="api",
-                     category="system",
-                     tags={"environment": "production"})
-
-if __name__ == "__main__":
-    asyncio.run(main())
+# Scoped runtime that auto-flushes on exit
+with runtime() as log:
+    log.error("Something went wrong", code=500)
 ```
 
 ## 🏗️ Architecture
@@ -89,32 +76,15 @@ Fapilog v3 uses a revolutionary async-first pipeline architecture:
 
 ## 🔧 Configuration
 
+Container-scoped settings via Pydantic v2:
+
 ```python
-from fapilog import UniversalSettings
+from fapilog import get_logger
+from fapilog.core.settings import Settings
 
-settings = UniversalSettings(
-    # Core settings
-    level="INFO",
-    sinks=["stdout", "file", "loki"],
-
-    # Async processing
-    async_processing=True,
-    batch_size=100,
-    batch_timeout=1.0,
-
-    # Performance
-    zero_copy_operations=True,
-    parallel_processing=True,
-
-    # Enterprise features
-    compliance_standard="PCI_DSS",
-    data_minimization=True,
-    audit_trail=True,
-
-    # Plugin ecosystem
-    plugins_enabled=True,
-    plugin_marketplace=True
-)
+settings = Settings()  # reads env at call time
+logger = get_logger(name="api", settings=settings)
+logger.info("configured", queue=settings.core.max_queue_size)
 ```
 
 ## 🔌 Plugin Ecosystem
