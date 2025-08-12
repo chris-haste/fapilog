@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from time import perf_counter
 from typing import Any
 
-from prometheus_client import CollectorRegistry, Counter, Histogram
+from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram
 
 
 @dataclass
@@ -64,6 +64,15 @@ class MetricsCollector:
         self._h_process_latency: Any | None = None
         self._h_plugin_latency: Any | None = None
         self._registry: CollectorRegistry | None = None
+
+        # Additional pipeline metrics (lazy)
+        self._c_events_submitted: Any | None = None
+        self._c_events_dropped: Any | None = None
+        self._c_backpressure_waits: Any | None = None
+        self._h_flush_latency: Any | None = None
+        self._h_batch_size: Any | None = None
+        self._c_sink_errors: Any | None = None
+        self._g_queue_high_watermark: Any | None = None
 
         if self._enabled:
             # Minimal metric set; names align with conventional Prometheus
@@ -120,6 +129,58 @@ class MetricsCollector:
                 registry=self._registry,
             )
 
+            # Extended pipeline metrics
+            self._c_events_submitted = Counter(
+                "fapilog_events_submitted_total",
+                "Total number of events submitted to the logger",
+                registry=self._registry,
+            )
+            self._c_events_dropped = Counter(
+                "fapilog_events_dropped_total",
+                "Total number of events dropped due to backpressure",
+                registry=self._registry,
+            )
+            self._c_backpressure_waits = Counter(
+                "fapilog_backpressure_waits_total",
+                "Total number of times enqueue waited for capacity",
+                registry=self._registry,
+            )
+            self._h_flush_latency = Histogram(
+                "fapilog_flush_seconds",
+                "Latency to flush a batch to sinks",
+                buckets=(
+                    0.0005,
+                    0.001,
+                    0.0025,
+                    0.005,
+                    0.01,
+                    0.025,
+                    0.05,
+                    0.1,
+                    0.25,
+                    0.5,
+                    1.0,
+                ),
+                registry=self._registry,
+            )
+            self._h_batch_size = Histogram(
+                "fapilog_batch_size",
+                "Number of events per flush batch",
+                buckets=(1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024),
+                registry=self._registry,
+            )
+            self._c_sink_errors = Counter(
+                "fapilog_sink_errors_total",
+                "Total number of sink write errors",
+                ["sink"],
+                registry=self._registry,
+            )
+            self._g_queue_high_watermark = Gauge(
+                "fapilog_queue_high_watermark",
+                "Observed max queue depth since start",
+                registry=self._registry,
+            )
+
     @property
     def is_enabled(self) -> bool:
         return self._enabled
@@ -140,6 +201,46 @@ class MetricsCollector:
             self._c_events.inc()
         if duration_seconds is not None and self._h_process_latency is not None:
             self._h_process_latency.observe(duration_seconds)
+
+    async def record_events_submitted(self, count: int = 1) -> None:
+        if not self._enabled:
+            return
+        if self._c_events_submitted is not None:
+            self._c_events_submitted.inc(count)
+
+    async def record_events_dropped(self, count: int = 1) -> None:
+        if not self._enabled:
+            return
+        if self._c_events_dropped is not None:
+            self._c_events_dropped.inc(count)
+
+    async def record_backpressure_wait(self, count: int = 1) -> None:
+        if not self._enabled:
+            return
+        if self._c_backpressure_waits is not None:
+            self._c_backpressure_waits.inc(count)
+
+    async def record_flush(self, *, batch_size: int, latency_seconds: float) -> None:
+        if not self._enabled:
+            return
+        if self._h_batch_size is not None:
+            self._h_batch_size.observe(batch_size)
+        if self._h_flush_latency is not None:
+            self._h_flush_latency.observe(latency_seconds)
+
+    async def set_queue_high_watermark(self, value: int) -> None:
+        if not self._enabled:
+            return
+        if self._g_queue_high_watermark is not None:
+            self._g_queue_high_watermark.set(value)
+
+    async def record_sink_error(
+        self, *, sink: str | None = None, count: int = 1
+    ) -> None:
+        if not self._enabled:
+            return
+        if self._c_sink_errors is not None:
+            self._c_sink_errors.labels(sink=(sink or "unknown")).inc(count)
 
     async def record_plugin_error(
         self,

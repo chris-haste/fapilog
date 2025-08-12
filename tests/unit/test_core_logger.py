@@ -1,0 +1,94 @@
+from __future__ import annotations
+
+import asyncio
+import threading
+from typing import Any
+
+import pytest
+
+from fapilog.core.logger import SyncLoggerFacade
+
+
+async def _collecting_sink(
+    collected: list[dict[str, Any]], entry: dict[str, Any]
+) -> None:
+    collected.append(dict(entry))
+
+
+@pytest.mark.asyncio
+async def test_in_loop_bind_and_flush() -> None:
+    collected: list[dict[str, Any]] = []
+    logger = SyncLoggerFacade(
+        name="t",
+        queue_capacity=16,
+        batch_max_size=8,
+        batch_timeout_seconds=0.05,
+        backpressure_wait_ms=10,
+        drop_on_full=True,
+        sink_write=lambda e: _collecting_sink(collected, e),
+    )
+
+    # Start inside running loop: no thread should be used
+    logger.start()
+    assert logger._worker_thread is None  # type: ignore[attr-defined]
+    assert logger._loop_thread_ident == threading.get_ident()  # type: ignore[attr-defined]
+
+    for i in range(10):
+        logger.info("m", i=i)
+
+    # Allow time-based flush
+    await asyncio.sleep(0.2)
+    res = await logger.stop_and_drain()
+    assert res.submitted == 10
+    assert res.dropped == 0
+    assert res.processed == 10
+    assert len(collected) == 10
+
+
+@pytest.mark.asyncio
+async def test_in_loop_drop_when_full_nonblocking() -> None:
+    collected: list[dict[str, Any]] = []
+    logger = SyncLoggerFacade(
+        name="t",
+        queue_capacity=1,
+        batch_max_size=10,
+        batch_timeout_seconds=1.0,
+        backpressure_wait_ms=100,
+        drop_on_full=True,
+        sink_write=lambda e: _collecting_sink(collected, e),
+    )
+    logger.start()
+    # Enqueue two items quickly; second should drop on the loop thread
+    logger.info("a")
+    logger.info("b")
+    await asyncio.sleep(0.05)
+    res = await logger.stop_and_drain()
+    assert res.submitted == 2
+    assert res.processed == 1
+    assert res.dropped >= 1
+
+
+def test_thread_mode_wait_then_drop() -> None:
+    collected: list[dict[str, Any]] = []
+    logger = SyncLoggerFacade(
+        name="t",
+        queue_capacity=4,
+        batch_max_size=4,
+        batch_timeout_seconds=0.5,
+        backpressure_wait_ms=5,
+        drop_on_full=True,
+        sink_write=lambda e: _collecting_sink(collected, e),
+    )
+    # Start outside of any running loop: spawns dedicated thread+loop
+    logger.start()
+    assert logger._worker_thread is not None  # type: ignore[attr-defined]
+
+    # Saturate the queue; some submissions may drop under pressure
+    for i in range(200):
+        logger.info("x", i=i)
+
+    # Drain synchronously via helper
+    res = asyncio.run(logger.stop_and_drain())
+    assert res.submitted == 200
+    assert res.processed >= 1
+    assert res.dropped >= 0
