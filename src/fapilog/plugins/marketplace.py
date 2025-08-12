@@ -99,6 +99,13 @@ class MarketplacePluginIndexItem(BaseModel):
 
     rating: RatingSummary | None = Field(default=None, description="Rating data")
     benchmark: dict | None = Field(default=None, description="Benchmark summary blob")
+    # Security & Compliance
+    security: dict | None = Field(
+        default=None, description="Security scan summary (e.g., vuln counts)"
+    )
+    compliance: dict | None = Field(
+        default=None, description="Compliance validation summary (flags/status)"
+    )
 
     entry_points: EntryPointSignal
     install_commands: InstallCommands
@@ -218,6 +225,22 @@ class BenchmarkProvider:
         return None
 
 
+class SecurityProvider:
+    def get_security(
+        self, package_name: str
+    ) -> dict | None:  # pragma: no cover - interface
+        """Return security summary dict (e.g., {"critical":0,"high":1,...})."""
+        return None
+
+
+class ComplianceProvider:
+    def get_compliance(
+        self, package_name: str
+    ) -> dict | None:  # pragma: no cover - interface
+        """Return compliance status dict (e.g., {"pci_dss":"pass","hipaa":"unknown"})."""
+        return None
+
+
 class ExtrasProvider:
     def list_extras(self) -> dict[str, list[str]]:  # pragma: no cover - interface
         """Return mapping of extra name to dependency list."""
@@ -304,6 +327,8 @@ class MarketplaceIndexBuilder:
         ci_provider: CIStatusProvider | None = None,
         ratings_provider: RatingsProvider | None = None,
         benchmark_provider: BenchmarkProvider | None = None,
+        security_provider: SecurityProvider | None = None,
+        compliance_provider: ComplianceProvider | None = None,
         schema_version: str = "1.0",
     ) -> None:
         self.package_provider = package_provider or InstalledPackagesProvider()
@@ -311,6 +336,9 @@ class MarketplaceIndexBuilder:
         self.ci_provider = ci_provider or CIStatusProvider()
         self.ratings_provider = ratings_provider or RatingsProvider()
         self.benchmark_provider = benchmark_provider or BenchmarkProvider()
+        # Late-defined protocols below
+        self.security_provider = security_provider or SecurityProvider()
+        self.compliance_provider = compliance_provider or ComplianceProvider()
         self.schema_version = schema_version
 
     def build_index(self) -> MarketplaceIndex:
@@ -356,6 +384,8 @@ class MarketplaceIndexBuilder:
             entry_present = len(pkg.entry_point_names) > 0
             rating_dict = self.ratings_provider.get_rating(pkg.name)
             bench = self.benchmark_provider.get_benchmark(pkg.name)
+            sec = self.security_provider.get_security(pkg.name)
+            comp = self.compliance_provider.get_compliance(pkg.name)
 
             # Derive type from entry point names if possible; default to "sink"
             derived_type: PluginType = "sink"
@@ -398,6 +428,8 @@ class MarketplaceIndexBuilder:
                     else None
                 ),
                 benchmark=bench,
+                security=sec,
+                compliance=comp,
                 entry_points=EntryPointSignal(
                     present=entry_present,
                     names=pkg.entry_point_names,

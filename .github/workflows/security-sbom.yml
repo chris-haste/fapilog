@@ -1,0 +1,40 @@
+name: Security Scan & SBOM
+
+on:
+  push:
+    branches: [ main, "feat/**", "feature/**" ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+      - name: Generate SBOM (cyclonedx)
+        run: |
+          pip install cyclonedx-bom
+          cyclonedx-py -o sbom.json || true
+      - name: Vulnerability Scan (pip-audit)
+        run: |
+          pip install pip-audit
+          pip-audit -f json -o audit.json || true
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-artifacts
+          path: |
+            sbom.json
+            audit.json
+
