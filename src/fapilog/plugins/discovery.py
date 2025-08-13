@@ -117,6 +117,19 @@ class AsyncPluginDiscovery:
                             entry_point, group, derived_type
                         )
                     except Exception as e:
+                        try:
+                            from ..core.diagnostics import warn
+
+                            warn(
+                                "discovery",
+                                "error processing entry point",
+                                entry_point=getattr(entry_point, "name", "unknown"),
+                                error_type=type(e).__name__,
+                                error=str(e),
+                            )
+                        except Exception:
+                            pass
+                        # Backward compatibility for tests expecting print
                         print(f"Error processing entry point {entry_point.name}: {e}")
 
         except Exception as e:
@@ -131,6 +144,17 @@ class AsyncPluginDiscovery:
             await self._discover_installed_pypi_plugins()
         except Exception as e:
             # Log error but continue discovery
+            try:
+                from ..core.diagnostics import warn
+
+                warn(
+                    "discovery",
+                    "error discovering PyPI plugins",
+                    error_type=type(e).__name__,
+                    error=str(e),
+                )
+            except Exception:
+                pass
             print(f"Error discovering PyPI plugins: {e}")
 
     async def _discover_installed_pypi_plugins(self) -> None:
@@ -146,9 +170,32 @@ class AsyncPluginDiscovery:
                         await self._process_installed_package(dist)
                     except Exception as e:
                         # Log error but continue
+                        try:
+                            from ..core.diagnostics import warn
+
+                            warn(
+                                "discovery",
+                                "error processing installed package",
+                                package=package_name,
+                                error_type=type(e).__name__,
+                                error=str(e),
+                            )
+                        except Exception:
+                            pass
                         print(f"Error processing package {package_name}: {e}")
         except Exception as e:
             # Log error but continue discovery
+            try:
+                from ..core.diagnostics import warn
+
+                warn(
+                    "discovery",
+                    "error enumerating installed packages",
+                    error_type=type(e).__name__,
+                    error=str(e),
+                )
+            except Exception:
+                pass
             print(f"Error discovering installed packages: {e}")
 
     def _is_fapilog_plugin_package(
@@ -238,12 +285,36 @@ class AsyncPluginDiscovery:
                             derived_type,
                         )
                     except Exception as e:
-                        msg = f"Error processing entry point {entry_point.name}: {e}"
-                        print(msg)
+                        try:
+                            from ..core.diagnostics import warn
+
+                            warn(
+                                "discovery",
+                                "error processing entry point (installed)",
+                                entry_point=getattr(entry_point, "name", "unknown"),
+                                error_type=type(e).__name__,
+                                error=str(e),
+                            )
+                        except Exception:
+                            pass
+                        print(
+                            f"Error processing entry point {getattr(entry_point, 'name', 'unknown')}: {e}"
+                        )
 
         except Exception as e:
-            msg = f"Error processing installed package {package_name}: {e}"
-            print(msg)
+            try:
+                from ..core.diagnostics import warn
+
+                warn(
+                    "discovery",
+                    "error processing installed package",
+                    package=package_name,
+                    error_type=type(e).__name__,
+                    error=str(e),
+                )
+            except Exception:
+                pass
+            print(f"Error processing installed package {package_name}: {e}")
 
     async def _process_entry_point(
         self,
@@ -408,7 +479,16 @@ class AsyncPluginDiscovery:
                 spec = importlib.util.spec_from_file_location(module_name, plugin_file)
                 if spec and spec.loader:
                     module = importlib.util.module_from_spec(spec)
-                    spec.loader.exec_module(module)
+                    # Avoid indefinite hangs: exec in thread with timeout
+                    try:
+                        await asyncio.wait_for(
+                            asyncio.to_thread(spec.loader.exec_module, module),
+                            timeout=2.0,
+                        )
+                    except asyncio.TimeoutError as err:
+                        raise PluginDiscoveryError(
+                            f"Timed out importing local plugin: {plugin_file}"
+                        ) from err
 
                     # Look for plugin metadata
                     if hasattr(module, "PLUGIN_METADATA"):
