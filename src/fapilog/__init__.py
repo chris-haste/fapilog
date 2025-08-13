@@ -41,6 +41,16 @@ def get_logger(
     metrics: MetricsCollector | None = None
     if cfg.enable_metrics:
         metrics = MetricsCollector(enabled=True)
+    # Default built-in enrichers
+    from .plugins.enrichers import BaseEnricher
+    from .plugins.enrichers.context_vars import ContextVarsEnricher
+    from .plugins.enrichers.runtime_info import RuntimeInfoEnricher
+
+    default_enrichers: list[BaseEnricher] = [
+        RuntimeInfoEnricher(),
+        ContextVarsEnricher(),
+    ]
+
     logger = SyncLoggerFacade(
         name=name,
         queue_capacity=cfg.max_queue_size,
@@ -49,6 +59,7 @@ def get_logger(
         backpressure_wait_ms=cfg.backpressure_wait_ms,
         drop_on_full=cfg.drop_on_full,
         sink_write=_sink_write,
+        enrichers=default_enrichers,
         metrics=metrics,
     )
     logger.start()
