@@ -27,6 +27,10 @@ These standards are **MANDATORY for AI agents** and critical for maintaining cod
 - **Correlation ID Propagation:** All async operations must propagate correlation_id for tracing
   - The default pipeline reads `request_id` from the async context and assigns it to `LogEvent.correlation_id`, defaulting to a UUID if none exists
   - Sinks should include `correlation_id` in emitted records when present
+- **Enrichment Order:** Default enrichers run before serialization/sinks
+  - `runtime_info` provides service/env/version/host/pid/python
+  - `context_vars` provides request_id/user_id and optional trace/span IDs
+  - Enrichers must be best-effort and non-fatal; failures must not block pipelines
 - **Plugin Entry Points:** All plugins must use standard Python entry points, never dynamic imports
 - **Configuration Validation:** All settings must use Pydantic v2 validation with clear error messages
 - **Emergency Fallbacks:** All critical paths must have fallback mechanisms that never crash user apps

@@ -9,10 +9,10 @@ from __future__ import annotations
 from contextlib import contextmanager
 from typing import Iterator
 
-from .core.logger import SyncLoggerFacade
-from .core.settings import Settings
-from .metrics.metrics import MetricsCollector
-from .plugins.sinks.stdout_json import StdoutJsonSink
+from .core.logger import SyncLoggerFacade as _SyncLoggerFacade
+from .core.settings import Settings as _Settings
+from .metrics.metrics import MetricsCollector as _MetricsCollector
+from .plugins.sinks.stdout_json import StdoutJsonSink as _StdoutJsonSink
 
 __all__ = ["get_logger", "runtime", "__version__", "VERSION"]
 
@@ -20,8 +20,8 @@ __all__ = ["get_logger", "runtime", "__version__", "VERSION"]
 def get_logger(
     name: str | None = None,
     *,
-    settings: Settings | None = None,
-) -> SyncLoggerFacade:
+    settings: _Settings | None = None,
+) -> _SyncLoggerFacade:
     """Return a ready-to-use sync logger facade wired to a container-scoped pipeline.
 
     - Zero-config: if `settings` is not provided, a fresh `Settings()` is created
@@ -31,17 +31,27 @@ def get_logger(
       own configuration, metrics, and sink wiring.
     """
     # Default pipeline: stdout JSON sink
-    sink = StdoutJsonSink()
+    sink = _StdoutJsonSink()
 
     async def _sink_write(entry: dict) -> None:
         await sink.write(entry)
 
-    cfg_source = settings or Settings()
+    cfg_source = settings or _Settings()
     cfg = cfg_source.core
-    metrics: MetricsCollector | None = None
+    metrics: _MetricsCollector | None = None
     if cfg.enable_metrics:
-        metrics = MetricsCollector(enabled=True)
-    logger = SyncLoggerFacade(
+        metrics = _MetricsCollector(enabled=True)
+    # Default built-in enrichers
+    from .plugins.enrichers import BaseEnricher
+    from .plugins.enrichers.context_vars import ContextVarsEnricher
+    from .plugins.enrichers.runtime_info import RuntimeInfoEnricher
+
+    default_enrichers: list[BaseEnricher] = [
+        RuntimeInfoEnricher(),
+        ContextVarsEnricher(),
+    ]
+
+    logger = _SyncLoggerFacade(
         name=name,
         queue_capacity=cfg.max_queue_size,
         batch_max_size=cfg.batch_max_size,
@@ -49,6 +59,7 @@ def get_logger(
         backpressure_wait_ms=cfg.backpressure_wait_ms,
         drop_on_full=cfg.drop_on_full,
         sink_write=_sink_write,
+        enrichers=default_enrichers,
         metrics=metrics,
     )
     logger.start()
@@ -56,7 +67,7 @@ def get_logger(
 
 
 @contextmanager
-def runtime(*, settings: Settings | None = None) -> Iterator[SyncLoggerFacade]:
+def runtime(*, settings: _Settings | None = None) -> Iterator[_SyncLoggerFacade]:
     """Context manager that initializes and drains the default runtime.
 
     Yields a default logger; on exit, flushes and returns a drain result via

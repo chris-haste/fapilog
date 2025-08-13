@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from typing import Any, Iterable
 
 from ..metrics.metrics import MetricsCollector
+from ..plugins.enrichers import BaseEnricher
 from .concurrency import NonBlockingRingQueue
 from .events import LogEvent
 
@@ -54,6 +55,7 @@ class SyncLoggerFacade:
         backpressure_wait_ms: int,
         drop_on_full: bool,
         sink_write: Any,
+        enrichers: list[BaseEnricher] | None = None,
         metrics: MetricsCollector | None = None,
     ) -> None:
         self._name = name or "root"
@@ -65,6 +67,8 @@ class SyncLoggerFacade:
         self._drop_on_full = bool(drop_on_full)
         self._sink_write = sink_write
         self._metrics = metrics
+        # Store enrichers with explicit type
+        self._enrichers: list[BaseEnricher] = list(enrichers or [])
         # Worker binding and lifecycle
         self._worker_tasks: list[asyncio.Task[None]] = []
         self._stop_flag = False
@@ -223,6 +227,19 @@ class SyncLoggerFacade:
                     self._queue_high_watermark = qsize
             else:
                 self._dropped += 1
+                # Throttled WARN for backpressure drop on same-thread path
+                try:
+                    from .diagnostics import warn
+
+                    warn(
+                        "backpressure",
+                        "drop on full (same-thread)",
+                        drop_total=self._dropped,
+                        queue_hwm=self._queue_high_watermark,
+                        capacity=self._queue.capacity,
+                    )
+                except Exception:
+                    pass
             return
         # Cross-thread submission: schedule coroutine and wait up to timeout
         if loop is not None:
@@ -234,8 +251,33 @@ class SyncLoggerFacade:
                 ok = fut.result(timeout=wait_seconds + 0.05)
                 if not ok:
                     self._dropped += 1
+                    # Throttled WARN for backpressure drop on cross-thread path
+                    try:
+                        from .diagnostics import warn
+
+                        warn(
+                            "backpressure",
+                            "drop on full (cross-thread)",
+                            drop_total=self._dropped,
+                            queue_hwm=self._queue_high_watermark,
+                            capacity=self._queue.capacity,
+                        )
+                    except Exception:
+                        pass
             except Exception:
                 self._dropped += 1
+                try:
+                    from .diagnostics import warn
+
+                    warn(
+                        "backpressure",
+                        "enqueue exception (drop)",
+                        drop_total=self._dropped,
+                        queue_hwm=self._queue_high_watermark,
+                        capacity=self._queue.capacity,
+                    )
+                except Exception:
+                    pass
             return
 
     def info(self, message: str, **metadata: Any) -> None:
@@ -249,6 +291,20 @@ class SyncLoggerFacade:
 
     def error(self, message: str, **metadata: Any) -> None:
         self._enqueue("ERROR", message, **metadata)
+
+    # Runtime toggles for enrichers
+    def enable_enricher(self, enricher: BaseEnricher) -> None:
+        try:
+            name = getattr(enricher, "name", None)
+        except Exception:
+            name = None
+        if name is None:
+            return
+        if all(getattr(e, "name", "") != name for e in self._enrichers):
+            self._enrichers.append(enricher)
+
+    def disable_enricher(self, name: str) -> None:
+        self._enrichers = [e for e in self._enrichers if getattr(e, "name", "") != name]
 
     async def _worker_main(self) -> None:
         batch: list[dict[str, Any]] = []
@@ -317,7 +373,18 @@ class SyncLoggerFacade:
             return
         start = time.perf_counter()
         try:
+            from ..plugins.enrichers import enrich_parallel
+
             for entry in batch:
+                # Enrich before sink write
+                if self._enrichers:
+                    try:
+                        entry = await enrich_parallel(
+                            entry, list(self._enrichers), metrics=self._metrics
+                        )
+                    except Exception:
+                        # Enrichment errors are contained; proceed with original
+                        pass
                 await self._sink_write(entry)
                 self._processed += 1
         except Exception as exc:

@@ -19,3 +19,24 @@ Fapilog v3 includes essential features **out of the box** to ensure immediate pr
 - Controlled by `core.internal_logging_enabled` in `Settings`
 - When enabled, non-fatal internal failures (e.g., worker loop errors, sink flush errors) emit structured WARN diagnostics to stdout with `[fapilog][...]` prefixes
 - Diagnostics never raise to user code and are safe to enable in development environments
+
+## Default Enrichers (Built-in)
+
+Two enrichers run by default before serialization and sink write:
+
+- RuntimeInfoEnricher (`runtime_info`)
+  - Adds: `service`, `env`, `version`, `host`, `pid`, `python`
+  - `service`, `env`, and `version` are sourced from environment variables when present:
+    - `FAPILOG_SERVICE`, `FAPILOG_ENV` (or `ENV`), `FAPILOG_VERSION`
+
+- ContextVarsEnricher (`context_vars`)
+  - Adds: `request_id` (from async context), `user_id` (if set), and optionally `trace_id`/`span_id` when OpenTelemetry context is available
+  - Preserves `tenant_id` if already provided in the event payload
+
+Behavior:
+- Enrichment is best-effort and resilient; failures are contained and do not block log emission
+- Enrichers are treated like built-in plugins and can be toggled at runtime
+
+Runtime toggles:
+- Disable by name: `logger.disable_enricher("context_vars")`
+- Enable/append instance: `logger.enable_enricher(RuntimeInfoEnricher())`

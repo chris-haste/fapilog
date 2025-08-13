@@ -87,6 +87,22 @@ logger = get_logger(name="api", settings=settings)
 logger.info("configured", queue=settings.core.max_queue_size)
 ```
 
+### Default enrichers
+
+By default, the logger enriches each event before serialization:
+
+- `runtime_info`: `service`, `env`, `version`, `host`, `pid`, `python`
+- `context_vars`: `request_id`, `user_id` (if set), and optionally `trace_id`/`span_id` when OpenTelemetry is present
+
+You can toggle enrichers at runtime:
+
+```python
+from fapilog.plugins.enrichers.runtime_info import RuntimeInfoEnricher
+
+logger.disable_enricher("context_vars")
+logger.enable_enricher(RuntimeInfoEnricher())
+```
+
 ### Internal diagnostics (optional)
 
 Enable structured WARN diagnostics for internal, non-fatal errors (worker/sink):
