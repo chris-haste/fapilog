@@ -79,6 +79,25 @@ class CoreSettings(BaseModel):
     internal_logging_enabled: bool = Field(
         default=False, description=("Emit DEBUG/WARN diagnostics for internal errors")
     )
+    # Redactors stage toggles and guardrails
+    enable_redactors: bool = Field(
+        default=False,
+        description=("Enable redactors stage between enrichers and sink emission"),
+    )
+    redactors_order: list[str] = Field(
+        default_factory=list,
+        description=("Ordered list of redactor plugin names to apply"),
+    )
+    redaction_max_depth: int | None = Field(
+        default=None,
+        ge=1,
+        description=("Optional max depth guardrail for nested redaction"),
+    )
+    redaction_max_keys_scanned: int | None = Field(
+        default=None,
+        ge=1,
+        description=("Optional max keys scanned guardrail for redaction"),
+    )
     # Resource pool defaults (can be overridden per pool at construction)
     resource_pool_max_size: int = Field(
         default=8,

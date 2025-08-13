@@ -20,6 +20,7 @@ from .lifecycle import (
 )
 from .metadata import PluginInfo, validate_fapilog_compatibility
 from .processors import BaseProcessor
+from .redactors import BaseRedactor
 from .sinks import BaseSink
 
 T = TypeVar("T")
@@ -375,6 +376,8 @@ class AsyncComponentRegistry(ComponentIsolationMixin):
                 component_type = BaseProcessor
             elif isinstance(instance, BaseEnricher):
                 component_type = BaseEnricher
+            elif isinstance(instance, BaseRedactor):
+                component_type = BaseRedactor
 
             self._container.register_component(
                 name=isolated_name,
