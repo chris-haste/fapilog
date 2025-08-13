@@ -556,4 +556,6 @@ ignore_names = [
   "record_flush",
   "set_queue_high_watermark",
   "record_sink_error",
+  # Redactors helper used via runtime wiring
+  "redact_in_order",
 ]

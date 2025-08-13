@@ -33,6 +33,7 @@ from .metadata import (
     validate_fapilog_compatibility,
 )
 from .processors import BaseProcessor
+from .redactors import BaseRedactor
 from .registry import (
     AsyncComponentRegistry,
     PluginLoadError,
@@ -69,4 +70,5 @@ __all__ = [
     "BaseEnricher",
     "BaseProcessor",
     "BaseSink",
+    "BaseRedactor",
 ]

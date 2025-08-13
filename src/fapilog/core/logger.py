@@ -15,6 +15,7 @@ from typing import Any, Iterable
 
 from ..metrics.metrics import MetricsCollector
 from ..plugins.enrichers import BaseEnricher
+from ..plugins.redactors import BaseRedactor, redact_in_order
 from .concurrency import NonBlockingRingQueue
 from .events import LogEvent
 
@@ -69,6 +70,8 @@ class SyncLoggerFacade:
         self._metrics = metrics
         # Store enrichers with explicit type
         self._enrichers: list[BaseEnricher] = list(enrichers or [])
+        # Redactors are optional and configured via settings at construction.
+        self._redactors: list[BaseRedactor] = []
         # Worker binding and lifecycle
         self._worker_tasks: list[asyncio.Task[None]] = []
         self._stop_flag = False
@@ -99,7 +102,8 @@ class SyncLoggerFacade:
             self._loop_thread_ident = threading.get_ident()
             self._drained_event = asyncio.Event()
             for _ in range(self._num_workers):
-                self._worker_tasks.append(loop.create_task(self._worker_main()))
+                task = loop.create_task(self._worker_main())
+                self._worker_tasks.append(task)
         except RuntimeError:
             # No running loop: start dedicated loop in a thread
             self._stop_flag = False
@@ -135,7 +139,8 @@ class SyncLoggerFacade:
             self._thread_ready.wait(timeout=2.0)
 
     async def stop_and_drain(self) -> DrainResult:
-        # If we're bound to the current running loop (async mode), await drain directly
+        # If we're bound to the current running loop (async mode), await drain
+        # directly
         try:
             running_loop = asyncio.get_running_loop()
         except RuntimeError:
@@ -380,10 +385,23 @@ class SyncLoggerFacade:
                 if self._enrichers:
                     try:
                         entry = await enrich_parallel(
-                            entry, list(self._enrichers), metrics=self._metrics
+                            entry,
+                            list(self._enrichers),
+                            metrics=self._metrics,
                         )
                     except Exception:
-                        # Enrichment errors are contained; proceed with original
+                        # Contain enrichment errors
+                        pass
+                # Redactors stage (sequential, deterministic)
+                if self._redactors:
+                    try:
+                        entry = await redact_in_order(
+                            entry,
+                            list(self._redactors),
+                            metrics=self._metrics,
+                        )
+                    except Exception:
+                        # Contain redaction errors and continue
                         pass
                 await self._sink_write(entry)
                 self._processed += 1
@@ -400,7 +418,10 @@ class SyncLoggerFacade:
                 from .diagnostics import warn
 
                 warn(
-                    "sink", "flush error", error_type=type(exc).__name__, error=str(exc)
+                    "sink",
+                    "flush error",
+                    error_type=type(exc).__name__,
+                    error=str(exc),
                 )
             except Exception:
                 pass

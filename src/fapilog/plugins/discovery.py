@@ -99,6 +99,7 @@ class AsyncPluginDiscovery:
             "fapilog.sinks": "sink",
             "fapilog.processors": "processor",
             "fapilog.enrichers": "enricher",
+            "fapilog.redactors": "redactor",
             "fapilog.alerting": "alerting",
         }
         try:
@@ -246,6 +247,7 @@ class AsyncPluginDiscovery:
                 "fapilog.sinks",
                 "fapilog.processors",
                 "fapilog.enrichers",
+                "fapilog.redactors",
                 "fapilog.alerting",
             ]
             fapilog_entries = []
@@ -277,6 +279,8 @@ class AsyncPluginDiscovery:
                                 derived_type = "processor"
                             elif group_name.endswith("enrichers"):
                                 derived_type = "enricher"
+                            elif group_name.endswith("redactors"):
+                                derived_type = "redactor"
                             elif group_name.endswith("alerting"):
                                 derived_type = "alerting"
                         await self._process_entry_point(
