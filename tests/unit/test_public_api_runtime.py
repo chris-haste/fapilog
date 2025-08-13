@@ -38,6 +38,36 @@ def test_get_logger_basic_enqueue_and_stdout_json():
         sys.stdout = orig  # type: ignore[assignment]
 
 
+def test_get_logger_emits_correlation_id():
+    # Capture stdout
+    buf = io.BytesIO()
+    orig = sys.stdout
+    sys.stdout = io.TextIOWrapper(
+        buf,
+        encoding="utf-8",
+    )  # type: ignore[assignment]
+    try:
+        logger = fl.get_logger("corr-test")
+        logger.info("hello")
+        # Allow background worker to flush batch via timeout
+        time.sleep(0.3)
+        # Force drain to ensure output
+        import asyncio
+
+        asyncio.run(logger.stop_and_drain())
+        sys.stdout.flush()
+        data = buf.getvalue().decode("utf-8").strip().splitlines()
+        assert len(data) == 1
+        js = json.loads(data[0])
+        assert js["message"] == "hello"
+        assert js["level"] == "INFO"
+        assert js["logger"] == "corr-test"
+        assert "correlation_id" in js and isinstance(js["correlation_id"], str)
+        assert len(js["correlation_id"]) > 0
+    finally:
+        sys.stdout = orig  # type: ignore[assignment]
+
+
 def test_runtime_context_manager_drains_cleanly():
     buf = io.BytesIO()
     orig = sys.stdout
