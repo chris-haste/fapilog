@@ -29,11 +29,16 @@ class StdoutJsonSink:
     async def write(self, entry: dict[str, Any]) -> None:
         try:
             view = serialize_mapping_to_json_bytes(entry)
-            # Ensure lines are separated without blocking the event loop
+            # Coalesce write+newline+flush into a single to_thread call
             async with self._lock:
-                await asyncio.to_thread(sys.stdout.buffer.write, view.data)
-                await asyncio.to_thread(sys.stdout.buffer.write, b"\n")
-                await asyncio.to_thread(sys.stdout.buffer.flush)
+
+                def _write_line() -> None:
+                    buf = sys.stdout.buffer
+                    buf.write(view.data)
+                    buf.write(b"\n")
+                    buf.flush()
+
+                await asyncio.to_thread(_write_line)
         except Exception:
             # Contain sink errors; do not propagate
             return None
