@@ -86,7 +86,7 @@ async def test_redactors_ordering_and_integration() -> None:
 
     assert collected, "Expected at least one emitted entry"
     event = collected[0]
-    # Enricher ran first
+    # Enricher ran first, then redactors, then sink
     assert event.get("enriched") is True
     # Redactors applied sequentially: 0->+1 (enricher)->+10->+100 == 111
     assert event.get("value") == 111
