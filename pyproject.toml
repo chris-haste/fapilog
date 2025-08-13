@@ -558,4 +558,8 @@ ignore_names = [
   "record_sink_error",
   # Redactors helper used via runtime wiring
   "redact_in_order",
+  # Core redactor plugin symbols referenced by tests/runtime
+  "FieldMaskRedactor",
+  "FieldMaskConfig",
+  "PLUGIN_METADATA",
 ]
