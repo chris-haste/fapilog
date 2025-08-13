@@ -16,13 +16,14 @@ This document describes the runtime, extensibility, and packaging architecture f
 
 ## 2) High-Level Overview
 
-At a high level, applications use `AsyncLogger` to produce structured records. Records flow through an optional chain of **enrichers** and **processors**, then into one or more **sinks**. Plugins provide additional processors/enrichers/sinks and optional framework integrations. The **PluginLoader** discovers these via Python entry points, while **CompatibilityManager** enforces version constraints. **ExtrasResolver** produces actionable diagnostics when optional integrations aren’t installed.
+At a high level, applications use `AsyncLogger` to produce structured records. Records flow through an optional chain of **enrichers**, then **redactors**, then **processors**, then into one or more **sinks**. Plugins provide additional processors/enrichers/redactors/sinks and optional framework integrations. The **PluginLoader** discovers these via Python entry points, while **CompatibilityManager** enforces version constraints. **ExtrasResolver** produces actionable diagnostics when optional integrations aren’t installed.
 
 ```mermaid
 flowchart LR
   A[App] --> L[AsyncLogger]
   L --> E[[Enrichers]]
-  E --> P[[Processors]]
+  E --> R[[Redactors]]
+  R --> P[[Processors]]
   P --> S[[Sinks]]
 
   %% Discovery stacks (entry points -> plugin loader)
@@ -49,6 +50,7 @@ flowchart LR
 
   %% Link each stage to its loader
   E -. "discover via" .-> PL_E
+  R -. "discover via" .-> PL_P
   P -. "discover via" .-> PL_P
   S -. "discover via" .-> PL_S
 

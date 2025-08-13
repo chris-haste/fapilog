@@ -20,7 +20,7 @@ All features are **proven** via the codebase:
 
 - **Async-first architecture**: Background worker, non-blocking enqueue, async sinks out-of-the-box.
 - **Structured JSON logging**: Default `StdoutJsonSink` outputs JSON line logs ready for ingestion.
-- **Plugin-based ecosystem**: Supports custom enrichers, sinks, and processors.
+- **Plugin-based ecosystem**: Supports custom enrichers, redactors, processors, and sinks.
 - **Context propagation**: Auto trace ID generation and propagation.
 - **Cloud-native compliance**: Meets typical observability requirements for audit and compliance.
 - **Multiple sink support**: Stdout, memory-mapped persistence, async HTTP utilities.
@@ -48,7 +48,7 @@ Copy-ready commands:
 pip install "fapilog>=3,<4"
 # or
 uv add "fapilog>=3,<4"
-```
+```text
 
 Optional extras:
 
@@ -59,7 +59,7 @@ pip install "fapilog[all]"
 # or with uv
 uv add "fapilog[fastapi]"
 uv add "fapilog[all]"
-```
+```text
 
 See full guide: docs/install-and-update.md
 [![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-green.svg)](https://docs.pydantic.dev/)
@@ -80,7 +80,7 @@ See full guide: docs/install-and-update.md
 
 ```bash
 pip install fapilog
-```
+```text
 
 ## 🎯 Quick Start
 
@@ -94,21 +94,23 @@ logger.info("Application started", environment="production")
 # Scoped runtime that auto-flushes on exit
 with runtime() as log:
     log.error("Something went wrong", code=500)
-```
+```text
 
 ## 🏗️ Architecture
 
 Fapilog v3 uses a true async-first pipeline architecture:
 
-```
-┌─────────────┐    ┌──────────────┐    ┌─────────────┐    ┌──────────────┐    ┌─────────────┐
-│ Log Event   │───▶│ Enrichment   │───▶│ Processing  │───▶│ Queue        │───▶│ Sinks       │
-│             │    │              │    │             │    │              │    │             │
-│ log.info()  │    │ Add context  │    │ Redaction   │    │ Async buffer │    │ File/Stdout │
-│ log.error() │    │ Trace IDs    │    │ Formatting  │    │ Batching     │    │ HTTP/Custom │
-|             |    │ User data    │    │ Validation  │    │ Overflow     │    │             │
-└─────────────┘    └──────────────┘    └─────────────┘    └──────────────┘    └─────────────┘
-```
+```text
+┌─────────────┐    ┌──────────────┐    ┌──────────────┐    ┌─────────────┐    ┌──────────────┐    ┌─────────────┐
+│ Log Event   │───▶│ Enrichment   │───▶│ Redaction    │───▶│ Processing  │───▶│ Queue        │───▶│ Sinks       │
+│             │    │              │    │              │    │             │    │              │    │             │
+│ log.info()  │    │ Add context  │    │ Masking      │    │ Formatting  │    │ Async buffer │    │ File/Stdout │
+│ log.error() │    │ Trace IDs    │    │ PII removal  │    │ Validation  │    │ Batching     │    │ HTTP/Custom │
+|             |    │ User data    │    │ Policy checks│    │ Transform   │    │ Overflow     │    │             │
+└─────────────┘    └──────────────┘    └──────────────┘    └─────────────┘    └──────────────┘    └─────────────┘
+```text
+
+See Redactors documentation: [docs/plugins/redactors.md](docs/plugins/redactors.md)
 
 ## 🔧 Configuration
 
@@ -121,7 +123,7 @@ from fapilog.core.settings import Settings
 settings = Settings()  # reads env at call time
 logger = get_logger(name="api", settings=settings)
 logger.info("configured", queue=settings.core.max_queue_size)
-```
+```text
 
 ### Default enrichers
 
@@ -137,7 +139,7 @@ from fapilog.plugins.enrichers.runtime_info import RuntimeInfoEnricher
 
 logger.disable_enricher("context_vars")
 logger.enable_enricher(RuntimeInfoEnricher())
-```
+```text
 
 ### Internal diagnostics (optional)
 
@@ -145,11 +147,11 @@ Enable structured WARN diagnostics for internal, non-fatal errors (worker/sink):
 
 ```bash
 export FAPILOG_CORE__INTERNAL_LOGGING_ENABLED=true
-```
+```text
 
 When enabled, you may see messages like:
 
-```
+```text
 [fapilog][worker][WARN] worker_main error: ...
 [fapilog][sink][WARN] flush error: ...
 ```

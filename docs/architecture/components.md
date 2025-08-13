@@ -30,15 +30,16 @@ Based on the architectural patterns, tech stack, and data models defined above, 
 
 ## AsyncPipeline
 
-**Responsibility:** Core async-first event processing pipeline implementing enrichment → processing → queue → sinks flow
+**Responsibility:** Core async-first event processing pipeline implementing enrichment → redaction → processing → queue → sinks flow
 
 **Key Interfaces:**
 
 - `async def process_event(event: LogEvent) -> None` - Main pipeline entry point
 - `async def register_enricher(enricher: EnricherPlugin) -> None` - Plugin registration
+- `async def register_redactor(redactor: RedactorPlugin) -> None` - Plugin registration
 - `async def get_pipeline_metrics() -> PipelineMetrics` - Performance monitoring
 
-**Dependencies:** EnricherPlugins, ProcessorPlugins, SinkPlugins, AsyncQueue  
+**Dependencies:** EnricherPlugins, RedactorPlugins, ProcessorPlugins, SinkPlugins, AsyncQueue  
 **Technology Stack:** asyncio parallel processing, zero-copy event passing, Prometheus metrics
 
 ## PluginRegistry
@@ -52,7 +53,7 @@ Based on the architectural patterns, tech stack, and data models defined above, 
 - `async def validate_plugin_compliance(plugin: Plugin) -> bool` - Enterprise validation
 
 **Dependencies:** PluginMetadata, ComplianceEngine, PluginMarketplace  
-**Technology Stack:** importlib.metadata, setuptools entry points (multi-group: `fapilog.sinks`, `fapilog.processors`, `fapilog.enrichers`, `fapilog.alerting`), async validation
+**Technology Stack:** importlib.metadata, setuptools entry points (multi-group: `fapilog.sinks`, `fapilog.processors`, `fapilog.enrichers`, `fapilog.redactors`, `fapilog.alerting`), async validation
 
 ## ComplianceEngine
 

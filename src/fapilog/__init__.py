@@ -22,13 +22,14 @@ def get_logger(
     *,
     settings: _Settings | None = None,
 ) -> _SyncLoggerFacade:
-    """Return a ready-to-use sync logger facade wired to a container-scoped pipeline.
+    """Return a ready-to-use sync logger facade wired to a
+    container-scoped pipeline.
 
-    - Zero-config: if `settings` is not provided, a fresh `Settings()` is created
-      (reads env at call time) and treated as immutable for the lifetime of the
-      returned logger instance.
-    - Container-scoped: no global mutable state is retained; each logger owns its
-      own configuration, metrics, and sink wiring.
+    - Zero-config: if `settings` is not provided, a fresh `Settings()` is
+      created (reads env at call time) and treated as immutable for the
+      lifetime of the returned logger instance.
+    - Container-scoped: no global mutable state is retained; each logger owns
+      its own configuration, metrics, and sink wiring.
     """
     # Default pipeline: stdout JSON sink
     sink = _StdoutJsonSink()
@@ -62,6 +63,18 @@ def get_logger(
         enrichers=default_enrichers,
         metrics=metrics,
     )
+    # Policy warning if sensitive fields declared but redactors disabled
+    try:
+        if (not cfg.enable_redactors) and cfg.sensitive_fields_policy:
+            from .core.diagnostics import warn as _warn
+
+            _warn(
+                "redactor",
+                "sensitive fields policy present but redactors disabled",
+                fields=len(cfg.sensitive_fields_policy),
+            )
+    except Exception:
+        pass
     logger.start()
     return logger
 

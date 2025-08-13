@@ -35,7 +35,10 @@ class CoreSettings(BaseModel):
     Keep this minimal and stable; prefer plugin-specific settings elsewhere.
     """
 
-    app_name: str = Field(default="fapilog", description="Logical application name")
+    app_name: str = Field(
+        default="fapilog",
+        description="Logical application name",
+    )
     log_level: Literal[
         "DEBUG",
         "INFO",
@@ -75,9 +78,18 @@ class CoreSettings(BaseModel):
         default=False,
         description=("Enable Prometheus-compatible metrics"),
     )
-    # Structured internal diagnostics for non-fatal errors (worker/sink/metrics)
+    # Structured internal diagnostics (worker/sink/metrics)
     internal_logging_enabled: bool = Field(
-        default=False, description=("Emit DEBUG/WARN diagnostics for internal errors")
+        default=False,
+        description=("Emit DEBUG/WARN diagnostics for internal errors"),
+    )
+    # Optional policy hint to encourage enabling redaction
+    sensitive_fields_policy: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Optional list of dotted paths for sensitive fields policy;"
+            " warning if no redactors configured"
+        ),
     )
     # Redactors stage toggles and guardrails
     enable_redactors: bool = Field(
