@@ -8,6 +8,7 @@ serialization. The full pipeline will be expanded in later stories.
 from __future__ import annotations
 
 import asyncio
+import contextvars
 import threading
 import time
 from dataclasses import dataclass
@@ -85,6 +86,13 @@ class SyncLoggerFacade:
         self._processed = 0
         self._dropped = 0
         self._retried = 0
+        # Context binding per task
+        self._bound_context_var: contextvars.ContextVar[dict[str, Any] | None] = (
+            contextvars.ContextVar(
+                "fapilog_bound_context",
+                default=None,
+            )
+        )
 
     def start(self) -> None:
         """Start worker group bound to an event loop.
@@ -129,7 +137,10 @@ class SyncLoggerFacade:
                             t.cancel()
                         if pending:
                             loop_local.run_until_complete(
-                                asyncio.gather(*pending, return_exceptions=True)
+                                asyncio.gather(
+                                    *pending,
+                                    return_exceptions=True,
+                                )
                             )
                     finally:
                         loop_local.close()
@@ -198,11 +209,28 @@ class SyncLoggerFacade:
         if current_corr is None:
             current_corr = str(uuid4())
 
+        # Merge precedence:
+        # 1) Base event fields
+        # 2) Enrichers (applied later)
+        # 3) Bound context (per-task)
+        # 4) Per-call kwargs (highest precedence)
+        bound_context = {}
+        try:
+            ctx_val = self._bound_context_var.get(None)
+            bound_context = dict(ctx_val or {})
+        except Exception:
+            bound_context = {}
+
+        merged_metadata: dict[str, Any] = {}
+        # Start with bound context, then overlay per-call metadata
+        merged_metadata.update(bound_context)
+        merged_metadata.update(metadata)
+
         event = LogEvent(
             level=level,
             message=message,
             logger=self._name,
-            metadata=metadata,
+            metadata=merged_metadata,
             correlation_id=current_corr,
         )
         payload = event.to_mapping()
@@ -250,7 +278,10 @@ class SyncLoggerFacade:
         if loop is not None:
             try:
                 fut = asyncio.run_coroutine_threadsafe(
-                    self._async_enqueue(dict(payload), timeout=wait_seconds),
+                    self._async_enqueue(
+                        dict(payload),
+                        timeout=wait_seconds,
+                    ),
                     loop,
                 )
                 ok = fut.result(timeout=wait_seconds + 0.05)
@@ -296,6 +327,39 @@ class SyncLoggerFacade:
 
     def error(self, message: str, **metadata: Any) -> None:
         self._enqueue("ERROR", message, **metadata)
+
+    # Context binding API
+    def bind(self, **context: Any) -> SyncLoggerFacade:
+        """Return a child logger with additional bound context for
+        current task.
+
+        Binding is additive and scoped to the current async task/thread via
+        ContextVar.
+        """
+        current = {}
+        try:
+            ctx_val = self._bound_context_var.get(None)
+            current = dict(ctx_val or {})
+        except Exception:
+            current = {}
+        current.update(context)
+        self._bound_context_var.set(current)
+        return self
+
+    def unbind(self, *keys: str) -> None:
+        """Remove specific keys from the bound context for current task."""
+        try:
+            ctx_val = self._bound_context_var.get(None)
+            current = dict(ctx_val or {})
+        except Exception:
+            current = {}
+        for k in keys:
+            current.pop(k, None)
+        self._bound_context_var.set(current)
+
+    def clear_context(self) -> None:
+        """Clear all bound context for current task."""
+        self._bound_context_var.set(None)
 
     # Runtime toggles for enrichers
     def enable_enricher(self, enricher: BaseEnricher) -> None:
@@ -430,7 +494,8 @@ class SyncLoggerFacade:
                 try:
                     latency = time.perf_counter() - start
                     await self._metrics.record_flush(
-                        batch_size=len(batch), latency_seconds=latency
+                        batch_size=len(batch),
+                        latency_seconds=latency,
                     )
                 except Exception:
                     pass

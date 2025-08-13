@@ -63,6 +63,14 @@ def get_logger(
         enrichers=default_enrichers,
         metrics=metrics,
     )
+    # Apply default bound context if enabled
+    try:
+        if cfg.context_binding_enabled and cfg.default_bound_context:
+            # Bind default context for current task if provided
+            # Safe even if bind is absent in older versions (no-attr ignored)
+            logger.bind(**cfg.default_bound_context)
+    except Exception:
+        pass
     # Policy warning if sensitive fields declared but redactors disabled
     try:
         if (not cfg.enable_redactors) and cfg.sensitive_fields_policy:

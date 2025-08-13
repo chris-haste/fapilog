@@ -78,6 +78,15 @@ class CoreSettings(BaseModel):
         default=False,
         description=("Enable Prometheus-compatible metrics"),
     )
+    # Context binding feature toggles
+    context_binding_enabled: bool = Field(
+        default=True,
+        description=("Enable per-task bound context via logger.bind/unbind/clear"),
+    )
+    default_bound_context: dict[str, object] = Field(
+        default_factory=dict,
+        description=("Default bound context applied at logger creation when enabled"),
+    )
     # Structured internal diagnostics (worker/sink/metrics)
     internal_logging_enabled: bool = Field(
         default=False,
