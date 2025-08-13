@@ -6,6 +6,7 @@ from typing import Any
 
 import pytest
 
+from fapilog import get_logger
 from fapilog.core.logger import SyncLoggerFacade
 
 
@@ -92,3 +93,24 @@ def test_thread_mode_wait_then_drop() -> None:
     assert res.submitted == 200
     assert res.processed >= 1
     assert res.dropped >= 0
+
+
+@pytest.mark.asyncio
+async def test_logger_auto_generates_correlation_id() -> None:
+    captured: list[dict[str, Any]] = []
+
+    logger = get_logger(name="test")
+
+    async def fake_write(entry: dict[str, Any]) -> None:
+        captured.append(entry)
+
+    # Replace sink_write on the logger (test-only replacement)
+    logger._sink_write = fake_write  # type: ignore[attr-defined]
+
+    logger.info("hello")
+    await logger.stop_and_drain()
+
+    assert captured, "Expected at least one emitted entry"
+    event = captured[0]
+    assert "correlation_id" in event and isinstance(event["correlation_id"], str)
+    assert len(event["correlation_id"]) > 0

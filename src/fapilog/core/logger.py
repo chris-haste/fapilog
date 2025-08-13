@@ -16,7 +16,6 @@ from typing import Any, Iterable
 from ..metrics.metrics import MetricsCollector
 from .concurrency import NonBlockingRingQueue
 from .events import LogEvent
-from .settings import Settings
 
 
 class AsyncLogger:
@@ -179,12 +178,16 @@ class SyncLoggerFacade:
 
     # Public sync API
     def _enqueue(self, level: str, message: str, **metadata: Any) -> None:
+        from uuid import uuid4
+
         from .context import request_id_var
 
         try:
             current_corr = request_id_var.get()
         except LookupError:
             current_corr = None
+        if current_corr is None:
+            current_corr = str(uuid4())
 
         event = LogEvent(
             level=level,
@@ -297,13 +300,14 @@ class SyncLoggerFacade:
         except Exception as exc:
             # Contain worker failures; optionally emit diagnostics
             try:
-                from .settings import Settings  # local import to avoid cycles
+                from .diagnostics import warn
 
-                if Settings().core.internal_logging_enabled:
-                    print(
-                        f"[fapilog][worker][WARN] worker_main error: {type(exc).__name__}: {exc}",
-                        flush=True,
-                    )
+                warn(
+                    "worker",
+                    "worker_main error",
+                    error_type=type(exc).__name__,
+                    error=str(exc),
+                )
             except Exception:
                 pass
             return
@@ -326,11 +330,11 @@ class SyncLoggerFacade:
                     pass
             # Optional diagnostics
             try:
-                if Settings().core.internal_logging_enabled:
-                    print(
-                        f"[fapilog][sink][WARN] flush error: {type(exc).__name__}: {exc}",
-                        flush=True,
-                    )
+                from .diagnostics import warn
+
+                warn(
+                    "sink", "flush error", error_type=type(exc).__name__, error=str(exc)
+                )
             except Exception:
                 pass
         finally:
