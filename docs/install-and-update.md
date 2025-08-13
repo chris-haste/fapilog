@@ -24,6 +24,7 @@ The project publishes optional integrations via extras. Choose only what you nee
 
 ```bash
 pip install "fapilog[enterprise]"
+pip install "fapilog[fastapi]"
 pip install "fapilog[loki]"
 pip install "fapilog[cloud]"
 pip install "fapilog[siem]"
@@ -36,6 +37,7 @@ pip install "fapilog[all]"
 
 ```bash
 uv add "fapilog[enterprise]"
+uv add "fapilog[fastapi]"
 uv add "fapilog[loki]"
 uv add "fapilog[cloud]"
 uv add "fapilog[siem]"
@@ -48,6 +50,17 @@ Notes:
 
 - Extras install optional dependencies only. Core logging works without extras.
 - Use a single command to combine extras, e.g. `pip install "fapilog[cloud,siem]"`.
+- The FastAPI integration is import-guarded. If the extra is not installed, `fapilog.fastapi.AVAILABLE` will be `False` and the integration will remain inactive.
+
+### Enabling internal diagnostics (development)
+
+To surface structured WARN diagnostics for internal, non-fatal errors:
+
+```bash
+export FAPILOG_CORE__INTERNAL_LOGGING_ENABLED=true
+```
+
+These messages aid debugging without affecting application stability.
 
 ### Separate Plugin Packages
 

@@ -48,27 +48,52 @@ class CoreSettings(BaseModel):
     max_queue_size: int = Field(
         default=10_000,
         ge=1,
-        description="Maximum in-memory queue size for async processing",
+        description=("Maximum in-memory queue size for async processing"),
+    )
+    batch_max_size: int = Field(
+        default=256,
+        ge=1,
+        description=("Maximum number of events per batch before a flush is triggered"),
+    )
+    batch_timeout_seconds: float = Field(
+        default=0.25,
+        gt=0.0,
+        description=("Maximum time to wait before flushing a partial batch"),
+    )
+    backpressure_wait_ms: int = Field(
+        default=50,
+        ge=0,
+        description=("Milliseconds to wait for queue space before dropping"),
+    )
+    drop_on_full: bool = Field(
+        default=True,
+        description=(
+            "If True, drop events after backpressure_wait_ms elapses when queue is full"
+        ),
     )
     enable_metrics: bool = Field(
         default=False,
-        description="Enable Prometheus-compatible metrics",
+        description=("Enable Prometheus-compatible metrics"),
+    )
+    # Structured internal diagnostics for non-fatal errors (worker/sink/metrics)
+    internal_logging_enabled: bool = Field(
+        default=False, description=("Emit DEBUG/WARN diagnostics for internal errors")
     )
     # Resource pool defaults (can be overridden per pool at construction)
     resource_pool_max_size: int = Field(
         default=8,
         ge=1,
-        description="Default max size for resource pools",
+        description=("Default max size for resource pools"),
     )
     resource_pool_acquire_timeout_seconds: float = Field(
         default=2.0,
         gt=0.0,
-        description="Default acquire timeout for pools",
+        description=("Default acquire timeout for pools"),
     )
     # Example of a field requiring async validation
     benchmark_file_path: str | None = Field(
         default=None,
-        description="Optional path used by performance benchmarks",
+        description=("Optional path used by performance benchmarks"),
     )
 
     @field_validator("app_name")

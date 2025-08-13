@@ -37,8 +37,7 @@ dependencies = [
     "asyncio-mqtt>=0.16.0",
     "aiofiles>=23.0.0",
     
-    # FastAPI and Pydantic v2
-    "fastapi>=0.115.0",
+    # Pydantic v2
     "pydantic>=2.11.0",
     "pydantic-settings>=2.0.0",
     
@@ -63,6 +62,11 @@ dependencies = [
 enterprise = [
     "cryptography>=41.0.0",
     "python-jose[cryptography]>=3.3.0",
+]
+
+# FastAPI integration (optional)
+fastapi = [
+    "fastapi>=0.115.0",
 ]
 
 # Loki integration
@@ -106,7 +110,7 @@ docs = [
 
 # All optional dependencies
 all = [
-    "fapilog[enterprise,loki,cloud,siem,dev,docs]",
+    "fapilog[enterprise,loki,cloud,siem,dev,docs,fastapi]",
 ]
 
 [project.urls]
@@ -545,4 +549,11 @@ ignore_names = [
     "await_pop",
     # Metrics API accessor
     "registry",
+  # MetricsCollector dynamic API methods (invoked via runtime worker/tests)
+  "record_events_submitted",
+  "record_events_dropped",
+  "record_backpressure_wait",
+  "record_flush",
+  "set_queue_high_watermark",
+  "record_sink_error",
 ]

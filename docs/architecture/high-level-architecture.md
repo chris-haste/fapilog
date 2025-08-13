@@ -64,7 +64,7 @@ flowchart LR
 - **Core only**: `pip install fapilog` → ships the core async logger, no framework/web deps.
 - **First-party extras**: integrations are enabled via extras, e.g. `pip install fapilog[fastapi]`. Code paths are import-guarded; deps are declared in `[project.optional-dependencies]`.
 - **Third-party/community**: plugins are separate PyPI wheels named `fapilog-*` (e.g., `fapilog-splunk`), discovered via Python entry points.
-- **Discovery**: plugins register to entry points group **`fapilog.plugins`** and are loaded via `importlib.metadata.entry_points`.
+- **Discovery**: plugins register to entry point groups **`fapilog.sinks`**, **`fapilog.processors`**, **`fapilog.enrichers`**, and **`fapilog.alerting`** and are loaded via `importlib.metadata.entry_points`. Legacy compatibility with **`fapilog.plugins`** is preserved for heuristic discovery.
 - **Version gating**: each plugin declares `Requires-Dist: fapilog>=X,<Y`; the core checks compatibility at load time and emits actionable diagnostics on mismatch.
 
 ### 3.1 Packaging & Install Flows
@@ -102,11 +102,11 @@ Discovered via entry points.]
 sequenceDiagram
   participant App
   participant Core as fapilog Core
-  participant EP as entry_points("fapilog.plugins")
+  participant EP as entry_points("fapilog.sinks|processors|enrichers|alerting")
   participant Plug as Plugin
 
   App->>Core: AsyncLogger.create(settings)
-  Core->>EP: enumerate "fapilog.plugins"
+  Core->>EP: enumerate multi-group entry points
   loop each entry point
     Core->>Plug: import & instantiate
     Core->>Core: validate plugin's fapilog version range
@@ -169,8 +169,13 @@ sequenceDiagram
 
 **Entry points (required)**
 
-- Group: `fapilog.plugins`
+- Groups (v3):
+  - `fapilog.sinks`
+  - `fapilog.processors`
+  - `fapilog.enrichers`
+  - `fapilog.alerting`
 - Value: `name = package.module:PluginClass`
+- Legacy: `fapilog.plugins` may be used for back-compat; discovery will attempt to map entries to a type based on context.
 
 **Naming (third-party)**
 
@@ -252,9 +257,15 @@ When the integration code lives in the core repo but depends on optional package
 
 ```python
 # fapilog/fastapi/__init__.py
+from __future__ import annotations
+
+AVAILABLE: bool
+_IMPORT_ERROR: Exception | None
+
 try:
-    from .integration import FastAPIPlugin  # depends on fastapi
+    from .integration import get_router  # re-export primary API
     AVAILABLE = True
+    _IMPORT_ERROR = None
 except Exception as e:
     AVAILABLE = False
     _IMPORT_ERROR = e
