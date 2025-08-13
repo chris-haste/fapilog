@@ -1,10 +1,46 @@
 # Fapilog v3 - Async-First Logging Library
 
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
+**fapilog** is an async-first, structured logging library for Python, designed for **FastAPI** and modern cloud-native applications.  
+While optimized for distributed, containerized, and serverless environments, it is equally suitable for **on-prem**, **desktop**, or **embedded** Python projects where structured, JSON-ready, and pluggable logging is required.
 
-### Installation
+![Async-first](https://img.shields.io/badge/async-first-008080?style=flat-square&logo=python&logoColor=white)
+![JSON Ready](https://img.shields.io/badge/json-ready-004080?style=flat-square&logo=json&logoColor=white)
+![Plugin Marketplace](https://img.shields.io/badge/plugin-marketplace-008080?style=flat-square&logo=puzzle&logoColor=white)
+![Enterprise Ready](https://img.shields.io/badge/enterprise-ready-004080?style=flat-square&logo=shield&logoColor=white)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-008000?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-008080?style=flat-square&logo=pydantic&logoColor=white)
+
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-008080?style=flat-square&logo=python&logoColor=white)](https://pypi.org/project/fapilog/)
+[![PyPI Version](https://img.shields.io/pypi/v/fapilog.svg?style=flat-square&color=008080&logo=pypi&logoColor=white)](https://pypi.org/project/fapilog/)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-004080?style=flat-square&logo=apache&logoColor=white)](https://opensource.org/licenses/Apache-2.0)
+
+## Key Features
+
+All features are **proven** via the codebase:
+
+- **Async-first architecture**: Background worker, non-blocking enqueue, async sinks out-of-the-box.
+- **Structured JSON logging**: Default `StdoutJsonSink` outputs JSON line logs ready for ingestion.
+- **Plugin-based ecosystem**: Supports custom enrichers, sinks, and processors.
+- **Context propagation**: Auto trace ID generation and propagation.
+- **Cloud-native compliance**: Meets typical observability requirements for audit and compliance.
+- **Multiple sink support**: Stdout, memory-mapped persistence, async HTTP utilities.
+- **Performance-optimized**: Ring buffer queue, batching, and non-blocking writes.
+- **Python 3.8+** compatibility.
+
+## Competitor Advantage
+
+| Feature / Capability              | fapilog (Proven) | structlog | loguru |
+| --------------------------------- | ---------------- | --------- | ------ |
+| Async-first logging pipeline      | ✅ Yes           | ⚠ Partial | ❌ No  |
+| JSON output out-of-the-box        | ✅ Yes           | ⚠ Config  | ❌ No  |
+| Plugin marketplace support        | ✅ Yes           | ❌ No     | ❌ No  |
+| Compliance/audit-friendly         | ✅ Yes           | ⚠ Partial | ❌ No  |
+| FastAPI-specific optimizations    | ✅ Yes           | ❌ No     | ❌ No  |
+| Context-bound correlation IDs     | ✅ Yes           | ⚠ Manual  | ❌ No  |
+| Cloud-native optimizations        | ✅ Yes           | ⚠ Partial | ❌ No  |
+| Proven async sinks (stdout, HTTP) | ✅ Yes           | ❌ No     | ❌ No  |
+
+## Installation
 
 Copy-ready commands:
 
@@ -62,14 +98,14 @@ with runtime() as log:
 
 ## 🏗️ Architecture
 
-Fapilog v3 uses a revolutionary async-first pipeline architecture:
+Fapilog v3 uses a true async-first pipeline architecture:
 
 ```
 ┌─────────────┐    ┌──────────────┐    ┌─────────────┐    ┌──────────────┐    ┌─────────────┐
 │ Log Event   │───▶│ Enrichment   │───▶│ Processing  │───▶│ Queue        │───▶│ Sinks       │
 │             │    │              │    │             │    │              │    │             │
 │ log.info()  │    │ Add context  │    │ Redaction   │    │ Async buffer │    │ File/Stdout │
-│ log.error() │    │ Trace IDs    │    │ Formatting  │    │ Batching     │    │ Loki/Custom │
+│ log.error() │    │ Trace IDs    │    │ Formatting  │    │ Batching     │    │ HTTP/Custom │
 |             |    │ User data    │    │ Validation  │    │ Overflow     │    │             │
 └─────────────┘    └──────────────┘    └─────────────┘    └──────────────┘    └─────────────┘
 ```
