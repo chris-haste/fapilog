@@ -589,6 +589,13 @@ def capture_unhandled_exceptions(logger: Any) -> None:
             _loop: _asyncio.AbstractEventLoop, context: Dict[str, Any]
         ) -> None:
             exc = context.get("exception")
+            if exc is None:
+                fut = context.get("future") or context.get("task")
+                try:
+                    if fut is not None and hasattr(fut, "exception"):
+                        exc = fut.exception()
+                except Exception:
+                    exc = None
             if isinstance(exc, BaseException):
                 try:
                     # Log synchronously; logger enqueues to background worker

@@ -16,7 +16,10 @@ from .plugin_config import ValidationIssue, ValidationResult
 
 class MonitoringSettings(BaseModel):
     enabled: bool = Field(default=False)
-    endpoint: str | None = Field(default=None, description="Monitoring endpoint URL")
+    endpoint: str | None = Field(
+        default=None,
+        description="Monitoring endpoint URL",
+    )
 
 
 class MetricsSettings(BaseModel):
@@ -34,6 +37,7 @@ class TracingSettings(BaseModel):
 class LoggingSettings(BaseModel):
     format: Literal["json", "text"] = Field(default="json")
     include_correlation: bool = Field(default=True)
+    sampling_rate: float = Field(default=1.0, ge=0.0, le=1.0)
 
 
 class AlertingSettings(BaseModel):
@@ -81,7 +85,7 @@ def validate_observability(
         result.add_issue(
             ValidationIssue(
                 field="tracing.sampling_rate",
-                message="sampling_rate is 0.0; traces will be disabled",
+                message=("sampling_rate is 0.0; traces will be disabled"),
                 severity="warn",
             )
         )
@@ -111,7 +115,7 @@ def validate_observability(
         result.add_issue(
             ValidationIssue(
                 field="logging.format",
-                message=("text format with include_correlation may be hard to parse"),
+                message=("text format with correlation may be hard to parse"),
                 severity="warn",
             )
         )

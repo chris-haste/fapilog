@@ -92,6 +92,15 @@ class CoreSettings(BaseModel):
         default=False,
         description=("Emit DEBUG/WARN diagnostics for internal errors"),
     )
+    # Error deduplication window
+    error_dedupe_window_seconds: float = Field(
+        default=5.0,
+        ge=0.0,
+        description=(
+            "Seconds to suppress duplicate ERROR logs with the same message;"
+            " 0 disables deduplication"
+        ),
+    )
     # Shutdown behavior
     shutdown_timeout_seconds: float = Field(
         default=3.0,

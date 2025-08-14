@@ -31,8 +31,49 @@ def get_logger(
     - Container-scoped: no global mutable state is retained; each logger owns
       its own configuration, metrics, and sink wiring.
     """
-    # Default pipeline: stdout JSON sink
-    sink = _StdoutJsonSink()
+    # Default pipeline: choose sink by env (rotating file vs stdout)
+    import os as _os
+    from pathlib import Path as _Path
+    from typing import Any as _Any
+
+    from .plugins.sinks.rotating_file import (
+        RotatingFileSink as _RotatingFileSink,
+    )
+    from .plugins.sinks.rotating_file import (
+        RotatingFileSinkConfig as _RotatingFileSinkConfig,
+    )
+
+    file_dir = _os.getenv("FAPILOG_FILE__DIRECTORY")
+    sink: _Any
+    if file_dir:
+        rfc = _RotatingFileSinkConfig(
+            directory=_Path(file_dir),
+            filename_prefix=_os.getenv("FAPILOG_FILE__FILENAME_PREFIX", "fapilog"),
+            mode=_os.getenv("FAPILOG_FILE__MODE", "json"),
+            max_bytes=int(_os.getenv("FAPILOG_FILE__MAX_BYTES", "10485760")),
+            interval_seconds=(
+                int(_os.getenv("FAPILOG_FILE__INTERVAL_SECONDS", "0")) or None
+            ),
+            max_files=(int(_os.getenv("FAPILOG_FILE__MAX_FILES", "0")) or None),
+            max_total_bytes=(
+                int(_os.getenv("FAPILOG_FILE__MAX_TOTAL_BYTES", "0")) or None
+            ),
+            compress_rotated=_os.getenv(
+                "FAPILOG_FILE__COMPRESS_ROTATED", "false"
+            ).lower()
+            in {"1", "true", "yes"},
+        )
+        sink = _RotatingFileSink(rfc)
+        # Ensure sink is started for file mode
+        import asyncio as _asyncio
+
+        try:
+            _asyncio.run(sink.start())
+        except RuntimeError:
+            loop = _asyncio.get_event_loop()
+            loop.create_task(sink.start())
+    else:
+        sink = _StdoutJsonSink()
 
     async def _sink_write(entry: dict) -> None:
         await sink.write(entry)
