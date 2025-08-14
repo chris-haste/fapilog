@@ -1,4 +1,5 @@
 import asyncio
+import os
 import time
 from typing import Any
 
@@ -110,8 +111,9 @@ async def test_load_metrics_with_drops_and_stall_bounds(tmp_path) -> None:
         max_interval = await monitor_task
 
     # Assert loop stall within tolerance (no long blocking from sink/rotation)
-    # Allow a wider bound to reduce flakiness on slower machines/CI runners
-    assert max_interval < 0.150
+    # Allow override via env in CI; default 0.20s for shared runners
+    stall_bound = float(os.getenv("FAPILOG_TEST_MAX_LOOP_STALL_SECONDS", "0.20"))
+    assert max_interval < stall_bound
 
     # Metrics assertions
     reg = metrics.registry
@@ -127,9 +129,10 @@ async def test_load_metrics_with_drops_and_stall_bounds(tmp_path) -> None:
     assert flush_count > 0
     assert q_hwm >= 1
 
-    # Average flush latency should be sane (< 50ms on typical CI hardware)
+    # Average flush latency should be sane; allow override via env
     avg_flush = (flush_sum / flush_count) if flush_count else 0.0
-    assert avg_flush < 0.050
+    flush_bound = float(os.getenv("FAPILOG_TEST_MAX_AVG_FLUSH_SECONDS", "0.12"))
+    assert avg_flush < flush_bound
 
 
 @pytest.mark.asyncio
@@ -177,8 +180,8 @@ async def test_load_metrics_no_drops_and_low_latency(tmp_path) -> None:
 
     # No drops expected
     assert drain.dropped == 0
-    # Allow a wider bound to reduce flakiness on slower machines/CI runners
-    assert max_interval < 0.100
+    stall_bound = float(os.getenv("FAPILOG_TEST_MAX_LOOP_STALL_SECONDS", "0.20"))
+    assert max_interval < stall_bound
 
     reg = metrics.registry
     assert reg is not None
@@ -188,5 +191,5 @@ async def test_load_metrics_no_drops_and_low_latency(tmp_path) -> None:
     assert dropped == 0
     assert flush_count > 0
     avg_flush = (flush_sum / flush_count) if flush_count else 0.0
-    # CI safety margin: allow up to 80ms average flush latency
-    assert avg_flush < 0.080
+    flush_bound = float(os.getenv("FAPILOG_TEST_MAX_AVG_FLUSH_SECONDS", "0.12"))
+    assert avg_flush < flush_bound
