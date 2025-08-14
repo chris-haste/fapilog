@@ -59,6 +59,9 @@ class SyncLoggerFacade:
         sink_write: Any,
         enrichers: list[BaseEnricher] | None = None,
         metrics: MetricsCollector | None = None,
+        exceptions_enabled: bool = True,
+        exceptions_max_frames: int = 50,
+        exceptions_max_stack_chars: int = 20000,
     ) -> None:
         self._name = name or "root"
         self._queue = NonBlockingRingQueue[dict[str, Any]](capacity=queue_capacity)
@@ -86,6 +89,10 @@ class SyncLoggerFacade:
         self._processed = 0
         self._dropped = 0
         self._retried = 0
+        # Exceptions config
+        self._exceptions_enabled = bool(exceptions_enabled)
+        self._exceptions_max_frames = int(exceptions_max_frames)
+        self._exceptions_max_stack_chars = int(exceptions_max_stack_chars)
         # Context binding per task
         self._bound_context_var: contextvars.ContextVar[dict[str, Any] | None] = (
             contextvars.ContextVar(
@@ -197,7 +204,15 @@ class SyncLoggerFacade:
         return await asyncio.to_thread(_drain_thread_mode)
 
     # Public sync API
-    def _enqueue(self, level: str, message: str, **metadata: Any) -> None:
+    def _enqueue(
+        self,
+        level: str,
+        message: str,
+        *,
+        exc: BaseException | None = None,
+        exc_info: Any | None = None,
+        **metadata: Any,
+    ) -> None:
         from uuid import uuid4
 
         from .context import request_id_var
@@ -225,6 +240,36 @@ class SyncLoggerFacade:
         # Start with bound context, then overlay per-call metadata
         merged_metadata.update(bound_context)
         merged_metadata.update(metadata)
+
+        # Structured exception serialization
+        if self._exceptions_enabled:
+            try:
+                # Normalize precedence: exc > exc_info
+                norm_exc_info = None
+                if exc is not None:
+                    norm_exc_info = (
+                        type(exc),
+                        exc,
+                        getattr(exc, "__traceback__", None),
+                    )
+                elif exc_info is True:
+                    import sys as _sys
+
+                    norm_exc_info = _sys.exc_info()  # type: ignore[assignment]
+                elif isinstance(exc_info, tuple):
+                    norm_exc_info = exc_info
+                if norm_exc_info:
+                    from .errors import serialize_exception as _ser_exc
+
+                    exc_map = _ser_exc(
+                        norm_exc_info,
+                        max_frames=self._exceptions_max_frames,
+                        max_stack_chars=self._exceptions_max_stack_chars,
+                    )
+                    if exc_map:
+                        merged_metadata.update(exc_map)
+            except Exception:
+                pass
 
         event = LogEvent(
             level=level,
@@ -316,17 +361,58 @@ class SyncLoggerFacade:
                     pass
             return
 
-    def info(self, message: str, **metadata: Any) -> None:
-        self._enqueue("INFO", message, **metadata)
+    def info(
+        self,
+        message: str,
+        *,
+        exc: BaseException | None = None,
+        exc_info: Any | None = None,
+        **metadata: Any,
+    ) -> None:
+        self._enqueue("INFO", message, exc=exc, exc_info=exc_info, **metadata)
 
-    def debug(self, message: str, **metadata: Any) -> None:
-        self._enqueue("DEBUG", message, **metadata)
+    def debug(
+        self,
+        message: str,
+        *,
+        exc: BaseException | None = None,
+        exc_info: Any | None = None,
+        **metadata: Any,
+    ) -> None:
+        self._enqueue("DEBUG", message, exc=exc, exc_info=exc_info, **metadata)
 
-    def warning(self, message: str, **metadata: Any) -> None:
-        self._enqueue("WARNING", message, **metadata)
+    def warning(
+        self,
+        message: str,
+        *,
+        exc: BaseException | None = None,
+        exc_info: Any | None = None,
+        **metadata: Any,
+    ) -> None:
+        self._enqueue(
+            "WARNING",
+            message,
+            exc=exc,
+            exc_info=exc_info,
+            **metadata,
+        )
 
-    def error(self, message: str, **metadata: Any) -> None:
-        self._enqueue("ERROR", message, **metadata)
+    def error(
+        self,
+        message: str,
+        *,
+        exc: BaseException | None = None,
+        exc_info: Any | None = None,
+        **metadata: Any,
+    ) -> None:
+        self._enqueue("ERROR", message, exc=exc, exc_info=exc_info, **metadata)
+
+    def exception(self, message: str = "", **metadata: Any) -> None:
+        """Convenience API: log at ERROR level with current exception info.
+
+        Equivalent to error(message, exc_info=True, **metadata) inside except.
+        """
+        self._enqueue("ERROR", message, exc_info=True, **metadata)
 
     # Context binding API
     def bind(self, **context: Any) -> SyncLoggerFacade:

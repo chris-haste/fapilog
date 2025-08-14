@@ -62,6 +62,9 @@ def get_logger(
         sink_write=_sink_write,
         enrichers=default_enrichers,
         metrics=metrics,
+        exceptions_enabled=cfg.exceptions_enabled,
+        exceptions_max_frames=cfg.exceptions_max_frames,
+        exceptions_max_stack_chars=cfg.exceptions_max_stack_chars,
     )
     # Apply default bound context if enabled
     try:

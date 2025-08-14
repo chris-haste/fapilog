@@ -562,4 +562,7 @@ ignore_names = [
   "FieldMaskRedactor",
   "FieldMaskConfig",
   "PLUGIN_METADATA",
+  # Exception helpers used via logger and tests
+  "serialize_exception",
+  "capture_unhandled_exceptions",
 ]
