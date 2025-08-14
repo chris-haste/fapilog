@@ -11,7 +11,8 @@ import time
 import traceback
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from types import TracebackType
+from typing import Any, Dict, List, Optional, Tuple, Type
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -469,3 +470,134 @@ def create_error_context(
     context.metadata.update(kwargs)
 
     return context
+
+
+def serialize_exception(
+    exc_info: Optional[
+        Tuple[
+            Optional[Type[BaseException]],
+            Optional[BaseException],
+            Optional[TracebackType],
+        ]
+    ],
+    *,
+    max_frames: int,
+    max_stack_chars: int,
+) -> Dict[str, Any]:
+    """Serialize an exception tuple into a structured mapping.
+
+    Returns an empty dict if exc_info is None. Defensive against errors.
+    """
+    if not exc_info:
+        return {}
+    try:
+        etype, evalue, etb = exc_info
+        # Best-effort type extraction
+        type_name = getattr(etype, "__name__", None) if etype is not None else None
+        data: Dict[str, Any] = {
+            "error.type": type_name or str(etype),
+            "error.message": str(evalue),
+        }
+        stack_str = "".join(traceback.format_exception(etype, evalue, etb))
+        if len(stack_str) > max_stack_chars:
+            stack_str = stack_str[: max_stack_chars - 3] + "..."
+        data["error.stack"] = stack_str
+        frames: List[Dict[str, Any]] = []
+        try:
+            tb_frames = traceback.extract_tb(etb)
+            for fr in tb_frames[:max_frames]:
+                frames.append(
+                    {
+                        "file": fr.filename,
+                        "line": fr.lineno,
+                        "function": fr.name,
+                        "code": fr.line,
+                    }
+                )
+        except Exception:
+            pass
+        if frames:
+            data["error.frames"] = frames
+        cause = getattr(evalue, "__cause__", None) or getattr(
+            evalue, "__context__", None
+        )
+        if cause is not None:
+            data["error.cause"] = type(cause).__name__
+        return data
+    except Exception:
+        return {}
+
+
+# Unhandled exception hooks (optional)
+_unhandled_installed: bool = False
+_prev_sys_excepthook = None
+_prev_asyncio_handler = None
+
+
+def capture_unhandled_exceptions(logger: Any) -> None:
+    """Install unhandled exception hooks for sync and asyncio contexts.
+
+    Idempotent: safe to call multiple times. Non-blocking in asyncio handler.
+    """
+    global _unhandled_installed, _prev_sys_excepthook, _prev_asyncio_handler
+    if _unhandled_installed:
+        return
+    _unhandled_installed = True
+
+    import asyncio as _asyncio
+    import sys as _sys
+
+    # Sync: sys.excepthook
+    _prev_sys_excepthook = getattr(_sys, "excepthook", None)
+
+    def _sys_hook(
+        etype: Type[BaseException], value: BaseException, tb: TracebackType
+    ) -> None:
+        try:
+            logger.error(
+                "unhandled_exception",
+                exc_info=(etype, value, tb),
+                origin="sys.excepthook",
+            )
+        except Exception:
+            pass
+        # Delegate to previous hook if present
+        try:
+            if callable(_prev_sys_excepthook):
+                _prev = _prev_sys_excepthook
+                _prev(etype, value, tb)
+        except Exception:
+            pass
+
+    _sys.excepthook = _sys_hook  # type: ignore[assignment]
+
+    # Async: event loop exception handler
+    try:
+        loop = _asyncio.get_event_loop()
+    except RuntimeError:
+        loop = None
+
+    if loop is not None:
+        _prev_asyncio_handler = loop.get_exception_handler()
+
+        def _async_handler(
+            _loop: _asyncio.AbstractEventLoop, context: Dict[str, Any]
+        ) -> None:
+            exc = context.get("exception")
+            if isinstance(exc, BaseException):
+                try:
+                    # Log synchronously; logger enqueues to background worker
+                    logger.error("unhandled_task_exception", exc=exc)
+                except Exception:
+                    pass
+            # Delegate to previous handler if present
+            try:
+                if callable(_prev_asyncio_handler):
+                    _prev_asyncio_handler(_loop, context)
+            except Exception:
+                pass
+
+        try:
+            loop.set_exception_handler(_async_handler)
+        except Exception:
+            pass

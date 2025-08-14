@@ -562,4 +562,9 @@ ignore_names = [
   "FieldMaskRedactor",
   "FieldMaskConfig",
   "PLUGIN_METADATA",
+  # Exception helpers used via logger and tests
+  "serialize_exception",
+  "capture_unhandled_exceptions",
+  # Stdlib bridge API used externally in examples/tests
+  "enable_stdlib_bridge",
 ]

@@ -78,6 +78,15 @@ class CoreSettings(BaseModel):
         default=False,
         description=("Enable Prometheus-compatible metrics"),
     )
+    # Context binding feature toggles
+    context_binding_enabled: bool = Field(
+        default=True,
+        description=("Enable per-task bound context via logger.bind/unbind/clear"),
+    )
+    default_bound_context: dict[str, object] = Field(
+        default_factory=dict,
+        description=("Default bound context applied at logger creation when enabled"),
+    )
     # Structured internal diagnostics (worker/sink/metrics)
     internal_logging_enabled: bool = Field(
         default=False,
@@ -109,6 +118,25 @@ class CoreSettings(BaseModel):
         default=None,
         ge=1,
         description=("Optional max keys scanned guardrail for redaction"),
+    )
+    # Exceptions and traceback serialization
+    exceptions_enabled: bool = Field(
+        default=True,
+        description=("Enable structured exception serialization for log calls"),
+    )
+    exceptions_max_frames: int = Field(
+        default=50,
+        ge=1,
+        description=("Maximum number of stack frames to capture for exceptions"),
+    )
+    exceptions_max_stack_chars: int = Field(
+        default=20000,
+        ge=1000,
+        description=("Maximum total characters for serialized stack string"),
+    )
+    capture_unhandled_enabled: bool = Field(
+        default=False,
+        description=("Automatically install unhandled exception hooks (sys/asyncio)"),
     )
     # Resource pool defaults (can be overridden per pool at construction)
     resource_pool_max_size: int = Field(
