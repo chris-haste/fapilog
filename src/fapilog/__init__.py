@@ -86,6 +86,16 @@ def get_logger(
             )
     except Exception:
         pass
+    # Optional: install unhandled exception capture hooks
+    try:
+        if cfg.capture_unhandled_enabled:
+            from .core.errors import (
+                capture_unhandled_exceptions as _cap_unhandled,
+            )
+
+            _cap_unhandled(logger)
+    except Exception:
+        pass
     logger.start()
     return logger
 
