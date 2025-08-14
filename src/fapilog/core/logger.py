@@ -100,6 +100,8 @@ class SyncLoggerFacade:
                 default=None,
             )
         )
+        # Error dedupe (message -> (first_ts, suppressed_count))
+        self._error_dedupe: dict[str, tuple[float, int]] = {}
 
     def start(self) -> None:
         """Start worker group bound to an event loop.
@@ -216,6 +218,7 @@ class SyncLoggerFacade:
         from uuid import uuid4
 
         from .context import request_id_var
+        from .settings import Settings
 
         try:
             current_corr = request_id_var.get()
@@ -223,6 +226,58 @@ class SyncLoggerFacade:
             current_corr = None
         if current_corr is None:
             current_corr = str(uuid4())
+
+        # Probabilistic sampling (fast-path when 1.0). Only apply to
+        # low-severity logs to avoid losing warnings/errors.
+        try:
+            s = Settings()
+            rate = float(s.observability.logging.sampling_rate)
+            if rate < 1.0 and level in {"DEBUG", "INFO"}:
+                import random
+
+                if random.random() > rate:
+                    return
+        except Exception:
+            pass
+
+        # ERROR-level dedupe: suppress identical messages within window
+        try:
+            if level in {"ERROR", "CRITICAL"}:
+                from .settings import Settings as _S
+
+                window = float(_S().core.error_dedupe_window_seconds)
+                if window > 0.0:
+                    import time as _t
+
+                    now = _t.monotonic()
+                    existing = self._error_dedupe.get(message)
+                    if existing is None:
+                        # First occurrence: set window and allow emit
+                        self._error_dedupe[message] = (now, 0)
+                    else:
+                        first_ts, count = existing
+                        if now - first_ts <= window:
+                            # Suppress and bump count
+                            self._error_dedupe[message] = (first_ts, count + 1)
+                            return
+                        # Window rollover: if suppressed existed, emit summary
+                        if count > 0:
+                            from .diagnostics import warn as _warn
+
+                            try:
+                                _warn(
+                                    "error-dedupe",
+                                    "suppressed duplicate errors",
+                                    error_message=message,
+                                    suppressed=count,
+                                    window_seconds=window,
+                                )
+                            except Exception:
+                                pass
+                        # Reset window starting now
+                        self._error_dedupe[message] = (now, 0)
+        except Exception:
+            pass
 
         # Merge precedence:
         # 1) Base event fields
@@ -586,6 +641,22 @@ class SyncLoggerFacade:
                 except Exception:
                     pass
             batch.clear()
+
+    async def self_test(self) -> dict[str, Any]:
+        """Perform a basic sink readiness probe.
+
+        Calls sink_write with a minimal payload and returns structured result.
+        """
+        try:
+            probe = {
+                "level": "DEBUG",
+                "message": "self_test",
+                "metadata": {},
+            }
+            await self._sink_write(dict(probe))
+            return {"ok": True, "sink": "default"}
+        except Exception as exc:  # pragma: no cover - error path
+            return {"ok": False, "sink": "default", "error": str(exc)}
 
     async def _async_enqueue(
         self,

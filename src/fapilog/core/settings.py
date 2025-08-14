@@ -92,6 +92,21 @@ class CoreSettings(BaseModel):
         default=False,
         description=("Emit DEBUG/WARN diagnostics for internal errors"),
     )
+    # Error deduplication window
+    error_dedupe_window_seconds: float = Field(
+        default=5.0,
+        ge=0.0,
+        description=(
+            "Seconds to suppress duplicate ERROR logs with the same message;"
+            " 0 disables deduplication"
+        ),
+    )
+    # Shutdown behavior
+    shutdown_timeout_seconds: float = Field(
+        default=3.0,
+        gt=0.0,
+        description=("Maximum time to flush on shutdown signals"),
+    )
     # Optional policy hint to encourage enabling redaction
     sensitive_fields_policy: list[str] = Field(
         default_factory=list,
@@ -102,20 +117,23 @@ class CoreSettings(BaseModel):
     )
     # Redactors stage toggles and guardrails
     enable_redactors: bool = Field(
-        default=False,
+        default=True,
         description=("Enable redactors stage between enrichers and sink emission"),
     )
     redactors_order: list[str] = Field(
-        default_factory=list,
+        default_factory=lambda: [
+            "regex-mask",
+            "url-credentials",
+        ],
         description=("Ordered list of redactor plugin names to apply"),
     )
     redaction_max_depth: int | None = Field(
-        default=None,
+        default=16,
         ge=1,
         description=("Optional max depth guardrail for nested redaction"),
     )
     redaction_max_keys_scanned: int | None = Field(
-        default=None,
+        default=1000,
         ge=1,
         description=("Optional max keys scanned guardrail for redaction"),
     )

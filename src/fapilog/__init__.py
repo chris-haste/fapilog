@@ -16,6 +16,9 @@ from .plugins.sinks.stdout_json import StdoutJsonSink as _StdoutJsonSink
 
 __all__ = ["get_logger", "runtime", "__version__", "VERSION"]
 
+# Keep references to background drain tasks to avoid GC warnings in tests
+_PENDING_DRAIN_TASKS: list[object] = []
+
 
 def get_logger(
     name: str | None = None,
@@ -31,8 +34,49 @@ def get_logger(
     - Container-scoped: no global mutable state is retained; each logger owns
       its own configuration, metrics, and sink wiring.
     """
-    # Default pipeline: stdout JSON sink
-    sink = _StdoutJsonSink()
+    # Default pipeline: choose sink by env (rotating file vs stdout)
+    import os as _os
+    from pathlib import Path as _Path
+    from typing import Any as _Any
+
+    from .plugins.sinks.rotating_file import (
+        RotatingFileSink as _RotatingFileSink,
+    )
+    from .plugins.sinks.rotating_file import (
+        RotatingFileSinkConfig as _RotatingFileSinkConfig,
+    )
+
+    file_dir = _os.getenv("FAPILOG_FILE__DIRECTORY")
+    sink: _Any
+    if file_dir:
+        rfc = _RotatingFileSinkConfig(
+            directory=_Path(file_dir),
+            filename_prefix=_os.getenv("FAPILOG_FILE__FILENAME_PREFIX", "fapilog"),
+            mode=_os.getenv("FAPILOG_FILE__MODE", "json"),
+            max_bytes=int(_os.getenv("FAPILOG_FILE__MAX_BYTES", "10485760")),
+            interval_seconds=(
+                int(_os.getenv("FAPILOG_FILE__INTERVAL_SECONDS", "0")) or None
+            ),
+            max_files=(int(_os.getenv("FAPILOG_FILE__MAX_FILES", "0")) or None),
+            max_total_bytes=(
+                int(_os.getenv("FAPILOG_FILE__MAX_TOTAL_BYTES", "0")) or None
+            ),
+            compress_rotated=_os.getenv(
+                "FAPILOG_FILE__COMPRESS_ROTATED", "false"
+            ).lower()
+            in {"1", "true", "yes"},
+        )
+        sink = _RotatingFileSink(rfc)
+        # Ensure sink is started for file mode
+        import asyncio as _asyncio
+
+        try:
+            _asyncio.run(sink.start())
+        except RuntimeError:
+            loop = _asyncio.get_event_loop()
+            loop.create_task(sink.start())
+    else:
+        sink = _StdoutJsonSink()
 
     async def _sink_write(entry: dict) -> None:
         await sink.write(entry)
@@ -74,16 +118,58 @@ def get_logger(
             logger.bind(**cfg.default_bound_context)
     except Exception:
         pass
-    # Policy warning if sensitive fields declared but redactors disabled
+    # Policy warning if sensitive fields policy is declared
     try:
-        if (not cfg.enable_redactors) and cfg.sensitive_fields_policy:
+        if cfg.sensitive_fields_policy:
             from .core.diagnostics import warn as _warn
 
             _warn(
                 "redactor",
-                "sensitive fields policy present but redactors disabled",
+                "sensitive fields policy present",
                 fields=len(cfg.sensitive_fields_policy),
             )
+    except Exception:
+        pass
+    # Configure default redactors if enabled
+    try:
+        if cfg.enable_redactors and cfg.redactors_order:
+            from .plugins.redactors import BaseRedactor
+            from .plugins.redactors.regex_mask import (
+                RegexMaskConfig,
+                RegexMaskRedactor,
+            )
+            from .plugins.redactors.url_credentials import (
+                UrlCredentialsRedactor,
+            )
+
+            # Default patterns for regex-mask
+            default_pattern = (
+                r"(?i).*\b(password|pass|secret|api[_-]?key|token|"
+                r"authorization|set-cookie|ssn|email)\b.*"
+            )
+            redactors: list[BaseRedactor] = []
+            for name in cfg.redactors_order:
+                if name == "regex-mask":
+                    redactors.append(
+                        RegexMaskRedactor(
+                            config=RegexMaskConfig(patterns=[default_pattern])
+                        )
+                    )
+                elif name == "url-credentials":
+                    redactors.append(UrlCredentialsRedactor())
+            # Inject into logger: assign internal redactors
+            logger._redactors = redactors
+    except Exception:
+        # Redaction is best-effort; failures should not block logging
+        pass
+    # Optional: install unhandled exception hooks
+    try:
+        if cfg.capture_unhandled_enabled:
+            from .core.errors import (
+                capture_unhandled_exceptions as _cap_unhandled,
+            )
+
+            _cap_unhandled(logger)
     except Exception:
         pass
     logger.start()
@@ -108,8 +194,32 @@ def runtime(*, settings: _Settings | None = None) -> Iterator[_SyncLoggerFacade]
             _ = asyncio.run(logger.stop_and_drain())
         except RuntimeError:
             # Already inside a running loop; fire-and-forget best-effort
-            loop = asyncio.get_event_loop()
-            loop.create_task(logger.stop_and_drain())
+            try:
+                loop = asyncio.get_event_loop()
+                task = loop.create_task(logger.stop_and_drain())
+                # Keep a strong reference to avoid GC-related warnings
+                _PENDING_DRAIN_TASKS.append(task)
+
+                def _on_done(_t: object) -> None:
+                    try:
+                        _PENDING_DRAIN_TASKS.remove(task)
+                    except ValueError:
+                        return
+
+                task.add_done_callback(_on_done)
+            except Exception:
+                # Last resort: run drain in a background thread
+                import threading as _threading
+
+                def _runner() -> None:  # pragma: no cover - rare fallback
+                    import asyncio as _asyncio
+
+                    try:
+                        _asyncio.run(logger.stop_and_drain())
+                    except Exception:
+                        return
+
+                _threading.Thread(target=_runner, daemon=True).start()
 
 
 # Version info for compatibility
