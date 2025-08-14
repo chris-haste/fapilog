@@ -418,6 +418,9 @@ request_id_var: contextvars.ContextVar[str] = contextvars.ContextVar("request_id
 user_id_var: contextvars.ContextVar[str] = contextvars.ContextVar("user_id")
 session_id_var: contextvars.ContextVar[str] = contextvars.ContextVar("session_id")
 container_id_var: contextvars.ContextVar[str] = contextvars.ContextVar("container_id")
+tenant_id_var: contextvars.ContextVar[str] = contextvars.ContextVar("tenant_id")
+trace_id_var: contextvars.ContextVar[str] = contextvars.ContextVar("trace_id")
+span_id_var: contextvars.ContextVar[str] = contextvars.ContextVar("span_id")
 
 
 def set_error_context(
@@ -519,7 +522,9 @@ def serialize_exception(
         if frames:
             data["error.frames"] = frames
         cause = getattr(evalue, "__cause__", None) or getattr(
-            evalue, "__context__", None
+            evalue,
+            "__context__",
+            None,
         )
         if cause is not None:
             data["error.cause"] = type(cause).__name__
