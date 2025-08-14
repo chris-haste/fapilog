@@ -92,6 +92,12 @@ class CoreSettings(BaseModel):
         default=False,
         description=("Emit DEBUG/WARN diagnostics for internal errors"),
     )
+    # Shutdown behavior
+    shutdown_timeout_seconds: float = Field(
+        default=3.0,
+        gt=0.0,
+        description=("Maximum time to flush on shutdown signals"),
+    )
     # Optional policy hint to encourage enabling redaction
     sensitive_fields_policy: list[str] = Field(
         default_factory=list,

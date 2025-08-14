@@ -587,6 +587,22 @@ class SyncLoggerFacade:
                     pass
             batch.clear()
 
+    async def self_test(self) -> dict[str, Any]:
+        """Perform a basic sink readiness probe.
+
+        Calls sink_write with a minimal payload and returns structured result.
+        """
+        try:
+            probe = {
+                "level": "DEBUG",
+                "message": "self_test",
+                "metadata": {},
+            }
+            await self._sink_write(dict(probe))
+            return {"ok": True, "sink": "default"}
+        except Exception as exc:  # pragma: no cover - error path
+            return {"ok": False, "sink": "default", "error": str(exc)}
+
     async def _async_enqueue(
         self,
         payload: dict[str, Any],
