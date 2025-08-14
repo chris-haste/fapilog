@@ -16,6 +16,9 @@ from .plugins.sinks.stdout_json import StdoutJsonSink as _StdoutJsonSink
 
 __all__ = ["get_logger", "runtime", "__version__", "VERSION"]
 
+# Keep references to background drain tasks to avoid GC warnings in tests
+_PENDING_DRAIN_TASKS: list[object] = []
+
 
 def get_logger(
     name: str | None = None,
@@ -191,8 +194,32 @@ def runtime(*, settings: _Settings | None = None) -> Iterator[_SyncLoggerFacade]
             _ = asyncio.run(logger.stop_and_drain())
         except RuntimeError:
             # Already inside a running loop; fire-and-forget best-effort
-            loop = asyncio.get_event_loop()
-            loop.create_task(logger.stop_and_drain())
+            try:
+                loop = asyncio.get_event_loop()
+                task = loop.create_task(logger.stop_and_drain())
+                # Keep a strong reference to avoid GC-related warnings
+                _PENDING_DRAIN_TASKS.append(task)
+
+                def _on_done(_t: object) -> None:
+                    try:
+                        _PENDING_DRAIN_TASKS.remove(task)
+                    except ValueError:
+                        return
+
+                task.add_done_callback(_on_done)
+            except Exception:
+                # Last resort: run drain in a background thread
+                import threading as _threading
+
+                def _runner() -> None:  # pragma: no cover - rare fallback
+                    import asyncio as _asyncio
+
+                    try:
+                        _asyncio.run(logger.stop_and_drain())
+                    except Exception:
+                        return
+
+                _threading.Thread(target=_runner, daemon=True).start()
 
 
 # Version info for compatibility
