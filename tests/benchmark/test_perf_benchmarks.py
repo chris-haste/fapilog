@@ -5,6 +5,9 @@ from typing import Any
 
 import pytest
 
+# Skip this module if pytest-benchmark plugin is not available (e.g., in some CI tox envs)
+pytest.importorskip("pytest_benchmark")
+
 from fapilog.core.concurrency import NonBlockingRingQueue
 from fapilog.core.serialization import (
     convert_json_bytes_to_jsonl,
