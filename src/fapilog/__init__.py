@@ -74,19 +74,51 @@ def get_logger(
             logger.bind(**cfg.default_bound_context)
     except Exception:
         pass
-    # Policy warning if sensitive fields declared but redactors disabled
+    # Policy warning if sensitive fields policy is declared
     try:
-        if (not cfg.enable_redactors) and cfg.sensitive_fields_policy:
+        if cfg.sensitive_fields_policy:
             from .core.diagnostics import warn as _warn
 
             _warn(
                 "redactor",
-                "sensitive fields policy present but redactors disabled",
+                "sensitive fields policy present",
                 fields=len(cfg.sensitive_fields_policy),
             )
     except Exception:
         pass
-    # Optional: install unhandled exception capture hooks
+    # Configure default redactors if enabled
+    try:
+        if cfg.enable_redactors and cfg.redactors_order:
+            from .plugins.redactors import BaseRedactor
+            from .plugins.redactors.regex_mask import (
+                RegexMaskConfig,
+                RegexMaskRedactor,
+            )
+            from .plugins.redactors.url_credentials import (
+                UrlCredentialsRedactor,
+            )
+
+            # Default patterns for regex-mask
+            default_pattern = (
+                r"(?i).*\b(password|pass|secret|api[_-]?key|token|"
+                r"authorization|set-cookie|ssn|email)\b.*"
+            )
+            redactors: list[BaseRedactor] = []
+            for name in cfg.redactors_order:
+                if name == "regex-mask":
+                    redactors.append(
+                        RegexMaskRedactor(
+                            config=RegexMaskConfig(patterns=[default_pattern])
+                        )
+                    )
+                elif name == "url-credentials":
+                    redactors.append(UrlCredentialsRedactor())
+            # Inject into logger: assign internal redactors
+            logger._redactors = redactors
+    except Exception:
+        # Redaction is best-effort; failures should not block logging
+        pass
+    # Optional: install unhandled exception hooks
     try:
         if cfg.capture_unhandled_enabled:
             from .core.errors import (

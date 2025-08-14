@@ -102,20 +102,23 @@ class CoreSettings(BaseModel):
     )
     # Redactors stage toggles and guardrails
     enable_redactors: bool = Field(
-        default=False,
+        default=True,
         description=("Enable redactors stage between enrichers and sink emission"),
     )
     redactors_order: list[str] = Field(
-        default_factory=list,
+        default_factory=lambda: [
+            "regex-mask",
+            "url-credentials",
+        ],
         description=("Ordered list of redactor plugin names to apply"),
     )
     redaction_max_depth: int | None = Field(
-        default=None,
+        default=16,
         ge=1,
         description=("Optional max depth guardrail for nested redaction"),
     )
     redaction_max_keys_scanned: int | None = Field(
-        default=None,
+        default=1000,
         ge=1,
         description=("Optional max keys scanned guardrail for redaction"),
     )
