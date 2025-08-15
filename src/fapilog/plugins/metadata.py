@@ -61,6 +61,14 @@ class PluginMetadata(BaseModel):
         description="Additional Python package dependencies",
     )
 
+    # Plugin API contract version (semantic major.minor, e.g., "1.0")
+    api_version: str = Field(
+        default="1.0",
+        description=(
+            "Plugin API contract version (semantic 'major.minor'). Defaults to current API."
+        ),
+    )
+
     # Plugin configuration
     config_schema: Optional[Dict[str, Any]] = Field(
         default=None, description="JSON schema for plugin configuration"
@@ -94,6 +102,16 @@ class PluginMetadata(BaseModel):
             version.parse(v)
         except version.InvalidVersion as exc:
             raise ValueError(f"Invalid version string: {v}") from exc
+        return v
+
+    @field_validator("api_version")
+    @classmethod
+    def validate_api_version(cls, v: str) -> str:
+        """Validate API version string is in 'X.Y' format with non-negative ints."""
+        from .versioning import parse_api_version
+
+        # Will raise ValueError if invalid
+        parse_api_version(v)
         return v
 
 

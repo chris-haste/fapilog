@@ -94,6 +94,7 @@ PLUGIN_METADATA = {
     "plugin_type": "redactor",
     "entry_point": ("fapilog.plugins.redactors.url_credentials:UrlCredentialsRedactor"),
     "description": ("Strips user:pass@ credentials from URL-like strings."),
+    "api_version": "1.0",
 }
 
 # Mark referenced for static analyzers
