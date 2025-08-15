@@ -102,6 +102,8 @@ class AsyncPluginDiscovery:
             "fapilog.redactors": "redactor",
             "fapilog.alerting": "alerting",
         }
+        # Fallback generic group where plugin_type is declared in PLUGIN_METADATA
+        fallback_group = "fapilog.plugins"
         try:
             entry_points = importlib.metadata.entry_points()
 
@@ -132,6 +134,37 @@ class AsyncPluginDiscovery:
                             pass
                         # Backward compatibility for tests expecting print
                         print(f"Error processing entry point {entry_point.name}: {e}")
+
+            # Process fallback generic group (derive type from metadata)
+            try:
+                if hasattr(entry_points, "select"):
+                    eps = entry_points.select(group=fallback_group)
+                else:
+                    eps = entry_points.get(fallback_group, [])
+                for entry_point in eps:
+                    try:
+                        await self._process_entry_point(
+                            entry_point, fallback_group, None
+                        )
+                    except Exception as e:
+                        try:
+                            from ..core.diagnostics import warn
+
+                            warn(
+                                "discovery",
+                                "error processing fallback entry point",
+                                entry_point=getattr(entry_point, "name", "unknown"),
+                                error_type=type(e).__name__,
+                                error=str(e),
+                            )
+                        except Exception:
+                            pass
+                        print(
+                            f"Error processing entry point {getattr(entry_point, 'name', 'unknown')}: {e}"
+                        )
+            except Exception:
+                # Ignore fallback errors and continue
+                pass
 
         except Exception as e:
             raise PluginDiscoveryError(
@@ -249,6 +282,7 @@ class AsyncPluginDiscovery:
                 "fapilog.enrichers",
                 "fapilog.redactors",
                 "fapilog.alerting",
+                "fapilog.plugins",  # fallback
             ]
             fapilog_entries = []
             if hasattr(entry_points, "select"):
@@ -270,8 +304,8 @@ class AsyncPluginDiscovery:
                         group_name = getattr(entry_point, "group", None) or getattr(
                             entry_point, "group_name", None
                         )
-                        # Derive type from group suffix
-                        derived_type = "sink"
+                        # Derive type from group suffix; for fallback group, leave None
+                        derived_type = None
                         if isinstance(group_name, str):
                             if group_name.endswith("sinks"):
                                 derived_type = "sink"

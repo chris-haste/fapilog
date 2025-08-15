@@ -97,6 +97,18 @@ class AsyncComponentRegistry(ComponentIsolationMixin):
                 return
 
             try:
+                # Apply discovery paths from settings
+                try:
+                    from ..core.settings import Settings
+
+                    cfg = Settings()
+                    if cfg.plugins.enabled:
+                        for p in cfg.plugins.discovery_paths:
+                            self._discovery.add_discovery_path(p)
+                except Exception:
+                    # Settings errors should not prevent basic discovery
+                    pass
+
                 # Discover all available plugins
                 await self._discovery.discover_all_plugins()
 
@@ -165,6 +177,25 @@ class AsyncComponentRegistry(ComponentIsolationMixin):
             # Check if already loaded
             if plugin_name in self._loaded_plugins:
                 return self._plugin_instances[plugin_name]
+
+            # Respect allow/deny lists from settings
+            try:
+                from ..core.settings import Settings
+
+                cfg = Settings()
+                if cfg.plugins.denylist and plugin_name in cfg.plugins.denylist:
+                    raise PluginRegistryError(
+                        f"Plugin '{plugin_name}' is denied by configuration"
+                    )
+                if cfg.plugins.allowlist and plugin_name not in cfg.plugins.allowlist:
+                    raise PluginRegistryError(
+                        f"Plugin '{plugin_name}' not in allowlist"
+                    )
+            except PluginRegistryError:
+                raise
+            except Exception:
+                # Ignore settings failures; proceed best-effort
+                pass
 
             # Get plugin info from discovery
             plugin_info = await self._discovery.get_plugin_info(plugin_name)
@@ -261,6 +292,22 @@ class AsyncComponentRegistry(ComponentIsolationMixin):
                 raise PluginLoadError(
                     f"Failed to load plugin '{plugin_name}': {e}"
                 ) from e
+
+    async def initialize_eager_plugins(self) -> None:
+        """Optionally load plugins configured for eager startup."""
+        try:
+            from ..core.settings import Settings
+
+            cfg = Settings()
+            targets = list(cfg.plugins.load_on_startup)
+        except Exception:
+            targets = []
+        for name in targets:
+            try:
+                await self.load_plugin(name)
+            except Exception:
+                # Don't block startup on eager load failures
+                pass
 
     async def unload_plugin(self, plugin_name: str) -> None:
         """
