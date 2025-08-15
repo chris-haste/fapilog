@@ -9,7 +9,9 @@ requirements for Story 2.1a.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import (
     Any,
     Callable,
@@ -168,3 +170,76 @@ def serialize_custom_fapilog_v1(
     header = length.to_bytes(4, byteorder="big", signed=False)
     framed = header + json_bytes
     return SerializedView(data=framed)
+
+
+# -----------------------------
+# Envelope Serialization (v1.0)
+# -----------------------------
+_RFC3339_UTC_REGEX = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$")
+
+
+def ensure_rfc3339_utc(ts: float | str) -> str:
+    """Normalize a timestamp to RFC3339 UTC with 'Z' suffix and millisecond precision.
+
+    Accepts a POSIX seconds float or an existing RFC3339 string. Raises on invalid input.
+    """
+    if isinstance(ts, (int, float)):
+        dt = datetime.fromtimestamp(float(ts), tz=timezone.utc)
+        # Millisecond precision for stability
+        s = dt.isoformat(timespec="milliseconds")
+        return s.replace("+00:00", "Z")
+    if isinstance(ts, str):
+        # If already RFC3339 UTC with 'Z', accept; if not, try parsing
+        if _RFC3339_UTC_REGEX.match(ts):
+            return ts
+        # Best-effort: attempt to parse common ISO forms and coerce to UTC Z
+        try:
+            dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            else:
+                dt = dt.astimezone(timezone.utc)
+            s = dt.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+            if _RFC3339_UTC_REGEX.match(s):
+                return s
+        except Exception:
+            pass
+    raise TypeError("timestamp must be float seconds or RFC3339 string (UTC)")
+
+
+def serialize_envelope(log: Mapping[str, Any]) -> SerializedView:
+    """Build a schema-versioned envelope {"schema_version":"1.0","log":{...}}.
+
+    Required keys in log: timestamp, level, message, context, diagnostics.
+    - timestamp may be float seconds or RFC3339 string; normalized to RFC3339 UTC Z.
+    - context and diagnostics must be mappings; they are included as-is.
+    Optional keys: tags (list[str]), span_id (str), trace_id (str), logger (str).
+
+    Raises TypeError/ValueError on invalid shapes to allow strict-mode handling.
+    """
+    # Validate required fields
+    if "timestamp" not in log or "level" not in log or "message" not in log:
+        raise ValueError("missing required fields in log payload")
+    if "context" not in log or not isinstance(log.get("context"), Mapping):
+        raise TypeError("context must be a mapping")
+    if "diagnostics" not in log or not isinstance(log.get("diagnostics"), Mapping):
+        raise TypeError("diagnostics must be a mapping")
+
+    # Normalize timestamp
+    ts = ensure_rfc3339_utc(log["timestamp"])
+
+    # Construct normalized log object preserving allowed fields
+    norm_log: dict[str, Any] = {
+        "timestamp": ts,
+        "level": str(log["level"]),
+        "message": str(log["message"]),
+        "context": dict(log.get("context", {})),
+        "diagnostics": dict(log.get("diagnostics", {})),
+    }
+    # Copy optional known fields when present
+    for key in ("tags", "span_id", "trace_id", "logger"):
+        if key in log:
+            norm_log[key] = log[key]
+
+    envelope = {"schema_version": "1.0", "log": norm_log}
+    return serialize_mapping_to_json_bytes(envelope)
