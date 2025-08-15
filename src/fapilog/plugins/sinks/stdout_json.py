@@ -4,7 +4,8 @@ import asyncio
 import sys
 from typing import Any
 
-from ...core.serialization import serialize_mapping_to_json_bytes
+from ...core import diagnostics
+from ...core.serialization import serialize_envelope
 
 
 class StdoutJsonSink:
@@ -28,7 +29,29 @@ class StdoutJsonSink:
 
     async def write(self, entry: dict[str, Any]) -> None:
         try:
-            view = serialize_mapping_to_json_bytes(entry)
+            try:
+                view = serialize_envelope(entry)
+            except Exception as e:
+                # Strict vs best-effort behavior
+                strict = False
+                try:
+                    from ...core import settings as _settings
+
+                    strict = bool(_settings.Settings().core.strict_envelope_mode)
+                except Exception:
+                    strict = False
+                diagnostics.warn(
+                    "sink",
+                    "envelope serialization error",
+                    mode="strict" if strict else "best-effort",
+                    reason=type(e).__name__,
+                    detail=str(e),
+                )
+                if strict:
+                    return None
+                from ...core.serialization import serialize_mapping_to_json_bytes
+
+                view = serialize_mapping_to_json_bytes(entry)
             # Coalesce write+newline+flush into a single to_thread call
             async with self._lock:
 

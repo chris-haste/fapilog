@@ -8,9 +8,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
+from ...core import diagnostics
 from ...core.serialization import (
     SerializedView,
     convert_json_bytes_to_jsonl,
+    serialize_envelope,
     serialize_mapping_to_json_bytes,
 )
 
@@ -104,7 +106,26 @@ class RotatingFileSink:
         try:
             # Serialize first (outside lock) so we can check size/time quickly within lock
             if self._cfg.mode == "json":
-                view: SerializedView = serialize_mapping_to_json_bytes(entry)
+                try:
+                    view: SerializedView = serialize_envelope(entry)
+                except Exception as e:
+                    strict = False
+                    try:
+                        from ...core import settings as _settings
+
+                        strict = bool(_settings.Settings().core.strict_envelope_mode)
+                    except Exception:
+                        strict = False
+                    diagnostics.warn(
+                        "sink",
+                        "envelope serialization error",
+                        mode="strict" if strict else "best-effort",
+                        reason=type(e).__name__,
+                        detail=str(e),
+                    )
+                    if strict:
+                        return None
+                    view = serialize_mapping_to_json_bytes(entry)
                 segments = convert_json_bytes_to_jsonl(view)
                 payload_segments: tuple[memoryview, ...] = tuple(
                     segments.iter_memoryviews()

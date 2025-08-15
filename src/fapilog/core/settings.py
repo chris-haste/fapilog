@@ -152,6 +152,14 @@ class CoreSettings(BaseModel):
         ge=1000,
         description=("Maximum total characters for serialized stack string"),
     )
+    # Envelope strict mode
+    strict_envelope_mode: bool = Field(
+        default=False,
+        description=(
+            "If True, drop emission when envelope cannot be produced; otherwise "
+            "fallback to best-effort serialization with diagnostics"
+        ),
+    )
     capture_unhandled_enabled: bool = Field(
         default=False,
         description=("Automatically install unhandled exception hooks (sys/asyncio)"),
