@@ -76,6 +76,58 @@ class FieldMaskRedactor:
             key = path[seg_idx]
             if isinstance(container, dict):
                 scanned += 1
+                # Support wildcard for dict/list segment: "*" or "[*]"
+                if key in ("*", "[*]"):
+                    for k, v in list(container.items()):
+                        scanned += 1
+                        if seg_idx == len(path) - 1:
+                            try:
+                                container[k] = mask_scalar(v)
+                            except Exception:
+                                if self._block:
+                                    diagnostics.warn(
+                                        "redactor",
+                                        "unredactable terminal field",
+                                        reason="assignment failed",
+                                        path=".".join(path),
+                                    )
+                            continue
+                        if isinstance(v, (dict, list)):
+                            _traverse(v, seg_idx + 1, depth + 1)
+                    return
+                # Support dict key with wildcard suffix, e.g., "users[*]"
+                if key.endswith("[*]") and len(key) > 3:
+                    base_key = key[:-3]
+                    if base_key in container:
+                        nxt_candidate = container.get(base_key)
+                        if seg_idx == len(path) - 1:
+                            # Terminal wildcard: mask each element/value
+                            if isinstance(nxt_candidate, list):
+                                for i, v in enumerate(list(nxt_candidate)):
+                                    scanned += 1
+                                    try:
+                                        nxt_candidate[i] = mask_scalar(v)
+                                    except Exception:
+                                        if self._block:
+                                            diagnostics.warn(
+                                                "redactor",
+                                                "unredactable terminal field",
+                                                reason="assignment failed",
+                                                path=".".join(path),
+                                            )
+                                return
+                            else:
+                                # Non-list under wildcard; treat as absent
+                                return
+                        else:
+                            # Descend into list under base_key
+                            if isinstance(nxt_candidate, (list, dict)):
+                                _traverse(nxt_candidate, seg_idx + 1, depth + 1)
+                            return
+                # Numeric index semantics if key is int string
+                if key.isdigit():
+                    # Not applicable for dicts; ignore
+                    return
                 if key not in container:
                     # Absent path: ignore
                     return
@@ -108,6 +160,19 @@ class FieldMaskRedactor:
                         return
             elif isinstance(container, list):
                 # Apply traversal to each element for this segment
+                if key in ("*", "[*]"):
+                    for item in container:
+                        scanned += 1
+                        _traverse(item, seg_idx + 1, depth + 1)
+                    return
+                # Numeric index if provided
+                if key.isdigit():
+                    idx = int(key)
+                    if 0 <= idx < len(container):
+                        scanned += 1
+                        _traverse(container[idx], seg_idx + 1, depth + 1)
+                    return
+                # Default: propagate same index level for all items
                 for item in container:
                     scanned += 1
                     _traverse(item, seg_idx, depth + 1)

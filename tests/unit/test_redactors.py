@@ -15,7 +15,7 @@ async def test_masks_flat_and_nested_and_lists() -> None:
             fields_to_mask=[
                 "user.password",
                 "payment.card.number",
-                "items.value",
+                "items[*].value",
             ]
         )
     )

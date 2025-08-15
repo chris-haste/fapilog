@@ -97,8 +97,8 @@ class CoreSettings(BaseModel):
         default=5.0,
         ge=0.0,
         description=(
-            "Seconds to suppress duplicate ERROR logs with the same message;"
-            " 0 disables deduplication"
+            "Seconds to suppress duplicate ERROR logs with the same"
+            " message; 0 disables deduplication"
         ),
     )
     # Shutdown behavior
@@ -122,18 +122,19 @@ class CoreSettings(BaseModel):
     )
     redactors_order: list[str] = Field(
         default_factory=lambda: [
+            "field-mask",
             "regex-mask",
             "url-credentials",
         ],
         description=("Ordered list of redactor plugin names to apply"),
     )
     redaction_max_depth: int | None = Field(
-        default=16,
+        default=6,
         ge=1,
         description=("Optional max depth guardrail for nested redaction"),
     )
     redaction_max_keys_scanned: int | None = Field(
-        default=1000,
+        default=5000,
         ge=1,
         description=("Optional max keys scanned guardrail for redaction"),
     )
@@ -156,8 +157,9 @@ class CoreSettings(BaseModel):
     strict_envelope_mode: bool = Field(
         default=False,
         description=(
-            "If True, drop emission when envelope cannot be produced; otherwise "
-            "fallback to best-effort serialization with diagnostics"
+            "If True, drop emission when envelope cannot be"
+            " produced; otherwise fallback to best-effort"
+            " serialization with diagnostics"
         ),
     )
     capture_unhandled_enabled: bool = Field(
@@ -211,7 +213,8 @@ class Settings(BaseSettings):
         allowlist: list[str] = Field(
             default_factory=list,
             description=(
-                "If non-empty, only plugin names in this list are considered during load"
+                "If non-empty, only plugin names in this list are considered"
+                " during load"
             ),
         )
         denylist: list[str] = Field(
