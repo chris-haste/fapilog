@@ -8,15 +8,21 @@ from ...metrics.metrics import MetricsCollector, plugin_timer
 
 @runtime_checkable
 class BaseProcessor(Protocol):
-    """Base interface for processors with async API."""
+    """Authoring contract for processors that transform serialized views.
+
+    Processors operate on memoryview slices of serialized payloads and return a
+    new memoryview. Implementations must be async and should avoid copying where
+    possible. Errors propagate to allow caller isolation/metrics to record them.
+    """
 
     async def start(self) -> None:  # Optional lifecycle hook
-        ...
+        """Initialize processor resources (optional)."""
 
     async def stop(self) -> None:  # Optional lifecycle hook
-        ...
+        """Release processor resources (optional)."""
 
-    async def process(self, view: memoryview) -> memoryview: ...
+    async def process(self, view: memoryview) -> memoryview:
+        """Transform a single view and return the processed view."""
 
     async def process_many(self, views: Iterable[memoryview]) -> int:
         count = 0

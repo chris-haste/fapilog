@@ -57,3 +57,14 @@ class ContextVarsEnricher:
 
 
 __all__ = ["ContextVarsEnricher"]
+
+# Minimal PLUGIN_METADATA for discovery
+PLUGIN_METADATA = {
+    "name": "context-vars-enricher",
+    "version": "1.0.0",
+    "plugin_type": "enricher",
+    "entry_point": "fapilog.plugins.enrichers.context_vars:ContextVarsEnricher",
+    "description": "Adds context variables like request_id and user_id when available.",
+    "author": "Fapilog Core Team",
+    "api_version": "1.0",
+}

@@ -30,3 +30,14 @@ class RuntimeInfoEnricher:
 
 
 __all__ = ["RuntimeInfoEnricher"]
+
+# Minimal PLUGIN_METADATA for discovery
+PLUGIN_METADATA = {
+    "name": "runtime-info-enricher",
+    "version": "1.0.0",
+    "plugin_type": "enricher",
+    "entry_point": "fapilog.plugins.enrichers.runtime_info:RuntimeInfoEnricher",
+    "description": "Adds runtime/system information such as host, pid, and python version.",
+    "author": "Fapilog Core Team",
+    "api_version": "1.0",
+}

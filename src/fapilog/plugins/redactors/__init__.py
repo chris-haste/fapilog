@@ -15,21 +15,23 @@ from ...metrics.metrics import MetricsCollector, plugin_timer
 
 @runtime_checkable
 class BaseRedactor(Protocol):
-    """Redactor contract for transforming events before sink emission.
+    """Authoring contract for redactors that sanitize events.
 
-    Implementations MUST be async and non-blocking. Any I/O must be awaitable.
+    Implementations MUST be async and non-blocking. Redactors receive and return
+    event mappings; they should preserve structure and contain failures. Any I/O
+    must be awaitable. Idempotent behavior is recommended when feasible.
     """
 
     name: str
 
     async def start(self) -> None:  # pragma: no cover - optional lifecycle
-        ...
+        """Initialize redactor resources (optional)."""
 
     async def stop(self) -> None:  # pragma: no cover - optional lifecycle
-        ...
+        """Release redactor resources (optional)."""
 
     async def redact(self, event: dict) -> dict:  # noqa: D401
-        """Return a redacted copy of the event mapping."""
+        """Return a redacted copy of the input mapping without raising upstream."""
 
 
 async def redact_in_order(

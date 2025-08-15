@@ -8,15 +8,26 @@ from ...metrics.metrics import MetricsCollector, plugin_timer
 
 @runtime_checkable
 class BaseEnricher(Protocol):
-    """Base interface for enrichers with async API."""
+    """Authoring contract for enrichers that augment events.
+
+    Enrichers receive an event mapping and return a mapping of additional fields
+    to be shallow-merged into the event. Implementations must be async and must
+    not block the event loop. Failures should be contained; returning an empty
+    mapping is acceptable on error.
+    """
 
     async def start(self) -> None:  # Optional lifecycle hook
-        ...
+        """Initialize resources for the enricher (optional)."""
 
     async def stop(self) -> None:  # Optional lifecycle hook
-        ...
+        """Release resources for the enricher (optional)."""
 
-    async def enrich(self, event: dict) -> dict: ...
+    async def enrich(self, event: dict) -> dict:
+        """Return additional fields computed from the input event.
+
+        Implementations should avoid mutating the input mapping and return only
+        the new fields to add. Must not raise upstream.
+        """
 
 
 async def enrich_parallel(

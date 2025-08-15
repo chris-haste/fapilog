@@ -332,6 +332,7 @@ PLUGIN_METADATA = {
     "entry_point": __name__,
     "description": "Async rotating file sink with size/time rotation and retention",
     "author": "Fapilog",
+    "api_version": "1.0",
 }
 
 # Mark as referenced for static analyzers (vulture)

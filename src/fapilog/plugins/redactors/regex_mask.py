@@ -167,6 +167,7 @@ PLUGIN_METADATA = {
         "max_depth": 16,
         "max_keys_scanned": 1000,
     },
+    "api_version": "1.0",
 }
 
 # Mark as referenced for static analyzers (vulture)

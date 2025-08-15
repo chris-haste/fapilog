@@ -22,6 +22,11 @@ from .metadata import PluginInfo, validate_fapilog_compatibility
 from .processors import BaseProcessor
 from .redactors import BaseRedactor
 from .sinks import BaseSink
+from .versioning import (
+    PLUGIN_API_VERSION,
+    is_plugin_api_compatible,
+    parse_api_version,
+)
 
 T = TypeVar("T")
 
@@ -166,11 +171,55 @@ class AsyncComponentRegistry(ComponentIsolationMixin):
             if not plugin_info:
                 raise PluginRegistryError(f"Plugin '{plugin_name}' not found")
 
-            # Validate compatibility
+            # Validate Fapilog core version compatibility first
             if not validate_fapilog_compatibility(plugin_info.metadata):
                 raise PluginRegistryError(
                     f"Plugin '{plugin_name}' is incompatible with current "
                     "Fapilog version"
+                )
+
+            # Enforce plugin API contract compatibility
+            try:
+                declared_api = parse_api_version(plugin_info.metadata.api_version)
+            except Exception as e:
+                # Structured warn then fail
+                try:
+                    from ..core import diagnostics
+
+                    diagnostics.warn(
+                        "plugin-registry",
+                        "invalid plugin api_version",
+                        plugin=plugin_name,
+                        declared_api_version=str(plugin_info.metadata.api_version),
+                        expected_api_version=f"{PLUGIN_API_VERSION[0]}.{PLUGIN_API_VERSION[1]}",
+                        reason="could not parse api_version",
+                    )
+                except Exception:
+                    pass
+                raise PluginRegistryError(
+                    f"Plugin '{plugin_name}' declares an invalid api_version: "
+                    f"{plugin_info.metadata.api_version!r}"
+                ) from e
+
+            if not is_plugin_api_compatible(declared_api, PLUGIN_API_VERSION):
+                # Structured warn then fail load
+                try:
+                    from ..core import diagnostics
+
+                    diagnostics.warn(
+                        "plugin-registry",
+                        "plugin API version incompatible",
+                        plugin=plugin_name,
+                        declared_api_version=f"{declared_api[0]}.{declared_api[1]}",
+                        expected_api_version=f"{PLUGIN_API_VERSION[0]}.{PLUGIN_API_VERSION[1]}",
+                        reason="major mismatch or minor too new",
+                    )
+                except Exception:
+                    pass
+                raise PluginRegistryError(
+                    f"Plugin '{plugin_name}' declares api_version "
+                    f"{declared_api[0]}.{declared_api[1]} incompatible with current "
+                    f"API {PLUGIN_API_VERSION[0]}.{PLUGIN_API_VERSION[1]}"
                 )
 
             try:
