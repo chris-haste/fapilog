@@ -193,6 +193,36 @@ class Settings(BaseSettings):
     security: SecuritySettings = Field(default_factory=SecuritySettings)
     observability: ObservabilitySettings = Field(default_factory=ObservabilitySettings)
 
+    # Plugin discovery and loading configuration
+    class PluginsSettings(BaseModel):
+        """Settings controlling plugin discovery and load behavior."""
+
+        enabled: bool = Field(
+            default=True, description="Enable plugin discovery and loading"
+        )
+        allowlist: list[str] = Field(
+            default_factory=list,
+            description=(
+                "If non-empty, only plugin names in this list are considered during load"
+            ),
+        )
+        denylist: list[str] = Field(
+            default_factory=list,
+            description=("Plugin names to skip during discovery/load"),
+        )
+        load_on_startup: list[str] = Field(
+            default_factory=list,
+            description=(
+                "Plugins to eagerly load during registry.initialize() if discovered"
+            ),
+        )
+        discovery_paths: list[str] = Field(
+            default_factory=list,
+            description=("Additional filesystem paths to scan for local plugins"),
+        )
+
+    plugins: PluginsSettings = Field(default_factory=PluginsSettings)
+
     # Settings behavior
     model_config = SettingsConfigDict(
         env_prefix="FAPILOG_",

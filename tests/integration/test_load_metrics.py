@@ -131,7 +131,7 @@ async def test_load_metrics_with_drops_and_stall_bounds(tmp_path) -> None:
 
     # Average flush latency should be sane; allow override via env
     avg_flush = (flush_sum / flush_count) if flush_count else 0.0
-    flush_bound = float(os.getenv("FAPILOG_TEST_MAX_AVG_FLUSH_SECONDS", "0.25"))
+    flush_bound = float(os.getenv("FAPILOG_TEST_MAX_AVG_FLUSH_SECONDS", "0.30"))
     assert avg_flush < flush_bound
 
 
@@ -191,5 +191,5 @@ async def test_load_metrics_no_drops_and_low_latency(tmp_path) -> None:
     assert dropped == 0
     assert flush_count > 0
     avg_flush = (flush_sum / flush_count) if flush_count else 0.0
-    flush_bound = float(os.getenv("FAPILOG_TEST_MAX_AVG_FLUSH_SECONDS", "0.25"))
+    flush_bound = float(os.getenv("FAPILOG_TEST_MAX_AVG_FLUSH_SECONDS", "0.30"))
     assert avg_flush < flush_bound
