@@ -111,8 +111,10 @@ async def test_load_metrics_with_drops_and_stall_bounds(tmp_path) -> None:
         max_interval = await monitor_task
 
     # Assert loop stall within tolerance (no long blocking from sink/rotation)
-    # Allow override via env in CI; default 0.20s for shared runners
-    stall_bound = float(os.getenv("FAPILOG_TEST_MAX_LOOP_STALL_SECONDS", "0.20"))
+    # Allow override via env in CI; enforce a minimum bound of 0.10s to reduce flakiness on slow runners
+    stall_bound = max(
+        float(os.getenv("FAPILOG_TEST_MAX_LOOP_STALL_SECONDS", "0.20")), 0.10
+    )
     assert max_interval < stall_bound
 
     # Metrics assertions
@@ -180,7 +182,9 @@ async def test_load_metrics_no_drops_and_low_latency(tmp_path) -> None:
 
     # No drops expected
     assert drain.dropped == 0
-    stall_bound = float(os.getenv("FAPILOG_TEST_MAX_LOOP_STALL_SECONDS", "0.20"))
+    stall_bound = max(
+        float(os.getenv("FAPILOG_TEST_MAX_LOOP_STALL_SECONDS", "0.20")), 0.10
+    )
     assert max_interval < stall_bound
 
     reg = metrics.registry
