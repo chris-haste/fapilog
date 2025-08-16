@@ -134,6 +134,10 @@ def get_logger(
     try:
         if cfg.enable_redactors and cfg.redactors_order:
             from .plugins.redactors import BaseRedactor
+            from .plugins.redactors.field_mask import (
+                FieldMaskConfig,
+                FieldMaskRedactor,
+            )
             from .plugins.redactors.regex_mask import (
                 RegexMaskConfig,
                 RegexMaskRedactor,
@@ -149,10 +153,29 @@ def get_logger(
             )
             redactors: list[BaseRedactor] = []
             for name in cfg.redactors_order:
-                if name == "regex-mask":
+                if name == "field-mask":
+                    # Wire field-mask redactor with guardrails from settings
+                    redactors.append(
+                        FieldMaskRedactor(
+                            config=FieldMaskConfig(
+                                fields_to_mask=list(cfg.sensitive_fields_policy or []),
+                                max_depth=(cfg.redaction_max_depth or 16),
+                                max_keys_scanned=(
+                                    cfg.redaction_max_keys_scanned or 1000
+                                ),
+                            )
+                        )
+                    )
+                elif name == "regex-mask":
                     redactors.append(
                         RegexMaskRedactor(
-                            config=RegexMaskConfig(patterns=[default_pattern])
+                            config=RegexMaskConfig(
+                                patterns=[default_pattern],
+                                max_depth=(cfg.redaction_max_depth or 16),
+                                max_keys_scanned=(
+                                    cfg.redaction_max_keys_scanned or 1000
+                                ),
+                            )
                         )
                     )
                 elif name == "url-credentials":

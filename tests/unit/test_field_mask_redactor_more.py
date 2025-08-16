@@ -61,7 +61,7 @@ async def test_masks_non_string_values_to_mask_string() -> None:
 async def test_masks_within_nested_lists() -> None:
     r = FieldMaskRedactor(
         config=FieldMaskConfig(
-            fields_to_mask=["users.email", "users.profile.email"],
+            fields_to_mask=["users[*].email", "users[*].profile.email"],
         )
     )
     evt = {
@@ -72,6 +72,24 @@ async def test_masks_within_nested_lists() -> None:
     }
     out = await r.redact(evt)
     assert out["users"][0]["email"] == "***"
+    assert out["users"][1]["profile"]["email"] == "***"
+
+
+@pytest.mark.asyncio
+async def test_masks_with_numeric_index_in_lists() -> None:
+    r = FieldMaskRedactor(
+        config=FieldMaskConfig(
+            fields_to_mask=["users.1.profile.email"],
+        )
+    )
+    evt = {
+        "users": [
+            {"profile": {"email": "u0@example.com"}},
+            {"profile": {"email": "u1@example.com"}},
+        ]
+    }
+    out = await r.redact(evt)
+    assert out["users"][0]["profile"]["email"] == "u0@example.com"
     assert out["users"][1]["profile"]["email"] == "***"
 
 
