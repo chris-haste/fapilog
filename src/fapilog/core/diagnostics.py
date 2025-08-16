@@ -84,7 +84,11 @@ def emit(
     if not _is_enabled():
         return
     # Rate-limit per component
-    if not _limiter.allow(component):
+    # Allow callers to provide a distinct limiter key without affecting the
+    # emitted component value. Special key is removed before payload emission.
+    limiter_key_extra = fields.pop("_rate_limit_key", None)
+    limiter_key = f"{component}:{limiter_key_extra}" if limiter_key_extra else component
+    if not _limiter.allow(limiter_key):
         return
     # Correlation (best-effort)
     corr: str | None = None
@@ -124,9 +128,16 @@ def warn(
     emit(component=component, level="WARN", message=message, **fields)
 
 
+# Tests-only hook: reset internal rate limiter to avoid cross-test suppression
+def _reset_for_tests() -> None:  # pragma: no cover - used by tests only
+    global _limiter
+    _limiter = _RateLimiter()
+
+
 # Mark as referenced for static analyzers (vulture)
 _VULTURE_USED: tuple[object, ...] = (
     set_writer_for_tests,
     debug,
     warn,
+    _reset_for_tests,
 )

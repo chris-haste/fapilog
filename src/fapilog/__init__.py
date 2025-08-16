@@ -127,6 +127,7 @@ def get_logger(
                 "redactor",
                 "sensitive fields policy present",
                 fields=len(cfg.sensitive_fields_policy),
+                _rate_limit_key="policy",
             )
     except Exception:
         pass
