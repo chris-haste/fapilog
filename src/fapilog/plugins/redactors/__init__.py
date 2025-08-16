@@ -57,7 +57,7 @@ async def redact_in_order(
             # Shallow replacement to preserve mapping semantics
             if isinstance(next_event, dict):
                 current = next_event
-        except Exception:
+        except Exception as exc:
             # Contain failure and continue with last good snapshot
             # Errors are recorded by plugin_timer when metrics is enabled
             try:
@@ -65,6 +65,7 @@ async def redact_in_order(
                     "redactor",
                     "redactor exception",
                     redactor=getattr(r, "name", plugin_name),
+                    reason=str(exc),
                 )
             except Exception:
                 pass

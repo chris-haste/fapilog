@@ -36,11 +36,13 @@ redactor = FieldMaskRedactor(
 ## Configuration
 
 Core settings include:
+
 - `core.enable_redactors`: enable/disable the stage
 - `core.redactors_order`: ordered list of redactor plugin names
 - `core.redaction_max_depth`, `core.redaction_max_keys_scanned`: guardrail plumbing used by redactors
 
 FieldMaskRedactor config:
+
 - `fields_to_mask: list[str]`
 - `mask_string: str` (default `***`)
 - `block_on_unredactable: bool` (default `False`)

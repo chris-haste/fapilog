@@ -56,13 +56,25 @@ redactors:
 Input log (pre-redaction):
 
 ```json
-{"message":"login","context":{"user":{"email":"alice@example.com"},"auth":{"token":"s3cr3t"},"url":"https://alice:pa55@service.local/path?password=hunter2"}}
+{
+  "message": "login",
+  "context": {
+    "user": { "email": "alice@example.com" },
+    "auth": { "token": "s3cr3t" },
+    "url": "https://alice:pa55@service.local/path?password=hunter2"
+  }
+}
 ```
 
 Output log (post-redaction, before envelope):
 
 ```json
-{"message":"login","context":{"user":{"email":"***"},"auth":{"token":"***"},"url":"https://service.local/path?password=***"}}
+{
+  "message": "login",
+  "context": {
+    "user": { "email": "***" },
+    "auth": { "token": "***" },
+    "url": "https://service.local/path?password=***"
+  }
+}
 ```
-
-
