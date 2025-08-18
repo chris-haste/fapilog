@@ -196,12 +196,24 @@ class Settings(BaseSettings):
     """Top-level configuration model with versioning and core settings."""
 
     # Schema/versioning
-    schema_version: str = Field(default=LATEST_CONFIG_SCHEMA_VERSION)
+    schema_version: str = Field(
+        default=LATEST_CONFIG_SCHEMA_VERSION,
+        description=("Configuration schema version for forward/backward compatibility"),
+    )
 
     # Namespaced settings groups
-    core: CoreSettings = Field(default_factory=CoreSettings)
-    security: SecuritySettings = Field(default_factory=SecuritySettings)
-    observability: ObservabilitySettings = Field(default_factory=ObservabilitySettings)
+    core: CoreSettings = Field(
+        default_factory=CoreSettings,
+        description="Core logging, performance, and pipeline behavior",
+    )
+    security: SecuritySettings = Field(
+        default_factory=SecuritySettings,
+        description="Security controls (encryption, access control, compliance)",
+    )
+    observability: ObservabilitySettings = Field(
+        default_factory=ObservabilitySettings,
+        description="Monitoring, metrics, tracing, logging, and alerting",
+    )
 
     # Plugin discovery and loading configuration
     class PluginsSettings(BaseModel):
@@ -232,7 +244,10 @@ class Settings(BaseSettings):
             description=("Additional filesystem paths to scan for local plugins"),
         )
 
-    plugins: PluginsSettings = Field(default_factory=PluginsSettings)
+    plugins: PluginsSettings = Field(
+        default_factory=PluginsSettings,
+        description="Plugin discovery and load configuration",
+    )
 
     # Settings behavior
     model_config = SettingsConfigDict(

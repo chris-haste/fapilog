@@ -15,7 +15,9 @@ from .plugin_config import ValidationIssue, ValidationResult
 
 
 class MonitoringSettings(BaseModel):
-    enabled: bool = Field(default=False)
+    enabled: bool = Field(
+        default=False, description="Enable health/monitoring checks and endpoints"
+    )
     endpoint: str | None = Field(
         default=None,
         description="Monitoring endpoint URL",
@@ -23,37 +25,83 @@ class MonitoringSettings(BaseModel):
 
 
 class MetricsSettings(BaseModel):
-    enabled: bool = Field(default=False)
-    exporter: Literal["prometheus", "none"] = Field(default="prometheus")
-    port: int = Field(default=8000, ge=1, le=65535)
+    enabled: bool = Field(
+        default=False, description="Enable internal metrics collection/export"
+    )
+    exporter: Literal["prometheus", "none"] = Field(
+        default="prometheus",
+        description="Metrics exporter to use ('prometheus' or 'none')",
+    )
+    port: int = Field(
+        default=8000, ge=1, le=65535, description="TCP port for metrics exporter"
+    )
 
 
 class TracingSettings(BaseModel):
-    enabled: bool = Field(default=False)
-    provider: Literal["otel", "none"] = Field(default="otel")
-    sampling_rate: float = Field(default=0.1, ge=0.0, le=1.0)
+    enabled: bool = Field(
+        default=False,
+        description="Enable distributed tracing features",
+    )
+    provider: Literal["otel", "none"] = Field(
+        default="otel",
+        description="Tracing backend provider ('otel' or 'none')",
+    )
+    sampling_rate: float = Field(
+        default=0.1,
+        ge=0.0,
+        le=1.0,
+        description="Trace sampling probability in range 0.0–1.0",
+    )
 
 
 class LoggingSettings(BaseModel):
-    format: Literal["json", "text"] = Field(default="json")
-    include_correlation: bool = Field(default=True)
-    sampling_rate: float = Field(default=1.0, ge=0.0, le=1.0)
+    format: Literal["json", "text"] = Field(
+        default="json",
+        description="Output format for logs (machine-friendly JSON or text)",
+    )
+    include_correlation: bool = Field(
+        default=True,
+        description="Include correlation IDs and trace/span metadata in logs",
+    )
+    sampling_rate: float = Field(
+        default=1.0,
+        ge=0.0,
+        le=1.0,
+        description="Log sampling probability in range 0.0–1.0",
+    )
 
 
 class AlertingSettings(BaseModel):
-    enabled: bool = Field(default=False)
+    enabled: bool = Field(
+        default=False,
+        description="Enable emitting alerts from the logging pipeline",
+    )
     # Simple placeholder for future extension
     min_severity: Literal["INFO", "WARNING", "ERROR", "CRITICAL"] = Field(
-        default="ERROR"
+        default="ERROR",
+        description="Minimum alert severity to emit (filter threshold)",
     )
 
 
 class ObservabilitySettings(BaseModel):
-    monitoring: MonitoringSettings = Field(default_factory=MonitoringSettings)
-    metrics: MetricsSettings = Field(default_factory=MetricsSettings)
-    tracing: TracingSettings = Field(default_factory=TracingSettings)
-    logging: LoggingSettings = Field(default_factory=LoggingSettings)
-    alerting: AlertingSettings = Field(default_factory=AlertingSettings)
+    monitoring: MonitoringSettings = Field(
+        default_factory=MonitoringSettings,
+        description="Monitoring configuration (health/endpoint)",
+    )
+    metrics: MetricsSettings = Field(
+        default_factory=MetricsSettings,
+        description="Metrics configuration (exporter and port)",
+    )
+    tracing: TracingSettings = Field(
+        default_factory=TracingSettings, description="Tracing configuration"
+    )
+    logging: LoggingSettings = Field(
+        default_factory=LoggingSettings,
+        description="Logging output format and correlation settings",
+    )
+    alerting: AlertingSettings = Field(
+        default_factory=AlertingSettings, description="Alerting configuration"
+    )
 
 
 def validate_observability(

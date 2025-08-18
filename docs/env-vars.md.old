@@ -1,0 +1,140 @@
+# Configuration: Environment Variable Matrix
+
+This page is the single source of truth for environment-based configuration.  
+All variables use the `FAPILOG_` prefix and map to nested settings via double underscores (`__`), e.g. `FAPILOG_QUEUE__MAX_SIZE`.
+
+> Note
+>
+> - The **actual defaults** are defined in `FapilogSettings` (Pydantic). Keep this page in sync with code on every change.
+> - Recommended workflow: update `FapilogSettings` → run the generator script (below) → commit the regenerated table.
+
+---
+
+## Summary
+
+| Category             | Variables (prefix)        | Purpose (one-liner)                                |
+| -------------------- | ------------------------- | -------------------------------------------------- |
+| Queue                | `FAPILOG_QUEUE__*`        | Bounded queue capacity & internal buffering        |
+| Batching             | `FAPILOG_BATCH__*`        | Batch size and flush cadence                       |
+| Backpressure         | `FAPILOG_BACKPRESSURE__*` | Producer wait/drop behavior when the queue is full |
+| De-duplication       | `FAPILOG_DEDUP__*`        | Collapse repeated ERROR/CRITICAL events            |
+| Strictness           | `FAPILOG_STRICT__*`       | Serialization and schema strictness controls       |
+| Exceptions           | `FAPILOG_EXCEPTION__*`    | Trace capture limits                               |
+| Rotating File Sink   | `FAPILOG_FILE__*`         | File path, rotation policy, retention, compression |
+| Metrics              | `FAPILOG_METRICS__*`      | Toggle and scope for metrics emission              |
+| Sampling (optional)  | `FAPILOG_SAMPLING__*`     | Probabilistic log sampling                         |
+| Redaction (optional) | `FAPILOG_REDACT__*`       | Built-in redactors policy (enable/paths/regex)     |
+
+---
+
+## Queue
+
+| Variable                  | Type | Default | Description                                          |
+| ------------------------- | ---- | ------- | ---------------------------------------------------- |
+| `FAPILOG_QUEUE__MAX_SIZE` | int  | 8192    | Max number of in-memory events in the bounded queue. |
+
+---
+
+## Batching
+
+| Variable                    | Type | Default | Description                               |
+| --------------------------- | ---- | ------- | ----------------------------------------- |
+| `FAPILOG_BATCH__MAX_EVENTS` | int  | 256     | Max events flushed per batch.             |
+| `FAPILOG_BATCH__FLUSH_MS`   | int  | 200     | Time-based flush interval (milliseconds). |
+
+---
+
+## Backpressure
+
+| Variable                        | Type | Default | Description                                             |
+| ------------------------------- | ---- | ------- | ------------------------------------------------------- |
+| `FAPILOG_BACKPRESSURE__WAIT_MS` | int  | 5       | Producer wait time when queue is full, before dropping. |
+
+---
+
+## De-duplication
+
+| Variable                   | Type | Default | Description                                                                                      |
+| -------------------------- | ---- | ------- | ------------------------------------------------------------------------------------------------ |
+| `FAPILOG_DEDUP__WINDOW_MS` | int  | 2000    | Time window to collapse identical ERROR/CRITICAL messages; a summary is emitted at window close. |
+
+---
+
+## Strictness
+
+| Variable                   | Type    | Default | Description                                                                                   |
+| -------------------------- | ------- | ------- | --------------------------------------------------------------------------------------------- |
+| `FAPILOG_STRICT__ENVELOPE` | boolean | false   | If true, drop events that fail schema/serialization (with diagnostic); otherwise best-effort. |
+
+---
+
+## Exceptions
+
+| Variable                        | Type | Default | Description                                    |
+| ------------------------------- | ---- | ------- | ---------------------------------------------- |
+| `FAPILOG_EXCEPTION__MAX_FRAMES` | int  | 30      | Max traceback frames to capture/serialize.     |
+| `FAPILOG_EXCEPTION__MAX_CHARS`  | int  | 20000   | Max characters for serialized exception/stack. |
+
+---
+
+## Rotating File Sink
+
+> Enabling any of these typically **activates** the file sink. If unset, stdout JSON lines is used by default.
+
+| Variable                         | Type    | Default | Description                                                        |
+| -------------------------------- | ------- | ------- | ------------------------------------------------------------------ |
+| `FAPILOG_FILE__DIRECTORY`        | str     | —       | Directory to write log files; enables rotating file sink when set. |
+| `FAPILOG_FILE__MAX_BYTES`        | int     | —       | Rotate when file reaches this size (bytes).                        |
+| `FAPILOG_FILE__INTERVAL_SECONDS` | int     | —       | Time-based rotation interval (seconds).                            |
+| `FAPILOG_FILE__MAX_FILES`        | int     | —       | Maximum number of files retained (oldest removed first).           |
+| `FAPILOG_FILE__MAX_TOTAL_BYTES`  | int     | —       | Total bytes ceiling across all retained files.                     |
+| `FAPILOG_FILE__COMPRESS`         | boolean | false   | Gzip-compress rotated files.                                       |
+
+---
+
+## Metrics
+
+| Variable                     | Type    | Default   | Description                                   |
+| ---------------------------- | ------- | --------- | --------------------------------------------- |
+| `FAPILOG_METRICS__ENABLED`   | boolean | false     | Enable internal counters/histograms emission. |
+| `FAPILOG_METRICS__NAMESPACE` | str     | `fapilog` | Namespace/prefix for metric names/labels.     |
+
+---
+
+## Sampling (optional)
+
+| Variable                 | Type  | Default | Description                                                   |
+| ------------------------ | ----- | ------- | ------------------------------------------------------------- |
+| `FAPILOG_SAMPLING__RATE` | float | 1.0     | Probability (0.0–1.0) that an event is kept (1.0 = keep all). |
+
+---
+
+## Redaction (optional)
+
+| Variable                          | Type     | Default | Description                                                             |
+| --------------------------------- | -------- | ------- | ----------------------------------------------------------------------- |
+| `FAPILOG_REDACT__ENABLED`         | boolean  | false   | Enable redaction stage in the pipeline.                                 |
+| `FAPILOG_REDACT__FIELD_PATHS`     | csv[str] | —       | Comma-separated dot paths to mask (e.g., `password,credentials.token`). |
+| `FAPILOG_REDACT__REGEX_PATTERNS`  | csv[str] | —       | Comma-separated regex patterns for masking values.                      |
+| `FAPILOG_REDACT__URL_CREDENTIALS` | boolean  | true    | Scrub `user:pass@` credentials from URLs.                               |
+
+---
+
+## Reading & Composition Rules
+
+1. **Precedence**: Explicit `FapilogSettings(...)` parameters override environment variables; env overrides internal defaults.
+2. **Nesting**: Double underscores (`__`) split namespaces → `FAPILOG_FILE__MAX_BYTES` → `settings.file.max_bytes`.
+3. **Booleans**: Accept `true/false`, `1/0`, `yes/no`, `on/off` (per Pydantic parsing).
+4. **Units**: `*_MS` in milliseconds; `*_SECONDS` in seconds; byte sizes are plain integers (bytes).
+
+---
+
+## Example Configurations
+
+### Minimal (stdout JSON lines; sensible batching)
+
+```bash
+export FAPILOG_QUEUE__MAX_SIZE=8192
+export FAPILOG_BATCH__MAX_EVENTS=256
+export FAPILOG_BATCH__FLUSH_MS=200
+```

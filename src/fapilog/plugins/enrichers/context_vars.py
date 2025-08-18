@@ -65,6 +65,7 @@ PLUGIN_METADATA = {
     "plugin_type": "enricher",
     "entry_point": "fapilog.plugins.enrichers.context_vars:ContextVarsEnricher",
     "description": "Adds context variables like request_id and user_id when available.",
-    "author": "Fapilog Core Team",
+    "author": "Fapilog Core",
+    "compatibility": {"min_fapilog_version": "3.0.0"},
     "api_version": "1.0",
 }
