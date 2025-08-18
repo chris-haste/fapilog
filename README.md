@@ -1,213 +1,216 @@
-# fapilog Documentation
+# Fapilog v3 - Async-First Logging Library
 
-This directory contains the complete documentation for the fapilog project, built using Sphinx and the ReadTheDocs theme.
+**fapilog** is an async-first, structured logging library for Python, designed for **FastAPI** and modern cloud-native applications.  
+While optimized for distributed, containerized, and serverless environments, it is equally suitable for **on-prem**, **desktop**, or **embedded** Python projects where structured, JSON-ready, and pluggable logging is required.
 
-## Quick Start
+![Async-first](https://img.shields.io/badge/async-first-008080?style=flat-square&logo=python&logoColor=white)
+![JSON Ready](https://img.shields.io/badge/json-ready-004080?style=flat-square&logo=json&logoColor=white)
+![Plugin Marketplace](https://img.shields.io/badge/plugin-marketplace-008080?style=flat-square&logo=puzzle&logoColor=white)
+![Enterprise Ready](https://img.shields.io/badge/enterprise-ready-004080?style=flat-square&logo=shield&logoColor=white)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-008000?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-008080?style=flat-square&logo=pydantic&logoColor=white)
 
-### Prerequisites
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-008080?style=flat-square&logo=python&logoColor=white)](https://pypi.org/project/fapilog/)
+[![PyPI Version](https://img.shields.io/pypi/v/fapilog.svg?style=flat-square&color=008080&logo=pypi&logoColor=white)](https://pypi.org/project/fapilog/)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-004080?style=flat-square&logo=apache&logoColor=white)](https://opensource.org/licenses/Apache-2.0)
 
-- Python 3.8 or higher
-- pip (Python package installer)
+## Why fapilog?
 
-### Building Documentation
+- **Non‑blocking under slow sinks**: Background worker, queue, and batching keep your app responsive when disk/network collectors slow down.
+- **Predictable under bursts**: Configurable backpressure and policy‑driven drops prevent thread stalls during spikes.
+- **Service‑ready JSON logging**: Structured events, context binding (request/user IDs), exception serialization, graceful shutdown & drain.
+- **Security & compliance guardrails**: Redaction stages (field/regex/url), error de‑duplication, and safe failure behavior.
+- **FastAPI integration**: Simple request context propagation and consistent logs across web handlers and background tasks.
+- **Operational visibility**: Optional metrics for queue depth, drops, and flush latency.
 
-1. **Install dependencies:**
+## When to use / when stdlib is enough
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+### Use fapilog when
+- Services must not jeopardize request latency SLOs due to logging
+- Workloads include bursts, slow/remote sinks, or compliance/redaction needs
+- Teams standardize on structured JSON logs and contextual metadata
 
-2. **Install project for autodoc:**
+### Stdlib may be enough for
+- Small scripts/CLIs writing to fast local stdout/files with minimal structure
 
-   ```bash
-   cd .. && pip install -e . && cd docs
-   ```
+## Installation
 
-3. **Build documentation:**
+Copy-ready commands:
 
-   ```bash
-   make html
-   # or
-   ./build.sh
-   ```
-
-4. **View documentation:**
-   ```bash
-   make serve
-   # Then open http://localhost:8000 in your browser
-   ```
-
-## Available Commands
-
-### Using Make
-
-- `make help` - Show available commands
-- `make install` - Install dependencies
-- `make html` - Build HTML documentation
-- `make clean` - Clean build directory
-- `make build` - Full build with verification
-- `make serve` - Serve documentation locally
-- `make validate` - Validate internal links
-- `make verify` - Verify build output
-- `make quality` - Run all quality checks
-
-### Using Scripts
-
-- `./build.sh` - Build documentation with dependency installation
-- `python validate_links.py` - Validate internal documentation links
-- `python verify_build.py` - Verify build output
-
-## Directory Structure
-
-```
-docs/
-├── conf.py                 # Sphinx configuration
-├── index.md                # Main documentation entry point
-├── requirements.txt        # Python dependencies
-├── build.sh               # Build script
-├── Makefile               # Make commands
-├── validate_links.py      # Link validation script
-├── verify_build.py        # Build verification script
-├── _static/               # Static assets (CSS, JS, images)
-├── _templates/            # Custom HTML templates
-├── api-reference/         # API documentation
-├── concepts/              # Core concepts
-├── tutorials/             # Step-by-step guides
-├── examples/              # Code examples
-├── contributing/          # Development guidelines
-└── _build/                # Build output (gitignored)
+```bash
+pip install "fapilog>=3,<4"
+# or
+uv add "fapilog>=3,<4"
 ```
 
-## Configuration
+Optional extras:
 
-### Sphinx Configuration (`conf.py`)
+```bash
+pip install "fapilog[fastapi]"
+pip install "fapilog[enterprise]"
+pip install "fapilog[all]"
+# or with uv
+uv add "fapilog[fastapi]"
+uv add "fapilog[all]"
+```
 
-The main Sphinx configuration file includes:
+See full guide: docs/install-and-update.md
+[![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-green.svg)](https://docs.pydantic.dev/)
 
-- **Extensions**: autodoc, viewcode, napoleon, intersphinx, todo, myst_parser
-- **Theme**: ReadTheDocs theme with custom styling
-- **Source files**: Markdown (.md) only
-- **Auto-documentation**: Automatic API documentation from Python docstrings
-- **Type hints**: Enhanced type hint handling
-- **Cross-references**: Links to external documentation
+**Async-first logging library for Python services**
 
-### Theme Customization
+## 🚀 Features (core)
 
-Custom styling is applied through:
+- Async-first architecture (background worker, non-blocking enqueue)
+- Structured JSON output (stdout sink by default)
+- Plugin-friendly (enrichers, redactors, processors, sinks)
+- Context binding and exception serialization
+- Guardrails: redaction stages, error de-duplication
 
-- `_static/custom.css` - Custom CSS styles
-- `_static/custom.js` - Custom JavaScript functionality
-- Theme options in `conf.py`
+## 📦 Installation
 
-## Continuous Integration
+```bash
+pip install fapilog
+```
 
-### GitHub Actions
+## 🎯 Quick Start
 
-The documentation is automatically built and deployed via GitHub Actions:
+```python
+from fapilog import get_logger, runtime
 
-- **Build**: Runs on all Python versions (3.9-3.12)
-- **Validation**: Checks for broken links and build issues
-- **Deployment**: Automatically deploys to GitHub Pages on main branch
-- **Quality Checks**: Runs on pull requests
+# Zero-config logger with isolated background worker and stdout JSON sink
+logger = get_logger(name="app")
+logger.info("Application started", environment="production")
 
-### ReadTheDocs
+# Scoped runtime that auto-flushes on exit
+with runtime() as log:
+    log.error("Something went wrong", code=500)
+```
 
-Documentation is also hosted on ReadTheDocs:
+## 🏗️ Architecture
 
-- **URL**: https://fapilog.readthedocs.io/
-- **Auto-build**: Triggers on repository updates
-- **Version support**: Multiple version branches
+Fapilog v3 uses a true async-first pipeline architecture:
 
-## Development
+```text
+┌─────────────┐    ┌──────────────┐    ┌──────────────┐    ┌─────────────┐    ┌──────────────┐    ┌─────────────┐
+│ Log Event   │───▶│ Enrichment   │───▶│ Redaction    │───▶│ Processing  │───▶│ Queue        │───▶│ Sinks       │
+│             │    │              │    │              │    │             │    │              │    │             │
+│ log.info()  │    │ Add context  │    │ Masking      │    │ Formatting  │    │ Async buffer │    │ File/Stdout │
+│ log.error() │    │ Trace IDs    │    │ PII removal  │    │ Validation  │    │ Batching     │    │ HTTP/Custom │
+|             |    │ User data    │    │ Policy checks│    │ Transform   │    │ Overflow     │    │             │
+└─────────────┘    └──────────────┘    └──────────────┘    └─────────────┘    └──────────────┘    └─────────────┘
+```
 
-### Adding New Documentation
+See Redactors documentation: [docs/plugins/redactors.md](docs/plugins/redactors.md)
 
-1. **Create new markdown files** in appropriate directories
-2. **Update index files** to include new content
-3. **Add to navigation** in relevant index files
-4. **Run validation** to ensure links work
+## 🔧 Configuration
 
-### Documentation Standards
+Container-scoped settings via Pydantic v2:
 
-- Use **Markdown** (.md) files for all content
-- Follow **Google/NumPy docstring** style for Python code
-- Include **examples** and **code snippets**
-- Maintain **consistent navigation** structure
-- Use **descriptive link text**
+```python
+from fapilog import get_logger
+from fapilog.core.settings import Settings
 
-### Quality Assurance
+settings = Settings()  # reads env at call time
+logger = get_logger(name="api", settings=settings)
+logger.info("configured", queue=settings.core.max_queue_size)
+```
 
-Before committing documentation changes:
+### Default enrichers
 
-1. **Build locally** to check for errors
-2. **Validate links** to ensure internal references work
-3. **Check formatting** for consistency
-4. **Test navigation** to ensure good user experience
+By default, the logger enriches each event before serialization:
 
-## Troubleshooting
+- `runtime_info`: `service`, `env`, `version`, `host`, `pid`, `python`
+- `context_vars`: `request_id`, `user_id` (if set), and optionally `trace_id`/`span_id` when OpenTelemetry is present
 
-### Common Issues
+You can toggle enrichers at runtime:
 
-#### Build Failures
+```python
+from fapilog.plugins.enrichers.runtime_info import RuntimeInfoEnricher
 
-- **Import errors**: Ensure project is installed (`pip install -e .`)
-- **Missing dependencies**: Install requirements (`pip install -r requirements.txt`)
-- **Configuration errors**: Check `conf.py` syntax
+logger.disable_enricher("context_vars")
+logger.enable_enricher(RuntimeInfoEnricher())
+```text
 
-#### Link Validation Failures
+### Internal diagnostics (optional)
 
-- **Broken internal links**: Update file paths or create missing files
-- **External link failures**: Check if external sites are accessible
-- **Anchor link issues**: Verify heading IDs exist
+Enable structured WARN diagnostics for internal, non-fatal errors (worker/sink):
 
-#### Performance Issues
+```bash
+export FAPILOG_CORE__INTERNAL_LOGGING_ENABLED=true
+```
 
-- **Slow builds**: Use `make dev` for quick development builds
-- **Large build output**: Clean build directory with `make clean`
-- **Memory issues**: Build on systems with sufficient RAM
+When enabled, you may see messages like:
 
-### Getting Help
+```text
+[fapilog][worker][WARN] worker_main error: ...
+[fapilog][sink][WARN] flush error: ...
+```
 
-- **Build issues**: Check the build output for error messages
-- **Configuration**: Review `conf.py` and Sphinx documentation
-- **Content issues**: Validate markdown syntax and links
-- **CI/CD problems**: Check GitHub Actions workflow logs
+Apps will not crash; these logs are for development visibility.
 
-## Contributing
+## 🔌 Plugin Ecosystem
 
-### Documentation Contributions
+Fapilog v3 features a universal plugin ecosystem:
 
-1. **Fork the repository**
-2. **Create a feature branch**
-3. **Make your changes**
-4. **Test locally** with `make build`
-5. **Submit a pull request**
+### **Sink Plugins**
 
-### Reporting Issues
+- File rotation, compression, encryption
+- Database sinks (PostgreSQL, MongoDB)
+- Cloud services (AWS CloudWatch, Azure Monitor)
+- SIEM integration (Splunk, ELK, QRadar)
 
-- **Documentation bugs**: Use GitHub Issues
-- **Build problems**: Include error messages and environment details
-- **Content suggestions**: Open discussions or issues
+### **Processor Plugins**
 
-## Resources
+- Log filtering, transformation, aggregation
+- Performance monitoring, metrics collection
+- Compliance validation, data redaction
+- Custom business logic processors
 
-### Sphinx Documentation
+### **Enricher Plugins**
 
-- [Sphinx User Guide](https://www.sphinx-doc.org/en/master/usage/)
-- [MyST Parser](https://myst-parser.readthedocs.io/)
-- [ReadTheDocs Theme](https://sphinx-rtd-theme.readthedocs.io/)
+- Request context, user information
+- System metrics, resource monitoring
+- Trace correlation, distributed tracing
+- Custom data enrichment
 
-### Markdown Resources
+## 🧩 Extensions (roadmap / optional packages)
 
-- [Markdown Guide](https://www.markdownguide.org/)
-- [GitHub Markdown](https://docs.github.com/en/github/writing-on-github)
+- Enterprise sinks: Splunk/Elasticsearch/Loki/Datadog/Kafka/webhooks
+- Advanced processors: sampling, compression, encryption, sharding, adaptive batching
+- Deep observability: metrics for queue/drops/flush latency, tracing hooks
+- Compliance modules: policy packs and attestations
+- Operational tooling: plugin marketplace and versioned contracts
 
-### Project Resources
+## 📈 Enterprise performance characteristics
 
-- [fapilog Repository](https://github.com/your-username/fapilog)
-- [Issue Tracker](https://github.com/your-username/fapilog/issues)
-- [Discussions](https://github.com/your-username/fapilog/discussions)
+- **Non‑blocking under slow sinks**
+  - Under a simulated 3 ms-per-write sink, fapilog reduced app-side log-call latency by ~75–80% vs stdlib, maintaining sub‑millisecond medians. Reproduce with `scripts/benchmarking.py`.
+- **Burst absorption with predictable behavior**
+  - With a 20k burst and a 3 ms sink delay, fapilog processed ~90% and dropped ~10% per policy, keeping the app responsive.
+- **Honest note**
+  - In steady-state fast-sink scenarios, Python’s stdlib logging can be faster per call. Fapilog shines under constrained sinks, concurrency, and bursts.
+
+## 📚 Documentation
+
+- See the `docs/` directory for full documentation
+- Benchmarks: `python scripts/benchmarking.py --help`
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+## 📄 License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+## 🔗 Links
+
+- [GitHub Repository](https://github.com/chris-haste/fapilog)
+- [Documentation](https://fapilog.readthedocs.io/)
+- [Plugin Marketplace](https://plugins.fapilog.dev/)
+- [Community Discord](https://discord.gg/fapilog)
 
 ---
 
-_This documentation system is designed to be developer-friendly and maintainable. For questions or issues, please open a GitHub issue or discussion._
+**Fapilog v3** - The future of async-first logging for Python applications.
