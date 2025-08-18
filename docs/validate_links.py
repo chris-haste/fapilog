@@ -5,6 +5,7 @@ Link validation script for fapilog documentation.
 This script validates all internal documentation links to ensure they work correctly.
 """
 
+import argparse
 import re
 import sys
 from pathlib import Path
@@ -133,6 +134,14 @@ class LinkValidator:
 
 def main():
     """Main entry point."""
+    parser = argparse.ArgumentParser(description="Validate internal markdown links")
+    parser.add_argument(
+        "--allow-broken",
+        action="store_true",
+        help="Do not fail (exit 1) when broken links are found; report only",
+    )
+    args = parser.parse_args()
+
     docs_dir = Path(".")
 
     if not docs_dir.exists():
@@ -148,8 +157,8 @@ def main():
     broken_count = validator.run()
 
     if broken_count > 0:
-        print(f"\n❌ Validation failed with {broken_count} broken links")
-        sys.exit(1)
+        print(f"\n❌ Validation completed with {broken_count} broken links")
+        sys.exit(0 if args.allow_broken else 1)
     else:
         print("\n✅ Link validation completed successfully")
         sys.exit(0)
