@@ -352,7 +352,7 @@ PLUGIN_METADATA = {
     "plugin_type": "sink",
     "entry_point": __name__,
     "description": "Async rotating file sink with size/time rotation and retention",
-    "author": "Fapilog",
+    "author": "Fapilog Core",
     "api_version": "1.0",
 }
 

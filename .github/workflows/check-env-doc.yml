@@ -1,0 +1,31 @@
+name: Check env vars doc is up-to-date
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  env-doc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install project (dev)
+        run: |
+          pip install -e .[dev]
+      - name: Check Settings descriptions
+        run: |
+          python scripts/check_settings_descriptions.py --min-length 15
+      - name: Regenerate env vars doc
+        run: |
+          python scripts/generate_env_matrix.py --output docs/env-vars.md
+      - name: Fail if docs/env-vars.md changed
+        run: |
+          git diff --exit-code -- docs/env-vars.md || {
+            echo 'docs/env-vars.md is out of date. Run scripts/generate_env_matrix.py and commit the result.';
+            exit 1;
+          }
+

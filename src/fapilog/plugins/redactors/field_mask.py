@@ -196,7 +196,8 @@ PLUGIN_METADATA = {
     "plugin_type": "redactor",
     "entry_point": "fapilog.plugins.redactors.field_mask:FieldMaskRedactor",
     "description": "Masks configured fields in structured events.",
-    "author": "Fapilog Core Team",
+    "author": "Fapilog Core",
+    "compatibility": {"min_fapilog_version": "3.0.0"},
     "config_schema": {
         "type": "object",
         "properties": {

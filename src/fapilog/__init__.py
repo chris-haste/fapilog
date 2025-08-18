@@ -25,14 +25,49 @@ def get_logger(
     *,
     settings: _Settings | None = None,
 ) -> _SyncLoggerFacade:
-    """Return a ready-to-use sync logger facade wired to a
-    container-scoped pipeline.
+    """Return a ready-to-use sync logger facade wired to a container-scoped pipeline.
 
-    - Zero-config: if `settings` is not provided, a fresh `Settings()` is
-      created (reads env at call time) and treated as immutable for the
-      lifetime of the returned logger instance.
-    - Container-scoped: no global mutable state is retained; each logger owns
-      its own configuration, metrics, and sink wiring.
+    This function provides a zero-config, container-scoped logger that automatically
+    configures sinks, enrichers, and metrics based on environment variables or
+    custom settings. Each logger instance is completely isolated with no global state.
+
+    @docs:use_cases
+    - **Web applications** need **request-scoped logging** with correlation IDs and context
+    - **Microservices** require **zero-config logging** that works out of the box
+    - **Development teams** want **simple logging setup** without complex configuration
+    - **Production systems** benefit from **container isolation** and **zero global state**
+    - **FastAPI applications** need **request context integration** for distributed tracing
+
+    @docs:examples
+    ```python
+    from fapilog import get_logger
+
+    # Zero-config usage (uses environment variables)
+    logger = get_logger()
+    logger.info("Application started")
+
+    # With custom name for better identification
+    logger = get_logger("user_service")
+    logger.info("User authentication successful")
+
+    # With custom settings
+    from fapilog import Settings
+    settings = Settings(core__enable_metrics=True)
+    logger = get_logger(settings=settings)
+    logger.info("Metrics-enabled logger ready")
+
+    # Cleanup when done
+    logger.close()
+    ```
+
+    @docs:notes
+    - **Zero-config by default** - automatically reads environment variables
+    - **Container-scoped isolation** - no global mutable state between instances
+    - **Automatic sink selection** - chooses file or stdout based on FAPILOG_FILE__DIRECTORY
+    - **Built-in enrichers** - automatically includes runtime info and context variables
+    - **Thread-safe** - can be used across multiple threads safely
+    - **Async-aware** - works seamlessly with asyncio applications
+    - See [Environment Configuration](../docs/env-vars.md) for all available options
     """
     # Default pipeline: choose sink by env (rotating file vs stdout)
     import os as _os
@@ -204,8 +239,44 @@ def get_logger(
 def runtime(*, settings: _Settings | None = None) -> Iterator[_SyncLoggerFacade]:
     """Context manager that initializes and drains the default runtime.
 
-    Yields a default logger; on exit, flushes and returns a drain result via
-    StopIteration.value for advanced callers.
+    This function provides a context manager that automatically handles logger
+    lifecycle including initialization, usage, and cleanup. It's perfect for
+    applications that need guaranteed cleanup of logging resources.
+
+    @docs:use_cases
+    - **Scripts and CLI tools** need **automatic cleanup** when they exit
+    - **Testing frameworks** require **isolated logging** for each test case
+    - **Batch processing** benefits from **guaranteed resource cleanup**
+    - **Development environments** want **simple logging** without manual cleanup
+    - **Production applications** need **reliable resource management**
+
+    @docs:examples
+    ```python
+    from fapilog import runtime
+
+    # Basic usage with automatic cleanup
+    with runtime() as logger:
+        logger.info("Processing started")
+        # ... do work ...
+        logger.info("Processing completed")
+    # Logger automatically cleaned up here
+
+    # With custom settings
+    from fapilog import Settings
+    settings = Settings(core__enable_metrics=True)
+
+    with runtime(settings=settings) as logger:
+        logger.info("Metrics-enabled processing")
+        # ... do work ...
+    ```
+
+    @docs:notes
+    - **Automatic cleanup** - logger resources are guaranteed to be cleaned up
+    - **Exception safe** - cleanup happens even if exceptions occur
+    - **Context manager** - use with Python's `with` statement
+    - **Settings support** - can pass custom settings for configuration
+    - **Drain result** - advanced users can access drain results via StopIteration.value
+    - **Thread-safe** - can be used across multiple threads safely
     """
     logger = get_logger(settings=settings)
     try:

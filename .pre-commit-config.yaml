@@ -18,7 +18,7 @@ repos:
       - id: mypy
         name: MyPy (Type checking)
         additional_dependencies: [
-          types-requests, 
+          types-requests,
           types-PyYAML,
           pydantic>=2.11.0,
           packaging>=23.0,
@@ -38,9 +38,25 @@ repos:
         name: Vulture (Dead code detection)
         args: [src/, tests/]
 
-  # Code coverage check
+  # Local hooks (project automation)
   - repo: local
     hooks:
+      - id: generate-env-matrix
+        name: Generate env vars doc
+        entry: sh -c 'python scripts/generate_env_matrix.py --output docs/env-vars.md && git add docs/env-vars.md'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit, manual]
+
+      - id: check-settings-descriptions
+        name: Check Settings field descriptions
+        entry: python scripts/check_settings_descriptions.py --min-length 15
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit, manual]
+
       - id: coverage-check
         name: Code Coverage (90%+ required)
         entry: python scripts/check_coverage.py
@@ -51,9 +67,6 @@ repos:
         pass_filenames: false
         verbose: true
 
-  # Pydantic v1 syntax detection
-  - repo: local
-    hooks:
       - id: pydantic-v1-check
         name: Project Guardrails (Pydantic v1 Syntax Check)
         entry: python scripts/check_pydantic_v1.py
@@ -63,13 +76,25 @@ repos:
         always_run: true
         types: [python]
 
-  # Release guardrails check
-  - repo: local
-    hooks:
       - id: release-guardrails
         name: Release Guardrails Check
         entry: python scripts/check_release_guardrails.py
         language: system
         stages: [pre-commit]
         description: "Check for proper version bumps and changelog updates on release commits"
-        always_run: true 
+        always_run: true
+
+      - id: forbid-rst-in-docs
+        name: Forbid .rst files in docs (Markdown-only policy)
+        entry: bash
+        args:
+          - -c
+          - |
+            if git ls-files -- 'docs/**/*.rst' | grep -q '\.rst$'; then
+              echo 'Error: .rst files found under docs/. Use Markdown (.md) only.'
+              git ls-files -- 'docs/**/*.rst' || true
+              exit 1
+            fi
+        language: system
+        pass_filenames: false
+        stages: [pre-commit, pre-push]

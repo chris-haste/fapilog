@@ -73,10 +73,10 @@ _VULTURE_USED: tuple[object] = (StdoutJsonSink,)
 # Minimal plugin metadata for discovery compatibility
 PLUGIN_METADATA = {
     "name": "stdout-json-sink",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "plugin_type": "sink",
     "entry_point": __name__,
     "description": "Async stdout JSONL sink",
-    "author": "Fapilog",
+    "author": "Fapilog Core",
     "api_version": "1.0",
 }

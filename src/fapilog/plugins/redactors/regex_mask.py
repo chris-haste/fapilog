@@ -148,7 +148,8 @@ PLUGIN_METADATA = {
     "description": (
         "Masks values for fields whose dot-paths match configured regex patterns."
     ),
-    "author": "Fapilog Core Team",
+    "author": "Fapilog Core",
+    "compatibility": {"min_fapilog_version": "3.0.0"},
     "config_schema": {
         "type": "object",
         "properties": {

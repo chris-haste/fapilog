@@ -16,8 +16,14 @@ from .plugin_config import ValidationIssue, ValidationResult
 class SecuritySettings(BaseModel):
     """Aggregated security settings for the library."""
 
-    encryption: EncryptionSettings = Field(default_factory=EncryptionSettings)
-    access_control: AccessControlSettings = Field(default_factory=AccessControlSettings)
+    encryption: EncryptionSettings = Field(
+        default_factory=EncryptionSettings,
+        description="Cryptography, key management, and data protection settings",
+    )
+    access_control: AccessControlSettings = Field(
+        default_factory=AccessControlSettings,
+        description="Authentication/authorization and role-based access control",
+    )
 
 
 async def validate_security(settings: SecuritySettings) -> ValidationResult:

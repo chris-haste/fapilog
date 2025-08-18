@@ -16,15 +16,33 @@ from .plugin_config import ValidationIssue, ValidationResult
 class AccessControlSettings(BaseModel):
     """Settings for access control and authorization."""
 
-    enabled: bool = Field(default=True)
+    enabled: bool = Field(
+        default=True,
+        description="Enable access control checks across the system",
+    )
     # Choose an auth mode; integration is out of scope for core library
-    auth_mode: Literal["none", "basic", "token", "oauth2"] = Field(default="token")
+    auth_mode: Literal["none", "basic", "token", "oauth2"] = Field(
+        default="token",
+        description="Authentication mode used by integrations (library-agnostic)",
+    )
     # Role-based access control
-    allowed_roles: list[str] = Field(default_factory=lambda: ["admin", "system"])
-    require_admin_for_sensitive_ops: bool = Field(default=True)
+    allowed_roles: list[str] = Field(
+        default_factory=lambda: ["admin", "system"],
+        description="List of roles granted access to protected operations",
+    )
+    require_admin_for_sensitive_ops: bool = Field(
+        default=True,
+        description="Require admin role for sensitive or destructive operations",
+    )
     # Authorization switches
-    allow_anonymous_read: bool = Field(default=False)
-    allow_anonymous_write: bool = Field(default=False)
+    allow_anonymous_read: bool = Field(
+        default=False,
+        description="Permit read access without authentication (discouraged)",
+    )
+    allow_anonymous_write: bool = Field(
+        default=False,
+        description="Permit write access without authentication (never recommended)",
+    )
 
 
 def validate_access_control(settings: AccessControlSettings) -> ValidationResult:

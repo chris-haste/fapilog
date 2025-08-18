@@ -38,6 +38,7 @@ PLUGIN_METADATA = {
     "plugin_type": "enricher",
     "entry_point": "fapilog.plugins.enrichers.runtime_info:RuntimeInfoEnricher",
     "description": "Adds runtime/system information such as host, pid, and python version.",
-    "author": "Fapilog Core Team",
+    "author": "Fapilog Core",
+    "compatibility": {"min_fapilog_version": "3.0.0"},
     "api_version": "1.0",
 }

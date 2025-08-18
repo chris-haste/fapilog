@@ -91,6 +91,7 @@ class UrlCredentialsRedactor:
 PLUGIN_METADATA = {
     "name": "url-credentials",
     "version": "1.0.0",
+    "author": "Fapilog Core",
     "plugin_type": "redactor",
     "entry_point": ("fapilog.plugins.redactors.url_credentials:UrlCredentialsRedactor"),
     "description": ("Strips user:pass@ credentials from URL-like strings."),
