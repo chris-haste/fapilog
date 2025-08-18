@@ -1,0 +1,1473 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Schema Guide &mdash; fapilog 3.0.0-alpha.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a275d612"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=30646c52"></script>
+      <script src="_static/custom.js"></script>
+      <script src="_static/custom.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            fapilog
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting-started/index.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/installation.html">Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/installation.html#quick-install">Quick Install</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/installation.html#installation-options">Installation Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="getting-started/installation.html#basic-installation">Basic Installation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="getting-started/installation.html#with-extras">With Extras</a></li>
+<li class="toctree-l4"><a class="reference internal" href="getting-started/installation.html#from-source">From Source</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/installation.html#python-version-support">Python Version Support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/installation.html#dependencies">Dependencies</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="getting-started/installation.html#required-dependencies">Required Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="getting-started/installation.html#optional-dependencies">Optional Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/installation.html#environment-setup">Environment Setup</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="getting-started/installation.html#virtual-environment-recommended">Virtual Environment (Recommended)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="getting-started/installation.html#conda-environment">Conda Environment</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/installation.html#verification">Verification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/installation.html#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="getting-started/installation.html#common-issues">Common Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/installation.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/quickstart.html">Quickstart Tutorial</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/quickstart.html#zero-config-logging">Zero-Config Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/quickstart.html#with-context">With Context</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/quickstart.html#using-runtime-for-cleanup">Using runtime() for Cleanup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/quickstart.html#what-happens-automatically">What Happens Automatically</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/quickstart.html#environment-variables">Environment Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/quickstart.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/hello-world.html">Hello World Walkthrough</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/hello-world.html#minimal-app">Minimal App</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/hello-world.html#rotating-file-sink-example">Rotating File Sink Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/hello-world.html#redactor-demo">Redactor Demo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/hello-world.html#stopping-draining-logs">Stopping &amp; Draining Logs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/hello-world.html#complete-example">Complete Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/hello-world.html#what-youve-learned">What You’ve Learned</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/hello-world.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/index.html#quick-start">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/index.html#what-youll-learn">What You’ll Learn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/index.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core-concepts/index.html">Core Concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/pipeline-architecture.html">Pipeline Architecture</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core-concepts/pipeline-architecture.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core-concepts/pipeline-architecture.html#pipeline-stages">Pipeline Stages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#application-layer">1. Application Layer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#context-binding">2. Context Binding</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#enrichers">3. Enrichers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#redactors">4. Redactors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#processors">5. Processors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#queue">6. Queue</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#sinks">7. Sinks</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core-concepts/pipeline-architecture.html#performance-characteristics">Performance Characteristics</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#async-processing">Async Processing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#zero-copy-operations">Zero-Copy Operations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#batching">Batching</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core-concepts/pipeline-architecture.html#guarantees">Guarantees</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#async-operations">1. Async Operations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#bounded-memory">2. Bounded Memory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#backpressure-handling">3. Backpressure Handling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#deduplication">4. Deduplication</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core-concepts/pipeline-architecture.html#configuration">Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#pipeline-configuration">Pipeline Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#environment-variables">Environment Variables</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core-concepts/pipeline-architecture.html#monitoring">Monitoring</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#pipeline-metrics">Pipeline Metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#health-checks">Health Checks</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core-concepts/pipeline-architecture.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/index.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/index.html#key-principles">Key Principles</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core-concepts/index.html#async-first-design">1. Async-First Design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core-concepts/index.html#zero-copy-processing">2. Zero-Copy Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core-concepts/index.html#structured-by-default">3. Structured by Default</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core-concepts/index.html#plugin-architecture">4. Plugin Architecture</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/index.html#architecture-overview">Architecture Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/index.html#what-youll-learn">What You’ll Learn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/index.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user-guide/index.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/index.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/index.html#quick-reference">Quick Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/index.html#basic-logging">Basic Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/index.html#context-management">Context Management</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/index.html#configuration">Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/index.html#what-youll-learn">What You’ll Learn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/index.html#common-patterns">Common Patterns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/index.html#request-logging">Request Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/index.html#batch-processing">Batch Processing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/index.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api-reference/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/top-level-functions.html">Top-Level Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/top-level-functions.html#get-logger">get_logger</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#parameters">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#examples">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#environment-variables">Environment Variables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/top-level-functions.html#runtime">runtime</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#id1">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#id2">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#id3">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#id4">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/top-level-functions.html#stop-and-drain">stop_and_drain</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#id5">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#id6">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#id7">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#drainresult">DrainResult</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#id8">Notes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/logger-methods.html">Logger Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/logger-methods.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/logger-methods.html#debug">debug</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#parameters">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#examples">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/logger-methods.html#info">info</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id1">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id2">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id3">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/logger-methods.html#warning">warning</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id4">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id5">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id6">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/logger-methods.html#error">error</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id7">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id8">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id9">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/logger-methods.html#critical">critical</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id10">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id11">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id12">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/logger-methods.html#exception">exception</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id13">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id14">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id15">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/logger-methods.html#close">close</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id16">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id17">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id18">Notes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/context-binding.html">Context Binding</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/context-binding.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/context-binding.html#bind">bind</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#parameters">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#examples">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/context-binding.html#unbind">unbind</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#id1">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#id2">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#id3">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/context-binding.html#clear-context">clear_context</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#id4">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#id5">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#id6">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/context-binding.html#context-inheritance">Context Inheritance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/context-binding.html#common-patterns">Common Patterns</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#request-context">Request Context</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#service-context">Service Context</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#debug-context">Debug Context</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/context-binding.html#best-practices">Best Practices</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/context-binding.html#performance-considerations">Performance Considerations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/configuration.html">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/configuration.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/configuration.html#fapilogsettings">FapilogSettings</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#core-settings">Core Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#file-sink-settings">File Sink Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#performance-settings">Performance Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#redaction-settings">Redaction Settings</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/configuration.html#environment-variables">Environment Variables</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#core-configuration">Core Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#file-sink-configuration">File Sink Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#redaction-configuration">Redaction Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/configuration.html#settings-hierarchy">Settings Hierarchy</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#environment-variables-highest-priority">1. Environment Variables (Highest Priority)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#settings-classes-medium-priority">2. Settings Classes (Medium Priority)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#default-values-lowest-priority">3. Default Values (Lowest Priority)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/configuration.html#configuration-examples">Configuration Examples</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#development-environment">Development Environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#production-environment">Production Environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#high-performance-configuration">High-Performance Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/configuration.html#environment-specific-configuration">Environment-Specific Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#development">Development</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#staging">Staging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#production">Production</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/configuration.html#configuration-validation">Configuration Validation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#validation-rules">Validation Rules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/configuration.html#hot-reloading">Hot Reloading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/configuration.html#best-practices">Best Practices</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/plugins/index.html">Plugins</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/plugins/index.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/plugins/index.html#plugin-types">Plugin Types</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#sinks-output-plugins">Sinks (Output Plugins)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#enrichers-input-context-plugins">Enrichers (Input/Context Plugins)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#redactors-security-plugins">Redactors (Security Plugins)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#processors-transform-plugins">Processors (Transform Plugins)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/plugins/index.html#plugin-architecture">Plugin Architecture</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#plugin-lifecycle">Plugin Lifecycle</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#plugin-configuration">Plugin Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#plugin-discovery">Plugin Discovery</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/plugins/index.html#built-in-plugins">Built-in Plugins</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#default-configuration">Default Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#plugin-dependencies">Plugin Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/plugins/index.html#custom-plugin-development">Custom Plugin Development</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#creating-a-custom-sink">Creating a Custom Sink</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#creating-a-custom-enricher">Creating a Custom Enricher</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#creating-a-custom-redactor">Creating a Custom Redactor</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/plugins/index.html#plugin-configuration-examples">Plugin Configuration Examples</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#development-environment">Development Environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#production-environment">Production Environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#high-performance-configuration">High-Performance Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/plugins/index.html#plugin-health-monitoring">Plugin Health Monitoring</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#health-checks">Health Checks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#plugin-metrics">Plugin Metrics</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/plugins/index.html#best-practices">Best Practices</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/lifecycle-results.html">Lifecycle &amp; Results</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/lifecycle-results.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/lifecycle-results.html#drainresult">DrainResult</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#fields">Fields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#sinkdrainresult">SinkDrainResult</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/lifecycle-results.html#runtime-lifecycle">Runtime Lifecycle</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#initialization">Initialization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#startup-sequence">Startup Sequence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#runtime-state">Runtime State</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/lifecycle-results.html#resource-management">Resource Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#memory-management">Memory Management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#connection-management">Connection Management</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/lifecycle-results.html#graceful-shutdown">Graceful Shutdown</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#shutdown-sequence">Shutdown Sequence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#shutdown-timeout">Shutdown Timeout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#environment-variables">Environment Variables</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/lifecycle-results.html#health-monitoring">Health Monitoring</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#runtime-health">Runtime Health</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#health-checks">Health Checks</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/lifecycle-results.html#error-handling">Error Handling</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#runtime-errors">Runtime Errors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#recovery-mechanisms">Recovery Mechanisms</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/lifecycle-results.html#performance-optimization">Performance Optimization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#runtime-tuning">Runtime Tuning</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#resource-limits">Resource Limits</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/lifecycle-results.html#monitoring-and-debugging">Monitoring and Debugging</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#runtime-metrics">Runtime Metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#debug-information">Debug Information</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/lifecycle-results.html#best-practices">Best Practices</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#lifecycle-management">Lifecycle Management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#id1">Resource Management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#id2">Error Handling</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/lifecycle-results.html#configuration-reference">Configuration Reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#lifecycle-settings">Lifecycle Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#id3">Environment Variables</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/modules.html">API Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/plugins/index.html">Plugins</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#plugin-types">Plugin Types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#plugin-architecture">Plugin Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#built-in-plugins">Built-in Plugins</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#custom-plugin-development">Custom Plugin Development</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#plugin-configuration-examples">Plugin Configuration Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#plugin-health-monitoring">Plugin Health Monitoring</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#best-practices">Best Practices</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/modules.html#core-modules">Core Modules</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-core">fapilog.core</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-core-logger">fapilog.core.logger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-containers">fapilog.containers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-core-settings">fapilog.core.settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-core-context">fapilog.core.context</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-core-security">fapilog.core.security</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-core-observability">fapilog.core.observability</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/modules.html#plugin-system">Plugin System</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-plugins">fapilog.plugins</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-plugins-redactors">fapilog.plugins.redactors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-plugins-sinks">fapilog.plugins.sinks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-plugins-processors">fapilog.plugins.processors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-plugins-enrichers">fapilog.plugins.enrichers</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/modules.html#fastapi-integration">FastAPI Integration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-fastapi">fapilog.fastapi</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-fastapi-context">fapilog.fastapi.context</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/modules.html#utilities">Utilities</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-core-serialization">fapilog.core.serialization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-core-validation">fapilog.core.validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-core-errors">fapilog.core.errors</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/index.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/index.html#quick-reference">Quick Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/index.html#top-level-functions">Top-Level Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/index.html#logger-methods">Logger Methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/index.html#context-binding">Context Binding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/index.html#configuration">Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/index.html#plugins">Plugins</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/index.html#sinks-output-plugins">Sinks (Output Plugins)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/index.html#enrichers-input-context-plugins">Enrichers (Input/Context Plugins)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/index.html#redactors-security-plugins">Redactors (Security Plugins)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/index.html#processors-transform-plugins">Processors (Transform Plugins)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/index.html#lifecycle-results">Lifecycle &amp; Results</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples &amp; Recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/index.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/index.html#quick-examples">Quick Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/index.html#basic-logging">Basic Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/index.html#context-binding">Context Binding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/index.html#file-logging">File Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/index.html#what-youll-learn">What You’ll Learn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/index.html#common-patterns">Common Patterns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/index.html#request-correlation">Request Correlation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/index.html#batch-processing">Batch Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/index.html#error-handling">Error Handling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/index.html#environment-specific-examples">Environment-Specific Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/index.html#development">Development</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/index.html#production">Production</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/index.html#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/index.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting/index.html">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/index.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/index.html#quick-diagnosis">Quick Diagnosis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#check-system-health">Check System Health</a></li>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#check-configuration">Check Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#check-metrics">Check Metrics</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/index.html#common-issues">Common Issues</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#logs-are-dropped-under-load">1. Logs Are Dropped Under Load</a></li>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#context-values-missing">2. Context Values Missing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#file-sink-not-rotating">3. File Sink Not Rotating</a></li>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#serialization-errors">4. Serialization Errors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#pii-showing-despite-redaction">5. PII Showing Despite Redaction</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/index.html#debug-mode">Debug Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/index.html#performance-issues">Performance Issues</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#high-memory-usage">High Memory Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#slow-logging">Slow Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/index.html#getting-help">Getting Help</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#self-service">Self-Service</a></li>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#community-support">Community Support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#professional-support">Professional Support</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/index.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#general-questions">General Questions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#why-json-lines-by-default">Why JSON lines by default?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#how-to-add-custom-fields-globally">How to add custom fields globally?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#do-i-still-need-log-levels">Do I still need log levels?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#how-does-fapilog-compare-to-logging-structlog">How does fapilog compare to logging/structlog?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#technical-questions">Technical Questions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#can-i-use-it-with-celery-async-jobs">Can I use it with Celery/async jobs?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#how-does-context-inheritance-work">How does context inheritance work?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#what-happens-if-a-sink-fails">What happens if a sink fails?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#performance-questions">Performance Questions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#how-does-fapilog-handle-high-throughput">How does fapilog handle high throughput?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#whats-the-memory-overhead">What’s the memory overhead?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#how-fast-is-it">How fast is it?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#configuration-questions">Configuration Questions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#can-i-use-configuration-files">Can I use configuration files?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#how-do-i-configure-different-environments">How do I configure different environments?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#can-i-change-configuration-at-runtime">Can I change configuration at runtime?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#integration-questions">Integration Questions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#how-do-i-integrate-with-fastapi">How do I integrate with FastAPI?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#can-i-use-it-with-docker-kubernetes">Can I use it with Docker/Kubernetes?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#how-do-i-send-logs-to-external-systems">How do I send logs to external systems?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#support-questions">Support Questions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#where-can-i-get-help">Where can I get help?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#how-do-i-report-a-bug">How do I report a bug?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#can-i-contribute-to-fapilog">Can I contribute to fapilog?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing/index.html">Contributing to fapilog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="contributing/index.html#getting-started">Getting Started</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#development-setup"><span class="xref myst">Development Setup</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#code-style"><span class="xref myst">Code Style</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#testing"><span class="xref myst">Testing</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#documentation"><span class="xref myst">Documentation</span></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing/index.html#development-workflow">Development Workflow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#git-workflow"><span class="xref myst">Git Workflow</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#code-review"><span class="xref myst">Code Review</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#release-process"><span class="xref myst">Release Process</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#ci-cd"><span class="xref myst">CI/CD</span></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing/index.html#project-structure">Project Structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#architecture"><span class="xref myst">Architecture</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#code-organization"><span class="xref myst">Code Organization</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#plugin-system"><span class="xref myst">Plugin System</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#testing-strategy"><span class="xref myst">Testing Strategy</span></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing/index.html#areas-to-contribute">Areas to Contribute</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#core-features"><span class="xref myst">Core Features</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#plugins"><span class="xref myst">Plugins</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#id1"><span class="xref myst">Documentation</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#id2"><span class="xref myst">Testing</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#performance"><span class="xref myst">Performance</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#security"><span class="xref myst">Security</span></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing/index.html#communication">Communication</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#discussions"><span class="xref myst">Discussions</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#issues"><span class="xref myst">Issues</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#community"><span class="xref myst">Community</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#code-of-conduct"><span class="xref myst">Code of Conduct</span></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing/index.html#resources">Resources</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#api-reference"><span class="xref myst">API Reference</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#plugin-development"><span class="xref myst">Plugin Development</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#testing-guide"><span class="xref myst">Testing Guide</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#performance-guide"><span class="xref myst">Performance Guide</span></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing/index.html#getting-help">Getting Help</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#faq"><span class="xref myst">FAQ</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#troubleshooting"><span class="xref myst">Troubleshooting</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#contact"><span class="xref myst">Contact</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="release-notes.html">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="release-notes.html#current-version">Current Version</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#whats-new-in-3-0-0">What’s New in 3.0.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#breaking-changes">Breaking Changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#migration-guide">Migration Guide</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="release-notes.html#previous-versions">Previous Versions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#fapilog-2-x-series">fapilog 2.x Series</a></li>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#fapilog-1-x-series">fapilog 1.x Series</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="release-notes.html#upgrade-guides">Upgrade Guides</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#upgrading-to-3-0-0">Upgrading to 3.0.0</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="release-notes.html#update-dependencies">1. Update Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="release-notes.html#update-import-statements">2. Update Import Statements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="release-notes.html#update-configuration">3. Update Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="release-notes.html#update-plugin-code">4. Update Plugin Code</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#upgrading-from-1-x-to-2-x">Upgrading from 1.x to 2.x</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="release-notes.html#id1">1. Update Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="release-notes.html#check-breaking-changes">2. Check Breaking Changes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="release-notes.html#id2">3. Update Configuration</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="release-notes.html#compatibility">Compatibility</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#python-versions">Python Versions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#framework-compatibility">Framework Compatibility</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="release-notes.html#deprecation-policy">Deprecation Policy</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#deprecation-timeline">Deprecation Timeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#currently-deprecated">Currently Deprecated</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="release-notes.html#roadmap">Roadmap</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#upcoming-releases">Upcoming Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="release-notes.html#fapilog-3-0-0-q1-2024">fapilog 3.0.0 (Q1 2024)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="release-notes.html#fapilog-3-1-0-q2-2024">fapilog 3.1.0 (Q2 2024)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="release-notes.html#fapilog-3-2-0-q3-2024">fapilog 3.2.0 (Q3 2024)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#long-term-vision">Long-term Vision</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="release-notes.html#support">Support</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#version-support">Version Support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#getting-help">Getting Help</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="appendices.html">Appendices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="appendices.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="appendices.html#quick-reference">Quick Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#common-terms">Common Terms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#architecture-components">Architecture Components</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="appendices.html#glossary">Glossary</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#a">A</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#b">B</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#c">C</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#d">D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#e">E</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#f">F</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#g">G</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#h">H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#i">I</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#j">J</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#l">L</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#m">M</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#n">N</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#o">O</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#p">P</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#q">Q</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#r">R</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#s">S</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#t">T</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#u">U</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#v">V</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#w">W</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#z">Z</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="appendices.html#architecture-diagrams">Architecture Diagrams</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#high-level-architecture">High-Level Architecture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#pipeline-flow">Pipeline Flow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#component-relationships">Component Relationships</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="appendices.html#license-credits">License &amp; Credits</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#license">License</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#credits">Credits</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="appendices.html#core-team">Core Team</a></li>
+<li class="toctree-l4"><a class="reference internal" href="appendices.html#open-source-dependencies">Open Source Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="appendices.html#inspiration">Inspiration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#contributing">Contributing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#acknowledgments">Acknowledgments</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">fapilog</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Schema Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/schema-guide.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <!-- AUTO-GENERATED: do not edit by hand. Run scripts/generate_env_matrix.py -->
+<section class="tex2jax_ignore mathjax_ignore" id="schema-guide">
+<h1>Schema Guide<a class="headerlink" href="#schema-guide" title="Link to this heading"></a></h1>
+<section id="settings-json-schemas">
+<h2>Settings JSON Schemas<a class="headerlink" href="#settings-json-schemas" title="Link to this heading"></a></h2>
+<section id="coresettings">
+<h3>CoreSettings<a class="headerlink" href="#coresettings" title="Link to this heading"></a></h3>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Core logging and performance settings.\n\nKeep this minimal and stable; prefer plugin-specific settings elsewhere.&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;app_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;fapilog&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Logical application name&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;App Name&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;backpressure_wait_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">50</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Milliseconds to wait for queue space before dropping&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;minimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Backpressure Wait Ms&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;batch_max_size&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">256</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Maximum number of events per batch before a flush is triggered&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;minimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Batch Max Size&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;batch_timeout_seconds&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.25</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Maximum time to wait before flushing a partial batch&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;exclusiveMinimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Batch Timeout Seconds&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;benchmark_file_path&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional path used by performance benchmarks&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Benchmark File Path&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;capture_unhandled_enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Automatically install unhandled exception hooks (sys/asyncio)&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Capture Unhandled Enabled&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;context_binding_enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable per-task bound context via logger.bind/unbind/clear&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Context Binding Enabled&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;default_bound_context&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Default bound context applied at logger creation when enabled&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Default Bound Context&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;drop_on_full&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;If True, drop events after backpressure_wait_ms elapses when queue is full&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Drop On Full&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;enable_metrics&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable Prometheus-compatible metrics&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable Metrics&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;enable_redactors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable redactors stage between enrichers and sink emission&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable Redactors&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;error_dedupe_window_seconds&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">5.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Seconds to suppress duplicate ERROR logs with the same message; 0 disables deduplication&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;minimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Error Dedupe Window Seconds&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;exceptions_enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable structured exception serialization for log calls&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Exceptions Enabled&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;exceptions_max_frames&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">50</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Maximum number of stack frames to capture for exceptions&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;minimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Exceptions Max Frames&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;exceptions_max_stack_chars&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">20000</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Maximum total characters for serialized stack string&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;minimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1000</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Exceptions Max Stack Chars&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;internal_logging_enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Emit DEBUG/WARN diagnostics for internal errors&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Internal Logging Enabled&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;log_level&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Default log level&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;WARNING&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;ERROR&quot;</span>
+<span class="w">      </span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Log Level&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;max_queue_size&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10000</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Maximum in-memory queue size for async processing&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;minimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Max Queue Size&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;redaction_max_depth&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;minimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional max depth guardrail for nested redaction&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Redaction Max Depth&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;redaction_max_keys_scanned&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;minimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional max keys scanned guardrail for redaction&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Redaction Max Keys Scanned&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;redactors_order&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Ordered list of redactor plugin names to apply&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Redactors Order&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;array&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;resource_pool_acquire_timeout_seconds&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Default acquire timeout for pools&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;exclusiveMinimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Resource Pool Acquire Timeout Seconds&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;resource_pool_max_size&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Default max size for resource pools&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;minimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Resource Pool Max Size&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;sensitive_fields_policy&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional list of dotted paths for sensitive fields policy; warning if no redactors configured&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Sensitive Fields Policy&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;array&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;shutdown_timeout_seconds&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">3.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Maximum time to flush on shutdown signals&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;exclusiveMinimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Shutdown Timeout Seconds&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;strict_envelope_mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;If True, drop emission when envelope cannot be produced; otherwise fallback to best-effort serialization with diagnostics&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Strict Envelope Mode&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;CoreSettings&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="securitysettings">
+<h3>SecuritySettings<a class="headerlink" href="#securitysettings" title="Link to this heading"></a></h3>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;$defs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;AccessControlSettings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Settings for access control and authorization.&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;allow_anonymous_read&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Permit read access without authentication (discouraged)&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Allow Anonymous Read&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;allow_anonymous_write&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Permit write access without authentication (never recommended)&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Allow Anonymous Write&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;allowed_roles&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;List of roles granted access to protected operations&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">          </span><span class="p">},</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Allowed Roles&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;array&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;auth_mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;token&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Authentication mode used by integrations (library-agnostic)&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="s2">&quot;none&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;basic&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;token&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;oauth2&quot;</span>
+<span class="w">          </span><span class="p">],</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Auth Mode&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable access control checks across the system&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enabled&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;require_admin_for_sensitive_ops&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Require admin role for sensitive or destructive operations&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Require Admin For Sensitive Ops&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;AccessControlSettings&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;EncryptionSettings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Settings controlling encryption for sensitive data and transport.\n\nThis model is intentionally conservative with defaults matching\nenterprise expectations.&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;algorithm&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;AES-256&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Primary encryption algorithm&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="s2">&quot;AES-256&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;ChaCha20-Poly1305&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;AES-128&quot;</span>
+<span class="w">          </span><span class="p">],</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Algorithm&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable encryption features&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enabled&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;env_var_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">              </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">              </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">          </span><span class="p">],</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Environment variable holding key material&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Env Var Name&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;key_file_path&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">              </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">              </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">          </span><span class="p">],</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Filesystem path to key material&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Key File Path&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;key_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">              </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">              </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">          </span><span class="p">],</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Key identifier for KMS/Vault sources&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Key Id&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;key_source&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">              </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                </span><span class="s2">&quot;env&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="s2">&quot;file&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="s2">&quot;kms&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="s2">&quot;vault&quot;</span>
+<span class="w">              </span><span class="p">],</span>
+<span class="w">              </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">              </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">          </span><span class="p">],</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Source for key material&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Key Source&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;min_tls_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.2&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Minimum TLS version for transport&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="s2">&quot;1.2&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;1.3&quot;</span>
+<span class="w">          </span><span class="p">],</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Min Tls Version&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;rotate_interval_days&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">90</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Recommended key rotation interval&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;minimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Rotate Interval Days&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;EncryptionSettings&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Aggregated security settings for the library.&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;access_control&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/AccessControlSettings&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Authentication/authorization and role-based access control&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;encryption&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/EncryptionSettings&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Cryptography, key management, and data protection settings&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SecuritySettings&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="observabilitysettings">
+<h3>ObservabilitySettings<a class="headerlink" href="#observabilitysettings" title="Link to this heading"></a></h3>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;$defs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;AlertingSettings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable emitting alerts from the logging pipeline&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enabled&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;min_severity&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Minimum alert severity to emit (filter threshold)&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;WARNING&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;CRITICAL&quot;</span>
+<span class="w">          </span><span class="p">],</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Min Severity&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;AlertingSettings&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;LoggingSettings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;json&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Output format for logs (machine-friendly JSON or text)&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="s2">&quot;json&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;text&quot;</span>
+<span class="w">          </span><span class="p">],</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Format&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;include_correlation&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Include correlation IDs and trace/span metadata in logs&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Include Correlation&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;sampling_rate&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Log sampling probability in range 0.0\u20131.0&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;maximum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;minimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Sampling Rate&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;LoggingSettings&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;MetricsSettings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable internal metrics collection/export&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enabled&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;exporter&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prometheus&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Metrics exporter to use (&#39;prometheus&#39; or &#39;none&#39;)&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="s2">&quot;prometheus&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;none&quot;</span>
+<span class="w">          </span><span class="p">],</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Exporter&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;port&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8000</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;TCP port for metrics exporter&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;maximum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">65535</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;minimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Port&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;MetricsSettings&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;MonitoringSettings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable health/monitoring checks and endpoints&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enabled&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;endpoint&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">              </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">              </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">          </span><span class="p">],</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Monitoring endpoint URL&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Endpoint&quot;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;MonitoringSettings&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;TracingSettings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable distributed tracing features&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enabled&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;provider&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;otel&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Tracing backend provider (&#39;otel&#39; or &#39;none&#39;)&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="s2">&quot;otel&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;none&quot;</span>
+<span class="w">          </span><span class="p">],</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Provider&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;sampling_rate&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.1</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Trace sampling probability in range 0.0\u20131.0&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;maximum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;minimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Sampling Rate&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;TracingSettings&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;alerting&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/AlertingSettings&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Alerting configuration&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;logging&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/LoggingSettings&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Logging output format and correlation settings&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;metrics&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/MetricsSettings&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Metrics configuration (exporter and port)&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;monitoring&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/MonitoringSettings&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Monitoring configuration (health/endpoint)&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;tracing&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/TracingSettings&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Tracing configuration&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ObservabilitySettings&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="pluginssettings">
+<h3>PluginsSettings<a class="headerlink" href="#pluginssettings" title="Link to this heading"></a></h3>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Settings controlling plugin discovery and load behavior.&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;allowlist&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;If non-empty, only plugin names in this list are considered during load&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Allowlist&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;array&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;denylist&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Plugin names to skip during discovery/load&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Denylist&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;array&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;discovery_paths&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Additional filesystem paths to scan for local plugins&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Discovery Paths&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;array&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable plugin discovery and loading&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enabled&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;load_on_startup&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Plugins to eagerly load during registry.initialize() if discovered&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Load On Startup&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;array&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;PluginsSettings&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="logenvelope-schema">
+<h2>LogEnvelope Schema<a class="headerlink" href="#logenvelope-schema" title="Link to this heading"></a></h2>
+<section id="logenvelope-v1-x-from-file">
+<h3>LogEnvelope v1.x (from file)<a class="headerlink" href="#logenvelope-v1-x-from-file" title="Link to this heading"></a></h3>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;$id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://fapilog.dev/schemas/log_envelope_v1.json&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;$schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://json-schema.org/draft/2020-12/schema&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;log&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;context&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;diagnostics&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;level&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;logger&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;span_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;tags&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">          </span><span class="p">},</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;array&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;pattern&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;trace_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="s2">&quot;timestamp&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;level&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;message&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;context&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;diagnostics&quot;</span>
+<span class="w">      </span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;schema_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;const&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="s2">&quot;schema_version&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;log&quot;</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Fapilog Log Envelope v1.0&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Chris Haste.
+      <span class="lastupdated">Last updated on August 18, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

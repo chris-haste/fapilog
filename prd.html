@@ -1,0 +1,1853 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fapilog v3 Product Requirements Document (PRD) &mdash; fapilog 3.0.0-alpha.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a275d612"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=30646c52"></script>
+      <script src="_static/custom.js"></script>
+      <script src="_static/custom.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            fapilog
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting-started/index.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/installation.html">Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/installation.html#quick-install">Quick Install</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/installation.html#installation-options">Installation Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="getting-started/installation.html#basic-installation">Basic Installation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="getting-started/installation.html#with-extras">With Extras</a></li>
+<li class="toctree-l4"><a class="reference internal" href="getting-started/installation.html#from-source">From Source</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/installation.html#python-version-support">Python Version Support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/installation.html#dependencies">Dependencies</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="getting-started/installation.html#required-dependencies">Required Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="getting-started/installation.html#optional-dependencies">Optional Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/installation.html#environment-setup">Environment Setup</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="getting-started/installation.html#virtual-environment-recommended">Virtual Environment (Recommended)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="getting-started/installation.html#conda-environment">Conda Environment</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/installation.html#verification">Verification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/installation.html#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="getting-started/installation.html#common-issues">Common Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/installation.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/quickstart.html">Quickstart Tutorial</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/quickstart.html#zero-config-logging">Zero-Config Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/quickstart.html#with-context">With Context</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/quickstart.html#using-runtime-for-cleanup">Using runtime() for Cleanup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/quickstart.html#what-happens-automatically">What Happens Automatically</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/quickstart.html#environment-variables">Environment Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/quickstart.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/hello-world.html">Hello World Walkthrough</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/hello-world.html#minimal-app">Minimal App</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/hello-world.html#rotating-file-sink-example">Rotating File Sink Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/hello-world.html#redactor-demo">Redactor Demo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/hello-world.html#stopping-draining-logs">Stopping &amp; Draining Logs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/hello-world.html#complete-example">Complete Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/hello-world.html#what-youve-learned">What You’ve Learned</a></li>
+<li class="toctree-l3"><a class="reference internal" href="getting-started/hello-world.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/index.html#quick-start">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/index.html#what-youll-learn">What You’ll Learn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/index.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core-concepts/index.html">Core Concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/pipeline-architecture.html">Pipeline Architecture</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core-concepts/pipeline-architecture.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core-concepts/pipeline-architecture.html#pipeline-stages">Pipeline Stages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#application-layer">1. Application Layer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#context-binding">2. Context Binding</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#enrichers">3. Enrichers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#redactors">4. Redactors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#processors">5. Processors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#queue">6. Queue</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#sinks">7. Sinks</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core-concepts/pipeline-architecture.html#performance-characteristics">Performance Characteristics</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#async-processing">Async Processing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#zero-copy-operations">Zero-Copy Operations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#batching">Batching</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core-concepts/pipeline-architecture.html#guarantees">Guarantees</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#async-operations">1. Async Operations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#bounded-memory">2. Bounded Memory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#backpressure-handling">3. Backpressure Handling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#deduplication">4. Deduplication</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core-concepts/pipeline-architecture.html#configuration">Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#pipeline-configuration">Pipeline Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#environment-variables">Environment Variables</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core-concepts/pipeline-architecture.html#monitoring">Monitoring</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#pipeline-metrics">Pipeline Metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="core-concepts/pipeline-architecture.html#health-checks">Health Checks</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core-concepts/pipeline-architecture.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/index.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/index.html#key-principles">Key Principles</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core-concepts/index.html#async-first-design">1. Async-First Design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core-concepts/index.html#zero-copy-processing">2. Zero-Copy Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core-concepts/index.html#structured-by-default">3. Structured by Default</a></li>
+<li class="toctree-l3"><a class="reference internal" href="core-concepts/index.html#plugin-architecture">4. Plugin Architecture</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/index.html#architecture-overview">Architecture Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/index.html#what-youll-learn">What You’ll Learn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/index.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user-guide/index.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/index.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/index.html#quick-reference">Quick Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/index.html#basic-logging">Basic Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/index.html#context-management">Context Management</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/index.html#configuration">Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/index.html#what-youll-learn">What You’ll Learn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/index.html#common-patterns">Common Patterns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/index.html#request-logging">Request Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user-guide/index.html#batch-processing">Batch Processing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/index.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api-reference/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/top-level-functions.html">Top-Level Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/top-level-functions.html#get-logger">get_logger</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#parameters">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#examples">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#environment-variables">Environment Variables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/top-level-functions.html#runtime">runtime</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#id1">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#id2">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#id3">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#id4">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/top-level-functions.html#stop-and-drain">stop_and_drain</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#id5">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#id6">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#id7">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#drainresult">DrainResult</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/top-level-functions.html#id8">Notes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/logger-methods.html">Logger Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/logger-methods.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/logger-methods.html#debug">debug</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#parameters">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#examples">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/logger-methods.html#info">info</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id1">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id2">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id3">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/logger-methods.html#warning">warning</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id4">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id5">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id6">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/logger-methods.html#error">error</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id7">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id8">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id9">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/logger-methods.html#critical">critical</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id10">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id11">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id12">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/logger-methods.html#exception">exception</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id13">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id14">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id15">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/logger-methods.html#close">close</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id16">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id17">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/logger-methods.html#id18">Notes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/context-binding.html">Context Binding</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/context-binding.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/context-binding.html#bind">bind</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#parameters">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#examples">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/context-binding.html#unbind">unbind</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#id1">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#id2">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#id3">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/context-binding.html#clear-context">clear_context</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#id4">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#id5">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#id6">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/context-binding.html#context-inheritance">Context Inheritance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/context-binding.html#common-patterns">Common Patterns</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#request-context">Request Context</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#service-context">Service Context</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/context-binding.html#debug-context">Debug Context</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/context-binding.html#best-practices">Best Practices</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/context-binding.html#performance-considerations">Performance Considerations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/configuration.html">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/configuration.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/configuration.html#fapilogsettings">FapilogSettings</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#core-settings">Core Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#file-sink-settings">File Sink Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#performance-settings">Performance Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#redaction-settings">Redaction Settings</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/configuration.html#environment-variables">Environment Variables</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#core-configuration">Core Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#file-sink-configuration">File Sink Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#redaction-configuration">Redaction Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/configuration.html#settings-hierarchy">Settings Hierarchy</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#environment-variables-highest-priority">1. Environment Variables (Highest Priority)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#settings-classes-medium-priority">2. Settings Classes (Medium Priority)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#default-values-lowest-priority">3. Default Values (Lowest Priority)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/configuration.html#configuration-examples">Configuration Examples</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#development-environment">Development Environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#production-environment">Production Environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#high-performance-configuration">High-Performance Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/configuration.html#environment-specific-configuration">Environment-Specific Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#development">Development</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#staging">Staging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#production">Production</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/configuration.html#configuration-validation">Configuration Validation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/configuration.html#validation-rules">Validation Rules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/configuration.html#hot-reloading">Hot Reloading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/configuration.html#best-practices">Best Practices</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/plugins/index.html">Plugins</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/plugins/index.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/plugins/index.html#plugin-types">Plugin Types</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#sinks-output-plugins">Sinks (Output Plugins)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#enrichers-input-context-plugins">Enrichers (Input/Context Plugins)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#redactors-security-plugins">Redactors (Security Plugins)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#processors-transform-plugins">Processors (Transform Plugins)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/plugins/index.html#plugin-architecture">Plugin Architecture</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#plugin-lifecycle">Plugin Lifecycle</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#plugin-configuration">Plugin Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#plugin-discovery">Plugin Discovery</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/plugins/index.html#built-in-plugins">Built-in Plugins</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#default-configuration">Default Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#plugin-dependencies">Plugin Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/plugins/index.html#custom-plugin-development">Custom Plugin Development</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#creating-a-custom-sink">Creating a Custom Sink</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#creating-a-custom-enricher">Creating a Custom Enricher</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#creating-a-custom-redactor">Creating a Custom Redactor</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/plugins/index.html#plugin-configuration-examples">Plugin Configuration Examples</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#development-environment">Development Environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#production-environment">Production Environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#high-performance-configuration">High-Performance Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/plugins/index.html#plugin-health-monitoring">Plugin Health Monitoring</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#health-checks">Health Checks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#plugin-metrics">Plugin Metrics</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/plugins/index.html#best-practices">Best Practices</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/lifecycle-results.html">Lifecycle &amp; Results</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/lifecycle-results.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/lifecycle-results.html#drainresult">DrainResult</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#fields">Fields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#sinkdrainresult">SinkDrainResult</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/lifecycle-results.html#runtime-lifecycle">Runtime Lifecycle</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#initialization">Initialization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#startup-sequence">Startup Sequence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#runtime-state">Runtime State</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/lifecycle-results.html#resource-management">Resource Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#memory-management">Memory Management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#connection-management">Connection Management</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/lifecycle-results.html#graceful-shutdown">Graceful Shutdown</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#shutdown-sequence">Shutdown Sequence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#shutdown-timeout">Shutdown Timeout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#environment-variables">Environment Variables</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/lifecycle-results.html#health-monitoring">Health Monitoring</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#runtime-health">Runtime Health</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#health-checks">Health Checks</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/lifecycle-results.html#error-handling">Error Handling</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#runtime-errors">Runtime Errors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#recovery-mechanisms">Recovery Mechanisms</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/lifecycle-results.html#performance-optimization">Performance Optimization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#runtime-tuning">Runtime Tuning</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#resource-limits">Resource Limits</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/lifecycle-results.html#monitoring-and-debugging">Monitoring and Debugging</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#runtime-metrics">Runtime Metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#debug-information">Debug Information</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/lifecycle-results.html#best-practices">Best Practices</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#lifecycle-management">Lifecycle Management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#id1">Resource Management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#id2">Error Handling</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/lifecycle-results.html#configuration-reference">Configuration Reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#lifecycle-settings">Lifecycle Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/lifecycle-results.html#id3">Environment Variables</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/modules.html">API Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/plugins/index.html">Plugins</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#plugin-types">Plugin Types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#plugin-architecture">Plugin Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#built-in-plugins">Built-in Plugins</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#custom-plugin-development">Custom Plugin Development</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#plugin-configuration-examples">Plugin Configuration Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#plugin-health-monitoring">Plugin Health Monitoring</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/plugins/index.html#best-practices">Best Practices</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/modules.html#core-modules">Core Modules</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-core">fapilog.core</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-core-logger">fapilog.core.logger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-containers">fapilog.containers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-core-settings">fapilog.core.settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-core-context">fapilog.core.context</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-core-security">fapilog.core.security</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-core-observability">fapilog.core.observability</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/modules.html#plugin-system">Plugin System</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-plugins">fapilog.plugins</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-plugins-redactors">fapilog.plugins.redactors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-plugins-sinks">fapilog.plugins.sinks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-plugins-processors">fapilog.plugins.processors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-plugins-enrichers">fapilog.plugins.enrichers</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/modules.html#fastapi-integration">FastAPI Integration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-fastapi">fapilog.fastapi</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-fastapi-context">fapilog.fastapi.context</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/modules.html#utilities">Utilities</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-core-serialization">fapilog.core.serialization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-core-validation">fapilog.core.validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/modules.html#fapilog-core-errors">fapilog.core.errors</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/index.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/index.html#quick-reference">Quick Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/index.html#top-level-functions">Top-Level Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/index.html#logger-methods">Logger Methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/index.html#context-binding">Context Binding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/index.html#configuration">Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/index.html#plugins">Plugins</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/index.html#sinks-output-plugins">Sinks (Output Plugins)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/index.html#enrichers-input-context-plugins">Enrichers (Input/Context Plugins)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/index.html#redactors-security-plugins">Redactors (Security Plugins)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api-reference/index.html#processors-transform-plugins">Processors (Transform Plugins)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference/index.html#lifecycle-results">Lifecycle &amp; Results</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples &amp; Recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/index.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/index.html#quick-examples">Quick Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/index.html#basic-logging">Basic Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/index.html#context-binding">Context Binding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/index.html#file-logging">File Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/index.html#what-youll-learn">What You’ll Learn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/index.html#common-patterns">Common Patterns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/index.html#request-correlation">Request Correlation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/index.html#batch-processing">Batch Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/index.html#error-handling">Error Handling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/index.html#environment-specific-examples">Environment-Specific Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/index.html#development">Development</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/index.html#production">Production</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/index.html#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples/index.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting/index.html">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/index.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/index.html#quick-diagnosis">Quick Diagnosis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#check-system-health">Check System Health</a></li>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#check-configuration">Check Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#check-metrics">Check Metrics</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/index.html#common-issues">Common Issues</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#logs-are-dropped-under-load">1. Logs Are Dropped Under Load</a></li>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#context-values-missing">2. Context Values Missing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#file-sink-not-rotating">3. File Sink Not Rotating</a></li>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#serialization-errors">4. Serialization Errors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#pii-showing-despite-redaction">5. PII Showing Despite Redaction</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/index.html#debug-mode">Debug Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/index.html#performance-issues">Performance Issues</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#high-memory-usage">High Memory Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#slow-logging">Slow Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/index.html#getting-help">Getting Help</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#self-service">Self-Service</a></li>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#community-support">Community Support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting/index.html#professional-support">Professional Support</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/index.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#general-questions">General Questions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#why-json-lines-by-default">Why JSON lines by default?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#how-to-add-custom-fields-globally">How to add custom fields globally?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#do-i-still-need-log-levels">Do I still need log levels?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#how-does-fapilog-compare-to-logging-structlog">How does fapilog compare to logging/structlog?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#technical-questions">Technical Questions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#can-i-use-it-with-celery-async-jobs">Can I use it with Celery/async jobs?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#how-does-context-inheritance-work">How does context inheritance work?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#what-happens-if-a-sink-fails">What happens if a sink fails?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#performance-questions">Performance Questions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#how-does-fapilog-handle-high-throughput">How does fapilog handle high throughput?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#whats-the-memory-overhead">What’s the memory overhead?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#how-fast-is-it">How fast is it?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#configuration-questions">Configuration Questions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#can-i-use-configuration-files">Can I use configuration files?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#how-do-i-configure-different-environments">How do I configure different environments?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#can-i-change-configuration-at-runtime">Can I change configuration at runtime?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#integration-questions">Integration Questions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#how-do-i-integrate-with-fastapi">How do I integrate with FastAPI?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#can-i-use-it-with-docker-kubernetes">Can I use it with Docker/Kubernetes?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#how-do-i-send-logs-to-external-systems">How do I send logs to external systems?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#support-questions">Support Questions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#where-can-i-get-help">Where can I get help?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#how-do-i-report-a-bug">How do I report a bug?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faq.html#can-i-contribute-to-fapilog">Can I contribute to fapilog?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing/index.html">Contributing to fapilog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="contributing/index.html#getting-started">Getting Started</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#development-setup"><span class="xref myst">Development Setup</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#code-style"><span class="xref myst">Code Style</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#testing"><span class="xref myst">Testing</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#documentation"><span class="xref myst">Documentation</span></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing/index.html#development-workflow">Development Workflow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#git-workflow"><span class="xref myst">Git Workflow</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#code-review"><span class="xref myst">Code Review</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#release-process"><span class="xref myst">Release Process</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#ci-cd"><span class="xref myst">CI/CD</span></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing/index.html#project-structure">Project Structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#architecture"><span class="xref myst">Architecture</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#code-organization"><span class="xref myst">Code Organization</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#plugin-system"><span class="xref myst">Plugin System</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#testing-strategy"><span class="xref myst">Testing Strategy</span></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing/index.html#areas-to-contribute">Areas to Contribute</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#core-features"><span class="xref myst">Core Features</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#plugins"><span class="xref myst">Plugins</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#id1"><span class="xref myst">Documentation</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#id2"><span class="xref myst">Testing</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#performance"><span class="xref myst">Performance</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#security"><span class="xref myst">Security</span></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing/index.html#communication">Communication</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#discussions"><span class="xref myst">Discussions</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#issues"><span class="xref myst">Issues</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#community"><span class="xref myst">Community</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#code-of-conduct"><span class="xref myst">Code of Conduct</span></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing/index.html#resources">Resources</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#api-reference"><span class="xref myst">API Reference</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#plugin-development"><span class="xref myst">Plugin Development</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#testing-guide"><span class="xref myst">Testing Guide</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#performance-guide"><span class="xref myst">Performance Guide</span></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing/index.html#getting-help">Getting Help</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#faq"><span class="xref myst">FAQ</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#troubleshooting"><span class="xref myst">Troubleshooting</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing/index.html#contact"><span class="xref myst">Contact</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="release-notes.html">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="release-notes.html#current-version">Current Version</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#whats-new-in-3-0-0">What’s New in 3.0.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#breaking-changes">Breaking Changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#migration-guide">Migration Guide</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="release-notes.html#previous-versions">Previous Versions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#fapilog-2-x-series">fapilog 2.x Series</a></li>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#fapilog-1-x-series">fapilog 1.x Series</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="release-notes.html#upgrade-guides">Upgrade Guides</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#upgrading-to-3-0-0">Upgrading to 3.0.0</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="release-notes.html#update-dependencies">1. Update Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="release-notes.html#update-import-statements">2. Update Import Statements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="release-notes.html#update-configuration">3. Update Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="release-notes.html#update-plugin-code">4. Update Plugin Code</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#upgrading-from-1-x-to-2-x">Upgrading from 1.x to 2.x</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="release-notes.html#id1">1. Update Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="release-notes.html#check-breaking-changes">2. Check Breaking Changes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="release-notes.html#id2">3. Update Configuration</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="release-notes.html#compatibility">Compatibility</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#python-versions">Python Versions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#framework-compatibility">Framework Compatibility</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="release-notes.html#deprecation-policy">Deprecation Policy</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#deprecation-timeline">Deprecation Timeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#currently-deprecated">Currently Deprecated</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="release-notes.html#roadmap">Roadmap</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#upcoming-releases">Upcoming Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="release-notes.html#fapilog-3-0-0-q1-2024">fapilog 3.0.0 (Q1 2024)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="release-notes.html#fapilog-3-1-0-q2-2024">fapilog 3.1.0 (Q2 2024)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="release-notes.html#fapilog-3-2-0-q3-2024">fapilog 3.2.0 (Q3 2024)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#long-term-vision">Long-term Vision</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="release-notes.html#support">Support</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#version-support">Version Support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="release-notes.html#getting-help">Getting Help</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="appendices.html">Appendices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="appendices.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="appendices.html#quick-reference">Quick Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#common-terms">Common Terms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#architecture-components">Architecture Components</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="appendices.html#glossary">Glossary</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#a">A</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#b">B</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#c">C</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#d">D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#e">E</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#f">F</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#g">G</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#h">H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#i">I</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#j">J</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#l">L</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#m">M</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#n">N</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#o">O</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#p">P</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#q">Q</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#r">R</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#s">S</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#t">T</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#u">U</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#v">V</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#w">W</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#z">Z</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="appendices.html#architecture-diagrams">Architecture Diagrams</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#high-level-architecture">High-Level Architecture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#pipeline-flow">Pipeline Flow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#component-relationships">Component Relationships</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="appendices.html#license-credits">License &amp; Credits</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#license">License</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#credits">Credits</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="appendices.html#core-team">Core Team</a></li>
+<li class="toctree-l4"><a class="reference internal" href="appendices.html#open-source-dependencies">Open Source Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="appendices.html#inspiration">Inspiration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#contributing">Contributing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="appendices.html#acknowledgments">Acknowledgments</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">fapilog</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Fapilog v3 Product Requirements Document (PRD)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/prd.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="fapilog-v3-product-requirements-document-prd">
+<h1>Fapilog v3 Product Requirements Document (PRD)<a class="headerlink" href="#fapilog-v3-product-requirements-document-prd" title="Link to this heading"></a></h1>
+<section id="goals-and-background-context">
+<h2>Goals and Background Context<a class="headerlink" href="#goals-and-background-context" title="Link to this heading"></a></h2>
+<section id="goals">
+<h3>Goals<a class="headerlink" href="#goals" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Immediate Developer Productivity</strong>: Create a logging library that works perfectly out of the box with zero configuration - <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">fapilog</span></code> → productive immediately</p></li>
+<li><p><strong>Progressive Enhancement Philosophy</strong>: Built-in core features provide complete logging solution, plugins enable enterprise superpowers</p></li>
+<li><p><strong>Revolutionary Async Performance</strong>: Achieve 500K-2M events/second throughput with zero-copy operations and parallel processing</p></li>
+<li><p><strong>Plugin Ecosystem Power</strong>: Enterprise compliance, advanced sinks, and specialized processing available through simple plugin installation</p></li>
+<li><p><strong>Universal Adoption</strong>: Serve individual developers (zero config), startups (basic config), enterprises (plugin ecosystem) with the same core library</p></li>
+<li><p><strong>Native FastAPI Support</strong>: Provide seamless integration with FastAPI for request-aware logging, middleware injection, lifecycle management, and observability</p></li>
+<li><p><strong>Developer-First Design</strong>: Prioritize simplicity and immediate value, with enterprise complexity hidden behind optional plugins</p></li>
+<li><p><strong>Production Excellence</strong>: Built-in features are production-ready; plugins add enterprise capabilities without core complexity</p></li>
+</ul>
+</section>
+<section id="background-context">
+<h3>Background Context<a class="headerlink" href="#background-context" title="Link to this heading"></a></h3>
+<p>Fapilog v2 demonstrated architectural excellence, but v3 represents a fundamental shift in philosophy: <strong>developer-first simplicity with plugin-based enterprise power</strong>. Instead of a complex enterprise-first approach, v3 provides immediate value with built-in features while enabling unlimited extensibility through plugins.</p>
+<p><strong>Core Philosophy</strong>:</p>
+<ul class="simple">
+<li><p><strong>Built-in Features</strong>: Complete logging solution (stdout, file, JSON, filtering, correlation) - works immediately after installation</p></li>
+<li><p><strong>Plugin Ecosystem</strong>: Enterprise features (Splunk, compliance, PII redaction, alerting) available as optional plugins</p></li>
+<li><p><strong>FastAPI Integration</strong>: Seamless integration with popular async web frameworks such as FastAPI for request-aware logging</p></li>
+<li><p><strong>Zero Configuration</strong>: Default settings provide production-ready logging without any setup</p></li>
+<li><p><strong>Progressive Enhancement</strong>: Start simple, add power as needed through plugin installation</p></li>
+</ul>
+<p>This approach ensures fapilog competes with simple libraries for ease of use while providing enterprise capabilities that exceed complex enterprise solutions.</p>
+</section>
+<section id="built-in-vs-plugin-feature-strategy">
+<h3>Built-in vs Plugin Feature Strategy<a class="headerlink" href="#built-in-vs-plugin-feature-strategy" title="Link to this heading"></a></h3>
+<p><strong>Core Library (Built-in) - Works immediately after <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">fapilog</span></code>:</strong></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Category</p></th>
+<th class="head"><p>Built-in Features</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Sinks</strong></p></td>
+<td><p>stdout, stderr, file, null</p></td>
+<td><p>Essential output destinations</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Processors</strong></p></td>
+<td><p>filter, throttle, format, dedupe</p></td>
+<td><p>Core processing capabilities</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Enrichers</strong></p></td>
+<td><p>timestamp, correlation, context, hostname</p></td>
+<td><p>Essential context enrichment</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Formatters</strong></p></td>
+<td><p>simple, json, logfmt, minimal</p></td>
+<td><p>Standard output formats</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Performance</strong></p></td>
+<td><p>Async pipeline, batching, zero-copy</p></td>
+<td><p>Revolutionary throughput</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Configuration</strong></p></td>
+<td><p>Zero-config defaults, environment variables</p></td>
+<td><p>Immediate productivity</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Integrations</strong></p></td>
+<td><p>FastAPI middleware, lifecycle, DI</p></td>
+<td><p>Framework compatibility</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Important</strong>: The core library is a <strong>pure Python logging library with no REST API or HTTP endpoints</strong>. Web-based features (plugin marketplace discovery) leverage existing GitHub Pages infrastructure rather than requiring API servers.</p>
+<p><strong>Plugin Ecosystem (Optional) - Enhanced capabilities via plugin installation:</strong></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Category</p></th>
+<th class="head"><p>Plugin Examples</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Enterprise Sinks</strong></p></td>
+<td><p>splunk, elasticsearch, datadog, loki, kafka</p></td>
+<td><p>Advanced output destinations</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Enterprise Processing</strong></p></td>
+<td><p>pii-redaction, encryption, compression, alerting</p></td>
+<td><p>Advanced processing</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Enterprise Enrichment</strong></p></td>
+<td><p>user-context, geo-location, performance-metrics</p></td>
+<td><p>Advanced context</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Enterprise Compliance</strong></p></td>
+<td><p>pci-dss, hipaa, sox, gdpr, audit-trails</p></td>
+<td><p>Regulatory requirements</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Enterprise Integration</strong></p></td>
+<td><p>siem, apm, observability platforms</p></td>
+<td><p>Platform integration</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Enterprise Features</strong></p></td>
+<td><p>advanced-compression, sharding, caching</p></td>
+<td><p>Performance optimization</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Integrations</strong></p></td>
+<td><p>request-logger, otel-formatter, tracing</p></td>
+<td><p>HTTP access logs, OTEL, tracing</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Progressive Enhancement Examples:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Level 1: Zero configuration - works immediately</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">AsyncLogger</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Hello World!&quot;</span><span class="p">)</span>
+
+<span class="c1"># Level 2: Basic customization - still built-in features</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">AsyncLogger</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">UniversalSettings</span><span class="p">(</span>
+    <span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">],</span> <span class="n">formatter</span><span class="o">=</span><span class="s2">&quot;json&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;DEBUG&quot;</span>
+<span class="p">))</span>
+
+<span class="c1"># Level 3: Enterprise power - plugin ecosystem</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">AsyncLogger</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">UniversalSettings</span><span class="p">(</span>
+    <span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">,</span> <span class="s2">&quot;splunk-sink&quot;</span><span class="p">,</span> <span class="s2">&quot;datadog-sink&quot;</span><span class="p">],</span>
+    <span class="n">processors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;pii-redaction&quot;</span><span class="p">,</span> <span class="s2">&quot;encryption&quot;</span><span class="p">,</span> <span class="s2">&quot;filter&quot;</span><span class="p">],</span>
+    <span class="n">compliance_standards</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;pci-dss&quot;</span><span class="p">,</span> <span class="s2">&quot;hipaa&quot;</span><span class="p">]</span>
+<span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="built-in-security-model">
+<h3>Built-in Security Model<a class="headerlink" href="#built-in-security-model" title="Link to this heading"></a></h3>
+<p><strong>Core Library Security (Built-in) - Production-ready security without plugins:</strong></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Security Layer</p></th>
+<th class="head"><p>Built-in Protection</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Input Validation</strong></p></td>
+<td><p>Pydantic LogEvent validation, type safety</p></td>
+<td><p>Prevent malicious data injection</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>File Security</strong></p></td>
+<td><p>Safe path handling, permission validation</p></td>
+<td><p>Secure file sink operations</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Memory Safety</strong></p></td>
+<td><p>Zero-copy operations, bounded queues</p></td>
+<td><p>Prevent memory exhaustion attacks</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Error Isolation</strong></p></td>
+<td><p>Exception containment, graceful degradation</p></td>
+<td><p>Prevent cascade failures</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Configuration Security</strong></p></td>
+<td><p>Environment variable validation, secure defaults</p></td>
+<td><p>Secure configuration handling</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Async Safety</strong></p></td>
+<td><p>Proper async context isolation, thread safety</p></td>
+<td><p>Prevent race conditions</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Security Assumptions for Built-in Features:</strong></p>
+<ul class="simple">
+<li><p><strong>No PII by Default</strong>: Built-in processors do not automatically redact PII (use <code class="docutils literal notranslate"><span class="pre">pii-redaction</span></code> plugin for sensitive data)</p></li>
+<li><p><strong>Local File Access</strong>: File sink assumes secure local filesystem permissions</p></li>
+<li><p><strong>No Encryption</strong>: Built-in features store logs in plaintext (use <code class="docutils literal notranslate"><span class="pre">encryption</span></code> plugin for sensitive environments)</p></li>
+<li><p><strong>Basic Validation</strong>: LogEvent validation prevents injection but does not classify data sensitivity</p></li>
+<li><p><strong>No Audit Trails</strong>: Built-in features do not maintain compliance audit logs (use compliance plugins)</p></li>
+</ul>
+<p><strong>Plugin Security Enhancement:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Built-in security - basic validation and safe operations</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">AsyncLogger</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>  <span class="c1"># Safe defaults, no PII handling</span>
+
+<span class="c1"># Plugin security - enterprise data protection</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">AsyncLogger</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">UniversalSettings</span><span class="p">(</span>
+    <span class="n">processors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;pii-redaction&quot;</span><span class="p">,</span> <span class="s2">&quot;encryption&quot;</span><span class="p">,</span> <span class="s2">&quot;audit-trail&quot;</span><span class="p">],</span>
+    <span class="n">compliance_standards</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;hipaa&quot;</span><span class="p">,</span> <span class="s2">&quot;pci-dss&quot;</span><span class="p">],</span>
+    <span class="n">security_validation</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="change-log">
+<h3>Change Log<a class="headerlink" href="#change-log" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Date</p></th>
+<th class="head"><p>Version</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Author</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>2024-01-XX</p></td>
+<td><p>1.0</p></td>
+<td><p>Initial PRD creation based on v2 excellence preservation and v3 migration plan</p></td>
+<td><p>PM Agent</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading"></a></h2>
+<section id="functional">
+<h3>Functional<a class="headerlink" href="#functional" title="Link to this heading"></a></h3>
+<p><strong>FR1:</strong> Create AsyncSmartCache with race-condition-free caching in pure async-first context
+<strong>FR2:</strong> Build comprehensive metrics collection system with async-first patterns and zero-copy operations
+<strong>FR3:</strong> Implement processor performance monitoring with async-first design and real-time health monitoring
+<strong>FR4:</strong> Create background cleanup management with enhanced async patterns and zero-copy operations
+<strong>FR5:</strong> Build async lock management with centralized async lock management and zero-copy operations
+<strong>FR6:</strong> Implement batch management system with revolutionary async batch management and zero-copy operations
+<strong>FR7:</strong> Create comprehensive error handling hierarchy with enhanced async patterns and zero-copy error operations
+<strong>FR8:</strong> Build component factory pattern with revolutionary async component factory and zero-copy operations
+<strong>FR9:</strong> Create container isolation excellence with perfect isolation and zero global state in async context
+<strong>FR10</strong> Distribution and packaging policy
+<strong>FR11:</strong> Implement built-in core features (stdout, file, JSON, filtering, correlation) for immediate productivity
+<strong>FR12:</strong> Create universal plugin ecosystem with developer-friendly and enterprise-ready plugins<br />
+<strong>FR13:</strong> Create plugin marketplace infrastructure for community-driven ecosystem growth
+<strong>FR14:</strong> Implement enterprise compliance plugins with PCI-DSS, HIPAA, SOX compliance support (optional)
+<strong>FR15:</strong> Create enterprise observability plugins with canonical log formats and correlation (optional)
+<strong>FR16:</strong> Implement enterprise platform integration plugins with SIEM, Splunk, ELK support (optional)
+<strong>FR17:</strong> Establish future alerting plugins foundation with event categories and severity levels (optional)
+<strong>FR18:</strong> Achieve 500K-2M events/second throughput with parallel processing and zero-copy operations
+<strong>FR19:</strong> Implement async-first pipeline with parallel enrichment, processing, and sink delivery
+<strong>FR20:</strong> Create comprehensive async testing framework with plugin testing utilities
+<strong>FR21:</strong> Implement async configuration with plugin configuration validation and marketplace integration
+<strong>FR22:</strong> Implement built-in security model with input validation, safe file operations, and memory safety (no PII/encryption - plugins only)
+<strong>FR23:</strong> Implement FastAPI middleware for logger injection and correlation ID propagation
+<strong>FR24:</strong> Create request/response logger plugin compatible with FastAPI
+<strong>FR25:</strong> Provide FastAPI-compatible logger lifecycle hooks
+<strong>FR26:</strong> Create optional exception handler integration for FastAPI
+<strong>FR27:</strong> Add Depends-based logger DI for FastAPI endpoints
+<strong>FR28:</strong> Provide test fixture for verifying FastAPI log behavior
+<strong>FR20:</strong> Establish community contribution framework with plugin development guidelines and CI/CD pipeline</p>
+</section>
+<section id="non-functional">
+<h3>Non Functional<a class="headerlink" href="#non-functional" title="Link to this heading"></a></h3>
+<p><strong>NFR1:</strong> Performance targets: 500K-2M events/second throughput with zero-copy operations
+<strong>NFR2:</strong> Latency requirements: &lt;1ms per event with parallel processing
+<strong>NFR3:</strong> Memory efficiency: 80% memory reduction with zero-copy operations
+<strong>NFR4:</strong> Type safety: 100% async type coverage with comprehensive async typing
+<strong>NFR5:</strong> Testing coverage: 90%+ test coverage with async testing framework
+<strong>NFR6:</strong> Documentation quality: Comprehensive async examples and enterprise deployment guides
+<strong>NFR7:</strong> Plugin ecosystem: 100+ community plugins by v3.1 with mix of developer and enterprise
+<strong>NFR8:</strong> Community adoption: 1000+ individual developers, 50+ contributors by v3.1
+<strong>NFR9:</strong> Enterprise compliance: PCI-DSS, HIPAA, SOX compliance validation passing
+<strong>NFR10:</strong> Enterprise platform integration: SIEM, Splunk, ELK integration working
+<strong>NFR11:</strong> Container isolation: Perfect isolation with zero global state and async patterns
+<strong>NFR12:</strong> Plugin performance: Plugin performance within 10% of core performance
+<strong>NFR13:</strong> Enterprise compliance performance: Enterprise compliance performance within 20% of core performance
+<strong>NFR14:</strong> Linear scalability: Async tasks vs. diminishing returns with threads
+<strong>NFR15:</strong> Zero-copy operations: Memory views and efficient serialization throughout pipeline
+<strong>NFR16:</strong> FastAPI integration must not introduce blocking calls or global state
+<strong>NFR17:</strong> FastAPI logger middleware must initialize within 1ms per request
+<strong>NFR18:</strong> Middleware must propagate correlation_id across all async operations</p>
+</section>
+</section>
+<section id="user-interface-design-goals">
+<h2>User Interface Design Goals<a class="headerlink" href="#user-interface-design-goals" title="Link to this heading"></a></h2>
+<section id="overall-ux-vision">
+<h3>Overall UX Vision<a class="headerlink" href="#overall-ux-vision" title="Link to this heading"></a></h3>
+<p>The fapilog v3 library will provide <strong>immediate productivity with zero configuration</strong> while enabling <strong>unlimited enterprise power through plugins</strong>. The core experience should feel effortless for individual developers (<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">fapilog</span></code> → productive immediately), while the plugin ecosystem provides enterprise capabilities that exceed complex enterprise solutions.</p>
+<p><strong>UX Philosophy</strong>:</p>
+<ul class="simple">
+<li><p><strong>Zero friction onboarding</strong> - Works perfectly out of the box with no setup</p></li>
+<li><p><strong>Progressive enhancement</strong> - Built-in features handle most use cases, plugins add enterprise power</p></li>
+<li><p><strong>Async-first throughout</strong> - All operations use modern async/await patterns for optimal performance</p></li>
+<li><p><strong>Type-safe development</strong> - Comprehensive type annotations for excellent IDE support</p></li>
+</ul>
+</section>
+<section id="key-interaction-paradigms">
+<h3>Key Interaction Paradigms<a class="headerlink" href="#key-interaction-paradigms" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Async-first patterns</strong>: All operations use async/await for optimal performance</p></li>
+<li><p><strong>Context managers</strong>: Automatic resource management with async context managers</p></li>
+<li><p><strong>Plugin ecosystem</strong>: Simple plugin interface for custom sinks, processors, and enrichers</p></li>
+<li><p><strong>Configuration-driven</strong>: YAML/JSON configuration with environment variable support</p></li>
+<li><p><strong>Type-safe</strong>: Comprehensive type annotations for better IDE support</p></li>
+</ul>
+</section>
+<section id="core-screens-and-views">
+<h3>Core Screens and Views<a class="headerlink" href="#core-screens-and-views" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Basic logging interface</strong>: Zero-configuration async logger - works immediately after installation</p></li>
+<li><p><strong>Built-in feature configuration</strong>: Simple YAML/JSON configuration for built-in sinks, processors, enrichers</p></li>
+<li><p><strong>Plugin marketplace</strong>: GitHub Pages-based discovery for community and enterprise plugins</p></li>
+<li><p><strong>Progressive enhancement examples</strong>: Clear documentation showing built-in → plugin progression</p></li>
+<li><p><strong>Plugin development interface</strong>: Simple tools and templates for creating custom plugins</p></li>
+<li><p><strong>Enterprise compliance plugins</strong>: Optional plugin-based compliance validation and audit trails (not core library)</p></li>
+</ul>
+</section>
+<section id="accessibility-wcag-aa">
+<h3>Accessibility: WCAG AA<a class="headerlink" href="#accessibility-wcag-aa" title="Link to this heading"></a></h3>
+<p>The library will support WCAG AA accessibility standards for any web-based interfaces (plugin marketplace, documentation, etc.).</p>
+</section>
+<section id="branding">
+<h3>Branding<a class="headerlink" href="#branding" title="Link to this heading"></a></h3>
+<p>The library will maintain the existing fapilog branding while emphasizing the async-first, performance-focused, and enterprise-ready nature of v3.</p>
+</section>
+<section id="target-device-and-platforms-cross-platform">
+<h3>Target Device and Platforms: Cross-Platform<a class="headerlink" href="#target-device-and-platforms-cross-platform" title="Link to this heading"></a></h3>
+<p>The library will support all Python platforms including web applications, desktop applications, mobile applications, and server-side deployments.</p>
+</section>
+</section>
+<section id="technical-assumptions">
+<h2>Technical Assumptions<a class="headerlink" href="#technical-assumptions" title="Link to this heading"></a></h2>
+<section id="repository-structure-monorepo">
+<h3>Repository Structure: Monorepo<a class="headerlink" href="#repository-structure-monorepo" title="Link to this heading"></a></h3>
+<p>The project will use a monorepo structure to maintain all related components (core library, plugins, documentation, tools) in a single repository for easier development and versioning.</p>
+</section>
+<section id="service-architecture-monolith">
+<h3>Service Architecture: Monolith<a class="headerlink" href="#service-architecture-monolith" title="Link to this heading"></a></h3>
+<p>The core library will be a monolithic architecture with clear separation of concerns through the plugin system. This provides the best balance of simplicity, performance, and maintainability.</p>
+</section>
+<section id="testing-requirements-full-testing-pyramid">
+<h3>Testing Requirements: Full Testing Pyramid<a class="headerlink" href="#testing-requirements-full-testing-pyramid" title="Link to this heading"></a></h3>
+<p>The project will implement a comprehensive testing pyramid including unit tests, integration tests, performance tests, and enterprise compliance tests. All tests will be async-first to match the library architecture.</p>
+</section>
+<section id="additional-technical-assumptions-and-requests">
+<h3>Additional Technical Assumptions and Requests<a class="headerlink" href="#additional-technical-assumptions-and-requests" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Async-first throughout</strong>: All components must be designed for async operation from the ground up</p></li>
+<li><p><strong>Zero-copy operations</strong>: Memory efficiency through zero-copy serialization and processing</p></li>
+<li><p><strong>Plugin architecture</strong>: Extensible plugin system for sinks, processors, enrichers, and future alerting</p></li>
+<li><p><strong>Enterprise compliance</strong>: Built-in support for PCI-DSS, HIPAA, SOX compliance</p></li>
+<li><p><strong>Performance optimization</strong>: Parallel processing, connection pooling, and adaptive systems</p></li>
+<li><p><strong>Container isolation</strong>: Perfect isolation between logging instances with zero global state</p></li>
+<li><p><strong>Type safety</strong>: Comprehensive async type annotations throughout the codebase</p></li>
+<li><p><strong>Documentation excellence</strong>: Comprehensive async examples and enterprise deployment guides</p></li>
+</ul>
+</section>
+</section>
+<section id="epic-list">
+<h2>Epic List<a class="headerlink" href="#epic-list" title="Link to this heading"></a></h2>
+<p><strong>Epic 1: Foundation &amp; Core Architecture</strong> - Create async-first base architecture recreating v2 excellence patterns
+<strong>Epic 2: Performance Revolution</strong> - Implement zero-copy operations and parallel processing for revolutionary throughput
+<strong>Epic 3: Plugin Ecosystem Foundation</strong> - Create universal plugin architecture and marketplace infrastructure
+<strong>Epic 4: Enterprise Compliance &amp; Observability</strong> - Implement enterprise compliance and observability standards
+<strong>Epic 5: Developer Experience &amp; Documentation</strong> - Create comprehensive async documentation and developer experience
+<strong>Epic 6: Testing &amp; Quality Assurance</strong> - Build comprehensive async testing framework with enterprise compliance testing
+<strong>Epic 7: Community &amp; Ecosystem Growth</strong> - Establish community contribution framework and plugin marketplace
+<strong>Epic 8: Production Excellence</strong> - Implement production-ready features with monitoring and deployment tools
+<strong>Epic 9: FastAPI Integration Layer</strong> - Provide native FastAPI integration tools for enhanced developer productivity and observability</p>
+</section>
+<section id="epic-1-foundation-core-architecture">
+<h2>Epic 1: Foundation &amp; Core Architecture<a class="headerlink" href="#epic-1-foundation-core-architecture" title="Link to this heading"></a></h2>
+<p><strong>Epic Goal</strong>: Create async-first base architecture that recreates and enhances the 9 critical architectural patterns from v2 excellence while achieving revolutionary performance improvements through pure async patterns and zero-copy operations.</p>
+<p><strong>Integration Requirements</strong>: All components must be async-first with perfect container isolation, zero global state, and comprehensive type safety.</p>
+<section id="story-1-1-async-container-architecture">
+<h3>Story 1.1: Async Container Architecture<a class="headerlink" href="#story-1-1-async-container-architecture" title="Link to this heading"></a></h3>
+<p>As a developer,
+I want an async-first container with perfect isolation and zero global state,
+so that I can create multiple isolated logging instances without any shared state or race conditions.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Container provides perfect isolation between instances with zero global variables</p></li>
+<li><p>Async lifecycle management with proper initialization and cleanup</p></li>
+<li><p>Component dependency injection through async factory methods</p></li>
+<li><p>Thread-safe component management with async locks</p></li>
+<li><p>Memory efficient without global registry or shared state</p></li>
+<li><p>Context manager support for scoped access and automatic cleanup</p></li>
+<li><p>Factory methods for clean instantiation with async configuration</p></li>
+<li><p>Explicit dependency passing (pure DI) for testability and safety</p></li>
+</ol>
+</section>
+<section id="story-1-2-async-component-registry">
+<h3>Story 1.2: Async Component Registry<a class="headerlink" href="#story-1-2-async-component-registry" title="Link to this heading"></a></h3>
+<p>As a developer,
+I want an async component registry that manages plugin discovery and loading,
+so that I can dynamically load and manage plugins with proper lifecycle isolation.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Async component registry with plugin discovery and loading</p></li>
+<li><p>Thread-safe component management with lifecycle isolation</p></li>
+<li><p>Plugin versioning and compatibility validation</p></li>
+<li><p>Component lifecycle management with async initialization and cleanup</p></li>
+<li><p>Type-safe component creation with dependency injection</p></li>
+<li><p>Plugin discovery from marketplace and local plugins</p></li>
+<li><p>Component isolation between different container instances</p></li>
+<li><p>Memory leak prevention with proper cleanup mechanisms</p></li>
+</ol>
+</section>
+<section id="story-1-3-async-error-handling-hierarchy">
+<h3>Story 1.3: Async Error Handling Hierarchy<a class="headerlink" href="#story-1-3-async-error-handling-hierarchy" title="Link to this heading"></a></h3>
+<p>As a developer,
+I want comprehensive async error handling with circuit breakers and context preservation,
+so that errors are handled gracefully with proper recovery mechanisms and audit trails.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Standardized error types with context preservation in async context</p></li>
+<li><p>Graceful degradation with fallback mechanisms for async operations</p></li>
+<li><p>Retry with exponential backoff for transient failures in async operations</p></li>
+<li><p>Safe execution wrappers for error isolation with async patterns</p></li>
+<li><p>Comprehensive error categorization for different failure types</p></li>
+<li><p>Circuit breaker patterns for preventing cascading failures</p></li>
+<li><p>Plugin error isolation to prevent plugin failures from affecting core system</p></li>
+<li><p>Enterprise compliance error handling with audit trails</p></li>
+</ol>
+</section>
+<section id="story-1-4-async-configuration-and-validation">
+<h3>Story 1.4: Async Configuration and Validation<a class="headerlink" href="#story-1-4-async-configuration-and-validation" title="Link to this heading"></a></h3>
+<p>As a developer,
+I want async configuration loading with comprehensive validation and plugin marketplace integration,
+so that I can configure the library with confidence and easily integrate plugins.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Async configuration loading with environment variable support</p></li>
+<li><p>Pydantic validation excellence with async field validation patterns</p></li>
+<li><p>Plugin configuration validation recreating quality gates</p></li>
+<li><p>Plugin marketplace configuration recreating ecosystem growth</p></li>
+<li><p>Enterprise compliance validation when compliance features are enabled</p></li>
+<li><p>Data handling configuration validation for sensitive data controls</p></li>
+<li><p>Observability configuration validation for enterprise standards</p></li>
+<li><p>Security configuration validation for encryption and access control</p></li>
+</ol>
+</section>
+</section>
+<section id="epic-2-performance-revolution">
+<h2>Epic 2: Performance Revolution<a class="headerlink" href="#epic-2-performance-revolution" title="Link to this heading"></a></h2>
+<p><strong>Epic Goal</strong>: Achieve revolutionary performance improvements through zero-copy operations, parallel processing, and async-first optimizations while maintaining architectural excellence and perfect container isolation.</p>
+<p><strong>Integration Requirements</strong>: All performance optimizations must recreate the excellent v2 patterns while achieving revolutionary throughput improvement and latency reduction.</p>
+<section id="story-2-1-zero-copy-operations">
+<h3>Story 2.1: Zero-Copy Operations<a class="headerlink" href="#story-2-1-zero-copy-operations" title="Link to this heading"></a></h3>
+<p>As a developer,
+I want zero-copy serialization and processing throughout the pipeline,
+so that I can achieve maximum memory efficiency and performance without data copying overhead.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Zero-copy serialization recreating event structure and metadata</p></li>
+<li><p>Memory-mapped persistence recreating sink patterns for file operations</p></li>
+<li><p>Plugin zero-copy operations recreating plugin performance within 10% of core</p></li>
+<li><p>Plugin performance benchmarks recreating quality standards</p></li>
+<li><p>Memory views for efficient data access without copying</p></li>
+<li><p>Efficient serialization formats (JSON, Protobuf, custom) with zero-copy</p></li>
+<li><p>Batch processing with zero-copy operations for maximum throughput</p></li>
+<li><p>Memory usage monitoring and optimization throughout pipeline</p></li>
+</ol>
+</section>
+<section id="story-2-2-parallel-processing-pipeline">
+<h3>Story 2.2: Parallel Processing Pipeline<a class="headerlink" href="#story-2-2-parallel-processing-pipeline" title="Link to this heading"></a></h3>
+<p>As a developer,
+I want parallel processing throughout the async pipeline with controlled concurrency,
+so that I can achieve 500K-2M events/second throughput with optimal resource utilization.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Parallel enrichment with async gather for multiple enrichers</p></li>
+<li><p>Parallel processing with async gather for multiple processors</p></li>
+<li><p>Zero-copy serialization and async sink delivery</p></li>
+<li><p>Controlled concurrency to prevent resource exhaustion</p></li>
+<li><p>Adaptive batch sizing recreating batching excellence</p></li>
+<li><p>Adaptive backpressure recreating error handling patterns</p></li>
+<li><p>Plugin parallel processing recreating plugin performance</p></li>
+<li><p>Performance monitoring with real-time metrics collection</p></li>
+</ol>
+</section>
+<section id="story-2-3-async-resource-management">
+<h3>Story 2.3: Async Resource Management<a class="headerlink" href="#story-2-3-async-resource-management" title="Link to this heading"></a></h3>
+<p>As a developer,
+I want async connection pooling and resource cleanup,
+so that I can achieve optimal performance for HTTP sinks and other external services.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Async connection pooling recreating HTTP sink patterns</p></li>
+<li><p>Async resource cleanup recreating lifecycle management</p></li>
+<li><p>Plugin resource management recreating plugin lifecycle</p></li>
+<li><p>Plugin resource monitoring recreating observability</p></li>
+<li><p>Connection pooling for database sinks and external APIs</p></li>
+<li><p>Automatic resource cleanup with async context managers</p></li>
+<li><p>Resource monitoring and alerting for resource exhaustion</p></li>
+<li><p>Graceful degradation when resources are limited</p></li>
+</ol>
+</section>
+<section id="story-2-4-high-performance-features">
+<h3>Story 2.4: High-Performance Features<a class="headerlink" href="#story-2-4-high-performance-features" title="Link to this heading"></a></h3>
+<p>As a developer,
+I want lock-free data structures and async work stealing,
+so that I can achieve maximum concurrency and performance without blocking operations.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Lock-free data structures recreating thread safety</p></li>
+<li><p>Async work stealing recreating concurrency patterns</p></li>
+<li><p>Plugin high-performance features recreating plugin excellence</p></li>
+<li><p>Plugin performance optimization recreating marketplace quality</p></li>
+<li><p>Non-blocking queue operations with async patterns</p></li>
+<li><p>Efficient memory allocation and deallocation</p></li>
+<li><p>CPU cache-friendly data structures and algorithms</p></li>
+<li><p>Performance profiling and optimization tools</p></li>
+</ol>
+</section>
+</section>
+<section id="epic-3-plugin-ecosystem-foundation">
+<h2>Epic 3: Plugin Ecosystem Foundation<a class="headerlink" href="#epic-3-plugin-ecosystem-foundation" title="Link to this heading"></a></h2>
+<p><strong>Epic Goal</strong>: Create a universal plugin ecosystem that enables community-driven growth while maintaining architectural excellence and providing both developer-friendly and enterprise-ready plugins.</p>
+<p><strong>Integration Requirements</strong>: Plugin architecture must recreate all v2 extensibility patterns while adding ecosystem support and marketplace integration.</p>
+<section id="story-3-1-universal-plugin-architecture">
+<h3>Story 3.1: Universal Plugin Architecture<a class="headerlink" href="#story-3-1-universal-plugin-architecture" title="Link to this heading"></a></h3>
+<p>As a developer,
+I want a simple plugin interface for creating custom sinks, processors, and enrichers,
+so that I can extend the library’s functionality with my own custom logic.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Async plugin interfaces for sinks, processors, enrichers, and future alerting</p></li>
+<li><p>Simple plugin development with clear documentation and examples</p></li>
+<li><p>Plugin discovery and loading system with version compatibility</p></li>
+<li><p>Plugin validation and quality gates for marketplace inclusion</p></li>
+<li><p>Plugin testing framework recreating test excellence</p></li>
+<li><p>Plugin documentation standards recreating clarity</p></li>
+<li><p>Plugin CI/CD pipeline recreating quality gates</p></li>
+<li><p>Plugin marketplace infrastructure for ecosystem growth</p></li>
+</ol>
+</section>
+<section id="story-3-2-plugin-marketplace-infrastructure">
+<h3>Story 3.2: Plugin Marketplace Infrastructure<a class="headerlink" href="#story-3-2-plugin-marketplace-infrastructure" title="Link to this heading"></a></h3>
+<p>As a developer,
+I want a plugin marketplace for discovering and installing plugins,
+so that I can easily find and use community-developed plugins for common use cases.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Plugin marketplace with search and discovery capabilities</p></li>
+<li><p>Plugin installation and update mechanisms</p></li>
+<li><p>Plugin ratings and reviews for quality assurance</p></li>
+<li><p>Performance benchmarks for plugin comparison</p></li>
+<li><p>Enterprise support for commercial plugins</p></li>
+<li><p>Plugin monetization for community developers</p></li>
+<li><p>Compliance validation for enterprise plugins</p></li>
+<li><p>Security scanning for all plugins</p></li>
+</ol>
+</section>
+<section id="story-3-3-developer-plugin-experience">
+<h3>Story 3.3: Developer Plugin Experience<a class="headerlink" href="#story-3-3-developer-plugin-experience" title="Link to this heading"></a></h3>
+<p>As a developer,
+I want excellent tools and documentation for creating custom plugins,
+so that I can contribute to the ecosystem and share my solutions with the community.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Plugin development guidelines recreating code quality</p></li>
+<li><p>Plugin scaffolding tools for rapid development</p></li>
+<li><p>Plugin testing utilities recreating test coverage</p></li>
+<li><p>Plugin documentation generation recreating clarity</p></li>
+<li><p>Plugin examples and tutorials for common use cases</p></li>
+<li><p>Plugin development environment with hot reloading</p></li>
+<li><p>Plugin debugging tools and error reporting</p></li>
+<li><p>Plugin performance profiling and optimization tools</p></li>
+</ol>
+</section>
+<section id="story-3-4-enterprise-plugin-ecosystem">
+<h3>Story 3.4: Enterprise Plugin Ecosystem<a class="headerlink" href="#story-3-4-enterprise-plugin-ecosystem" title="Link to this heading"></a></h3>
+<p>As an enterprise developer,
+I want enterprise-ready plugins for compliance and platform integration,
+so that I can meet regulatory requirements and integrate with enterprise observability platforms.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Enterprise compliance plugins (PCI-DSS, HIPAA, SOX)</p></li>
+<li><p>Enterprise platform integration plugins (SIEM, Splunk, ELK)</p></li>
+<li><p>Enterprise plugin validation for compliance and security</p></li>
+<li><p>Enterprise plugin testing framework recreating test excellence</p></li>
+<li><p>Enterprise plugin documentation recreating clarity</p></li>
+<li><p>Enterprise plugin support and consulting services</p></li>
+<li><p>Enterprise plugin marketplace with compliance validation</p></li>
+<li><p>Enterprise plugin performance benchmarks and guarantees</p></li>
+</ol>
+</section>
+</section>
+<section id="epic-4-enterprise-compliance-observability">
+<h2>Epic 4: Enterprise Compliance &amp; Observability<a class="headerlink" href="#epic-4-enterprise-compliance-observability" title="Link to this heading"></a></h2>
+<p><strong>Epic Goal</strong>: Implement comprehensive enterprise compliance and observability standards that enable enterprise adoption while maintaining the library’s performance and developer experience excellence.</p>
+<p><strong>Integration Requirements</strong>: Enterprise features must recreate all v2 security and audit patterns while adding comprehensive compliance and observability capabilities.</p>
+<section id="story-4-1-enterprise-compliance-architecture">
+<h3>Story 4.1: Enterprise Compliance Architecture<a class="headerlink" href="#story-4-1-enterprise-compliance-architecture" title="Link to this heading"></a></h3>
+<p>As an enterprise developer,
+I want built-in compliance schema enforcement and immutable log storage,
+so that I can meet regulatory requirements for PCI-DSS, HIPAA, and SOX compliance.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Compliance schema enforcement recreating validation excellence</p></li>
+<li><p>Immutable log storage recreating audit trail patterns</p></li>
+<li><p>Enterprise data handling recreating security patterns</p></li>
+<li><p>Compliance plugin architecture recreating extensibility</p></li>
+<li><p>PCI-DSS compliance validation passing</p></li>
+<li><p>HIPAA compliance validation passing</p></li>
+<li><p>SOX compliance validation passing</p></li>
+<li><p>Data handling controls testable and validated</p></li>
+</ol>
+</section>
+<section id="story-4-2-enterprise-observability-standards">
+<h3>Story 4.2: Enterprise Observability Standards<a class="headerlink" href="#story-4-2-enterprise-observability-standards" title="Link to this heading"></a></h3>
+<p>As an enterprise developer,
+I want canonical log formats and enterprise correlation,
+so that I can integrate with enterprise observability platforms and maintain operational standards.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Canonical log formats recreating format excellence</p></li>
+<li><p>Enterprise correlation recreating trace patterns</p></li>
+<li><p>Enterprise platform integration recreating sink patterns</p></li>
+<li><p>Enterprise testing framework recreating test excellence</p></li>
+<li><p>SIEM platform integration working</p></li>
+<li><p>Splunk platform integration working</p></li>
+<li><p>ELK stack integration working</p></li>
+<li><p>Enterprise correlation functioning across systems</p></li>
+</ol>
+</section>
+<section id="story-4-3-enterprise-data-handling">
+<h3>Story 4.3: Enterprise Data Handling<a class="headerlink" href="#story-4-3-enterprise-data-handling" title="Link to this heading"></a></h3>
+<p>As an enterprise developer,
+I want data minimization and value-level redaction,
+so that I can handle sensitive data according to enterprise security requirements.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Data minimization with allow-list schemas</p></li>
+<li><p>Value-level redaction beyond regex-based approaches</p></li>
+<li><p>Audit trails for all data handling operations</p></li>
+<li><p>Testable controls around sensitive data logging</p></li>
+<li><p>Encryption for sensitive data at rest and in transit</p></li>
+<li><p>Access control for log access and modification</p></li>
+<li><p>Retention policies for data lifecycle management</p></li>
+<li><p>Data integrity verification and monitoring</p></li>
+</ol>
+</section>
+<section id="story-4-4-enterprise-platform-integration">
+<h3>Story 4.4: Enterprise Platform Integration<a class="headerlink" href="#story-4-4-enterprise-platform-integration" title="Link to this heading"></a></h3>
+<p>As an enterprise developer,
+I want seamless integration with enterprise observability platforms,
+so that I can leverage existing enterprise infrastructure and tools.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>SIEM platform integration with real-time event streaming</p></li>
+<li><p>Splunk platform integration with optimized data formats</p></li>
+<li><p>ELK stack integration with Elasticsearch compatibility</p></li>
+<li><p>Enterprise platform validation and testing</p></li>
+<li><p>Platform-specific optimizations for performance</p></li>
+<li><p>Enterprise platform authentication and authorization</p></li>
+<li><p>Enterprise platform monitoring and alerting</p></li>
+<li><p>Enterprise platform support and documentation</p></li>
+</ol>
+</section>
+</section>
+<section id="epic-5-developer-experience-documentation">
+<h2>Epic 5: Developer Experience &amp; Documentation<a class="headerlink" href="#epic-5-developer-experience-documentation" title="Link to this heading"></a></h2>
+<p><strong>Epic Goal</strong>: Create comprehensive developer experience with async documentation, excellent type safety, and intuitive async-first API design that enables immediate productivity.</p>
+<p><strong>Integration Requirements</strong>: Developer experience must recreate v2 usability patterns while adding comprehensive async-first idioms and type safety.</p>
+<section id="story-5-1-async-first-api-design">
+<h3>Story 5.1: Async-First API Design<a class="headerlink" href="#story-5-1-async-first-api-design" title="Link to this heading"></a></h3>
+<p>As a developer,
+I want an intuitive async-first API that feels natural and powerful,
+so that I can be immediately productive with the library without learning complex patterns.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Simple async logger with immediate productivity</p></li>
+<li><p>Async context managers for automatic resource management</p></li>
+<li><p>FastAPI middleware and lifecycle integration</p></li>
+<li><p>Depends-based logger injection for FastAPI endpoints</p></li>
+<li><p>Plugin development experience recreating ecosystem growth</p></li>
+<li><p>Plugin marketplace UX recreating user experience</p></li>
+<li><p>Comprehensive type safety with 100% async type coverage</p></li>
+<li><p>Intuitive error messages and debugging information</p></li>
+<li><p>Zero configuration for basic use cases</p></li>
+<li><p>Rich documentation with real-world examples</p></li>
+</ol>
+</section>
+<section id="story-5-2-comprehensive-type-safety">
+<h3>Story 5.2: Comprehensive Type Safety<a class="headerlink" href="#story-5-2-comprehensive-type-safety" title="Link to this heading"></a></h3>
+<p>As a developer,
+I want comprehensive async type annotations throughout the codebase,
+so that I can get excellent IDE support and catch errors at development time.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Comprehensive async type annotations recreating type safety</p></li>
+<li><p>Generic async interfaces recreating extensibility</p></li>
+<li><p>Plugin type safety recreating plugin quality</p></li>
+<li><p>Plugin type checking recreating marketplace quality</p></li>
+<li><p>100% type coverage for all async operations</p></li>
+<li><p>Type-safe plugin interfaces and implementations</p></li>
+<li><p>IDE support for async patterns and plugins</p></li>
+<li><p>Type validation for configuration and plugins</p></li>
+</ol>
+</section>
+<section id="story-5-3-documentation-excellence">
+<h3>Story 5.3: Documentation Excellence<a class="headerlink" href="#story-5-3-documentation-excellence" title="Link to this heading"></a></h3>
+<p>As a developer,
+I want comprehensive documentation with async examples and enterprise deployment guides,
+so that I can quickly understand and implement the library in any environment.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Async-first documentation recreating clarity</p></li>
+<li><p>Async usage examples recreating usability</p></li>
+<li><p>FastAPI-specific guides and examples for middleware setup, lifecycle registration, plugin usage, exception logging, and testing</p></li>
+<li><p>Plugin documentation recreating ecosystem growth</p></li>
+<li><p>Plugin marketplace documentation recreating user experience</p></li>
+<li><p>Enterprise deployment guides for compliance and integration</p></li>
+<li><p>Performance tuning guides for high-throughput applications</p></li>
+<li><p>Plugin development guides for community contributors</p></li>
+<li><p>Troubleshooting guides for common issues and solutions</p></li>
+</ol>
+</section>
+<section id="story-5-4-testing-excellence">
+<h3>Story 5.4: Testing Excellence<a class="headerlink" href="#story-5-4-testing-excellence" title="Link to this heading"></a></h3>
+<p>As a developer,
+I want comprehensive async testing framework with plugin testing utilities,
+so that I can ensure code quality and reliability in async environments.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Async testing framework recreating test coverage</p></li>
+<li><p>Async performance testing recreating benchmark excellence</p></li>
+<li><p>Plugin testing excellence recreating plugin quality</p></li>
+<li><p>Plugin testing automation recreating marketplace quality</p></li>
+<li><p>90%+ test coverage with async testing patterns</p></li>
+<li><p>Performance benchmarks for all components</p></li>
+<li><p>Plugin testing utilities and examples</p></li>
+<li><p>Enterprise compliance testing framework</p></li>
+</ol>
+</section>
+</section>
+<section id="epic-6-testing-quality-assurance">
+<h2>Epic 6: Testing &amp; Quality Assurance<a class="headerlink" href="#epic-6-testing-quality-assurance" title="Link to this heading"></a></h2>
+<p><strong>Epic Goal</strong>: Build comprehensive async testing framework with enterprise compliance testing that ensures code quality and reliability while maintaining the library’s performance and architectural excellence.</p>
+<p><strong>Integration Requirements</strong>: Testing framework must recreate v2 testing excellence while adding comprehensive async testing and enterprise compliance validation.</p>
+<section id="story-6-1-async-testing-framework">
+<h3>Story 6.1: Async Testing Framework<a class="headerlink" href="#story-6-1-async-testing-framework" title="Link to this heading"></a></h3>
+<p>As a developer,
+I want comprehensive async testing utilities and mock components,
+so that I can thoroughly test async code and ensure reliability.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Async testing framework recreating v2 testing excellence</p></li>
+<li><p>Async mock sinks recreating test utilities</p></li>
+<li><p>Plugin testing utilities recreating test coverage</p></li>
+<li><p>Async performance testing recreating benchmark excellence</p></li>
+<li><p>Async test runners and utilities</p></li>
+<li><p>Mock components for sinks, processors, and enrichers</p></li>
+<li><p>Performance testing utilities and benchmarks</p></li>
+<li><p>Integration testing framework for end-to-end scenarios</p></li>
+</ol>
+</section>
+<section id="story-6-2-plugin-testing-framework">
+<h3>Story 6.2: Plugin Testing Framework<a class="headerlink" href="#story-6-2-plugin-testing-framework" title="Link to this heading"></a></h3>
+<p>As a plugin developer,
+I want comprehensive testing utilities for developing and validating plugins,
+so that I can ensure plugin quality and compatibility with the core library.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Plugin testing framework recreating test excellence</p></li>
+<li><p>Plugin validation tools for quality assurance</p></li>
+<li><p>Plugin performance testing recreating benchmark standards</p></li>
+<li><p>Plugin compatibility testing across versions</p></li>
+<li><p>Plugin security scanning and vulnerability assessment</p></li>
+<li><p>Plugin documentation generation and validation</p></li>
+<li><p>Plugin CI/CD pipeline with automated testing</p></li>
+<li><p>Plugin marketplace quality gates and validation</p></li>
+</ol>
+</section>
+<section id="story-6-3-enterprise-compliance-testing">
+<h3>Story 6.3: Enterprise Compliance Testing<a class="headerlink" href="#story-6-3-enterprise-compliance-testing" title="Link to this heading"></a></h3>
+<p>As an enterprise developer,
+I want comprehensive testing for enterprise compliance and platform integration,
+so that I can validate compliance requirements and platform compatibility.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Enterprise compliance testing framework recreating test excellence</p></li>
+<li><p>PCI-DSS compliance validation testing</p></li>
+<li><p>HIPAA compliance validation testing</p></li>
+<li><p>SOX compliance validation testing</p></li>
+<li><p>Enterprise platform integration testing</p></li>
+<li><p>Data handling controls testing and validation</p></li>
+<li><p>Security testing for encryption and access control</p></li>
+<li><p>Performance testing for enterprise workloads</p></li>
+</ol>
+</section>
+<section id="story-6-4-performance-testing-benchmarks">
+<h3>Story 6.4: Performance Testing &amp; Benchmarks<a class="headerlink" href="#story-6-4-performance-testing-benchmarks" title="Link to this heading"></a></h3>
+<p>As a developer,
+I want comprehensive performance testing and benchmarking tools,
+so that I can validate performance improvements and optimize for high-throughput scenarios.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Performance testing framework recreating benchmark excellence</p></li>
+<li><p>Throughput testing for 500K-2M events/second targets</p></li>
+<li><p>Latency testing for &lt;1ms per event requirements</p></li>
+<li><p>Memory usage testing for 80% reduction targets</p></li>
+<li><p>Plugin performance testing within 10% of core performance</p></li>
+<li><p>Enterprise compliance performance testing within 20% of core</p></li>
+<li><p>Scalability testing for linear performance improvements</p></li>
+<li><p>Performance profiling and optimization tools</p></li>
+</ol>
+</section>
+</section>
+<section id="epic-7-community-ecosystem-growth">
+<h2>Epic 7: Community &amp; Ecosystem Growth<a class="headerlink" href="#epic-7-community-ecosystem-growth" title="Link to this heading"></a></h2>
+<p><strong>Epic Goal</strong>: Establish community contribution framework and plugin marketplace that enables ecosystem-driven growth while maintaining code quality and architectural excellence.</p>
+<p><strong>Integration Requirements</strong>: Community framework must recreate v2 code quality standards while enabling ecosystem growth and community-driven innovation.</p>
+<section id="story-7-1-community-contribution-framework">
+<h3>Story 7.1: Community Contribution Framework<a class="headerlink" href="#story-7-1-community-contribution-framework" title="Link to this heading"></a></h3>
+<p>As a community contributor,
+I want clear guidelines and tools for contributing to the ecosystem,
+so that I can easily contribute plugins and improvements while maintaining quality standards.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Plugin development guidelines recreating code quality</p></li>
+<li><p>Plugin testing framework recreating test excellence</p></li>
+<li><p>Plugin documentation standards recreating clarity</p></li>
+<li><p>Plugin CI/CD pipeline recreating quality gates</p></li>
+<li><p>Community governance and transparent development</p></li>
+<li><p>Contributor recognition and support programs</p></li>
+<li><p>Cross-platform compatibility and testing</p></li>
+<li><p>Community engagement through GitHub discussions and forums</p></li>
+</ol>
+</section>
+<section id="story-7-2-plugin-marketplace">
+<h3>Story 7.2: Plugin Marketplace<a class="headerlink" href="#story-7-2-plugin-marketplace" title="Link to this heading"></a></h3>
+<p>As a developer,
+I want a plugin marketplace for discovering and installing community plugins,
+so that I can leverage community solutions and contribute to ecosystem growth.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Plugin marketplace with search and discovery capabilities</p></li>
+<li><p>Plugin installation and update mechanisms</p></li>
+<li><p>Plugin ratings and reviews for quality assurance</p></li>
+<li><p>Performance benchmarks for plugin comparison</p></li>
+<li><p>Enterprise support for commercial plugins</p></li>
+<li><p>Plugin monetization for community developers</p></li>
+<li><p>Compliance validation for enterprise plugins</p></li>
+<li><p>Security scanning for all plugins</p></li>
+</ol>
+</section>
+<section id="story-7-3-ecosystem-growth-metrics">
+<h3>Story 7.3: Ecosystem Growth Metrics<a class="headerlink" href="#story-7-3-ecosystem-growth-metrics" title="Link to this heading"></a></h3>
+<p>As a project maintainer,
+I want comprehensive metrics and monitoring for ecosystem growth,
+so that I can track adoption and guide ecosystem development.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Developer adoption metrics (1000+ individual developers by v3.1)</p></li>
+<li><p>Plugin ecosystem metrics (100+ plugins by v3.1)</p></li>
+<li><p>Community contribution metrics (50+ contributors by v3.1)</p></li>
+<li><p>GitHub engagement metrics (1000+ stars by v3.1)</p></li>
+<li><p>Plugin download metrics (10K+ downloads by v3.1)</p></li>
+<li><p>Enterprise adoption metrics (10+ enterprise customers by v3.1)</p></li>
+<li><p>Compliance plugin metrics (10+ compliance plugins by v3.1)</p></li>
+<li><p>Enterprise platform plugin metrics (10+ platform plugins by v3.1)</p></li>
+</ol>
+</section>
+<section id="story-7-4-educational-content-support">
+<h3>Story 7.4: Educational Content &amp; Support<a class="headerlink" href="#story-7-4-educational-content-support" title="Link to this heading"></a></h3>
+<p>As a developer,
+I want comprehensive educational content and community support,
+so that I can learn the library quickly and get help when needed.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Tutorials and examples for common use cases</p></li>
+<li><p>Best practices guides for async-first development</p></li>
+<li><p>Performance optimization guides for high-throughput applications</p></li>
+<li><p>Enterprise deployment guides for compliance and integration</p></li>
+<li><p>Plugin development tutorials and examples</p></li>
+<li><p>Community support through GitHub discussions and Discord</p></li>
+<li><p>Conference and meetup presence with developer-focused demos</p></li>
+<li><p>Educational content with real-world examples and best practices</p></li>
+</ol>
+</section>
+</section>
+<section id="epic-8-production-excellence">
+<h2>Epic 8: Production Excellence<a class="headerlink" href="#epic-8-production-excellence" title="Link to this heading"></a></h2>
+<p><strong>Epic Goal</strong>: Implement production-ready features with comprehensive monitoring, deployment tools, and enterprise-grade reliability while maintaining the library’s performance and developer experience excellence.</p>
+<p><strong>Integration Requirements</strong>: Production features must recreate v2 reliability patterns while adding comprehensive monitoring and deployment capabilities.</p>
+<section id="story-8-1-production-monitoring-observability">
+<h3>Story 8.1: Production Monitoring &amp; Observability<a class="headerlink" href="#story-8-1-production-monitoring-observability" title="Link to this heading"></a></h3>
+<p>As a production engineer,
+I want comprehensive monitoring and observability for production deployments,
+so that I can ensure reliability and performance in production environments.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Async metrics collection recreating monitoring patterns</p></li>
+<li><p>Async tracing support recreating correlation excellence</p></li>
+<li><p>Plugin observability recreating plugin monitoring</p></li>
+<li><p>Plugin marketplace observability recreating enterprise compliance</p></li>
+<li><p>Real-time performance monitoring and alerting</p></li>
+<li><p>Health checks and status endpoints</p></li>
+<li><p>Log aggregation and analysis tools</p></li>
+<li><p>Performance dashboards and reporting</p></li>
+</ol>
+</section>
+<section id="story-8-2-production-deployment-tools">
+<h3>Story 8.2: Production Deployment Tools<a class="headerlink" href="#story-8-2-production-deployment-tools" title="Link to this heading"></a></h3>
+<p>As a production engineer,
+I want comprehensive deployment tools and automation,
+so that I can deploy and manage the library in production environments.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Async deployment tools recreating deployment patterns</p></li>
+<li><p>Async monitoring dashboards recreating monitoring excellence</p></li>
+<li><p>Plugin production readiness recreating plugin enterprise</p></li>
+<li><p>Plugin marketplace production recreating enterprise adoption</p></li>
+<li><p>Container deployment support (Docker, Kubernetes)</p></li>
+<li><p>Infrastructure as Code (IaC) templates and examples</p></li>
+<li><p>CI/CD pipeline integration and automation</p></li>
+<li><p>Rollback and disaster recovery procedures</p></li>
+</ol>
+</section>
+<section id="story-8-3-enterprise-production-support">
+<h3>Story 8.3: Enterprise Production Support<a class="headerlink" href="#story-8-3-enterprise-production-support" title="Link to this heading"></a></h3>
+<p>As an enterprise production engineer,
+I want enterprise-grade production support and reliability,
+so that I can deploy the library in enterprise environments with confidence.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Enterprise support and consulting services</p></li>
+<li><p>Enterprise deployment guides and best practices</p></li>
+<li><p>Enterprise compliance validation in production</p></li>
+<li><p>Enterprise platform integration in production</p></li>
+<li><p>Enterprise security and access control</p></li>
+<li><p>Enterprise monitoring and alerting</p></li>
+<li><p>Enterprise backup and disaster recovery</p></li>
+<li><p>Enterprise performance optimization and tuning</p></li>
+</ol>
+</section>
+<section id="story-8-4-production-quality-assurance">
+<h3>Story 8.4: Production Quality Assurance<a class="headerlink" href="#story-8-4-production-quality-assurance" title="Link to this heading"></a></h3>
+<p>As a quality assurance engineer,
+I want comprehensive quality assurance tools and processes,
+so that I can ensure production readiness and reliability.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Automated testing in production-like environments</p></li>
+<li><p>Performance regression testing and monitoring</p></li>
+<li><p>Security vulnerability scanning and assessment</p></li>
+<li><p>Compliance validation in production environments</p></li>
+<li><p>Load testing and stress testing tools</p></li>
+<li><p>Chaos engineering and resilience testing</p></li>
+<li><p>Quality gates and release validation</p></li>
+<li><p>Production incident response and resolution</p></li>
+</ol>
+</section>
+</section>
+<section id="epic-9-fastapi-integration-layer">
+<h2>Epic 9: FastAPI Integration Layer<a class="headerlink" href="#epic-9-fastapi-integration-layer" title="Link to this heading"></a></h2>
+<p><strong>Epic Goal</strong>: Provide native FastAPI integration tools that enhance developer productivity, request-level observability, and testability, while preserving Fapilog’s async-first, plugin-driven architecture.</p>
+<p><strong>Integration Requirements</strong>: All FastAPI integrations must follow existing Fapilog architecture (plugin-based, zero global state, container isolation) and must be optional and non-intrusive to core library behavior.</p>
+<section id="story-9-1-fastapi-middleware-for-request-context-logging">
+<h3>Story 9.1: FastAPI Middleware for Request Context Logging<a class="headerlink" href="#story-9-1-fastapi-middleware-for-request-context-logging" title="Link to this heading"></a></h3>
+<p>As a FastAPI developer,
+I want middleware that injects a Fapilog logger and correlation ID per request,
+so that I can trace logs easily without boilerplate.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Middleware automatically creates isolated logger instance per request</p></li>
+<li><p>Correlation ID generation and propagation across all async operations</p></li>
+<li><p>Logger injection into request context for endpoint access</p></li>
+<li><p>Zero global state - each request gets independent logger instance</p></li>
+<li><p>Optional configuration for correlation ID header names</p></li>
+<li><p>Async context preservation across middleware chain</p></li>
+<li><p>Performance impact &lt;1ms per request initialization</p></li>
+<li><p>Compatible with FastAPI dependency injection system</p></li>
+</ol>
+</section>
+<section id="story-9-2-request-response-logging-plugin">
+<h3>Story 9.2: Request/Response Logging Plugin<a class="headerlink" href="#story-9-2-request-response-logging-plugin" title="Link to this heading"></a></h3>
+<p>As a FastAPI developer,
+I want a plugin that logs HTTP requests/responses with optional body redaction,
+so that I can observe access patterns and debug issues in production.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Automatic request/response logging with configurable detail levels</p></li>
+<li><p>Optional request/response body logging with size limits</p></li>
+<li><p>PII redaction capabilities for sensitive request data</p></li>
+<li><p>Configurable exclusion patterns for health checks and static files</p></li>
+<li><p>Structured logging format compatible with Fapilog pipeline</p></li>
+<li><p>Performance optimization for high-throughput APIs</p></li>
+<li><p>Integration with existing Fapilog processors and sinks</p></li>
+<li><p>Support for custom request/response enrichment</p></li>
+</ol>
+</section>
+<section id="story-9-3-fastapi-lifecycle-hook-registration">
+<h3>Story 9.3: FastAPI Lifecycle Hook Registration<a class="headerlink" href="#story-9-3-fastapi-lifecycle-hook-registration" title="Link to this heading"></a></h3>
+<p>As a FastAPI developer,
+I want a helper to auto-register logger lifecycle with startup and shutdown,
+so that I can cleanly manage the logger within my app lifecycle.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Automatic logger initialization during FastAPI startup</p></li>
+<li><p>Graceful logger shutdown during FastAPI shutdown</p></li>
+<li><p>Container isolation - multiple FastAPI apps can coexist</p></li>
+<li><p>Configuration loading from environment variables or files</p></li>
+<li><p>Plugin discovery and loading during startup</p></li>
+<li><p>Health check endpoints for logger status</p></li>
+<li><p>Zero global state - logger bound to FastAPI app instance</p></li>
+<li><p>Support for multiple logger configurations per app</p></li>
+</ol>
+</section>
+<section id="story-9-4-fastapi-aware-exception-handling">
+<h3>Story 9.4: FastAPI-Aware Exception Handling<a class="headerlink" href="#story-9-4-fastapi-aware-exception-handling" title="Link to this heading"></a></h3>
+<p>As a FastAPI developer,
+I want to log unhandled exceptions and validation errors using Fapilog,
+so that I can catch production issues with full context.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Automatic exception logging with full context preservation</p></li>
+<li><p>FastAPI validation error logging with request details</p></li>
+<li><p>Correlation ID preservation in exception logs</p></li>
+<li><p>Structured exception data compatible with Fapilog processors</p></li>
+<li><p>Optional exception response formatting</p></li>
+<li><p>Integration with FastAPI exception handlers</p></li>
+<li><p>Support for custom exception enrichment</p></li>
+<li><p>Performance isolation - exceptions don’t impact healthy requests</p></li>
+</ol>
+</section>
+<section id="story-9-5-fastapi-logger-di-via-depends">
+<h3>Story 9.5: FastAPI Logger DI via Depends<a class="headerlink" href="#story-9-5-fastapi-logger-di-via-depends" title="Link to this heading"></a></h3>
+<p>As a FastAPI developer,
+I want to inject a logger into endpoints using Depends,
+so that I can maintain clean and testable route functions.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>Depends-based logger injection for FastAPI endpoints</p></li>
+<li><p>Request-scoped logger with automatic correlation ID</p></li>
+<li><p>Type-safe dependency injection with proper annotations</p></li>
+<li><p>Compatible with FastAPI testing framework</p></li>
+<li><p>Support for custom logger configuration per endpoint</p></li>
+<li><p>Thread-safe and async-safe dependency resolution</p></li>
+<li><p>Optional caching for performance optimization</p></li>
+<li><p>Integration with existing FastAPI security dependencies</p></li>
+</ol>
+</section>
+<section id="story-9-6-fastapi-test-fixtures-for-logger-verification">
+<h3>Story 9.6: FastAPI Test Fixtures for Logger Verification<a class="headerlink" href="#story-9-6-fastapi-test-fixtures-for-logger-verification" title="Link to this heading"></a></h3>
+<p>As a developer,
+I want to use a test fixture that captures Fapilog events in FastAPI tests,
+so that I can assert logging behavior reliably.</p>
+<p><strong>Acceptance Criteria:</strong></p>
+<ol class="arabic simple">
+<li><p>pytest fixtures for capturing Fapilog events in tests</p></li>
+<li><p>Integration with FastAPI TestClient for end-to-end testing</p></li>
+<li><p>Mock sinks for verifying log output without side effects</p></li>
+<li><p>Assertion helpers for common logging verification patterns</p></li>
+<li><p>Support for async test functions</p></li>
+<li><p>Correlation ID verification in test scenarios</p></li>
+<li><p>Performance testing utilities for logging overhead</p></li>
+<li><p>Documentation and examples for testing best practices</p></li>
+</ol>
+</section>
+</section>
+<section id="checklist-results-report">
+<h2>Checklist Results Report<a class="headerlink" href="#checklist-results-report" title="Link to this heading"></a></h2>
+<p><em>This section will be populated after running the PM checklist validation.</em></p>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<section id="ux-expert-prompt">
+<h3>UX Expert Prompt<a class="headerlink" href="#ux-expert-prompt" title="Link to this heading"></a></h3>
+<p>Create comprehensive UX/UI design for fapilog v3 that emphasizes the async-first, performance-focused, and enterprise-ready nature of the library. Focus on developer experience, plugin marketplace interface, and enterprise compliance dashboard design.</p>
+</section>
+<section id="architect-prompt">
+<h3>Architect Prompt<a class="headerlink" href="#architect-prompt" title="Link to this heading"></a></h3>
+<p>Design the async-first architecture for fapilog v3 that recreates the 9 critical architectural patterns from v2 excellence while achieving revolutionary performance improvements. Focus on zero-copy operations, parallel processing, plugin ecosystem, and enterprise compliance integration.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Chris Haste.
+      <span class="lastupdated">Last updated on August 18, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

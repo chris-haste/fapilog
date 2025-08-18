@@ -1,0 +1,1263 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Logger Methods &mdash; fapilog 3.0.0-alpha.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=a275d612"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=30646c52"></script>
+      <script src="../_static/custom.js"></script>
+      <script src="../_static/custom.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Context Binding" href="context-binding.html" />
+    <link rel="prev" title="Top-Level Functions" href="top-level-functions.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            fapilog
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/installation.html">Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/installation.html#quick-install">Quick Install</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/installation.html#installation-options">Installation Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../getting-started/installation.html#basic-installation">Basic Installation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../getting-started/installation.html#with-extras">With Extras</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../getting-started/installation.html#from-source">From Source</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/installation.html#python-version-support">Python Version Support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/installation.html#dependencies">Dependencies</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../getting-started/installation.html#required-dependencies">Required Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../getting-started/installation.html#optional-dependencies">Optional Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/installation.html#environment-setup">Environment Setup</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../getting-started/installation.html#virtual-environment-recommended">Virtual Environment (Recommended)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../getting-started/installation.html#conda-environment">Conda Environment</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/installation.html#verification">Verification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/installation.html#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../getting-started/installation.html#common-issues">Common Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/installation.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/quickstart.html">Quickstart Tutorial</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/quickstart.html#zero-config-logging">Zero-Config Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/quickstart.html#with-context">With Context</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/quickstart.html#using-runtime-for-cleanup">Using runtime() for Cleanup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/quickstart.html#what-happens-automatically">What Happens Automatically</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/quickstart.html#environment-variables">Environment Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/quickstart.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/hello-world.html">Hello World Walkthrough</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/hello-world.html#minimal-app">Minimal App</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/hello-world.html#rotating-file-sink-example">Rotating File Sink Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/hello-world.html#redactor-demo">Redactor Demo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/hello-world.html#stopping-draining-logs">Stopping &amp; Draining Logs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/hello-world.html#complete-example">Complete Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/hello-world.html#what-youve-learned">What You’ve Learned</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/hello-world.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/index.html#quick-start">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/index.html#what-youll-learn">What You’ll Learn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/index.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../core-concepts/index.html">Core Concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/pipeline-architecture.html">Pipeline Architecture</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#pipeline-stages">Pipeline Stages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#application-layer">1. Application Layer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#context-binding">2. Context Binding</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#enrichers">3. Enrichers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#redactors">4. Redactors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#processors">5. Processors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#queue">6. Queue</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#sinks">7. Sinks</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#performance-characteristics">Performance Characteristics</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#async-processing">Async Processing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#zero-copy-operations">Zero-Copy Operations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#batching">Batching</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#guarantees">Guarantees</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#async-operations">1. Async Operations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#bounded-memory">2. Bounded Memory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#backpressure-handling">3. Backpressure Handling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#deduplication">4. Deduplication</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#configuration">Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#pipeline-configuration">Pipeline Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#environment-variables">Environment Variables</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#monitoring">Monitoring</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#pipeline-metrics">Pipeline Metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#health-checks">Health Checks</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../core-concepts/pipeline-architecture.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/index.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/index.html#key-principles">Key Principles</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../core-concepts/index.html#async-first-design">1. Async-First Design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../core-concepts/index.html#zero-copy-processing">2. Zero-Copy Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../core-concepts/index.html#structured-by-default">3. Structured by Default</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../core-concepts/index.html#plugin-architecture">4. Plugin Architecture</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/index.html#architecture-overview">Architecture Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/index.html#what-youll-learn">What You’ll Learn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/index.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide/index.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/index.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/index.html#quick-reference">Quick Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../user-guide/index.html#basic-logging">Basic Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user-guide/index.html#context-management">Context Management</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user-guide/index.html#configuration">Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/index.html#what-youll-learn">What You’ll Learn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/index.html#common-patterns">Common Patterns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../user-guide/index.html#request-logging">Request Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user-guide/index.html#batch-processing">Batch Processing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/index.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="top-level-functions.html">Top-Level Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="top-level-functions.html#get-logger">get_logger</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="top-level-functions.html#parameters">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="top-level-functions.html#returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="top-level-functions.html#examples">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="top-level-functions.html#environment-variables">Environment Variables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="top-level-functions.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="top-level-functions.html#runtime">runtime</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="top-level-functions.html#id1">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="top-level-functions.html#id2">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="top-level-functions.html#id3">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="top-level-functions.html#id4">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="top-level-functions.html#stop-and-drain">stop_and_drain</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="top-level-functions.html#id5">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="top-level-functions.html#id6">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="top-level-functions.html#id7">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="top-level-functions.html#drainresult">DrainResult</a></li>
+<li class="toctree-l4"><a class="reference internal" href="top-level-functions.html#id8">Notes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Logger Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#debug">debug</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parameters">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#info">info</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id1">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id2">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id3">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#warning">warning</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id4">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id5">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id6">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#error">error</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id7">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id8">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id9">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#critical">critical</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id10">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id11">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id12">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#exception">exception</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id13">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id14">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id15">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#close">close</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id16">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id17">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id18">Notes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="context-binding.html">Context Binding</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="context-binding.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="context-binding.html#bind">bind</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="context-binding.html#parameters">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="context-binding.html#examples">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="context-binding.html#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="context-binding.html#unbind">unbind</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="context-binding.html#id1">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="context-binding.html#id2">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="context-binding.html#id3">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="context-binding.html#clear-context">clear_context</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="context-binding.html#id4">Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="context-binding.html#returns">Returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="context-binding.html#id5">Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="context-binding.html#id6">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="context-binding.html#context-inheritance">Context Inheritance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="context-binding.html#common-patterns">Common Patterns</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="context-binding.html#request-context">Request Context</a></li>
+<li class="toctree-l4"><a class="reference internal" href="context-binding.html#service-context">Service Context</a></li>
+<li class="toctree-l4"><a class="reference internal" href="context-binding.html#debug-context">Debug Context</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="context-binding.html#best-practices">Best Practices</a></li>
+<li class="toctree-l3"><a class="reference internal" href="context-binding.html#performance-considerations">Performance Considerations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#fapilogsettings">FapilogSettings</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="configuration.html#core-settings">Core Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="configuration.html#file-sink-settings">File Sink Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="configuration.html#performance-settings">Performance Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="configuration.html#redaction-settings">Redaction Settings</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#environment-variables">Environment Variables</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="configuration.html#core-configuration">Core Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="configuration.html#file-sink-configuration">File Sink Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="configuration.html#redaction-configuration">Redaction Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#settings-hierarchy">Settings Hierarchy</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="configuration.html#environment-variables-highest-priority">1. Environment Variables (Highest Priority)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="configuration.html#settings-classes-medium-priority">2. Settings Classes (Medium Priority)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="configuration.html#default-values-lowest-priority">3. Default Values (Lowest Priority)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#configuration-examples">Configuration Examples</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="configuration.html#development-environment">Development Environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="configuration.html#production-environment">Production Environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="configuration.html#high-performance-configuration">High-Performance Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#environment-specific-configuration">Environment-Specific Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="configuration.html#development">Development</a></li>
+<li class="toctree-l4"><a class="reference internal" href="configuration.html#staging">Staging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="configuration.html#production">Production</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#configuration-validation">Configuration Validation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="configuration.html#validation-rules">Validation Rules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#hot-reloading">Hot Reloading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#best-practices">Best Practices</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="plugins/index.html">Plugins</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="plugins/index.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="plugins/index.html#plugin-types">Plugin Types</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#sinks-output-plugins">Sinks (Output Plugins)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#enrichers-input-context-plugins">Enrichers (Input/Context Plugins)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#redactors-security-plugins">Redactors (Security Plugins)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#processors-transform-plugins">Processors (Transform Plugins)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="plugins/index.html#plugin-architecture">Plugin Architecture</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#plugin-lifecycle">Plugin Lifecycle</a></li>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#plugin-configuration">Plugin Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#plugin-discovery">Plugin Discovery</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="plugins/index.html#built-in-plugins">Built-in Plugins</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#default-configuration">Default Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#plugin-dependencies">Plugin Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="plugins/index.html#custom-plugin-development">Custom Plugin Development</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#creating-a-custom-sink">Creating a Custom Sink</a></li>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#creating-a-custom-enricher">Creating a Custom Enricher</a></li>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#creating-a-custom-redactor">Creating a Custom Redactor</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="plugins/index.html#plugin-configuration-examples">Plugin Configuration Examples</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#development-environment">Development Environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#production-environment">Production Environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#high-performance-configuration">High-Performance Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="plugins/index.html#plugin-health-monitoring">Plugin Health Monitoring</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#health-checks">Health Checks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#plugin-metrics">Plugin Metrics</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="plugins/index.html#best-practices">Best Practices</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="lifecycle-results.html">Lifecycle &amp; Results</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="lifecycle-results.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lifecycle-results.html#drainresult">DrainResult</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#fields">Fields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#sinkdrainresult">SinkDrainResult</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="lifecycle-results.html#runtime-lifecycle">Runtime Lifecycle</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#initialization">Initialization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#startup-sequence">Startup Sequence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#runtime-state">Runtime State</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="lifecycle-results.html#resource-management">Resource Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#memory-management">Memory Management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#connection-management">Connection Management</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="lifecycle-results.html#graceful-shutdown">Graceful Shutdown</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#shutdown-sequence">Shutdown Sequence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#shutdown-timeout">Shutdown Timeout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#environment-variables">Environment Variables</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="lifecycle-results.html#health-monitoring">Health Monitoring</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#runtime-health">Runtime Health</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#health-checks">Health Checks</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="lifecycle-results.html#error-handling">Error Handling</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#runtime-errors">Runtime Errors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#recovery-mechanisms">Recovery Mechanisms</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="lifecycle-results.html#performance-optimization">Performance Optimization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#runtime-tuning">Runtime Tuning</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#resource-limits">Resource Limits</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="lifecycle-results.html#monitoring-and-debugging">Monitoring and Debugging</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#runtime-metrics">Runtime Metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#debug-information">Debug Information</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="lifecycle-results.html#best-practices">Best Practices</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#lifecycle-management">Lifecycle Management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#id1">Resource Management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#id2">Error Handling</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="lifecycle-results.html#configuration-reference">Configuration Reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#lifecycle-settings">Lifecycle Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lifecycle-results.html#id3">Environment Variables</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html">API Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="plugins/index.html">Plugins</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#plugin-types">Plugin Types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#plugin-architecture">Plugin Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#built-in-plugins">Built-in Plugins</a></li>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#custom-plugin-development">Custom Plugin Development</a></li>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#plugin-configuration-examples">Plugin Configuration Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#plugin-health-monitoring">Plugin Health Monitoring</a></li>
+<li class="toctree-l4"><a class="reference internal" href="plugins/index.html#best-practices">Best Practices</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="modules.html#core-modules">Core Modules</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="modules.html#fapilog-core">fapilog.core</a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules.html#fapilog-core-logger">fapilog.core.logger</a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules.html#fapilog-containers">fapilog.containers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules.html#fapilog-core-settings">fapilog.core.settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules.html#fapilog-core-context">fapilog.core.context</a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules.html#fapilog-core-security">fapilog.core.security</a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules.html#fapilog-core-observability">fapilog.core.observability</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="modules.html#plugin-system">Plugin System</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="modules.html#fapilog-plugins">fapilog.plugins</a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules.html#fapilog-plugins-redactors">fapilog.plugins.redactors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules.html#fapilog-plugins-sinks">fapilog.plugins.sinks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules.html#fapilog-plugins-processors">fapilog.plugins.processors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules.html#fapilog-plugins-enrichers">fapilog.plugins.enrichers</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="modules.html#fastapi-integration">FastAPI Integration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="modules.html#fapilog-fastapi">fapilog.fastapi</a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules.html#fapilog-fastapi-context">fapilog.fastapi.context</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="modules.html#utilities">Utilities</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="modules.html#fapilog-core-serialization">fapilog.core.serialization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules.html#fapilog-core-validation">fapilog.core.validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="modules.html#fapilog-core-errors">fapilog.core.errors</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#quick-reference">Quick Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="index.html#top-level-functions">Top-Level Functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="index.html#logger-methods">Logger Methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="index.html#context-binding">Context Binding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="index.html#configuration">Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="index.html#plugins">Plugins</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="index.html#sinks-output-plugins">Sinks (Output Plugins)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="index.html#enrichers-input-context-plugins">Enrichers (Input/Context Plugins)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="index.html#redactors-security-plugins">Redactors (Security Plugins)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="index.html#processors-transform-plugins">Processors (Transform Plugins)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="index.html#lifecycle-results">Lifecycle &amp; Results</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples &amp; Recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/index.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/index.html#quick-examples">Quick Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples/index.html#basic-logging">Basic Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/index.html#context-binding">Context Binding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/index.html#file-logging">File Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/index.html#what-youll-learn">What You’ll Learn</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/index.html#common-patterns">Common Patterns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples/index.html#request-correlation">Request Correlation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/index.html#batch-processing">Batch Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/index.html#error-handling">Error Handling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/index.html#environment-specific-examples">Environment-Specific Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples/index.html#development">Development</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/index.html#production">Production</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples/index.html#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/index.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting/index.html">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/index.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/index.html#quick-diagnosis">Quick Diagnosis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../troubleshooting/index.html#check-system-health">Check System Health</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../troubleshooting/index.html#check-configuration">Check Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../troubleshooting/index.html#check-metrics">Check Metrics</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/index.html#common-issues">Common Issues</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../troubleshooting/index.html#logs-are-dropped-under-load">1. Logs Are Dropped Under Load</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../troubleshooting/index.html#context-values-missing">2. Context Values Missing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../troubleshooting/index.html#file-sink-not-rotating">3. File Sink Not Rotating</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../troubleshooting/index.html#serialization-errors">4. Serialization Errors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../troubleshooting/index.html#pii-showing-despite-redaction">5. PII Showing Despite Redaction</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/index.html#debug-mode">Debug Mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/index.html#performance-issues">Performance Issues</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../troubleshooting/index.html#high-memory-usage">High Memory Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../troubleshooting/index.html#slow-logging">Slow Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/index.html#getting-help">Getting Help</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../troubleshooting/index.html#self-service">Self-Service</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../troubleshooting/index.html#community-support">Community Support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../troubleshooting/index.html#professional-support">Professional Support</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/index.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../faq.html#general-questions">General Questions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../faq.html#why-json-lines-by-default">Why JSON lines by default?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../faq.html#how-to-add-custom-fields-globally">How to add custom fields globally?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../faq.html#do-i-still-need-log-levels">Do I still need log levels?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../faq.html#how-does-fapilog-compare-to-logging-structlog">How does fapilog compare to logging/structlog?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../faq.html#technical-questions">Technical Questions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../faq.html#can-i-use-it-with-celery-async-jobs">Can I use it with Celery/async jobs?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../faq.html#how-does-context-inheritance-work">How does context inheritance work?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../faq.html#what-happens-if-a-sink-fails">What happens if a sink fails?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../faq.html#performance-questions">Performance Questions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../faq.html#how-does-fapilog-handle-high-throughput">How does fapilog handle high throughput?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../faq.html#whats-the-memory-overhead">What’s the memory overhead?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../faq.html#how-fast-is-it">How fast is it?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../faq.html#configuration-questions">Configuration Questions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../faq.html#can-i-use-configuration-files">Can I use configuration files?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../faq.html#how-do-i-configure-different-environments">How do I configure different environments?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../faq.html#can-i-change-configuration-at-runtime">Can I change configuration at runtime?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../faq.html#integration-questions">Integration Questions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../faq.html#how-do-i-integrate-with-fastapi">How do I integrate with FastAPI?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../faq.html#can-i-use-it-with-docker-kubernetes">Can I use it with Docker/Kubernetes?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../faq.html#how-do-i-send-logs-to-external-systems">How do I send logs to external systems?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../faq.html#support-questions">Support Questions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../faq.html#where-can-i-get-help">Where can I get help?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../faq.html#how-do-i-report-a-bug">How do I report a bug?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../faq.html#can-i-contribute-to-fapilog">Can I contribute to fapilog?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing to fapilog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../contributing/index.html#getting-started">Getting Started</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#development-setup"><span class="xref myst">Development Setup</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#code-style"><span class="xref myst">Code Style</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#testing"><span class="xref myst">Testing</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#documentation"><span class="xref myst">Documentation</span></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing/index.html#development-workflow">Development Workflow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#git-workflow"><span class="xref myst">Git Workflow</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#code-review"><span class="xref myst">Code Review</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#release-process"><span class="xref myst">Release Process</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#ci-cd"><span class="xref myst">CI/CD</span></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing/index.html#project-structure">Project Structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#architecture"><span class="xref myst">Architecture</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#code-organization"><span class="xref myst">Code Organization</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#plugin-system"><span class="xref myst">Plugin System</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#testing-strategy"><span class="xref myst">Testing Strategy</span></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing/index.html#areas-to-contribute">Areas to Contribute</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#core-features"><span class="xref myst">Core Features</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#plugins"><span class="xref myst">Plugins</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#id1"><span class="xref myst">Documentation</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#id2"><span class="xref myst">Testing</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#performance"><span class="xref myst">Performance</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#security"><span class="xref myst">Security</span></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing/index.html#communication">Communication</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#discussions"><span class="xref myst">Discussions</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#issues"><span class="xref myst">Issues</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#community"><span class="xref myst">Community</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#code-of-conduct"><span class="xref myst">Code of Conduct</span></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing/index.html#resources">Resources</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#api-reference"><span class="xref myst">API Reference</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#plugin-development"><span class="xref myst">Plugin Development</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#testing-guide"><span class="xref myst">Testing Guide</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#performance-guide"><span class="xref myst">Performance Guide</span></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing/index.html#getting-help">Getting Help</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#faq"><span class="xref myst">FAQ</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#troubleshooting"><span class="xref myst">Troubleshooting</span></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing/index.html#contact"><span class="xref myst">Contact</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../release-notes.html">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../release-notes.html#current-version">Current Version</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../release-notes.html#whats-new-in-3-0-0">What’s New in 3.0.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release-notes.html#breaking-changes">Breaking Changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release-notes.html#migration-guide">Migration Guide</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../release-notes.html#previous-versions">Previous Versions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../release-notes.html#fapilog-2-x-series">fapilog 2.x Series</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release-notes.html#fapilog-1-x-series">fapilog 1.x Series</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../release-notes.html#upgrade-guides">Upgrade Guides</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../release-notes.html#upgrading-to-3-0-0">Upgrading to 3.0.0</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../release-notes.html#update-dependencies">1. Update Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../release-notes.html#update-import-statements">2. Update Import Statements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../release-notes.html#update-configuration">3. Update Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../release-notes.html#update-plugin-code">4. Update Plugin Code</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../release-notes.html#upgrading-from-1-x-to-2-x">Upgrading from 1.x to 2.x</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../release-notes.html#id1">1. Update Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../release-notes.html#check-breaking-changes">2. Check Breaking Changes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../release-notes.html#id2">3. Update Configuration</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../release-notes.html#compatibility">Compatibility</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../release-notes.html#python-versions">Python Versions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release-notes.html#framework-compatibility">Framework Compatibility</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../release-notes.html#deprecation-policy">Deprecation Policy</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../release-notes.html#deprecation-timeline">Deprecation Timeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release-notes.html#currently-deprecated">Currently Deprecated</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../release-notes.html#roadmap">Roadmap</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../release-notes.html#upcoming-releases">Upcoming Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../release-notes.html#fapilog-3-0-0-q1-2024">fapilog 3.0.0 (Q1 2024)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../release-notes.html#fapilog-3-1-0-q2-2024">fapilog 3.1.0 (Q2 2024)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../release-notes.html#fapilog-3-2-0-q3-2024">fapilog 3.2.0 (Q3 2024)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../release-notes.html#long-term-vision">Long-term Vision</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../release-notes.html#support">Support</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../release-notes.html#version-support">Version Support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release-notes.html#getting-help">Getting Help</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices.html">Appendices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../appendices.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../appendices.html#quick-reference">Quick Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#common-terms">Common Terms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#architecture-components">Architecture Components</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../appendices.html#glossary">Glossary</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#a">A</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#b">B</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#c">C</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#d">D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#e">E</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#f">F</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#g">G</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#h">H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#i">I</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#j">J</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#l">L</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#m">M</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#n">N</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#o">O</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#p">P</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#q">Q</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#r">R</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#s">S</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#t">T</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#u">U</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#v">V</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#w">W</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#z">Z</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../appendices.html#architecture-diagrams">Architecture Diagrams</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#high-level-architecture">High-Level Architecture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#pipeline-flow">Pipeline Flow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#component-relationships">Component Relationships</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../appendices.html#license-credits">License &amp; Credits</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#license">License</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#credits">Credits</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../appendices.html#core-team">Core Team</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../appendices.html#open-source-dependencies">Open Source Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../appendices.html#inspiration">Inspiration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#contributing">Contributing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../appendices.html#acknowledgments">Acknowledgments</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">fapilog</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">API Reference</a></li>
+      <li class="breadcrumb-item active">Logger Methods</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api-reference/logger-methods.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="logger-methods">
+<h1>Logger Methods<a class="headerlink" href="#logger-methods" title="Link to this heading"></a></h1>
+<p>All available logging methods for fapilog loggers.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>Logger instances provide several methods for logging messages at different levels.
+All methods are async and should be awaited. Each method accepts a message string
+and optional extra fields for structured logging.</p>
+</section>
+<section id="debug">
+<h2>debug<a class="headerlink" href="#debug" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">debug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</pre></div>
+</div>
+<p>Log a debug message.</p>
+<p>Debug messages are typically used for detailed diagnostic information that is
+only useful during development and debugging.</p>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">message</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The log message</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">**kwargs</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Any</span></code></p></td>
+<td><p>Additional structured data to include</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
+
+<span class="c1"># Basic debug message</span>
+<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Processing user data&quot;</span><span class="p">)</span>
+
+<span class="c1"># With extra fields</span>
+<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Database query executed&quot;</span><span class="p">,</span>
+    <span class="n">query</span><span class="o">=</span><span class="s2">&quot;SELECT * FROM users&quot;</span><span class="p">,</span>
+    <span class="n">duration_ms</span><span class="o">=</span><span class="mi">45</span><span class="p">,</span>
+    <span class="n">rows_returned</span><span class="o">=</span><span class="mi">100</span>
+<span class="p">)</span>
+
+<span class="c1"># With exception info</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">risky_operation</span><span class="p">()</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Operation failed&quot;</span><span class="p">,</span>
+        <span class="n">operation</span><span class="o">=</span><span class="s2">&quot;risky_operation&quot;</span><span class="p">,</span>
+        <span class="n">error</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="notes">
+<h3>Notes<a class="headerlink" href="#notes" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Development only</strong> - typically filtered out in production</p></li>
+<li><p><strong>Structured data</strong> - use kwargs for additional context</p></li>
+<li><p><strong>Performance</strong> - debug logging has minimal overhead</p></li>
+<li><p><strong>Level filtering</strong> - controlled by <code class="docutils literal notranslate"><span class="pre">FAPILOG_LEVEL</span></code> setting</p></li>
+</ul>
+</section>
+</section>
+<section id="info">
+<h2>info<a class="headerlink" href="#info" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</pre></div>
+</div>
+<p>Log an informational message.</p>
+<p>Info messages are used for general application events, user actions, and
+operational information that is useful for monitoring and debugging.</p>
+<section id="id1">
+<h3>Parameters<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">message</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The log message</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">**kwargs</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Any</span></code></p></td>
+<td><p>Additional structured data to include</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id2">
+<h3>Examples<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
+
+<span class="c1"># Basic info message</span>
+<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Application started&quot;</span><span class="p">)</span>
+
+<span class="c1"># With business context</span>
+<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User logged in&quot;</span><span class="p">,</span>
+    <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;12345&quot;</span><span class="p">,</span>
+    <span class="n">ip_address</span><span class="o">=</span><span class="s2">&quot;192.168.1.100&quot;</span><span class="p">,</span>
+    <span class="n">user_agent</span><span class="o">=</span><span class="s2">&quot;Mozilla/5.0...&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># With metrics</span>
+<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Request processed&quot;</span><span class="p">,</span>
+    <span class="n">endpoint</span><span class="o">=</span><span class="s2">&quot;/api/users&quot;</span><span class="p">,</span>
+    <span class="n">method</span><span class="o">=</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span>
+    <span class="n">status_code</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+    <span class="n">duration_ms</span><span class="o">=</span><span class="mi">45</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id3">
+<h3>Notes<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Production logging</strong> - typically enabled in all environments</p></li>
+<li><p><strong>Business events</strong> - use for tracking user actions and system events</p></li>
+<li><p><strong>Structured context</strong> - include relevant business data</p></li>
+<li><p><strong>Performance monitoring</strong> - good for tracking request metrics</p></li>
+</ul>
+</section>
+</section>
+<section id="warning">
+<h2>warning<a class="headerlink" href="#warning" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</pre></div>
+</div>
+<p>Log a warning message.</p>
+<p>Warning messages indicate potential issues that don’t prevent the application
+from working but should be investigated.</p>
+<section id="id4">
+<h3>Parameters<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">message</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The log message</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">**kwargs</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Any</span></code></p></td>
+<td><p>Additional structured data to include</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id5">
+<h3>Examples<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
+
+<span class="c1"># Basic warning</span>
+<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Database connection slow&quot;</span><span class="p">,</span>
+    <span class="n">connection_time_ms</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span>
+    <span class="n">threshold_ms</span><span class="o">=</span><span class="mi">1000</span>
+<span class="p">)</span>
+
+<span class="c1"># Resource usage warning</span>
+<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;High memory usage detected&quot;</span><span class="p">,</span>
+    <span class="n">memory_usage_mb</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+    <span class="n">memory_limit_mb</span><span class="o">=</span><span class="mi">2048</span><span class="p">,</span>
+    <span class="n">usage_percent</span><span class="o">=</span><span class="mi">50</span>
+<span class="p">)</span>
+
+<span class="c1"># Deprecation warning</span>
+<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Deprecated API endpoint used&quot;</span><span class="p">,</span>
+    <span class="n">endpoint</span><span class="o">=</span><span class="s2">&quot;/api/v1/users&quot;</span><span class="p">,</span>
+    <span class="n">alternative</span><span class="o">=</span><span class="s2">&quot;/api/v2/users&quot;</span><span class="p">,</span>
+    <span class="n">client_ip</span><span class="o">=</span><span class="s2">&quot;192.168.1.100&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id6">
+<h3>Notes<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Investigation needed</strong> - indicates potential problems</p></li>
+<li><p><strong>Not critical</strong> - application continues to function</p></li>
+<li><p><strong>Monitoring</strong> - good for alerting on trends</p></li>
+<li><p><strong>Performance impact</strong> - minimal overhead</p></li>
+</ul>
+</section>
+</section>
+<section id="error">
+<h2>error<a class="headerlink" href="#error" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">exc_info</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</pre></div>
+</div>
+<p>Log an error message.</p>
+<p>Error messages indicate that something has gone wrong and the application
+may not be functioning correctly.</p>
+<section id="id7">
+<h3>Parameters<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">message</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>-</p></td>
+<td><p>The log message</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">exc_info</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Include exception traceback if True</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">**kwargs</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Any</span></code></p></td>
+<td><p>-</p></td>
+<td><p>Additional structured data to include</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id8">
+<h3>Examples<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
+
+<span class="c1"># Basic error</span>
+<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to process user request&quot;</span><span class="p">)</span>
+
+<span class="c1"># With exception info</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">risky_operation</span><span class="p">()</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Operation failed&quot;</span><span class="p">,</span>
+        <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">operation</span><span class="o">=</span><span class="s2">&quot;risky_operation&quot;</span><span class="p">,</span>
+        <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;12345&quot;</span>
+    <span class="p">)</span>
+
+<span class="c1"># With context</span>
+<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Database connection failed&quot;</span><span class="p">,</span>
+    <span class="n">database</span><span class="o">=</span><span class="s2">&quot;user_db&quot;</span><span class="p">,</span>
+    <span class="n">connection_string</span><span class="o">=</span><span class="s2">&quot;postgresql://...&quot;</span><span class="p">,</span>
+    <span class="n">retry_attempt</span><span class="o">=</span><span class="mi">3</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id9">
+<h3>Notes<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Exception handling</strong> - use <code class="docutils literal notranslate"><span class="pre">exc_info=True</span></code> for full tracebacks</p></li>
+<li><p><strong>Critical issues</strong> - indicates application problems</p></li>
+<li><p><strong>Alerting</strong> - typically triggers monitoring alerts</p></li>
+<li><p><strong>Context important</strong> - include relevant debugging information</p></li>
+</ul>
+</section>
+</section>
+<section id="critical">
+<h2>critical<a class="headerlink" href="#critical" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">critical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">exc_info</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</pre></div>
+</div>
+<p>Log a critical message.</p>
+<p>Critical messages indicate severe problems that may cause the application
+to fail or become unusable.</p>
+<section id="id10">
+<h3>Parameters<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">message</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>-</p></td>
+<td><p>The log message</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">exc_info</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Include exception traceback if True</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">**kwargs</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Any</span></code></p></td>
+<td><p>-</p></td>
+<td><p>Additional structured data to include</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id11">
+<h3>Examples<a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
+
+<span class="c1"># System failure</span>
+<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s2">&quot;Database cluster is down&quot;</span><span class="p">,</span>
+    <span class="n">cluster</span><span class="o">=</span><span class="s2">&quot;prod-db-cluster&quot;</span><span class="p">,</span>
+    <span class="n">affected_services</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;user-service&quot;</span><span class="p">,</span> <span class="s2">&quot;order-service&quot;</span><span class="p">],</span>
+    <span class="n">estimated_downtime</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># Security breach</span>
+<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s2">&quot;Unauthorized access detected&quot;</span><span class="p">,</span>
+    <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span><span class="p">,</span>
+    <span class="n">ip_address</span><span class="o">=</span><span class="s2">&quot;192.168.1.100&quot;</span><span class="p">,</span>
+    <span class="n">attempted_action</span><span class="o">=</span><span class="s2">&quot;admin_login&quot;</span><span class="p">,</span>
+    <span class="n">timestamp</span><span class="o">=</span><span class="s2">&quot;2024-01-15T10:30:00Z&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># With exception</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">critical_system_operation</span><span class="p">()</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s2">&quot;Critical system failure&quot;</span><span class="p">,</span>
+        <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">system</span><span class="o">=</span><span class="s2">&quot;payment_processor&quot;</span><span class="p">,</span>
+        <span class="n">impact</span><span class="o">=</span><span class="s2">&quot;payment_processing_unavailable&quot;</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id12">
+<h3>Notes<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Immediate attention</strong> - requires immediate investigation</p></li>
+<li><p><strong>System impact</strong> - indicates severe problems</p></li>
+<li><p><strong>High priority</strong> - typically triggers immediate alerts</p></li>
+<li><p><strong>Business impact</strong> - may affect core functionality</p></li>
+</ul>
+</section>
+</section>
+<section id="exception">
+<h2>exception<a class="headerlink" href="#exception" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">exception</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</pre></div>
+</div>
+<p>Log an exception message.</p>
+<p>This is a convenience method that logs an error message with exception
+information automatically included.</p>
+<section id="id13">
+<h3>Parameters<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">message</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The log message</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">**kwargs</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Any</span></code></p></td>
+<td><p>Additional structured data to include</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id14">
+<h3>Examples<a class="headerlink" href="#id14" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
+
+<span class="c1"># Basic exception logging</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">risky_operation</span><span class="p">()</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Operation failed&quot;</span><span class="p">,</span>
+        <span class="n">operation</span><span class="o">=</span><span class="s2">&quot;risky_operation&quot;</span><span class="p">,</span>
+        <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;12345&quot;</span>
+    <span class="p">)</span>
+
+<span class="c1"># With additional context</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">process_payment</span><span class="p">(</span><span class="n">payment_data</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">PaymentError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Payment processing failed&quot;</span><span class="p">,</span>
+        <span class="n">payment_id</span><span class="o">=</span><span class="n">payment_data</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+        <span class="n">amount</span><span class="o">=</span><span class="n">payment_data</span><span class="o">.</span><span class="n">amount</span><span class="p">,</span>
+        <span class="n">currency</span><span class="o">=</span><span class="n">payment_data</span><span class="o">.</span><span class="n">currency</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id15">
+<h3>Notes<a class="headerlink" href="#id15" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Exception info</strong> - automatically includes traceback</p></li>
+<li><p><strong>Convenience method</strong> - equivalent to <code class="docutils literal notranslate"><span class="pre">error(message,</span> <span class="pre">exc_info=True,</span> <span class="pre">**kwargs)</span></code></p></li>
+<li><p><strong>Error handling</strong> - use in exception handlers</p></li>
+<li><p><strong>Full context</strong> - includes both message and exception details</p></li>
+</ul>
+</section>
+</section>
+<section id="close">
+<h2>close<a class="headerlink" href="#close" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</pre></div>
+</div>
+<p>Close the logger and cleanup resources.</p>
+<p>This method should be called when you’re done with the logger to ensure
+proper cleanup of resources and flushing of any buffered messages.</p>
+<section id="id16">
+<h3>Parameters<a class="headerlink" href="#id16" title="Link to this heading"></a></h3>
+<p>None</p>
+</section>
+<section id="returns">
+<h3>Returns<a class="headerlink" href="#returns" title="Link to this heading"></a></h3>
+<p>None</p>
+</section>
+<section id="id17">
+<h3>Examples<a class="headerlink" href="#id17" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Processing started&quot;</span><span class="p">)</span>
+    <span class="c1"># ... do work ...</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Processing completed&quot;</span><span class="p">)</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>  <span class="c1"># Always cleanup</span>
+
+<span class="c1"># Or use context manager</span>
+<span class="k">with</span> <span class="n">runtime</span><span class="p">()</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Processing started&quot;</span><span class="p">)</span>
+    <span class="c1"># ... do work ...</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Processing completed&quot;</span><span class="p">)</span>
+<span class="c1"># Automatically closed</span>
+</pre></div>
+</div>
+</section>
+<section id="id18">
+<h3>Notes<a class="headerlink" href="#id18" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Resource cleanup</strong> - ensures all resources are freed</p></li>
+<li><p><strong>Message flushing</strong> - flushes any buffered messages</p></li>
+<li><p><strong>Always call</strong> - important for proper resource management</p></li>
+<li><p><strong>Context manager</strong> - consider using <code class="docutils literal notranslate"><span class="pre">runtime()</span></code> for automatic cleanup</p></li>
+</ul>
+<hr class="docutils" />
+<p><em>These methods provide comprehensive logging capabilities for all levels of application events.</em></p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="top-level-functions.html" class="btn btn-neutral float-left" title="Top-Level Functions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="context-binding.html" class="btn btn-neutral float-right" title="Context Binding" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Chris Haste.
+      <span class="lastupdated">Last updated on August 18, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
