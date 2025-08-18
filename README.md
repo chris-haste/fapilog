@@ -14,31 +14,24 @@ While optimized for distributed, containerized, and serverless environments, it 
 [![PyPI Version](https://img.shields.io/pypi/v/fapilog.svg?style=flat-square&color=008080&logo=pypi&logoColor=white)](https://pypi.org/project/fapilog/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-004080?style=flat-square&logo=apache&logoColor=white)](https://opensource.org/licenses/Apache-2.0)
 
-## Key Features
+## Why fapilog?
 
-All features are **proven** via the codebase:
+- **Non‑blocking under slow sinks**: Background worker, queue, and batching keep your app responsive when disk/network collectors slow down.
+- **Predictable under bursts**: Configurable backpressure and policy‑driven drops prevent thread stalls during spikes.
+- **Service‑ready JSON logging**: Structured events, context binding (request/user IDs), exception serialization, graceful shutdown & drain.
+- **Security & compliance guardrails**: Redaction stages (field/regex/url), error de‑duplication, and safe failure behavior.
+- **FastAPI integration**: Simple request context propagation and consistent logs across web handlers and background tasks.
+- **Operational visibility**: Optional metrics for queue depth, drops, and flush latency.
 
-- **Async-first architecture**: Background worker, non-blocking enqueue, async sinks out-of-the-box.
-- **Structured JSON logging**: Default `StdoutJsonSink` outputs JSON line logs ready for ingestion.
-- **Plugin-based ecosystem**: Supports custom enrichers, redactors, processors, and sinks.
-- **Context propagation**: Auto trace ID generation and propagation.
-- **Cloud-native compliance**: Meets typical observability requirements for audit and compliance.
-- **Multiple sink support**: Stdout, memory-mapped persistence, async HTTP utilities.
-- **Performance-optimized**: Ring buffer queue, batching, and non-blocking writes.
-- **Python 3.8+** compatibility.
+## When to use / when stdlib is enough
 
-## Competitor Advantage
+### Use fapilog when
+- Services must not jeopardize request latency SLOs due to logging
+- Workloads include bursts, slow/remote sinks, or compliance/redaction needs
+- Teams standardize on structured JSON logs and contextual metadata
 
-| Feature / Capability              | fapilog (Proven) | structlog | loguru |
-| --------------------------------- | ---------------- | --------- | ------ |
-| Async-first logging pipeline      | ✅ Yes           | ⚠ Partial | ❌ No  |
-| JSON output out-of-the-box        | ✅ Yes           | ⚠ Config  | ❌ No  |
-| Plugin marketplace support        | ✅ Yes           | ❌ No     | ❌ No  |
-| Compliance/audit-friendly         | ✅ Yes           | ⚠ Partial | ❌ No  |
-| FastAPI-specific optimizations    | ✅ Yes           | ❌ No     | ❌ No  |
-| Context-bound correlation IDs     | ✅ Yes           | ⚠ Manual  | ❌ No  |
-| Cloud-native optimizations        | ✅ Yes           | ⚠ Partial | ❌ No  |
-| Proven async sinks (stdout, HTTP) | ✅ Yes           | ❌ No     | ❌ No  |
+### Stdlib may be enough for
+- Small scripts/CLIs writing to fast local stdout/files with minimal structure
 
 ## Installation
 
@@ -64,17 +57,15 @@ uv add "fapilog[all]"
 See full guide: docs/install-and-update.md
 [![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-green.svg)](https://docs.pydantic.dev/)
 
-**Revolutionary async-first logging library for Python applications**
+**Async-first logging library for Python services**
 
-## 🚀 Features
+## 🚀 Features (core)
 
-- **Async-First Architecture** - Built from the ground up for async/await
-- **Zero-Copy Operations** - Maximum performance with minimal memory usage
-- **Universal Plugin Ecosystem** - Extensible sinks, processors, and enrichers
-- **Enterprise Compliance** - PCI-DSS, HIPAA, SOX, GDPR support
-- **Container Isolation** - Perfect isolation between logging instances
-- **Performance Revolution** - 50x throughput, 90% latency reduction
-- **Developer Experience** - Intuitive async-first APIs
+- Async-first architecture (background worker, non-blocking enqueue)
+- Structured JSON output (stdout sink by default)
+- Plugin-friendly (enrichers, redactors, processors, sinks)
+- Context binding and exception serialization
+- Guardrails: redaction stages, error de-duplication
 
 ## 📦 Installation
 
@@ -183,29 +174,27 @@ Fapilog v3 features a universal plugin ecosystem:
 - Trace correlation, distributed tracing
 - Custom data enrichment
 
-## 🏢 Enterprise Features
+## 🧩 Extensions (roadmap / optional packages)
 
-- **Compliance Standards**: PCI-DSS, HIPAA, SOX, GDPR
-- **Data Minimization**: Automatic PII detection and redaction
-- **Audit Trails**: Immutable log storage with access control
-- **SIEM Integration**: Native support for enterprise log management
-- **Performance Monitoring**: Real-time metrics and health checks
+- Enterprise sinks: Splunk/Elasticsearch/Loki/Datadog/Kafka/webhooks
+- Advanced processors: sampling, compression, encryption, sharding, adaptive batching
+- Deep observability: metrics for queue/drops/flush latency, tracing hooks
+- Compliance modules: policy packs and attestations
+- Operational tooling: plugin marketplace and versioned contracts
 
-## 🚀 Performance
+## 📈 Enterprise performance characteristics
 
-- **50x throughput** improvement over traditional logging
-- **90% latency reduction** with async-first design
-- **80% memory reduction** with zero-copy operations
-- **Parallel processing** for maximum concurrency
-- **Zero-copy serialization** for optimal performance
+- **Non‑blocking under slow sinks**
+  - Under a simulated 3 ms-per-write sink, fapilog reduced app-side log-call latency by ~75–80% vs stdlib, maintaining sub‑millisecond medians. Reproduce with `scripts/benchmarking.py`.
+- **Burst absorption with predictable behavior**
+  - With a 20k burst and a 3 ms sink delay, fapilog processed ~90% and dropped ~10% per policy, keeping the app responsive.
+- **Honest note**
+  - In steady-state fast-sink scenarios, Python’s stdlib logging can be faster per call. Fapilog shines under constrained sinks, concurrency, and bursts.
 
 ## 📚 Documentation
 
-- [Quick Start Guide](docs/quickstart.md)
-- [API Reference](docs/api-reference.md)
-- [Plugin Development](docs/plugin-development.md)
-- [Enterprise Guide](docs/enterprise-guide.md)
-- [Migration from v2](docs/migration-guide.md)
+- See the `docs/` directory for full documentation
+- Benchmarks: `python scripts/benchmarking.py --help`
 
 ## 🤝 Contributing
 
