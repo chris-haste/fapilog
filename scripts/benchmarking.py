@@ -57,6 +57,8 @@ def _setup_fapilog_logger(directory: Path):
     # Import lazily after env vars are set
     from fapilog import get_logger  # type: ignore
 
+    # Enable fast-path when present
+    os.environ.setdefault("FAPILOG_CORE__STRICT_ENVELOPE_MODE", "0")
     return get_logger(name="benchmark_fapilog")
 
 

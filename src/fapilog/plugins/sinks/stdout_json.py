@@ -5,7 +5,10 @@ import sys
 from typing import Any
 
 from ...core import diagnostics
-from ...core.serialization import serialize_envelope
+from ...core.serialization import (
+    SerializedView,
+    serialize_envelope,
+)
 
 
 class StdoutJsonSink:
@@ -43,9 +46,9 @@ class StdoutJsonSink:
                 diagnostics.warn(
                     "sink",
                     "envelope serialization error",
-                    mode="strict" if strict else "best-effort",
                     reason=type(e).__name__,
                     detail=str(e),
+                    mode=("strict" if strict else "best"),
                 )
                 if strict:
                     return None
@@ -66,9 +69,27 @@ class StdoutJsonSink:
             # Contain sink errors; do not propagate
             return None
 
+    async def write_serialized(self, view: SerializedView) -> None:
+        try:
+            async with self._lock:
+
+                def _write_line() -> None:
+                    buf = sys.stdout.buffer
+                    buf.write(view.data)
+                    buf.write(b"\n")
+                    buf.flush()
+
+                await asyncio.to_thread(_write_line)
+        except Exception:
+            return None
+
 
 # Mark as referenced for static analyzers (vulture)
-_VULTURE_USED: tuple[object] = (StdoutJsonSink,)
+_VULTURE_USED: tuple[object, ...] = (
+    StdoutJsonSink,
+    StdoutJsonSink.write,  # vulture: used
+    StdoutJsonSink.write_serialized,  # vulture: used
+)
 
 # Minimal plugin metadata for discovery compatibility
 PLUGIN_METADATA = {

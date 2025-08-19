@@ -9,6 +9,7 @@ import pytest
 from fapilog.core import diagnostics as _diag_mod
 from fapilog.core.diagnostics import set_writer_for_tests
 from fapilog.core.logger import SyncLoggerFacade
+from fapilog.metrics.metrics import MetricsCollector
 
 
 @pytest.mark.asyncio
@@ -118,3 +119,56 @@ async def test_sampling_applies_only_to_info_debug(
     await asyncio.sleep(0)
     await logger.stop_and_drain()
     assert any(e.get("message") == "w1" for e in collected)
+
+
+@pytest.mark.asyncio
+async def test_exception_serialization_enabled() -> None:
+    captured: list[dict[str, Any]] = []
+
+    async def capture(entry: dict[str, Any]) -> None:
+        captured.append(entry)
+
+    logger = SyncLoggerFacade(
+        name="exc",
+        queue_capacity=16,
+        batch_max_size=8,
+        batch_timeout_seconds=0.01,
+        backpressure_wait_ms=1,
+        drop_on_full=True,
+        sink_write=capture,
+        exceptions_enabled=True,
+        exceptions_max_frames=5,
+        exceptions_max_stack_chars=2000,
+    )
+    logger.start()
+    try:
+        raise ValueError("bad")
+    except ValueError:
+        logger.exception("oops")
+    await asyncio.sleep(0)
+    await logger.stop_and_drain()
+    assert any("error.stack" in e.get("metadata", {}) for e in captured)
+
+
+@pytest.mark.asyncio
+async def test_metrics_submission_paths() -> None:
+    metrics = MetricsCollector(enabled=True)
+    captured: list[dict[str, Any]] = []
+
+    async def capture(entry: dict[str, Any]) -> None:
+        captured.append(entry)
+
+    logger = SyncLoggerFacade(
+        name="m",
+        queue_capacity=8,
+        batch_max_size=4,
+        batch_timeout_seconds=0.01,
+        backpressure_wait_ms=1,
+        drop_on_full=True,
+        sink_write=capture,
+        metrics=metrics,
+    )
+    # Submit and drain within the running loop
+    logger.info("m1")
+    res = await logger.stop_and_drain()
+    assert res.submitted >= 1

@@ -19,6 +19,11 @@ from ..plugins.enrichers import BaseEnricher
 from ..plugins.redactors import BaseRedactor, redact_in_order
 from .concurrency import NonBlockingRingQueue
 from .events import LogEvent
+from .serialization import (
+    SerializedView,
+    serialize_envelope,
+    serialize_mapping_to_json_bytes,
+)
 
 
 class AsyncLogger:
@@ -57,11 +62,13 @@ class SyncLoggerFacade:
         backpressure_wait_ms: int,
         drop_on_full: bool,
         sink_write: Any,
+        sink_write_serialized: Any | None = None,
         enrichers: list[BaseEnricher] | None = None,
         metrics: MetricsCollector | None = None,
         exceptions_enabled: bool = True,
         exceptions_max_frames: int = 50,
         exceptions_max_stack_chars: int = 20000,
+        serialize_in_flush: bool = False,
     ) -> None:
         self._name = name or "root"
         self._queue = NonBlockingRingQueue[dict[str, Any]](capacity=queue_capacity)
@@ -71,6 +78,7 @@ class SyncLoggerFacade:
         self._backpressure_wait_ms = int(backpressure_wait_ms)
         self._drop_on_full = bool(drop_on_full)
         self._sink_write = sink_write
+        self._sink_write_serialized = sink_write_serialized
         self._metrics = metrics
         # Store enrichers with explicit type
         self._enrichers: list[BaseEnricher] = list(enrichers or [])
@@ -89,6 +97,8 @@ class SyncLoggerFacade:
         self._processed = 0
         self._dropped = 0
         self._retried = 0
+        # Fast-path serialization toggle
+        self._serialize_in_flush = bool(serialize_in_flush)
         # Exceptions config
         self._exceptions_enabled = bool(exceptions_enabled)
         self._exceptions_max_frames = int(exceptions_max_frames)
@@ -608,6 +618,54 @@ class SyncLoggerFacade:
                     except Exception:
                         # Contain redaction errors and continue
                         pass
+                # Optional fast-path: pre-serialize once and pass to sink
+                if self._serialize_in_flush and self._sink_write_serialized is not None:
+                    view: SerializedView | None = None
+                    try:
+                        view = serialize_envelope(entry)
+                    except Exception as e:
+                        # Strict vs best-effort behavior mirrors sinks
+                        strict = False
+                        try:
+                            from . import settings as _settings
+
+                            strict = bool(
+                                _settings.Settings().core.strict_envelope_mode
+                            )
+                        except Exception:
+                            strict = False
+                        # Emit diagnostics but contain errors
+                        try:
+                            from .diagnostics import warn as _warn
+
+                            _warn(
+                                "sink",
+                                "envelope serialization error",
+                                mode="strict" if strict else "best-effort",
+                                reason=type(e).__name__,
+                                detail=str(e),
+                            )
+                        except Exception:
+                            pass
+                        if strict:
+                            # Drop entry on strict failure
+                            continue
+                        try:
+                            view = serialize_mapping_to_json_bytes(entry)
+                        except Exception:
+                            # As ultimate containment, fall back to dict write path
+                            view = None
+
+                    if view is not None:
+                        try:
+                            await self._sink_write_serialized(view)
+                            self._processed += 1
+                            continue
+                        except Exception:
+                            # Contain sink errors on serialized path and fall back below
+                            pass
+
+                # Fallback/default path
                 await self._sink_write(entry)
                 self._processed += 1
         except Exception as exc:
