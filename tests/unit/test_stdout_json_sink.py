@@ -8,6 +8,7 @@ from typing import Any
 
 import pytest
 
+from fapilog.core.serialization import serialize_mapping_to_json_bytes
 from fapilog.plugins.sinks.stdout_json import StdoutJsonSink
 
 
@@ -33,6 +34,23 @@ async def test_stdout_json_sink_writes_single_valid_json_line() -> None:
         assert len(data) == 1
         parsed = json.loads(data[0])
         assert parsed == payload
+    finally:
+        sys.stdout = orig  # type: ignore[assignment]
+
+
+@pytest.mark.asyncio
+async def test_stdout_json_sink_write_serialized() -> None:
+    buf, orig = _swap_stdout_bytesio()
+    try:
+        sink = StdoutJsonSink()
+        entry = {"a": 2}
+        view = serialize_mapping_to_json_bytes(entry)
+        await sink.write_serialized(view)
+        sys.stdout.flush()
+        data = buf.getvalue().decode("utf-8").splitlines()
+        assert len(data) == 1
+        parsed = json.loads(data[0])
+        assert parsed == entry
     finally:
         sys.stdout = orig  # type: ignore[assignment]
 

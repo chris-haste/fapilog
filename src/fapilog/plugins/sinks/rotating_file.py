@@ -178,6 +178,51 @@ class RotatingFileSink:
             # Contain sink errors
             return None
 
+    async def write_serialized(self, view: SerializedView) -> None:
+        try:
+            if self._cfg.mode != "json":
+                # Only JSON mode supports serialized fast path; ignore gracefully
+                return None
+            segments = convert_json_bytes_to_jsonl(view)
+            payload_segments: tuple[memoryview, ...] = tuple(
+                segments.iter_memoryviews()
+            )
+            payload_size = segments.total_length
+
+            async with self._lock:
+                # Ensure active file exists
+                if self._active_file is None or self._active_path is None:
+                    await self._open_new_file()
+
+                # Check rotation by time
+                now = time.time()
+                if (
+                    self._next_rotation_deadline is not None
+                    and now >= self._next_rotation_deadline
+                ):
+                    await self._rotate_active_file()
+
+                # Check rotation by size (before write)
+                if (
+                    self._cfg.max_bytes > 0
+                    and (self._active_size + payload_size) > self._cfg.max_bytes
+                ):
+                    await self._rotate_active_file()
+
+                # Write payload segments
+                if self._active_file is not None:
+                    file_obj = self._active_file
+
+                    def _write_segments() -> None:
+                        for seg in payload_segments:
+                            file_obj.write(seg)
+                        file_obj.flush()
+
+                    await asyncio.to_thread(_write_segments)
+                    self._active_size += payload_size
+        except Exception:
+            return None
+
     # Internal helpers
     async def _open_new_file(self) -> None:
         """Open a new active file with a timestamped name and set deadlines."""
@@ -357,4 +402,8 @@ PLUGIN_METADATA = {
 }
 
 # Mark as referenced for static analyzers (vulture)
-_VULTURE_USED: tuple[object, ...] = (RotatingFileSink,)
+_VULTURE_USED: tuple[object, ...] = (
+    RotatingFileSink,
+    RotatingFileSink.write,  # vulture: used
+    RotatingFileSink.write_serialized,  # vulture: used
+)

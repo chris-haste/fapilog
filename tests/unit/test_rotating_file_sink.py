@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from fapilog.core.serialization import serialize_mapping_to_json_bytes
 from fapilog.plugins.sinks.rotating_file import RotatingFileSink, RotatingFileSinkConfig
 
 
@@ -452,3 +453,35 @@ async def test_no_size_rotation_when_max_bytes_zero(tmp_path: Path) -> None:
     files = [p for p in tmp_path.iterdir() if p.is_file()]
     # Only the active file should be present (no rotations by size)
     assert len(files) == 1
+
+
+@pytest.mark.asyncio
+async def test_write_serialized_fast_path_matches_write(tmp_path: Path) -> None:
+    cfg = RotatingFileSinkConfig(
+        directory=tmp_path,
+        filename_prefix="test",
+        mode="json",
+        max_bytes=10_000,
+        interval_seconds=None,
+        max_files=None,
+        max_total_bytes=None,
+        compress_rotated=False,
+    )
+    sink = RotatingFileSink(cfg)
+    await sink.start()
+    try:
+        entry = {"a": 1, "b": "x"}
+        # normal path
+        await sink.write(entry)
+        # fast path
+        view = serialize_mapping_to_json_bytes(entry)
+        await sink.write_serialized(view)
+    finally:
+        await sink.stop()
+    # Validate both lines exist and parse
+    files = [p for p in tmp_path.iterdir() if p.is_file() and p.suffix == ".jsonl"]
+    assert files
+    with open(files[0], "rb") as f:
+        text = f.read().decode("utf-8").strip().splitlines()
+        assert len(text) >= 2
+        assert all(json.loads(line) for line in text[:2])

@@ -128,6 +128,47 @@ async def test_redactor_stage_applies_when_configured() -> None:
 
 
 @pytest.mark.asyncio
+async def test_serialize_in_flush_fast_path_calls_write_serialized() -> None:
+    calls: dict[str, Any] = {"serialized": 0, "bytes": b""}
+
+    class TestSink:
+        async def write(self, entry: dict[str, Any]) -> None:  # pragma: no cover
+            pass
+
+        async def write_serialized(self, view) -> None:  # type: ignore[no-untyped-def]
+            calls["serialized"] += 1
+            calls["bytes"] = bytes(view.data)
+
+    sink = TestSink()
+
+    async def _sink_write(entry: dict[str, Any]) -> None:
+        await sink.write(entry)
+
+    async def _sink_write_serialized(view) -> None:  # type: ignore[no-untyped-def]
+        await sink.write_serialized(view)
+
+    logger = SyncLoggerFacade(
+        name="t",
+        queue_capacity=16,
+        batch_max_size=8,
+        batch_timeout_seconds=0.05,
+        backpressure_wait_ms=10,
+        drop_on_full=True,
+        sink_write=_sink_write,
+        sink_write_serialized=_sink_write_serialized,
+        enrichers=[],
+        metrics=None,
+        serialize_in_flush=True,
+    )
+    logger.start()
+    logger.info("m", i=1)
+    await asyncio.sleep(0.1)
+    await logger.stop_and_drain()
+
+    assert calls["serialized"] >= 1
+
+
+@pytest.mark.asyncio
 async def test_start_is_idempotent_thread_mode() -> None:
     collected: list[dict[str, Any]] = []
     logger = SyncLoggerFacade(
