@@ -195,6 +195,12 @@
       "title": "Sensitive Fields Policy",
       "type": "array"
     },
+    "serialize_in_flush": {
+      "default": false,
+      "description": "If True, pre-serialize envelopes once during flush and pass SerializedView to sinks that support write_serialized",
+      "title": "Serialize In Flush",
+      "type": "boolean"
+    },
     "shutdown_timeout_seconds": {
       "default": 3.0,
       "description": "Maximum time to flush on shutdown signals",

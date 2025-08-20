@@ -166,6 +166,14 @@ class CoreSettings(BaseModel):
         default=False,
         description=("Automatically install unhandled exception hooks (sys/asyncio)"),
     )
+    # Fast-path serialization: serialize once in flush and pass to sinks
+    serialize_in_flush: bool = Field(
+        default=False,
+        description=(
+            "If True, pre-serialize envelopes once during flush and pass"
+            " SerializedView to sinks that support write_serialized"
+        ),
+    )
     # Resource pool defaults (can be overridden per pool at construction)
     resource_pool_max_size: int = Field(
         default=8,

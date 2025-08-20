@@ -30,6 +30,7 @@ This guide documents Settings groups and fields.
 | `core.exceptions_max_stack_chars` | int | 20000 | Maximum total characters for serialized stack string |
 | `core.strict_envelope_mode` | bool | False | If True, drop emission when envelope cannot be produced; otherwise fallback to best-effort serialization with diagnostics |
 | `core.capture_unhandled_enabled` | bool | False | Automatically install unhandled exception hooks (sys/asyncio) |
+| `core.serialize_in_flush` | bool | False | If True, pre-serialize envelopes once during flush and pass SerializedView to sinks that support write_serialized |
 | `core.resource_pool_max_size` | int | 8 | Default max size for resource pools |
 | `core.resource_pool_acquire_timeout_seconds` | float | 2.0 | Default acquire timeout for pools |
 | `core.benchmark_file_path` | str | None | — | Optional path used by performance benchmarks |

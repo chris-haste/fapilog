@@ -7,6 +7,7 @@ from typing import Any
 from ...core import diagnostics
 from ...core.serialization import (
     SerializedView,
+    convert_json_bytes_to_jsonl,
     serialize_envelope,
 )
 
@@ -55,31 +56,40 @@ class StdoutJsonSink:
                 from ...core.serialization import serialize_mapping_to_json_bytes
 
                 view = serialize_mapping_to_json_bytes(entry)
-            # Coalesce write+newline+flush into a single to_thread call
+            # Use segmented JSONL conversion to avoid copying
+            segments = convert_json_bytes_to_jsonl(view)
+            payload_segments: tuple[memoryview, ...] = tuple(
+                segments.iter_memoryviews()
+            )
             async with self._lock:
 
-                def _write_line() -> None:
+                def _write_segments() -> None:
                     buf = sys.stdout.buffer
-                    buf.write(view.data)
-                    buf.write(b"\n")
+                    for seg in payload_segments:
+                        buf.write(seg)
                     buf.flush()
 
-                await asyncio.to_thread(_write_line)
+                await asyncio.to_thread(_write_segments)
         except Exception:
             # Contain sink errors; do not propagate
             return None
 
     async def write_serialized(self, view: SerializedView) -> None:
         try:
+            # Use segmented JSONL conversion to avoid copying
+            segments = convert_json_bytes_to_jsonl(view)
+            payload_segments: tuple[memoryview, ...] = tuple(
+                segments.iter_memoryviews()
+            )
             async with self._lock:
 
-                def _write_line() -> None:
+                def _write_segments() -> None:
                     buf = sys.stdout.buffer
-                    buf.write(view.data)
-                    buf.write(b"\n")
+                    for seg in payload_segments:
+                        buf.write(seg)
                     buf.flush()
 
-                await asyncio.to_thread(_write_line)
+                await asyncio.to_thread(_write_segments)
         except Exception:
             return None
 
