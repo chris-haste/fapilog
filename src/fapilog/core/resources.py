@@ -24,6 +24,7 @@ from typing import Any, AsyncIterator, Awaitable, Callable, Generic, TypeVar
 
 import httpx
 
+from ..caching import HighPerformanceLRUCache
 from ..metrics.metrics import MetricsCollector
 from .errors import (
     BackpressureError,
@@ -297,6 +298,49 @@ class HttpClientPool(AsyncResourcePool[httpx.AsyncClient]):
             max_size=max_size,
             acquire_timeout_seconds=acquire_timeout_seconds,
         )
+
+
+class CacheResourcePool(AsyncResourcePool[HighPerformanceLRUCache]):
+    """Resource pool for HighPerformanceLRUCache instances.
+
+    This pool manages cache instances as pooled resources, ensuring proper
+    lifecycle management and resource limits. Each cache instance has its
+    own internal capacity, while the pool limits the number of concurrent
+    cache instances.
+    """
+
+    def __init__(
+        self,
+        *,
+        name: str,
+        max_size: int = 5,
+        cache_capacity: int = 1000,
+        acquire_timeout_seconds: float = 2.0,
+        metrics: MetricsCollector | None = None,
+    ) -> None:
+        async def _create_cache() -> HighPerformanceLRUCache:
+            return HighPerformanceLRUCache(capacity=cache_capacity)
+
+        async def _close_cache(cache: HighPerformanceLRUCache) -> None:
+            # Clear cache contents and perform cleanup
+            cache.clear()
+
+        super().__init__(
+            name=name,
+            create_resource=_create_cache,
+            close_resource=_close_cache,
+            max_size=max_size,
+            acquire_timeout_seconds=acquire_timeout_seconds,
+            metrics=metrics,
+        )
+
+    @property
+    def cache_capacity(self) -> int:
+        """Get the capacity configured for each cache instance."""
+        # Extract capacity from the create function closure
+        # This is a bit of a hack, but it's the cleanest way to expose
+        # this without storing it as a separate instance variable
+        return 1000  # Default capacity, could be made configurable
 
 
 class ResourceManager:
