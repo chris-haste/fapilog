@@ -888,17 +888,22 @@
 <td><p>False</p></td>
 <td><p>Automatically install unhandled exception hooks (sys/asyncio)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.resource_pool_max_size</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.serialize_in_flush</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><p>If True, pre-serialize envelopes once during flush and pass SerializedView to sinks that support write_serialized</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.resource_pool_max_size</span></code></p></td>
 <td><p>int</p></td>
 <td><p>8</p></td>
 <td><p>Default max size for resource pools</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.resource_pool_acquire_timeout_seconds</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.resource_pool_acquire_timeout_seconds</span></code></p></td>
 <td><p>float</p></td>
 <td><p>2.0</p></td>
 <td><p>Default acquire timeout for pools</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.benchmark_file_path</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.benchmark_file_path</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
@@ -1213,7 +1218,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on August 19, 2025.
+      <span class="lastupdated">Last updated on August 20, 2025.
       </span></p>
   </div>
 
