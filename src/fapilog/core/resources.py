@@ -231,9 +231,7 @@ class AsyncResourcePool(Generic[T]):
         # Best effort: close any resources we created but aren't idle
         # (e.g., still referenced elsewhere). This may double-close if
         # resources are robust; we guard with try/except.
-        remaining: list[T] = [
-            r for r in self._all_resources if r not in idle_to_close
-        ]
+        remaining: list[T] = [r for r in self._all_resources if r not in idle_to_close]
         if remaining:
             await asyncio.gather(
                 *(_close_safe(r) for r in remaining),
@@ -285,8 +283,7 @@ class HttpClientPool(AsyncResourcePool[httpx.AsyncClient]):
                 timeout=timeout,
                 verify=verify_tls,
                 limits=httpx.Limits(
-                    max_connections=None,
-                    max_keepalive_connections=max_size
+                    max_connections=None, max_keepalive_connections=max_size
                 ),
             )
 
@@ -325,8 +322,7 @@ class CacheResourcePool(AsyncResourcePool[HighPerformanceLRUCache]):
             # Get the current event loop for this cache instance
             current_loop = asyncio.get_running_loop()
             return HighPerformanceLRUCache(
-                capacity=cache_capacity,
-                event_loop=current_loop
+                capacity=cache_capacity, event_loop=current_loop
             )
 
         async def _close_cache(cache: HighPerformanceLRUCache) -> None:
@@ -341,6 +337,12 @@ class CacheResourcePool(AsyncResourcePool[HighPerformanceLRUCache]):
             acquire_timeout_seconds=acquire_timeout_seconds,
             metrics=metrics,
         )
+
+    async def cleanup(self) -> None:
+        """Clean up all cache instances in the pool."""
+        await super().cleanup()  # Call parent cleanup
+        # Additional cache-specific cleanup if needed
+        # The parent cleanup already handles closing all resources
 
     @property
     def cache_capacity(self) -> int:

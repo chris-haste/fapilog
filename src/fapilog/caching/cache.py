@@ -8,7 +8,7 @@ cache APIs while providing O(1) performance characteristics.
 
 import asyncio
 from collections import OrderedDict
-from typing import Any, Iterator
+from typing import Any, Iterator, Optional
 
 from typing_extensions import Protocol
 
@@ -53,9 +53,7 @@ class HighPerformanceLRUCache:
     def __init__(
         self,
         capacity: int = 1000,
-        event_loop: (
-            asyncio.AbstractEventLoop | None
-        ) = None
+        event_loop: Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
         """
         Initialize the cache with specified capacity and event loop binding.
@@ -73,7 +71,9 @@ class HighPerformanceLRUCache:
 
         # Bind to specific event loop for async operations
         try:
-            self._loop = event_loop or asyncio.get_running_loop()
+            self._loop: Optional[asyncio.AbstractEventLoop] = (
+                event_loop or asyncio.get_running_loop()
+            )
         except RuntimeError:
             # No running loop in current context
             self._loop = None
@@ -83,7 +83,7 @@ class HighPerformanceLRUCache:
     def _validate_event_loop(self) -> None:
         """
         Validate that the current event loop matches the bound event loop.
-        
+
         Raises:
             RuntimeError: If cache is bound to a different event loop
         """
@@ -230,7 +230,7 @@ class HighPerformanceLRUCache:
     async def aclear(self) -> None:
         """
         Clear all items from cache (asynchronous).
-        
+
         Raises:
             RuntimeError: If cache is bound to a different event loop
         """
@@ -264,7 +264,7 @@ class HighPerformanceLRUCache:
         """Check if cache is at capacity."""
         return len(self._ordered_dict) >= self._capacity
 
-    def get_bound_event_loop(self) -> asyncio.AbstractEventLoop | None:
+    def get_bound_event_loop(self) -> Optional[asyncio.AbstractEventLoop]:
         """Get the event loop this cache is bound to."""
         return self._loop
 
@@ -275,11 +275,36 @@ class HighPerformanceLRUCache:
     def rebind_to_event_loop(self, event_loop: asyncio.AbstractEventLoop) -> None:
         """
         Rebind the cache to a different event loop.
-        
+
         This is useful for testing or when the cache needs to be moved
         to a different event loop context.
-        
+
         Args:
             event_loop: New event loop to bind to
         """
         self._loop = event_loop
+
+    async def cleanup(self) -> None:
+        """
+        Guaranteed cleanup that never raises exceptions.
+        
+        This method ensures all cache resources are properly released
+        and internal state is reset. It's designed to be called during
+        container cleanup and never raises exceptions.
+        """
+        try:
+            # Clear cache contents
+            if hasattr(self, '_ordered_dict') and self._ordered_dict is not None:
+                self._ordered_dict.clear()
+            
+            # Don't reset capacity to 0 as it breaks cache functionality
+            # Just clear the contents to release memory
+            
+            # Clear event loop binding
+            self._loop = None
+            
+            # Note: self._lock is not cleared as it's a simple asyncio.Lock
+        except Exception:
+            # Log but never raise during cleanup
+            # This ensures container cleanup can complete
+            pass
