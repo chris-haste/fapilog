@@ -673,7 +673,15 @@ class SyncLoggerFacade:
             self._dropped += len(batch)
             if self._metrics is not None:
                 try:
-                    await self._metrics.record_sink_error(sink="stdout")
+                    # Attempt to derive a sink name if available via write callable
+                    sink_name = None
+                    try:
+                        target = getattr(self._sink_write, "__self__", None)
+                        if target is not None:
+                            sink_name = type(target).__name__
+                    except Exception:
+                        sink_name = None
+                    await self._metrics.record_sink_error(sink=sink_name)
                 except Exception:
                     pass
             # Optional diagnostics

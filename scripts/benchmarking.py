@@ -48,7 +48,7 @@ def _setup_stdlib_logger(file_path: Path) -> logging.Logger:
     return logger
 
 
-def _setup_fapilog_logger(directory: Path):
+def _setup_fapilog_logger(directory: Path, *, serialize_in_flush: bool | None = None):
     # Configure fapilog to write to rotating file sink in a temp directory
     # via environment variables that get_logger() reads.
     os.environ["FAPILOG_FILE__DIRECTORY"] = str(directory)
@@ -57,8 +57,12 @@ def _setup_fapilog_logger(directory: Path):
     # Import lazily after env vars are set
     from fapilog import get_logger  # type: ignore
 
-    # Enable fast-path when present
+    # Fast-path and strict mode defaults for benchmarking
     os.environ.setdefault("FAPILOG_CORE__STRICT_ENVELOPE_MODE", "0")
+    if serialize_in_flush is not None:
+        os.environ["FAPILOG_CORE__SERIALIZE_IN_FLUSH"] = (
+            "1" if serialize_in_flush else "0"
+        )
     return get_logger(name="benchmark_fapilog")
 
 
@@ -131,33 +135,44 @@ def benchmark(
         # fapilog logger setup (to its own rotating file directory)
         fapi_dir = tmp / "fapilog"
         fapi_dir.mkdir(parents=True, exist_ok=True)
-        fapi_logger = _setup_fapilog_logger(fapi_dir)
+        # Prepare two loggers: fastpath OFF and ON
+        fapi_logger_off = _setup_fapilog_logger(fapi_dir, serialize_in_flush=False)
+        fapi_logger_on = _setup_fapilog_logger(fapi_dir, serialize_in_flush=True)
         fapi_payload = _generate_payload(payload_size)
 
-        def fapi_call() -> None:
+        def fapi_call_off() -> None:
             # fapilog will JSON-serialize dict payloads
-            fapi_logger.info("bench", extra={"payload": fapi_payload})
+            fapi_logger_off.info("bench", extra={"payload": fapi_payload})
+
+        def fapi_call_on() -> None:
+            fapi_logger_on.info("bench", extra={"payload": fapi_payload})
 
         # Warmup
         for _ in range(1000):
             std_call()
-            fapi_call()
+            fapi_call_off()
+            fapi_call_on()
 
         # Throughput
         std_elapsed, std_rate = _run_throughput(std_call, iterations)
-        fapi_elapsed, fapi_rate = _run_throughput(fapi_call, iterations)
+        fapi_elapsed_off, fapi_rate_off = _run_throughput(fapi_call_off, iterations)
+        fapi_elapsed_on, fapi_rate_on = _run_throughput(fapi_call_on, iterations)
 
         # Latency (shorter to reduce timer overhead influence)
         std_lat = _run_latency(std_call, latency_iterations)
-        fapi_lat = _run_latency(fapi_call, latency_iterations)
+        fapi_lat_off = _run_latency(fapi_call_off, latency_iterations)
+        fapi_lat_on = _run_latency(fapi_call_on, latency_iterations)
 
         # Memory (peak tracemalloc during run)
         std_peak = _run_memory(std_call, iterations)
-        fapi_peak = _run_memory(fapi_call, iterations)
+        fapi_peak_off = _run_memory(fapi_call_off, iterations)
+        fapi_peak_on = _run_memory(fapi_call_on, iterations)
 
         # Ensure sinks flush
         with contextlib.suppress(Exception):
-            fapi_logger.close()
+            fapi_logger_off.close()
+        with contextlib.suppress(Exception):
+            fapi_logger_on.close()
         for h in list(std_logger.handlers):
             with contextlib.suppress(Exception):
                 h.flush()
@@ -167,10 +182,20 @@ def benchmark(
 
         results["throughput"] = {
             "stdlib_logs_per_sec": std_rate,
-            "fapilog_logs_per_sec": fapi_rate,
-            "speedup_factor": (fapi_rate / std_rate) if std_rate > 0 else float("inf"),
+            "fapilog_off_logs_per_sec": fapi_rate_off,
+            "fapilog_on_logs_per_sec": fapi_rate_on,
+            "speedup_factor_off": (fapi_rate_off / std_rate)
+            if std_rate > 0
+            else float("inf"),
+            "speedup_factor_on": (fapi_rate_on / std_rate)
+            if std_rate > 0
+            else float("inf"),
+            "fastpath_speedup_vs_off": (fapi_rate_on / fapi_rate_off)
+            if fapi_rate_off > 0
+            else float("inf"),
             "stdlib_elapsed_s": std_elapsed,
-            "fapilog_elapsed_s": fapi_elapsed,
+            "fapilog_off_elapsed_s": fapi_elapsed_off,
+            "fapilog_on_elapsed_s": fapi_elapsed_on,
         }
 
         def _fmt_lat(d: dict[str, float]) -> dict[str, float]:
@@ -178,18 +203,34 @@ def benchmark(
 
         results["latency_us"] = {
             "stdlib": _fmt_lat(std_lat),
-            "fapilog": _fmt_lat(fapi_lat),
-            "reduction_pct_avg": _reduction_pct(std_lat["avg_us"], fapi_lat["avg_us"]),
-            "reduction_pct_median": _reduction_pct(
-                std_lat["median_us"], fapi_lat["median_us"]
+            "fapilog_off": _fmt_lat(fapi_lat_off),
+            "fapilog_on": _fmt_lat(fapi_lat_on),
+            "reduction_pct_avg_off": _reduction_pct(
+                std_lat["avg_us"], fapi_lat_off["avg_us"]
             ),
-            "reduction_pct_p95": _reduction_pct(std_lat["p95_us"], fapi_lat["p95_us"]),
+            "reduction_pct_avg_on": _reduction_pct(
+                std_lat["avg_us"], fapi_lat_on["avg_us"]
+            ),
+            "reduction_pct_median_off": _reduction_pct(
+                std_lat["median_us"], fapi_lat_off["median_us"]
+            ),
+            "reduction_pct_median_on": _reduction_pct(
+                std_lat["median_us"], fapi_lat_on["median_us"]
+            ),
+            "reduction_pct_p95_off": _reduction_pct(
+                std_lat["p95_us"], fapi_lat_off["p95_us"]
+            ),
+            "reduction_pct_p95_on": _reduction_pct(
+                std_lat["p95_us"], fapi_lat_on["p95_us"]
+            ),
         }
 
         results["memory_peak_bytes"] = {
             "stdlib": int(std_peak),
-            "fapilog": int(fapi_peak),
-            "reduction_pct": _reduction_pct(std_peak, fapi_peak),
+            "fapilog_off": int(fapi_peak_off),
+            "fapilog_on": int(fapi_peak_on),
+            "reduction_pct_off": _reduction_pct(std_peak, fapi_peak_off),
+            "reduction_pct_on": _reduction_pct(std_peak, fapi_peak_on),
         }
 
     return results
