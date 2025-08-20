@@ -12,7 +12,7 @@ import contextvars
 import threading
 import time
 from dataclasses import dataclass
-from typing import Any, Iterable
+from typing import Any, Iterable, cast
 
 from ..metrics.metrics import MetricsCollector
 from ..plugins.enrichers import BaseEnricher
@@ -364,7 +364,7 @@ class SyncLoggerFacade:
             self._loop_thread_ident is not None
             and self._loop_thread_ident == threading.get_ident()
         ):
-            if self._queue.try_enqueue(dict(payload)):
+            if self._queue.try_enqueue(cast(dict[str, Any], payload)):
                 qsize = self._queue.qsize()
                 if qsize > self._queue_high_watermark:
                     self._queue_high_watermark = qsize
@@ -389,7 +389,7 @@ class SyncLoggerFacade:
             try:
                 fut = asyncio.run_coroutine_threadsafe(
                     self._async_enqueue(
-                        dict(payload),
+                        cast(dict[str, Any], payload),
                         timeout=wait_seconds,
                     ),
                     loop,

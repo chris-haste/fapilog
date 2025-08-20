@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import sys
 from typing import Any
 
@@ -53,7 +54,9 @@ class StdoutJsonSink:
                 )
                 if strict:
                     return None
-                from ...core.serialization import serialize_mapping_to_json_bytes
+                from ...core.serialization import (
+                    serialize_mapping_to_json_bytes,
+                )
 
                 view = serialize_mapping_to_json_bytes(entry)
             # Use segmented JSONL conversion to avoid copying
@@ -64,10 +67,23 @@ class StdoutJsonSink:
             async with self._lock:
 
                 def _write_segments() -> None:
+                    # Prefer zero-copy vectored write if available
+                    try:
+                        if hasattr(os, "writev"):
+                            fd = sys.stdout.buffer.fileno()
+                            os.writev(fd, list(payload_segments))
+                            return
+                    except Exception:
+                        # Fallback to buffered writes below
+                        pass
                     buf = sys.stdout.buffer
-                    for seg in payload_segments:
-                        buf.write(seg)
-                    buf.flush()
+                    try:
+                        buf.writelines(payload_segments)
+                    finally:
+                        try:
+                            buf.flush()
+                        except Exception:
+                            pass
 
                 await asyncio.to_thread(_write_segments)
         except Exception:
@@ -84,10 +100,23 @@ class StdoutJsonSink:
             async with self._lock:
 
                 def _write_segments() -> None:
+                    # Prefer zero-copy vectored write if available
+                    try:
+                        if hasattr(os, "writev"):
+                            fd = sys.stdout.buffer.fileno()
+                            os.writev(fd, list(payload_segments))
+                            return
+                    except Exception:
+                        # Fallback to buffered writes below
+                        pass
                     buf = sys.stdout.buffer
-                    for seg in payload_segments:
-                        buf.write(seg)
-                    buf.flush()
+                    try:
+                        buf.writelines(payload_segments)
+                    finally:
+                        try:
+                            buf.flush()
+                        except Exception:
+                            pass
 
                 await asyncio.to_thread(_write_segments)
         except Exception:
