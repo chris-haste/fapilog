@@ -12,6 +12,12 @@ from typing import Any, Iterator, Optional
 
 from typing_extensions import Protocol
 
+from ..core.errors import (
+    CacheCapacityError,
+    CacheMissError,
+    CacheOperationError,
+)
+
 
 class CacheProtocol(Protocol):
     """Protocol defining the interface for cache implementations."""
@@ -153,24 +159,36 @@ class HighPerformanceLRUCache:
             key: Cache key
 
         Returns:
-            Cached value or None if not found
+            Cached value
 
         Raises:
+            CacheMissError: If cache key is not found
             RuntimeError: If cache is bound to a different event loop
+            CacheOperationError: If cache operation fails
         """
         if not isinstance(key, str):
             raise TypeError("Cache key must be a string")
 
-        # Ensure operation executes on correct event loop
-        self._validate_event_loop()
+        try:
+            # Ensure operation executes on correct event loop
+            self._validate_event_loop()
 
-        async with self._lock:
-            if key in self._ordered_dict:
-                # Move to end (most recently used)
-                value = self._ordered_dict.pop(key)
-                self._ordered_dict[key] = value
-                return value
-            return None
+            async with self._lock:
+                if key in self._ordered_dict:
+                    # Move to end (most recently used)
+                    value = self._ordered_dict.pop(key)
+                    self._ordered_dict[key] = value
+                    return value
+                else:
+                    # Cache miss - raise specific error
+                    raise CacheMissError(key)
+        except (CacheMissError, RuntimeError):
+            # Re-raise these specific errors
+            raise
+        except Exception as e:
+            # Log error and degrade gracefully
+            # Re-raise as cache operation error with proper context
+            raise CacheOperationError("get", key, cause=e) from e
 
     async def aset(self, key: str, value: Any) -> None:
         """
@@ -182,22 +200,32 @@ class HighPerformanceLRUCache:
 
         Raises:
             RuntimeError: If cache is bound to a different event loop
+            CacheCapacityError: If cache capacity is exceeded
+            CacheOperationError: If cache operation fails
         """
         if not isinstance(key, str):
             raise TypeError("Cache key must be a string")
 
-        # Ensure operation executes on correct event loop
-        self._validate_event_loop()
+        try:
+            # Ensure operation executes on correct event loop
+            self._validate_event_loop()
 
-        async with self._lock:
-            if key in self._ordered_dict:
-                # Update existing key (move to end)
-                self._ordered_dict.pop(key)
-            elif len(self._ordered_dict) >= self._capacity:
-                # Remove least recently used item
-                self._ordered_dict.popitem(last=False)
+            async with self._lock:
+                if key in self._ordered_dict:
+                    # Update existing key (move to end)
+                    self._ordered_dict.pop(key)
+                elif len(self._ordered_dict) >= self._capacity:
+                    # Remove least recently used item
+                    self._ordered_dict.popitem(last=False)
 
-            self._ordered_dict[key] = value
+                self._ordered_dict[key] = value
+        except (RuntimeError, CacheCapacityError):
+            # Re-raise these specific errors
+            raise
+        except Exception as e:
+            # Log error and degrade gracefully
+            # Re-raise as cache operation error with proper context
+            raise CacheOperationError("set", key, cause=e) from e
 
     # Dictionary-style interface for compatibility
     def __getitem__(self, key: str) -> Any:
@@ -233,12 +261,21 @@ class HighPerformanceLRUCache:
 
         Raises:
             RuntimeError: If cache is bound to a different event loop
+            CacheOperationError: If cache operation fails
         """
-        # Ensure operation executes on correct event loop
-        self._validate_event_loop()
+        try:
+            # Ensure operation executes on correct event loop
+            self._validate_event_loop()
 
-        async with self._lock:
-            self._ordered_dict.clear()
+            async with self._lock:
+                self._ordered_dict.clear()
+        except RuntimeError:
+            # Re-raise runtime errors
+            raise
+        except Exception as e:
+            # Log error and degrade gracefully
+            # Re-raise as cache operation error with proper context
+            raise CacheOperationError("clear", "", cause=e) from e
 
     def keys(self) -> list[str]:
         """Get all cache keys."""

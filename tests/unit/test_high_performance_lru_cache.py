@@ -120,10 +120,12 @@ class TestHighPerformanceLRUCache:
 
     @pytest.mark.asyncio
     async def test_async_get_nonexistent_key(self):
-        """Test getting nonexistent key returns None."""
+        """Test getting nonexistent key raises CacheMissError."""
+        from fapilog.core.errors import CacheMissError
+        
         cache = HighPerformanceLRUCache()
-        result = await cache.aget("nonexistent")
-        assert result is None
+        with pytest.raises(CacheMissError):
+            await cache.aget("nonexistent")
 
     @pytest.mark.asyncio
     async def test_async_lru_eviction(self):
@@ -144,7 +146,11 @@ class TestHighPerformanceLRUCache:
         assert cache.get_size() == 2
         assert await cache.aget("key1") == "value1"  # Still there
         assert await cache.aget("key3") == "value3"  # New key
-        assert await cache.aget("key2") is None  # Evicted
+        
+        # key2 should be evicted - should raise CacheMissError
+        from fapilog.core.errors import CacheMissError
+        with pytest.raises(CacheMissError):
+            await cache.aget("key2")
 
     @pytest.mark.asyncio
     async def test_async_invalid_key_type(self):
@@ -616,8 +622,13 @@ class TestCacheCleanup:
         # Clear cache
         await cache.aclear()
         assert cache.get_size() == 0
-        assert await cache.aget("key1") is None
-        assert await cache.aget("key2") is None
+        
+        # Keys should be cleared - should raise CacheMissError
+        from fapilog.core.errors import CacheMissError
+        with pytest.raises(CacheMissError):
+            await cache.aget("key1")
+        with pytest.raises(CacheMissError):
+            await cache.aget("key2")
 
     @pytest.mark.asyncio
     async def test_cleanup_method(self):
@@ -871,3 +882,288 @@ class TestCacheCleanup:
         import inspect
         sig = inspect.signature(cache.cleanup)
         assert str(sig) == '() -> None'
+
+
+# Cache Error Handling Tests
+class TestCacheErrorHandling:
+    """Test suite for cache error handling functionality."""
+
+    @pytest.mark.asyncio
+    async def test_cache_miss_error_raised(self):
+        """Test that CacheMissError is raised for missing keys."""
+        from fapilog.core.errors import CacheMissError
+        
+        cache = HighPerformanceLRUCache(capacity=100)
+        
+        # Try to get non-existent key
+        with pytest.raises(CacheMissError) as exc_info:
+            await cache.aget("nonexistent_key")
+        
+        error = exc_info.value
+        assert error.cache_key == "nonexistent_key"
+        assert error.context.category.value == "system"
+        assert error.context.severity.value == "low"
+        assert error.context.recovery_strategy.value == "fallback"
+
+    @pytest.mark.asyncio
+    async def test_cache_operation_error_on_exception(self):
+        """Test that CacheOperationError is raised for operation failures."""
+        from fapilog.core.errors import CacheOperationError
+        
+        cache = HighPerformanceLRUCache(capacity=100)
+        
+        # Corrupt the cache to cause an exception
+        cache._ordered_dict = None
+        
+        # Try to get a key - should raise CacheOperationError
+        with pytest.raises(CacheOperationError) as exc_info:
+            await cache.aget("test_key")
+        
+        error = exc_info.value
+        assert error.operation == "get"
+        assert error.cache_key == "test_key"
+        assert error.context.category.value == "system"
+        assert error.context.severity.value == "medium"
+        assert error.context.recovery_strategy.value == "fallback"
+
+    @pytest.mark.asyncio
+    async def test_cache_operation_error_on_set_failure(self):
+        """Test that CacheOperationError is raised for set failures."""
+        from fapilog.core.errors import CacheOperationError
+        
+        cache = HighPerformanceLRUCache(capacity=100)
+        
+        # Corrupt the cache to cause an exception
+        cache._ordered_dict = None
+        
+        # Try to set a key - should raise CacheOperationError
+        with pytest.raises(CacheOperationError) as exc_info:
+            await cache.aset("test_key", "test_value")
+        
+        error = exc_info.value
+        assert error.operation == "set"
+        assert error.cache_key == "test_key"
+        assert error.context.category.value == "system"
+        assert error.context.severity.value == "medium"
+        assert error.context.recovery_strategy.value == "fallback"
+
+    @pytest.mark.asyncio
+    async def test_cache_operation_error_on_clear_failure(self):
+        """Test that CacheOperationError is raised for clear failures."""
+        from fapilog.core.errors import CacheOperationError
+        
+        cache = HighPerformanceLRUCache(capacity=100)
+        
+        # Corrupt the cache to cause an exception
+        cache._ordered_dict = None
+        
+        # Try to clear cache - should raise CacheOperationError
+        with pytest.raises(CacheOperationError) as exc_info:
+            await cache.aclear()
+        
+        error = exc_info.value
+        assert error.operation == "clear"
+        assert error.cache_key == ""  # Empty string for clear operation
+        assert error.context.category.value == "system"
+        assert error.context.severity.value == "medium"
+        assert error.context.recovery_strategy.value == "fallback"
+
+    @pytest.mark.asyncio
+    async def test_runtime_error_preserved(self):
+        """Test that RuntimeError (event loop mismatch) is preserved."""
+        cache = HighPerformanceLRUCache(capacity=100)
+        
+        # Create a mock loop with different ID
+        class MockLoop:
+            def __init__(self, loop_id):
+                self.loop_id = loop_id
+            
+            def __eq__(self, other):
+                return False  # Always different
+        
+        mock_loop = MockLoop(999)
+        
+        # Bind cache to mock loop
+        cache.rebind_to_event_loop(mock_loop)
+        
+        # Try to use cache from current loop - should raise RuntimeError
+        with pytest.raises(RuntimeError) as exc_info:
+            await cache.aget("test_key")
+        
+        # Should be the event loop mismatch error
+        assert "Cache bound to different event loop" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_type_error_preserved(self):
+        """Test that TypeError (invalid key type) is preserved."""
+        cache = HighPerformanceLRUCache(capacity=100)
+        
+        # Try to use invalid key type - should raise TypeError
+        with pytest.raises(TypeError) as exc_info:
+            await cache.aget(123)  # Invalid key type
+        
+        assert "Cache key must be a string" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_error_context_preservation(self):
+        """Test that error context is properly preserved."""
+        from fapilog.core.errors import CacheMissError
+        
+        cache = HighPerformanceLRUCache(capacity=100)
+        
+        try:
+            await cache.aget("nonexistent_key")
+        except CacheMissError as e:
+            # Verify error context is captured
+            assert e.context is not None
+            assert e.context.error_id is not None
+            assert e.context.timestamp is not None
+            assert e.context.category.value == "system"
+            assert e.context.severity.value == "low"
+            assert e.context.recovery_strategy.value == "fallback"
+            
+            # Verify cache key is preserved
+            assert e.cache_key == "nonexistent_key"
+        else:
+            pytest.fail("Expected CacheMissError to be raised")
+
+    @pytest.mark.asyncio
+    async def test_error_cause_preservation(self):
+        """Test that error cause is properly preserved."""
+        from fapilog.core.errors import CacheOperationError
+        
+        cache = HighPerformanceLRUCache(capacity=100)
+        
+        # Corrupt the cache to cause an exception
+        original_dict = cache._ordered_dict
+        cache._ordered_dict = None
+        
+        try:
+            await cache.aset("test_key", "test_value")
+        except CacheOperationError as e:
+            # Verify cause is preserved
+            assert e.__cause__ is not None
+            assert "TypeError" in str(type(e.__cause__))
+            
+            # Verify operation details
+            assert e.operation == "set"
+            assert e.cache_key == "test_key"
+        else:
+            pytest.fail("Expected CacheOperationError to be raised")
+        finally:
+            # Restore cache
+            cache._ordered_dict = original_dict
+
+    @pytest.mark.asyncio
+    async def test_graceful_degradation_on_cache_failure(self):
+        """Test that cache failures don't crash the system."""
+        cache = HighPerformanceLRUCache(capacity=100)
+        
+        # Add some data first
+        await cache.aset("key1", "value1")
+        assert await cache.aget("key1") == "value1"
+        
+        # Corrupt the cache
+        cache._ordered_dict = None
+        
+        # Cache operations should fail gracefully with proper errors
+        from fapilog.core.errors import CacheOperationError
+        
+        with pytest.raises(CacheOperationError):
+            await cache.aget("key1")
+        
+        with pytest.raises(CacheOperationError):
+            await cache.aset("key2", "test_value")
+        
+        with pytest.raises(CacheOperationError):
+            await cache.aclear()
+
+    @pytest.mark.asyncio
+    async def test_cache_miss_vs_cache_failure_distinction(self):
+        """Test that cache miss and cache failure are properly distinguished."""
+        from fapilog.core.errors import CacheMissError, CacheOperationError
+        
+        cache = HighPerformanceLRUCache(capacity=100)
+        
+        # Cache miss - should raise CacheMissError
+        with pytest.raises(CacheMissError):
+            await cache.aget("nonexistent_key")
+        
+        # Corrupt cache to cause failure
+        cache._ordered_dict = None
+        
+        # Cache failure - should raise CacheOperationError
+        with pytest.raises(CacheOperationError):
+            await cache.aget("nonexistent_key")
+
+    @pytest.mark.asyncio
+    async def test_error_inheritance_hierarchy(self):
+        """Test that cache errors follow proper inheritance hierarchy."""
+        from fapilog.core.errors import (
+            CacheError,
+            CacheMissError,
+            CacheOperationError,
+            FapilogError,
+        )
+        
+        # Test inheritance
+        assert issubclass(CacheError, FapilogError)
+        assert issubclass(CacheMissError, CacheError)
+        assert issubclass(CacheOperationError, CacheError)
+        
+        # Test that instances are of correct types
+        cache = HighPerformanceLRUCache(capacity=100)
+        
+        # Cache miss error
+        with pytest.raises(CacheMissError) as exc_info:
+            await cache.aget("nonexistent_key")
+        
+        error = exc_info.value
+        assert isinstance(error, CacheMissError)
+        assert isinstance(error, CacheError)
+        assert isinstance(error, FapilogError)
+
+    @pytest.mark.asyncio
+    async def test_error_message_formatting(self):
+        """Test that error messages are properly formatted."""
+        from fapilog.core.errors import CacheMissError, CacheOperationError
+        
+        cache = HighPerformanceLRUCache(capacity=100)
+        
+        # Test cache miss error message
+        with pytest.raises(CacheMissError) as exc_info:
+            await cache.aget("test_key")
+        
+        error = exc_info.value
+        assert "Cache key not found: test_key" in str(error)
+        
+        # Test cache operation error message
+        cache._ordered_dict = None
+        
+        with pytest.raises(CacheOperationError) as exc_info:
+            await cache.aset("test_key", "test_value")
+        
+        error = exc_info.value
+        assert "Cache operation 'set' failed for key 'test_key'" in str(error)
+
+    @pytest.mark.asyncio
+    async def test_error_context_metadata(self):
+        """Test that error context metadata is properly set."""
+        from fapilog.core.errors import CacheMissError
+        
+        cache = HighPerformanceLRUCache(capacity=100)
+        
+        try:
+            await cache.aget("nonexistent_key")
+        except CacheMissError as e:
+            # Verify metadata is captured
+            assert e.context.metadata is not None
+            
+            # Verify error context has required fields
+            assert e.context.error_id is not None
+            assert e.context.timestamp is not None
+            assert e.context.category.value == "system"
+            assert e.context.severity.value == "low"
+            assert e.context.recovery_strategy.value == "fallback"
+        else:
+            pytest.fail("Expected CacheMissError to be raised")
