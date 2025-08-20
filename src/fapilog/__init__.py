@@ -85,24 +85,18 @@ def get_logger(
     if file_dir:
         rfc = _RotatingFileSinkConfig(
             directory=_Path(file_dir),
-            filename_prefix=_os.getenv(
-                "FAPILOG_FILE__FILENAME_PREFIX", "fapilog"
-            ),
+            filename_prefix=_os.getenv("FAPILOG_FILE__FILENAME_PREFIX", "fapilog"),
             mode=_os.getenv("FAPILOG_FILE__MODE", "json"),
-            max_bytes=int(
-                _os.getenv("FAPILOG_FILE__MAX_BYTES", "10485760")
-            ),
+            max_bytes=int(_os.getenv("FAPILOG_FILE__MAX_BYTES", "10485760")),
             interval_seconds=(
                 int(_os.getenv("FAPILOG_FILE__INTERVAL_SECONDS", "0")) or None
             ),
             max_files=(int(_os.getenv("FAPILOG_FILE__MAX_FILES", "0")) or None),
             max_total_bytes=(
-                int(_os.getenv("FAPILOG_FILE__MAX_TOTAL_BYTES", "0"))
-                or None
+                int(_os.getenv("FAPILOG_FILE__MAX_TOTAL_BYTES", "0")) or None
             ),
             compress_rotated=(
-                _os.getenv("FAPILOG_FILE__COMPRESS_ROTATED", "false")
-                .lower()
+                _os.getenv("FAPILOG_FILE__COMPRESS_ROTATED", "false").lower()
                 in {"1", "true", "yes"}
             ),
         )
@@ -113,7 +107,7 @@ def get_logger(
 
     async def _sink_write(entry: dict) -> None:
         # Ensure sink is started if it has a start method
-        if hasattr(sink, 'start') and not getattr(sink, '_started', False):
+        if hasattr(sink, "start") and not getattr(sink, "_started", False):
             try:
                 await sink.start()
                 sink._started = True

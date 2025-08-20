@@ -45,9 +45,7 @@ async def test_generic_pool_constructor_validation():
         )
 
     # Test invalid acquire_timeout_seconds
-    with pytest.raises(
-        ValueError, match="acquire_timeout_seconds must be > 0"
-    ):
+    with pytest.raises(ValueError, match="acquire_timeout_seconds must be > 0"):
         AsyncResourcePool[int](
             name="test",
             create_resource=create_item,
@@ -56,9 +54,7 @@ async def test_generic_pool_constructor_validation():
             acquire_timeout_seconds=0,
         )
 
-    with pytest.raises(
-        ValueError, match="acquire_timeout_seconds must be > 0"
-    ):
+    with pytest.raises(ValueError, match="acquire_timeout_seconds must be > 0"):
         AsyncResourcePool[int](
             name="test",
             create_resource=create_item,
@@ -334,10 +330,10 @@ async def test_cache_resource_pool_basic():
     # Acquire cache instances
     async with pool.acquire() as cache1:
         assert cache1 is not None
-        assert hasattr(cache1, 'get')
-        assert hasattr(cache1, 'set')
-        assert hasattr(cache1, 'aget')
-        assert hasattr(cache1, 'aset')
+        assert hasattr(cache1, "get")
+        assert hasattr(cache1, "set")
+        assert hasattr(cache1, "aget")
+        assert hasattr(cache1, "aset")
 
         # Test cache functionality
         cache1.set("key1", "value1")
@@ -542,8 +538,8 @@ async def test_cache_resource_pool_concurrent_access():
     # Verify pool stats
     stats = await pool.stats()
     assert stats.created <= 5  # Should not exceed max_size
-    assert stats.in_use == 0   # All should be released
-    assert stats.idle <= 5     # Should not exceed max_size
+    assert stats.in_use == 0  # All should be released
+    assert stats.idle <= 5  # Should not exceed max_size
 
     await pool.cleanup()
 

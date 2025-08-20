@@ -50,19 +50,58 @@ class HighPerformanceLRUCache:
     AsyncFallbackWrapper implementations.
     """
 
-    def __init__(self, capacity: int = 1000) -> None:
+    def __init__(
+        self,
+        capacity: int = 1000,
+        event_loop: (
+            asyncio.AbstractEventLoop | None
+        ) = None
+    ) -> None:
         """
-        Initialize the cache with specified capacity.
+        Initialize the cache with specified capacity and event loop binding.
 
         Args:
             capacity: Maximum number of items in cache
+            event_loop: Event loop to bind this cache to
+                (defaults to current running loop)
         """
         if capacity <= 0:
             raise ValueError("Capacity must be positive")
 
         self._capacity = capacity
         self._ordered_dict: OrderedDict[str, Any] = OrderedDict()
+
+        # Bind to specific event loop for async operations
+        try:
+            self._loop = event_loop or asyncio.get_running_loop()
+        except RuntimeError:
+            # No running loop in current context
+            self._loop = None
+
         self._lock = asyncio.Lock()
+
+    def _validate_event_loop(self) -> None:
+        """
+        Validate that the current event loop matches the bound event loop.
+        
+        Raises:
+            RuntimeError: If cache is bound to a different event loop
+        """
+        if self._loop is not None:
+            try:
+                current_loop = asyncio.get_running_loop()
+                if current_loop is not self._loop:
+                    raise RuntimeError(
+                        f"Cache bound to different event loop. "
+                        f"Expected: {id(self._loop)}, Got: {id(current_loop)}"
+                    )
+            except RuntimeError as e:
+                # Only ignore RuntimeError if it's "no running loop"
+                # Re-raise if it's our own event loop mismatch error
+                if "Cache bound to different event loop" in str(e):
+                    raise
+                # No running loop, which is fine for sync operations
+                pass
 
     # Sync interface for SyncLoggerFacade and existing code
     def get(self, key: str) -> Any:
@@ -115,9 +154,15 @@ class HighPerformanceLRUCache:
 
         Returns:
             Cached value or None if not found
+
+        Raises:
+            RuntimeError: If cache is bound to a different event loop
         """
         if not isinstance(key, str):
             raise TypeError("Cache key must be a string")
+
+        # Ensure operation executes on correct event loop
+        self._validate_event_loop()
 
         async with self._lock:
             if key in self._ordered_dict:
@@ -134,9 +179,15 @@ class HighPerformanceLRUCache:
         Args:
             key: Cache key
             value: Value to cache
+
+        Raises:
+            RuntimeError: If cache is bound to a different event loop
         """
         if not isinstance(key, str):
             raise TypeError("Cache key must be a string")
+
+        # Ensure operation executes on correct event loop
+        self._validate_event_loop()
 
         async with self._lock:
             if key in self._ordered_dict:
@@ -177,7 +228,15 @@ class HighPerformanceLRUCache:
         self._ordered_dict.clear()
 
     async def aclear(self) -> None:
-        """Clear all items from cache (asynchronous)."""
+        """
+        Clear all items from cache (asynchronous).
+        
+        Raises:
+            RuntimeError: If cache is bound to a different event loop
+        """
+        # Ensure operation executes on correct event loop
+        self._validate_event_loop()
+
         async with self._lock:
             self._ordered_dict.clear()
 
@@ -204,3 +263,23 @@ class HighPerformanceLRUCache:
     def is_full(self) -> bool:
         """Check if cache is at capacity."""
         return len(self._ordered_dict) >= self._capacity
+
+    def get_bound_event_loop(self) -> asyncio.AbstractEventLoop | None:
+        """Get the event loop this cache is bound to."""
+        return self._loop
+
+    def is_bound_to_event_loop(self) -> bool:
+        """Check if this cache is bound to a specific event loop."""
+        return self._loop is not None
+
+    def rebind_to_event_loop(self, event_loop: asyncio.AbstractEventLoop) -> None:
+        """
+        Rebind the cache to a different event loop.
+        
+        This is useful for testing or when the cache needs to be moved
+        to a different event loop context.
+        
+        Args:
+            event_loop: New event loop to bind to
+        """
+        self._loop = event_loop
