@@ -324,22 +324,22 @@ class HighPerformanceLRUCache:
     async def cleanup(self) -> None:
         """
         Guaranteed cleanup that never raises exceptions.
-        
+
         This method ensures all cache resources are properly released
         and internal state is reset. It's designed to be called during
         container cleanup and never raises exceptions.
         """
         try:
             # Clear cache contents
-            if hasattr(self, '_ordered_dict') and self._ordered_dict is not None:
+            if hasattr(self, "_ordered_dict") and self._ordered_dict is not None:
                 self._ordered_dict.clear()
-            
+
             # Don't reset capacity to 0 as it breaks cache functionality
             # Just clear the contents to release memory
-            
+
             # Clear event loop binding
             self._loop = None
-            
+
             # Note: self._lock is not cleared as it's a simple asyncio.Lock
         except Exception:
             # Log but never raise during cleanup
