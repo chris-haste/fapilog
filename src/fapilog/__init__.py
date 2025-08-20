@@ -101,18 +101,19 @@ def get_logger(
             ),
         )
         sink = _RotatingFileSink(rfc)
-        # Ensure sink is started for file mode
-        import asyncio as _asyncio
-
-        try:
-            _asyncio.run(sink.start())
-        except RuntimeError:
-            loop = _asyncio.get_event_loop()
-            loop.create_task(sink.start())
+        # Sink will be started lazily when first used
     else:
         sink = _StdoutJsonSink()
 
     async def _sink_write(entry: dict) -> None:
+        # Ensure sink is started if it has a start method
+        if hasattr(sink, "start") and not getattr(sink, "_started", False):
+            try:
+                await sink.start()
+                sink._started = True
+            except Exception:
+                # If start fails, continue without it
+                pass
         await sink.write(entry)
 
     async def _sink_write_serialized(view: object) -> None:
