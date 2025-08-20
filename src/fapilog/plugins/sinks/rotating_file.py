@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import gzip
+import os
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -24,13 +25,16 @@ class RotatingFileSinkConfig:
     Attributes:
         directory: Target directory for log files. Created if missing.
         filename_prefix: Prefix for created files.
-        mode: 'json' for JSONL output, 'text' for deterministic key=value lines.
-        max_bytes: Rotate when current file size plus next record would exceed this.
-        interval_seconds: Optional time-based rotation period. If set, rotate at/after
-            next deadline boundary.
-        max_files: Optional retention cap on number of rotated files (active not counted).
-        max_total_bytes: Optional retention cap on cumulative bytes for rotated files
-            (active not counted).
+        mode: 'json' for JSONL output,
+            'text' for deterministic key=value lines.
+        max_bytes: Rotate when current file size plus next record would
+            exceed this.
+        interval_seconds: Optional time-based rotation period.
+            If set, rotate at/after next deadline boundary.
+        max_files: Optional retention cap on number of rotated files.
+            The active file is not counted.
+        max_total_bytes: Optional retention cap on cumulative bytes for
+            rotated files. The active file is not counted.
         compress_rotated: If True, compress closed (rotated) files to .gz.
     """
 
@@ -52,7 +56,8 @@ class RotatingFileSink:
     - Size-based rotation occurs before a write that would breach max_bytes
     - Optional interval rotation occurs at boundary deadlines
     - Retention enforced by `max_files` and/or `max_total_bytes`
-    - On filename timestamp collision, a numeric suffix `-<index>` is appended
+    - On filename timestamp collision, a numeric suffix `-<index>` is
+      appended
     - Cross-platform paths via `pathlib.Path`
     - All filesystem work happens in threads to avoid event loop stalls
     - Never raises upstream; errors are contained
@@ -91,7 +96,8 @@ class RotatingFileSink:
                     self._active_file = None
                     await asyncio.to_thread(file_obj.flush)
                     await asyncio.to_thread(file_obj.close)
-                # After closing, enforce retention across all files (including the last active)
+                # After closing, enforce retention across all files
+                # (including the last active)
                 try:
                     await self._enforce_retention()
                 except Exception:
@@ -104,7 +110,8 @@ class RotatingFileSink:
 
     async def write(self, entry: dict[str, Any]) -> None:
         try:
-            # Serialize first (outside lock) so we can check size/time quickly within lock
+            # Serialize first (outside lock) so we can check size/time
+            # quickly within lock
             if self._cfg.mode == "json":
                 try:
                     view: SerializedView = serialize_envelope(entry)
@@ -132,11 +139,13 @@ class RotatingFileSink:
                 )
                 payload_size = segments.total_length
             else:
-                # Deterministic text line: key=value with keys sorted, separated by spaces
+                # Deterministic text line: key=value with keys sorted,
+                # separated by spaces
                 try:
                     items = sorted(entry.items(), key=lambda kv: kv[0])
                 except Exception:
-                    # Fallback: best-effort string conversion if non-mapping-ish
+                    # Fallback: best-effort string conversion
+                    # if non-mapping-ish
                     items = [("message", str(entry))]
                 line = " ".join(f"{k}={self._stringify(v)}" for k, v in items) + "\n"
                 data = line.encode("utf-8", errors="replace")
@@ -168,9 +177,27 @@ class RotatingFileSink:
                     file_obj = self._active_file
 
                     def _write_segments() -> None:
-                        for seg in payload_segments:
-                            file_obj.write(seg)
-                        file_obj.flush()
+                        # Prefer vectored write via os.writev when available
+                        try:
+                            if hasattr(os, "writev"):
+                                os.writev(
+                                    file_obj.fileno(),
+                                    list(payload_segments),
+                                )
+                            else:
+                                file_obj.writelines(payload_segments)
+                        except Exception:
+                            # Fallback to simple loop write on any error
+                            try:
+                                for seg in payload_segments:
+                                    file_obj.write(seg)
+                            except Exception:
+                                pass
+                        finally:
+                            try:
+                                file_obj.flush()
+                            except Exception:
+                                pass
 
                     await asyncio.to_thread(_write_segments)
                     self._active_size += payload_size
@@ -181,7 +208,8 @@ class RotatingFileSink:
     async def write_serialized(self, view: SerializedView) -> None:
         try:
             if self._cfg.mode != "json":
-                # Only JSON mode supports serialized fast path; ignore gracefully
+                # Only JSON mode supports serialized fast path;
+                # ignore gracefully
                 return None
             segments = convert_json_bytes_to_jsonl(view)
             payload_segments: tuple[memoryview, ...] = tuple(
@@ -214,9 +242,26 @@ class RotatingFileSink:
                     file_obj = self._active_file
 
                     def _write_segments() -> None:
-                        for seg in payload_segments:
-                            file_obj.write(seg)
-                        file_obj.flush()
+                        # Prefer vectored write via os.writev when available
+                        try:
+                            if hasattr(os, "writev"):
+                                os.writev(
+                                    file_obj.fileno(),
+                                    list(payload_segments),
+                                )
+                            else:
+                                file_obj.writelines(payload_segments)
+                        except Exception:
+                            try:
+                                for seg in payload_segments:
+                                    file_obj.write(seg)
+                            except Exception:
+                                pass
+                        finally:
+                            try:
+                                file_obj.flush()
+                            except Exception:
+                                pass
 
                     await asyncio.to_thread(_write_segments)
                     self._active_size += payload_size
@@ -268,7 +313,9 @@ class RotatingFileSink:
             self._active_size = 0
 
     async def _rotate_active_file(self) -> None:
-        """Close the current file, optionally compress it, enforce retention, and open a new one."""
+        """Close the current file, optionally compress it, enforce
+        retention, and open a new one.
+        """
         if self._active_file is None or self._active_path is None:
             await self._open_new_file()
             return
@@ -313,7 +360,8 @@ class RotatingFileSink:
 
     async def _enforce_retention(self) -> None:
         try:
-            # Gather rotated files that match prefix and extension (including .gz)
+            # Gather rotated files that match prefix and extension
+            # (including .gz)
             candidates: list[Path] = await asyncio.to_thread(self._list_rotated_files)
 
             # Enforce max_files
@@ -330,7 +378,9 @@ class RotatingFileSink:
             # Enforce max_total_bytes
             if self._cfg.max_total_bytes is not None and self._cfg.max_total_bytes >= 0:
                 # Recompute sizes and delete oldest until within budget
-                def _sizes(paths: Iterable[Path]) -> tuple[list[tuple[Path, int]], int]:
+                def _sizes(
+                    paths: Iterable[Path],
+                ) -> tuple[list[tuple[Path, int]], int]:
                     sized: list[tuple[Path, int]] = []
                     total = 0
                     for p in paths:
@@ -396,7 +446,7 @@ PLUGIN_METADATA = {
     "version": "0.1.0",
     "plugin_type": "sink",
     "entry_point": __name__,
-    "description": "Async rotating file sink with size/time rotation and retention",
+    "description": ("Async rotating file sink with size/time rotation and retention"),
     "author": "Fapilog Core",
     "api_version": "1.0",
 }
