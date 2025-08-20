@@ -536,10 +536,10 @@ def serialize_exception(
 # Cache-specific error classes
 class CacheError(FapilogError):
     """Base class for cache-related errors."""
-    
+
     def __init__(
-        self, 
-        message: str, 
+        self,
+        message: str,
         error_context: Optional[AsyncErrorContext] = None,
         cause: Optional[Exception] = None,
     ) -> None:
@@ -548,7 +548,8 @@ class CacheError(FapilogError):
             category=ErrorCategory.SYSTEM,
             severity=ErrorSeverity.MEDIUM,
             recovery_strategy=ErrorRecoveryStrategy.FALLBACK,
-            error_context=error_context or create_error_context(
+            error_context=error_context
+            or create_error_context(
                 ErrorCategory.SYSTEM,
                 ErrorSeverity.MEDIUM,
                 ErrorRecoveryStrategy.FALLBACK,
@@ -559,15 +560,16 @@ class CacheError(FapilogError):
 
 class CacheMissError(CacheError):
     """Raised when a cache key is not found."""
-    
+
     def __init__(
-        self, 
-        key: str, 
+        self,
+        key: str,
         error_context: Optional[AsyncErrorContext] = None,
     ) -> None:
         super().__init__(
             f"Cache key not found: {key}",
-            error_context=error_context or create_error_context(
+            error_context=error_context
+            or create_error_context(
                 ErrorCategory.SYSTEM,
                 ErrorSeverity.LOW,
                 ErrorRecoveryStrategy.FALLBACK,
@@ -578,9 +580,9 @@ class CacheMissError(CacheError):
 
 class CacheOperationError(CacheError):
     """Raised when a cache operation fails."""
-    
+
     def __init__(
-        self, 
+        self,
         operation: str,
         key: str,
         error_context: Optional[AsyncErrorContext] = None,
@@ -588,7 +590,8 @@ class CacheOperationError(CacheError):
     ) -> None:
         super().__init__(
             f"Cache operation '{operation}' failed for key '{key}'",
-            error_context=error_context or create_error_context(
+            error_context=error_context
+            or create_error_context(
                 ErrorCategory.SYSTEM,
                 ErrorSeverity.MEDIUM,
                 ErrorRecoveryStrategy.FALLBACK,
@@ -601,9 +604,9 @@ class CacheOperationError(CacheError):
 
 class CacheCapacityError(CacheError):
     """Raised when cache capacity is exceeded."""
-    
+
     def __init__(
-        self, 
+        self,
         key: str,
         current_size: int,
         capacity: int,
@@ -611,7 +614,8 @@ class CacheCapacityError(CacheError):
     ) -> None:
         super().__init__(
             f"Cache capacity exceeded: {current_size}/{capacity}",
-            error_context=error_context or create_error_context(
+            error_context=error_context
+            or create_error_context(
                 ErrorCategory.SYSTEM,
                 ErrorSeverity.MEDIUM,
                 ErrorRecoveryStrategy.FALLBACK,

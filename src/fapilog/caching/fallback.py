@@ -19,9 +19,10 @@ from ..core.fallback import (
 class CacheFallbackProvider:
     """
     Fallback provider for cache operations.
-    
+
     This provider implements fallback strategies when cache operations fail,
-    ensuring the system can continue operating even when the cache is unavailable.
+    ensuring the system can continue operating even when the cache is
+    unavailable.
     """
 
     def __init__(
@@ -32,7 +33,7 @@ class CacheFallbackProvider:
     ) -> None:
         """
         Initialize cache fallback provider.
-        
+
         Args:
             cache: Cache instance to use
             default_value: Default value to return on cache failures
@@ -44,7 +45,7 @@ class CacheFallbackProvider:
                 triggers=[FallbackTrigger.EXCEPTION],
                 static_value=default_value,
             )
-        
+
         self.cache = cache
         self.default_value = default_value
         self.fallback_config = fallback_config
@@ -53,13 +54,13 @@ class CacheFallbackProvider:
     async def get_with_fallback(self, key: str) -> Any:
         """
         Get value from cache with fallback strategy.
-        
+
         Args:
             key: Cache key to retrieve
-            
+
         Returns:
             Cached value or fallback value
-            
+
         Raises:
             CacheError: If both cache and fallback fail
         """
@@ -74,33 +75,33 @@ class CacheFallbackProvider:
             self.stats.fallback_calls += 1
             self.stats.total_calls += 1
             self.stats.trigger_counts[FallbackTrigger.EXCEPTION] += 1
-            
+
             if self.fallback_config.static_value is not None:
                 self.stats.fallback_success += 1
                 return self.fallback_config.static_value
             else:
                 # No fallback value available
-                raise CacheError(f"No fallback value for cache key: {key}")
-                
+                raise CacheError(f"No fallback value for cache key: {key}") from None
+
         except CacheError as e:
             # Cache failure - use fallback value and log
             self.stats.fallback_calls += 1
             self.stats.total_calls += 1
             self.stats.trigger_counts[FallbackTrigger.EXCEPTION] += 1
-            
+
             if self.fallback_config.static_value is not None:
                 self.stats.fallback_success += 1
                 return self.fallback_config.static_value
             else:
                 # Re-raise if no fallback available
                 raise e
-                
+
         except Exception as e:
             # Unexpected error - use fallback value
             self.stats.fallback_calls += 1
             self.stats.fallback_failures += 1
             self.stats.trigger_counts[FallbackTrigger.EXCEPTION] += 1
-            
+
             if self.fallback_config.static_value is not None:
                 self.stats.fallback_success += 1
                 return self.fallback_config.static_value
@@ -111,7 +112,7 @@ class CacheFallbackProvider:
     async def set_with_fallback(self, key: str, value: Any) -> None:
         """
         Set value in cache with fallback strategy.
-        
+
         Args:
             key: Cache key to set
             value: Value to cache
@@ -126,7 +127,7 @@ class CacheFallbackProvider:
             self.stats.fallback_calls += 1
             self.stats.total_calls += 1
             self.stats.trigger_counts[FallbackTrigger.EXCEPTION] += 1
-            
+
             # For set operations, we don't fail the operation
             # Just log that the cache set failed
             # The value will be available on next get (if not cached)
@@ -144,7 +145,7 @@ class CacheFallbackProvider:
 class CacheFallbackWrapper:
     """
     Wrapper for cache operations with automatic fallback.
-    
+
     This wrapper provides a simple interface for cache operations
     with automatic fallback when the cache fails.
     """
@@ -157,30 +158,29 @@ class CacheFallbackWrapper:
     ) -> None:
         """
         Initialize cache fallback wrapper.
-        
+
         Args:
             cache: Cache instance to wrap
             default_value: Default value for fallback
             enable_fallback: Whether to enable fallback behavior
         """
+        self.fallback_provider: Optional[CacheFallbackProvider]
         self.cache = cache
         self.default_value = default_value
         self.enable_fallback = enable_fallback
-        
+
         if enable_fallback:
-            self.fallback_provider: CacheFallbackProvider = CacheFallbackProvider(
-                cache, default_value
-            )
+            self.fallback_provider = CacheFallbackProvider(cache, default_value)
         else:
-            self.fallback_provider: Optional[CacheFallbackProvider] = None
+            self.fallback_provider = None
 
     async def get(self, key: str) -> Any:
         """
         Get value from cache with optional fallback.
-        
+
         Args:
             key: Cache key to retrieve
-            
+
         Returns:
             Cached value or fallback value
         """
@@ -192,7 +192,7 @@ class CacheFallbackWrapper:
     async def set(self, key: str, value: Any) -> None:
         """
         Set value in cache with optional fallback.
-        
+
         Args:
             key: Cache key to set
             value: Value to cache
@@ -205,7 +205,7 @@ class CacheFallbackWrapper:
     async def clear(self) -> None:
         """
         Clear cache with optional fallback.
-        
+
         Args:
             key: Cache key to clear
         """
