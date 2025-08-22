@@ -76,9 +76,66 @@ async def main():
 asyncio.run(main())
 ```
 
+## Async Logger Usage
+
+For async applications, use the async logger for better performance:
+
+```python
+from fapilog import get_async_logger, runtime_async
+
+# Get an async logger
+logger = await get_async_logger("my_service")
+
+# All methods are awaitable
+await logger.info("Async operation started")
+await logger.debug("Processing data", data_size=1000)
+await logger.error("Operation failed", error_code=500)
+
+# Clean up when done
+await logger.drain()
+```
+
+### Async Context Manager
+
+Use `runtime_async` for automatic lifecycle management:
+
+```python
+async def process_batch():
+    async with runtime_async() as logger:
+        await logger.info("Batch processing started")
+
+        for i in range(100):
+            await logger.debug(f"Processing item {i}")
+            # ... your async processing code ...
+
+        await logger.info("Batch processing completed")
+    # Logger automatically drained on exit
+```
+
+### FastAPI Integration
+
+Perfect for FastAPI applications with dependency injection:
+
+```python
+from fastapi import Depends, FastAPI
+from fapilog import get_async_logger
+
+app = FastAPI()
+
+async def get_logger():
+    return await get_async_logger("request")
+
+@app.get("/users/{user_id}")
+async def get_user(user_id: int, logger = Depends(get_logger)):
+    await logger.info("User lookup requested", user_id=user_id)
+    # ... your code ...
+    await logger.info("User found", user_id=user_id)
+    return {"user_id": user_id}
+```
+
 ## What Happens Automatically
 
-When you call `get_logger()`:
+When you call `get_logger()` or `get_async_logger()`:
 
 1. **Environment detection** - Chooses best output format
 2. **Async setup** - Configures non-blocking processing

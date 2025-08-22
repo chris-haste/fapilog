@@ -289,6 +289,76 @@ logger = get_logger()
 await logger.debug("Debug logging now enabled")
 ```
 
+## Async Logger Configuration
+
+The async logger supports the same configuration options as the sync logger, with additional async-specific features:
+
+### Async Logger Factory
+
+```python
+from fapilog import get_async_logger, Settings
+
+# Basic async logger
+logger = await get_async_logger()
+
+# With custom name
+logger = await get_async_logger("my_service")
+
+# With custom settings
+settings = Settings(core__enable_metrics=True)
+logger = await get_async_logger("my_service", settings=settings)
+```
+
+### Async Context Manager
+
+```python
+from fapilog import runtime_async
+
+# Automatic lifecycle management
+async with runtime_async() as logger:
+    await logger.info("Processing started")
+    # ... your async code ...
+    await logger.info("Processing completed")
+# Logger automatically drained on exit
+```
+
+### Async Logger Methods
+
+```python
+# All logging methods are awaitable
+await logger.debug("Debug message", debug_data="value")
+await logger.info("Info message", info_data="value")
+await logger.warning("Warning message", warning_data="value")
+await logger.error("Error message", error_data="value")
+await logger.exception("Exception message", exception_data="value")
+
+# Flush current batches without stopping
+await logger.flush()
+
+# Gracefully stop and drain
+result = await logger.drain()
+print(f"Processed {result.processed} messages")
+```
+
+### FastAPI Integration Example
+
+```python
+from fastapi import Depends, FastAPI
+from fapilog import get_async_logger
+
+app = FastAPI()
+
+async def get_logger():
+    return await get_async_logger("request")
+
+@app.get("/users/{user_id}")
+async def get_user(user_id: int, logger = Depends(get_logger)):
+    await logger.info("User lookup", user_id=user_id)
+    # ... your code ...
+    await logger.info("User found", user_id=user_id)
+    return {"user_id": user_id}
+```
+
 ## Best Practices
 
 1. **Environment variables** - Use for deployment-specific configuration
