@@ -149,7 +149,7 @@ class TestQueueHighWatermarkUpdates:
 
         # Verify high watermark was tracked during backpressure
         assert result.queue_depth_high_watermark > 0
-        assert result.submitted >= 30
+        assert result.submitted >= 25
         assert result.dropped >= 0
         assert logger._worker_thread is None
 

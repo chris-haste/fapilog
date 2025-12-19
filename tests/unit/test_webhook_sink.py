@@ -89,7 +89,9 @@ async def test_webhook_sink_failure_drops_and_warns() -> None:
 
 @pytest.mark.asyncio
 async def test_webhook_sink_exception_health() -> None:
-    pool = _StubPool([httpx.ConnectTimeout("timeout"), httpx.Response(200, json={"ok": True})])
+    pool = _StubPool(
+        [httpx.ConnectTimeout("timeout"), httpx.Response(200, json={"ok": True})]
+    )
     sink = WebhookSink(
         WebhookSinkConfig(endpoint="https://hooks.example.com"),
         pool=pool,
@@ -100,3 +102,24 @@ async def test_webhook_sink_exception_health() -> None:
     await sink.write({"message": "second"})
     assert await sink.health_check() is True
     await sink.stop()
+
+
+@pytest.mark.asyncio
+async def test_webhook_sink_serialized_fallback_and_metrics() -> None:
+    pool = _StubPool([httpx.Response(200, json={"ok": True})])
+    metrics = MetricsCollector(enabled=True)
+    sink = WebhookSink(
+        WebhookSinkConfig(endpoint="https://hooks.example.com"),
+        pool=pool,
+        metrics=metrics,
+    )
+
+    class _BadView:
+        def __init__(self, data: bytes) -> None:
+            self.data = memoryview(data)
+
+    await sink.start()
+    await sink.write_serialized(_BadView(b"not-json"))
+    await sink.stop()
+
+    assert pool.calls and metrics._state.events_processed == 1  # type: ignore[attr-defined]

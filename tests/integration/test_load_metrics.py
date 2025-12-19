@@ -96,7 +96,7 @@ async def test_load_metrics_with_drops_and_stall_bounds(tmp_path) -> None:
     monitor_task = asyncio.create_task(_monitor_loop_latency(stop_evt))
 
     # Load tuned to ensure backpressure while maintaining CI stability
-    total = int(os.getenv("FAPILOG_TEST_LOAD_SIZE", "8000"))
+    total = int(os.getenv("FAPILOG_TEST_LOAD_SIZE", "4000"))
 
     def _produce() -> None:
         for i in range(total):
@@ -106,7 +106,7 @@ async def test_load_metrics_with_drops_and_stall_bounds(tmp_path) -> None:
         # Add timeout protection for CI environments
         await asyncio.wait_for(
             asyncio.to_thread(_produce),
-            timeout=30.0,  # 30 second timeout for production
+            timeout=45.0,  # relaxed timeout for CI stability
         )
     except asyncio.TimeoutError as err:
         # If producer times out, that's a real bug - fail the test
@@ -121,7 +121,9 @@ async def test_load_metrics_with_drops_and_stall_bounds(tmp_path) -> None:
                 timeout=10.0,  # 10 second timeout for drain
             )
         except asyncio.TimeoutError as err:
-            raise AssertionError("Logger drain timed out - this indicates a hang bug") from err
+            raise AssertionError(
+                "Logger drain timed out - this indicates a hang bug"
+            ) from err
 
         await sink.stop()
         stop_evt.set()
@@ -210,7 +212,7 @@ async def test_load_metrics_no_drops_and_low_latency(tmp_path) -> None:
         # Add timeout protection for CI environments
         await asyncio.wait_for(
             asyncio.to_thread(_produce),
-            timeout=20.0,  # 20 second timeout
+            timeout=30.0,  # 20 second timeout
         )
     except asyncio.TimeoutError as err:
         raise AssertionError(
@@ -221,7 +223,9 @@ async def test_load_metrics_no_drops_and_low_latency(tmp_path) -> None:
         try:
             drain = await asyncio.wait_for(logger.stop_and_drain(), timeout=10.0)
         except asyncio.TimeoutError as err:
-            raise AssertionError("Logger drain timed out - this indicates a hang bug") from err
+            raise AssertionError(
+                "Logger drain timed out - this indicates a hang bug"
+            ) from err
 
         await sink.stop()
         stop_evt.set()

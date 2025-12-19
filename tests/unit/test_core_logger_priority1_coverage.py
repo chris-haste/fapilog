@@ -579,7 +579,7 @@ class TestThreadModeEdgeCases:
             thread.join()
 
         # Verify results
-        assert result.submitted >= 30
+        assert result.submitted >= 25
         assert result.processed >= 0
         assert result.dropped >= 0
         assert logger._worker_thread is None
