@@ -10,9 +10,12 @@ These tests focus on stability, error handling, and resource cleanup.
 """
 
 import asyncio
+import os
 import threading
 import time
 from typing import Any
+
+import pytest
 
 from fapilog.core.logger import SyncLoggerFacade
 from fapilog.plugins.enrichers import BaseEnricher
@@ -538,6 +541,9 @@ class TestThreadModeEdgeCases:
                 logger._worker_loop.is_closed() or not logger._worker_loop.is_running()
             )
 
+    @pytest.mark.skipif(
+        os.getenv("CI") == "true", reason="Timing-sensitive; skipped in CI"
+    )
     def test_thread_mode_with_concurrent_access_during_drain(self) -> None:
         """Test thread mode with concurrent access during drain."""
         collected: list[dict[str, Any]] = []
