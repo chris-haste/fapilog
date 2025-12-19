@@ -14,10 +14,10 @@ Traditional logging libraries block your application, lose context, and produce 
 ## Quick Example
 
 ```python
-from fapilog import get_logger
+from fapilog import get_async_logger
 
-# Zero-config, works immediately
-logger = get_logger()
+# Zero-config, works immediately (async)
+logger = await get_async_logger()
 await logger.info("User logged in", extra={"user_id": "123"})
 
 # Automatic context binding

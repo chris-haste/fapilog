@@ -37,10 +37,10 @@ from fapilog import get_logger
 logger = get_logger()
 
 # Simple logging
-await logger.info("Application started")
+logger.info("Application started")
 
 # With structured data
-await logger.info("User action", extra={
+logger.info("User action", extra={
     "user_id": "123",
     "action": "login",
     "timestamp": "2024-01-15T10:30:00Z"
@@ -58,8 +58,8 @@ bind(request_id="req-123", user_id="user-456")
 logger = get_logger()
 
 # Context automatically included
-await logger.info("Processing request")
-await logger.info("Request completed")
+logger.info("Processing request")
+logger.info("Request completed")
 
 # Output includes request_id and user_id automatically
 ```
@@ -79,7 +79,7 @@ logger = get_logger()
 
 # Logs go to rotating files
 for i in range(1000):
-    await logger.info(f"Log message {i}")
+    logger.info(f"Log message {i}")
 ```
 
 ## What You'll Learn
@@ -110,12 +110,12 @@ async def handle_request(user_id: str):
     logger = get_logger()
 
     try:
-        await logger.info("Request started")
+        logger.info("Request started")
 
         # Process request
         result = await process_request()
 
-        await logger.info("Request completed", extra={
+        logger.info("Request completed", extra={
             "status": "success",
             "duration_ms": 45
         })

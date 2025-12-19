@@ -9,12 +9,12 @@ The fastest way to start logging:
 ```python
 from fapilog import get_logger
 
-# Get a logger - no configuration needed
+# Get a logger - no configuration needed (sync)
 logger = get_logger()
 
 # Start logging immediately
-await logger.info("Application started")
-await logger.error("Something went wrong", exc_info=True)
+logger.info("Application started")
+logger.error("Something went wrong", exc_info=True)
 ```
 
 **Output:**
@@ -34,7 +34,7 @@ from fapilog import get_logger
 logger = get_logger()
 
 # Add business context
-await logger.info("User action", extra={
+logger.info("User action", extra={
     "user_id": "123",
     "action": "login",
     "ip_address": "192.168.1.100"

@@ -35,7 +35,7 @@ bind(
 
 # All subsequent logs include these fields
 logger = get_logger()
-await logger.info("Application started")
+logger.info("Application started")
 ```
 
 ### Do I still need log levels?
@@ -72,14 +72,14 @@ export FAPILOG_LEVEL=WARNING  # Testing
 Yes! fapilog works great with async job systems:
 
 ```python
-from fapilog import get_logger
+from fapilog import get_async_logger
 from celery import Celery
 
 app = Celery('tasks')
 
 @app.task
 async def process_data(data):
-    logger = get_logger()
+    logger = await get_async_logger()
 
     # Context is preserved across async boundaries
     await logger.info("Processing started", extra={"data_id": data.id})
@@ -98,7 +98,7 @@ async def process_data(data):
 fapilog uses Python's `contextvars` for automatic context inheritance:
 
 ```python
-from fapilog import bind, get_logger
+from fapilog import bind, get_async_logger
 
 async def main():
     bind(request_id="req-123")
@@ -111,7 +111,7 @@ async def main():
 
 async def child_task(name):
     # Automatically inherits request_id from parent
-    logger = get_logger()
+    logger = await get_async_logger()
     await logger.info(f"{name} started")
 ```
 
