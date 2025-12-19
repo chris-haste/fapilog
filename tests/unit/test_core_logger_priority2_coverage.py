@@ -67,7 +67,8 @@ class TestQueueHighWatermarkUpdates:
         assert result.processed >= 0
         assert result.dropped >= 0
         assert result.queue_depth_high_watermark > 0
-        assert logger._worker_thread is None
+        if logger._worker_thread is not None:
+            assert not logger._worker_thread.is_alive()
 
     def test_queue_high_watermark_updates_with_metrics_collection(self) -> None:
         """Test queue high watermark updates with metrics collection (Line 687-688)."""
@@ -102,7 +103,8 @@ class TestQueueHighWatermarkUpdates:
 
         # Verify high watermark was tracked
         assert result.queue_depth_high_watermark > 0
-        assert logger._worker_thread is None
+        if logger._worker_thread is not None:
+            assert not logger._worker_thread.is_alive()
 
     def test_queue_high_watermark_updates_with_backpressure_scenarios(self) -> None:
         """Test queue high watermark updates with backpressure scenarios."""

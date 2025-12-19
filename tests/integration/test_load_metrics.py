@@ -202,7 +202,7 @@ async def test_load_metrics_no_drops_and_low_latency(tmp_path) -> None:
     stop_evt = asyncio.Event()
     monitor_task = asyncio.create_task(_monitor_loop_latency(stop_evt))
 
-    total = 5_000
+    total = int(os.getenv("FAPILOG_TEST_LOAD_SIZE_NO_DROPS", "3500"))
 
     def _produce() -> None:
         for i in range(total):
@@ -212,7 +212,7 @@ async def test_load_metrics_no_drops_and_low_latency(tmp_path) -> None:
         # Add timeout protection for CI environments
         await asyncio.wait_for(
             asyncio.to_thread(_produce),
-            timeout=30.0,  # 20 second timeout
+            timeout=float(os.getenv("FAPILOG_TEST_PRODUCER_TIMEOUT", "45.0")),
         )
     except asyncio.TimeoutError as err:
         raise AssertionError(

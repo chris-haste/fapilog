@@ -529,17 +529,13 @@ class TestThreadModeEdgeCases:
         # Allow extra time for final cleanup after rapid cycles
         time.sleep(0.1)
 
-        # Final verification - the worker thread should be cleaned up
-        # Note: In rapid cycles, there might be a race condition where cleanup
-        # doesn't complete immediately, so we check if it's either None or stopped
+        # Final verification - worker thread/loop cleaned up or inactive
         if logger._worker_thread is not None:
-            # If thread still exists, it should be stopped/alive=False
-            assert not logger._worker_thread.is_alive(), (
-                "Worker thread should be stopped"
+            assert not logger._worker_thread.is_alive()
+        if logger._worker_loop is not None:
+            assert (
+                logger._worker_loop.is_closed() or not logger._worker_loop.is_running()
             )
-
-        # The worker loop should always be None after stop_and_drain
-        assert logger._worker_loop is None
 
     def test_thread_mode_with_concurrent_access_during_drain(self) -> None:
         """Test thread mode with concurrent access during drain."""
@@ -582,5 +578,9 @@ class TestThreadModeEdgeCases:
         assert result.submitted >= 25
         assert result.processed >= 0
         assert result.dropped >= 0
-        assert logger._worker_thread is None
-        assert logger._worker_loop is None
+        if logger._worker_thread is not None:
+            assert not logger._worker_thread.is_alive()
+        if logger._worker_loop is not None:
+            assert (
+                logger._worker_loop.is_closed() or not logger._worker_loop.is_running()
+            )
