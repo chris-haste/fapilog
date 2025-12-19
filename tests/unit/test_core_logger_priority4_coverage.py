@@ -606,9 +606,9 @@ class TestComplexIntegrationScenarios:
             settings_instance.core.error_dedupe_window_seconds = 0.01
             mock_settings.return_value = settings_instance
 
-            with patch("fapilog.core.diagnostics.warn") as mock_warn:
+            with patch("fapilog.core.diagnostics.warn"):
                 # Submit many duplicate errors to trigger summary
-                for i in range(50):
+                for _i in range(50):
                     logger.error("duplicate error")
                     time.sleep(0.001)  # Small delay
 

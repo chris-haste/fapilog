@@ -144,7 +144,7 @@ class TestSamplingExceptionPaths:
         # At least one message should get through
         assert len(out) >= 1
         # Note: processed count might be 0 if messages are dropped due to exceptions
-        assert _result_submitted >= 1
+        assert 0 >= 1
 
     def test_sampling_with_random_exception(self) -> None:
         """Test sampling when random.random() raises an exception."""
@@ -281,7 +281,7 @@ class TestErrorDeduplicationEdgeCases:
         # Note: We can't mock time.monotonic() as it breaks asyncio event loop
         # Instead, we test that deduplication works under normal conditions
         assert len(out) >= 1  # At least one message should be processed
-        assert _result_submitted >= 2  # Both messages were submitted
+        assert 0 >= 2  # Both messages were submitted
 
     def test_error_dedup_with_settings_exception_duplicate(self) -> None:
         """Test error deduplication when Settings() raises exception."""
@@ -314,7 +314,7 @@ class TestErrorDeduplicationEdgeCases:
 
             # Should handle the exception gracefully
             assert len(out) >= 1  # Message should still be processed
-            assert _result_submitted >= 1
+            assert 0 >= 1
 
     def test_sampling_with_settings_exception(self) -> None:
         """Test sampling when Settings() raises exception."""
@@ -347,7 +347,7 @@ class TestErrorDeduplicationEdgeCases:
 
             # Should handle the exception gracefully
             assert len(out) >= 1  # Message should still be processed
-            assert _result_submitted >= 1
+            assert 0 >= 1
 
     def test_sampling_logic_with_low_rate(self) -> None:
         """Test sampling logic when rate < 1.0."""
@@ -383,7 +383,7 @@ class TestErrorDeduplicationEdgeCases:
 
             # Should handle sampling gracefully
             assert len(out) >= 0  # Some messages may be sampled out
-            assert _result_submitted >= 0  # Some messages may be sampled out
+            assert 0 >= 0  # Some messages may be sampled out
 
     def test_context_variable_exception_handling(self) -> None:
         """Test context variable exception handling."""
@@ -416,7 +416,7 @@ class TestErrorDeduplicationEdgeCases:
 
             # Should handle the exception gracefully
             assert len(out) >= 1  # Message should still be processed
-            assert _result_submitted >= 1
+            assert 0 >= 1
 
     def test_exception_serialization_exception_handling(self) -> None:
         """Test exception serialization exception handling."""
@@ -449,7 +449,7 @@ class TestErrorDeduplicationEdgeCases:
 
             # Should handle the exception gracefully
             assert len(out) >= 1  # Message should still be processed
-            assert _result_submitted >= 1
+            assert 0 >= 1
 
     def test_exception_serialization_with_exc_info_true(self) -> None:
         """Test exception serialization with exc_info=True."""
@@ -482,7 +482,7 @@ class TestErrorDeduplicationEdgeCases:
 
             # Should handle the exception gracefully
             assert len(out) >= 1  # Message should still be processed
-            assert _result_submitted >= 1
+            assert 0 >= 1
 
     def test_exception_serialization_with_exc_info_tuple(self) -> None:
         """Test exception serialization with exc_info tuple."""
@@ -512,7 +512,7 @@ class TestErrorDeduplicationEdgeCases:
 
         # Should handle the exception gracefully
         assert len(out) >= 1  # Message should still be processed
-        assert _result_submitted >= 1
+        assert 0 >= 1
 
 
 class TestMetricsExceptionPaths:
@@ -651,7 +651,7 @@ class TestSerializationFallbackPaths:
 
         # Should fall back to regular sink or handle error gracefully
         # The exact behavior depends on error handling implementation
-        assert _result_submitted >= 1
+        assert 0 >= 1
 
     @pytest.mark.asyncio
     async def test_serialization_strict_mode_exception(self) -> None:
@@ -696,7 +696,7 @@ class TestSerializationFallbackPaths:
 
         # In strict mode with serialization failure, behavior depends on implementation
         # Just verify operation completed without crash
-        assert _result_submitted >= 1
+        assert 0 >= 1
 
     @pytest.mark.asyncio
     async def test_serialized_sink_exception_fallback(self) -> None:
@@ -759,7 +759,7 @@ class TestAsyncLoggerFacadeEdgeCases:
         await logger.stop_and_drain()
 
         assert len(out) >= 1
-        assert _result_processed >= 1
+        assert 0 >= 1
 
     @pytest.mark.asyncio
     async def test_async_logger_event_loop_mode_transitions(self) -> None:
@@ -786,7 +786,7 @@ class TestAsyncLoggerFacadeEdgeCases:
         _ = await logger.stop_and_drain()
 
         assert len(out) >= 1
-        assert _result_processed >= 1
+        assert 0 >= 1
 
 
 class TestWorkerLifecycleExceptions:
@@ -833,7 +833,7 @@ class TestWorkerLifecycleExceptions:
             _ = asyncio.run(logger.stop_and_drain())
 
             # Message processing might be affected but shouldn't crash
-            assert _result_submitted >= 1
+            assert 0 >= 1
 
 
 class TestDiagnosticsExceptionPaths:
@@ -868,5 +868,5 @@ class TestDiagnosticsExceptionPaths:
 
         # Should handle diagnostics exceptions gracefully
         # Some messages should be processed, some dropped
-        assert _result_submitted >= 5
+        assert 0 >= 5
         assert logger._dropped >= 1
