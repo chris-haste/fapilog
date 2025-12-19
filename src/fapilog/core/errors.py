@@ -259,13 +259,27 @@ class PluginError(FapilogError):
     """Base class for plugin-related errors."""
 
     def __init__(
-        self, message: str, plugin_name: Optional[str] = None, **kwargs: Any
+        self,
+        message: str,
+        plugin_name: Optional[str] = None,
+        category: Optional[ErrorCategory] = None,
+        severity: Optional[ErrorSeverity] = None,
+        recovery_strategy: Optional[ErrorRecoveryStrategy] = None,
+        **kwargs: Any,
     ) -> None:
+        # Use provided values or defaults
+        if category is None:
+            category = ErrorCategory.PLUGIN_EXEC
+        if severity is None:
+            severity = ErrorSeverity.MEDIUM
+        if recovery_strategy is None:
+            recovery_strategy = ErrorRecoveryStrategy.FALLBACK
+
         super().__init__(
             message,
-            category=ErrorCategory.PLUGIN_EXEC,
-            severity=ErrorSeverity.MEDIUM,
-            recovery_strategy=ErrorRecoveryStrategy.FALLBACK,
+            category=category,
+            severity=severity,
+            recovery_strategy=recovery_strategy,
             **kwargs,
         )
         if plugin_name:

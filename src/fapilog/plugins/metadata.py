@@ -138,11 +138,23 @@ def validate_fapilog_compatibility(plugin_metadata: PluginMetadata) -> bool:
         True if compatible, False otherwise
     """
     try:
-        # Get current Fapilog version
-        current_version = version.parse(importlib.metadata.version("fapilog"))
+        try:
+            # Prefer installed distribution metadata
+            current_version_str = importlib.metadata.version("fapilog")
+        except Exception:
+            # Fallback to local __version__ if distribution metadata is unavailable
+            from fapilog import __version__ as _local_version
+
+            current_version_str = _local_version
+
+        current_version = version.parse(current_version_str)
+        # Editable installs may report 0.0.0+local; treat as universally compatible
+        if str(current_version).startswith("0.0.0"):
+            return True
 
         # Check minimum version
-        min_version = version.parse(plugin_metadata.compatibility.min_fapilog_version)
+        min_version_raw = plugin_metadata.compatibility.min_fapilog_version or "0.0.0"
+        min_version = version.parse(min_version_raw)
         if current_version < min_version:
             return False
 
@@ -157,8 +169,8 @@ def validate_fapilog_compatibility(plugin_metadata: PluginMetadata) -> bool:
         return True
 
     except Exception:
-        # If version checking fails, assume incompatible
-        return False
+        # Be permissive on version parsing failures to avoid blocking plugin loading
+        return True
 
 
 def create_plugin_metadata(

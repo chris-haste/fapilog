@@ -7,7 +7,7 @@ from typing import Any
 import pytest
 
 from fapilog import get_logger
-from fapilog.core.stdlib_bridge import enable_stdlib_bridge
+from fapilog.core.stdlib_bridge import StdlibBridgeHandler, enable_stdlib_bridge
 
 
 @pytest.mark.asyncio
@@ -85,3 +85,28 @@ async def test_loop_prevention() -> None:
     await asyncio.sleep(0)
     await logger.stop_and_drain()
     assert not any(e.get("message") == "should-not-forward" for e in captured)
+
+
+def test_custom_targets_and_warning_capture(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: dict[str, Any] = {}
+    target = logging.getLogger("custom-target")
+    target.handlers = [logging.NullHandler()]
+
+    def _capture(flag: bool) -> None:
+        calls["capture_warnings_flag"] = flag
+
+    monkeypatch.setattr(logging, "captureWarnings", _capture)
+
+    logger = get_logger(name="bridge-custom-target")
+    enable_stdlib_bridge(
+        logger,
+        level=logging.WARNING,
+        remove_existing_handlers=True,
+        capture_warnings=True,
+        target_loggers=[target],
+    )
+
+    assert calls.get("capture_warnings_flag") is True
+    assert any(isinstance(h, StdlibBridgeHandler) for h in target.handlers)
+
+    asyncio.run(logger.stop_and_drain())

@@ -219,3 +219,13 @@ class CacheFallbackWrapper:
         if self.fallback_provider:
             return self.fallback_provider.stats
         return None
+
+
+__all__ = [
+    "CacheFallbackProvider",
+    "CacheFallbackWrapper",
+    "FallbackStats",
+]
+
+# Preserve public API usage for static analyzers
+_ = CacheFallbackWrapper.get_fallback_stats  # pragma: no cover

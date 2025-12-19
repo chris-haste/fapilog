@@ -345,3 +345,13 @@ class HighPerformanceLRUCache:
             # Log but never raise during cleanup
             # This ensures container cleanup can complete
             pass
+
+
+# Mark public API methods as used for static analyzers
+_ = (
+    HighPerformanceLRUCache.get_capacity,
+    HighPerformanceLRUCache.get_size,
+    HighPerformanceLRUCache.get_bound_event_loop,
+    HighPerformanceLRUCache.is_bound_to_event_loop,
+    HighPerformanceLRUCache.rebind_to_event_loop,
+)  # pragma: no cover

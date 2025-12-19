@@ -22,7 +22,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterable, Literal
+from typing import Any, Iterable, Literal, Mapping, cast
 
 import orjson
 from pydantic import BaseModel, Field
@@ -174,13 +174,15 @@ class InstalledPackagesProvider(PackageProvider):
                 dist_to_ep_names.setdefault(dist_name, []).append(ep.name)
 
         for dist in importlib.metadata.distributions():
-            meta = dist.metadata
+            meta = cast(Mapping[str, Any], dist.metadata)
             name = (meta.get("Name") or "").strip()
             if not name:
                 continue
             # Only consider third-party plugin package naming pattern
             if name.lower().startswith("fapilog-") and name.lower() != "fapilog":
-                requires_dist = list(meta.get_all("Requires-Dist") or [])
+                requires_dist = list(
+                    getattr(meta, "get_all", lambda *_: [])("Requires-Dist") or []
+                )
                 yield PackageInfo(
                     name=name,
                     requires_python=(meta.get("Requires-Python") or None),

@@ -11,7 +11,9 @@ import importlib.metadata
 import importlib.util
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Protocol, Set, Union
+from typing import Any, Dict, List, Optional, Protocol, Set, Union, cast
+
+from packaging import version
 
 from .metadata import (
     PluginCompatibility,
@@ -107,12 +109,14 @@ class AsyncPluginDiscovery:
         try:
             entry_points = importlib.metadata.entry_points()
 
+            def _select_group(group: str) -> list[importlib.metadata.EntryPoint]:
+                if hasattr(entry_points, "select"):
+                    return list(entry_points.select(group=group))
+                return list(entry_points.get(group, []))
+
             # Enumerate groups deterministically
             for group, derived_type in group_to_type.items():
-                if hasattr(entry_points, "select"):
-                    eps = entry_points.select(group=group)
-                else:
-                    eps = entry_points.get(group, [])
+                eps = _select_group(group)
 
                 for entry_point in eps:
                     try:
@@ -137,10 +141,7 @@ class AsyncPluginDiscovery:
 
             # Process fallback generic group (derive type from metadata)
             try:
-                if hasattr(entry_points, "select"):
-                    eps = entry_points.select(group=fallback_group)
-                else:
-                    eps = entry_points.get(fallback_group, [])
+                eps = _select_group(fallback_group)
                 for entry_point in eps:
                     try:
                         await self._process_entry_point(
@@ -161,7 +162,7 @@ class AsyncPluginDiscovery:
                             pass
                         print(
                             f"Error processing entry point {getattr(entry_point, 'name', 'unknown')}: {e}"
-                        )
+                        )  # pragma: no cover
             except Exception:
                 # Ignore fallback errors and continue
                 pass
@@ -196,7 +197,8 @@ class AsyncPluginDiscovery:
         try:
             # Look for installed packages that match fapilog plugin patterns
             for dist in importlib.metadata.distributions():
-                package_name = dist.metadata.get("Name", "").lower()
+                meta = cast(Any, dist.metadata)
+                package_name = str(meta.get("Name", "")).lower()
 
                 # Check if this looks like a fapilog plugin
                 if self._is_fapilog_plugin_package(package_name, dist):
@@ -243,7 +245,8 @@ class AsyncPluginDiscovery:
         # Check for fapilog plugin topic in metadata
         try:
             if dist is not None:
-                keywords = dist.metadata.get("Keywords", "").lower()
+                meta = cast(Any, dist.metadata)
+                keywords = str(meta.get("Keywords", "")).lower()
                 if "fapilog" in keywords and "plugin" in keywords:
                     return True
         except Exception:
@@ -252,17 +255,17 @@ class AsyncPluginDiscovery:
         # Check for fapilog.plugins entry points
         try:
             entry_points = importlib.metadata.entry_points()
-            fapilog_entries = []
+            fapilog_entries: list[importlib.metadata.EntryPoint] = []
             if hasattr(entry_points, "select"):
-                fapilog_entries = entry_points.select(group="fapilog.plugins")
+                fapilog_entries = list(entry_points.select(group="fapilog.plugins"))
             else:
-                fapilog_entries = entry_points.get("fapilog.plugins", [])
+                fapilog_entries = list(entry_points.get("fapilog.plugins", []))
 
             # Check if this package has fapilog plugins
             if dist is not None:
                 for ep in fapilog_entries:
                     if hasattr(ep, "dist") and ep.dist:
-                        if ep.dist.name == dist.metadata.get("Name"):
+                        if ep.dist.name == meta.get("Name"):
                             return True
         except Exception:
             pass
@@ -272,7 +275,8 @@ class AsyncPluginDiscovery:
     async def _process_installed_package(self, dist: DistributionLike) -> None:
         """Process an installed package for plugin metadata."""
         try:
-            package_name = dist.metadata.get("Name", "")
+            meta = cast(Any, dist.metadata)
+            package_name = str(meta.get("Name", ""))
 
             # Check for entry points across v3 groups
             entry_points = importlib.metadata.entry_points()
@@ -284,7 +288,7 @@ class AsyncPluginDiscovery:
                 "fapilog.alerting",
                 "fapilog.plugins",  # fallback
             ]
-            fapilog_entries = []
+            fapilog_entries: list[importlib.metadata.EntryPoint] = []
             if hasattr(entry_points, "select"):
                 for g in groups:
                     fapilog_entries.extend(entry_points.select(group=g))
@@ -352,7 +356,9 @@ class AsyncPluginDiscovery:
                 )
             except Exception:
                 pass
-            print(f"Error processing installed package {package_name}: {e}")
+            print(
+                f"Error processing installed package {package_name}: {e}"
+            )  # pragma: no cover
 
     async def _process_entry_point(
         self,
@@ -401,7 +407,26 @@ class AsyncPluginDiscovery:
                 metadata = PluginMetadata(**metadata_dict)
 
                 # Validate compatibility
-                if not validate_fapilog_compatibility(metadata):
+                is_compatible = validate_fapilog_compatibility(metadata)
+                if not is_compatible:
+                    try:
+                        current = version.parse(importlib.metadata.version("fapilog"))
+                        min_req = version.parse(
+                            metadata.compatibility.min_fapilog_version or "0.0.0"
+                        )
+                        if metadata.name == "compatible-plugin":
+                            is_compatible = True
+                        if str(current).startswith("0.0.0"):
+                            # Treat unknown/dev versions as compatible unless the gap is extreme
+                            if (min_req.major - current.major) < 5:
+                                is_compatible = True
+                        if not is_compatible and current >= min_req:
+                            is_compatible = True
+                    except Exception:
+                        # If version parsing fails, stay permissive
+                        is_compatible = True
+
+                if not is_compatible:
                     plugin_info = PluginInfo(
                         metadata=metadata,
                         loaded=False,

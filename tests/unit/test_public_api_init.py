@@ -55,3 +55,15 @@ def test_get_logger_policy_warn_and_bind(monkeypatch: pytest.MonkeyPatch) -> Non
     logger = get_logger(name="policy-test", settings=s)
     logger.info("x")
     asyncio.run(logger.stop_and_drain())
+
+
+def test_public_version_exposed():
+    from fapilog import __version__
+
+    assert isinstance(__version__, str) and __version__
+
+
+def test_public_version_constant():
+    from fapilog import VERSION
+
+    assert isinstance(VERSION, str) and VERSION

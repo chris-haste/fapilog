@@ -35,7 +35,9 @@ from fapilog.plugins.discovery import (
 from fapilog.plugins.lifecycle import (
     AsyncComponentLifecycleManager,
     ComponentIsolationMixin,
+    ComponentLifecycleError,
     PluginLifecycleState,
+    ResourceManager,
     create_lifecycle_manager,
 )
 from fapilog.plugins.metadata import (
@@ -60,14 +62,26 @@ class MockPlugin:
         self.name = name
         self.initialized = False
         self.cleaned_up = False
+        self.initialization_count = 0
+        self.initialize_should_fail = False
+        self.cleanup_should_fail = False
 
     async def initialize(self) -> None:
         """Async initialization."""
         self.initialized = True
+        self.initialization_count += 1
+        if self.initialize_should_fail:
+            raise ComponentLifecycleError(
+                f"Failed to initialize plugin {self.name}: Mock error"
+            )
 
     async def cleanup(self) -> None:
         """Async cleanup."""
         self.cleaned_up = True
+        if self.cleanup_should_fail:
+            raise ComponentLifecycleError(
+                f"Failed to cleanup plugin {self.name}: Mock error"
+            )
 
     def get_status(self) -> dict[str, Any]:
         """Get plugin status."""
@@ -807,6 +821,400 @@ class TestComponentLifecycle:
         async with create_lifecycle_manager(container_id) as manager:
             assert isinstance(manager, AsyncComponentLifecycleManager)
             assert manager.container_id == container_id
+
+    # NEW TESTS FOR MISSING COVERAGE
+
+    async def test_plugin_lifecycle_state_idempotent_initialize(self, plugin_info):
+        """Test that initialize is idempotent (line 53)."""
+        plugin = MockPlugin()
+        state = PluginLifecycleState(plugin_info, plugin, "test-container")
+
+        # First initialization
+        await state.initialize()
+        assert state.initialized
+        assert plugin.initialization_count == 1
+
+        # Second initialization should not call plugin.initialize again
+        await state.initialize()
+        assert state.initialized
+        assert plugin.initialization_count == 1  # Should not increment
+
+    async def test_plugin_lifecycle_state_cleanup_not_initialized(self, plugin_info):
+        """Test cleanup when not initialized (line 78)."""
+        plugin = MockPlugin()
+        state = PluginLifecycleState(plugin_info, plugin, "test-container")
+
+        # Cleanup without initialization should do nothing
+        await state.cleanup()
+        assert not state.initialized
+        assert not plugin.cleaned_up
+
+    async def test_plugin_lifecycle_state_cleanup_callbacks_exception_handling(
+        self, plugin_info
+    ):
+        """Test cleanup callback exception handling (lines 84-86)."""
+        plugin = MockPlugin()
+        state = PluginLifecycleState(plugin_info, plugin, "test-container")
+
+        callback1_called = False
+        callback2_called = False
+
+        async def failing_callback():
+            nonlocal callback1_called
+            callback1_called = True
+            raise RuntimeError("Callback failed")
+
+        async def succeeding_callback():
+            nonlocal callback2_called
+            callback2_called = True
+
+        state.add_cleanup_callback(failing_callback)
+        state.add_cleanup_callback(succeeding_callback)
+
+        await state.initialize()
+        await state.cleanup()
+
+        # Both callbacks should be called even if one fails
+        assert callback1_called
+        assert callback2_called
+        assert not state.initialized
+
+    async def test_plugin_lifecycle_state_plugin_cleanup_exception_handling(
+        self, plugin_info
+    ):
+        """Test plugin cleanup exception handling (lines 98-100)."""
+        plugin = MockPlugin()
+        plugin.cleanup_should_fail = True  # Make cleanup fail
+        state = PluginLifecycleState(plugin_info, plugin, "test-container")
+
+        await state.initialize()
+        # Cleanup should not raise exception even if plugin.cleanup fails
+        await state.cleanup()
+        assert not state.initialized
+
+    async def test_lifecycle_manager_duplicate_registration_error(
+        self, container_id, plugin_info
+    ):
+        """Test duplicate component registration error (lines 152, 166)."""
+        manager = AsyncComponentLifecycleManager(container_id)
+        plugin1 = MockPlugin()
+        plugin2 = MockPlugin()
+
+        # First registration should succeed
+        await manager.register_component("test-plugin", plugin_info, plugin1)
+
+        # Second registration with same name should fail
+        with pytest.raises(
+            ComponentLifecycleError, match="Plugin test-plugin is already registered"
+        ):
+            await manager.register_component("test-plugin", plugin_info, plugin2)
+
+    async def test_lifecycle_manager_unregister_nonexistent_component(
+        self, container_id
+    ):
+        """Test unregistering non-existent component (line 177)."""
+        manager = AsyncComponentLifecycleManager(container_id)
+
+        # Unregister non-existent component should not raise error
+        await manager.unregister_component("nonexistent")
+        assert manager.component_count == 0
+
+    async def test_lifecycle_manager_initialize_all_with_errors(
+        self, container_id, plugin_info
+    ):
+        """Test initialize_all with plugin errors (lines 187, 194-195, 198-199)."""
+        manager = AsyncComponentLifecycleManager(container_id)
+
+        # Create plugins that will fail initialization
+        failing_plugin1 = MockPlugin()
+        failing_plugin1.initialize_should_fail = True
+        failing_plugin1.name = "failing-plugin-1"
+
+        failing_plugin2 = MockPlugin()
+        failing_plugin2.initialize_should_fail = True
+        failing_plugin2.name = "failing-plugin-2"
+
+        await manager.register_component("failing-1", plugin_info, failing_plugin1)
+        await manager.register_component("failing-2", plugin_info, failing_plugin2)
+
+        # Initialize all should fail with combined error message
+        with pytest.raises(
+            ComponentLifecycleError, match="Failed to initialize plugins:"
+        ):
+            await manager.initialize_all()
+
+        assert not manager.is_initialized
+
+    async def test_lifecycle_manager_cleanup_all_not_initialized(self, container_id):
+        """Test cleanup_all when not initialized (line 213-215)."""
+        manager = AsyncComponentLifecycleManager(container_id)
+
+        # Cleanup without initialization should do nothing
+        await manager.cleanup_all()
+        assert not manager.is_initialized
+        assert manager.component_count == 0
+
+    async def test_lifecycle_manager_cleanup_all_with_plugin_errors(
+        self, container_id, plugin_info
+    ):
+        """Test cleanup_all with plugin cleanup errors (lines 223-224)."""
+        manager = AsyncComponentLifecycleManager(container_id)
+
+        # Create plugin that will fail cleanup
+        failing_plugin = MockPlugin()
+        failing_plugin.cleanup_should_fail = True
+
+        await manager.register_component("failing-plugin", plugin_info, failing_plugin)
+        await manager.initialize_all()
+
+        # Cleanup should not raise exception even if plugin.cleanup fails
+        await manager.cleanup_all()
+        assert not manager.is_initialized
+        assert manager.component_count == 0
+
+    async def test_lifecycle_manager_cleanup_all_resource_cleanup_error(
+        self, container_id, plugin_info
+    ):
+        """Test cleanup_all with resource cleanup error (line 240)."""
+        manager = AsyncComponentLifecycleManager(container_id)
+        plugin = MockPlugin()
+
+        await manager.register_component("test-plugin", plugin_info, plugin)
+        await manager.initialize_all()
+
+        # Mock resource manager to fail cleanup
+        with patch.object(
+            manager._resources,
+            "cleanup_all",
+            side_effect=RuntimeError("Resource cleanup failed"),
+        ):
+            # Cleanup should not raise exception even if resource cleanup fails
+            await manager.cleanup_all()
+            assert not manager.is_initialized
+            assert manager.component_count == 0
+
+    async def test_lifecycle_manager_get_component_not_initialized(
+        self, container_id, plugin_info
+    ):
+        """Test get_component when component not initialized (line 279-282)."""
+        manager = AsyncComponentLifecycleManager(container_id)
+        plugin = MockPlugin()
+
+        await manager.register_component("test-plugin", plugin_info, plugin)
+        # Don't initialize
+
+        # Get component should return None when not initialized
+        retrieved = await manager.get_component("test-plugin")
+        assert retrieved is None
+
+    async def test_lifecycle_manager_get_component_nonexistent(self, container_id):
+        """Test get_component with non-existent component (line 287)."""
+        manager = AsyncComponentLifecycleManager(container_id)
+
+        # Get non-existent component should return None
+        retrieved = await manager.get_component("nonexistent")
+        assert retrieved is None
+
+    async def test_lifecycle_manager_add_cleanup_callback_nonexistent_component(
+        self, container_id
+    ):
+        """Test add_cleanup_callback with non-existent component."""
+        manager = AsyncComponentLifecycleManager(container_id)
+
+        async def dummy_callback():
+            pass
+
+        # Adding callback to non-existent component should not raise error
+        manager.add_cleanup_callback("nonexistent", dummy_callback)
+
+    async def test_lifecycle_manager_get_component_info(
+        self, container_id, plugin_info
+    ):
+        """Test get_component_info method."""
+        manager = AsyncComponentLifecycleManager(container_id)
+        plugin = MockPlugin()
+
+        await manager.register_component("test-plugin", plugin_info, plugin)
+
+        # Get component info should return plugin info
+        retrieved_info = manager.get_component_info("test-plugin")
+        assert retrieved_info is plugin_info
+
+        # Get info for non-existent component should return None
+        retrieved_info = manager.get_component_info("nonexistent")
+        assert retrieved_info is None
+
+    async def test_lifecycle_manager_resources_property(self, container_id):
+        """Test resources property access."""
+        manager = AsyncComponentLifecycleManager(container_id)
+
+        # Should return ResourceManager instance
+        assert isinstance(manager.resources, ResourceManager)
+        assert manager.resources is manager._resources
+
+    async def test_lifecycle_manager_weakref_self(self, container_id):
+        """Test weakref self reference."""
+        manager = AsyncComponentLifecycleManager(container_id)
+
+        # Weakref should reference self
+        weakref_self = manager._weakref_self()
+        assert weakref_self is manager
+
+    async def test_create_lifecycle_manager_exception_handling(
+        self, container_id, plugin_info
+    ):
+        """Test create_lifecycle_manager exception handling."""
+        # Test that cleanup happens even if exception occurs in context
+        try:
+            async with create_lifecycle_manager(container_id) as manager:
+                await manager.register_component("test", plugin_info, MockPlugin())
+                await manager.initialize_all()
+                raise RuntimeError("Test exception")
+        except RuntimeError:
+            pass
+
+        # Manager should be cleaned up even after exception
+        # We can't directly check this, but the test should complete without hanging
+
+    async def test_plugin_lifecycle_state_plugin_initialize_exception(
+        self, plugin_info
+    ):
+        """Test plugin initialization exception handling."""
+        plugin = MockPlugin()
+        plugin.initialize_should_fail = True
+        state = PluginLifecycleState(plugin_info, plugin, "test-container")
+
+        # Initialization should fail with ComponentLifecycleError
+        with pytest.raises(
+            ComponentLifecycleError, match="Failed to initialize plugin lifecycle-test:"
+        ):
+            await state.initialize()
+
+        assert not state.initialized
+
+    async def test_plugin_lifecycle_state_plugin_cleanup_exception(self, plugin_info):
+        """Test plugin cleanup exception handling."""
+        plugin = MockPlugin()
+        plugin.cleanup_should_fail = True
+        state = PluginLifecycleState(plugin_info, plugin, "test-container")
+
+        await state.initialize()
+        # Cleanup should not raise exception even if plugin.cleanup fails
+        await state.cleanup()
+        assert not state.initialized
+
+    async def test_plugin_lifecycle_state_cleanup_callbacks_order(self, plugin_info):
+        """Test cleanup callbacks are executed in reverse order."""
+        plugin = MockPlugin()
+        state = PluginLifecycleState(plugin_info, plugin, "test-container")
+
+        callback_order = []
+
+        async def callback1():
+            callback_order.append(1)
+
+        async def callback2():
+            callback_order.append(2)
+
+        async def callback3():
+            callback_order.append(3)
+
+        state.add_cleanup_callback(callback1)
+        state.add_cleanup_callback(callback2)
+        state.add_cleanup_callback(callback3)
+
+        await state.initialize()
+        await state.cleanup()
+
+        # Callbacks should be executed in reverse order (3, 2, 1)
+        assert callback_order == [3, 2, 1]
+
+    async def test_lifecycle_manager_register_component_immediate_initialization(
+        self, container_id, plugin_info
+    ):
+        """Test immediate initialization when registering to already initialized manager (line 166)."""
+        manager = AsyncComponentLifecycleManager(container_id)
+
+        # Initialize the manager first
+        await manager.initialize_all()
+        assert manager.is_initialized
+
+        # Now register a component - it should be initialized immediately
+        plugin = MockPlugin()
+        await manager.register_component("test-plugin", plugin_info, plugin)
+
+        # Component should be initialized immediately since manager was already initialized
+        assert plugin.initialized
+        assert await manager.get_component("test-plugin") is plugin
+
+    async def test_lifecycle_manager_initialize_all_idempotent(
+        self, container_id, plugin_info
+    ):
+        """Test that initialize_all is idempotent (line 187)."""
+        manager = AsyncComponentLifecycleManager(container_id)
+        plugin = MockPlugin()
+
+        await manager.register_component("test-plugin", plugin_info, plugin)
+
+        # First initialization
+        await manager.initialize_all()
+        assert manager.is_initialized
+        assert plugin.initialization_count == 1
+
+        # Second initialization should not re-initialize components
+        await manager.initialize_all()
+        assert manager.is_initialized
+        assert plugin.initialization_count == 1  # Should not increment
+
+    async def test_lifecycle_manager_cleanup_all_idempotent(
+        self, container_id, plugin_info
+    ):
+        """Test that cleanup_all is idempotent (lines 213-215)."""
+        manager = AsyncComponentLifecycleManager(container_id)
+
+        # Register and initialize components so cleanup loop body is executed
+        plugin1 = MockPlugin()
+        plugin2 = MockPlugin()
+        await manager.register_component("plugin1", plugin_info, plugin1)
+        await manager.register_component("plugin2", plugin_info, plugin2)
+        await manager.initialize_all()
+
+        # First cleanup should actually clean up components
+        await manager.cleanup_all()
+        assert not manager.is_initialized
+        assert manager.component_count == 0
+        assert plugin1.cleaned_up
+        assert plugin2.cleaned_up
+
+        # Second cleanup should do nothing
+        await manager.cleanup_all()
+        assert not manager.is_initialized
+        assert manager.component_count == 0
+
+    async def test_lifecycle_manager_cleanup_all_loop_execution(
+        self, container_id, plugin_info
+    ):
+        """Test that cleanup_all loop body is executed (lines 213-215)."""
+        manager = AsyncComponentLifecycleManager(container_id)
+
+        # Create multiple plugins to ensure loop iteration
+        plugins = []
+        for i in range(3):
+            plugin = MockPlugin()
+            plugins.append(plugin)
+            await manager.register_component(f"plugin-{i}", plugin_info, plugin)
+
+        await manager.initialize_all()
+        assert manager.component_count == 3
+
+        # This should execute the cleanup loop for each component
+        await manager.cleanup_all()
+        assert not manager.is_initialized
+        assert manager.component_count == 0
+
+        # Verify all plugins were cleaned up
+        for plugin in plugins:
+            assert plugin.cleaned_up
 
 
 # Component Isolation Tests
