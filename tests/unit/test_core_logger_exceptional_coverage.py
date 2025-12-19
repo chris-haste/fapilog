@@ -138,7 +138,7 @@ class TestSamplingExceptionPaths:
             logger.debug("Debug message that should still be processed")
             logger.info("Info message that should still be processed")
 
-        result = asyncio.run(logger.stop_and_drain())
+        asyncio.run(logger.stop_and_drain())
 
         # Messages should still be processed despite settings exception
         # At least one message should get through
@@ -246,8 +246,7 @@ class TestErrorDeduplicationEdgeCases:
             # Second error should hit the settings exception but continue
             logger.error("Database error")
 
-        result = asyncio.run(logger.stop_and_drain())
-
+        asyncio.run(logger.stop_and_drain())
         # Should handle the exception gracefully and still process messages
         assert len(out) >= 1
 
@@ -276,7 +275,7 @@ class TestErrorDeduplicationEdgeCases:
         time.sleep(0.05)
 
         # Test shutdown
-        result = asyncio.run(logger.stop_and_drain())
+        asyncio.run(logger.stop_and_drain())
 
         # Should handle deduplication gracefully
         # Note: We can't mock time.monotonic() as it breaks asyncio event loop
@@ -311,7 +310,7 @@ class TestErrorDeduplicationEdgeCases:
             time.sleep(0.05)
 
             # Test shutdown
-            result = asyncio.run(logger.stop_and_drain())
+            asyncio.run(logger.stop_and_drain())
 
             # Should handle the exception gracefully
             assert len(out) >= 1  # Message should still be processed
@@ -344,7 +343,7 @@ class TestErrorDeduplicationEdgeCases:
             time.sleep(0.05)
 
             # Test shutdown
-            result = asyncio.run(logger.stop_and_drain())
+            asyncio.run(logger.stop_and_drain())
 
             # Should handle the exception gracefully
             assert len(out) >= 1  # Message should still be processed
@@ -380,7 +379,7 @@ class TestErrorDeduplicationEdgeCases:
             time.sleep(0.05)
 
             # Test shutdown
-            result = asyncio.run(logger.stop_and_drain())
+            asyncio.run(logger.stop_and_drain())
 
             # Should handle sampling gracefully
             assert len(out) >= 0  # Some messages may be sampled out
@@ -413,7 +412,7 @@ class TestErrorDeduplicationEdgeCases:
             time.sleep(0.05)
 
             # Test shutdown
-            result = asyncio.run(logger.stop_and_drain())
+            asyncio.run(logger.stop_and_drain())
 
             # Should handle the exception gracefully
             assert len(out) >= 1  # Message should still be processed
@@ -446,7 +445,7 @@ class TestErrorDeduplicationEdgeCases:
             time.sleep(0.05)
 
             # Test shutdown
-            result = asyncio.run(logger.stop_and_drain())
+            asyncio.run(logger.stop_and_drain())
 
             # Should handle the exception gracefully
             assert len(out) >= 1  # Message should still be processed
@@ -479,7 +478,7 @@ class TestErrorDeduplicationEdgeCases:
             time.sleep(0.05)
 
             # Test shutdown
-            result = asyncio.run(logger.stop_and_drain())
+            asyncio.run(logger.stop_and_drain())
 
             # Should handle the exception gracefully
             assert len(out) >= 1  # Message should still be processed
@@ -509,7 +508,7 @@ class TestErrorDeduplicationEdgeCases:
         time.sleep(0.05)
 
         # Test shutdown
-        result = asyncio.run(logger.stop_and_drain())
+        asyncio.run(logger.stop_and_drain())
 
         # Should handle the exception gracefully
         assert len(out) >= 1  # Message should still be processed
@@ -543,7 +542,7 @@ class TestMetricsExceptionPaths:
         # Should handle metrics exceptions gracefully (lines 358-359)
         logger.info("Test message with metrics exception")
 
-        result = asyncio.run(logger.stop_and_drain())
+        asyncio.run(logger.stop_and_drain())
 
         # Message should still be processed despite metrics exception
         # But metrics errors might affect processing
@@ -576,7 +575,7 @@ class TestMetricsExceptionPaths:
         # Should handle async metrics exceptions gracefully
         await logger.info("Test message with async metrics exception")
 
-        result = await logger.stop_and_drain()
+        await logger.stop_and_drain()
 
         # Message should still be processed despite metrics exception
         assert len(out) >= 1
@@ -605,7 +604,7 @@ class TestMetricsExceptionPaths:
         # Test normal operation first
         logger.info("Test message in thread mode")
 
-        result = asyncio.run(logger.stop_and_drain())
+        asyncio.run(logger.stop_and_drain())
 
         # Should handle the operation gracefully
         assert len(out) >= 1
@@ -648,7 +647,7 @@ class TestSerializationFallbackPaths:
             # Should fall back to regular sink path
             logger.info("Test message with serialization failure")
 
-        result = await logger.stop_and_drain()
+        await logger.stop_and_drain()
 
         # Should fall back to regular sink or handle error gracefully
         # The exact behavior depends on error handling implementation
@@ -693,7 +692,7 @@ class TestSerializationFallbackPaths:
                 # In strict mode, should drop the entry (line 654: continue)
                 logger.info("Test message in strict mode")
 
-        result = await logger.stop_and_drain()
+        await logger.stop_and_drain()
 
         # In strict mode with serialization failure, behavior depends on implementation
         # Just verify operation completed without crash
@@ -727,7 +726,7 @@ class TestSerializationFallbackPaths:
         # Should fall back to regular sink when serialized sink fails
         logger.info("Test message with serialized sink failure")
 
-        result = await logger.stop_and_drain()
+        await logger.stop_and_drain()
 
         # Should fall back to regular sink path
         assert len(out) >= 1
@@ -757,7 +756,7 @@ class TestAsyncLoggerFacadeEdgeCases:
 
         await logger.info("Test message in thread mode")
 
-        result = await logger.stop_and_drain()
+        await logger.stop_and_drain()
 
         assert len(out) >= 1
         assert result.processed >= 1
@@ -831,7 +830,7 @@ class TestWorkerLifecycleExceptions:
             logger.info("Test message with worker exception")
 
             # Should handle worker exceptions gracefully
-            result = asyncio.run(logger.stop_and_drain())
+            asyncio.run(logger.stop_and_drain())
 
             # Message processing might be affected but shouldn't crash
             assert result.submitted >= 1
@@ -865,7 +864,7 @@ class TestDiagnosticsExceptionPaths:
             for i in range(10):
                 logger.info(f"Message {i}")
 
-        result = asyncio.run(logger.stop_and_drain())
+        asyncio.run(logger.stop_and_drain())
 
         # Should handle diagnostics exceptions gracefully
         # Some messages should be processed, some dropped

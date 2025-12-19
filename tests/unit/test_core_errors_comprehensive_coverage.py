@@ -227,8 +227,8 @@ class TestSerializeExceptionEdgeCases:
         try:
             try:
                 raise RuntimeError("Context error")
-            except RuntimeError:
-                raise ValueError("Context error")
+            except RuntimeError as err:
+                raise ValueError("Context error") from err
         except ValueError:
             exc_info = sys.exc_info()
 
@@ -386,7 +386,6 @@ class TestUnhandledExceptionHooks:
 
     def test_asyncio_exception_handler_delegation(self) -> None:
         """Test asyncio exception handler delegates to previous handler."""
-        mock_logger = Mock()
         mock_loop = Mock()
 
         # Mock previous handler

@@ -254,7 +254,7 @@ class TestErrorDeduplication:
             mock_settings.return_value = settings_instance
 
             # Log same error multiple times
-            for i in range(5):
+            for _ in range(5):
                 logger.error("Repeated error")
 
         asyncio.run(logger.stop_and_drain())
@@ -370,7 +370,7 @@ class TestThreadVsEventLoopModes:
         time.sleep(0.1)  # Let thread process
 
         # Stop and verify cleanup
-        result = asyncio.run(logger.stop_and_drain())
+        asyncio.run(logger.stop_and_drain())
 
         # Thread should be cleaned up
         assert not thread.is_alive()

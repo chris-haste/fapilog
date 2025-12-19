@@ -13,7 +13,7 @@ import httpx
 
 from ...core.resources import HttpClientPool
 from ...core.retry import AsyncRetrier, RetryConfig
-from ...core.serialization import SerializedView, serialize_mapping_to_json_bytes
+from ...core.serialization import SerializedView
 from ...metrics.metrics import MetricsCollector
 
 

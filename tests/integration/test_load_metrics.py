@@ -108,11 +108,11 @@ async def test_load_metrics_with_drops_and_stall_bounds(tmp_path) -> None:
             asyncio.to_thread(_produce),
             timeout=30.0,  # 30 second timeout for production
         )
-    except asyncio.TimeoutError:
+    except asyncio.TimeoutError as err:
         # If producer times out, that's a real bug - fail the test
         raise AssertionError(
             f"Producer timed out after 30s - submitted {logger._submitted} events"
-        )
+        ) from err
     finally:
         # Always cleanup, even if producer failed
         try:
@@ -120,8 +120,8 @@ async def test_load_metrics_with_drops_and_stall_bounds(tmp_path) -> None:
                 logger.stop_and_drain(),
                 timeout=10.0,  # 10 second timeout for drain
             )
-        except asyncio.TimeoutError:
-            raise AssertionError("Logger drain timed out - this indicates a hang bug")
+        except asyncio.TimeoutError as err:
+            raise AssertionError("Logger drain timed out - this indicates a hang bug") from err
 
         await sink.stop()
         stop_evt.set()
@@ -212,16 +212,16 @@ async def test_load_metrics_no_drops_and_low_latency(tmp_path) -> None:
             asyncio.to_thread(_produce),
             timeout=20.0,  # 20 second timeout
         )
-    except asyncio.TimeoutError:
+    except asyncio.TimeoutError as err:
         raise AssertionError(
             f"Producer timed out after 20s - submitted {logger._submitted} events"
-        )
+        ) from err
     finally:
         # Always cleanup with timeouts
         try:
             drain = await asyncio.wait_for(logger.stop_and_drain(), timeout=10.0)
-        except asyncio.TimeoutError:
-            raise AssertionError("Logger drain timed out - this indicates a hang bug")
+        except asyncio.TimeoutError as err:
+            raise AssertionError("Logger drain timed out - this indicates a hang bug") from err
 
         await sink.stop()
         stop_evt.set()

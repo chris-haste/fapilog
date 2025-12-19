@@ -94,7 +94,7 @@ async def test_exception_serialization_with_exc_and_tuple() -> None:
         logger.error("with-exc", exc=err)
 
     try:
-        1 / 0
+        _ = 1 / 0
     except ZeroDivisionError:
         info = sys.exc_info()
         logger.error("with-tuple", exc_info=info)
