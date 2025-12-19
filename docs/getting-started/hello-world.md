@@ -15,13 +15,13 @@ async def main():
     logger = get_logger()
 
     # Basic logging
-    await logger.info("Hello, World!")
-    await logger.debug("Debug message")
-    await logger.warning("Warning message")
-    await logger.error("Error message")
+    logger.info("Hello, World!")
+    logger.debug("Debug message")
+    logger.warning("Warning message")
+    logger.error("Error message")
 
     # Cleanup
-    await logger.close()
+    logger.close()
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -61,12 +61,12 @@ async def main():
 
     # Generate some logs
     for i in range(100):
-        await logger.info(f"Log message {i}", extra={
+        logger.info(f"Log message {i}", extra={
             "iteration": i,
             "timestamp": f"2024-01-15T10:30:{i:02d}Z"
         })
 
-    await logger.close()
+    logger.close()
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -94,7 +94,7 @@ async def main():
     logger = get_logger()
 
     # Log sensitive data
-    await logger.info("User credentials", extra={
+    logger.info("User credentials", extra={
         "username": "john_doe",
         "password": "secret123",  # This will be redacted
         "api_key": "sk-1234567890abcdef",  # This too
@@ -102,13 +102,13 @@ async def main():
     })
 
     # Log business data (safe)
-    await logger.info("User profile", extra={
+    logger.info("User profile", extra={
         "user_id": "12345",
         "preferences": {"theme": "dark", "language": "en"},
         "last_login": "2024-01-15T10:30:00Z"
     })
 
-    await logger.close()
+    logger.close()
 
 if __name__ == "__main__":
     asyncio.run(main())
