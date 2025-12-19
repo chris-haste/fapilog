@@ -216,7 +216,7 @@ class Settings(BaseSettings):
         headers_json: str | None = Field(
             default=None,
             description=(
-                "JSON-encoded headers map (e.g. '{\"Authorization\": \"Bearer x\"}')"
+                'JSON-encoded headers map (e.g. \'{"Authorization": "Bearer x"}\')'
             ),
         )
         retry_max_attempts: int | None = Field(

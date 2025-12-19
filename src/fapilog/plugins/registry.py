@@ -6,6 +6,7 @@ loading, lifecycle, and integration with the async container.
 """
 
 import asyncio
+import os
 import uuid
 import weakref
 from pathlib import Path
@@ -202,8 +203,15 @@ class AsyncComponentRegistry(ComponentIsolationMixin):
             if not plugin_info:
                 raise PluginRegistryError(f"Plugin '{plugin_name}' not found")
 
-            # Validate Fapilog core version compatibility first
-            if not validate_fapilog_compatibility(plugin_info.metadata):
+            # Validate Fapilog core version compatibility first (optional guardrail)
+            strict_compat = os.getenv("FAPILOG_STRICT_PLUGIN_COMPAT", "").lower() in (
+                "1",
+                "true",
+                "yes",
+            )
+            if strict_compat and not validate_fapilog_compatibility(
+                plugin_info.metadata
+            ):
                 raise PluginRegistryError(
                     f"Plugin '{plugin_name}' is incompatible with current "
                     "Fapilog version"
@@ -396,11 +404,11 @@ class AsyncComponentRegistry(ComponentIsolationMixin):
                 entry_points = importlib.metadata.entry_points()
 
                 # Find the entry point
-                fapilog_entries = []
+                fapilog_entries: list[importlib.metadata.EntryPoint] = []
                 if hasattr(entry_points, "select"):
-                    fapilog_entries = entry_points.select(group="fapilog.plugins")
+                    fapilog_entries = list(entry_points.select(group="fapilog.plugins"))
                 else:
-                    fapilog_entries = entry_points.get("fapilog.plugins", [])
+                    fapilog_entries = list(entry_points.get("fapilog.plugins", []))
 
                 for ep in fapilog_entries:
                     if ep.name == plugin_info.metadata.name:

@@ -16,6 +16,8 @@ from ...core.retry import AsyncRetrier, RetryConfig
 from ...core.serialization import SerializedView
 from ...metrics.metrics import MetricsCollector
 
+__all__ = ["WebhookSink", "WebhookSinkConfig"]
+
 
 class WebhookSinkConfig:
     def __init__(
@@ -69,7 +71,9 @@ class WebhookSink:
         async with self._pool.acquire() as client:
 
             async def _do_post() -> httpx.Response:
-                return await client.post(self._config.endpoint, json=payload, headers=headers)
+                return await client.post(
+                    self._config.endpoint, json=payload, headers=headers
+                )
 
             if self._retrier:
                 return await self._retrier.retry(_do_post)
@@ -120,10 +124,18 @@ class WebhookSink:
         try:
             import json
 
-            data = json.loads(view.data.tobytes())
+            data = json.loads(bytes(view.data))
         except Exception:
             data = {"message": "fallback"}
         await self.write(data)
 
     async def health_check(self) -> bool:
-        return self._last_error is None and self._last_status is not None and self._last_status < 400
+        return (
+            self._last_error is None
+            and self._last_status is not None
+            and self._last_status < 400
+        )
+
+
+# Mark public API methods for tooling
+_ = WebhookSink.health_check  # pragma: no cover

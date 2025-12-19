@@ -899,4 +899,6 @@ class TestIntegrationScenarios:
         if logger._worker_thread is not None:
             # If thread still exists, allow a brief grace period
             logger._worker_thread.join(timeout=0.5)
+
+
 # allow lingering thread in CI

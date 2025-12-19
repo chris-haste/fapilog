@@ -11,6 +11,7 @@ Provides validation utilities for plugin configuration including:
 from __future__ import annotations
 
 import importlib.metadata
+import os
 from typing import Any, Mapping, Type, Union
 
 from packaging.requirements import Requirement
@@ -200,8 +201,13 @@ def validate_plugin_configuration(
     metadata = plugin.metadata
     result = ValidationResult(ok=True)
 
-    # Compatibility check
-    if not validate_fapilog_compatibility(metadata):
+    # Compatibility check (opt-in strictness)
+    strict_compat = os.getenv("FAPILOG_STRICT_PLUGIN_COMPAT", "").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+    if strict_compat and not validate_fapilog_compatibility(metadata):
         result.add_issue(
             ValidationIssue(
                 field="compatibility",

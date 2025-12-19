@@ -14,6 +14,8 @@ from ...core.resources import HttpClientPool
 from ...core.retry import AsyncRetrier, RetryConfig
 from ...core.serialization import SerializedView
 
+__all__ = ["HttpSink", "HttpSinkConfig"]
+
 
 class AsyncHttpSender:
     """Thin wrapper around a `HttpClientPool` to send requests efficiently.
@@ -141,7 +143,7 @@ class HttpSink:
         try:
             import json
 
-            data = json.loads(view.data.tobytes())
+            data = json.loads(bytes(view.data))
         except Exception:
             data = None
         if data is not None:
@@ -153,4 +155,12 @@ class HttpSink:
         )
 
     async def health_check(self) -> bool:
-        return self._last_status is not None and self._last_status < 400 and not self._last_error
+        return (
+            self._last_status is not None
+            and self._last_status < 400
+            and not self._last_error
+        )
+
+
+# Mark public API methods for tooling
+_ = HttpSink.health_check  # pragma: no cover

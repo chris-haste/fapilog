@@ -246,6 +246,14 @@ class AsyncResourcePool(Generic[T]):
         """Alias for ``cleanup`` for API symmetry."""
         await self.cleanup()
 
+    async def start(self) -> None:
+        """Lifecycle hook for symmetry; pools are lazily created."""
+        self._closed = False
+
+    async def stop(self) -> None:
+        """Lifecycle hook to cleanup all resources."""
+        await self.cleanup()
+
     async def stats(self) -> PoolStats:
         """Return a snapshot of current pool stats."""
         idle_size = self._idle.qsize()
@@ -386,3 +394,12 @@ class ResourceManager:
 
     async def stats(self) -> dict[str, PoolStats]:
         return {name: await pool.stats() for name, pool in self._pools.items()}
+
+
+__all__ = [
+    "AsyncResourcePool",
+    "HttpClientPool",
+    "CacheResourcePool",
+    "PoolStats",
+    "ResourceManager",
+]

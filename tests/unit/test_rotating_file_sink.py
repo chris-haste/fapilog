@@ -868,11 +868,14 @@ async def test_list_rotated_files_iterdir_exception(
     sink = RotatingFileSink(cfg)
 
     # Create a directory that will fail on iterdir
-    class BrokenPath(Path):
+    class BrokenPath:
+        def exists(self) -> bool:
+            return True
+
         def iterdir(self):
             raise OSError("iterdir failed")
 
-    sink._cfg.directory = BrokenPath(tmp_path)
+    sink._cfg.directory = BrokenPath()
 
     # Should handle iterdir failure gracefully
     result = sink._list_rotated_files()

@@ -157,10 +157,11 @@ class SyncLoggerFacade:
                         if pending:
                             # Add timeout to prevent hanging during task cleanup
                             try:
-                                asyncio.wait_for(
+                                cleanup_coro = asyncio.wait_for(
                                     asyncio.gather(*pending, return_exceptions=True),
                                     timeout=3.0,  # 3 second timeout
                                 )
+                                loop_local.run_until_complete(cleanup_coro)
                             except asyncio.TimeoutError:
                                 # Tasks didn't complete within timeout, continue cleanup
                                 try:
