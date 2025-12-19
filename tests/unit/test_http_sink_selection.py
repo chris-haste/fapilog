@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 from typing import Any
 
 import pytest
@@ -9,7 +8,9 @@ from fapilog import get_logger
 
 
 @pytest.mark.asyncio
-async def test_get_logger_prefers_http_sink_over_file(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_get_logger_prefers_http_sink_over_file(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     messages: list[Any] = []
 
     class FakeHttpSink:

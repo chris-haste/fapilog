@@ -28,7 +28,9 @@ class _StubSender:
         self.responses = responses
         self.calls: list[tuple[str, Any]] = []
 
-    async def post_json(self, url: str, json: Any, headers: Any = None) -> httpx.Response:
+    async def post_json(
+        self, url: str, json: Any, headers: Any = None
+    ) -> httpx.Response:
         self.calls.append((url, json))
         outcome = self.responses.pop(0)
         if isinstance(outcome, Exception):
@@ -92,7 +94,9 @@ async def test_http_sink_success_records_metrics() -> None:
 
 
 @pytest.mark.asyncio
-async def test_http_sink_warns_on_status_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_http_sink_warns_on_status_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     warnings: list[dict[str, Any]] = []
     monkeypatch.setenv("PYTHONASYNCIODEBUG", "0")
 
@@ -171,7 +175,9 @@ async def test_http_sink_retries_on_retryable(monkeypatch: pytest.MonkeyPatch) -
 
 
 @pytest.mark.asyncio
-async def test_http_sink_retry_metrics_and_backoff(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_http_sink_retry_metrics_and_backoff(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Retryable error should back off once and increment metrics only on success."""
     from fapilog.core.retry import RetryConfig
 
@@ -180,7 +186,9 @@ async def test_http_sink_retry_metrics_and_backoff(monkeypatch: pytest.MonkeyPat
     sleep_calls: list[float] = []
 
     class TimedPool(_RetryingPool):
-        async def post(self, url: str, json: Any, headers: Any = None) -> httpx.Response:
+        async def post(
+            self, url: str, json: Any, headers: Any = None
+        ) -> httpx.Response:
             timings.append(asyncio.get_event_loop().time())
             return await super().post(url, json, headers)
 
@@ -196,7 +204,9 @@ async def test_http_sink_retry_metrics_and_backoff(monkeypatch: pytest.MonkeyPat
         pool=pool,
         metrics=metrics,
     )
-    with patch("fapilog.core.retry.asyncio.sleep", side_effect=lambda d: sleep_calls.append(d)):
+    with patch(
+        "fapilog.core.retry.asyncio.sleep", side_effect=lambda d: sleep_calls.append(d)
+    ):
         await sink.start()
         await sink.write({"message": "hello"})
         await sink.stop()
@@ -210,7 +220,9 @@ async def test_http_sink_retry_metrics_and_backoff(monkeypatch: pytest.MonkeyPat
 
 
 @pytest.mark.asyncio
-async def test_http_sink_health_check_and_diagnostics(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_http_sink_health_check_and_diagnostics(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     warnings: list[dict[str, Any]] = []
 
     def _warn(component: str, message: str, **fields: Any) -> None:
