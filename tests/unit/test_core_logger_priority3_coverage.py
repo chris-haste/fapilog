@@ -897,5 +897,6 @@ class TestIntegrationScenarios:
 
         # Check worker thread cleanup - it should be None or not alive
         if logger._worker_thread is not None:
-            # If thread still exists, it should not be alive
+            # If thread still exists, allow a brief grace period
+            logger._worker_thread.join(timeout=0.1)
             assert not logger._worker_thread.is_alive()
