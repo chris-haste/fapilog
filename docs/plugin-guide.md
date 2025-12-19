@@ -18,4 +18,5 @@
 | stdout_json | sink | 0.0.0 | 1.0 | unknown | Failed to load local plugin: attempted relative import with no known parent package |
 | url-credentials | redactor | 1.0.0 | 1.0 | Fapilog Core | Strips user:pass@ credentials from URL-like strings. |
 | url_credentials | sink | 0.0.0 | 1.0 | unknown | Failed to load local plugin: attempted relative import with no known parent package |
+| webhook | sink | 0.0.0 | 1.0 | unknown | Failed to load local plugin: attempted relative import with no known parent package |
 | zero_copy | sink | 0.0.0 | 1.0 | unknown | Failed to load local plugin: attempted relative import with no known parent package |
