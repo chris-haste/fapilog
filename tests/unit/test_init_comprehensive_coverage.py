@@ -24,7 +24,7 @@ class TestGetAsyncLoggerCoverage:
     @pytest.mark.asyncio
     async def test_get_async_logger_basic_usage(self) -> None:
         """Test basic async logger creation."""
-        logger = get_async_logger(name="async-test")
+        logger = await get_async_logger(name="async-test")
         assert logger is not None
         await logger.info("test message")
         await logger.stop_and_drain()
@@ -35,7 +35,7 @@ class TestGetAsyncLoggerCoverage:
     ) -> None:
         """Test async logger with rotating file sink."""
         with patch.dict(os.environ, {"FAPILOG_FILE__DIRECTORY": str(tmp_path)}):
-            logger = get_async_logger(name="async-file-test")
+            logger = await get_async_logger(name="async-file-test")
             await logger.info("test message")
             await logger.stop_and_drain()
 
@@ -50,7 +50,7 @@ class TestGetAsyncLoggerCoverage:
         settings.core.enable_metrics = True
         settings.core.max_queue_size = 100
 
-        logger = get_async_logger(name="async-settings-test", settings=settings)
+        logger = await get_async_logger(name="async-settings-test", settings=settings)
         assert logger is not None
         await logger.info("test message")
         await logger.stop_and_drain()
@@ -66,7 +66,7 @@ class TestGetAsyncLoggerCoverage:
         with patch(
             "fapilog.plugins.sinks.stdout_json.StdoutJsonSink", return_value=mock_sink
         ):
-            logger = get_async_logger(name="async-sink-fail-test")
+            logger = await get_async_logger(name="async-sink-fail-test")
             # Should handle sink start failure gracefully
             await logger.info("test message")
             await logger.stop_and_drain()
@@ -81,7 +81,7 @@ class TestGetAsyncLoggerCoverage:
         with patch(
             "fapilog.plugins.sinks.stdout_json.StdoutJsonSink", return_value=mock_sink
         ):
-            logger = get_async_logger(name="async-serialized-fallback-test")
+            logger = await get_async_logger(name="async-serialized-fallback-test")
             await logger.info("test message")
             await logger.stop_and_drain()
 
@@ -92,7 +92,7 @@ class TestGetAsyncLoggerCoverage:
         settings.core.context_binding_enabled = True
         settings.core.default_bound_context = {"tenant": "test-tenant"}
 
-        logger = get_async_logger(name="async-context-test", settings=settings)
+        logger = await get_async_logger(name="async-context-test", settings=settings)
         await logger.info("test message")
         await logger.stop_and_drain()
 
@@ -108,7 +108,7 @@ class TestGetAsyncLoggerCoverage:
             "fapilog.core.logger.AsyncLoggerFacade.bind",
             side_effect=RuntimeError("Bind failed"),
         ):
-            logger = get_async_logger(
+            logger = await get_async_logger(
                 name="async-context-exception-test", settings=settings
             )
             # Should handle binding exception gracefully
@@ -121,7 +121,7 @@ class TestGetAsyncLoggerCoverage:
         settings = Settings()
         settings.core.sensitive_fields_policy = ["password", "secret"]
 
-        logger = get_async_logger(name="async-policy-test", settings=settings)
+        logger = await get_async_logger(name="async-policy-test", settings=settings)
         await logger.info("test message")
         await logger.stop_and_drain()
 
@@ -133,7 +133,7 @@ class TestGetAsyncLoggerCoverage:
         settings.core.redactors_order = ["field-mask", "regex-mask"]
         settings.core.sensitive_fields_policy = ["password"]
 
-        logger = get_async_logger(name="async-redactors-test", settings=settings)
+        logger = await get_async_logger(name="async-redactors-test", settings=settings)
         assert hasattr(logger, "_redactors")
         assert len(logger._redactors) == 2
         await logger.info("test message")
@@ -152,7 +152,7 @@ class TestGetAsyncLoggerCoverage:
             "fapilog.plugins.redactors.field_mask.FieldMaskRedactor",
             side_effect=ImportError("Redactor failed"),
         ):
-            logger = get_async_logger(
+            logger = await get_async_logger(
                 name="async-redactors-exception-test", settings=settings
             )
             # Should handle redactor exception gracefully
@@ -165,7 +165,7 @@ class TestGetAsyncLoggerCoverage:
         settings = Settings()
         settings.core.capture_unhandled_enabled = True
 
-        logger = get_async_logger(name="async-unhandled-test", settings=settings)
+        logger = await get_async_logger(name="async-unhandled-test", settings=settings)
         await logger.info("test message")
         await logger.stop_and_drain()
 
@@ -180,7 +180,7 @@ class TestGetAsyncLoggerCoverage:
             "fapilog.core.errors.capture_unhandled_exceptions",
             side_effect=RuntimeError("Capture failed"),
         ):
-            logger = get_async_logger(
+            logger = await get_async_logger(
                 name="async-unhandled-exception-test", settings=settings
             )
             # Should handle capture exception gracefully

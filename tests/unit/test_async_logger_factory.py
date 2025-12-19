@@ -13,7 +13,7 @@ from fapilog.core.settings import CoreSettings
 @pytest.mark.asyncio
 async def test_get_async_logger_basic_functionality() -> None:
     """Test basic async logger creation and usage."""
-    logger = get_async_logger("test_logger")
+    logger = await get_async_logger("test_logger")
 
     # Verify logger is properly configured
     assert logger._name == "test_logger"
@@ -33,7 +33,7 @@ async def test_get_async_logger_with_settings() -> None:
     """Test async logger creation with custom settings."""
     core_settings = CoreSettings(enable_metrics=True)
     settings = Settings(core=core_settings)
-    logger = get_async_logger("test_logger", settings=settings)
+    logger = await get_async_logger("test_logger", settings=settings)
 
     # Verify metrics are enabled
     assert logger._metrics is not None
@@ -48,7 +48,7 @@ async def test_get_async_logger_with_settings() -> None:
 @pytest.mark.asyncio
 async def test_get_async_logger_default_name() -> None:
     """Test async logger creation with default name."""
-    logger = get_async_logger()
+    logger = await get_async_logger()
 
     # Verify default name is used
     assert logger._name == "root"
@@ -116,7 +116,7 @@ async def test_runtime_async_exception_handling() -> None:
 async def test_async_logger_integration_with_sinks() -> None:
     """Test async logger integration with different sink types."""
     # Test with stdout sink (default)
-    logger = get_async_logger("stdout_test")
+    logger = await get_async_logger("stdout_test")
 
     # Test basic logging
     await logger.info("stdout test message")
@@ -128,7 +128,7 @@ async def test_async_logger_integration_with_sinks() -> None:
 @pytest.mark.asyncio
 async def test_async_logger_context_binding_integration() -> None:
     """Test async logger context binding integration."""
-    logger = get_async_logger("context_test")
+    logger = await get_async_logger("context_test")
 
     # Bind context
     bound_logger = logger.bind(user_id="123", session_id="abc")
@@ -146,7 +146,7 @@ async def test_async_logger_context_binding_integration() -> None:
 @pytest.mark.asyncio
 async def test_async_logger_concurrent_usage() -> None:
     """Test async logger with concurrent usage patterns."""
-    logger = get_async_logger("concurrent_test")
+    logger = await get_async_logger("concurrent_test")
 
     # Create multiple concurrent logging tasks
     async def log_task(task_id: int, count: int):
@@ -167,7 +167,7 @@ async def test_async_logger_concurrent_usage() -> None:
 @pytest.mark.asyncio
 async def test_async_logger_flush_and_drain() -> None:
     """Test async logger flush and drain methods."""
-    logger = get_async_logger("flush_test")
+    logger = await get_async_logger("flush_test")
 
     # Submit some logs
     for i in range(10):
@@ -188,7 +188,7 @@ async def test_async_logger_flush_and_drain() -> None:
 @pytest.mark.asyncio
 async def test_async_logger_worker_lifecycle() -> None:
     """Test async logger worker lifecycle management."""
-    logger = get_async_logger("lifecycle_test")
+    logger = await get_async_logger("lifecycle_test")
 
     # Verify workers are started
     assert logger._worker_loop is not None
