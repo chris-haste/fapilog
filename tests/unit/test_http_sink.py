@@ -7,8 +7,8 @@ from unittest.mock import patch
 import httpx
 import pytest
 
-from fapilog.plugins.sinks.http_client import HttpSink, HttpSinkConfig
 from fapilog.metrics.metrics import MetricsCollector
+from fapilog.plugins.sinks.http_client import HttpSink, HttpSinkConfig
 
 
 class _StubPool:
