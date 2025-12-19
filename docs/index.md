@@ -2,6 +2,8 @@
 
 **The logging library that doesn't slow you down.**
 
+> **Async vs sync:** Async apps should use `async with runtime_async()` or `await get_async_logger()`. Sync apps should use `get_logger()` (or `with runtime()` for lifecycle).
+
 ## Why Fapilog?
 
 Traditional logging libraries block your application, lose context, and produce unstructured output. Fapilog gives you:

@@ -2,6 +2,8 @@
 
 Get logging with fapilog in 2 minutes.
 
+> **Choosing async vs sync:** Async apps (FastAPI, asyncio workers) should use `async with runtime_async()` or `await get_async_logger()`. Sync apps should use `get_logger()` (or `with runtime()` for lifecycle).
+
 ## Zero-Config Logging
 
 The fastest way to start logging:

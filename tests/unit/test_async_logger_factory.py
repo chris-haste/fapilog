@@ -52,11 +52,25 @@ async def test_get_async_logger_default_name() -> None:
 
     # Verify default name is used
     assert logger._name == "root"
+    assert logger._worker_loop is asyncio.get_running_loop()
 
     # Test logging
     await logger.info("test message")
 
     # Clean up
+    await logger.drain()
+
+
+@pytest.mark.asyncio
+async def test_get_async_logger_binds_to_running_loop() -> None:
+    """Ensure async factory binds workers to the current event loop."""
+    loop = asyncio.get_running_loop()
+
+    logger = await get_async_logger("loop_bind")
+
+    assert logger._worker_loop is loop
+
+    await logger.info("hello")
     await logger.drain()
 
 
