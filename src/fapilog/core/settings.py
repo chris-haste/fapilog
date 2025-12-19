@@ -203,6 +203,67 @@ class CoreSettings(BaseModel):
 class Settings(BaseSettings):
     """Top-level configuration model with versioning and core settings."""
 
+    class HttpSinkSettings(BaseModel):
+        """Configuration for the built-in HTTP sink."""
+
+        endpoint: str | None = Field(
+            default=None, description="HTTP endpoint to POST log events to"
+        )
+        headers: dict[str, str] = Field(
+            default_factory=dict,
+            description="Default headers to send with each request",
+        )
+        headers_json: str | None = Field(
+            default=None,
+            description=(
+                "JSON-encoded headers map (e.g. '{\"Authorization\": \"Bearer x\"}')"
+            ),
+        )
+        retry_max_attempts: int | None = Field(
+            default=None,
+            ge=1,
+            description="Optional max attempts for HTTP retries",
+        )
+        retry_backoff_seconds: float | None = Field(
+            default=None,
+            gt=0.0,
+            description="Optional base backoff seconds between retries",
+        )
+        timeout_seconds: float = Field(
+            default=5.0,
+            gt=0.0,
+            description="Request timeout for HTTP sink operations",
+        )
+
+        @field_validator("headers_json")
+        @classmethod
+        def _parse_headers_json(cls, value: str | None) -> str | None:
+            if value is None:
+                return None
+            value = value.strip()
+            if not value:
+                return None
+            try:
+                import json
+
+                parsed = json.loads(value)
+                if not isinstance(parsed, dict):
+                    raise ValueError("headers_json must decode to a JSON object")
+            except Exception as exc:
+                raise ValueError(f"Invalid headers_json: {exc}") from exc
+            return value
+
+        def resolved_headers(self) -> dict[str, str]:
+            if self.headers:
+                return dict(self.headers)
+            if self.headers_json:
+                import json
+
+                parsed = json.loads(self.headers_json)
+                if isinstance(parsed, dict):
+                    return {str(k): str(v) for k, v in parsed.items()}
+            return {}
+
     # Schema/versioning
     schema_version: str = Field(
         default=LATEST_CONFIG_SCHEMA_VERSION,
@@ -221,6 +282,10 @@ class Settings(BaseSettings):
     observability: ObservabilitySettings = Field(
         default_factory=ObservabilitySettings,
         description="Monitoring, metrics, tracing, logging, and alerting",
+    )
+    http: HttpSinkSettings = Field(
+        default_factory=HttpSinkSettings,
+        description="Built-in HTTP sink configuration (optional)",
     )
 
     # Plugin discovery and loading configuration
