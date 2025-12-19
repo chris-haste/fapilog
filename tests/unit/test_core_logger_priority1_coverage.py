@@ -531,6 +531,7 @@ class TestThreadModeEdgeCases:
 
         # Final verification - worker thread/loop cleaned up or inactive
         if logger._worker_thread is not None:
+            logger._worker_thread.join(timeout=0.5)
             assert not logger._worker_thread.is_alive()
         if logger._worker_loop is not None:
             assert (

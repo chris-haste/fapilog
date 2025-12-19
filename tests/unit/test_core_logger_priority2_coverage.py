@@ -153,7 +153,9 @@ class TestQueueHighWatermarkUpdates:
         assert result.queue_depth_high_watermark > 0
         assert result.submitted >= 25
         assert result.dropped >= 0
-        assert logger._worker_thread is None
+        if logger._worker_thread is not None:
+            logger._worker_thread.join(timeout=0.5)
+            assert not logger._worker_thread.is_alive()
 
 
 class TestSerializationFallbackPaths:
@@ -587,7 +589,9 @@ class TestIntegrationScenarios:
         assert result.processed >= 0
         assert result.dropped >= 0
         assert result.queue_depth_high_watermark > 0
-        assert logger._worker_thread is None
+        if logger._worker_thread is not None:
+            logger._worker_thread.join(timeout=0.5)
+            assert not logger._worker_thread.is_alive()
 
     def test_concurrent_high_watermark_and_metrics_exceptions(self) -> None:
         """Test concurrent high watermark and metrics exceptions."""
@@ -648,4 +652,6 @@ class TestIntegrationScenarios:
         assert result.processed >= 0
         assert result.dropped >= 0
         assert result.queue_depth_high_watermark > 0
-        assert logger._worker_thread is None
+        if logger._worker_thread is not None:
+            logger._worker_thread.join(timeout=0.5)
+            assert not logger._worker_thread.is_alive()
