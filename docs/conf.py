@@ -29,15 +29,19 @@ master_doc = "index"
 
 
 def get_version() -> str:
-    """Get version from pyproject.toml"""
-    try:
-        import tomllib
+    """Resolve version for docs (env > package > fallback)."""
+    import os
 
-        with open(project_root / "pyproject.toml", "rb") as f:
-            data = tomllib.load(f)
-            return data["project"]["version"]
-    except (ImportError, FileNotFoundError, KeyError):
-        return "3.0.0-alpha.1"  # fallback version
+    env_version = os.getenv("FAPILOG_DOC_VERSION")
+    if env_version:
+        return env_version
+
+    try:
+        import fapilog
+
+        return getattr(fapilog, "__version__", "0.0.0")
+    except Exception:
+        return "0.0.0"
 
 
 release = get_version()
@@ -114,14 +118,7 @@ autodoc_typehints_format = "short"
 autodoc_typehints_description_target = "documented"
 
 # Intersphinx mapping for external references
-intersphinx_mapping = {
-    "python": ("https://docs.python.org/3", None),
-    "fastapi": ("https://fastapi.tiangolo.com", None),
-    "pydantic": ("https://docs.pydantic.dev", None),
-    "asyncio": ("https://docs.python.org/3/library/asyncio.html", None),
-    "httpx": ("https://www.python-httpx.org", None),
-    "prometheus": ("https://prometheus.io/docs/prometheus/latest/querying/api/", None),
-}
+intersphinx_mapping = {}
 
 # Todo configuration
 todo_include_todos = True
@@ -141,7 +138,6 @@ html_theme_options = {
     "sticky_navigation": True,
     "includehidden": True,
     "titles_only": False,
-    "display_version": True,
     "prev_next_buttons_location": "bottom",
     "style_external_links": True,
     "style_nav_header_background": "#2980B9",
@@ -164,12 +160,35 @@ html_js_files = [
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = "_static/logo.png"
+html_logo = None
 
 # The name of an image file (relative to this directory) to use as a favicon of
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-html_favicon = "_static/favicon.ico"
+html_favicon = None
+
+# Exclude large sets of drafts/roadmap docs from builds to reduce warnings
+exclude_patterns = [
+    "**/*.md.md",
+    "architecture/**",
+    "prd/**",
+    "stories/**",
+    "plugins/**",
+    "style-guide.md",
+    "redaction-guarantees.md",
+    "INFRASTRUCTURE_SETUP.md",
+    "README.md",
+    "ci-configuration.md",
+    "documentation-guide-for-contributors.md",
+    "documentation-structure.md",
+    "milestones.md",
+    "plugin-guide.md",
+    "schema-guide.md",
+    "security-operator-workflows.md",
+    "settings-guide.md",
+    "v3-migration-plan.md",
+    "v2-excellence-preservation.md",
+]
 
 # If not None, a 'Last updated on:' timestamp is inserted at every page
 # bottom, using the given strftime format.
@@ -269,7 +288,8 @@ language = "en"
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = [
+# Merge default ignore patterns with custom ones
+exclude_patterns = exclude_patterns + [
     "_build",
     "Thumbs.db",
     ".DS_Store",

@@ -82,7 +82,7 @@ def get_logger(
     - Async-aware: works seamlessly with asyncio applications
     - See Environment Configuration in docs for all options
     """
-    # Default pipeline: choose sink by env (rotating file vs stdout)
+    # Default pipeline: choose sink based on settings/env
     import os as _os
     from pathlib import Path as _Path
     from typing import Any as _Any
@@ -92,9 +92,35 @@ def get_logger(
         RotatingFileSinkConfig as _RotatingFileSinkConfig,
     )
 
+    cfg_source = settings or _Settings()
+    http_cfg = cfg_source.http
+    http_endpoint = http_cfg.endpoint
     file_dir = _os.getenv("FAPILOG_FILE__DIRECTORY")
     sink: _Any
-    if file_dir:
+    if http_endpoint:
+        from .core.retry import RetryConfig as _RetryConfig
+        from .plugins.sinks.http_client import (
+            HttpSink as _HttpSink,
+        )
+        from .plugins.sinks.http_client import (
+            HttpSinkConfig as _HttpSinkConfig,
+        )
+
+        retry: _RetryConfig | None = None
+        if http_cfg.retry_max_attempts:
+            retry = _RetryConfig(
+                max_attempts=http_cfg.retry_max_attempts,
+                base_delay=http_cfg.retry_backoff_seconds or 0.2,
+            )
+        sink = _HttpSink(
+            _HttpSinkConfig(
+                endpoint=http_endpoint,
+                headers=http_cfg.resolved_headers(),
+                retry=retry,
+                timeout_seconds=http_cfg.timeout_seconds,
+            )
+        )
+    elif file_dir:
         rfc = _RotatingFileSinkConfig(
             directory=_Path(file_dir),
             filename_prefix=_os.getenv("FAPILOG_FILE__FILENAME_PREFIX", "fapilog"),
@@ -136,7 +162,6 @@ def get_logger(
             # Sink lacks fast-path method; ignore
             return None
 
-    cfg_source = settings or _Settings()
     cfg = cfg_source.core
     metrics: _MetricsCollector | None = None
     if cfg.enable_metrics:
@@ -257,7 +282,7 @@ def get_logger(
     return logger
 
 
-def get_async_logger(
+async def get_async_logger(
     name: str | None = None,
     *,
     settings: _Settings | None = None,
@@ -306,7 +331,7 @@ def get_async_logger(
     - Async-safe: works seamlessly with asyncio applications
     - See Environment Configuration in docs for all options
     """
-    # Default pipeline: choose sink by env (rotating file vs stdout)
+    # Default pipeline: choose sink based on settings/env
     import os as _os
     from pathlib import Path as _Path
     from typing import Any as _Any
@@ -316,9 +341,35 @@ def get_async_logger(
         RotatingFileSinkConfig as _RotatingFileSinkConfig,
     )
 
+    cfg_source = settings or _Settings()
+    http_cfg = cfg_source.http
+    http_endpoint = http_cfg.endpoint
     file_dir = _os.getenv("FAPILOG_FILE__DIRECTORY")
     sink: _Any
-    if file_dir:
+    if http_endpoint:
+        from .core.retry import RetryConfig as _RetryConfig
+        from .plugins.sinks.http_client import (
+            HttpSink as _HttpSink,
+        )
+        from .plugins.sinks.http_client import (
+            HttpSinkConfig as _HttpSinkConfig,
+        )
+
+        retry: _RetryConfig | None = None
+        if http_cfg.retry_max_attempts:
+            retry = _RetryConfig(
+                max_attempts=http_cfg.retry_max_attempts,
+                base_delay=http_cfg.retry_backoff_seconds or 0.2,
+            )
+        sink = _HttpSink(
+            _HttpSinkConfig(
+                endpoint=http_endpoint,
+                headers=http_cfg.resolved_headers(),
+                retry=retry,
+                timeout_seconds=http_cfg.timeout_seconds,
+            )
+        )
+    elif file_dir:
         rfc = _RotatingFileSinkConfig(
             directory=_Path(file_dir),
             filename_prefix=_os.getenv("FAPILOG_FILE__FILENAME_PREFIX", "fapilog"),
@@ -360,7 +411,6 @@ def get_async_logger(
             # Sink lacks fast-path method; ignore
             return None
 
-    cfg_source = settings or _Settings()
     cfg = cfg_source.core
     metrics: _MetricsCollector | None = None
     if cfg.enable_metrics:
@@ -491,7 +541,7 @@ async def runtime_async(
     lifecycle including initialization, usage, and cleanup. It's perfect for
     async applications that need guaranteed cleanup of logging resources.
     """
-    logger = get_async_logger(settings=settings)
+    logger = await get_async_logger(settings=settings)
     try:
         yield logger
     finally:
@@ -523,9 +573,14 @@ def runtime(*, settings: _Settings | None = None) -> Iterator[SyncLoggerFacade]:
         # Flush synchronously by running the async close
         import asyncio
 
+        coro = logger.stop_and_drain()
         try:
-            _ = asyncio.run(logger.stop_and_drain())
+            _ = asyncio.run(coro)
         except RuntimeError:
+            try:
+                coro.close()
+            except Exception:
+                pass
             # Already inside a running loop; run drain in a background thread
             import threading as _threading
 
@@ -533,15 +588,23 @@ def runtime(*, settings: _Settings | None = None) -> Iterator[SyncLoggerFacade]:
                 import asyncio as _asyncio
 
                 try:
-                    _asyncio.run(logger.stop_and_drain())
+                    coro_inner = logger.stop_and_drain()
+                    _asyncio.run(coro_inner)
                 except Exception:
+                    try:
+                        coro_inner.close()
+                    except Exception:
+                        pass
                     return
 
             _threading.Thread(target=_runner, daemon=True).start()
 
 
-# Version info for compatibility
-__version__ = "3.0.0-alpha.1"
+# Version info for compatibility (injected by hatch-vcs at build time)
+try:
+    from ._version import __version__
+except Exception:  # pragma: no cover - fallback for editable installs
+    __version__ = "0.0.0+local"
 __author__ = "Chris Haste"
 __email__ = "chris@haste.dev"
 VERSION = __version__

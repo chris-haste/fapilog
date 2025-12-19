@@ -36,11 +36,13 @@ python scripts/publish_to_pypi.py
 
 ### 1. Prepare the Release
 
-1. **Bump version in `pyproject.toml`**
+1. **Pick the version and tag it**
+
+   Versions come from Git tags via `hatch-vcs`. Choose the next SemVer, then tag:
 
    ```bash
-   # Edit pyproject.toml and update the version field
-   # Example: version = "0.1.0" → version = "0.2.0"
+   git tag vX.Y.Z
+   git push origin vX.Y.Z
    ```
 
 2. **Update CHANGELOG.md**

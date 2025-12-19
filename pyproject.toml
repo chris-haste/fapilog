@@ -1,10 +1,10 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
 name = "fapilog"
-version = "3.0.0-alpha.1"
+dynamic = ["version"]
 description = "Revolutionary async-first logging library for Python applications"
 readme = "README.md"
 license = {text = "Apache-2.0"}
@@ -58,32 +58,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Enterprise features
-enterprise = [
-    "cryptography>=41.0.0",
-    "python-jose[cryptography]>=3.3.0",
-]
-
-# FastAPI integration (optional)
 fastapi = [
     "fastapi>=0.115.0",
 ]
 
-# Loki integration
-loki = [
-    "prometheus-client>=0.17.0",
-]
-
-# Cloud integrations
-cloud = [
-    "boto3>=1.28.0",
-    "google-cloud-logging>=3.8.0",
-    "azure-monitor-opentelemetry>=1.0.0",
-]
-
-# SIEM integrations
-siem = [
-    "elasticsearch>=8.0.0",
+# Remote HTTP sink
+http = [
+    "httpx>=0.24.0",
 ]
 
 # Development tools
@@ -110,7 +91,7 @@ docs = [
 
 # All optional dependencies
 all = [
-    "fapilog[enterprise,loki,cloud,siem,dev,docs,fastapi]",
+    "fapilog[dev,docs,fastapi,http]",
 ]
 
 [project.urls]
@@ -138,6 +119,13 @@ include = [
     "pyproject.toml",
 ]
 
+[tool.hatch.version]
+source = "vcs"
+tag-pattern = "^v(?P<version>.*)$"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/fapilog/_version.py"
+
 [tool.hatch.envs.default]
 dependencies = [
     "hatch>=1.7.0",
@@ -158,6 +146,18 @@ lint = "ruff check {args:src tests}"
 format = "ruff format {args:src tests}"
 typecheck = "mypy --config-file pyproject.toml --explicit-package-bases src"
 check = "pre-commit run --all-files"
+
+[tool.hatch.envs.docs]
+dependencies = [
+    "sphinx>=6.0.0",
+    "sphinx-rtd-theme>=1.3.0",
+    "myst-parser>=1.0.0",
+    "sphinx-autodoc-typehints>=1.24.0",
+    "sphinx-copybutton>=0.5.0",
+]
+
+[tool.hatch.envs.docs.scripts]
+build = "cd docs && sphinx-build -b html . _build/html"
 
 # Lint environment
 [tool.hatch.envs.lint]
