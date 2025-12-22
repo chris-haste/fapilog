@@ -3,20 +3,8 @@ name: CI
 on:
   push:
     branches: [main, "feature/**"]
-    paths-ignore:
-      - "*.md"
-      - "CHANGELOG.md"
-      - "LICENSE"
-      - "docs/**"
-      - ".readthedocs.yml"
   pull_request:
     branches: [main]
-    paths-ignore:
-      - "*.md"
-      - "CHANGELOG.md"
-      - "LICENSE"
-      - "docs/**"
-      - ".readthedocs.yml"
 
 permissions:
   contents: read
