@@ -18,10 +18,11 @@
 
 - **Non‑blocking under slow sinks**: Background worker, queue, and batching keep your app responsive when disk/network collectors slow down.
 - **Predictable under bursts**: Configurable backpressure and policy‑driven drops prevent thread stalls during spikes.
-- **Service‑ready JSON logging**: Structured events, context binding (request/user IDs), exception serialization, graceful shutdown & drain.
-- **Security & compliance guardrails**: Redaction stages (field/regex/url), error de‑duplication, and safe failure behavior.
+- **Service-ready JSON logging**: Structured events, context binding (request/user IDs), exception serialization, graceful shutdown & drain.
+- **Security & compliance guardrails**: Redaction stages (field/regex/url), error de-duplication, and safe failure behavior.
 - **FastAPI integration**: Simple request context propagation and consistent logs across web handlers and background tasks.
 - **Operational visibility**: Optional metrics for queue depth, drops, and flush latency.
+- **Beta stability**: Core logger and FastAPI middleware are semver-stable; plugin marketplace remains experimental.
 
 ## When to use / when stdlib is enough
 
@@ -87,6 +88,12 @@ app.add_middleware(
 # from fapilog.fastapi import get_router
 # app.include_router(get_router(), prefix=\"/plugins\")
 ```
+
+## Early adopters
+
+- Core APIs (logger, FastAPI middleware) are treated as stable; breaking changes follow semver with deprecations.
+- Experimental: plugin marketplace surface; expect changes.
+- Feedback: open GitHub issues or join the community Discord for pilots and feature requests.
 
 ## 🏗️ Architecture
 
