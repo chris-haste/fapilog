@@ -44,6 +44,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Fetch all tags
+        run: |
+          git fetch --tags --force
+          git describe --tags --always
+
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -60,8 +65,27 @@ jobs:
           VERSION="${TAG#v}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: Verify clean working directory
+        run: |
+          git status
+          git diff --stat || true
+
       - name: Build wheel and sdist
-        run: hatch build
+        run: |
+          rm -rf dist/
+          hatch build
+
+      - name: Verify built version matches tag
+        run: |
+          EXPECTED="${{ steps.get_version.outputs.version }}"
+          WHEEL=$(ls dist/*.whl | head -1)
+          echo "Expected version: $EXPECTED"
+          echo "Built wheel: $WHEEL"
+          if [[ "$WHEEL" != *"$EXPECTED"* ]]; then
+            echo "ERROR: Version mismatch!"
+            echo "Wheel version does not contain expected version $EXPECTED"
+            exit 1
+          fi
 
       - name: Upload dist artifacts
         uses: actions/upload-artifact@v4
