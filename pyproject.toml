@@ -33,10 +33,6 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-    # Core async support
-    "asyncio-mqtt>=0.16.0",
-    "aiofiles>=23.0.0",
-    
     # Pydantic v2
     "pydantic>=2.11.0",
     "pydantic-settings>=2.0.0",
@@ -50,11 +46,6 @@ dependencies = [
     # Version parsing for plugin compatibility
     "packaging>=23.0",
     
-    # Metrics and monitoring
-    "prometheus-client>=0.17.0",
-    
-    # Optional: System metrics
-    "psutil>=5.9.0; sys_platform != 'win32'",
 ]
 
 [project.optional-dependencies]
@@ -65,6 +56,21 @@ fastapi = [
 # Remote HTTP sink
 http = [
     "httpx>=0.24.0",
+]
+
+# Metrics exporter support
+metrics = [
+    "prometheus-client>=0.17.0",
+]
+
+# System metrics extras
+system = [
+    "psutil>=5.9.0; sys_platform != 'win32'",
+]
+
+# MQTT integration extras (reserved)
+mqtt = [
+    "asyncio-mqtt>=0.16.0",
 ]
 
 # Development tools
@@ -94,7 +100,7 @@ docs = [
 
 # All optional dependencies
 all = [
-    "fapilog[dev,docs,fastapi,http]",
+    "fapilog[dev,docs,fastapi,http,metrics,system,mqtt]",
 ]
 
 [project.urls]

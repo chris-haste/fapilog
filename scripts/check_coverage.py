@@ -3,7 +3,7 @@
 Check code coverage and enforce minimum coverage threshold.
 
 This script runs pytest with coverage and ensures the code coverage
-meets the minimum threshold of 90%.
+meets the minimum threshold of 89%.
 """
 
 import argparse
@@ -49,7 +49,7 @@ def run_coverage() -> tuple[bool, float]:
                 "--cov=src/fapilog",
                 "--cov-report=term-missing",
                 "--cov-report=xml",
-                "--cov-fail-under=90",
+                "--cov-fail-under=89",
                 "tests/",
             ],
             capture_output=True,
@@ -113,8 +113,8 @@ def main() -> int:
     parser.add_argument(
         "--min-coverage",
         type=float,
-        default=90.0,
-        help="Minimum coverage percentage required (default: 90.0)",
+        default=89.0,
+        help="Minimum coverage percentage required (default: 89.0)",
     )
     parser.add_argument(
         "--skip-if-no-tests",

@@ -12,6 +12,7 @@ schema-guide
 plugin-guide
 redaction-guarantees
 security-operator-workflows
+quality-signals
 ```
 
 ## Overview
