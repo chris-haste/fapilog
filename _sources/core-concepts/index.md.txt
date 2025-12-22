@@ -4,6 +4,7 @@ Understand how fapilog works under the hood.
 
 ```{toctree}
 :maxdepth: 2
+:titlesonly:
 :caption: Core Concepts
 
 pipeline-architecture

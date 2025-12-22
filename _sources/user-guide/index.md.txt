@@ -4,6 +4,7 @@ Practical usage patterns and configuration for fapilog.
 
 ```{toctree}
 :maxdepth: 2
+:titlesonly:
 :caption: User Guide
 
 configuration
@@ -14,6 +15,8 @@ redactors
 graceful-shutdown
 performance-tuning
 integration-guide
+fastapi
+comparisons
 ```
 
 ## Overview
@@ -31,57 +34,57 @@ The User Guide covers everything you need to know to use fapilog effectively in 
 
 ## Quick Reference
 
-### Basic Logging
+### Basic Logging (sync)
 
 ```python
 from fapilog import get_logger
 
 logger = get_logger()
+logger.debug("Debug message")
+logger.info("Info message", user_id="123")
+logger.warning("Warning message")
+logger.error("Error message", exc_info=True)
+```
 
-# Standard logging methods
-await logger.debug("Debug message")
-await logger.info("Info message")
-await logger.warning("Warning message")
-await logger.error("Error message")
-await logger.critical("Critical message")
+### Basic Logging (async)
 
-# With extra fields
-await logger.info("User action", extra={
-    "user_id": "123",
-    "action": "login",
-    "ip_address": "192.168.1.100"
-})
+```python
+from fapilog import get_async_logger
+
+logger = await get_async_logger()
+await logger.info("Async log entry", request_id="req-1")
+await logger.error("Something went wrong", exc_info=True)
+await logger.drain()
 ```
 
 ### Context Management
 
 ```python
-from fapilog import bind, unbind
+logger = get_logger()
 
 # Bind context for this request
-bind(request_id="req-123", user_id="user-456")
+logger.bind(request_id="req-123", user_id="user-456")
 
 # Log with automatic context
-await logger.info("Request processed")
+logger.info("Request processed")
 
 # Clear context when done
-unbind()
+logger.clear_context()
 ```
 
 ### Configuration
 
 ```bash
 # Basic configuration
-export FAPILOG_LEVEL=INFO
-export FAPILOG_FORMAT=json
+export FAPILOG_CORE__LOG_LEVEL=INFO
 
 # File logging
 export FAPILOG_FILE__DIRECTORY=/var/log/myapp
 export FAPILOG_FILE__MAX_BYTES=10485760
 
 # Performance tuning
-export FAPILOG_BATCH_MAX_SIZE=100
-export FAPILOG_MAX_QUEUE_SIZE=8192
+export FAPILOG_CORE__BATCH_MAX_SIZE=100
+export FAPILOG_CORE__MAX_QUEUE_SIZE=8192
 ```
 
 ## What You'll Learn
@@ -91,7 +94,7 @@ export FAPILOG_MAX_QUEUE_SIZE=8192
 3. **[Context Enrichment](context-enrichment.md)** - Adding business context and correlation IDs
 4. **[Rotating File Sink](rotating-file-sink.md)** - File logging with automatic rotation and compression
 5. **[Redactors](redactors.md)** - Configuring data masking and security
-6. **[Graceful Shutdown](graceful-shutdown.md)** - Proper cleanup with `runtime()` and `stop_and_drain()`
+6. **[Graceful Shutdown](graceful-shutdown.md)** - Proper cleanup with `runtime()` / `runtime_async()`
 7. **[Performance Tuning](performance-tuning.md)** - Queue sizes, batching, and optimization
 8. **[Integration Guide](integration-guide.md)** - FastAPI, Docker, Kubernetes, and more
 
@@ -100,39 +103,19 @@ export FAPILOG_MAX_QUEUE_SIZE=8192
 ### Request Logging
 
 ```python
-from fapilog import get_logger
+from fapilog import runtime_async
 
 async def handle_request(request_id: str, user_id: str):
-    logger = get_logger()
-
-    # Log request start
-    await logger.info("Request started", extra={
-        "request_id": request_id,
-        "user_id": user_id,
-        "endpoint": "/api/users"
-    })
-
-    try:
-        # Process request
-        result = await process_request()
-
-        # Log success
-        await logger.info("Request completed", extra={
-            "request_id": request_id,
-            "status": "success",
-            "duration_ms": 45
-        })
-
-        return result
-
-    except Exception as e:
-        # Log error with full context
-        await logger.error("Request failed", exc_info=True, extra={
-            "request_id": request_id,
-            "error_type": type(e).__name__,
-            "error_message": str(e)
-        })
-        raise
+    async with runtime_async() as logger:
+        logger.bind(request_id=request_id, user_id=user_id)
+        await logger.info("Request started", endpoint="/api/users")
+        try:
+            result = await process_request()
+            await logger.info("Request completed", status="success", duration_ms=45)
+            return result
+        except Exception:
+            await logger.error("Request failed", exc_info=True)
+            raise
 ```
 
 ### Batch Processing
@@ -140,29 +123,18 @@ async def handle_request(request_id: str, user_id: str):
 ```python
 from fapilog import runtime
 
-async def process_batch(items):
-    async with runtime() as logger:
-        await logger.info("Batch processing started", extra={
-            "batch_size": len(items),
-            "batch_id": generate_batch_id()
-        })
+def process_batch(items):
+    with runtime() as logger:
+        logger.info("Batch processing started", batch_size=len(items))
 
         for i, item in enumerate(items):
             try:
-                await process_item(item)
-                await logger.debug("Item processed", extra={
-                    "item_index": i,
-                    "item_id": item.id,
-                    "status": "success"
-                })
+                process_item(item)
+                logger.debug("Item processed", item_index=i, item_id=item.id)
             except Exception as e:
-                await logger.error("Item processing failed", extra={
-                    "item_index": i,
-                    "item_id": item.id,
-                    "error": str(e)
-                })
+                logger.error("Item processing failed", item_index=i, item_id=item.id, exc=e)
 
-        await logger.info("Batch processing completed")
+        logger.info("Batch processing completed")
 ```
 
 ## Next Steps

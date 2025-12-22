@@ -47,7 +47,7 @@ redactors:
       - diagnostics.secrets[*].value
   regex_mask:
     patterns:
-      - "(?i)password=([^&\s]+)"
+      - "(?i)password=([^&\\s]+)"
       - "(?i)api[_-]?key([=:])([A-Za-z0-9_-]{16,})"
 ```
 

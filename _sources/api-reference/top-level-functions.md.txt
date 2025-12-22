@@ -2,7 +2,7 @@
 
 Main entry points and utilities for fapilog.
 
-## get_logger
+## get_logger (sync) {#get_logger}
 
 ```python
 def get_logger(
@@ -12,11 +12,7 @@ def get_logger(
 ) -> _SyncLoggerFacade
 ```
 
-Return a ready-to-use sync logger facade wired to a container-scoped pipeline.
-
-This function provides a zero-config, container-scoped logger that automatically
-configures sinks, enrichers, and metrics based on environment variables or
-custom settings. Each logger instance is completely isolated with no global state.
+Return a ready-to-use **synchronous** logger facade wired to a container-scoped pipeline. Methods like `info()` and `error()` are synchronous (no `await`).
 
 ### Parameters
 
@@ -33,14 +29,15 @@ custom settings. Each logger instance is completely isolated with no global stat
 
 ```python
 from fapilog import get_logger
+import asyncio
 
 # Zero-config usage (uses environment variables)
 logger = get_logger()
 logger.info("Application started")
 
 # With custom name for better identification
-logger = get_logger("user_service")
-logger.info("User authentication successful")
+service_logger = get_logger("user_service")
+service_logger.info("User authentication successful")
 
 # With custom settings
 from fapilog import Settings
@@ -48,141 +45,108 @@ settings = Settings(core__enable_metrics=True)
 logger = get_logger(settings=settings)
 logger.info("Metrics-enabled logger ready")
 
-# Cleanup when done
-logger.close()
+# Manual cleanup if you are not using runtime()
+asyncio.run(logger.stop_and_drain())
 ```
 
 ### Environment Variables
 
 The following environment variables are automatically read:
 
-- `FAPILOG_LEVEL` - Log level (default: INFO)
-- `FAPILOG_FORMAT` - Output format (default: json)
+- `FAPILOG_CORE__LOG_LEVEL` - Log level hint (default: INFO)
 - `FAPILOG_FILE__DIRECTORY` - File sink directory (if set, enables file logging)
-- `FAPILOG_ENABLE_METRICS` - Enable metrics collection (default: false)
+- `FAPILOG_CORE__ENABLE_METRICS` - Enable metrics collection (default: false)
 
 ### Notes
 
-- **Zero-config by default** - automatically reads environment variables
-- **Container-scoped isolation** - no global mutable state between instances
-- **Automatic sink selection** - chooses file or stdout based on FAPILOG_FILE\_\_DIRECTORY
-- **Built-in enrichers** - automatically includes runtime info and context variables
-- **Thread-safe** - can be used across multiple threads safely
-- **Async-aware** - works seamlessly with asyncio applications
+- Sync API surface: `debug`, `info`, `warning`, `error`, `exception`, `bind`, `unbind`, `clear_context`
+- Worker lifecycle is managed automatically; call `logger.stop_and_drain()` if you need explicit shutdown.
+- Automatic sink selection: chooses stdout JSON by default or file/http sink when configured via settings/env.
 
-## runtime
+## get_async_logger (async) {#get_async_logger}
+
+```python
+async def get_async_logger(
+    name: str | None = None,
+    *,
+    settings: _Settings | None = None,
+) -> _AsyncLoggerFacade
+```
+
+Return a ready-to-use **async** logger facade with awaitable methods.
+
+### Parameters
+
+| Parameter  | Type                | Default | Description                                                    |
+| ---------- | ------------------- | ------- | -------------------------------------------------------------- |
+| `name`     | `str \| None`       | `None`  | Logger name for identification. If None, uses the module name. |
+| `settings` | `_Settings \| None` | `None`  | Custom settings. If None, uses environment variables.          |
+
+### Returns
+
+`_AsyncLoggerFacade` - A logger instance with awaitable methods.
+
+### Examples
+
+```python
+from fapilog import get_async_logger
+
+logger = await get_async_logger("request")
+await logger.info("Application started")
+await logger.debug("Detailed event", request_id="req-1")
+await logger.error("Something went wrong", exc_info=True)
+await logger.drain()  # graceful shutdown
+```
+
+### Notes
+
+- Async API surface: `debug`, `info`, `warning`, `error`, `exception`, `drain`, `bind`, `unbind`, `clear_context`
+- Uses the same settings/env vars as `get_logger`
+- Prefer `runtime_async()` for automatic lifecycle management
+
+## runtime {#runtime}
 
 ```python
 @contextmanager
 def runtime(*, settings: _Settings | None = None) -> Iterator[_SyncLoggerFacade]
 ```
 
-Context manager that initializes and drains the default runtime.
-
-This function provides a context manager that automatically handles logger
-lifecycle including initialization, usage, and cleanup. It's perfect for
-applications that need guaranteed cleanup of logging resources.
-
-### Parameters
-
-| Parameter  | Type                | Default | Description                      |
-| ---------- | ------------------- | ------- | -------------------------------- |
-| `settings` | `_Settings \| None` | `None`  | Custom settings for the runtime. |
-
-### Returns
-
-`Iterator[_SyncLoggerFacade]` - A logger instance within the context.
+Context manager that initializes and drains a sync logger.
 
 ### Examples
 
 ```python
 from fapilog import runtime
 
-# Basic usage with automatic cleanup
 with runtime() as logger:
     logger.info("Processing started")
     # ... do work ...
     logger.info("Processing completed")
-# Logger automatically cleaned up here
-
-# With custom settings
-from fapilog import Settings
-settings = Settings(core__enable_metrics=True)
-
-with runtime(settings=settings) as logger:
-    logger.info("Metrics-enabled processing")
-    # ... do work ...
+# Logger automatically drained on exit
 ```
 
-### Notes
-
-- **Automatic cleanup** - logger resources are guaranteed to be cleaned up
-- **Exception safe** - cleanup happens even if exceptions occur
-- **Context manager** - use with Python's `with` statement
-- **Settings support** - can pass custom settings for configuration
-- **Drain result** - advanced users can access drain results via StopIteration.value
-- **Thread-safe** - can be used across multiple threads safely
-
-## stop_and_drain
+## runtime_async {#runtime_async}
 
 ```python
-async def stop_and_drain(
+@asynccontextmanager
+async def runtime_async(
     *,
-    timeout: float | None = None,
-    force: bool = False
-) -> DrainResult
+    settings: _Settings | None = None
+) -> AsyncIterator[_AsyncLoggerFacade]
 ```
 
-Stop the default runtime and drain all pending log messages.
-
-This function gracefully shuts down the logging system, ensuring all buffered
-messages are written before returning. It's useful for applications that need
-explicit control over shutdown timing.
-
-### Parameters
-
-| Parameter | Type            | Default | Description                                           |
-| --------- | --------------- | ------- | ----------------------------------------------------- |
-| `timeout` | `float \| None` | `None`  | Maximum time to wait for drain completion in seconds. |
-| `force`   | `bool`          | `False` | If True, force shutdown even if timeout is exceeded.  |
-
-### Returns
-
-`DrainResult` - Result containing statistics about the drain operation.
+Async context manager that initializes and drains an async logger.
 
 ### Examples
 
 ```python
-from fapilog import stop_and_drain
+from fapilog import runtime_async
 
-# Graceful shutdown with timeout
-result = await stop_and_drain(timeout=30.0)
-print(f"Drained {result.messages_drained} messages in {result.duration_seconds}s")
-
-# Force shutdown if needed
-result = await stop_and_drain(timeout=10.0, force=True)
-if result.timed_out:
-    print("Shutdown timed out, forced completion")
+async with runtime_async() as logger:
+    await logger.info("Batch processing started")
+    await logger.debug("Item", index=1)
+# Logger automatically drained on exit
 ```
-
-### DrainResult
-
-The `DrainResult` contains information about the drain operation:
-
-| Field              | Type        | Description                             |
-| ------------------ | ----------- | --------------------------------------- |
-| `messages_drained` | `int`       | Number of messages successfully written |
-| `duration_seconds` | `float`     | Time taken to complete the drain        |
-| `timed_out`        | `bool`      | Whether the operation timed out         |
-| `errors`           | `List[str]` | Any errors encountered during drain     |
-
-### Notes
-
-- **Graceful shutdown** - waits for pending messages to be written
-- **Configurable timeout** - prevents indefinite waiting
-- **Force option** - allows immediate shutdown if needed
-- **Error reporting** - provides details about any issues during drain
-- **Async operation** - must be awaited
 
 ---
 
