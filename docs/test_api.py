@@ -62,24 +62,25 @@ class Logger:
 
     @docs:examples
     ```python
-    from fapilog import Logger
+    from fapilog import get_async_logger
 
     # Create logger instance
-    logger = Logger()
+    logger = await get_async_logger()
 
     # Basic logging
     await logger.info("Application started")
     await logger.error("Database connection failed", exc_info=True)
 
     # Structured logging with context
-    await logger.info("User action", extra={
-        "user_id": "12345",
-        "action": "login",
-        "ip_address": "192.168.1.1"
-    })
+    await logger.info(
+        "User action",
+        user_id="12345",
+        action="login",
+        ip_address="192.168.1.1",
+    )
 
     # Cleanup
-    await logger.close()
+    await logger.drain()
     ```
 
     @docs:notes
@@ -101,7 +102,7 @@ class Logger:
         @docs:examples
         ```python
         await logger.info("Application started successfully")
-        await logger.info("User logged in", extra={"user_id": "12345"})
+        await logger.info("User logged in", user_id="12345")
         ```
 
         @docs:notes
@@ -125,7 +126,11 @@ class Logger:
         try:
             result = await some_operation()
         except Exception as e:
-            await logger.error("Operation failed", exc_info=True, extra={"operation": "some_operation"})
+            await logger.error(
+                "Operation failed",
+                exc_info=True,
+                operation="some_operation",
+            )
         ```
 
         @docs:notes
@@ -146,12 +151,11 @@ class Logger:
 
         @docs:examples
         ```python
-        logger = Logger()
-        try:
-            await logger.info("Processing started")
-            # ... do work ...
-        finally:
-            await logger.close()  # Always cleanup
+        import asyncio
+        from fapilog import get_logger
+
+        logger = get_logger()
+        asyncio.run(logger.stop_and_drain())
         ```
 
         @docs:notes
@@ -179,21 +183,15 @@ async def redact_sensitive_data(
 
     @docs:examples
     ```python
-    from fapilog import Logger
+    from fapilog import get_logger
 
-    logger = Logger()
-
-    # Redact sensitive data
-    user_data = {
-        "username": "john_doe",
-        "password": "secret123",
-        "email": "john@example.com",
-        "api_key": "sk-1234567890abcdef"
-    }
-
-    # Apply redaction
-    redacted_data = await logger.redact_sensitive_data(user_data)
-    # Result: password and api_key are masked
+    logger = get_logger()
+    logger.info(
+        "User credentials",
+        username="john_doe",
+        password="secret123",  # masked by default regex redactor
+        api_key="sk-1234567890abcdef",
+    )
     ```
 
     @docs:notes

@@ -1,8 +1,8 @@
-## Authoring Fapilog Plugins
+# Authoring Fapilog Plugins
 
 This guide covers entry points, required metadata, and the Plugin API versioning policy.
 
-### Entry Points
+## Entry Points
 
 Declare entry points in `pyproject.toml` under one of the v3 groups per plugin type:
 
@@ -27,7 +27,7 @@ Declare entry points in `pyproject.toml` under one of the v3 groups per plugin t
 "legacy-plugin" = "my_package.legacy"
 ```
 
-### PLUGIN_METADATA
+## PLUGIN_METADATA
 
 Each module must export a `PLUGIN_METADATA` mapping with at least:
 
@@ -47,13 +47,13 @@ PLUGIN_METADATA = {
 }
 ```
 
-### API Versioning
+## API Versioning
 
 - Current API contract is defined at `fapilog.plugins.versioning.PLUGIN_API_VERSION` (e.g., `(1, 0)`).
 - Policy: compatible when declared major matches current major, and declared minor is less than or equal to current minor.
 - Utilities: `parse_api_version()` and `is_plugin_api_compatible()`.
 
-### Protocols
+## Protocols
 
 Author implementations should satisfy the runtime-checkable Protocol for their type:
 

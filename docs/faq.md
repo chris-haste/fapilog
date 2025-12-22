@@ -13,10 +13,10 @@ fapilog uses JSON lines by default because:
 - **Industry standard** - Compatible with ELK, Splunk, and other tools
 - **Performance** - Fast serialization and parsing
 
-You can still use pretty formatting for development:
+You can switch the log format for development:
 
 ```bash
-export FAPILOG_FORMAT=pretty
+export FAPILOG_OBSERVABILITY__LOGGING__FORMAT=text
 ```
 
 ### How to add custom fields globally?
@@ -24,18 +24,11 @@ export FAPILOG_FORMAT=pretty
 Use context binding to add fields to all log messages:
 
 ```python
-from fapilog import bind
+from fapilog import get_logger
 
-# Add fields that appear in all logs
-bind(
-    service_name="user-service",
-    environment="production",
-    version="1.2.3"
-)
-
-# All subsequent logs include these fields
 logger = get_logger()
-await logger.info("Application started")
+logger.bind(service_name="user-service", environment="production", version="1.2.3")
+logger.info("Application started")
 ```
 
 ### Do I still need log levels?
@@ -47,11 +40,11 @@ Yes, log levels are still important for:
 - **Compliance** - Meet audit and regulatory requirements
 - **Debugging** - Enable detailed logging when needed
 
-```python
+```bash
 # Set appropriate levels for different environments
-export FAPILOG_LEVEL=DEBUG    # Development
-export FAPILOG_LEVEL=INFO     # Production
-export FAPILOG_LEVEL=WARNING  # Testing
+export FAPILOG_CORE__LOG_LEVEL=DEBUG    # Development
+export FAPILOG_CORE__LOG_LEVEL=INFO     # Production
+export FAPILOG_CORE__LOG_LEVEL=WARNING  # Testing
 ```
 
 ### How does fapilog compare to logging/structlog?
@@ -72,21 +65,20 @@ export FAPILOG_LEVEL=WARNING  # Testing
 Yes! fapilog works great with async job systems:
 
 ```python
-from fapilog import get_logger
+from fapilog import get_async_logger
 from celery import Celery
 
 app = Celery('tasks')
 
 @app.task
 async def process_data(data):
-    logger = get_logger()
+    logger = await get_async_logger("worker")
 
-    # Context is preserved across async boundaries
-    await logger.info("Processing started", extra={"data_id": data.id})
+    await logger.info("Processing started", data_id=data.id)
 
     try:
         result = await process(data)
-        await logger.info("Processing completed", extra={"result": result})
+        await logger.info("Processing completed", result=result)
         return result
     except Exception as e:
         await logger.error("Processing failed", exc_info=True)
@@ -95,24 +87,23 @@ async def process_data(data):
 
 ### How does context inheritance work?
 
-fapilog uses Python's `contextvars` for automatic context inheritance:
+fapilog stores bound context in a `ContextVar`, which flows to child tasks spawned from the same context. Each request/task should bind its own context:
 
 ```python
-from fapilog import bind, get_logger
+import asyncio
+from fapilog import runtime_async
+
+async def child_task(name, logger):
+    await logger.info(f"{name} started")
 
 async def main():
-    bind(request_id="req-123")
-
-    # Spawn child tasks
-    task1 = asyncio.create_task(child_task("task1"))
-    task2 = asyncio.create_task(child_task("task2"))
-
-    await asyncio.gather(task1, task2)
-
-async def child_task(name):
-    # Automatically inherits request_id from parent
-    logger = get_logger()
-    await logger.info(f"{name} started")
+    async with runtime_async() as logger:
+        logger.bind(request_id="req-123")
+        await asyncio.gather(
+            child_task("task1", logger),
+            child_task("task2", logger),
+        )
+        logger.clear_context()  # End-of-request cleanup
 ```
 
 ### What happens if a sink fails?
@@ -125,10 +116,9 @@ fapilog handles sink failures gracefully:
 - **Error reporting** - Log sink failures for debugging
 
 ```bash
-# Configure retry behavior
-export FAPILOG_SINK__RETRY_ATTEMPTS=3
-export FAPILOG_SINK__RETRY_DELAY_MS=1000
-export FAPILOG_SINK__CIRCUIT_BREAKER_THRESHOLD=5
+# Configure HTTP sink retry behavior
+export FAPILOG_HTTP__RETRY_MAX_ATTEMPTS=3
+export FAPILOG_HTTP__RETRY_BACKOFF_SECONDS=0.5
 ```
 
 ## Performance Questions
@@ -144,10 +134,10 @@ fapilog is designed for high-performance logging:
 
 ```bash
 # Optimize for high throughput
-export FAPILOG_MAX_QUEUE_SIZE=65536
-export FAPILOG_BATCH_MAX_SIZE=500
-export FAPILOG_WORKER_COUNT=8
-export FAPILOG_BATCH_TIMEOUT_SECONDS=0.1
+export FAPILOG_CORE__MAX_QUEUE_SIZE=65536
+export FAPILOG_CORE__BATCH_MAX_SIZE=500
+export FAPILOG_CORE__BATCH_TIMEOUT_SECONDS=0.1
+export FAPILOG_CORE__BACKPRESSURE_WAIT_MS=25
 ```
 
 ### What's the memory overhead?
@@ -160,9 +150,8 @@ fapilog has minimal memory overhead:
 - **Garbage collection** - Minimal impact
 
 ```bash
-# Monitor memory usage
-export FAPILOG_ENABLE_METRICS=true
-export FAPILOG_METRICS__MEMORY_TRACKING=true
+# Monitor internal metrics
+export FAPILOG_CORE__ENABLE_METRICS=true
 ```
 
 ### How fast is it?
@@ -181,21 +170,15 @@ fapilog is designed for speed:
 Yes, fapilog supports multiple configuration methods:
 
 ```python
-from fapilog import Settings
+from fapilog import Settings, get_logger
 
-# From Python code
 settings = Settings(
-    level="INFO",
-    format="json",
-    sinks=["stdout", "file"]
+    core__log_level="INFO",
+    core__max_queue_size=10000,
+    http__endpoint="https://logs.example.com/ingest",
 )
 
-# From environment variables
-export FAPILOG_LEVEL=INFO
-export FAPILOG_FORMAT=json
-export FAPILOG_SINKS=stdout,file
-
-# From YAML/JSON files (coming soon)
+logger = get_logger(settings=settings)
 ```
 
 ### How do I configure different environments?
@@ -204,38 +187,30 @@ Use environment-specific configuration:
 
 ```bash
 # Development
-export FAPILOG_LEVEL=DEBUG
-export FAPILOG_FORMAT=pretty
-export FAPILOG_SINKS=stdout
+export FAPILOG_CORE__LOG_LEVEL=DEBUG
+export FAPILOG_OBSERVABILITY__LOGGING__FORMAT=text
 
 # Production
-export FAPILOG_LEVEL=INFO
-export FAPILOG_FORMAT=json
-export FAPILOG_SINKS=file
+export FAPILOG_CORE__LOG_LEVEL=INFO
 export FAPILOG_FILE__DIRECTORY=/var/log/myapp
 
 # Testing
-export FAPILOG_LEVEL=WARNING
-export FAPILOG_SINKS=stdout
-export FAPILOG_DROP_ON_FULL=true
+export FAPILOG_CORE__LOG_LEVEL=WARNING
+export FAPILOG_CORE__DROP_ON_FULL=true
 ```
 
 ### Can I change configuration at runtime?
 
-Yes, fapilog supports hot reloading:
+Configuration is resolved when you create a logger/runtime. To change settings, construct a new `Settings` object and pass it when you create a new logger; don’t mutate globals in place.
 
 ```python
-from fapilog import get_settings
+from fapilog import Settings, get_logger
 
-# Get current settings
-settings = get_settings()
-
-# Update configuration
-settings.level = "DEBUG"
-settings.enable_metrics = True
-
-# Changes take effect immediately
+settings = Settings(core__log_level="DEBUG", core__enable_metrics=True)
+logger = get_logger(settings=settings)
 ```
+
+For running apps that need different behavior, create a new logger/runtime with updated settings rather than mutating an existing one.
 
 ## Integration Questions
 
@@ -244,19 +219,17 @@ settings.enable_metrics = True
 fapilog has built-in FastAPI integration:
 
 ```python
-from fastapi import FastAPI
-from fapilog.fastapi import setup_logging
+from fastapi import FastAPI, Depends
+from fapilog import get_async_logger
 
 app = FastAPI()
 
-# Setup automatic logging
-setup_logging(app)
+async def logger_dep():
+    return await get_async_logger("request")
 
 @app.get("/users/{user_id}")
-async def get_user(user_id: str):
-    # Logger automatically includes request context
-    logger = await get_logger()
-    await logger.info("Fetching user", extra={"user_id": user_id})
+async def get_user(user_id: str, logger = Depends(logger_dep)):
+    await logger.info("Fetching user", user_id=user_id)
     return {"user_id": user_id}
 ```
 
@@ -272,9 +245,9 @@ FROM python:3.11-slim
 RUN pip install fapilog
 
 # Configure logging
-ENV FAPILOG_LEVEL=INFO
-ENV FAPILOG_FORMAT=json
-ENV FAPILOG_SINKS=stdout
+ENV FAPILOG_CORE__LOG_LEVEL=INFO
+ENV FAPILOG_OBSERVABILITY__LOGGING__FORMAT=json
+ENV FAPILOG_CORE__ENABLE_METRICS=false
 
 # Your application code
 COPY . .
@@ -294,9 +267,9 @@ spec:
         - name: myapp
           image: myapp:latest
           env:
-            - name: FAPILOG_LEVEL
+            - name: FAPILOG_CORE__LOG_LEVEL
               value: "INFO"
-            - name: FAPILOG_FORMAT
+            - name: FAPILOG_OBSERVABILITY__LOGGING__FORMAT
               value: "json"
 ```
 
@@ -342,8 +315,8 @@ Yes! fapilog is open source and welcomes contributions:
 - **Testing** - Report bugs and test fixes
 - **Community** - Help other users
 
-See the [Contributing Guide](../contributing/index.md) for details.
+See the {doc}`Contributing Guide <contributing/index>` for details.
 
 ---
 
-_Can't find the answer you're looking for? Check the [Troubleshooting](../troubleshooting/index.md) guide or ask the community._
+_Can't find the answer you're looking for? Check the {doc}`Troubleshooting guide <troubleshooting/index>` or ask the community._

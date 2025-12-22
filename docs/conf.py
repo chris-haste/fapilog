@@ -9,7 +9,9 @@
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
+import importlib.util
 import sys
+import warnings
 from pathlib import Path
 
 # Add the project root to the Python path for autodoc
@@ -64,6 +66,15 @@ extensions = [
     "sphinx_autodoc_typehints",
     "sphinx_copybutton",
 ]
+
+# Optional extensions
+if importlib.util.find_spec("sphinxcontrib.mermaid"):
+    extensions.append("sphinxcontrib.mermaid")
+else:
+    warnings.warn(
+        "sphinxcontrib.mermaid not installed; mermaid diagrams will be rendered as code blocks.",
+        stacklevel=2,
+    )
 
 # MyST Parser configuration
 myst_enable_extensions = [
@@ -133,11 +144,11 @@ html_theme = "sphinx_rtd_theme"
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    "navigation_depth": 4,
+    "navigation_depth": 2,
     "collapse_navigation": False,
     "sticky_navigation": True,
     "includehidden": True,
-    "titles_only": False,
+    "titles_only": True,
     "prev_next_buttons_location": "bottom",
     "style_external_links": True,
     "style_nav_header_background": "#2980B9",
@@ -173,21 +184,24 @@ exclude_patterns = [
     "architecture/**",
     "prd/**",
     "stories/**",
-    "plugins/**",
     "style-guide.md",
-    "redaction-guarantees.md",
     "INFRASTRUCTURE_SETUP.md",
     "README.md",
     "ci-configuration.md",
-    "documentation-guide-for-contributors.md",
-    "documentation-structure.md",
     "milestones.md",
-    "plugin-guide.md",
-    "schema-guide.md",
-    "security-operator-workflows.md",
-    "settings-guide.md",
     "v3-migration-plan.md",
     "v2-excellence-preservation.md",
+    "architecture.md",
+    "architecture-diagrams.md",
+    "contributing.md",
+    "documentation-guide-for-contributors.md",
+    "documentation-structure.md",
+    "glossary.md",
+    "install-and-update.md",
+    "license-credits.md",
+    "prd.md",
+    "roadmap.md",
+    "FUTURE-CLI.md",
 ]
 
 # If not None, a 'Last updated on:' timestamp is inserted at every page
@@ -338,10 +352,6 @@ todo_include_todos = True
 # Add any custom configuration here
 def setup(app):
     """Custom setup for Sphinx app."""
-    # Add custom CSS and JS
-    app.add_css_file("custom.css")
-    app.add_js_file("custom.js")
-
     # Add custom autodoc extension
     import os
     import sys

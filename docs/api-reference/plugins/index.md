@@ -25,36 +25,19 @@ fapilog's plugin system allows you to extend functionality in four key areas:
 
 ### Sinks (Output Plugins)
 
-Sinks determine where log messages are sent:
-
-- **[Stdout JSON Sink](sinks.md#stdout-json-sink)** - Console output in JSON format
-- **[Rotating File Sink](sinks.md#rotating-file-sink)** - File output with automatic rotation
-- **[HTTP Client Sink](sinks.md#http-client-sink)** - Send logs to HTTP endpoints
-- **[MMAP Persistence Sink](sinks.md#mmap-persistence-sink)** - High-performance memory-mapped files
+- **[Sinks](sinks.md)** - Output destinations (stdout JSON, rotating file, HTTP, etc.)
 
 ### Enrichers (Input/Context Plugins)
 
-Enrichers add information to log messages:
-
-- **[Runtime Info Enricher](enrichers.md#runtime-info-enricher)** - System information (Python version, PID, memory)
-- **[Context Vars Enricher](enrichers.md#context-vars-enricher)** - Request context and correlation IDs
-- **[Custom Enrichers](enrichers.md#custom-enrichers)** - Business-specific metadata
+- **[Enrichers](enrichers.md)** - Add runtime/context metadata before sinks
 
 ### Redactors (Security Plugins)
 
-Redactors remove sensitive information:
-
-- **[Field Mask Redactor](redactors.md#field-mask-redactor)** - Mask specific field names
-- **[Regex Mask Redactor](redactors.md#regex-mask-redactor)** - Pattern-based data masking
-- **[URL Credentials Redactor](redactors.md#url-credentials-redactor)** - Remove credentials from URLs
+- **[Redactors](redactors.md)** - Mask/remove sensitive fields or secrets
 
 ### Processors (Transform Plugins)
 
-Processors modify messages during processing:
-
-- **[Pass-through Processor](processors.md#pass-through-processor)** - Default no-op processor
-- **[Zero-copy Processor](processors.md#zero-copy-processor)** - High-performance message handling
-- **[Batch Processor](processors.md#batch-processor)** - Group messages for efficiency
+- **[Processors](processors.md)** - Transform/filter entries before sinks
 
 ## Plugin Architecture
 

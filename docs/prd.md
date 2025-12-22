@@ -60,7 +60,7 @@ This approach ensures fapilog competes with simple libraries for ease of use whi
 ```python
 # Level 1: Zero configuration - works immediately
 logger = await AsyncLogger.create()
-await logger.info("Hello World!")
+logger.info("Hello World!")
 
 # Level 2: Basic customization - still built-in features
 logger = await AsyncLogger.create(UniversalSettings(

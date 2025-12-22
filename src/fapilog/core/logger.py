@@ -902,6 +902,16 @@ class AsyncLoggerFacade:
         # Flush event for immediate flush requests
         self._flush_event: asyncio.Event | None = None
 
+    async def start_async(self) -> None:
+        """Async start that ensures workers are scheduled before returning."""
+        self.start()
+        if self._worker_loop is not None and self._worker_loop.is_running():
+            # Yield to let worker tasks get scheduled on the current loop
+            await asyncio.sleep(0)
+        elif self._thread_ready.is_set():
+            # Threaded start: nothing to await, but ensure the thread signaled ready
+            return
+
     def start(self) -> None:
         """Start worker group bound to an event loop.
 

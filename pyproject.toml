@@ -102,8 +102,8 @@ Repository = "https://github.com/chris-haste/fapilog"
 "Plugin Marketplace" = "https://plugins.fapilog.dev/"
 Discord = "https://discord.gg/fapilog"
 
-[project.scripts]
-fapilog = "fapilog.cli:main"
+# [project.scripts]
+# fapilog = "fapilog.cli:main"  # CLI coming in future release
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/fapilog"]

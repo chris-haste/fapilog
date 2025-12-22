@@ -23,7 +23,7 @@ Changelog and upgrade guides for fapilog.
 
 ### Migration Guide
 
-See [v3 Migration Guide](v3-migration-plan.md) for detailed upgrade instructions.
+See the v3 migration guide in the repository wiki for detailed upgrade instructions (to be published).
 
 ## Previous Versions
 
@@ -94,7 +94,7 @@ logger.info("Message")
 from fapilog import get_logger
 
 logger = get_logger()
-await logger.info("Message")
+logger.info("Message")
 ```
 
 #### 3. Update Configuration
@@ -109,8 +109,8 @@ export FAPILOG_OUTPUT_FORMAT=json
 **After (3.0.0):**
 
 ```bash
-export FAPILOG_LEVEL=INFO
-export FAPILOG_FORMAT=json
+export FAPILOG_CORE__LOG_LEVEL=INFO
+export FAPILOG_OBSERVABILITY__LOGGING__FORMAT=json
 ```
 
 #### 4. Update Plugin Code
