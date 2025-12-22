@@ -1,8 +1,6 @@
-# Fapilog — Fast, Async, Structured Logging for Python
+# Fapilog - Production-ready logging for the modern Python stack
 
-**The logging library that doesn't slow you down.**
-
-> **Async vs sync:** Async apps should use `async with runtime_async()` or `await get_async_logger()`. Sync apps should use `get_logger()` (or `with runtime()` for lifecycle).
+**fapilog** is a high-performance logging pipeline that eliminates the bottlenecks of traditional Python logging. By replacing blocking I/O with a lock-free, async-native architecture, it ensures your application never stalls to write a log. While it’s an excellent choice for FastAPI and microservices, its lightweight footprint and pluggable sinks make it equally powerful for on-prem, desktop, or embedded projects.
 
 ## Why Fapilog?
 
@@ -20,7 +18,7 @@ from fapilog import get_async_logger
 
 # Zero-config, works immediately (async)
 logger = await get_async_logger()
-await logger.info("User logged in", extra={"user_id": "123"})
+await logger.info("User logged in", user_id="123")
 
 # Automatic context binding
 await logger.error("Database connection failed", exc_info=True)
@@ -51,7 +49,8 @@ await logger.error("Database connection failed", exc_info=True)
 ## Documentation Sections
 
 ```{toctree}
-:maxdepth: 3
+:maxdepth: 2
+:titlesonly:
 :caption: Documentation
 
 getting-started/index
@@ -59,6 +58,7 @@ core-concepts/index
 user-guide/index
 api-reference/index
 examples/index
+plugins/index
 troubleshooting/index
 faq
 contributing/index
@@ -82,6 +82,5 @@ appendices
 **Development:**
 
 - **[Contributing](contributing/index.md)** - How to contribute to fapilog
-- **[Documentation Guide](documentation-guide-for-contributors.md)** - Writing and maintaining docs
 - **[Release Notes](release-notes.md)** - Changelog and upgrade guides
 - **[Appendices](appendices.md)** - Glossary, architecture diagrams, and license

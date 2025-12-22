@@ -4,6 +4,7 @@ Common issues and solutions for fapilog.
 
 ```{toctree}
 :maxdepth: 2
+:titlesonly:
 :caption: Troubleshooting
 
 logs-dropped-under-load
@@ -25,40 +26,14 @@ This section helps you diagnose and fix common issues with fapilog:
 
 ## Quick Diagnosis
 
-### Check System Health
+Use the built-in settings and logging output to validate your setup:
 
-```python
-from fapilog import get_system_health
-
-health = await get_system_health()
-print(f"System status: {health.status}")
-print(f"Queue utilization: {health.queue_utilization}%")
-print(f"Active sinks: {health.active_sinks}")
-print(f"Worker status: {health.worker_status}")
-```
-
-### Check Configuration
-
-```python
-from fapilog import get_current_config
-
-config = get_current_config()
-print(f"Log level: {config.level}")
-print(f"Format: {config.format}")
-print(f"Sinks: {config.sinks}")
-print(f"Queue size: {config.max_queue_size}")
-```
-
-### Check Metrics
-
-```python
-from fapilog import get_metrics
-
-metrics = await get_metrics()
-print(f"Messages processed: {metrics.messages_processed}")
-print(f"Messages dropped: {metrics.messages_dropped}")
-print(f"Error rate: {metrics.error_rate}%")
-```
+- Confirm key env vars (e.g., `FAPILOG_CORE__LOG_LEVEL`, `FAPILOG_CORE__MAX_QUEUE_SIZE`, `FAPILOG_FILE__DIRECTORY`) are set as expected.
+- Enable internal diagnostics temporarily:
+  ```bash
+  export FAPILOG_CORE__INTERNAL_LOGGING_ENABLED=true
+  ```
+  This emits WARN/DEBUG diagnostics from the worker/sink paths without crashing the app.
 
 ## Common Issues
 
@@ -80,14 +55,14 @@ print(f"Error rate: {metrics.error_rate}%")
 
 ```bash
 # Increase queue size
-export FAPILOG_MAX_QUEUE_SIZE=32768
+export FAPILOG_CORE__MAX_QUEUE_SIZE=32768
 
 # Increase batch size for better throughput
-export FAPILOG_BATCH_MAX_SIZE=200
+export FAPILOG_CORE__BATCH_MAX_SIZE=200
 
 # Configure backpressure behavior
-export FAPILOG_DROP_ON_FULL=false
-export FAPILOG_BACKPRESSURE_WAIT_MS=50
+export FAPILOG_CORE__DROP_ON_FULL=false
+export FAPILOG_CORE__BACKPRESSURE_WAIT_MS=50
 ```
 
 ### 2. Context Values Missing
@@ -107,18 +82,18 @@ export FAPILOG_BACKPRESSURE_WAIT_MS=50
 **Solutions:**
 
 ```python
-from fapilog import bind, unbind
+from fapilog import get_async_logger
 
 # Ensure context is bound for each request
 async def handle_request(request_id: str, user_id: str):
-    bind(request_id=request_id, user_id=user_id)
+    logger = await get_async_logger()
+    logger.bind(request_id=request_id, user_id=user_id)
 
     try:
-        logger = get_logger()
         await logger.info("Request started")
         # ... process request ...
     finally:
-        unbind()  # Clean up context
+        logger.clear_context()  # Clean up context
 ```
 
 ### 3. File Sink Not Rotating
@@ -166,9 +141,9 @@ sudo chmod 755 /var/log/myapp
 **Solutions:**
 
 ```python
-from fapilog import get_logger
+from fapilog import get_async_logger
 
-logger = get_logger()
+logger = await get_async_logger()
 
 # Convert complex objects to simple types
 user_data = {
@@ -178,7 +153,7 @@ user_data = {
     "preferences": dict(user.preferences)  # Convert to dict
 }
 
-await logger.info("User data", extra=user_data)
+await logger.info("User data", **user_data)
 ```
 
 ### 5. PII Showing Despite Redaction
@@ -199,14 +174,10 @@ await logger.info("User data", extra=user_data)
 
 ```bash
 # Enable redaction
-export FAPILOG_ENABLE_REDACTION=true
+export FAPILOG_CORE__ENABLE_REDACTORS=true
 
 # Configure sensitive fields
-export FAPILOG_REDACTION__SENSITIVE_FIELDS=password,api_key,secret,token
-
-# Enable regex patterns
-export FAPILOG_REDACTION__ENABLE_REGEX=true
-export FAPILOG_REDACTION__PATTERNS=sk-[a-zA-Z0-9]{24},pk_[a-zA-Z0-9]{24}
+export FAPILOG_CORE__SENSITIVE_FIELDS_POLICY=password,api_key,secret,token
 ```
 
 ## Debug Mode
@@ -215,8 +186,8 @@ Enable debug mode for detailed troubleshooting:
 
 ```bash
 # Enable debug logging
-export FAPILOG_LEVEL=DEBUG
-export FAPILOG_ENABLE_DEBUG=true
+export FAPILOG_CORE__LOG_LEVEL=DEBUG
+export FAPILOG_CORE__INTERNAL_LOGGING_ENABLED=true
 
 # Enable verbose sink output
 export FAPILOG_DEBUG__VERBOSE_SINKS=true
@@ -229,28 +200,27 @@ export FAPILOG_DEBUG__LOG_PIPELINE=true
 
 ```bash
 # Reduce queue size
-export FAPILOG_MAX_QUEUE_SIZE=4096
+export FAPILOG_CORE__MAX_QUEUE_SIZE=4096
 
 # Enable aggressive batching
-export FAPILOG_BATCH_MAX_SIZE=500
-export FAPILOG_BATCH_TIMEOUT_SECONDS=0.5
+export FAPILOG_CORE__BATCH_MAX_SIZE=500
+export FAPILOG_CORE__BATCH_TIMEOUT_SECONDS=0.5
 
 # Monitor memory usage
-export FAPILOG_ENABLE_METRICS=true
+export FAPILOG_CORE__ENABLE_METRICS=true
 ```
 
 ### Slow Logging
 
 ```bash
-# Increase worker count
-export FAPILOG_WORKER_COUNT=8
+# Optimize queue/batching
+export FAPILOG_CORE__MAX_QUEUE_SIZE=20000
+export FAPILOG_CORE__BATCH_MAX_SIZE=200
+export FAPILOG_CORE__BATCH_TIMEOUT_SECONDS=1
+export FAPILOG_CORE__BACKPRESSURE_WAIT_MS=10
 
-# Optimize batch processing
-export FAPILOG_BATCH_MAX_SIZE=200
-export FAPILOG_BATCH_TIMEOUT_SECONDS=1
-
-# Use faster sinks
-export FAPILOG_SINKS=stdout  # Fastest option
+# Keep stdout sink (default) instead of slow file sinks
+unset FAPILOG_FILE__DIRECTORY
 ```
 
 ## Getting Help

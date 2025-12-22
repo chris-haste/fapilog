@@ -2,13 +2,6 @@
 
 This section contains automatically generated API documentation from the fapilog source code.
 
-```{toctree}
-:maxdepth: 2
-:caption: API Modules
-
-plugins/index
-```
-
 ## Core Modules
 
 ### fapilog.core

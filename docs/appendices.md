@@ -6,9 +6,12 @@ Reference materials and additional information.
 :maxdepth: 2
 :caption: Appendices
 
-glossary
-architecture-diagrams
-license-credits
+env-vars
+settings-guide
+schema-guide
+plugin-guide
+redaction-guarantees
+security-operator-workflows
 ```
 
 ## Overview
@@ -213,7 +216,7 @@ A technique that minimizes memory allocation by reusing existing data structures
 
 ### High-Level Architecture
 
-```mermaid
+```{mermaid}
 graph TB
     A[Application] --> B[Logger Facade]
     B --> C[Context Binding]
@@ -235,7 +238,7 @@ graph TB
 
 ### Pipeline Flow
 
-```mermaid
+```{mermaid}
 sequenceDiagram
     participant App as Application
     participant Logger as Logger
@@ -257,7 +260,7 @@ sequenceDiagram
 
 ### Component Relationships
 
-```mermaid
+```{mermaid}
 graph LR
     subgraph "Core Components"
         A[Logger] --> B[Context Manager]
@@ -343,7 +346,7 @@ fapilog draws inspiration from:
 
 ### Contributing
 
-We welcome contributions from the community! See the [Contributing Guide](../contributing/index.md) for details on:
+We welcome contributions from the community! See the {doc}`Contributing Guide <contributing/index>` for details on:
 
 - Code contributions
 - Documentation improvements

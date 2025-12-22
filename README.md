@@ -1,7 +1,6 @@
-# Fapilog v3 - Async-First Logging Library
+# Fapilog v3 - Production-ready logging for the modern Python stack.
 
-**fapilog** is an async-first, structured logging library for Python, designed for **FastAPI** and modern cloud-native applications.  
-While optimized for distributed, containerized, and serverless environments, it is equally suitable for **on-prem**, **desktop**, or **embedded** Python projects where structured, JSON-ready, and pluggable logging is required.
+**fapilog** delivers production-ready logging for the modern Python stack—async-first, structured, and optimized for FastAPI and cloud-native apps. It’s equally suitable for **on-prem**, **desktop**, or **embedded** projects where structured, JSON-ready, and pluggable logging is required.
 
 ![Async-first](https://img.shields.io/badge/async-first-008080?style=flat-square&logo=python&logoColor=white)
 ![JSON Ready](https://img.shields.io/badge/json-ready-004080?style=flat-square&logo=json&logoColor=white)
@@ -35,26 +34,11 @@ While optimized for distributed, containerized, and serverless environments, it 
 
 ## Installation
 
-Copy-ready commands:
-
 ```bash
-pip install "fapilog>=3,<4"
-# or
-uv add "fapilog>=3,<4"
+pip install fapilog
 ```
 
-Optional extras:
-
-```bash
-pip install "fapilog[fastapi]"
-pip install "fapilog[enterprise]"
-pip install "fapilog[all]"
-# or with uv
-uv add "fapilog[fastapi]"
-uv add "fapilog[all]"
-```
-
-See full guide: docs/install-and-update.md
+See the full guide at `docs/getting-started/installation.md` for extras and upgrade paths.
 [![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-green.svg)](https://docs.pydantic.dev/)
 
 **Async-first logging library for Python services**
@@ -66,12 +50,6 @@ See full guide: docs/install-and-update.md
 - Plugin-friendly (enrichers, redactors, processors, sinks)
 - Context binding and exception serialization
 - Guardrails: redaction stages, error de-duplication
-
-## 📦 Installation
-
-```bash
-pip install fapilog
-```
 
 ## 🎯 Quick Start
 

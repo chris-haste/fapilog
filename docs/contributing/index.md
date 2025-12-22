@@ -1,141 +1,47 @@
 # Contributing to fapilog
 
-Thank you for your interest in contributing to fapilog! This guide will help you get started with contributing to the project.
+Thank you for your interest in contributing to fapilog! We welcome contributions of all kinds.
 
-```{toctree}
-:maxdepth: 2
-:caption: Contributing
+## Contributing Guide
+
+For detailed information about contributing to fapilog, including:
+
+- **Development setup** - How to set up your local environment
+- **Development workflow** - Branch strategy and development process
+- **Code quality standards** - Linting, testing, and type checking
+- **Commit and PR guidelines** - Conventional commits and pull request process
+- **Release process** - How releases are made and versioned
+
+Please see our comprehensive **[Contributing Guide](https://github.com/chris-haste/fapilog/blob/main/CONTRIBUTING.md)** in the repository root.
+
+## Quick Links
+
+- **[Report a Bug](https://github.com/chris-haste/fapilog/issues/new?labels=bug)** - Found an issue? Let us know
+- **[Request a Feature](https://github.com/chris-haste/fapilog/issues/new?labels=enhancement)** - Have an idea? Share it
+- **[Ask a Question](https://github.com/chris-haste/fapilog/discussions)** - Need help? Start a discussion
+
+## Key Development Commands
+
+```bash
+# Install development dependencies
+pip install -e ".[dev]"
+
+# Run tests
+hatch run test
+
+# Run linting
+hatch run lint
+
+# Run type checking
+hatch run typecheck
+
+# Run tests with coverage
+hatch run test-cov
 ```
 
-## Getting Started
+## Code of Conduct
 
-### [Development Setup](development-setup.md)
-
-Set up your development environment for fapilog.
-
-### [Code Style](code-style.md)
-
-Follow fapilog's coding standards and style guidelines.
-
-### [Testing](testing.md)
-
-How to run tests and write new tests.
-
-### [Documentation](documentation.md)
-
-Guidelines for contributing to documentation.
-
-## Development Workflow
-
-### [Git Workflow](git-workflow.md)
-
-Branching strategy and pull request process.
-
-### [Code Review](code-review.md)
-
-How code reviews work and what to expect.
-
-### [Release Process](release-process.md)
-
-How releases are made and versioning works.
-
-### [CI/CD](ci-cd.md)
-
-Continuous integration and deployment setup.
-
-## Project Structure
-
-### [Architecture](architecture.md)
-
-High-level architecture and design principles.
-
-### [Code Organization](code-organization.md)
-
-How the codebase is organized and structured.
-
-### [Plugin System](plugin-system.md)
-
-Understanding the plugin architecture.
-
-### [Testing Strategy](testing-strategy.md)
-
-Testing approach and coverage requirements.
-
-## Areas to Contribute
-
-### [Core Features](core-features.md)
-
-Contributing to core fapilog functionality.
-
-### [Plugins](plugins.md)
-
-Building and improving plugins.
-
-### [Documentation](documentation-improvements.md)
-
-Improving documentation and examples.
-
-### [Testing](testing-improvements.md)
-
-Enhancing test coverage and quality.
-
-### [Performance](performance-improvements.md)
-
-Performance optimizations and benchmarks.
-
-### [Security](security-improvements.md)
-
-Security enhancements and vulnerability fixes.
-
-## Communication
-
-### [Discussions](discussions.md)
-
-Participate in project discussions and planning.
-
-### [Issues](issues.md)
-
-How to report bugs and request features.
-
-### [Community](community.md)
-
-Join the fapilog community and get help.
-
-### [Code of Conduct](code-of-conduct.md)
-
-Community guidelines and standards.
-
-## Resources
-
-### [API Reference](api-reference.md)
-
-Developer API documentation.
-
-### [Plugin Development](plugin-development.md)
-
-Guide to developing plugins.
-
-### [Testing Guide](testing-guide.md)
-
-Comprehensive testing documentation.
-
-### [Performance Guide](performance-guide.md)
-
-Performance optimization guidelines.
-
-## Getting Help
-
-### [FAQ](faq.md)
-
-Frequently asked questions.
-
-### [Troubleshooting](troubleshooting.md)
-
-Common issues and solutions.
-
-### [Contact](contact.md)
-
-How to get in touch with the maintainers.
+We are committed to providing a welcoming and inclusive environment. Please be respectful and professional in all interactions.
 
 ---
 

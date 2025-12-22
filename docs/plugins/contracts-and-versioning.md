@@ -1,8 +1,8 @@
-## Plugin Contracts and API Versioning
+# Plugin Contracts and API Versioning
 
 This document explains the authoring contracts (protocols) and the Plugin API version policy used by Fapilog v3.
 
-### Public Protocols
+## Public Protocols
 
 Fapilog exposes runtime-checkable Protocols for all plugin types. Implementations should be async-first and resilient.
 
@@ -17,7 +17,7 @@ These are re-exported in `fapilog.plugins` for convenient import:
 from fapilog.plugins import BaseSink, BaseEnricher, BaseProcessor, BaseRedactor
 ```
 
-### Plugin API Version
+## Plugin API Version
 
 - Current API version: defined as a tuple at `fapilog.plugins.versioning.PLUGIN_API_VERSION` (currently `(1, 0)`).
 - Plugins declare their contract version via `PLUGIN_METADATA["api_version"]` as a string like `"1.0"`.
@@ -25,12 +25,12 @@ from fapilog.plugins import BaseSink, BaseEnricher, BaseProcessor, BaseRedactor
   - `parse_api_version("1.0") -> (1, 0)`
   - `is_plugin_api_compatible((declared_major, declared_minor)) -> bool`
 
-#### Compatibility Policy
+### Compatibility Policy
 
 - Compatible when the declared major equals the current major, and the declared minor is less than or equal to the current minor.
 - Incompatible otherwise. Example: Declared `2.0` is incompatible with current `1.x`.
 
-### Plugin Metadata Keys
+## Plugin Metadata Keys
 
 Minimal `PLUGIN_METADATA` example for a sink:
 
@@ -47,7 +47,7 @@ PLUGIN_METADATA = {
 }
 ```
 
-### Load-time Enforcement
+## Load-time Enforcement
 
 The registry validates compatibility before loading:
 
@@ -58,6 +58,6 @@ On mismatch or parse failure, loading is rejected with `PluginRegistryError` and
 
 - `plugin`, `declared_api_version`, `expected_api_version`, `reason`
 
-### Backward Compatibility
+## Backward Compatibility
 
 For the v1.x contract series, method signatures of the public Protocols will not change in a breaking way. Minor increments relax compatibility (e.g., adding optional methods) but do not break existing plugins.

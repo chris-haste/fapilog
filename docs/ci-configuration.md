@@ -19,7 +19,7 @@ The test suite includes several environment variables that can be tuned for CI e
   - Increase for slower CI: `export FAPILOG_TEST_MAX_LOOP_STALL_SECONDS=0.50`
 
 - **`FAPILOG_TEST_MAX_AVG_FLUSH_SECONDS`** (default: 0.30, minimum: 1.00)
-  - Maximum allowed average flush latency
+  - Maximum allowed average drain latency
   - Increase for slower CI: `export FAPILOG_TEST_MAX_AVG_FLUSH_SECONDS=1.00`
 
 ### Timeout Protection

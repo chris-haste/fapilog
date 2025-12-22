@@ -204,11 +204,11 @@ This function initializes the internal logging infrastructure by creating sink i
 
 **Good Example:**
 
-| Variable              | Default | Description                                   |
-| --------------------- | ------- | --------------------------------------------- |
-| FAPILOG_LEVEL         | INFO    | Minimum log level for all loggers             |
-| FAPILOG_FORMAT        | json    | Output format: json, pretty, or structured    |
-| FAPILOG_QUEUE\_\_SIZE | 8192    | Maximum number of log events in memory buffer |
+| Variable                               | Default | Description                                   |
+| -------------------------------------- | ------- | --------------------------------------------- |
+| FAPILOG_CORE__LOG_LEVEL                | INFO    | Minimum log level for all loggers             |
+| FAPILOG_OBSERVABILITY__LOGGING__FORMAT | json    | Output format: json or text                   |
+| FAPILOG_CORE__MAX_QUEUE_SIZE           | 10000   | Maximum number of log events in memory buffer |
 
 #### Code Examples Section
 
@@ -250,24 +250,25 @@ When using `@docs:examples` markers:
 ````python
 @docs:examples
 ```python
-from fapilog import Logger
+from fapilog import get_async_logger
 
 # Create logger instance
-logger = Logger()
+logger = await get_async_logger()
 
 # Basic logging
 await logger.info("Application started")
 await logger.error("Database connection failed", exc_info=True)
 
 # Structured logging with context
-await logger.info("User action", extra={
-    "user_id": "12345",
-    "action": "login",
-    "ip_address": "192.168.1.1"
-})
+await logger.info(
+    "User action",
+    user_id="12345",
+    action="login",
+    ip_address="192.168.1.1",
+)
 
 # Cleanup
-await logger.close()
+await logger.drain()
 ````
 
 ````

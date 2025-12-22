@@ -26,7 +26,7 @@ Your application code calls logging methods:
 from fapilog import get_logger
 
 logger = get_logger()
-await logger.info("User action", extra={"user_id": "123"})
+logger.info("User action", user_id="123")
 ```
 
 **What happens:**
@@ -42,7 +42,7 @@ Context is automatically attached to messages:
 
 ```python
 # Context is automatically included
-await logger.info("Request processed", extra={"status_code": 200})
+logger.info("Request processed", status_code=200)
 ```
 
 **Context includes:**
@@ -166,14 +166,14 @@ Sinks are the final destination for messages:
 
 ### 1. Async Operations
 
-All logging operations are async and non-blocking:
+Logging calls enqueue work without blocking on sinks:
 
 ```python
-# This never blocks
-await logger.info("Processing started")
+# Sync
+logger.info("Processing started")
 
-# Your application continues immediately
-await process_data()
+# Async
+await async_logger.info("Processing started")
 ```
 
 ### 2. Bounded Memory
@@ -182,10 +182,10 @@ Memory usage is bounded and configurable:
 
 ```python
 # Set maximum queue size
-export FAPILOG_MAX_QUEUE_SIZE=8192
+export FAPILOG_CORE__MAX_QUEUE_SIZE=8192
 
 # Set maximum batch size
-export FAPILOG_BATCH_MAX_SIZE=100
+export FAPILOG_CORE__BATCH_MAX_SIZE=100
 ```
 
 ### 3. Backpressure Handling
@@ -194,8 +194,8 @@ System handles overload gracefully:
 
 ```python
 # Configure backpressure behavior
-export FAPILOG_DROP_ON_FULL=true
-export FAPILOG_BACKPRESSURE_WAIT_MS=100
+export FAPILOG_CORE__DROP_ON_FULL=true
+export FAPILOG_CORE__BACKPRESSURE_WAIT_MS=100
 ```
 
 ### 4. Deduplication
@@ -204,7 +204,7 @@ Automatic deduplication of similar messages:
 
 ```python
 # Configure deduplication window
-export FAPILOG_DEDUP_WINDOW_SECONDS=60
+export FAPILOG_CORE__ERROR_DEDUPE_WINDOW_SECONDS=60
 ```
 
 ## Configuration
@@ -218,14 +218,11 @@ settings = Settings(
     # Queue configuration
     core__max_queue_size=16384,
     core__batch_max_size=200,
-
-    # Processing configuration
-    core__worker_count=4,
-    core__enable_deduplication=True,
-
-    # Sink configuration
-    sinks=["stdout", "file"],
-    file__directory="/var/log/myapp"
+    core__drop_on_full=False,
+    core__backpressure_wait_ms=100,
+    core__error_dedupe_window_seconds=60,
+    # Optional HTTP sink
+    http__endpoint="https://logs.example.com/ingest",
 )
 ```
 
@@ -233,17 +230,15 @@ settings = Settings(
 
 ```bash
 # Pipeline performance
-export FAPILOG_MAX_QUEUE_SIZE=16384
-export FAPILOG_BATCH_MAX_SIZE=200
-export FAPILOG_WORKER_COUNT=4
+export FAPILOG_CORE__MAX_QUEUE_SIZE=16384
+export FAPILOG_CORE__BATCH_MAX_SIZE=200
 
 # Deduplication
-export FAPILOG_ENABLE_DEDUPLICATION=true
-export FAPILOG_DEDUP_WINDOW_SECONDS=60
+export FAPILOG_CORE__ERROR_DEDUPE_WINDOW_SECONDS=60
 
 # Backpressure
-export FAPILOG_DROP_ON_FULL=false
-export FAPILOG_BACKPRESSURE_WAIT_MS=100
+export FAPILOG_CORE__DROP_ON_FULL=false
+export FAPILOG_CORE__BACKPRESSURE_WAIT_MS=100
 ```
 
 ## Monitoring

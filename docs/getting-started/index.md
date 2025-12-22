@@ -20,7 +20,7 @@ from fapilog import get_logger
 
 # Zero-config logging - works out of the box
 logger = get_logger()
-await logger.info("Hello, fapilog!")
+logger.info("Hello, fapilog!")
 ```
 
 **That's it!** fapilog automatically:

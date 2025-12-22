@@ -9,6 +9,9 @@ Learn how to create and use plugins to extend fapilog's capabilities.
 authoring
 contracts-and-versioning
 redactors
+sinks
+enrichers
+processors
 ```
 
 ## Overview
@@ -22,15 +25,15 @@ fapilog provides a comprehensive plugin system that allows you to:
 
 ## Plugin Types
 
-### [Sinks](redactors.md)
+### [Sinks](sinks.md)
 
 Output destination management for logs and events.
 
-### [Processors](redactors.md)
+### [Processors](processors.md)
 
 Data processing and transformation pipelines.
 
-### [Enrichers](redactors.md)
+### [Enrichers](enrichers.md)
 
 Data enrichment and augmentation.
 

@@ -11,7 +11,7 @@ The fastest way to start logging:
 ```python
 from fapilog import get_logger
 
-# Get a logger - no configuration needed (sync)
+# Get a logger - no configuration needed (sync, non-awaitable methods)
 logger = get_logger()
 
 # Start logging immediately
@@ -28,19 +28,17 @@ logger.error("Something went wrong", exc_info=True)
 
 ## With Context
 
-Add request context automatically:
+Bind context once, then it’s added automatically to each log entry:
 
 ```python
 from fapilog import get_logger
 
 logger = get_logger()
 
-# Add business context
-logger.info("User action", extra={
-    "user_id": "123",
-    "action": "login",
-    "ip_address": "192.168.1.100"
-})
+# Bind business context
+logger.bind(user_id="123", ip_address="192.168.1.100")
+
+logger.info("User action", action="login")
 ```
 
 **Output:**
@@ -58,24 +56,25 @@ logger.info("User action", extra={
 
 ## Using runtime() for Cleanup
 
-For applications that need graceful shutdown:
+For applications that need graceful shutdown of the background worker (sync API):
 
 ```python
 from fapilog import runtime
 
-async def main():
-    async with runtime() as logger:
+def main():
+    with runtime() as logger:
         # Logging system is ready
-        await logger.info("Processing started")
+        logger.info("Processing started")
 
         # Your application code here
-        await process_data()
+        process_data()
 
-        await logger.info("Processing completed")
+        logger.info("Processing completed")
 
     # Logger automatically cleaned up
 
-asyncio.run(main())
+if __name__ == "__main__":
+    main()
 ```
 
 ## Async Logger Usage
@@ -106,8 +105,8 @@ async def process_batch():
     async with runtime_async() as logger:
         await logger.info("Batch processing started")
 
-        for i in range(100):
-            await logger.debug(f"Processing item {i}")
+        for i in range(5):
+            await logger.debug("Processing item", index=i)
             # ... your async processing code ...
 
         await logger.info("Batch processing completed")
@@ -149,14 +148,14 @@ When you call `get_logger()` or `get_async_logger()`:
 Customize behavior with environment variables:
 
 ```bash
-# Set log level
-export FAPILOG_LEVEL=DEBUG
+# Set log level (observability.logging.sampling also available)
+export FAPILOG_CORE__LOG_LEVEL=DEBUG
 
 # Enable file logging
 export FAPILOG_FILE__DIRECTORY=/var/log/myapp
 
 # Enable metrics
-export FAPILOG_ENABLE_METRICS=true
+export FAPILOG_CORE__ENABLE_METRICS=true
 ```
 
 ## Next Steps

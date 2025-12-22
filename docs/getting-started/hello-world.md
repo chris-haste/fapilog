@@ -7,24 +7,20 @@ Complete walkthrough with real examples.
 Start with the simplest possible logging:
 
 ```python
-import asyncio
 from fapilog import get_logger
 
-async def main():
+def main():
     # Get a logger - zero configuration
     logger = get_logger()
 
-    # Basic logging
+    # Basic logging (sync methods)
     logger.info("Hello, World!")
     logger.debug("Debug message")
     logger.warning("Warning message")
     logger.error("Error message")
 
-    # Cleanup
-    logger.close()
-
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
 ```
 
 **Run it:**
@@ -60,13 +56,12 @@ async def main():
     logger = get_logger()
 
     # Generate some logs
-    for i in range(100):
-        logger.info(f"Log message {i}", extra={
-            "iteration": i,
-            "timestamp": f"2024-01-15T10:30:{i:02d}Z"
-        })
-
-    logger.close()
+    for i in range(5):
+        logger.info(
+            "Log message",
+            iteration=i,
+            timestamp=f"2024-01-15T10:30:{i:02d}Z",
+        )
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -94,21 +89,21 @@ async def main():
     logger = get_logger()
 
     # Log sensitive data
-    logger.info("User credentials", extra={
-        "username": "john_doe",
-        "password": "secret123",  # This will be redacted
-        "api_key": "sk-1234567890abcdef",  # This too
-        "email": "john@example.com"  # This will be redacted
-    })
+    logger.info(
+        "User credentials",
+        username="john_doe",
+        password="secret123",  # This will be redacted by regex redactor
+        api_key="sk-1234567890abcdef",  # This too
+        email="john@example.com",  # This will be redacted
+    )
 
     # Log business data (safe)
-    logger.info("User profile", extra={
-        "user_id": "12345",
-        "preferences": {"theme": "dark", "language": "en"},
-        "last_login": "2024-01-15T10:30:00Z"
-    })
-
-    logger.close()
+    logger.info(
+        "User profile",
+        user_id="12345",
+        preferences={"theme": "dark", "language": "en"},
+        last_login="2024-01-15T10:30:00Z",
+    )
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -128,22 +123,24 @@ if __name__ == "__main__":
 }
 ```
 
+Redaction is enabled by default (order: `field-mask`, `regex-mask`, `url-credentials`). To disable globally, set `FAPILOG_CORE__ENABLE_REDACTORS=false`. Tune ordering/paths via `redactors_order` and the relevant redactor settings.
+
 ## Stopping & Draining Logs
 
 Proper cleanup ensures all logs are written:
 
 ```python
 import asyncio
-from fapilog import runtime
+from fapilog import runtime_async
 
 async def main():
-    async with runtime() as logger:
+    async with runtime_async() as logger:
         # Log some messages
         await logger.info("Processing started")
 
         # Simulate work
         for i in range(10):
-            await logger.info(f"Processing item {i}")
+            await logger.info("Processing item", index=i)
             await asyncio.sleep(0.1)  # Simulate work
 
         await logger.info("Processing completed")
@@ -162,28 +159,29 @@ Here's a complete application that demonstrates everything:
 ```python
 import asyncio
 import os
-from fapilog import runtime
+from fapilog import runtime_async
 
 async def process_user(user_id: str, logger):
     """Process a user with structured logging."""
-    await logger.info("Processing user", extra={"user_id": user_id})
+    await logger.info("Processing user", user_id=user_id)
 
     # Simulate some work
     await asyncio.sleep(0.1)
 
     # Log progress
-    await logger.info("User processed", extra={
-        "user_id": user_id,
-        "status": "success",
-        "processing_time_ms": 100
-    })
+    await logger.info(
+        "User processed",
+        user_id=user_id,
+        status="success",
+        processing_time_ms=100,
+    )
 
 async def main():
     # Configure file logging
     os.environ["FAPILOG_FILE__DIRECTORY"] = "./logs"
-    os.environ["FAPILOG_LEVEL"] = "DEBUG"
+    os.environ["FAPILOG_CORE__LOG_LEVEL"] = "DEBUG"
 
-    async with runtime() as logger:
+    async with runtime_async() as logger:
         await logger.info("Application started")
 
         # Process multiple users

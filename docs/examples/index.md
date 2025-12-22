@@ -4,6 +4,7 @@ Real-world usage patterns and practical examples for fapilog.
 
 ```{toctree}
 :maxdepth: 2
+:titlesonly:
 :caption: Examples & Recipes
 
 fastapi-logging
@@ -40,28 +41,31 @@ logger = get_logger()
 logger.info("Application started")
 
 # With structured data
-logger.info("User action", extra={
-    "user_id": "123",
-    "action": "login",
-    "timestamp": "2024-01-15T10:30:00Z"
-})
+logger.info(
+    "User action",
+    user_id="123",
+    action="login",
+    timestamp="2024-01-15T10:30:00Z",
+)
 ```
 
 ### Context Binding
 
 ```python
-from fapilog import bind, get_logger
-
-# Bind context for this request
-bind(request_id="req-123", user_id="user-456")
+from fapilog import get_logger
 
 logger = get_logger()
+
+# Bind context for this request
+logger.bind(request_id="req-123", user_id="user-456")
 
 # Context automatically included
 logger.info("Processing request")
 logger.info("Request completed")
 
 # Output includes request_id and user_id automatically
+# Clear when done
+logger.clear_context()
 ```
 
 ### File Logging
@@ -97,53 +101,47 @@ for i in range(1000):
 ### Request Correlation
 
 ```python
-from fapilog import bind, get_logger
+from fapilog import get_logger
 import uuid
 
-async def handle_request(user_id: str):
+def handle_request(user_id: str):
     # Generate unique request ID
     request_id = str(uuid.uuid4())
-
-    # Bind context for this request
-    bind(request_id=request_id, user_id=user_id)
 
     logger = get_logger()
 
     try:
+        logger.bind(request_id=request_id, user_id=user_id)
         logger.info("Request started")
 
         # Process request
-        result = await process_request()
+        result = process_request()
 
-        logger.info("Request completed", extra={
-            "status": "success",
-            "duration_ms": 45
-        })
+        logger.info("Request completed", status="success", duration_ms=45)
 
         return result
 
     except Exception as e:
-        await logger.error("Request failed", exc_info=True, extra={
-            "error_type": type(e).__name__,
-            "error_message": str(e)
-        })
+        logger.error(
+            "Request failed",
+            exc=e,
+            error_type=type(e).__name__,
+            error_message=str(e),
+        )
         raise
     finally:
         # Clean up context
-        unbind()
+        logger.clear_context()
 ```
 
 ### Batch Processing
 
 ```python
-from fapilog import runtime
+from fapilog import runtime_async
 
 async def process_items(items):
-    async with runtime() as logger:
-        await logger.info("Batch processing started", extra={
-            "batch_size": len(items),
-            "batch_id": generate_batch_id()
-        })
+    async with runtime_async() as logger:
+        await logger.info("Batch processing started", batch_size=len(items))
 
         processed = 0
         failed = 0
@@ -154,25 +152,28 @@ async def process_items(items):
                 processed += 1
 
                 if processed % 100 == 0:
-                    await logger.info("Progress update", extra={
-                        "processed": processed,
-                        "total": len(items),
-                        "progress_pct": (processed / len(items)) * 100
-                    })
+                    await logger.info(
+                        "Progress update",
+                        processed=processed,
+                        total=len(items),
+                        progress_pct=(processed / len(items)) * 100,
+                    )
 
             except Exception as e:
                 failed += 1
-                await logger.error("Item processing failed", extra={
-                    "item_id": item.id,
-                    "error": str(e)
-                })
+                await logger.error(
+                    "Item processing failed",
+                    item_id=item.id,
+                    exc=e,
+                )
 
-        await logger.info("Batch processing completed", extra={
-            "total": len(items),
-            "processed": processed,
-            "failed": failed,
-            "success_rate": (processed / len(items)) * 100
-        })
+        await logger.info(
+            "Batch processing completed",
+            total=len(items),
+            processed=processed,
+            failed=failed,
+            success_rate=(processed / len(items)) * 100,
+        )
 ```
 
 ### Error Handling
@@ -187,31 +188,31 @@ async def risky_operation():
         # Attempt operation
         result = await perform_operation()
 
-        await logger.info("Operation successful", extra={
-            "operation": "risky_operation",
-            "result": result
-        })
+        await logger.info("Operation successful", operation="risky_operation", result=result)
 
         return result
 
     except ValueError as e:
         # Handle specific error type
-        await logger.warning("Operation failed with invalid input", extra={
-            "operation": "risky_operation",
-            "error_type": "ValueError",
-            "error_message": str(e),
-            "input_data": get_input_data()
-        })
+        await logger.warning(
+            "Operation failed with invalid input",
+            operation="risky_operation",
+            error_type="ValueError",
+            error_message=str(e),
+            input_data=get_input_data(),
+        )
         raise
 
     except Exception as e:
         # Handle unexpected errors
-        await logger.error("Operation failed unexpectedly", exc_info=True, extra={
-            "operation": "risky_operation",
-            "error_type": type(e).__name__,
-            "error_message": str(e),
-            "context": get_operation_context()
-        })
+        await logger.error(
+            "Operation failed unexpectedly",
+            exc_info=True,
+            operation="risky_operation",
+            error_type=type(e).__name__,
+            error_message=str(e),
+            context=get_operation_context(),
+        )
         raise
 ```
 
@@ -221,18 +222,14 @@ async def risky_operation():
 
 ```python
 # Development logging - verbose and human-readable
-export FAPILOG_LEVEL=DEBUG
-export FAPILOG_FORMAT=pretty
-export FAPILOG_ENABLE_METRICS=false
+export FAPILOG_CORE__LOG_LEVEL=DEBUG
 ```
 
 ### Production
 
 ```python
 # Production logging - structured and efficient
-export FAPILOG_LEVEL=INFO
-export FAPILOG_FORMAT=json
-export FAPILOG_ENABLE_METRICS=true
+export FAPILOG_CORE__LOG_LEVEL=INFO
 export FAPILOG_FILE__DIRECTORY=/var/log/myapp
 export FAPILOG_FILE__MAX_BYTES=10485760
 export FAPILOG_FILE__COMPRESS_ROTATED=true
@@ -242,10 +239,9 @@ export FAPILOG_FILE__COMPRESS_ROTATED=true
 
 ```python
 # Testing - minimal and fast
-export FAPILOG_LEVEL=WARNING
-export FAPILOG_FORMAT=json
-export FAPILOG_ENABLE_METRICS=false
-export FAPILOG_DROP_ON_FULL=true
+export FAPILOG_CORE__LOG_LEVEL=WARNING
+export FAPILOG_CORE__ENABLE_METRICS=false
+export FAPILOG_CORE__DROP_ON_FULL=true
 ```
 
 ## Next Steps
