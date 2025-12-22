@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Processors &mdash; fapilog 0.3.2 documentation</title>
+  <title>Reliability Defaults and Guardrails &mdash; fapilog 0.3.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -24,8 +24,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Troubleshooting" href="../troubleshooting/index.html" />
-    <link rel="prev" title="Enrichers" href="enrichers.html" /> 
+    <link rel="next" title="API Reference" href="../api-reference/index.html" />
+    <link rel="prev" title="Comparisons: fapilog vs stdlib, structlog, loguru" href="comparisons.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -67,18 +67,18 @@
 <li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html#id1">Diagnostics &amp; Resilience</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../user-guide/index.html">User Guide</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/configuration.html">Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/using-logger.html">Using the Logger</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/context-enrichment.html">Context Enrichment</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/redactors.html">Redactors</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/performance-tuning.html">Performance Tuning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/integration-guide.html">Integration Guide</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/fastapi.html">FastAPI / ASGI Integration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/comparisons.html">Comparisons: fapilog vs stdlib, structlog, loguru</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using-logger.html">Using the Logger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="context-enrichment.html">Context Enrichment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rotating-file-sink.html">Rotating File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="graceful-shutdown.html">Graceful Shutdown</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance-tuning.html">Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration-guide.html">Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fastapi.html">FastAPI / ASGI Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comparisons.html">Comparisons: fapilog vs stdlib, structlog, loguru</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Reliability Defaults and Guardrails</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../api-reference/index.html">API Reference</a><ul>
@@ -101,13 +101,13 @@
 <li class="toctree-l2"><a class="reference internal" href="../examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">Plugin Development</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="authoring.html">Authoring Fapilog Plugins</a></li>
-<li class="toctree-l2"><a class="reference internal" href="contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="redactors.html">Redactors</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sinks.html">Sinks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="enrichers.html">Enrichers</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Processors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugin Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/authoring.html">Authoring Fapilog Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/enrichers.html">Enrichers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/processors.html">Processors</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/index.html">Troubleshooting</a><ul>
@@ -146,10 +146,10 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="index.html">Plugin Development</a></li>
-      <li class="breadcrumb-item active">Processors</li>
+          <li class="breadcrumb-item"><a href="index.html">User Guide</a></li>
+      <li class="breadcrumb-item active">Reliability Defaults and Guardrails</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/plugins/processors.md.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/user-guide/reliability-defaults.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -157,38 +157,42 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="processors">
-<h1>Processors<a class="headerlink" href="#processors" title="Link to this heading"></a></h1>
-<p>Transform or filter log entries between enrichment and queue/sink stages. Implement <code class="docutils literal notranslate"><span class="pre">BaseProcessor</span></code>.</p>
-<section id="implementing-a-processor">
-<h2>Implementing a processor<a class="headerlink" href="#implementing-a-processor" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseProcessor</span>
-
-<span class="k">class</span><span class="w"> </span><span class="nc">SamplingProcessor</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;sampling-processor&quot;</span>
-
-    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entry</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="c1"># Return None to drop, or a modified entry to continue</span>
-        <span class="k">return</span> <span class="n">entry</span>
-</pre></div>
-</div>
-</section>
-<section id="registering-a-processor">
-<h2>Registering a processor<a class="headerlink" href="#registering-a-processor" title="Link to this heading"></a></h2>
+  <section class="tex2jax_ignore mathjax_ignore" id="reliability-defaults-and-guardrails">
+<h1>Reliability Defaults and Guardrails<a class="headerlink" href="#reliability-defaults-and-guardrails" title="Link to this heading"></a></h1>
+<p>This page summarizes the out-of-the-box behaviors that affect durability, backpressure, and data protection.</p>
+<section id="backpressure-and-drops">
+<h2>Backpressure and drops<a class="headerlink" href="#backpressure-and-drops" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Declare an entry point under <code class="docutils literal notranslate"><span class="pre">fapilog.processors</span></code> in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>.</p></li>
-<li><p>Provide <code class="docutils literal notranslate"><span class="pre">PLUGIN_METADATA</span></code> with <code class="docutils literal notranslate"><span class="pre">plugin_type:</span> <span class="pre">&quot;processor&quot;</span></code> and compatible API version.</p></li>
+<li><p>Queue size: <code class="docutils literal notranslate"><span class="pre">core.max_queue_size=10000</span></code></p></li>
+<li><p>Wait before drop: <code class="docutils literal notranslate"><span class="pre">core.backpressure_wait_ms=50</span></code></p></li>
+<li><p>Drop policy: <code class="docutils literal notranslate"><span class="pre">core.drop_on_full=True</span></code> (wait up to 50 ms, then drop). <strong>Set <code class="docutils literal notranslate"><span class="pre">core.drop_on_full=false</span></code> for production if you prefer waiting over dropping.</strong></p></li>
+<li><p>Batch flush: <code class="docutils literal notranslate"><span class="pre">core.batch_max_size=256</span></code>, <code class="docutils literal notranslate"><span class="pre">core.batch_timeout_seconds=0.25</span></code></p></li>
 </ul>
 </section>
-<section id="built-in-processors">
-<h2>Built-in processors<a class="headerlink" href="#built-in-processors" title="Link to this heading"></a></h2>
+<section id="redaction-defaults">
+<h2>Redaction defaults<a class="headerlink" href="#redaction-defaults" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Core pipeline currently runs without custom processors by default; processors are reserved for advanced transforms/filters.</p></li>
+<li><p>Redactors enabled: <code class="docutils literal notranslate"><span class="pre">core.enable_redactors=True</span></code></p></li>
+<li><p>Order: <code class="docutils literal notranslate"><span class="pre">field-mask</span></code> → <code class="docutils literal notranslate"><span class="pre">regex-mask</span></code> → <code class="docutils literal notranslate"><span class="pre">url-credentials</span></code></p></li>
+<li><p>Patterns: regex-mask uses a broad secret matcher (password/pass/secret/api key/token/authorization/set-cookie/ssn/email).</p></li>
+<li><p>Guardrails: <code class="docutils literal notranslate"><span class="pre">core.redaction_max_depth=6</span></code>, <code class="docutils literal notranslate"><span class="pre">core.redaction_max_keys_scanned=5000</span></code></p></li>
 </ul>
 </section>
-<section id="usage">
-<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
-<p>Processors execute after enrichers and redactors but before queueing/sink emission when configured. Ensure they are non-blocking and handle errors internally to avoid disrupting the pipeline.</p>
+<section id="exceptions-and-diagnostics">
+<h2>Exceptions and diagnostics<a class="headerlink" href="#exceptions-and-diagnostics" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Exceptions serialized by default: <code class="docutils literal notranslate"><span class="pre">core.exceptions_enabled=True</span></code></p></li>
+<li><p>Internal diagnostics are off by default: enable with <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__INTERNAL_LOGGING_ENABLED=true</span></code> to see worker/sink warnings.</p></li>
+<li><p>Error dedupe: identical ERROR/CRITICAL messages suppressed for <code class="docutils literal notranslate"><span class="pre">core.error_dedupe_window_seconds=5.0</span></code></p></li>
+</ul>
+</section>
+<section id="recommended-production-toggles">
+<h2>Recommended production toggles<a class="headerlink" href="#recommended-production-toggles" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Set <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__DROP_ON_FULL=false</span></code> to avoid drops under pressure.</p></li>
+<li><p>Enable metrics (<code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__ENABLE_METRICS=true</span></code>) plus Prometheus exporter (<code class="docutils literal notranslate"><span class="pre">fapilog[metrics]</span></code>) to watch queue depth, drops, and sink errors.</p></li>
+<li><p>Enable internal diagnostics during rollout to catch sink/enrichment issues early.</p></li>
+</ul>
 </section>
 </section>
 
@@ -196,8 +200,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="enrichers.html" class="btn btn-neutral float-left" title="Enrichers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="../troubleshooting/index.html" class="btn btn-neutral float-right" title="Troubleshooting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="comparisons.html" class="btn btn-neutral float-left" title="Comparisons: fapilog vs stdlib, structlog, loguru" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../api-reference/index.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

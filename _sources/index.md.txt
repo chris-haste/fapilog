@@ -62,7 +62,6 @@ plugins/index
 troubleshooting/index
 faq
 contributing/index
-release-notes
 appendices
 ```
 
