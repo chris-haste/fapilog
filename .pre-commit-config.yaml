@@ -58,7 +58,7 @@ repos:
         stages: [pre-commit, manual]
 
       - id: coverage-check
-        name: Code Coverage (89%+ required)
+        name: Code Coverage (90%+ required)
         entry: python scripts/check_coverage.py
         language: system
         stages: [pre-commit]

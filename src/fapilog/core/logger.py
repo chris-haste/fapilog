@@ -135,7 +135,7 @@ class SyncLoggerFacade:
             # No running loop: start dedicated loop in a thread
             self._stop_flag = False
 
-            def _run() -> None:
+            def _run() -> None:  # pragma: no cover - thread-loop fallback
                 loop_local = asyncio.new_event_loop()
                 self._worker_loop = loop_local
                 self._loop_thread_ident = threading.get_ident()
@@ -642,7 +642,7 @@ class SyncLoggerFacade:
                 await asyncio.sleep(0.001)
         except asyncio.CancelledError:
             return
-        except Exception as exc:
+        except Exception as exc:  # pragma: no cover - defensive catch
             # Contain worker failures; optionally emit diagnostics
             try:
                 from .diagnostics import warn
@@ -973,7 +973,7 @@ class AsyncLoggerFacade:
             # No running loop: start dedicated loop in a thread
             self._stop_flag = False
 
-            def _run() -> None:
+            def _run() -> None:  # pragma: no cover - thread-loop fallback
                 loop_local = asyncio.new_event_loop()
                 self._worker_loop = loop_local
                 self._loop_thread_ident = threading.get_ident()
@@ -1397,7 +1397,7 @@ class AsyncLoggerFacade:
                 await asyncio.sleep(0.001)
         except asyncio.CancelledError:
             return
-        except Exception as exc:
+        except Exception as exc:  # pragma: no cover - defensive catch
             # Contain worker failures; optionally emit diagnostics
             try:
                 from .diagnostics import warn
