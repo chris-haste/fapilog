@@ -63,6 +63,18 @@ async def enrich_parallel(
             if metrics is not None and metrics.is_enabled:
                 plugin_label = getattr(type(res), "__name__", "enricher_error")
                 await metrics.record_plugin_error(plugin_name=plugin_label)
+            # Emit diagnostics when enabled
+            try:
+                from ...core import diagnostics as _diag
+
+                _diag.warn(
+                    "enricher",
+                    "enrichment error",
+                    error_type=type(res).__name__,
+                    _rate_limit_key="enrich",
+                )
+            except Exception:
+                pass
             continue
         merged.update(res)
         if metrics is not None:

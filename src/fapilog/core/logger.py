@@ -135,7 +135,7 @@ class SyncLoggerFacade:
             # No running loop: start dedicated loop in a thread
             self._stop_flag = False
 
-            def _run() -> None:
+            def _run() -> None:  # pragma: no cover - thread-loop fallback
                 loop_local = asyncio.new_event_loop()
                 self._worker_loop = loop_local
                 self._loop_thread_ident = threading.get_ident()
@@ -642,7 +642,7 @@ class SyncLoggerFacade:
                 await asyncio.sleep(0.001)
         except asyncio.CancelledError:
             return
-        except Exception as exc:
+        except Exception as exc:  # pragma: no cover - defensive catch
             # Contain worker failures; optionally emit diagnostics
             try:
                 from .diagnostics import warn
@@ -674,7 +674,17 @@ class SyncLoggerFacade:
                             metrics=self._metrics,
                         )
                     except Exception:
-                        # Contain enrichment errors
+                        # Emit diagnostics for enrichment failures and continue
+                        try:
+                            from .diagnostics import warn as _warn
+
+                            _warn(
+                                "enricher",
+                                "enrichment error",
+                                _rate_limit_key="enrich",
+                            )
+                        except Exception:
+                            pass
                         pass
                 # Redactors stage (sequential, deterministic)
                 if self._redactors:
@@ -685,7 +695,17 @@ class SyncLoggerFacade:
                             metrics=self._metrics,
                         )
                     except Exception:
-                        # Contain redaction errors and continue
+                        # Emit diagnostics for redaction failures and continue
+                        try:
+                            from .diagnostics import warn as _warn
+
+                            _warn(
+                                "redactor",
+                                "redaction error",
+                                _rate_limit_key="redact",
+                            )
+                        except Exception:
+                            pass
                         pass
                 # Optional fast-path: pre-serialize once and pass to sink
                 if self._serialize_in_flush and self._sink_write_serialized is not None:
@@ -802,6 +822,7 @@ class SyncLoggerFacade:
         """
         Async enqueue executed in the worker loop; returns True if enqueued.
         """
+        effective_timeout: float | None = timeout if self._drop_on_full else None
         # Fast path
         if self._queue.try_enqueue(payload):
             qsize = self._queue.qsize()
@@ -810,11 +831,28 @@ class SyncLoggerFacade:
                 if self._metrics is not None:
                     await self._metrics.set_queue_high_watermark(qsize)
             return True
-        if timeout > 0:
+        # Backpressure handling
+        if effective_timeout is not None and effective_timeout > 0:
             if self._metrics is not None:
                 await self._metrics.record_backpressure_wait(1)
             try:
-                await self._queue.await_enqueue(payload, timeout=timeout)
+                await self._queue.await_enqueue(payload, timeout=effective_timeout)
+                qsize = self._queue.qsize()
+                if qsize > self._queue_high_watermark:
+                    self._queue_high_watermark = qsize
+                    if self._metrics is not None:
+                        await self._metrics.set_queue_high_watermark(qsize)
+                return True
+            except Exception:
+                if self._metrics is not None:
+                    await self._metrics.record_events_dropped(1)
+                return False
+        if not self._drop_on_full:
+            # Wait indefinitely (best-effort) when configured to never drop
+            if self._metrics is not None:
+                await self._metrics.record_backpressure_wait(1)
+            try:
+                await self._queue.await_enqueue(payload, timeout=None)
                 qsize = self._queue.qsize()
                 if qsize > self._queue_high_watermark:
                     self._queue_high_watermark = qsize
@@ -935,7 +973,7 @@ class AsyncLoggerFacade:
             # No running loop: start dedicated loop in a thread
             self._stop_flag = False
 
-            def _run() -> None:
+            def _run() -> None:  # pragma: no cover - thread-loop fallback
                 loop_local = asyncio.new_event_loop()
                 self._worker_loop = loop_local
                 self._loop_thread_ident = threading.get_ident()
@@ -1359,7 +1397,7 @@ class AsyncLoggerFacade:
                 await asyncio.sleep(0.001)
         except asyncio.CancelledError:
             return
-        except Exception as exc:
+        except Exception as exc:  # pragma: no cover - defensive catch
             # Contain worker failures; optionally emit diagnostics
             try:
                 from .diagnostics import warn
@@ -1519,6 +1557,7 @@ class AsyncLoggerFacade:
         """
         Async enqueue executed in the worker loop; returns True if enqueued.
         """
+        effective_timeout: float | None = timeout if self._drop_on_full else None
         # Fast path
         if self._queue.try_enqueue(payload):
             qsize = self._queue.qsize()
@@ -1527,11 +1566,28 @@ class AsyncLoggerFacade:
                 if self._metrics is not None:
                     await self._metrics.set_queue_high_watermark(qsize)
             return True
-        if timeout > 0:
+        # Backpressure handling
+        if effective_timeout is not None and effective_timeout > 0:
             if self._metrics is not None:
                 await self._metrics.record_backpressure_wait(1)
             try:
-                await self._queue.await_enqueue(payload, timeout=timeout)
+                await self._queue.await_enqueue(payload, timeout=effective_timeout)
+                qsize = self._queue.qsize()
+                if qsize > self._queue_high_watermark:
+                    self._queue_high_watermark = qsize
+                    if self._metrics is not None:
+                        await self._metrics.set_queue_high_watermark(qsize)
+                return True
+            except Exception:
+                if self._metrics is not None:
+                    await self._metrics.record_events_dropped(1)
+                return False
+        if not self._drop_on_full:
+            # Wait indefinitely (best-effort) when configured to never drop
+            if self._metrics is not None:
+                await self._metrics.record_backpressure_wait(1)
+            try:
+                await self._queue.await_enqueue(payload, timeout=None)
                 qsize = self._queue.qsize()
                 if qsize > self._queue_high_watermark:
                     self._queue_high_watermark = qsize

@@ -150,8 +150,17 @@ def get_logger(
                 await sink.start()
                 sink._started = True
             except Exception:
-                # If start fails, continue without it
-                pass
+                # If start fails, emit diagnostics and continue without it
+                try:
+                    from .core import diagnostics as _diag
+
+                    _diag.warn(
+                        "sink",
+                        "sink start failed",
+                        sink_type=type(sink).__name__,
+                    )
+                except Exception:
+                    pass
         await sink.write(entry)
 
     async def _sink_write_serialized(view: object) -> None:
@@ -399,8 +408,17 @@ async def get_async_logger(
                 await sink.start()
                 sink._started = True
             except Exception:
-                # If start fails, continue without it
-                pass
+                # If start fails, emit diagnostics and continue without it
+                try:
+                    from .core import diagnostics as _diag
+
+                    _diag.warn(
+                        "sink",
+                        "sink start failed",
+                        sink_type=type(sink).__name__,
+                    )
+                except Exception:
+                    pass
         await sink.write(entry)
 
     async def _sink_write_serialized(view: object) -> None:

@@ -23,6 +23,15 @@ pip install fapilog
 # FastAPI integration
 pip install fapilog[fastapi]
 
+# Metrics exporter (Prometheus client)
+pip install fapilog[metrics]
+
+# System metrics helpers
+pip install fapilog[system]
+
+# MQTT integration (reserved)
+pip install fapilog[mqtt]
+
 # Development tools
 pip install fapilog[dev]
 
@@ -52,9 +61,10 @@ pip install -e .
 
 fapilog automatically installs these core dependencies:
 
-- `structlog` - Structured logging foundation
-- `pydantic` - Settings and validation
-- `anyio` - Async I/O utilities
+- `pydantic` and `pydantic-settings` - Settings and validation
+- `httpx` - HTTP client for webhook/remote sinks
+- `orjson` - Fast JSON handling
+- `packaging` - Version parsing and compatibility helpers
 
 ### Optional Dependencies
 
@@ -62,16 +72,16 @@ Install these based on your needs:
 
 ```bash
 # FastAPI integration
-pip install fastapi
+pip install fapilog[fastapi]
 
-# HTTP sinks
-pip install httpx
+# Metrics exporter (Prometheus)
+pip install fapilog[metrics]
 
-# File rotation
-pip install aiofiles
+# System metrics helpers
+pip install fapilog[system]
 
-# Metrics
-pip install prometheus-client
+# MQTT integration
+pip install fapilog[mqtt]
 ```
 
 ## Environment Setup

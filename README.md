@@ -7,6 +7,7 @@
 ![Plugin Marketplace](https://img.shields.io/badge/plugin-marketplace-008080?style=flat-square&logo=puzzle&logoColor=white)
 ![Enterprise Ready](https://img.shields.io/badge/enterprise-ready-004080?style=flat-square&logo=shield&logoColor=white)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-008000?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Coverage](https://img.shields.io/badge/coverage-90%25-008080?style=flat-square)](docs/quality-signals.md)
 ![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-008080?style=flat-square&logo=pydantic&logoColor=white)
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-008080?style=flat-square&logo=python&logoColor=white)](https://pypi.org/project/fapilog/)
@@ -63,6 +64,28 @@ logger.info("Application started", environment="production")
 # Scoped runtime that auto-flushes on exit
 with runtime() as log:
     log.error("Something went wrong", code=500)
+```
+
+### FastAPI request logging
+
+```python
+from fastapi import FastAPI
+from fapilog.fastapi.context import RequestContextMiddleware
+from fapilog.fastapi.logging import LoggingMiddleware
+
+app = FastAPI()
+app.add_middleware(RequestContextMiddleware)  # sets correlation IDs
+app.add_middleware(
+    LoggingMiddleware,
+    sample_rate=1.0,                  # sampling for successes; errors always logged
+    include_headers=True,             # optional: emit headers
+    redact_headers=["authorization"], # mask sensitive headers
+    skip_paths=["/healthz"],          # skip noisy paths
+)        # emits request_completed / request_failed
+
+# Optional marketplace router (plugin discovery)
+# from fapilog.fastapi import get_router
+# app.include_router(get_router(), prefix=\"/plugins\")
 ```
 
 ## 🏗️ Architecture
@@ -173,6 +196,9 @@ Fapilog v3 features a universal plugin ecosystem:
 
 - See the `docs/` directory for full documentation
 - Benchmarks: `python scripts/benchmarking.py --help`
+- Extras: `pip install fapilog[fastapi]` for FastAPI helpers, `[metrics]` for Prometheus exporter, `[system]` for psutil-based metrics, `[mqtt]` reserved for future MQTT sinks.
+- Reliability hint: set `FAPILOG_CORE__DROP_ON_FULL=false` to prefer waiting over dropping under pressure in production.
+- Quality signals: ~90% line coverage (see `docs/quality-signals.md`); reliability defaults documented in `docs/user-guide/reliability-defaults.md`.
 
 ## 🤝 Contributing
 

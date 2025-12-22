@@ -14,9 +14,18 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
 from time import perf_counter
-from typing import Any
+from typing import Any, cast
 
-from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram
+try:
+    from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram
+
+    _PROMETHEUS_AVAILABLE = True
+except Exception:  # pragma: no cover - handled via graceful fallback
+    CollectorRegistry = cast(Any, None)  # type: ignore[misc]
+    Counter = cast(Any, None)  # type: ignore[misc]
+    Gauge = cast(Any, None)  # type: ignore[misc]
+    Histogram = cast(Any, None)  # type: ignore[misc]
+    _PROMETHEUS_AVAILABLE = False
 
 
 @dataclass
@@ -52,7 +61,19 @@ class MetricsCollector:
     """
 
     def __init__(self, *, enabled: bool = False) -> None:
-        self._enabled = bool(enabled)
+        self._prom_available = _PROMETHEUS_AVAILABLE
+        if enabled and not self._prom_available:
+            try:
+                from ..core import diagnostics as _diag
+
+                _diag.warn(
+                    "metrics",
+                    "prometheus_client not installed; disabling exporter",
+                )
+            except Exception:
+                # Best-effort warning only
+                pass
+        self._enabled = bool(enabled and self._prom_available)
         self._lock = asyncio.Lock()
         self._state = PipelineMetrics()
         # Per-plugin profiling stats (container scoped)

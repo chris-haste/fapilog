@@ -195,10 +195,14 @@ class TestErrorDeduplication:
         )
         logger.start()
 
-        # Mock settings with very short dedup window
+        # Use real time with a short but reliable window
+        # This avoids flaky mocking issues where other system calls consume mock values
+        window_seconds = 0.05  # 50ms window
+
+        # Mock settings with short dedup window
         with patch("fapilog.core.settings.Settings") as mock_settings:
             settings_instance = Mock()
-            settings_instance.core.error_dedupe_window_seconds = 0.1  # 100ms window
+            settings_instance.core.error_dedupe_window_seconds = window_seconds
             mock_settings.return_value = settings_instance
 
             # Mock diagnostics warn to capture summary
@@ -207,28 +211,17 @@ class TestErrorDeduplication:
                     lambda *args, **kwargs: diagnostics_calls.append(kwargs)
                 )
 
-                # Mock time to control window timing
-                start_time = 1000.0
-                # Use itertools.cycle to prevent StopIteration
-                import itertools
+                # First occurrence - logged
+                logger.error("Repeated error")
+                # Second and third - within window, suppressed
+                logger.error("Repeated error")
+                logger.error("Repeated error")
 
-                time_values = itertools.cycle(
-                    [
-                        start_time,  # First occurrence
-                        start_time + 0.05,  # Second occurrence (within window)
-                        start_time + 0.06,  # Third occurrence (within window)
-                        start_time
-                        + 0.2,  # Fourth occurrence (outside window - rollover)
-                        start_time + 0.3,  # Additional times for shutdown
-                    ]
-                )
-                with patch("time.monotonic", side_effect=time_values):
-                    logger.error("Repeated error")  # First - logged
-                    logger.error("Repeated error")  # Suppressed
-                    logger.error("Repeated error")  # Suppressed
-                    logger.error(
-                        "Repeated error"
-                    )  # Window rollover - summary + new occurrence
+                # Wait for window to expire
+                time.sleep(window_seconds + 0.02)
+
+                # Fourth occurrence - outside window, triggers rollover and summary
+                logger.error("Repeated error")
 
         asyncio.run(logger.stop_and_drain())
 
@@ -237,7 +230,7 @@ class TestErrorDeduplication:
         summary_call = diagnostics_calls[0]
         assert summary_call.get("error_message") == "Repeated error"
         assert summary_call.get("suppressed") >= 1  # At least 1 message was suppressed
-        assert summary_call.get("window_seconds") == 0.1
+        assert summary_call.get("window_seconds") == window_seconds
 
     def test_error_deduplication_disabled(self) -> None:
         """Test that deduplication is disabled when window is 0."""
