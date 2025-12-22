@@ -27,10 +27,10 @@ python:
       extra_requirements:
         - docs
 
-# Optional: enable PDF generation
-formats:
-  - pdf
-  - epub
+# PDF/ePub disabled - causes Sphinx LaTeX builder crash with tables
+# formats:
+#   - pdf
+#   - epub
 
 # Optional: enable search
 search:
