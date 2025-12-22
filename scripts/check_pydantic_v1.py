@@ -31,8 +31,8 @@ PYDANTIC_V1_PATTERNS = [
     (r"\.parse_obj\s*\(", ".parse_obj should be .model_validate"),
     # parse_raw (should be model_validate_json)
     (r"\.parse_raw\s*\(", ".parse_raw should be .model_validate_json"),
-    # dict() method (should be model_dump)
-    (r"\.dict\s*\(", ".dict() should be .model_dump()"),
+    # dict() method (should be model_dump) - exclude patch.dict from unittest.mock
+    (r"(?<!patch)\.dict\s*\(", ".dict() should be .model_dump()"),
     # json() method (should be model_dump_json)
     (r"\.json\s*\(", ".json() should be .model_dump_json()"),
     # Config class with old syntax
