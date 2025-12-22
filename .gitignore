@@ -237,6 +237,9 @@ $RECYCLE.BIN/
 web-bundles/
 docs/stories/
 
+# hatch-vcs generated version file
+src/fapilog/_version.py
+
 # Log files
 *.log
 
