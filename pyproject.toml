@@ -108,8 +108,8 @@ Homepage = "https://github.com/chris-haste/fapilog"
 Documentation = "https://fapilog.readthedocs.io/"
 Repository = "https://github.com/chris-haste/fapilog"
 "Bug Tracker" = "https://github.com/chris-haste/fapilog/issues"
-"Plugin Marketplace" = "https://plugins.fapilog.dev/"
-Discord = "https://discord.gg/fapilog"
+# "Plugin Marketplace" = "https://plugins.fapilog.dev/"  # Coming soon
+# Discord = "https://discord.gg/fapilog"  # Coming soon
 
 # [project.scripts]
 # fapilog = "fapilog.cli:main"  # CLI coming in future release
@@ -536,7 +536,7 @@ ignore_names = [
     # Metrics utilities referenced by tests or external integrations
     "create_metrics_collector_from_settings",
     "snapshot",
-    # New resource management APIs
+    # New resource management APIsƒ
     "AsyncResourcePool",
     "HttpClientPool",
     "ResourceManager",
