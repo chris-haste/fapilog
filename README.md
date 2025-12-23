@@ -1,18 +1,18 @@
-# Fapilog v3 - Production-ready logging for the modern Python stack.
+# Fapilog - Production-ready logging for the modern Python stack
 
 **fapilog** delivers production-ready logging for the modern Python stack—async-first, structured, and optimized for FastAPI and cloud-native apps. It’s equally suitable for **on-prem**, **desktop**, or **embedded** projects where structured, JSON-ready, and pluggable logging is required.
 
 ![Async-first](https://img.shields.io/badge/async-first-008080?style=flat-square&logo=python&logoColor=white)
-![JSON Ready](https://img.shields.io/badge/json-ready-004080?style=flat-square&logo=json&logoColor=white)
+![JSON Ready](https://img.shields.io/badge/json-ready-008080?style=flat-square&logo=json&logoColor=white)
 ![Plugin Marketplace](https://img.shields.io/badge/plugin-marketplace-008080?style=flat-square&logo=puzzle&logoColor=white)
-![Enterprise Ready](https://img.shields.io/badge/enterprise-ready-004080?style=flat-square&logo=shield&logoColor=white)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-008000?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+![Enterprise Ready](https://img.shields.io/badge/enterprise-ready-008080?style=flat-square&logo=shield&logoColor=white)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-008080?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Coverage](https://img.shields.io/badge/coverage-90%25-008080?style=flat-square)](docs/quality-signals.md)
 ![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-008080?style=flat-square&logo=pydantic&logoColor=white)
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-008080?style=flat-square&logo=python&logoColor=white)](https://pypi.org/project/fapilog/)
 [![PyPI Version](https://img.shields.io/pypi/v/fapilog.svg?style=flat-square&color=008080&logo=pypi&logoColor=white)](https://pypi.org/project/fapilog/)
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-004080?style=flat-square&logo=apache&logoColor=white)](https://opensource.org/licenses/Apache-2.0)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-008080?style=flat-square&logo=apache&logoColor=white)](https://opensource.org/licenses/Apache-2.0)
 
 ## Why fapilog?
 
@@ -27,11 +27,13 @@
 ## When to use / when stdlib is enough
 
 ### Use fapilog when
+
 - Services must not jeopardize request latency SLOs due to logging
 - Workloads include bursts, slow/remote sinks, or compliance/redaction needs
 - Teams standardize on structured JSON logs and contextual metadata
 
 ### Stdlib may be enough for
+
 - Small scripts/CLIs writing to fast local stdout/files with minimal structure
 
 ## Installation
@@ -97,7 +99,7 @@ app.add_middleware(
 
 ## 🏗️ Architecture
 
-Fapilog v3 uses a true async-first pipeline architecture:
+Fapilog uses a true async-first pipeline architecture:
 
 ```text
 ┌─────────────┐    ┌──────────────┐    ┌──────────────┐    ┌─────────────┐    ┌──────────────┐    ┌─────────────┐
@@ -133,7 +135,7 @@ By default, the logger enriches each event before serialization:
 
 You can toggle enrichers at runtime:
 
-```python
+````python
 from fapilog.plugins.enrichers.runtime_info import RuntimeInfoEnricher
 
 logger.disable_enricher("context_vars")
@@ -146,7 +148,7 @@ Enable structured WARN diagnostics for internal, non-fatal errors (worker/sink):
 
 ```bash
 export FAPILOG_CORE__INTERNAL_LOGGING_ENABLED=true
-```
+````
 
 When enabled, you may see messages like:
 
@@ -159,7 +161,7 @@ Apps will not crash; these logs are for development visibility.
 
 ## 🔌 Plugin Ecosystem
 
-Fapilog v3 features a universal plugin ecosystem:
+Fapilog features a universal plugin ecosystem:
 
 ### **Sink Plugins**
 
@@ -224,4 +226,4 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ---
 
-**Fapilog v3** - The future of async-first logging for Python applications.
+**Fapilog** - The future of async-first logging for Python applications.
