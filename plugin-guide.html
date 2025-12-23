@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plugin Catalog &mdash; fapilog 0.3.2 documentation</title>
+  <title>Plugin Catalog &mdash; fapilog 0.3.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -15,7 +15,7 @@
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=71d9d8e6"></script>
+      <script src="_static/documentation_options.js?v=d5a15cff"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -178,40 +178,12 @@
 <td><p>Fapilog Core</p></td>
 <td><p>Adds context variables like request_id and user_id when available.</p></td>
 </tr>
-<tr class="row-odd"><td><p>context_vars</p></td>
-<td><p>sink</p></td>
-<td><p>0.0.0</p></td>
-<td><p>1.0</p></td>
-<td><p>unknown</p></td>
-<td><p>Failed to load local plugin: attempted relative import with no known parent package</p></td>
-</tr>
-<tr class="row-even"><td><p>field-mask</p></td>
+<tr class="row-odd"><td><p>field-mask</p></td>
 <td><p>redactor</p></td>
 <td><p>1.0.0</p></td>
 <td><p>1.0</p></td>
 <td><p>Fapilog Core</p></td>
 <td><p>Masks configured fields in structured events.</p></td>
-</tr>
-<tr class="row-odd"><td><p>field_mask</p></td>
-<td><p>sink</p></td>
-<td><p>0.0.0</p></td>
-<td><p>1.0</p></td>
-<td><p>unknown</p></td>
-<td><p>Failed to load local plugin: attempted relative import with no known parent package</p></td>
-</tr>
-<tr class="row-even"><td><p>http_client</p></td>
-<td><p>sink</p></td>
-<td><p>0.0.0</p></td>
-<td><p>1.0</p></td>
-<td><p>unknown</p></td>
-<td><p>Failed to load local plugin: attempted relative import with no known parent package</p></td>
-</tr>
-<tr class="row-odd"><td><p>mmap_persistence</p></td>
-<td><p>sink</p></td>
-<td><p>0.0.0</p></td>
-<td><p>1.0</p></td>
-<td><p>unknown</p></td>
-<td><p>Failed to load local plugin: attempted relative import with no known parent package</p></td>
 </tr>
 <tr class="row-even"><td><p>regex-mask</p></td>
 <td><p>redactor</p></td>
@@ -220,26 +192,12 @@
 <td><p>Fapilog Core</p></td>
 <td><p>Masks values for fields whose dot-paths match configured regex patterns.</p></td>
 </tr>
-<tr class="row-odd"><td><p>regex_mask</p></td>
-<td><p>sink</p></td>
-<td><p>0.0.0</p></td>
-<td><p>1.0</p></td>
-<td><p>unknown</p></td>
-<td><p>Failed to load local plugin: attempted relative import with no known parent package</p></td>
-</tr>
-<tr class="row-even"><td><p>rotating-file-sink</p></td>
+<tr class="row-odd"><td><p>rotating-file-sink</p></td>
 <td><p>sink</p></td>
 <td><p>0.1.0</p></td>
 <td><p>1.0</p></td>
 <td><p>Fapilog Core</p></td>
 <td><p>Async rotating file sink with size/time rotation and retention</p></td>
-</tr>
-<tr class="row-odd"><td><p>rotating_file</p></td>
-<td><p>sink</p></td>
-<td><p>0.0.0</p></td>
-<td><p>1.0</p></td>
-<td><p>unknown</p></td>
-<td><p>Failed to load local plugin: attempted relative import with no known parent package</p></td>
 </tr>
 <tr class="row-even"><td><p>runtime-info-enricher</p></td>
 <td><p>enricher</p></td>
@@ -255,40 +213,12 @@
 <td><p>Fapilog Core</p></td>
 <td><p>Async stdout JSONL sink</p></td>
 </tr>
-<tr class="row-even"><td><p>stdout_json</p></td>
-<td><p>sink</p></td>
-<td><p>0.0.0</p></td>
-<td><p>1.0</p></td>
-<td><p>unknown</p></td>
-<td><p>Failed to load local plugin: attempted relative import with no known parent package</p></td>
-</tr>
-<tr class="row-odd"><td><p>url-credentials</p></td>
+<tr class="row-even"><td><p>url-credentials</p></td>
 <td><p>redactor</p></td>
 <td><p>1.0.0</p></td>
 <td><p>1.0</p></td>
 <td><p>Fapilog Core</p></td>
 <td><p>Strips user:pass&#64; credentials from URL-like strings.</p></td>
-</tr>
-<tr class="row-even"><td><p>url_credentials</p></td>
-<td><p>sink</p></td>
-<td><p>0.0.0</p></td>
-<td><p>1.0</p></td>
-<td><p>unknown</p></td>
-<td><p>Failed to load local plugin: attempted relative import with no known parent package</p></td>
-</tr>
-<tr class="row-odd"><td><p>webhook</p></td>
-<td><p>sink</p></td>
-<td><p>0.0.0</p></td>
-<td><p>1.0</p></td>
-<td><p>unknown</p></td>
-<td><p>Failed to load local plugin: attempted relative import with no known parent package</p></td>
-</tr>
-<tr class="row-even"><td><p>zero_copy</p></td>
-<td><p>sink</p></td>
-<td><p>0.0.0</p></td>
-<td><p>1.0</p></td>
-<td><p>unknown</p></td>
-<td><p>Failed to load local plugin: attempted relative import with no known parent package</p></td>
 </tr>
 </tbody>
 </table>
@@ -306,7 +236,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on December 22, 2025.
+      <span class="lastupdated">Last updated on December 23, 2025.
       </span></p>
   </div>
 

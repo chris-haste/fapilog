@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Redaction Guarantees &mdash; fapilog 0.3.3 documentation</title>
+  <title>Release Notes &mdash; fapilog 0.3.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -23,9 +23,7 @@
       <script src="_static/custom.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Security Remediation &amp; Approval Workflows" href="security-operator-workflows.html" />
-    <link rel="prev" title="Plugin Catalog" href="plugin-guide.html" /> 
+    <link rel="search" title="Search" href="search.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -48,7 +46,7 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="getting-started/index.html">Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="getting-started/installation.html">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="getting-started/quickstart.html">Quickstart Tutorial</a></li>
@@ -120,12 +118,12 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing/index.html">Contributing to fapilog</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="appendices.html">Appendices</a><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="appendices.html">Appendices</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="env-vars.html">Environment Variables</a></li>
 <li class="toctree-l2"><a class="reference internal" href="settings-guide.html">Settings Reference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="schema-guide.html">Schema Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plugin-guide.html">Plugin Catalog</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Redaction Guarantees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="redaction-guarantees.html">Redaction Guarantees</a></li>
 <li class="toctree-l2"><a class="reference internal" href="security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quality-signals.html">Quality Signals</a></li>
 </ul>
@@ -146,10 +144,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="appendices.html">Appendices</a></li>
-      <li class="breadcrumb-item active">Redaction Guarantees</li>
+      <li class="breadcrumb-item active">Release Notes</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/redaction-guarantees.md.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/release-notes.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -157,94 +154,47 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="redaction-guarantees">
-<h1>Redaction Guarantees<a class="headerlink" href="#redaction-guarantees" title="Link to this heading"></a></h1>
-<p>This document defines the guarantees, guardrails, and configuration for data redaction in Fapilog.</p>
-<section id="guarantees">
-<h2>Guarantees<a class="headerlink" href="#guarantees" title="Link to this heading"></a></h2>
+  <section class="tex2jax_ignore mathjax_ignore" id="release-notes">
+<h1>Release Notes<a class="headerlink" href="#release-notes" title="Link to this heading"></a></h1>
+<p>All notable changes to this project will be documented in this file. This changelog follows <a class="reference external" href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a> and <a class="reference external" href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
+<section id="id1">
+<h2>[0.3.3] - 2025-12-22<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>URL credentials are always scrubbed from string values resembling <code class="docutils literal notranslate"><span class="pre">scheme://user:pass&#64;host...</span></code> across all fields.</p></li>
-<li><p>Explicitly configured dotted field paths are masked, including nested objects and lists. Arrays support <code class="docutils literal notranslate"><span class="pre">*</span></code>/<code class="docutils literal notranslate"><span class="pre">[*]</span></code> wildcard and numeric indices.</p></li>
-<li><p>Regex-based masks are applied to dotted field paths that match configured regular expressions.</p></li>
-<li><p>Redactors never raise upstream; failures are recorded via diagnostics with a <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">redactor,</span> <span class="pre">reason</span> <span class="pre">}</span></code> payload.</p></li>
+<li><p>Project status upgraded from Alpha to Beta classification.</p></li>
+<li><p>Fixed plugin catalog generation to exclude failed plugin entries.</p></li>
+<li><p>Disabled PDF/ePub generation in ReadTheDocs due to LaTeX builder incompatibility.</p></li>
+<li><p>Added release notes page to documentation (includes CHANGELOG.md).</p></li>
+<li><p>Removed placeholder Discord and Plugin Marketplace links from PyPI metadata.</p></li>
 </ul>
 </section>
-<section id="deterministic-order">
-<h2>Deterministic Order<a class="headerlink" href="#deterministic-order" title="Link to this heading"></a></h2>
-<p>Default order for built-in redactors:</p>
-<ol class="arabic simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">field-mask</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">regex-mask</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">url-credentials</span></code></p></li>
-</ol>
-<p>Rationale: explicit path masking first, then broader regex matching, then URL credential sanitization for any remaining strings.</p>
-<p>Configure via <code class="docutils literal notranslate"><span class="pre">core.redactors_order</span></code>.</p>
-</section>
-<section id="guardrails">
-<h2>Guardrails<a class="headerlink" href="#guardrails" title="Link to this heading"></a></h2>
+<section id="id2">
+<h2>[0.3.2] - 2025-12-22<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">core.redaction_max_depth</span></code> (default: 6)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">core.redaction_max_keys_scanned</span></code> (default: 5000)</p></li>
+<li><p>Backpressure configuration now honored: <code class="docutils literal notranslate"><span class="pre">drop_on_full</span></code> waits instead of dropping when set to false; sink/enricher/redactor failures emit diagnostics.</p></li>
+<li><p>FastAPI request/response logging middleware added (sampling, header redaction, skip paths) and exported alongside context middleware.</p></li>
+<li><p>Metrics dependency is optional via extras; Prometheus exporter disables gracefully when absent; docs updated for lean core + extras.</p></li>
+<li><p>New reliability defaults and quality signals docs; coverage badge added (~90%).</p></li>
+<li><p>Release workflow now extracts the latest changelog section for GitHub releases and guards builds if the changelog is missing a section.</p></li>
 </ul>
-<p>Exceeding limits results in best-effort redaction and emits a diagnostics entry. Redactors read these guardrails when configured by the runtime.</p>
 </section>
-<section id="centralized-pipeline-placement">
-<h2>Centralized Pipeline Placement<a class="headerlink" href="#centralized-pipeline-placement" title="Link to this heading"></a></h2>
-<p>Redaction runs in the logger worker loop before envelope serialization and sink emission. Pipeline: enrichers → redactors → envelope serialization → sinks.</p>
+<section id="documentation-release">
+<h2>[0.3.1] - Documentation release<a class="headerlink" href="#documentation-release" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Documentation updates and alignment.</p></li>
+</ul>
 </section>
-<section id="example-configuration">
-<h2>Example Configuration<a class="headerlink" href="#example-configuration" title="Link to this heading"></a></h2>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">core</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">redactors_order</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;field-mask&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;regex-mask&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;url-credentials&quot;</span><span class="p p-Indicator">]</span>
-<span class="w">  </span><span class="nt">redaction_max_depth</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6</span>
-<span class="w">  </span><span class="nt">redaction_max_keys_scanned</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5000</span>
-<span class="nt">redactors</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">field_mask</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">paths</span><span class="p">:</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">context.user.email</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">context.auth.token</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">diagnostics.secrets[*].value</span>
-<span class="w">  </span><span class="nt">regex_mask</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">patterns</span><span class="p">:</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;(?i)password=([^&amp;\\s]+)&quot;</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;(?i)api[_-]?key([=:])([A-Za-z0-9_-]{16,})&quot;</span>
-</pre></div>
-</div>
-</section>
-<section id="example-before-after">
-<h2>Example Before/After<a class="headerlink" href="#example-before-after" title="Link to this heading"></a></h2>
-<p>Input log (pre-redaction):</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;login&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;context&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;alice@example.com&quot;</span><span class="w"> </span><span class="p">},</span>
-<span class="w">    </span><span class="nt">&quot;auth&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;token&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;s3cr3t&quot;</span><span class="w"> </span><span class="p">},</span>
-<span class="w">    </span><span class="nt">&quot;url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://alice:pa55@service.local/path?password=hunter2&quot;</span>
-<span class="w">  </span><span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>Output log (post-redaction, before envelope):</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;login&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;context&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;***&quot;</span><span class="w"> </span><span class="p">},</span>
-<span class="w">    </span><span class="nt">&quot;auth&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;token&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;***&quot;</span><span class="w"> </span><span class="p">},</span>
-<span class="w">    </span><span class="nt">&quot;url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://service.local/path?password=***&quot;</span>
-<span class="w">  </span><span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+<section id="initial-release-of-fapilog">
+<h2>[0.3.0] - Initial release of fapilog<a class="headerlink" href="#initial-release-of-fapilog" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>First public release.</p></li>
+</ul>
 </section>
 </section>
 
 
            </div>
           </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="plugin-guide.html" class="btn btn-neutral float-left" title="Plugin Catalog" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="security-operator-workflows.html" class="btn btn-neutral float-right" title="Security Remediation &amp; Approval Workflows" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-    </div>
+          <footer>
 
   <hr/>
 

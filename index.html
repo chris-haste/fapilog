@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fapilog - Production-ready logging for the modern Python stack &mdash; fapilog 0.3.2 documentation</title>
+  <title>Fapilog - Production-ready logging for the modern Python stack &mdash; fapilog 0.3.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -15,7 +15,7 @@
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=71d9d8e6"></script>
+      <script src="_static/documentation_options.js?v=d5a15cff"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -158,6 +158,7 @@
   <section class="tex2jax_ignore mathjax_ignore" id="fapilog-production-ready-logging-for-the-modern-python-stack">
 <h1>Fapilog - Production-ready logging for the modern Python stack<a class="headerlink" href="#fapilog-production-ready-logging-for-the-modern-python-stack" title="Link to this heading"></a></h1>
 <p><strong>fapilog</strong> is a high-performance logging pipeline that eliminates the bottlenecks of traditional Python logging. By replacing blocking I/O with a lock-free, async-native architecture, it ensures your application never stalls to write a log. While it’s an excellent choice for FastAPI and microservices, its lightweight footprint and pluggable sinks make it equally powerful for on-prem, desktop, or embedded projects.</p>
+<p><strong>Stability:</strong> Core logger and FastAPI middleware are beta/stable under semver; the plugin marketplace remains experimental and may change.</p>
 <section id="why-fapilog">
 <h2>Why Fapilog?<a class="headerlink" href="#why-fapilog" title="Link to this heading"></a></h2>
 <p>Traditional logging libraries block your application, lose context, and produce unstructured output. Fapilog gives you:</p>
@@ -308,7 +309,7 @@
 <p><strong>Development:</strong></p>
 <ul class="simple">
 <li><p><strong><a class="reference internal" href="contributing/index.html"><span class="std std-doc">Contributing</span></a></strong> - How to contribute to fapilog</p></li>
-<li><p><strong><a class="reference internal" href="#release-notes.md"><span class="xref myst">Release Notes</span></a></strong> - Changelog and upgrade guides</p></li>
+<li><p><strong><a class="reference internal" href="release-notes.html"><span class="std std-doc">Release Notes</span></a></strong> - Changelog and upgrade guides</p></li>
 <li><p><strong><a class="reference internal" href="appendices.html"><span class="std std-doc">Appendices</span></a></strong> - Glossary, architecture diagrams, and license</p></li>
 </ul>
 </section>
@@ -325,7 +326,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on December 22, 2025.
+      <span class="lastupdated">Last updated on December 23, 2025.
       </span></p>
   </div>
 
