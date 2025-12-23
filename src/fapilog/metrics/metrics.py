@@ -21,10 +21,10 @@ try:
 
     _PROMETHEUS_AVAILABLE = True
 except Exception:  # pragma: no cover - handled via graceful fallback
-    CollectorRegistry = cast(Any, None)  # type: ignore[misc]
-    Counter = cast(Any, None)  # type: ignore[misc]
-    Gauge = cast(Any, None)  # type: ignore[misc]
-    Histogram = cast(Any, None)  # type: ignore[misc]
+    CollectorRegistry = cast(Any, None)
+    Counter = cast(Any, None)
+    Gauge = cast(Any, None)
+    Histogram = cast(Any, None)
     _PROMETHEUS_AVAILABLE = False
 
 

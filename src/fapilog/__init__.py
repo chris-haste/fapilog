@@ -200,6 +200,7 @@ def get_logger(
         exceptions_max_frames=cfg.exceptions_max_frames,
         exceptions_max_stack_chars=cfg.exceptions_max_stack_chars,
         serialize_in_flush=cfg.serialize_in_flush,
+        num_workers=cfg.worker_count,
     )
     # Apply default bound context if enabled
     try:
@@ -458,6 +459,7 @@ async def get_async_logger(
         exceptions_max_frames=cfg.exceptions_max_frames,
         exceptions_max_stack_chars=cfg.exceptions_max_stack_chars,
         serialize_in_flush=cfg.serialize_in_flush,
+        num_workers=cfg.worker_count,
     )
     # Apply default bound context if enabled
     try:

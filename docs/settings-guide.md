@@ -20,6 +20,7 @@ This guide documents Settings groups and fields.
 | `core.internal_logging_enabled` | bool | False | Emit DEBUG/WARN diagnostics for internal errors |
 | `core.error_dedupe_window_seconds` | float | 5.0 | Seconds to suppress duplicate ERROR logs with the same message; 0 disables deduplication |
 | `core.shutdown_timeout_seconds` | float | 3.0 | Maximum time to flush on shutdown signals |
+| `core.worker_count` | int | 1 | Number of worker tasks for flush processing |
 | `core.sensitive_fields_policy` | list | PydanticUndefined | Optional list of dotted paths for sensitive fields policy; warning if no redactors configured |
 | `core.enable_redactors` | bool | True | Enable redactors stage between enrichers and sink emission |
 | `core.redactors_order` | list | PydanticUndefined | Ordered list of redactor plugin names to apply |

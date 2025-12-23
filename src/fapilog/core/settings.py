@@ -107,6 +107,11 @@ class CoreSettings(BaseModel):
         gt=0.0,
         description=("Maximum time to flush on shutdown signals"),
     )
+    worker_count: int = Field(
+        default=1,
+        ge=1,
+        description=("Number of worker tasks for flush processing"),
+    )
     # Optional policy hint to encourage enabling redaction
     sensitive_fields_policy: list[str] = Field(
         default_factory=list,

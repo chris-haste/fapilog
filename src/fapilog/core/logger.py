@@ -69,6 +69,7 @@ class SyncLoggerFacade:
         exceptions_max_frames: int = 50,
         exceptions_max_stack_chars: int = 20000,
         serialize_in_flush: bool = False,
+        num_workers: int = 1,
     ) -> None:
         self._name = name or "root"
         self._queue = NonBlockingRingQueue[dict[str, Any]](capacity=queue_capacity)
@@ -91,7 +92,7 @@ class SyncLoggerFacade:
         self._worker_thread: threading.Thread | None = None
         self._thread_ready = threading.Event()
         self._loop_thread_ident: int | None = None
-        self._num_workers = 1
+        self._num_workers = max(1, int(num_workers))
         self._drained_event: asyncio.Event | None = None
         self._submitted = 0
         self._processed = 0
@@ -894,6 +895,7 @@ class AsyncLoggerFacade:
         exceptions_max_frames: int = 50,
         exceptions_max_stack_chars: int = 20000,
         serialize_in_flush: bool = False,
+        num_workers: int = 1,
     ) -> None:
         self._name = name or "root"
         self._queue = NonBlockingRingQueue[dict[str, Any]](capacity=queue_capacity)
@@ -916,7 +918,7 @@ class AsyncLoggerFacade:
         self._worker_thread: threading.Thread | None = None
         self._thread_ready = threading.Event()
         self._loop_thread_ident: int | None = None
-        self._num_workers = 1
+        self._num_workers = max(1, int(num_workers))
         self._drained_event: asyncio.Event | None = None
         self._submitted = 0
         self._processed = 0
