@@ -241,6 +241,9 @@ def render_plugin_guide_from_metadata(
                 md = info.metadata
                 if md.name in taken:
                     continue
+                # Skip entries that failed to load
+                if "Failed to load" in (md.description or ""):
+                    continue
                 api = getattr(md, "api_version", "")
                 rows.append(
                     (
