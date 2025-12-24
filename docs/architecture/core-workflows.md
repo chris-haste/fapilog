@@ -125,6 +125,13 @@ sequenceDiagram
     Compliance-->>Event: compliant_event
 ```
 
+### Tamper-evident audit chain
+
+- Each audit event now carries `sequence_number`, `previous_hash`, and `checksum` (SHA-256 of the payload).
+- The chain starts with `previous_hash =` 64 zeroes; `AuditTrail` maintains a monotonic sequence and updates the chain under a lock to avoid races.
+- Use `AuditEvent.verify_checksum()` to spot tampering on a single event and `AuditTrail.verify_chain(events)` to validate an ordered set (detect gaps, checksum mismatch, or broken links).
+- This is keyless integrity; story 4.11 can extend with HMAC signatures.
+
 ## High-Throughput Batch Processing Workflow
 
 ```mermaid
