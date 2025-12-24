@@ -185,6 +185,59 @@ def get_logger(
         ContextVarsEnricher(),
     ]
 
+    # Optional integrity plugin (tamper-evident add-on)
+    integrity_plugin_name = cfg.integrity_plugin
+    integrity_plugin_cfg = cfg.integrity_config
+    if integrity_plugin_name:
+        try:
+            from .plugins.integrity import load_integrity_plugin
+
+            integrity_plugin = load_integrity_plugin(integrity_plugin_name)
+            if hasattr(integrity_plugin, "wrap_sink"):
+                try:
+                    sink = integrity_plugin.wrap_sink(sink, integrity_plugin_cfg)
+                except Exception as exc:
+                    try:
+                        from .core import diagnostics as _diag
+
+                        _diag.warn(
+                            "integrity",
+                            "integrity sink wrapper failed",
+                            plugin=integrity_plugin_name,
+                            error=str(exc),
+                        )
+                    except Exception:
+                        pass
+            if hasattr(integrity_plugin, "get_enricher"):
+                try:
+                    enricher = integrity_plugin.get_enricher(integrity_plugin_cfg)
+                    if enricher is not None:
+                        default_enrichers.append(enricher)
+                except Exception as exc:
+                    try:
+                        from .core import diagnostics as _diag
+
+                        _diag.warn(
+                            "integrity",
+                            "integrity enricher failed",
+                            plugin=integrity_plugin_name,
+                            error=str(exc),
+                        )
+                    except Exception:
+                        pass
+        except Exception as exc:
+            try:
+                from .core import diagnostics as _diag
+
+                _diag.warn(
+                    "integrity",
+                    "integrity plugin load failed",
+                    plugin=integrity_plugin_name,
+                    error=str(exc),
+                )
+            except Exception:
+                pass
+
     logger = SyncLoggerFacade(
         name=name,
         queue_capacity=cfg.max_queue_size,
@@ -200,6 +253,7 @@ def get_logger(
         exceptions_max_frames=cfg.exceptions_max_frames,
         exceptions_max_stack_chars=cfg.exceptions_max_stack_chars,
         serialize_in_flush=cfg.serialize_in_flush,
+        num_workers=cfg.worker_count,
     )
     # Apply default bound context if enabled
     try:
@@ -443,6 +497,59 @@ async def get_async_logger(
         ContextVarsEnricher(),
     ]
 
+    # Optional integrity plugin (tamper-evident add-on)
+    integrity_plugin_name = cfg.integrity_plugin
+    integrity_plugin_cfg = cfg.integrity_config
+    if integrity_plugin_name:
+        try:
+            from .plugins.integrity import load_integrity_plugin
+
+            integrity_plugin = load_integrity_plugin(integrity_plugin_name)
+            if hasattr(integrity_plugin, "wrap_sink"):
+                try:
+                    sink = integrity_plugin.wrap_sink(sink, integrity_plugin_cfg)
+                except Exception as exc:
+                    try:
+                        from .core import diagnostics as _diag
+
+                        _diag.warn(
+                            "integrity",
+                            "integrity sink wrapper failed",
+                            plugin=integrity_plugin_name,
+                            error=str(exc),
+                        )
+                    except Exception:
+                        pass
+            if hasattr(integrity_plugin, "get_enricher"):
+                try:
+                    enricher = integrity_plugin.get_enricher(integrity_plugin_cfg)
+                    if enricher is not None:
+                        default_enrichers.append(enricher)
+                except Exception as exc:
+                    try:
+                        from .core import diagnostics as _diag
+
+                        _diag.warn(
+                            "integrity",
+                            "integrity enricher failed",
+                            plugin=integrity_plugin_name,
+                            error=str(exc),
+                        )
+                    except Exception:
+                        pass
+        except Exception as exc:
+            try:
+                from .core import diagnostics as _diag
+
+                _diag.warn(
+                    "integrity",
+                    "integrity plugin load failed",
+                    plugin=integrity_plugin_name,
+                    error=str(exc),
+                )
+            except Exception:
+                pass
+
     logger = AsyncLoggerFacade(
         name=name,
         queue_capacity=cfg.max_queue_size,
@@ -458,6 +565,7 @@ async def get_async_logger(
         exceptions_max_frames=cfg.exceptions_max_frames,
         exceptions_max_stack_chars=cfg.exceptions_max_stack_chars,
         serialize_in_flush=cfg.serialize_in_flush,
+        num_workers=cfg.worker_count,
     )
     # Apply default bound context if enabled
     try:
@@ -577,13 +685,34 @@ async def runtime_async(
 
 
 @contextmanager
-def runtime(*, settings: _Settings | None = None) -> Iterator[SyncLoggerFacade]:
+def runtime(
+    *,
+    settings: _Settings | None = None,
+    allow_in_event_loop: bool = False,
+) -> Iterator[SyncLoggerFacade]:
     """Context manager that initializes and drains the default runtime.
 
     This function provides a context manager that automatically handles logger
     lifecycle including initialization, usage, and cleanup. It's perfect for
     applications that need guaranteed cleanup of logging resources.
+
+    By default, using this in an active event loop raises RuntimeError; set
+    allow_in_event_loop=True only when you need to invoke the sync facade from
+    async code and are willing to accept the cross-loop scheduling.
     """
+    import asyncio as _asyncio
+
+    try:
+        _asyncio.get_running_loop()
+    except RuntimeError:
+        pass
+    else:
+        if not allow_in_event_loop:
+            raise RuntimeError(
+                "fapilog.runtime cannot be used inside an active event loop; "
+                "use runtime_async or get_async_logger instead."
+            )
+
     logger = get_logger(settings=settings)
     try:
         yield logger
@@ -593,29 +722,43 @@ def runtime(*, settings: _Settings | None = None) -> Iterator[SyncLoggerFacade]:
 
         coro = logger.stop_and_drain()
         try:
-            _ = asyncio.run(coro)
+            loop: asyncio.AbstractEventLoop | None = asyncio.get_running_loop()
         except RuntimeError:
+            loop = None
+
+        if loop is not None and loop.is_running():
             try:
-                coro.close()
+                task = loop.create_task(coro)
+                task.add_done_callback(lambda _fut: None)
             except Exception:
-                pass
-            # Already inside a running loop; run drain in a background thread
-            import threading as _threading
-
-            def _runner() -> None:  # pragma: no cover - rare fallback
-                import asyncio as _asyncio
-
                 try:
-                    coro_inner = logger.stop_and_drain()
-                    _asyncio.run(coro_inner)
+                    coro.close()
                 except Exception:
-                    try:
-                        coro_inner.close()
-                    except Exception:
-                        pass
-                    return
+                    pass
+        else:
+            try:
+                _ = asyncio.run(coro)
+            except RuntimeError:
+                try:
+                    coro.close()
+                except Exception:
+                    pass
+                import threading as _threading
 
-            _threading.Thread(target=_runner, daemon=True).start()
+                def _runner() -> None:  # pragma: no cover - rare fallback
+                    import asyncio as _asyncio
+
+                    try:
+                        coro_inner = logger.stop_and_drain()
+                        _asyncio.run(coro_inner)
+                    except Exception:
+                        try:
+                            coro_inner.close()
+                        except Exception:
+                            pass
+                        return
+
+                _threading.Thread(target=_runner, daemon=True).start()
 
 
 # Version info for compatibility (injected by hatch-vcs at build time)

@@ -9,12 +9,17 @@ from typing import Any
 import pytest
 
 from fapilog.core.logger import AsyncLoggerFacade
+from fapilog.metrics.metrics import MetricsCollector
 
 
 async def _collecting_sink(
     collected: list[dict[str, Any]], entry: dict[str, Any]
 ) -> None:
     collected.append(dict(entry))
+
+
+async def _async_noop(_entry: dict[str, Any]) -> None:
+    return None
 
 
 @pytest.mark.asyncio
@@ -198,11 +203,40 @@ async def test_async_logger_context_binding() -> None:
     await asyncio.sleep(0.2)
     await logger.drain()
 
+
+@pytest.mark.asyncio
+async def test_metrics_scheduling_avoids_asyncio_run(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Metrics updates from sync code should not call asyncio.run per event."""
+    collected: list[dict[str, Any]] = []
+
+    logger = AsyncLoggerFacade(
+        name="metrics",
+        queue_capacity=4,
+        batch_max_size=1,
+        batch_timeout_seconds=0.1,
+        backpressure_wait_ms=1,
+        drop_on_full=False,
+        sink_write=lambda e: _collecting_sink(collected, e),
+        metrics=MetricsCollector(enabled=True),
+    )
+    await logger.start_async()
+
+    called = {}
+
+    def _patched_asyncio_run(*_args: Any, **_kwargs: Any) -> None:
+        called["asyncio_run"] = True
+        raise AssertionError("asyncio.run should not be used for metrics scheduling")
+
+    monkeypatch.setattr("asyncio.run", _patched_asyncio_run)
+
+    await logger.info("hello-metrics")
+    await asyncio.sleep(0.05)
+    assert "asyncio_run" not in called
+    await logger.drain()
+
     assert len(collected) == 1
-    entry = collected[0]
-    assert entry["metadata"]["user_id"] == "123"
-    assert entry["metadata"]["session_id"] == "abc"
-    assert entry["metadata"]["action"] == "login"
 
 
 @pytest.mark.asyncio

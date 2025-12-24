@@ -53,11 +53,34 @@ class AsyncPluginDiscovery:
     - PyPI marketplace (packages with fapilog-plugin topic/name pattern)
     """
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        *,
+        offload_blocking: bool = True,
+        chunk_size: int = 64,
+        entrypoint_timeout: float = 2.0,
+    ) -> None:
         """Initialize plugin discovery."""
         self._discovered_plugins: Dict[str, PluginInfo] = {}
         self._discovery_paths: Set[Path] = set()
         self._lock = asyncio.Lock()
+        self._offload_blocking = bool(offload_blocking)
+        self._chunk_size = max(1, int(chunk_size))
+        self._entrypoint_timeout = float(entrypoint_timeout)
+        self._entry_points_cache: Any | None = None
+
+    async def _run_blocking(self, fn, *args, **kwargs):  # type: ignore[no-untyped-def]
+        if self._offload_blocking:
+            return await asyncio.to_thread(fn, *args, **kwargs)
+        return fn(*args, **kwargs)
+
+    async def _get_entry_points(self) -> Any:
+        if self._entry_points_cache is not None:
+            return self._entry_points_cache
+        self._entry_points_cache = await self._run_blocking(
+            importlib.metadata.entry_points
+        )
+        return self._entry_points_cache
 
     async def discover_all_plugins(self) -> Dict[str, PluginInfo]:
         """
@@ -107,7 +130,7 @@ class AsyncPluginDiscovery:
         # Fallback generic group where plugin_type is declared in PLUGIN_METADATA
         fallback_group = "fapilog.plugins"
         try:
-            entry_points = importlib.metadata.entry_points()
+            entry_points = await self._get_entry_points()
 
             def _select_group(group: str) -> list[importlib.metadata.EntryPoint]:
                 if hasattr(entry_points, "select"):
@@ -196,29 +219,40 @@ class AsyncPluginDiscovery:
         """Discover plugins from installed PyPI packages."""
         try:
             # Look for installed packages that match fapilog plugin patterns
-            for dist in importlib.metadata.distributions():
-                meta = cast(Any, dist.metadata)
-                package_name = str(meta.get("Name", "")).lower()
+            distributions = await self._run_blocking(
+                lambda: list(importlib.metadata.distributions())
+            )
+            entry_points = await self._get_entry_points()
+            # Process in bounded chunks to yield between batches
+            for i in range(0, len(distributions), self._chunk_size):
+                batch = distributions[i : i + self._chunk_size]
+                for dist in batch:
+                    meta = cast(Any, dist.metadata)
+                    package_name = str(meta.get("Name", "")).lower()
 
-                # Check if this looks like a fapilog plugin
-                if self._is_fapilog_plugin_package(package_name, dist):
-                    try:
-                        await self._process_installed_package(dist)
-                    except Exception as e:
-                        # Log error but continue
+                    # Check if this looks like a fapilog plugin
+                    if self._is_fapilog_plugin_package(
+                        package_name, dist, entry_points=entry_points
+                    ):
                         try:
-                            from ..core.diagnostics import warn
-
-                            warn(
-                                "discovery",
-                                "error processing installed package",
-                                package=package_name,
-                                error_type=type(e).__name__,
-                                error=str(e),
+                            await self._process_installed_package(
+                                dist, entry_points=entry_points
                             )
-                        except Exception:
-                            pass
-                        print(f"Error processing package {package_name}: {e}")
+                        except Exception as e:
+                            # Log error but continue
+                            try:
+                                from ..core.diagnostics import warn
+
+                                warn(
+                                    "discovery",
+                                    "error processing installed package",
+                                    package=package_name,
+                                    error_type=type(e).__name__,
+                                    error=str(e),
+                                )
+                            except Exception:
+                                pass
+                            print(f"Error processing package {package_name}: {e}")
         except Exception as e:
             # Log error but continue discovery
             try:
@@ -235,7 +269,11 @@ class AsyncPluginDiscovery:
             print(f"Error discovering installed packages: {e}")
 
     def _is_fapilog_plugin_package(
-        self, package_name: str, dist: Optional[DistributionLike]
+        self,
+        package_name: str,
+        dist: Optional[DistributionLike],
+        *,
+        entry_points: Any | None = None,
     ) -> bool:
         """Check if a package looks like a fapilog plugin."""
         # Check package name patterns
@@ -254,12 +292,14 @@ class AsyncPluginDiscovery:
 
         # Check for fapilog.plugins entry points
         try:
-            entry_points = importlib.metadata.entry_points()
+            eps = entry_points or self._entry_points_cache
+            if eps is None:
+                eps = importlib.metadata.entry_points()
             fapilog_entries: list[importlib.metadata.EntryPoint] = []
-            if hasattr(entry_points, "select"):
-                fapilog_entries = list(entry_points.select(group="fapilog.plugins"))
+            if hasattr(eps, "select"):
+                fapilog_entries = list(eps.select(group="fapilog.plugins"))
             else:
-                fapilog_entries = list(entry_points.get("fapilog.plugins", []))
+                fapilog_entries = list(eps.get("fapilog.plugins", []))
 
             # Check if this package has fapilog plugins
             if dist is not None:
@@ -272,14 +312,21 @@ class AsyncPluginDiscovery:
 
         return False
 
-    async def _process_installed_package(self, dist: DistributionLike) -> None:
+    async def _process_installed_package(
+        self,
+        dist: DistributionLike,
+        *,
+        entry_points: Any | None = None,
+    ) -> None:
         """Process an installed package for plugin metadata."""
         try:
             meta = cast(Any, dist.metadata)
             package_name = str(meta.get("Name", ""))
 
             # Check for entry points across v3 groups
-            entry_points = importlib.metadata.entry_points()
+            eps = entry_points or self._entry_points_cache
+            if eps is None:
+                eps = await self._get_entry_points()
             groups = [
                 "fapilog.sinks",
                 "fapilog.processors",
@@ -289,12 +336,12 @@ class AsyncPluginDiscovery:
                 "fapilog.plugins",  # fallback
             ]
             fapilog_entries: list[importlib.metadata.EntryPoint] = []
-            if hasattr(entry_points, "select"):
+            if hasattr(eps, "select"):
                 for g in groups:
-                    fapilog_entries.extend(entry_points.select(group=g))
+                    fapilog_entries.extend(eps.select(group=g))
             else:
                 for g in groups:
-                    fapilog_entries.extend(entry_points.get(g, []))
+                    fapilog_entries.extend(eps.get(g, []))
 
             # Only process entry points from this package
             for entry_point in fapilog_entries:
@@ -369,7 +416,7 @@ class AsyncPluginDiscovery:
         """Process a single entry point for plugin metadata."""
         try:
             # Load the entry point to get plugin metadata
-            plugin_module = entry_point.load()
+            plugin_module = await self._run_blocking(entry_point.load)
 
             # Look for plugin metadata
             if hasattr(plugin_module, "PLUGIN_METADATA"):
@@ -509,7 +556,10 @@ class AsyncPluginDiscovery:
         """
         try:
             # Look for Python files that might be plugins
-            for plugin_file in directory.glob("*.py"):
+            plugin_files = await self._run_blocking(
+                lambda: list(directory.glob("*.py"))
+            )
+            for plugin_file in plugin_files:
                 if plugin_file.name.startswith("_"):
                     continue  # Skip private files
 
@@ -546,7 +596,7 @@ class AsyncPluginDiscovery:
                     try:
                         await asyncio.wait_for(
                             asyncio.to_thread(spec.loader.exec_module, module),
-                            timeout=2.0,
+                            timeout=self._entrypoint_timeout,
                         )
                     except asyncio.TimeoutError as err:
                         raise PluginDiscoveryError(

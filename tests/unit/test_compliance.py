@@ -72,3 +72,58 @@ def test_validate_audit_config_delegates() -> None:
     result = validate_audit_config(AuditConfig(policy=policy))
     assert result.ok is False
     assert any(i.field == "retention_days" for i in result.issues)
+
+
+def test_validate_compliance_policy_framework_specific_requirements() -> None:
+    """Test framework-specific baseline checks for PCI_DSS, SOC2, ISO27001."""
+    # Test PCI_DSS
+    policy = CompliancePolicy(
+        level=ComplianceLevel.PCI_DSS,
+        enabled=True,
+        retention_days=365,
+        archive_after_days=7,
+        encrypt_audit_logs=False,  # Should be required
+        require_integrity_check=False,  # Should be required
+    )
+    result = validate_compliance_policy(policy)
+    assert result.ok is False
+    assert any(
+        i.field == "encrypt_audit_logs" and "required for level" in i.message
+        for i in result.issues
+    )
+    assert any(
+        i.field == "integrity" and "required for level" in i.message
+        for i in result.issues
+    )
+
+    # Test SOC2
+    policy = CompliancePolicy(
+        level=ComplianceLevel.SOC2,
+        enabled=True,
+        retention_days=365,
+        archive_after_days=7,
+        encrypt_audit_logs=False,
+        require_integrity_check=False,
+    )
+    result = validate_compliance_policy(policy)
+    assert result.ok is False
+    assert any(
+        i.field == "encrypt_audit_logs" and "required for level" in i.message
+        for i in result.issues
+    )
+
+    # Test ISO27001
+    policy = CompliancePolicy(
+        level=ComplianceLevel.ISO27001,
+        enabled=True,
+        retention_days=365,
+        archive_after_days=7,
+        encrypt_audit_logs=False,
+        require_integrity_check=False,
+    )
+    result = validate_compliance_policy(policy)
+    assert result.ok is False
+    assert any(
+        i.field == "encrypt_audit_logs" and "required for level" in i.message
+        for i in result.issues
+    )

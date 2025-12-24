@@ -149,6 +149,7 @@ Sinks are the final destination for messages:
 - **Non-blocking** - Logging never blocks your application
 - **Concurrent** - Multiple messages processed simultaneously
 - **Efficient** - Minimal CPU and memory overhead
+- **Configurable worker count** - Use `core.worker_count` to increase worker tasks for I/O-bound enrichers and sinks; keep low (1) for CPU-bound workloads.
 
 ### Zero-Copy Operations
 

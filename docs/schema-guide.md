@@ -112,6 +112,33 @@
       "title": "Exceptions Max Stack Chars",
       "type": "integer"
     },
+    "integrity_config": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Opaque configuration mapping passed to the selected integrity plugin",
+      "title": "Integrity Config"
+    },
+    "integrity_plugin": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional integrity plugin name (fapilog.integrity entry point) to enable",
+      "title": "Integrity Plugin"
+    },
     "internal_logging_enabled": {
       "default": false,
       "description": "Emit DEBUG/WARN diagnostics for internal errors",
@@ -213,6 +240,13 @@
       "description": "If True, drop emission when envelope cannot be produced; otherwise fallback to best-effort serialization with diagnostics",
       "title": "Strict Envelope Mode",
       "type": "boolean"
+    },
+    "worker_count": {
+      "default": 1,
+      "description": "Number of worker tasks for flush processing",
+      "minimum": 1,
+      "title": "Worker Count",
+      "type": "integer"
     }
   },
   "title": "CoreSettings",

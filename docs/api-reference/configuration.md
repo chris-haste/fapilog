@@ -36,6 +36,10 @@ export FAPILOG_FILE__MAX_FILES=5
 export FAPILOG_HTTP__ENDPOINT=https://logs.example.com/ingest
 export FAPILOG_HTTP__TIMEOUT_SECONDS=5
 export FAPILOG_HTTP__RETRY_MAX_ATTEMPTS=3
+
+# Optional integrity add-on (if installed)
+export FAPILOG_CORE__INTEGRITY_PLUGIN=tamper-sealed
+export FAPILOG_CORE__INTEGRITY_CONFIG='{"key_id":"audit-key-2025Q1"}'
 ```
 
 ## Notable fields (core)
@@ -45,8 +49,10 @@ export FAPILOG_HTTP__RETRY_MAX_ATTEMPTS=3
 - `core.batch_max_size` and `core.batch_timeout_seconds`: batching controls
 - `core.enable_metrics`: toggles internal metrics collection
 - `core.drop_on_full` / `core.backpressure_wait_ms`: backpressure behavior
+- `core.worker_count`: number of worker tasks for flush processing
 - `core.enable_redactors`, `core.redactors_order`, `core.sensitive_fields_policy`: redaction stage configuration
 - `core.serialize_in_flush`: pre-serialize envelopes during drain and pass bytes to sinks that support it
+- `core.integrity_plugin` / `core.integrity_config`: optional tamper-evident add-on (entry-point `fapilog.integrity`) and opaque config map passed to it; no effect if unset. See `docs/addons/tamper-evident-logging.md`.
 
 ## HTTP sink (optional)
 
@@ -55,6 +61,8 @@ Set `http.endpoint` (or `FAPILOG_HTTP__ENDPOINT`) to route logs to an HTTP endpo
 ## Plugin discovery
 
 `settings.plugins` controls plugin discovery allow/deny lists and additional search paths. Defaults: enabled, load-on-startup empty.
+
+Advanced (programmatic): `AsyncPluginDiscovery` offloads blocking importlib/FS work to threads by default to remain event-loop friendly. You can tune it via kwargs when constructing the discovery instance (e.g., `offload_blocking=True` (default), `chunk_size=64` for batch scanning installed dists, `entrypoint_timeout=2.0` for local plugin imports). Normal settings-based usage requires no changes.
 
 ## Validation
 

@@ -58,6 +58,7 @@ await logger.error("Database connection failed", exc_info=True)
 getting-started/index
 core-concepts/index
 user-guide/index
+enterprise
 api-reference/index
 examples/index
 plugins/index
@@ -72,6 +73,7 @@ appendices
 - **[Getting Started](getting-started/index.md)** - Installation and quickstart
 - **[Core Concepts](core-concepts/index.md)** - Understanding the architecture
 - **[User Guide](user-guide/index.md)** - Practical usage and configuration
+- **[Enterprise Features](enterprise.md)** - Compliance, audit trails, and security
 
 **Reference:**
 

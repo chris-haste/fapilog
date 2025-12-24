@@ -14,17 +14,26 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
 from time import perf_counter
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:  # pragma: no cover - type checking only
+    pass
+
+CollectorRegistry: Any
+Counter: Any
+Gauge: Any
+Histogram: Any
 
 try:
-    from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram
+    from prometheus_client import CollectorRegistry as _CR
+    from prometheus_client import Counter as _C
+    from prometheus_client import Gauge as _G
+    from prometheus_client import Histogram as _H
 
+    CollectorRegistry, Counter, Gauge, Histogram = _CR, _C, _G, _H
     _PROMETHEUS_AVAILABLE = True
 except Exception:  # pragma: no cover - handled via graceful fallback
-    CollectorRegistry = cast(Any, None)  # type: ignore[misc]
-    Counter = cast(Any, None)  # type: ignore[misc]
-    Gauge = cast(Any, None)  # type: ignore[misc]
-    Histogram = cast(Any, None)  # type: ignore[misc]
+    CollectorRegistry = Counter = Gauge = Histogram = None
     _PROMETHEUS_AVAILABLE = False
 
 

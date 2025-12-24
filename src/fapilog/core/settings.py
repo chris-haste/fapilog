@@ -107,6 +107,11 @@ class CoreSettings(BaseModel):
         gt=0.0,
         description=("Maximum time to flush on shutdown signals"),
     )
+    worker_count: int = Field(
+        default=1,
+        ge=1,
+        description=("Number of worker tasks for flush processing"),
+    )
     # Optional policy hint to encourage enabling redaction
     sensitive_fields_policy: list[str] = Field(
         default_factory=list,
@@ -165,6 +170,19 @@ class CoreSettings(BaseModel):
     capture_unhandled_enabled: bool = Field(
         default=False,
         description=("Automatically install unhandled exception hooks (sys/asyncio)"),
+    )
+    # Optional integrity/tamper-evident add-on selection
+    integrity_plugin: str | None = Field(
+        default=None,
+        description=(
+            "Optional integrity plugin name (fapilog.integrity entry point) to enable"
+        ),
+    )
+    integrity_config: dict[str, object] | None = Field(
+        default=None,
+        description=(
+            "Opaque configuration mapping passed to the selected integrity plugin"
+        ),
     )
     # Fast-path serialization: serialize once in flush and pass to sinks
     serialize_in_flush: bool = Field(

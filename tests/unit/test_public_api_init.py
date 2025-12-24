@@ -38,7 +38,7 @@ async def test_runtime_inside_running_loop_drains_via_create_task() -> None:
 class _runtime_cm:
     # Thin async wrapper to use sync contextmanager in async test
     def __init__(self) -> None:
-        self._cm = runtime()
+        self._cm = runtime(allow_in_event_loop=True)
 
     async def __aenter__(self):
         return self._cm.__enter__()

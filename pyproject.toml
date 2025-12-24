@@ -578,4 +578,11 @@ ignore_names = [
   "capture_unhandled_exceptions",
   # Stdlib bridge API used externally in examples/tests
   "enable_stdlib_bridge",
+  "shutdown",
+  # Integrity plugin API - used via conditional imports in __init__.py
+  "load_integrity_plugin",
+  "get_enricher",
+  "wrap_sink",
+  # Audit compliance API - public helper function
+  "emit_compliance_alert",
 ]
