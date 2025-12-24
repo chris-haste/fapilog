@@ -213,6 +213,13 @@
       "description": "If True, drop emission when envelope cannot be produced; otherwise fallback to best-effort serialization with diagnostics",
       "title": "Strict Envelope Mode",
       "type": "boolean"
+    },
+    "worker_count": {
+      "default": 1,
+      "description": "Number of worker tasks for flush processing",
+      "minimum": 1,
+      "title": "Worker Count",
+      "type": "integer"
     }
   },
   "title": "CoreSettings",

@@ -45,6 +45,7 @@ export FAPILOG_HTTP__RETRY_MAX_ATTEMPTS=3
 - `core.batch_max_size` and `core.batch_timeout_seconds`: batching controls
 - `core.enable_metrics`: toggles internal metrics collection
 - `core.drop_on_full` / `core.backpressure_wait_ms`: backpressure behavior
+- `core.worker_count`: number of worker tasks for flush processing
 - `core.enable_redactors`, `core.redactors_order`, `core.sensitive_fields_policy`: redaction stage configuration
 - `core.serialize_in_flush`: pre-serialize envelopes during drain and pass bytes to sinks that support it
 
