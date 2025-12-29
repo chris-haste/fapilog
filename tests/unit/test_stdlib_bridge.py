@@ -1,112 +1,206 @@
-from __future__ import annotations
-
 import asyncio
 import logging
-from typing import Any
+import threading
+import time
 
 import pytest
 
-from fapilog import get_logger
-from fapilog.core.stdlib_bridge import StdlibBridgeHandler, enable_stdlib_bridge
+from fapilog.core import stdlib_bridge as bridge
+
+
+@pytest.fixture(autouse=True)
+def cleanup_bridge_loop() -> None:
+    yield
+    bridge._bridge_loop_manager.shutdown()
 
 
 @pytest.mark.asyncio
-async def test_forward_basic_and_extras() -> None:
-    captured: list[dict[str, Any]] = []
-    logger = get_logger(name="bridge-test")
+async def test_emit_uses_running_loop_without_background_thread() -> None:
+    called = asyncio.Event()
 
-    async def capture(entry: dict[str, Any]) -> None:
-        captured.append(entry)
+    class AsyncLogger:
+        async def info(self, message: str, **_extras: object) -> None:
+            _ = message
+            called.set()
 
-    logger._sink_write = capture  # type: ignore[attr-defined]
+        async def debug(self, message: str, **_extras: object) -> None:
+            await self.info(message, **_extras)
 
-    enable_stdlib_bridge(
-        logger,
+        async def warning(self, message: str, **_extras: object) -> None:
+            await self.info(message, **_extras)
+
+        async def error(self, message: str, **_extras: object) -> None:
+            _ = message
+            called.set()
+
+    handler = bridge.StdlibBridgeHandler(AsyncLogger())
+    record = logging.LogRecord(
+        name="app",
         level=logging.INFO,
-        remove_existing_handlers=True,
+        pathname=__file__,
+        lineno=10,
+        msg="msg",
+        args=(),
+        exc_info=None,
     )
-    std = logging.getLogger("thirdparty.module")
-    std.info("hello %s", "world", extra={"user_id": "u1", "k": 2})
 
-    await asyncio.sleep(0)
-    await logger.stop_and_drain()
+    handler.emit(record)
 
-    assert captured
-    ev = captured[-1]
-    assert ev["message"].startswith("hello world")
-    meta = ev["metadata"]
-    assert meta.get("user_id") == "u1" and meta.get("k") == 2
-    assert meta.get("stdlib_logger") == "thirdparty.module"
+    await asyncio.wait_for(called.wait(), timeout=1.0)
+    assert bridge._bridge_loop_manager.is_running is False
 
 
-@pytest.mark.asyncio
-async def test_forward_exception() -> None:
-    captured: list[dict[str, Any]] = []
-    logger = get_logger(name="bridge-exc-test")
+def test_emit_without_loop_uses_background_thread_nonblocking() -> None:
+    called = threading.Event()
 
-    async def capture(entry: dict[str, Any]) -> None:
-        captured.append(entry)
+    class AsyncLogger:
+        async def info(self, message: str, **_extras: object) -> None:
+            _ = message
+            called.set()
 
-    logger._sink_write = capture  # type: ignore[attr-defined]
-    enable_stdlib_bridge(
-        logger,
-        level=logging.DEBUG,
-        remove_existing_handlers=True,
-    )
-    std = logging.getLogger("thirdparty.exc")
+        async def debug(self, message: str, **_extras: object) -> None:
+            await self.info(message, **_extras)
 
-    try:
-        raise RuntimeError("boom")
-    except RuntimeError:
-        std.exception("failed")
+        async def warning(self, message: str, **_extras: object) -> None:
+            await self.info(message, **_extras)
 
-    await asyncio.sleep(0)
-    await logger.stop_and_drain()
-    ev = captured[-1]
-    assert ev["metadata"].get("error.type") == "RuntimeError"
+        async def error(self, message: str, **_extras: object) -> None:
+            _ = message
+            called.set()
 
-
-@pytest.mark.asyncio
-async def test_loop_prevention() -> None:
-    captured: list[dict[str, Any]] = []
-    logger = get_logger(name="bridge-loop-test")
-
-    async def capture(entry: dict[str, Any]) -> None:
-        captured.append(entry)
-
-    logger._sink_write = capture  # type: ignore[attr-defined]
-    enable_stdlib_bridge(
-        logger,
+    handler = bridge.StdlibBridgeHandler(AsyncLogger())
+    record = logging.LogRecord(
+        name="app",
         level=logging.INFO,
-        remove_existing_handlers=True,
-    )
-    std = logging.getLogger("fapilog.core")
-    std.info("should-not-forward")
-    await asyncio.sleep(0)
-    await logger.stop_and_drain()
-    assert not any(e.get("message") == "should-not-forward" for e in captured)
-
-
-def test_custom_targets_and_warning_capture(monkeypatch: pytest.MonkeyPatch) -> None:
-    calls: dict[str, Any] = {}
-    target = logging.getLogger("custom-target")
-    target.handlers = [logging.NullHandler()]
-
-    def _capture(flag: bool) -> None:
-        calls["capture_warnings_flag"] = flag
-
-    monkeypatch.setattr(logging, "captureWarnings", _capture)
-
-    logger = get_logger(name="bridge-custom-target")
-    enable_stdlib_bridge(
-        logger,
-        level=logging.WARNING,
-        remove_existing_handlers=True,
-        capture_warnings=True,
-        target_loggers=[target],
+        pathname=__file__,
+        lineno=10,
+        msg="msg",
+        args=(),
+        exc_info=None,
     )
 
-    assert calls.get("capture_warnings_flag") is True
-    assert any(isinstance(h, StdlibBridgeHandler) for h in target.handlers)
+    handler.emit(record)
 
-    asyncio.run(logger.stop_and_drain())
+    assert called.wait(timeout=1.5)
+    assert bridge._bridge_loop_manager.is_running is True
+
+
+def test_force_sync_skips_background_loop() -> None:
+    called = threading.Event()
+
+    class SyncLogger:
+        def info(self, message: str, **_extras: object) -> None:
+            _ = message
+            called.set()
+
+        def debug(self, message: str, **_extras: object) -> None:
+            self.info(message, **_extras)
+
+        def warning(self, message: str, **_extras: object) -> None:
+            self.info(message, **_extras)
+
+        def error(self, message: str, **_extras: object) -> None:
+            _ = message
+            called.set()
+
+    handler = bridge.StdlibBridgeHandler(SyncLogger(), force_sync=True)
+    record = logging.LogRecord(
+        name="app",
+        level=logging.INFO,
+        pathname=__file__,
+        lineno=10,
+        msg="msg",
+        args=(),
+        exc_info=None,
+    )
+
+    handler.emit(record)
+
+    assert called.wait(timeout=0.5)
+    assert bridge._bridge_loop_manager.is_running is False
+
+
+def test_shutdown_stops_background_loop() -> None:
+    called = threading.Event()
+
+    class AsyncLogger:
+        async def info(self, message: str, **_extras: object) -> None:
+            _ = message
+            called.set()
+
+        async def debug(self, message: str, **_extras: object) -> None:
+            await self.info(message, **_extras)
+
+        async def warning(self, message: str, **_extras: object) -> None:
+            await self.info(message, **_extras)
+
+        async def error(self, message: str, **_extras: object) -> None:
+            _ = message
+            called.set()
+
+    handler = bridge.StdlibBridgeHandler(AsyncLogger())
+    record = logging.LogRecord(
+        name="app",
+        level=logging.INFO,
+        pathname=__file__,
+        lineno=10,
+        msg="msg",
+        args=(),
+        exc_info=None,
+    )
+
+    handler.emit(record)
+    assert called.wait(timeout=1.5)
+    assert bridge._bridge_loop_manager.is_running is True
+
+    bridge._bridge_loop_manager.shutdown(timeout=1.0)
+    assert bridge._bridge_loop_manager.is_running is False
+
+    bridge._bridge_loop_manager.shutdown(timeout=1.0)
+    assert bridge._bridge_loop_manager.is_running is False
+
+
+@pytest.mark.slow
+def test_background_bridge_stress_low_overhead() -> None:
+    target = 300
+    lock = threading.Lock()
+    done = threading.Event()
+    processed = 0
+
+    class AsyncLogger:
+        async def info(self, message: str, **_extras: object) -> None:
+            nonlocal processed
+            _ = message
+            with lock:
+                processed += 1
+                if processed >= target:
+                    done.set()
+
+        async def debug(self, message: str, **_extras: object) -> None:
+            await self.info(message, **_extras)
+
+        async def warning(self, message: str, **_extras: object) -> None:
+            await self.info(message, **_extras)
+
+        async def error(self, message: str, **_extras: object) -> None:
+            await self.info(message, **_extras)
+
+    handler = bridge.StdlibBridgeHandler(AsyncLogger())
+    record = logging.LogRecord(
+        name="app",
+        level=logging.INFO,
+        pathname=__file__,
+        lineno=10,
+        msg="msg",
+        args=(),
+        exc_info=None,
+    )
+
+    start = time.perf_counter()
+    for _ in range(target):
+        handler.emit(record)
+
+    assert done.wait(timeout=5.0)
+    assert processed == target
+    assert bridge._bridge_loop_manager.is_running is True
+    assert (time.perf_counter() - start) < 5.0

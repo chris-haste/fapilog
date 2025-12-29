@@ -80,3 +80,69 @@ async def test_async_validation_missing_path_raises(tmp_path: Any) -> None:
     with pytest.raises(Exception) as exc:
         await load_settings(env=env)
     assert "does not exist" in str(exc.value)
+
+
+@pytest.mark.asyncio
+async def test_load_settings_without_env_uses_os_environ() -> None:
+    """Test load_settings when env=None uses os.environ directly."""
+    import os
+
+    # Set a test env var
+    original_value = os.environ.get("FAPILOG_CORE__APP_NAME")
+    try:
+        os.environ["FAPILOG_CORE__APP_NAME"] = "from-os-environ"
+        settings = await load_settings(env=None)
+        assert settings.core.app_name == "from-os-environ"
+    finally:
+        if original_value is not None:
+            os.environ["FAPILOG_CORE__APP_NAME"] = original_value
+        elif "FAPILOG_CORE__APP_NAME" in os.environ:
+            del os.environ["FAPILOG_CORE__APP_NAME"]
+
+
+@pytest.mark.asyncio
+async def test_load_settings_pydantic_validation_error() -> None:
+    """Test load_settings handles PydanticValidationError."""
+    from unittest.mock import patch
+
+    from pydantic import ValidationError as PydanticValidationError
+
+    from fapilog.core.config import ConfigurationError
+
+    # Mock Settings to raise PydanticValidationError during validation
+    with patch("fapilog.core.config.Settings") as mock_settings:
+        mock_instance = mock_settings.return_value
+        mock_instance.schema_version = "1.0"
+        # Create a PydanticValidationError by trying to validate invalid data
+        # This is a simpler way to get a real ValidationError
+        try:
+            from fapilog.core.settings import Settings
+
+            # This will raise ValidationError
+            Settings.model_validate({"core": {"app_name": 123}})  # Invalid type
+        except PydanticValidationError as e:
+            validation_error = e
+
+        mock_instance.validate_async.side_effect = validation_error
+
+        with pytest.raises(ConfigurationError) as exc_info:
+            await load_settings(env={})
+        assert "Pydantic validation failed" in str(exc_info.value)
+
+
+@pytest.mark.asyncio
+async def test_load_settings_generic_exception_handling() -> None:
+    """Test load_settings handles generic exceptions during async validation."""
+    from unittest.mock import patch
+
+    from fapilog.core.config import ConfigurationError
+
+    # Mock validate_async to raise a generic exception
+    with patch("fapilog.core.config.Settings") as mock_settings:
+        mock_instance = mock_settings.return_value
+        mock_instance.schema_version = "1.0"
+        mock_instance.validate_async.side_effect = ValueError("Unexpected error")
+
+        with pytest.raises(ConfigurationError) as exc_info:
+            await load_settings(env={})
+        assert "Async settings validation failed" in str(exc_info.value)

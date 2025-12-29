@@ -94,6 +94,8 @@ class SyncLoggerFacade:
         self._loop_thread_ident: int | None = None
         self._num_workers = max(1, int(num_workers))
         self._drained_event: asyncio.Event | None = None
+        self._flush_event: asyncio.Event | None = None
+        self._flush_done_event: asyncio.Event | None = None
         self._submitted = 0
         self._processed = 0
         self._dropped = 0
@@ -129,6 +131,8 @@ class SyncLoggerFacade:
             self._worker_loop = loop
             self._loop_thread_ident = threading.get_ident()
             self._drained_event = asyncio.Event()
+            self._flush_event = asyncio.Event()
+            self._flush_done_event = asyncio.Event()
             for _ in range(self._num_workers):
                 task = loop.create_task(self._worker_main())
                 self._worker_tasks.append(task)
@@ -142,6 +146,8 @@ class SyncLoggerFacade:
                 self._loop_thread_ident = threading.get_ident()
                 asyncio.set_event_loop(loop_local)
                 self._drained_event = asyncio.Event()
+                self._flush_event = asyncio.Event()
+                self._flush_done_event = asyncio.Event()
                 # Create worker tasks and mark ready
                 for _ in range(self._num_workers):
                     self._worker_tasks.append(
@@ -415,20 +421,11 @@ class SyncLoggerFacade:
         self._submitted += 1
         # metrics: submitted
         if self._metrics is not None:
-            try:
-                # Try to get running loop first (preferred approach)
-                try:
-                    loop = asyncio.get_running_loop()
-                    loop.create_task(self._metrics.record_events_submitted(1))
-                except RuntimeError:
-                    # No running loop: run in thread mode
-                    asyncio.run(self._metrics.record_events_submitted(1))
-            except Exception:
-                pass
+            self._schedule_metrics_call(self._metrics.record_events_submitted, 1)
         # Ensure worker running and loop bound
         self.start()
         wait_seconds = self._backpressure_wait_ms / 1000.0
-        loop = self._worker_loop  # type: ignore[assignment]
+        loop = self._worker_loop
         # If on the worker loop thread, do non-blocking enqueue only
         if (
             self._loop_thread_ident is not None
@@ -868,6 +865,31 @@ class SyncLoggerFacade:
             await self._metrics.record_events_dropped(1)
         return False
 
+    def _schedule_metrics_call(self, fn: Any, *args: Any, **kwargs: Any) -> None:
+        """Best-effort metrics scheduling without blocking callers.
+
+        Prefers the worker loop if available; falls back to a background thread.
+        """
+        if self._metrics is None:
+            return
+        loop = self._worker_loop
+        if loop is not None:
+            try:
+                fut = asyncio.run_coroutine_threadsafe(fn(*args, **kwargs), loop)
+                # Avoid blocking; ignore result
+                _ = fut
+                return
+            except Exception:
+                pass
+
+        def _run() -> None:
+            try:
+                asyncio.run(fn(*args, **kwargs))
+            except Exception:
+                return
+
+        threading.Thread(target=_run, daemon=True).start()
+
 
 class AsyncLoggerFacade:
     """Async facade that enqueues log calls without blocking and honors backpressure.
@@ -920,6 +942,8 @@ class AsyncLoggerFacade:
         self._loop_thread_ident: int | None = None
         self._num_workers = max(1, int(num_workers))
         self._drained_event: asyncio.Event | None = None
+        self._flush_event: asyncio.Event | None = None
+        self._flush_done_event: asyncio.Event | None = None
         self._submitted = 0
         self._processed = 0
         self._dropped = 0
@@ -939,8 +963,6 @@ class AsyncLoggerFacade:
         )
         # Error dedupe (message -> (first_ts, suppressed_count))
         self._error_dedupe: dict[str, tuple[float, int]] = {}
-        # Flush event for immediate flush requests
-        self._flush_event: asyncio.Event | None = None
 
     async def start_async(self) -> None:
         """Async start that ensures workers are scheduled before returning."""
@@ -968,6 +990,7 @@ class AsyncLoggerFacade:
             self._loop_thread_ident = threading.get_ident()
             self._drained_event = asyncio.Event()
             self._flush_event = asyncio.Event()
+            self._flush_done_event = asyncio.Event()
             for _ in range(self._num_workers):
                 task = loop.create_task(self._worker_main())
                 self._worker_tasks.append(task)
@@ -982,6 +1005,7 @@ class AsyncLoggerFacade:
                 asyncio.set_event_loop(loop_local)
                 self._drained_event = asyncio.Event()
                 self._flush_event = asyncio.Event()
+                self._flush_done_event = asyncio.Event()
                 # Create worker tasks and mark ready
                 for _ in range(self._num_workers):
                     self._worker_tasks.append(
@@ -1018,14 +1042,21 @@ class AsyncLoggerFacade:
         if self._flush_event is None:
             return
 
+        # Clear any prior completion signal
+        if self._flush_done_event is not None:
+            self._flush_done_event.clear()
+
         # Set flush event to trigger immediate flush in workers
         self._flush_event.set()
 
-        # Wait for flush to complete (workers will clear the event)
-        await self._flush_event.wait()
-
-        # Reset the event for future flush requests
-        self._flush_event.set()
+        # Wait for flush to complete (workers will signal done)
+        if self._flush_done_event is not None:
+            try:
+                await asyncio.wait_for(self._flush_done_event.wait(), timeout=5.0)
+            except asyncio.TimeoutError:
+                # Best-effort: proceed even if workers did not acknowledge
+                pass
+        # Leave flush_event cleared by workers
 
     async def drain(self) -> DrainResult:
         """Gracefully stop workers and return DrainResult.
@@ -1367,11 +1398,19 @@ class AsyncLoggerFacade:
 
                 # Check for immediate flush request
                 if self._flush_event is not None and self._flush_event.is_set():
+                    # Drain any pending items into batch before flushing
+                    while True:
+                        ok_flush, item_flush = self._queue.try_dequeue()
+                        if not ok_flush or item_flush is None:
+                            break
+                        batch.append(item_flush)
                     if batch:
                         await self._flush_batch(batch)
                         next_flush_deadline = None
-                    # Clear the flush event to signal completion
+                    # Clear the flush event and signal completion
                     self._flush_event.clear()
+                    if self._flush_done_event is not None:
+                        self._flush_done_event.set()
                     continue
 
                 # Pull as much as possible up to batch size

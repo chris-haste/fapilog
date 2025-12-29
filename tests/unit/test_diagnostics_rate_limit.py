@@ -23,3 +23,27 @@ def test_diagnostics_rate_limiter_allows_then_limits(
     for _ in range(20):
         diag.emit(component="x", level="DEBUG", message="m")
     assert seen >= 1
+
+
+def test_diagnostics_emit_exception_handling(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that diagnostics.emit handles exceptions gracefully."""
+    # Force diagnostics enabled
+    monkeypatch.setattr(diag, "_is_enabled", lambda: True)
+
+    # Test exception when getting request_id_var (lines 99-100)
+    from unittest.mock import patch
+
+    # Patch the context module where request_id_var is imported from
+    with patch("fapilog.core.context.request_id_var") as mock_var:
+        mock_var.get.side_effect = RuntimeError("Context error")
+        # Should not raise, should set corr = None
+        diag.emit(component="test", level="DEBUG", message="test")
+        # Verify it handled the exception
+
+    # Test exception when calling _writer (lines 114-116)
+    def failing_writer(payload: dict[str, Any]) -> None:
+        raise RuntimeError("Writer error")
+
+    diag.set_writer_for_tests(failing_writer)
+    # Should not raise, should return silently
+    diag.emit(component="test", level="DEBUG", message="test")

@@ -442,14 +442,11 @@ class TestComplexAsyncWorkerLifecycle:
         await logger.info("message 2")
         await logger.info("message 3")
 
-        # Explicit flush should process them
+        # Explicit flush should process all submitted messages before returning
         await logger.flush()
 
-        # Give time for processing
-        await asyncio.sleep(0.05)
-
-        # Messages should now be processed
-        assert len(out) >= 1
+        # Messages should now be processed synchronously with flush
+        assert len(out) >= 3
 
         await logger.stop_and_drain()
 

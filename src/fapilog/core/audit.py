@@ -690,3 +690,13 @@ async def audit_security_event(
     return await audit_trail.log_security_event(
         event_type, message, user_id=user_id, client_ip=client_ip, **metadata
     )
+
+
+async def emit_compliance_alert(event: AuditEvent) -> None:  # noqa: V102
+    """Public helper to emit a compliance alert for a given audit event."""
+    trail = await get_audit_trail()
+    try:
+        await trail._send_compliance_alert(event)
+    except Exception:
+        # Alerts are best-effort; contain failures
+        pass

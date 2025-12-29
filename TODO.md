@@ -1,0 +1,1 @@
+- [ ] Re-audit future sync adapters for async-safe behavior
