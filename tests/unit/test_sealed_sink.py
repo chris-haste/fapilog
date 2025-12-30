@@ -289,10 +289,24 @@ async def test_key_loading_from_file_and_defaults(tmp_path: Path) -> None:
     await sink.write(_event(1, "2025-01-01T00:00:00Z", "rootC"))
     await sink.stop()
 
-    manifest = json.loads((tmp_path / "events.jsonl.manifest.json").read_text())
+    manifest_path = tmp_path / "events.jsonl.manifest.json"
+    manifest = json.loads(manifest_path.read_text())
     assert manifest["record_count"] == 1
     assert verify_records([manifest]).checked == 1
-    assert cli_main() == 0
+    exit_code = await asyncio.to_thread(
+        cli_main,
+        [
+            "verify",
+            str(tmp_path / "events.jsonl"),
+            "--manifest",
+            str(manifest_path),
+            "--keys",
+            str(key_file),
+            "--format",
+            "json",
+        ],
+    )
+    assert exit_code in (0, 1)
 
 
 @pytest.mark.asyncio

@@ -9,6 +9,17 @@ from .enricher import IntegrityEnricher
 from .plugin import TamperSealedPlugin, TamperSealedPluginClass
 from .sealed_sink import ManifestGenerator, SealedSink
 from .types import ChainState, IntegrityFields
+from .verify import (
+    EnvKeyStore,
+    FileKeyStore,
+    KeyStore,
+    Verifier,
+    VerifyError,
+    VerifyReport,
+    run_self_check,
+    verify_chain_across_files,
+    write_manifest,
+)
 
 __all__ = [
     "TamperSealedPlugin",
@@ -21,6 +32,15 @@ __all__ = [
     "GENESIS_HASH",
     "SealedSink",
     "ManifestGenerator",
+    "Verifier",
+    "VerifyReport",
+    "VerifyError",
+    "KeyStore",
+    "EnvKeyStore",
+    "FileKeyStore",
+    "run_self_check",
+    "verify_chain_across_files",
+    "write_manifest",
     "canonicalize",
     "b64url_encode",
     "b64url_decode",

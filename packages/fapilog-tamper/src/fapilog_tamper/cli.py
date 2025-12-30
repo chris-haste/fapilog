@@ -1,17 +1,10 @@
 """
-CLI placeholder for tamper-evident verification tools.
+CLI entry point for fapilog-tamper.
 """
 
 from __future__ import annotations
 
-import sys
+from .verify import main
 
-
-def main() -> int:
-    """Entry point stub."""
-    sys.stdout.write("fapilog-tamper CLI coming soon\n")
-    return 0
-
-
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     raise SystemExit(main())

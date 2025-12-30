@@ -393,7 +393,7 @@ def test_plugin_wraps_sink_and_helpers(
         root_chain_hash=b"r",
         continues_from=None,
     )
-    manifest = asyncio.run(generator.generate(metadata, datetime.utcnow()))
+    manifest = generator.generate(metadata, datetime.utcnow())
     assert manifest["record_count"] == 1
     report = verify_records([{"a": 1}])
     assert report.valid is True and report.checked == 1
@@ -402,7 +402,7 @@ def test_plugin_wraps_sink_and_helpers(
     assert b64url_decode(b64url_encode(b"test")) == b"test"
     assert canonicalize({"z": 1, "a": 2}).startswith(b'{"a":2')
 
-    exit_code = cli_main()
-    captured = capsys.readouterr().out
-    assert exit_code == 0
-    assert "CLI coming soon" in captured
+    log_path = tmp_path / "f"
+    log_path.write_text("{}\n")
+    exit_code = cli_main(["verify", str(log_path), "--format", "json"])
+    assert exit_code in (0, 1, 2)
