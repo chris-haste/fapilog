@@ -245,7 +245,10 @@ def test_cli_verify_success_and_failure(
         "--format",
         "json",
     ]
-    result = subprocess.run(cmd_base, capture_output=True, text=True)
+    # Pass PYTHONPATH so subprocess can find fapilog_tamper
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(_tamper_src) + os.pathsep + env.get("PYTHONPATH", "")
+    result = subprocess.run(cmd_base, capture_output=True, text=True, env=env)
     assert result.returncode == 0
     data = json.loads(result.stdout)
     assert data["valid"] is True
@@ -257,7 +260,7 @@ def test_cli_verify_success_and_failure(
     with open(log_path, "w", encoding="utf-8") as f:
         f.write(json.dumps(records[0]) + "\n")
         f.write(json.dumps(tampered) + "\n")
-    result_bad = subprocess.run(cmd_base, capture_output=True, text=True)
+    result_bad = subprocess.run(cmd_base, capture_output=True, text=True, env=env)
     assert result_bad.returncode == 1
     assert "mac_mismatch" in result_bad.stdout or "mac_mismatch" in result_bad.stderr
 
