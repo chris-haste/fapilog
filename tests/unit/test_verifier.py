@@ -12,15 +12,18 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from fapilog_tamper.canonical import b64url_encode, canonicalize
 
+# Add fapilog-tamper to path before importing
+_tamper_src = (
+    Path(__file__).resolve().parents[2] / "packages" / "fapilog-tamper" / "src"
+)
+if _tamper_src.exists():
+    sys.path.insert(0, str(_tamper_src))
 
-@pytest.fixture(autouse=True)
-def _tamper_package_on_path(monkeypatch: pytest.MonkeyPatch) -> None:
-    tamper_src = (
-        Path(__file__).resolve().parents[2] / "packages" / "fapilog-tamper" / "src"
-    )
-    monkeypatch.syspath_prepend(str(tamper_src))
+try:
+    from fapilog_tamper.canonical import b64url_encode, canonicalize
+except ImportError:
+    pytest.skip("fapilog-tamper not available", allow_module_level=True)
 
 
 def _hmac_key() -> bytes:

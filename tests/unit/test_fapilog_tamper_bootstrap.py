@@ -5,6 +5,7 @@ Tests for fapilog-tamper bootstrap package scaffolding.
 from __future__ import annotations
 
 import importlib.metadata
+import sys
 from importlib.metadata import EntryPoint
 from pathlib import Path
 
@@ -13,14 +14,18 @@ from pydantic import ValidationError
 
 from fapilog.plugins.integrity import IntegrityPlugin, load_integrity_plugin
 
+# Add fapilog-tamper to path before importing
+_tamper_src = (
+    Path(__file__).resolve().parents[2] / "packages" / "fapilog-tamper" / "src"
+)
+if _tamper_src.exists():
+    sys.path.insert(0, str(_tamper_src))
 
-@pytest.fixture(autouse=True)
-def _tamper_package_on_path(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Ensure the tamper package is importable from the repo path."""
-    tamper_src = (
-        Path(__file__).resolve().parents[2] / "packages" / "fapilog-tamper" / "src"
-    )
-    monkeypatch.syspath_prepend(str(tamper_src))
+# Skip entire module if fapilog-tamper is not available
+try:
+    import fapilog_tamper  # noqa: F401
+except ImportError:
+    pytest.skip("fapilog-tamper not available", allow_module_level=True)
 
 
 def _make_entry_points(ep: EntryPoint):
