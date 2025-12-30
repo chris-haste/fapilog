@@ -54,9 +54,7 @@ class ManifestGenerator:
             except Exception:  # pragma: no cover - defensive path
                 self._signing_key = None
 
-    async def generate(
-        self, metadata: FileMetadata, closed_ts: datetime
-    ) -> dict[str, Any]:
+    def generate(self, metadata: FileMetadata, closed_ts: datetime) -> dict[str, Any]:
         manifest = {
             "version": "1.0",
             "file": metadata.filename,
@@ -186,7 +184,7 @@ class SealedSink(BaseSink):
         if self._manifest_generator is None:
             self._manifest_generator = ManifestGenerator(self._config, self._key)
 
-        manifest = await self._manifest_generator.generate(
+        manifest = self._manifest_generator.generate(
             self._current_file,
             closed_ts=datetime.now(timezone.utc),
         )

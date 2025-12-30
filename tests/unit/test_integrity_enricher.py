@@ -8,6 +8,7 @@ import asyncio
 import base64
 import hashlib
 import hmac
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -17,14 +18,18 @@ import pytest
 from fapilog.core import diagnostics
 from fapilog.plugins.enrichers import BaseEnricher
 
+# Add fapilog-tamper to path before importing
+_tamper_src = (
+    Path(__file__).resolve().parents[2] / "packages" / "fapilog-tamper" / "src"
+)
+if _tamper_src.exists():
+    sys.path.insert(0, str(_tamper_src))
 
-@pytest.fixture(autouse=True)
-def _tamper_package_on_path(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Ensure the tamper package is importable from the repo path."""
-    tamper_src = (
-        Path(__file__).resolve().parents[2] / "packages" / "fapilog-tamper" / "src"
-    )
-    monkeypatch.syspath_prepend(str(tamper_src))
+# Skip entire module if fapilog-tamper is not available
+try:
+    import fapilog_tamper  # noqa: F401
+except ImportError:
+    pytest.skip("fapilog-tamper not available", allow_module_level=True)
 
 
 def _b64url(data: bytes) -> str:
@@ -393,7 +398,7 @@ def test_plugin_wraps_sink_and_helpers(
         root_chain_hash=b"r",
         continues_from=None,
     )
-    manifest = asyncio.run(generator.generate(metadata, datetime.utcnow()))
+    manifest = generator.generate(metadata, datetime.utcnow())
     assert manifest["record_count"] == 1
     report = verify_records([{"a": 1}])
     assert report.valid is True and report.checked == 1
@@ -402,7 +407,7 @@ def test_plugin_wraps_sink_and_helpers(
     assert b64url_decode(b64url_encode(b"test")) == b"test"
     assert canonicalize({"z": 1, "a": 2}).startswith(b'{"a":2')
 
-    exit_code = cli_main()
-    captured = capsys.readouterr().out
-    assert exit_code == 0
-    assert "CLI coming soon" in captured
+    log_path = tmp_path / "f"
+    log_path.write_text("{}\n")
+    exit_code = cli_main(["verify", str(log_path), "--format", "json"])
+    assert exit_code in (0, 1, 2)

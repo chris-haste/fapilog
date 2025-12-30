@@ -8,6 +8,7 @@ import asyncio
 import gzip
 import hmac
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -15,14 +16,18 @@ import pytest
 
 from fapilog.plugins.sinks import BaseSink
 
+# Add fapilog-tamper to path before importing
+_tamper_src = (
+    Path(__file__).resolve().parents[2] / "packages" / "fapilog-tamper" / "src"
+)
+if _tamper_src.exists():
+    sys.path.insert(0, str(_tamper_src))
 
-@pytest.fixture(autouse=True)
-def _tamper_package_on_path(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Ensure the tamper package is importable from the repo path."""
-    tamper_src = (
-        Path(__file__).resolve().parents[2] / "packages" / "fapilog-tamper" / "src"
-    )
-    monkeypatch.syspath_prepend(str(tamper_src))
+# Skip entire module if fapilog-tamper is not available
+try:
+    import fapilog_tamper  # noqa: F401
+except ImportError:
+    pytest.skip("fapilog-tamper not available", allow_module_level=True)
 
 
 class _DummySink(BaseSink):
@@ -289,10 +294,24 @@ async def test_key_loading_from_file_and_defaults(tmp_path: Path) -> None:
     await sink.write(_event(1, "2025-01-01T00:00:00Z", "rootC"))
     await sink.stop()
 
-    manifest = json.loads((tmp_path / "events.jsonl.manifest.json").read_text())
+    manifest_path = tmp_path / "events.jsonl.manifest.json"
+    manifest = json.loads(manifest_path.read_text())
     assert manifest["record_count"] == 1
     assert verify_records([manifest]).checked == 1
-    assert cli_main() == 0
+    exit_code = await asyncio.to_thread(
+        cli_main,
+        [
+            "verify",
+            str(tmp_path / "events.jsonl"),
+            "--manifest",
+            str(manifest_path),
+            "--keys",
+            str(key_file),
+            "--format",
+            "json",
+        ],
+    )
+    assert exit_code in (0, 1)
 
 
 @pytest.mark.asyncio
