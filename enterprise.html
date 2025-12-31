@@ -1,0 +1,622 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enterprise Features &mdash; fapilog 0.3.4 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=1e28cc32"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=30646c52"></script>
+      <script src="_static/custom.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Reference" href="api-reference/index.html" />
+    <link rel="prev" title="Reliability Defaults and Guardrails" href="user-guide/reliability-defaults.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            fapilog
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started/index.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/quickstart.html">Quickstart Tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/hello-world.html">Hello World Walkthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core-concepts/index.html">Core Concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/pipeline-architecture.html">Pipeline Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/envelope.html">Envelope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/batching-backpressure.html">Batching &amp; Backpressure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/redaction.html">Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/metrics.html">Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/diagnostics-resilience.html">Diagnostics Resilience</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/diagnostics-resilience.html#id1">Diagnostics &amp; Resilience</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user-guide/index.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/using-logger.html">Using the Logger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/context-enrichment.html">Context Enrichment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/performance-tuning.html">Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/integration-guide.html">Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/fastapi.html">FastAPI / ASGI Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/comparisons.html">Comparisons: fapilog vs stdlib, structlog, loguru</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Enterprise Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api-reference/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/top-level-functions.html">Top-Level Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/logger-methods.html">Logger Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/plugins/index.html">Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/modules.html">API Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples &amp; Recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/fastapi-logging.html">FastAPI Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/cli-tools.html">Logging in Scripts/CLIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/redacting-secrets.html">Redacting Secrets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/structured-error-logging.html">Structured Error Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/kubernetes-file-sink.html">Kubernetes File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/prometheus-metrics.html">Prometheus Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="plugins/index.html">Plugin Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="plugins/authoring.html">Authoring Fapilog Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins/contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins/enrichers.html">Enrichers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins/processors.html">Processors</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting/index.html">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/logs-dropped-under-load.html">Logs Dropped Under Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/context-values-missing.html">Context Values Missing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/file-sink-not-rotating.html">File Sink Not Rotating</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/serialization-errors.html">Serialization Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing/index.html">Contributing to fapilog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendices.html">Appendices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="env-vars.html">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="settings-guide.html">Settings Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="schema-guide.html">Schema Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugin-guide.html">Plugin Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="redaction-guarantees.html">Redaction Guarantees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quality-signals.html">Quality Signals</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">fapilog</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Enterprise Features</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/enterprise.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="enterprise-features">
+<h1>Enterprise Features<a class="headerlink" href="#enterprise-features" title="Link to this heading"></a></h1>
+<p>Fapilog provides building blocks for enterprise environments. This page highlights the compliance, audit, and security capabilities you can compose with fapilog and its add-ons. It is <strong>not</strong> a certification or a guarantee of regulatory compliance; you must validate controls for your own environment.</p>
+<section id="at-a-glance">
+<h2>At a Glance<a class="headerlink" href="#at-a-glance" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Capability</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Compliance Controls (assist)</strong></p></td>
+<td><p>Policy templates and logging patterns that can be aligned to SOC2, HIPAA, GDPR, PCI-DSS, ISO 27001, SOX (you own control validation)</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Audit Trail</strong></p></td>
+<td><p>Structured audit events with optional tamper-evident hash chains (via add-on)</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Data Protection</strong></p></td>
+<td><p>PII/PHI tagging, redaction knobs, encryption settings</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Access Control</strong></p></td>
+<td><p>Role-based access settings and auth mode configuration helpers</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Integrity</strong></p></td>
+<td><p>SHA-256 checksums, sequence numbers, chain verification (when enabled)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<hr class="docutils" />
+<section id="add-on-spotlight-tamper-evident-logging-kms-vault">
+<h2>Add-on spotlight: Tamper-Evident Logging + KMS/Vault<a class="headerlink" href="#add-on-spotlight-tamper-evident-logging-kms-vault" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>What</strong>: <code class="docutils literal notranslate"><span class="pre">fapilog-tamper</span></code> add-on that adds per-record MAC/signatures, sealed manifests, and cross-file chain verification.</p></li>
+<li><p><strong>Key management</strong>: Integrates with AWS KMS, GCP KMS, Azure Key Vault, and HashiCorp Vault (including KMS-native signing so keys never leave the provider). Optional extras: <code class="docutils literal notranslate"><span class="pre">fapilog-tamper[all-kms]</span></code>.</p></li>
+<li><p><strong>Docs</strong>: See <a class="reference internal" href="enterprise/tamper-enterprise-key-management.html"><span class="std std-doc">Enterprise Key Management for Tamper-Evident Logging</span></a> for architecture, configuration, and deployment guidance.</p></li>
+<li><p><strong>Use cases</strong>: Regulated audit trails (SOX/SOC2/HIPAA/PCI), shared services with centralized key custodians, and environments that require attested manifests for log rotation.</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="compliance-framework-support-assist-not-certification">
+<h2>Compliance Framework Support (assist, not certification)<a class="headerlink" href="#compliance-framework-support-assist-not-certification" title="Link to this heading"></a></h2>
+<p>Fapilog ships configuration helpers that can map to common frameworks. Use them as starting points and validate against your own policies and auditors:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.audit</span><span class="w"> </span><span class="kn">import</span> <span class="n">ComplianceLevel</span><span class="p">,</span> <span class="n">CompliancePolicy</span>
+
+<span class="c1"># Configure for your compliance requirements</span>
+<span class="n">policy</span> <span class="o">=</span> <span class="n">CompliancePolicy</span><span class="p">(</span>
+    <span class="n">level</span><span class="o">=</span><span class="n">ComplianceLevel</span><span class="o">.</span><span class="n">SOC2</span><span class="p">,</span>
+    <span class="n">retention_days</span><span class="o">=</span><span class="mi">365</span><span class="p">,</span>
+    <span class="n">encrypt_audit_logs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">require_integrity_check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">real_time_alerts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<section id="example-control-mappings-non-exhaustive">
+<h3>Example control mappings (non-exhaustive)<a class="headerlink" href="#example-control-mappings-non-exhaustive" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Framework</p></th>
+<th class="head"><p>Control areas this can help with</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>SOC2</strong></p></td>
+<td><p>Encryption, integrity checks, access logging</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>HIPAA</strong></p></td>
+<td><p>PHI redaction, minimum necessary patterns, audit trails</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>GDPR</strong></p></td>
+<td><p>PII redaction, data subject request support (application responsibility)</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>PCI-DSS</strong></p></td>
+<td><p>Encryption at rest, access logging (card data handling remains your responsibility)</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>ISO 27001</strong></p></td>
+<td><p>Security logging and integrity controls</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>SOX</strong></p></td>
+<td><p>Change/event logging with chain verification</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<hr class="docutils" />
+<section id="audit-trail-system">
+<h2>Audit Trail System<a class="headerlink" href="#audit-trail-system" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">AuditTrail</span></code> building blocks provide structured audit logging. You control event content and ensure policies meet your regulatory scope:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.audit</span><span class="w"> </span><span class="kn">import</span> <span class="n">AuditTrail</span><span class="p">,</span> <span class="n">AuditEventType</span><span class="p">,</span> <span class="n">CompliancePolicy</span>
+
+<span class="c1"># Initialize audit trail</span>
+<span class="n">audit</span> <span class="o">=</span> <span class="n">AuditTrail</span><span class="p">(</span>
+    <span class="n">policy</span><span class="o">=</span><span class="n">CompliancePolicy</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">ComplianceLevel</span><span class="o">.</span><span class="n">SOC2</span><span class="p">),</span>
+    <span class="n">storage_path</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;./audit_logs&quot;</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="k">await</span> <span class="n">audit</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+<span class="c1"># Log security events</span>
+<span class="k">await</span> <span class="n">audit</span><span class="o">.</span><span class="n">log_security_event</span><span class="p">(</span>
+    <span class="n">AuditEventType</span><span class="o">.</span><span class="n">AUTHENTICATION_FAILED</span><span class="p">,</span>
+    <span class="s2">&quot;Login attempt failed&quot;</span><span class="p">,</span>
+    <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;user@example.com&quot;</span><span class="p">,</span>
+    <span class="n">client_ip</span><span class="o">=</span><span class="s2">&quot;192.168.1.100&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Log data access for compliance</span>
+<span class="k">await</span> <span class="n">audit</span><span class="o">.</span><span class="n">log_data_access</span><span class="p">(</span>
+    <span class="n">resource</span><span class="o">=</span><span class="s2">&quot;customer_records&quot;</span><span class="p">,</span>
+    <span class="n">operation</span><span class="o">=</span><span class="s2">&quot;read&quot;</span><span class="p">,</span>
+    <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;admin@example.com&quot;</span><span class="p">,</span>
+    <span class="n">data_classification</span><span class="o">=</span><span class="s2">&quot;confidential&quot;</span><span class="p">,</span>
+    <span class="n">contains_pii</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<section id="audit-event-types">
+<h3>Audit Event Types<a class="headerlink" href="#audit-event-types" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Category</p></th>
+<th class="head"><p>Event Types</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Security</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">AUTHENTICATION_FAILED</span></code>, <code class="docutils literal notranslate"><span class="pre">AUTHORIZATION_FAILED</span></code>, <code class="docutils literal notranslate"><span class="pre">SECURITY_VIOLATION</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Data</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DATA_ACCESS</span></code>, <code class="docutils literal notranslate"><span class="pre">DATA_MODIFICATION</span></code>, <code class="docutils literal notranslate"><span class="pre">DATA_DELETION</span></code>, <code class="docutils literal notranslate"><span class="pre">DATA_EXPORT</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>System</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SYSTEM_STARTUP</span></code>, <code class="docutils literal notranslate"><span class="pre">SYSTEM_SHUTDOWN</span></code>, <code class="docutils literal notranslate"><span class="pre">COMPONENT_FAILURE</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Config</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CONFIG_CHANGED</span></code>, <code class="docutils literal notranslate"><span class="pre">PLUGIN_LOADED</span></code>, <code class="docutils literal notranslate"><span class="pre">PLUGIN_UNLOADED</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Compliance</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">COMPLIANCE_CHECK</span></code>, <code class="docutils literal notranslate"><span class="pre">AUDIT_LOG_ACCESS</span></code>, <code class="docutils literal notranslate"><span class="pre">RETENTION_POLICY_APPLIED</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<hr class="docutils" />
+<section id="tamper-evident-hash-chains">
+<h2>Tamper-Evident Hash Chains<a class="headerlink" href="#tamper-evident-hash-chains" title="Link to this heading"></a></h2>
+<p>When you enable the tamper-evident add-on, audit events can include cryptographic integrity fields to detect tampering or gaps:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Each AuditEvent automatically includes:</span>
+<span class="n">event</span><span class="o">.</span><span class="n">sequence_number</span>  <span class="c1"># Monotonic counter (gap detection)</span>
+<span class="n">event</span><span class="o">.</span><span class="n">previous_hash</span>    <span class="c1"># SHA-256 of previous event (chain linkage)</span>
+<span class="n">event</span><span class="o">.</span><span class="n">checksum</span>         <span class="c1"># SHA-256 of this event (integrity)</span>
+</pre></div>
+</div>
+<section id="chain-verification">
+<h3>Chain Verification<a class="headerlink" href="#chain-verification" title="Link to this heading"></a></h3>
+<p>Verify integrity of audit logs at any time:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.audit</span><span class="w"> </span><span class="kn">import</span> <span class="n">AuditTrail</span>
+
+<span class="c1"># Load events from storage</span>
+<span class="n">events</span> <span class="o">=</span> <span class="k">await</span> <span class="n">audit</span><span class="o">.</span><span class="n">get_events</span><span class="p">(</span>
+    <span class="n">start_time</span><span class="o">=</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2025</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">end_time</span><span class="o">=</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2025</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">31</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1"># Verify chain integrity</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">AuditTrail</span><span class="o">.</span><span class="n">verify_chain</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">valid</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">events_checked</span><span class="si">}</span><span class="s2"> events verified&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✗ Chain broken at sequence </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">first_invalid_sequence</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Error: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">error_message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="what-chain-verification-detects">
+<h3>What Chain Verification Detects<a class="headerlink" href="#what-chain-verification-detects" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Tampering</strong> - Any modification to an event breaks the checksum</p></li>
+<li><p><strong>Deletion</strong> - Missing events create sequence gaps</p></li>
+<li><p><strong>Insertion</strong> - Added events break the hash chain</p></li>
+<li><p><strong>Reordering</strong> - Events out of sequence fail validation</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="data-protection">
+<h2>Data Protection<a class="headerlink" href="#data-protection" title="Link to this heading"></a></h2>
+<section id="pii-phi-classification">
+<h3>PII/PHI Classification<a class="headerlink" href="#pii-phi-classification" title="Link to this heading"></a></h3>
+<p>Flag events containing sensitive data:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">await</span> <span class="n">audit</span><span class="o">.</span><span class="n">log_data_access</span><span class="p">(</span>
+    <span class="n">resource</span><span class="o">=</span><span class="s2">&quot;patient_records&quot;</span><span class="p">,</span>
+    <span class="n">operation</span><span class="o">=</span><span class="s2">&quot;read&quot;</span><span class="p">,</span>
+    <span class="n">contains_pii</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>    <span class="c1"># Personally Identifiable Information</span>
+    <span class="n">contains_phi</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>    <span class="c1"># Protected Health Information (HIPAA)</span>
+    <span class="n">data_classification</span><span class="o">=</span><span class="s2">&quot;restricted&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="automatic-redaction">
+<h3>Automatic Redaction<a class="headerlink" href="#automatic-redaction" title="Link to this heading"></a></h3>
+<p>Built-in redactors help mask common sensitive fields but must be tuned to your schemas and policies:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span><span class="p">,</span> <span class="n">Settings</span>
+
+<span class="c1"># Redactors are enabled by default</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
+
+<span class="c1"># Sensitive fields are automatically masked</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User created&quot;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">&quot;secret123&quot;</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;sk-xxx&quot;</span><span class="p">)</span>
+<span class="c1"># Output: {&quot;password&quot;: &quot;***REDACTED***&quot;, &quot;api_key&quot;: &quot;***REDACTED***&quot;}</span>
+</pre></div>
+</div>
+<p><strong>Built-in Redactors:</strong></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Redactor</p></th>
+<th class="head"><p>What It Protects</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">field-mask</span></code></p></td>
+<td><p>Named fields (password, secret, token, etc.)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">regex-mask</span></code></p></td>
+<td><p>Pattern-based detection (SSN, email, etc.)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">url-credentials</span></code></p></td>
+<td><p>Credentials in URLs (<code class="docutils literal notranslate"><span class="pre">user:pass&#64;host</span></code>)</p></td>
+</tr>
+</tbody>
+</table>
+<p>See <a class="reference internal" href="redaction-guarantees.html"><span class="std std-doc">Redaction Guarantees</span></a> for configuration details.</p>
+</section>
+<section id="encryption-configuration">
+<h3>Encryption Configuration<a class="headerlink" href="#encryption-configuration" title="Link to this heading"></a></h3>
+<p>Configure encryption with support for enterprise key management. These are primitives; key custody and rotation remain your responsibility:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.encryption</span><span class="w"> </span><span class="kn">import</span> <span class="n">EncryptionSettings</span>
+
+<span class="n">encryption</span> <span class="o">=</span> <span class="n">EncryptionSettings</span><span class="p">(</span>
+    <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">algorithm</span><span class="o">=</span><span class="s2">&quot;AES-256&quot;</span><span class="p">,</span>
+    <span class="n">key_source</span><span class="o">=</span><span class="s2">&quot;vault&quot;</span><span class="p">,</span>  <span class="c1"># Options: env, file, kms, vault</span>
+    <span class="n">key_id</span><span class="o">=</span><span class="s2">&quot;fapilog/audit-key&quot;</span><span class="p">,</span>
+    <span class="n">rotate_interval_days</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span>
+    <span class="n">min_tls_version</span><span class="o">=</span><span class="s2">&quot;1.3&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Key Sources:</strong></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Source</p></th>
+<th class="head"><p>Use Case</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">env</span></code></p></td>
+<td><p>Environment variable (development)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">file</span></code></p></td>
+<td><p>File path (on-prem)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">kms</span></code></p></td>
+<td><p>AWS KMS, GCP KMS, Azure Key Vault</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">vault</span></code></p></td>
+<td><p>HashiCorp Vault</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<hr class="docutils" />
+<section id="access-control">
+<h2>Access Control<a class="headerlink" href="#access-control" title="Link to this heading"></a></h2>
+<p>Configure role-based access control. Integrate with your identity provider and test according to your threat model:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.access_control</span><span class="w"> </span><span class="kn">import</span> <span class="n">AccessControlSettings</span>
+
+<span class="n">access</span> <span class="o">=</span> <span class="n">AccessControlSettings</span><span class="p">(</span>
+    <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">auth_mode</span><span class="o">=</span><span class="s2">&quot;oauth2&quot;</span><span class="p">,</span>  <span class="c1"># Options: none, basic, token, oauth2</span>
+    <span class="n">allowed_roles</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;admin&quot;</span><span class="p">,</span> <span class="s2">&quot;auditor&quot;</span><span class="p">,</span> <span class="s2">&quot;system&quot;</span><span class="p">],</span>
+    <span class="n">require_admin_for_sensitive_ops</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">allow_anonymous_read</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">allow_anonymous_write</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="retention-policies">
+<h2>Retention Policies<a class="headerlink" href="#retention-policies" title="Link to this heading"></a></h2>
+<p>Configure log retention to align with your data lifecycle requirements:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">policy</span> <span class="o">=</span> <span class="n">CompliancePolicy</span><span class="p">(</span>
+    <span class="n">retention_days</span><span class="o">=</span><span class="mi">365</span><span class="p">,</span>      <span class="c1"># Keep logs for 1 year</span>
+    <span class="n">archive_after_days</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span>   <span class="c1"># Archive after 90 days</span>
+    <span class="n">encrypt_audit_logs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Note:</strong> Fapilog provides retention <em>configuration</em> as library primitives. Actual retention enforcement (deletion, archival) is the responsibility of your application or infrastructure.</p>
+</section>
+<hr class="docutils" />
+<section id="compliance-validation">
+<h2>Compliance Validation<a class="headerlink" href="#compliance-validation" title="Link to this heading"></a></h2>
+<p>Validate your configuration against compliance baselines:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.compliance</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_compliance_policy</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">validate_compliance_policy</span><span class="p">(</span><span class="n">policy</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">issues</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">issue</span><span class="o">.</span><span class="n">severity</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="n">issue</span><span class="o">.</span><span class="n">field</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">issue</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Example validation output:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">error</span><span class="p">]</span> <span class="n">retention_days</span><span class="p">:</span> <span class="n">must</span> <span class="n">be</span> <span class="o">&gt;=</span> <span class="mi">30</span>
+<span class="p">[</span><span class="n">error</span><span class="p">]</span> <span class="n">encrypt_audit_logs</span><span class="p">:</span> <span class="n">must</span> <span class="n">be</span> <span class="n">enabled</span>
+<span class="p">[</span><span class="n">warn</span><span class="p">]</span> <span class="n">gdpr_data_subject_rights</span><span class="p">:</span> <span class="n">required</span> <span class="k">for</span> <span class="n">GDPR</span> <span class="n">level</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="real-time-compliance-alerts">
+<h2>Real-Time Compliance Alerts<a class="headerlink" href="#real-time-compliance-alerts" title="Link to this heading"></a></h2>
+<p>Configure alerts for compliance-relevant events:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">policy</span> <span class="o">=</span> <span class="n">CompliancePolicy</span><span class="p">(</span>
+    <span class="n">real_time_alerts</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">alert_on_critical_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">alert_on_security_events</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>When enabled, security events and critical errors trigger the alert pathway. Implement your alerting logic via a custom sink:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ComplianceAlertSink</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entry</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;log_level&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;SECURITY&quot;</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">send_to_pagerduty</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">send_to_slack</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="integration-with-enterprise-systems">
+<h2>Integration with Enterprise Systems<a class="headerlink" href="#integration-with-enterprise-systems" title="Link to this heading"></a></h2>
+<section id="siem-integration">
+<h3>SIEM Integration<a class="headerlink" href="#siem-integration" title="Link to this heading"></a></h3>
+<p>Audit events export cleanly for SIEM ingestion:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Events provide structured data for SIEM transformation</span>
+<span class="n">event_dict</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span>
+
+<span class="c1"># Transform to your SIEM format (CEF, LEEF, etc.)</span>
+<span class="n">cef_line</span> <span class="o">=</span> <span class="n">transform_to_cef</span><span class="p">(</span><span class="n">event_dict</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="log-aggregation">
+<h3>Log Aggregation<a class="headerlink" href="#log-aggregation" title="Link to this heading"></a></h3>
+<p>Fapilog’s JSON output integrates with standard log aggregators:</p>
+<ul class="simple">
+<li><p><strong>Splunk</strong> - JSON logs ingest directly</p></li>
+<li><p><strong>Elasticsearch</strong> - Structured fields map to indices</p></li>
+<li><p><strong>Datadog</strong> - Labels and metadata propagate</p></li>
+<li><p><strong>CloudWatch</strong> - JSON Insights queries work out of the box</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="quick-reference-compliance-checklist">
+<h2>Quick Reference: Compliance Checklist<a class="headerlink" href="#quick-reference-compliance-checklist" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Requirement</p></th>
+<th class="head"><p>Fapilog Feature</p></th>
+<th class="head"><p>Configuration</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Audit trail</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">AuditTrail</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CompliancePolicy.enabled=True</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Log integrity</p></td>
+<td><p>Hash chains</p></td>
+<td><p>Automatic (sequence + checksum)</p></td>
+</tr>
+<tr class="row-even"><td><p>PII protection</p></td>
+<td><p>Redactors</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">core.enable_redactors=True</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Encryption config</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">EncryptionSettings</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">encryption.enabled=True</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Access control</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">AccessControlSettings</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">access_control.enabled=True</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Retention policy</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CompliancePolicy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">retention_days=365</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Security events</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">AuditEventType</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">log_security_event()</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Data classification</p></td>
+<td><p>Event flags</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">contains_pii</span></code>, <code class="docutils literal notranslate"><span class="pre">data_classification</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<hr class="docutils" />
+<section id="further-reading">
+<h2>Further Reading<a class="headerlink" href="#further-reading" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="redaction-guarantees.html"><span class="std std-doc">Redaction Guarantees</span></a> - PII/secret protection</p></li>
+<li><p><a class="reference internal" href="core-concepts/redaction.html"><span class="std std-doc">Core Concepts: Redaction</span></a> - Redactor configuration</p></li>
+<li><p><a class="reference internal" href="api-reference/configuration.html"><span class="std std-doc">API Reference: Configuration</span></a> - Settings reference</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="user-guide/reliability-defaults.html" class="btn btn-neutral float-left" title="Reliability Defaults and Guardrails" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api-reference/index.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Chris Haste.
+      <span class="lastupdated">Last updated on December 31, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

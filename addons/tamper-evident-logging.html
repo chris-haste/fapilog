@@ -1,0 +1,354 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tamper-Evident Logging Add-on (Optional) &mdash; fapilog 0.3.4 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=1e28cc32"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=30646c52"></script>
+      <script src="../_static/custom.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            fapilog
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/quickstart.html">Quickstart Tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/hello-world.html">Hello World Walkthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../core-concepts/index.html">Core Concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/pipeline-architecture.html">Pipeline Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/envelope.html">Envelope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/batching-backpressure.html">Batching &amp; Backpressure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/redaction.html">Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/metrics.html">Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html">Diagnostics Resilience</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html#id1">Diagnostics &amp; Resilience</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide/index.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/using-logger.html">Using the Logger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/context-enrichment.html">Context Enrichment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/performance-tuning.html">Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/integration-guide.html">Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/fastapi.html">FastAPI / ASGI Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/comparisons.html">Comparisons: fapilog vs stdlib, structlog, loguru</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api-reference/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/top-level-functions.html">Top-Level Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/logger-methods.html">Logger Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/plugins/index.html">Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/modules.html">API Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples &amp; Recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/fastapi-logging.html">FastAPI Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cli-tools.html">Logging in Scripts/CLIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/redacting-secrets.html">Redacting Secrets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/structured-error-logging.html">Structured Error Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/kubernetes-file-sink.html">Kubernetes File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/prometheus-metrics.html">Prometheus Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugin Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/authoring.html">Authoring Fapilog Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/enrichers.html">Enrichers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/processors.html">Processors</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting/index.html">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/logs-dropped-under-load.html">Logs Dropped Under Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/context-values-missing.html">Context Values Missing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/file-sink-not-rotating.html">File Sink Not Rotating</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/serialization-errors.html">Serialization Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing to fapilog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices.html">Appendices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../env-vars.html">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../settings-guide.html">Settings Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-guide.html">Schema Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugin-guide.html">Plugin Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction-guarantees.html">Redaction Guarantees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quality-signals.html">Quality Signals</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">fapilog</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Tamper-Evident Logging Add-on (Optional)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/addons/tamper-evident-logging.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="tamper-evident-logging-add-on-optional">
+<h1>Tamper-Evident Logging Add-on (Optional)<a class="headerlink" href="#tamper-evident-logging-add-on-optional" title="Link to this heading"></a></h1>
+<blockquote>
+<div><p><strong>Implementation Stories</strong>: This design is implemented across Stories 4.14–4.18.
+See <a class="reference internal" href="#../stories/"><span class="xref myst">docs/stories/</span></a> for detailed acceptance criteria and technical design.</p>
+</div></blockquote>
+<p>This design keeps the core light while offering an opt-in, first-class tamper-evident capability delivered as a separate plugin/package.</p>
+<section id="story-breakdown">
+<h2>Story Breakdown<a class="headerlink" href="#story-breakdown" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Story</p></th>
+<th class="head"><p>Title</p></th>
+<th class="head"><p>Status</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="xref myst">4.14</span></p></td>
+<td><p>Package Bootstrap</p></td>
+<td><p>Done</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="xref myst">4.15</span></p></td>
+<td><p>IntegrityEnricher &amp; ChainState</p></td>
+<td><p>Done</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="xref myst">4.16</span></p></td>
+<td><p>SealedSink &amp; Manifests</p></td>
+<td><p>Done</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="xref myst">4.17</span></p></td>
+<td><p>Verification API &amp; CLI</p></td>
+<td><p>Done</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="xref myst">4.18</span></p></td>
+<td><p>Enterprise Key Management</p></td>
+<td><p>Done</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><p><strong>Note</strong>: Story 4.13 (keyless hash chains in core) was cancelled. All tamper-evident functionality is in the plugin.</p>
+</div></blockquote>
+</section>
+<section id="packaging-and-opt-in">
+<h2>Packaging and Opt-in<a class="headerlink" href="#packaging-and-opt-in" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Package: <code class="docutils literal notranslate"><span class="pre">fapilog-tamper</span></code> (separate install). Depends on crypto libs (<code class="docutils literal notranslate"><span class="pre">cryptography</span></code>/<code class="docutils literal notranslate"><span class="pre">pynacl</span></code>) isolated from core.</p></li>
+<li><p>Core change: small hook to register an integrity enricher and an integrity sink wrapper via settings (e.g., <code class="docutils literal notranslate"><span class="pre">settings.integrity_plugin=&quot;tamper-sealed&quot;</span></code>). If absent, behavior is unchanged.</p></li>
+<li><p>Backward compatibility: integrity fields are optional and ignored by default; existing logs remain valid.</p></li>
+</ul>
+</section>
+<section id="threat-model-goals">
+<h2>Threat Model Goals<a class="headerlink" href="#threat-model-goals" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Detect insertion, deletion, modification, and reordering of log entries.</p></li>
+<li><p>Detect truncation or replacement of rotated files.</p></li>
+<li><p>Provide cryptographic proof material (manifests, chain roots) that can be verified offline.</p></li>
+</ul>
+</section>
+<section id="crypto-and-canonicalization">
+<h2>Crypto and Canonicalization<a class="headerlink" href="#crypto-and-canonicalization" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Per-record MAC: HMAC-SHA256 (default); allow <code class="docutils literal notranslate"><span class="pre">algo</span></code> override; optional Ed25519 signatures.</p></li>
+<li><p>Chain: forward hash chain <code class="docutils literal notranslate"><span class="pre">chain_hash</span> <span class="pre">=</span> <span class="pre">SHA256(prev_chain_hash</span> <span class="pre">||</span> <span class="pre">record_mac</span> <span class="pre">||</span> <span class="pre">seq</span> <span class="pre">||</span> <span class="pre">timestamp)</span></code> with root = 32-byte zero.</p></li>
+<li><p>Manifest signing: HMAC or Ed25519 over canonical JSON manifest (sorted keys, UTF-8, no whitespace).</p></li>
+<li><p>Canonical record encoding: stable JSON (sorted keys, UTF-8). Non-JSON types must be normalized deterministically.</p></li>
+</ul>
+</section>
+<section id="write-path-components-addon">
+<h2>Write Path Components (addon)<a class="headerlink" href="#write-path-components-addon" title="Link to this heading"></a></h2>
+<ol class="arabic">
+<li><p><strong>IntegrityEnricher</strong>: canonicalizes the event payload, computes per-record MAC/signature, injects:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="nt">&quot;integrity&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;seq&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">42</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;mac&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;base64url...&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;algo&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;HMAC-SHA256&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;key_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;audit-key-2025Q1&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;chain_hash&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;base64url...&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;prev_chain_hash&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;base64url...&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>ChainState</strong>: tracks <code class="docutils literal notranslate"><span class="pre">prev_chain_hash</span></code> and <code class="docutils literal notranslate"><span class="pre">seq</span></code> per stream/file; persists to a sidecar state (e.g., <code class="docutils literal notranslate"><span class="pre">.chainstate</span></code>) for restart continuity. On restart, can replay the tail of the current file to recover state.</p></li>
+<li><p><strong>SealedRotatingFileSink</strong> (wraps current rotating sink):</p>
+<ul class="simple">
+<li><p>Writes JSONL with integrity fields.</p></li>
+<li><p>Rotation: fsync active file, emit signed manifest, optionally gzip data + manifest; enforce append-only opens.</p></li>
+<li><p>Options: <code class="docutils literal notranslate"><span class="pre">fsync_on_write</span></code> (off by default), <code class="docutils literal notranslate"><span class="pre">fsync_on_rotate</span></code> (on by default for integrity mode), <code class="docutils literal notranslate"><span class="pre">rotate_chain</span></code> (reset chain per file vs continuous).</p></li>
+</ul>
+</li>
+<li><p><strong>Key management</strong>: uses existing <code class="docutils literal notranslate"><span class="pre">EncryptionSettings</span></code> surfaces:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">key_source</span></code>: env/file/kms/vault, with <code class="docutils literal notranslate"><span class="pre">key_id</span></code> and optional <code class="docutils literal notranslate"><span class="pre">version</span></code>.</p></li>
+<li><p>Multiple active keys supported; enricher tags <code class="docutils literal notranslate"><span class="pre">key_id</span></code>; verifier selects matching key.</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="manifest-format-json">
+<h2>Manifest Format (JSON)<a class="headerlink" href="#manifest-format-json" title="Link to this heading"></a></h2>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;fapilog-20250101-120000.jsonl&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;created_ts&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...Z&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;closed_ts&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...Z&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;record_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1234</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;first_seq&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;last_seq&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1234</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;first_ts&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...Z&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;last_ts&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...Z&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;root_chain_hash&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;base64url...&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;algo&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;HMAC-SHA256&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;key_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;audit-key-2025Q1&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;signature_algo&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;HMAC-SHA256&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;signature&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;base64url...&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;integrity_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="verification-components-addon">
+<h2>Verification Components (addon)<a class="headerlink" href="#verification-components-addon" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Verifier API</strong>: <code class="docutils literal notranslate"><span class="pre">verify_file(path,</span> <span class="pre">manifest_path=None,</span> <span class="pre">keys=KeyStore)</span> <span class="pre">-&gt;</span> <span class="pre">VerifyReport</span></code>.</p></li>
+<li><p><strong>CLI</strong>: <code class="docutils literal notranslate"><span class="pre">fapilog-tamper</span> <span class="pre">verify</span> <span class="pre">&lt;path&gt;</span> <span class="pre">[--manifest</span> <span class="pre">...]</span> <span class="pre">[--keys</span> <span class="pre">...]</span> <span class="pre">[--continue-chain-from</span> <span class="pre">&lt;manifest&gt;]</span></code>.</p></li>
+<li><p>Checks: recompute per-record MAC, verify chain continuity and <code class="docutils literal notranslate"><span class="pre">seq</span></code> monotonicity, compare root to manifest, verify manifest signature. Report gaps, corruption, wrong keys.</p></li>
+<li><p><strong>Self-checker</strong>: optional coroutine to re-verify recent files and emit compliance alerts via the existing <code class="docutils literal notranslate"><span class="pre">_send_compliance_alert</span></code> hook.</p></li>
+</ul>
+</section>
+<section id="config-knobs-addon">
+<h2>Config Knobs (addon)<a class="headerlink" href="#config-knobs-addon" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">tamper.enabled</span></code> (default false)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tamper.algorithm</span></code>, <code class="docutils literal notranslate"><span class="pre">tamper.key_id</span></code>, <code class="docutils literal notranslate"><span class="pre">tamper.key_source</span></code>, <code class="docutils literal notranslate"><span class="pre">tamper.state_dir</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tamper.fsync_on_write</span></code>, <code class="docutils literal notranslate"><span class="pre">tamper.rotate_chain</span></code>, <code class="docutils literal notranslate"><span class="pre">tamper.use_signatures</span></code> (Ed25519)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tamper.verify_on_close</span></code> (run verifier after rotation), <code class="docutils literal notranslate"><span class="pre">tamper.alert_on_failure</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tamper.key_cache_ttl_seconds</span></code>, <code class="docutils literal notranslate"><span class="pre">tamper.use_kms_signing</span></code>, <code class="docutils literal notranslate"><span class="pre">tamper.aws_region</span></code>, <code class="docutils literal notranslate"><span class="pre">tamper.vault_*</span></code>, <code class="docutils literal notranslate"><span class="pre">tamper.azure_*</span></code></p></li>
+<li><p>Supported <code class="docutils literal notranslate"><span class="pre">key_source</span></code>: <code class="docutils literal notranslate"><span class="pre">env</span></code>, <code class="docutils literal notranslate"><span class="pre">file</span></code>, <code class="docutils literal notranslate"><span class="pre">aws-kms</span></code>, <code class="docutils literal notranslate"><span class="pre">gcp-kms</span></code>, <code class="docutils literal notranslate"><span class="pre">azure-keyvault</span></code>, <code class="docutils literal notranslate"><span class="pre">vault</span></code> (optional deps <code class="docutils literal notranslate"><span class="pre">fapilog-tamper[all-kms]</span></code>)</p></li>
+</ul>
+</section>
+<section id="durability-and-performance">
+<h2>Durability and Performance<a class="headerlink" href="#durability-and-performance" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Hash/MAC per record is fast; hashing can be offloaded to worker threads if needed.</p></li>
+<li><p>Default to fsync on rotation only; allow per-write fsync for higher assurance.</p></li>
+<li><p>Append-only mode; atomic rename on rotation to avoid torn manifests.</p></li>
+</ul>
+</section>
+<section id="remote-transport-extension-optional">
+<h2>Remote Transport Extension (optional)<a class="headerlink" href="#remote-transport-extension-optional" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>For webhook/remote sinks: add MAC header (e.g., <code class="docutils literal notranslate"><span class="pre">X-Fapilog-MAC</span></code>) over body + nonce + timestamp; require mTLS; maintain replay cache on server side.</p></li>
+</ul>
+</section>
+<section id="testing-plan-addon">
+<h2>Testing Plan (addon)<a class="headerlink" href="#testing-plan-addon" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Unit: deterministic MAC, chain continuity, manifest signing/verification, key rotation selection, chain-state recovery.</p></li>
+<li><p>Property: random bit-flips/inserts/deletes detected.</p></li>
+<li><p>Integration: write/rotate/verify cycles, gzip + manifest, restart recovery.</p></li>
+<li><p>Negative: corrupted records, missing manifests, wrong keys, non-monotonic seq, replayed transport payloads.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Chris Haste.
+      <span class="lastupdated">Last updated on December 31, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

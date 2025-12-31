@@ -20,6 +20,7 @@ This guide documents Settings groups and fields.
 | `core.internal_logging_enabled` | bool | False | Emit DEBUG/WARN diagnostics for internal errors |
 | `core.error_dedupe_window_seconds` | float | 5.0 | Seconds to suppress duplicate ERROR logs with the same message; 0 disables deduplication |
 | `core.shutdown_timeout_seconds` | float | 3.0 | Maximum time to flush on shutdown signals |
+| `core.worker_count` | int | 1 | Number of worker tasks for flush processing |
 | `core.sensitive_fields_policy` | list | PydanticUndefined | Optional list of dotted paths for sensitive fields policy; warning if no redactors configured |
 | `core.enable_redactors` | bool | True | Enable redactors stage between enrichers and sink emission |
 | `core.redactors_order` | list | PydanticUndefined | Ordered list of redactor plugin names to apply |
@@ -30,6 +31,8 @@ This guide documents Settings groups and fields.
 | `core.exceptions_max_stack_chars` | int | 20000 | Maximum total characters for serialized stack string |
 | `core.strict_envelope_mode` | bool | False | If True, drop emission when envelope cannot be produced; otherwise fallback to best-effort serialization with diagnostics |
 | `core.capture_unhandled_enabled` | bool | False | Automatically install unhandled exception hooks (sys/asyncio) |
+| `core.integrity_plugin` | str | None | — | Optional integrity plugin name (fapilog.integrity entry point) to enable |
+| `core.integrity_config` | dict[str, object] | None | — | Opaque configuration mapping passed to the selected integrity plugin |
 | `core.serialize_in_flush` | bool | False | If True, pre-serialize envelopes once during flush and pass SerializedView to sinks that support write_serialized |
 | `core.resource_pool_max_size` | int | 8 | Default max size for resource pools |
 | `core.resource_pool_acquire_timeout_seconds` | float | 2.0 | Default acquire timeout for pools |

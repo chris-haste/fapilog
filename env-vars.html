@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Environment Variables &mdash; fapilog 0.3.3 documentation</title>
+  <title>Environment Variables &mdash; fapilog 0.3.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -15,7 +15,7 @@
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=d5a15cff"></script>
+      <script src="_static/documentation_options.js?v=1e28cc32"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -81,6 +81,7 @@
 <li class="toctree-l2"><a class="reference internal" href="user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="enterprise.html">Enterprise Features</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api-reference/index.html">API Reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api-reference/top-level-functions.html">Top-Level Functions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api-reference/logger-methods.html">Logger Methods</a></li>
@@ -244,6 +245,16 @@
 <td><p>20000</p></td>
 <td><p>Maximum total characters for serialized stack string</p></td>
 </tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__CORE__INTEGRITY_CONFIG</span></code></p></td>
+<td><p>dict[str, object]</p></td>
+<td><p>None</p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__CORE__INTEGRITY_PLUGIN</span></code></p></td>
+<td><p>str</p></td>
+<td><p>None</p></td>
+<td><p>—</p></td>
+</tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__CORE__INTERNAL_LOGGING_ENABLED</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
@@ -304,197 +315,202 @@
 <td><p>False</p></td>
 <td><p>If True, drop emission when envelope cannot be produced; otherwise fallback to best-effort serialization with diagnostics</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__HTTP__ENDPOINT</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__CORE__WORKER_COUNT</span></code></p></td>
+<td><p>int</p></td>
+<td><p>1</p></td>
+<td><p>Number of worker tasks for flush processing</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__HTTP__ENDPOINT</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__HTTP__HEADERS</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__HTTP__HEADERS</span></code></p></td>
 <td><p>dict</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Default headers to send with each request</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__HTTP__HEADERS_JSON</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__HTTP__HEADERS_JSON</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__HTTP__RETRY_BACKOFF_SECONDS</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__HTTP__RETRY_BACKOFF_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__HTTP__RETRY_MAX_ATTEMPTS</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__HTTP__RETRY_MAX_ATTEMPTS</span></code></p></td>
 <td><p>int</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__HTTP__TIMEOUT_SECONDS</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__HTTP__TIMEOUT_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>5.0</p></td>
 <td><p>Request timeout for HTTP sink operations</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__ALERTING__ENABLED</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__ALERTING__ENABLED</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Enable emitting alerts from the logging pipeline</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__ALERTING__MIN_SEVERITY</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__ALERTING__MIN_SEVERITY</span></code></p></td>
 <td><p>Literal</p></td>
 <td><p>ERROR</p></td>
 <td><p>Minimum alert severity to emit (filter threshold)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__LOGGING__FORMAT</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__LOGGING__FORMAT</span></code></p></td>
 <td><p>Literal</p></td>
 <td><p>json</p></td>
 <td><p>Output format for logs (machine-friendly JSON or text)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__LOGGING__INCLUDE_CORRELATION</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__LOGGING__INCLUDE_CORRELATION</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Include correlation IDs and trace/span metadata in logs</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__LOGGING__SAMPLING_RATE</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__LOGGING__SAMPLING_RATE</span></code></p></td>
 <td><p>float</p></td>
 <td><p>1.0</p></td>
 <td><p>Log sampling probability in range 0.0–1.0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__METRICS__ENABLED</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__METRICS__ENABLED</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Enable internal metrics collection/export</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__METRICS__EXPORTER</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__METRICS__EXPORTER</span></code></p></td>
 <td><p>Literal</p></td>
 <td><p>prometheus</p></td>
 <td><p>Metrics exporter to use (‘prometheus’ or ‘none’)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__METRICS__PORT</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__METRICS__PORT</span></code></p></td>
 <td><p>int</p></td>
 <td><p>8000</p></td>
 <td><p>TCP port for metrics exporter</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__MONITORING__ENABLED</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__MONITORING__ENABLED</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Enable health/monitoring checks and endpoints</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__MONITORING__ENDPOINT</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__MONITORING__ENDPOINT</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__TRACING__ENABLED</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__TRACING__ENABLED</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Enable distributed tracing features</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__TRACING__PROVIDER</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__TRACING__PROVIDER</span></code></p></td>
 <td><p>Literal</p></td>
 <td><p>otel</p></td>
 <td><p>Tracing backend provider (‘otel’ or ‘none’)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__TRACING__SAMPLING_RATE</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__OBSERVABILITY__TRACING__SAMPLING_RATE</span></code></p></td>
 <td><p>float</p></td>
 <td><p>0.1</p></td>
 <td><p>Trace sampling probability in range 0.0–1.0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__PLUGINS__ALLOWLIST</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__PLUGINS__ALLOWLIST</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>If non-empty, only plugin names in this list are considered during load</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__PLUGINS__DENYLIST</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__PLUGINS__DENYLIST</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Plugin names to skip during discovery/load</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__PLUGINS__DISCOVERY_PATHS</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__PLUGINS__DISCOVERY_PATHS</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Additional filesystem paths to scan for local plugins</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__PLUGINS__ENABLED</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__PLUGINS__ENABLED</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Enable plugin discovery and loading</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__PLUGINS__LOAD_ON_STARTUP</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__PLUGINS__LOAD_ON_STARTUP</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Plugins to eagerly load during registry.initialize() if discovered</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SCHEMA_VERSION</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SCHEMA_VERSION</span></code></p></td>
 <td><p>str</p></td>
 <td><p>1.0</p></td>
 <td><p>Configuration schema version for forward/backward compatibility</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ACCESS_CONTROL__ALLOWED_ROLES</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ACCESS_CONTROL__ALLOWED_ROLES</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>List of roles granted access to protected operations</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ACCESS_CONTROL__ALLOW_ANONYMOUS_READ</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ACCESS_CONTROL__ALLOW_ANONYMOUS_READ</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Permit read access without authentication (discouraged)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ACCESS_CONTROL__ALLOW_ANONYMOUS_WRITE</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ACCESS_CONTROL__ALLOW_ANONYMOUS_WRITE</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Permit write access without authentication (never recommended)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ACCESS_CONTROL__AUTH_MODE</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ACCESS_CONTROL__AUTH_MODE</span></code></p></td>
 <td><p>Literal</p></td>
 <td><p>token</p></td>
 <td><p>Authentication mode used by integrations (library-agnostic)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ACCESS_CONTROL__ENABLED</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ACCESS_CONTROL__ENABLED</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Enable access control checks across the system</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ACCESS_CONTROL__REQUIRE_ADMIN_FOR_SENSITIVE_OPS</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ACCESS_CONTROL__REQUIRE_ADMIN_FOR_SENSITIVE_OPS</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Require admin role for sensitive or destructive operations</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ENCRYPTION__ALGORITHM</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ENCRYPTION__ALGORITHM</span></code></p></td>
 <td><p>Literal</p></td>
 <td><p>AES-256</p></td>
 <td><p>Primary encryption algorithm</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ENCRYPTION__ENABLED</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ENCRYPTION__ENABLED</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Enable encryption features</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ENCRYPTION__ENV_VAR_NAME</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ENCRYPTION__ENV_VAR_NAME</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ENCRYPTION__KEY_FILE_PATH</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ENCRYPTION__KEY_FILE_PATH</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ENCRYPTION__KEY_ID</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ENCRYPTION__KEY_ID</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ENCRYPTION__KEY_SOURCE</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ENCRYPTION__KEY_SOURCE</span></code></p></td>
 <td><p>Optional</p></td>
 <td><p>—</p></td>
 <td><p>Source for key material</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ENCRYPTION__MIN_TLS_VERSION</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ENCRYPTION__MIN_TLS_VERSION</span></code></p></td>
 <td><p>Literal</p></td>
 <td><p>1.2</p></td>
 <td><p>Minimum TLS version for transport</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ENCRYPTION__ROTATE_INTERVAL_DAYS</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SECURITY__ENCRYPTION__ROTATE_INTERVAL_DAYS</span></code></p></td>
 <td><p>int</p></td>
 <td><p>90</p></td>
 <td><p>Recommended key rotation interval</p></td>
@@ -515,7 +531,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on December 23, 2025.
+      <span class="lastupdated">Last updated on December 31, 2025.
       </span></p>
   </div>
 

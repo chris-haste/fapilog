@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Configuration &mdash; fapilog 0.3.3 documentation</title>
+  <title>Configuration &mdash; fapilog 0.3.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -15,7 +15,7 @@
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=d5a15cff"></script>
+      <script src="../_static/documentation_options.js?v=1e28cc32"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -81,6 +81,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="top-level-functions.html">Top-Level Functions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="logger-methods.html">Logger Methods</a></li>
@@ -193,6 +194,10 @@
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_HTTP__ENDPOINT</span><span class="o">=</span>https://logs.example.com/ingest
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_HTTP__TIMEOUT_SECONDS</span><span class="o">=</span><span class="m">5</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_HTTP__RETRY_MAX_ATTEMPTS</span><span class="o">=</span><span class="m">3</span>
+
+<span class="c1"># Optional integrity add-on (if installed)</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__INTEGRITY_PLUGIN</span><span class="o">=</span>tamper-sealed
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__INTEGRITY_CONFIG</span><span class="o">=</span><span class="s1">&#39;{&quot;key_id&quot;:&quot;audit-key-2025Q1&quot;}&#39;</span>
 </pre></div>
 </div>
 </section>
@@ -204,8 +209,10 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">core.batch_max_size</span></code> and <code class="docutils literal notranslate"><span class="pre">core.batch_timeout_seconds</span></code>: batching controls</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">core.enable_metrics</span></code>: toggles internal metrics collection</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">core.drop_on_full</span></code> / <code class="docutils literal notranslate"><span class="pre">core.backpressure_wait_ms</span></code>: backpressure behavior</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">core.worker_count</span></code>: number of worker tasks for flush processing</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">core.enable_redactors</span></code>, <code class="docutils literal notranslate"><span class="pre">core.redactors_order</span></code>, <code class="docutils literal notranslate"><span class="pre">core.sensitive_fields_policy</span></code>: redaction stage configuration</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">core.serialize_in_flush</span></code>: pre-serialize envelopes during drain and pass bytes to sinks that support it</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">core.integrity_plugin</span></code> / <code class="docutils literal notranslate"><span class="pre">core.integrity_config</span></code>: optional tamper-evident add-on (entry-point <code class="docutils literal notranslate"><span class="pre">fapilog.integrity</span></code>) and opaque config map passed to it; no effect if unset. See <code class="docutils literal notranslate"><span class="pre">docs/addons/tamper-evident-logging.md</span></code>.</p></li>
 </ul>
 </section>
 <section id="http-sink-optional">
@@ -215,6 +222,7 @@
 <section id="plugin-discovery">
 <h2>Plugin discovery<a class="headerlink" href="#plugin-discovery" title="Link to this heading"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">settings.plugins</span></code> controls plugin discovery allow/deny lists and additional search paths. Defaults: enabled, load-on-startup empty.</p>
+<p>Advanced (programmatic): <code class="docutils literal notranslate"><span class="pre">AsyncPluginDiscovery</span></code> offloads blocking importlib/FS work to threads by default to remain event-loop friendly. You can tune it via kwargs when constructing the discovery instance (e.g., <code class="docutils literal notranslate"><span class="pre">offload_blocking=True</span></code> (default), <code class="docutils literal notranslate"><span class="pre">chunk_size=64</span></code> for batch scanning installed dists, <code class="docutils literal notranslate"><span class="pre">entrypoint_timeout=2.0</span></code> for local plugin imports). Normal settings-based usage requires no changes.</p>
 </section>
 <section id="validation">
 <h2>Validation<a class="headerlink" href="#validation" title="Link to this heading"></a></h2>
@@ -236,7 +244,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on December 23, 2025.
+      <span class="lastupdated">Last updated on December 31, 2025.
       </span></p>
   </div>
 

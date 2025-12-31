@@ -18,6 +18,8 @@
 | `FAPILOG__CORE__EXCEPTIONS_ENABLED` | bool | True | Enable structured exception serialization for log calls |
 | `FAPILOG__CORE__EXCEPTIONS_MAX_FRAMES` | int | 50 | Maximum number of stack frames to capture for exceptions |
 | `FAPILOG__CORE__EXCEPTIONS_MAX_STACK_CHARS` | int | 20000 | Maximum total characters for serialized stack string |
+| `FAPILOG__CORE__INTEGRITY_CONFIG` | dict[str, object] | None | — | Opaque configuration mapping passed to the selected integrity plugin |
+| `FAPILOG__CORE__INTEGRITY_PLUGIN` | str | None | — | Optional integrity plugin name (fapilog.integrity entry point) to enable |
 | `FAPILOG__CORE__INTERNAL_LOGGING_ENABLED` | bool | False | Emit DEBUG/WARN diagnostics for internal errors |
 | `FAPILOG__CORE__LOG_LEVEL` | Literal | INFO | Default log level |
 | `FAPILOG__CORE__MAX_QUEUE_SIZE` | int | 10000 | Maximum in-memory queue size for async processing |
@@ -30,6 +32,7 @@
 | `FAPILOG__CORE__SERIALIZE_IN_FLUSH` | bool | False | If True, pre-serialize envelopes once during flush and pass SerializedView to sinks that support write_serialized |
 | `FAPILOG__CORE__SHUTDOWN_TIMEOUT_SECONDS` | float | 3.0 | Maximum time to flush on shutdown signals |
 | `FAPILOG__CORE__STRICT_ENVELOPE_MODE` | bool | False | If True, drop emission when envelope cannot be produced; otherwise fallback to best-effort serialization with diagnostics |
+| `FAPILOG__CORE__WORKER_COUNT` | int | 1 | Number of worker tasks for flush processing |
 | `FAPILOG__HTTP__ENDPOINT` | str | None | — | HTTP endpoint to POST log events to |
 | `FAPILOG__HTTP__HEADERS` | dict | PydanticUndefined | Default headers to send with each request |
 | `FAPILOG__HTTP__HEADERS_JSON` | str | None | — | JSON-encoded headers map (e.g. '{"Authorization": "Bearer x"}') |
