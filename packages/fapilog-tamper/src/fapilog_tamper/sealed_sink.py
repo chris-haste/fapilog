@@ -19,6 +19,7 @@ from fapilog.plugins.sinks import BaseSink
 
 from .canonical import b64url_decode, b64url_encode
 from .config import TamperConfig
+from .providers import KeyProvider, create_key_provider
 
 try:  # Optional Ed25519 dependency
     from nacl.signing import SigningKey
@@ -104,7 +105,12 @@ class SealedSink(BaseSink):
     """Sink wrapper that generates signed manifests on rotation."""
 
     def __init__(
-        self, inner_sink: BaseSink, config: TamperConfig, *, key: bytes | None = None
+        self,
+        inner_sink: BaseSink,
+        config: TamperConfig,
+        *,
+        key: bytes | None = None,
+        provider: KeyProvider | None = None,
     ) -> None:
         self._inner = inner_sink
         self._config = config
@@ -114,9 +120,12 @@ class SealedSink(BaseSink):
         self._current_file: FileMetadata | None = None
         self._previous_root: str | None = None
         self._manifest_generator: ManifestGenerator | None = None
+        self._provider = provider
 
     async def start(self) -> None:
         await self._maybe_call(self._inner, "start")
+        if self._provider is None:
+            self._provider = create_key_provider(self._config)
         await self._load_key_if_needed()
         self._manifest_generator = ManifestGenerator(self._config, self._key)
         self._current_file = FileMetadata(
@@ -188,6 +197,12 @@ class SealedSink(BaseSink):
             self._current_file,
             closed_ts=datetime.now(timezone.utc),
         )
+        if self._config.use_kms_signing and self._provider:
+            payload = ManifestGenerator._canonical_manifest_payload(
+                {k: v for k, v in manifest.items() if k != "signature"}
+            )
+            signature = await self._provider.sign(self._config.key_id, payload)
+            manifest["signature"] = b64url_encode(signature)
         manifest_path = Path(self._current_file.filename + ".manifest.json")
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
         await asyncio.to_thread(
@@ -277,18 +292,11 @@ class SealedSink(BaseSink):
     async def _load_key_if_needed(self) -> None:
         if self._key:
             return
-        raw: bytes | None = None
-        if self._config.key_source == "env":
-            env_val = os.getenv(self._config.key_env_var)
-            raw = env_val.encode("utf-8") if env_val else None
-        elif self._config.key_source == "file" and self._config.key_file_path:
-            try:
-                raw = await asyncio.to_thread(
-                    Path(self._config.key_file_path).read_bytes
-                )
-            except Exception:  # pragma: no cover - file read error handled
-                raw = None
-
+        if self._provider is None:
+            return
+        if self._config.use_kms_signing:
+            return
+        raw = await self._provider.get_key(self._config.key_id)
         if raw is None:
             return
         self._key = self._decode_key(raw)

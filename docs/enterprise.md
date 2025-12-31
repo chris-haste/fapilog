@@ -1,22 +1,31 @@
 # Enterprise Features
 
-Fapilog is built for production use in enterprise environments. This page consolidates the compliance, audit, and security capabilities that differentiate fapilog from general-purpose logging libraries.
+Fapilog provides building blocks for enterprise environments. This page highlights the compliance, audit, and security capabilities you can compose with fapilog and its add-ons. It is **not** a certification or a guarantee of regulatory compliance; you must validate controls for your own environment.
 
 ## At a Glance
 
 | Capability | Description |
 |------------|-------------|
-| **Compliance Levels** | SOC2, HIPAA, GDPR, PCI-DSS, ISO 27001, SOX |
-| **Audit Trail** | Structured audit events with tamper-evident hash chains |
-| **Data Protection** | PII/PHI classification, redaction, encryption config |
-| **Access Control** | Role-based access, auth mode configuration |
-| **Integrity** | SHA-256 checksums, sequence numbers, chain verification |
+| **Compliance Controls (assist)** | Policy templates and logging patterns that can be aligned to SOC2, HIPAA, GDPR, PCI-DSS, ISO 27001, SOX (you own control validation) |
+| **Audit Trail** | Structured audit events with optional tamper-evident hash chains (via add-on) |
+| **Data Protection** | PII/PHI tagging, redaction knobs, encryption settings |
+| **Access Control** | Role-based access settings and auth mode configuration helpers |
+| **Integrity** | SHA-256 checksums, sequence numbers, chain verification (when enabled) |
 
 ---
 
-## Compliance Framework Support
+## Add-on spotlight: Tamper-Evident Logging + KMS/Vault
 
-Fapilog provides configuration presets for major compliance frameworks:
+- **What**: `fapilog-tamper` add-on that adds per-record MAC/signatures, sealed manifests, and cross-file chain verification.
+- **Key management**: Integrates with AWS KMS, GCP KMS, Azure Key Vault, and HashiCorp Vault (including KMS-native signing so keys never leave the provider). Optional extras: `fapilog-tamper[all-kms]`.
+- **Docs**: See [Enterprise Key Management for Tamper-Evident Logging](enterprise/tamper-enterprise-key-management.md) for architecture, configuration, and deployment guidance.
+- **Use cases**: Regulated audit trails (SOX/SOC2/HIPAA/PCI), shared services with centralized key custodians, and environments that require attested manifests for log rotation.
+
+---
+
+## Compliance Framework Support (assist, not certification)
+
+Fapilog ships configuration helpers that can map to common frameworks. Use them as starting points and validate against your own policies and auditors:
 
 ```python
 from fapilog.core.audit import ComplianceLevel, CompliancePolicy
@@ -31,22 +40,22 @@ policy = CompliancePolicy(
 )
 ```
 
-### Supported Frameworks
+### Example control mappings (non-exhaustive)
 
-| Framework | Key Features Enabled |
-|-----------|---------------------|
+| Framework | Control areas this can help with |
+|-----------|----------------------------------|
 | **SOC2** | Encryption, integrity checks, access logging |
-| **HIPAA** | PHI redaction, minimum necessary rule, audit trails |
-| **GDPR** | PII redaction, data subject rights support |
-| **PCI-DSS** | Encryption at rest, access control validation |
-| **ISO 27001** | Full security controls, integrity verification |
-| **SOX** | Change control, audit trails |
+| **HIPAA** | PHI redaction, minimum necessary patterns, audit trails |
+| **GDPR** | PII redaction, data subject request support (application responsibility) |
+| **PCI-DSS** | Encryption at rest, access logging (card data handling remains your responsibility) |
+| **ISO 27001** | Security logging and integrity controls |
+| **SOX** | Change/event logging with chain verification |
 
 ---
 
 ## Audit Trail System
 
-The `AuditTrail` class provides comprehensive audit logging for compliance:
+The `AuditTrail` building blocks provide structured audit logging. You control event content and ensure policies meet your regulatory scope:
 
 ```python
 from fapilog.core.audit import AuditTrail, AuditEventType, CompliancePolicy
@@ -90,7 +99,7 @@ await audit.log_data_access(
 
 ## Tamper-Evident Hash Chains
 
-Every audit event includes cryptographic integrity fields that enable detection of tampering or gaps:
+When you enable the tamper-evident add-on, audit events can include cryptographic integrity fields to detect tampering or gaps:
 
 ```python
 # Each AuditEvent automatically includes:
@@ -149,7 +158,7 @@ await audit.log_data_access(
 
 ### Automatic Redaction
 
-Built-in redactors protect sensitive data in logs:
+Built-in redactors help mask common sensitive fields but must be tuned to your schemas and policies:
 
 ```python
 from fapilog import get_logger, Settings
@@ -174,7 +183,7 @@ See [Redaction Guarantees](redaction-guarantees.md) for configuration details.
 
 ### Encryption Configuration
 
-Configure encryption with support for enterprise key management:
+Configure encryption with support for enterprise key management. These are primitives; key custody and rotation remain your responsibility:
 
 ```python
 from fapilog.core.encryption import EncryptionSettings
@@ -202,7 +211,7 @@ encryption = EncryptionSettings(
 
 ## Access Control
 
-Configure role-based access control:
+Configure role-based access control. Integrate with your identity provider and test according to your threat model:
 
 ```python
 from fapilog.core.access_control import AccessControlSettings
@@ -221,7 +230,7 @@ access = AccessControlSettings(
 
 ## Retention Policies
 
-Configure log retention for compliance:
+Configure log retention to align with your data lifecycle requirements:
 
 ```python
 policy = CompliancePolicy(
@@ -328,4 +337,3 @@ Fapilog's JSON output integrates with standard log aggregators:
 - [Redaction Guarantees](redaction-guarantees.md) - PII/secret protection
 - [Core Concepts: Redaction](core-concepts/redaction.md) - Redactor configuration
 - [API Reference: Configuration](api-reference/configuration.md) - Settings reference
-

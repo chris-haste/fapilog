@@ -73,7 +73,7 @@ appendices
 - **[Getting Started](getting-started/index.md)** - Installation and quickstart
 - **[Core Concepts](core-concepts/index.md)** - Understanding the architecture
 - **[User Guide](user-guide/index.md)** - Practical usage and configuration
-- **[Enterprise Features](enterprise.md)** - Compliance, audit trails, and security
+- **[Enterprise Features](enterprise.md)** - Compliance, audit trails, and security (see the new tamper/KMS guide under Enterprise)
 
 **Reference:**
 

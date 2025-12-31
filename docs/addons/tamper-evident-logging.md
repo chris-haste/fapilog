@@ -9,11 +9,11 @@ This design keeps the core light while offering an opt-in, first-class tamper-ev
 
 | Story                                                       | Title                          | Status |
 | ----------------------------------------------------------- | ------------------------------ | ------ |
-| [4.14](../stories/4.14.fapilog-tamper-package-bootstrap.md) | Package Bootstrap              | Ready  |
-| [4.15](../stories/4.15.integrity-enricher-chain-state.md)   | IntegrityEnricher & ChainState | Ready  |
-| [4.16](../stories/4.16.sealed-sink-manifests.md)            | SealedSink & Manifests         | Ready  |
-| [4.17](../stories/4.17.verification-api-cli.md)             | Verification API & CLI         | Ready  |
-| [4.18](../stories/4.18.enterprise-key-management.md)        | Enterprise Key Management      | Ready  |
+| [4.14](../stories/4.14.fapilog-tamper-package-bootstrap.md) | Package Bootstrap              | Done   |
+| [4.15](../stories/4.15.integrity-enricher-chain-state.md)   | IntegrityEnricher & ChainState | Done   |
+| [4.16](../stories/4.16.sealed-sink-manifests.md)            | SealedSink & Manifests         | Done   |
+| [4.17](../stories/4.17.verification-api-cli.md)             | Verification API & CLI         | Done   |
+| [4.18](../stories/4.18.enterprise-key-management.md)        | Enterprise Key Management      | Done   |
 
 > **Note**: Story 4.13 (keyless hash chains in core) was cancelled. All tamper-evident functionality is in the plugin.
 
@@ -93,6 +93,8 @@ This design keeps the core light while offering an opt-in, first-class tamper-ev
 - `tamper.algorithm`, `tamper.key_id`, `tamper.key_source`, `tamper.state_dir`
 - `tamper.fsync_on_write`, `tamper.rotate_chain`, `tamper.use_signatures` (Ed25519)
 - `tamper.verify_on_close` (run verifier after rotation), `tamper.alert_on_failure`
+- `tamper.key_cache_ttl_seconds`, `tamper.use_kms_signing`, `tamper.aws_region`, `tamper.vault_*`, `tamper.azure_*`
+- Supported `key_source`: `env`, `file`, `aws-kms`, `gcp-kms`, `azure-keyvault`, `vault` (optional deps `fapilog-tamper[all-kms]`)
 
 ## Durability and Performance
 
