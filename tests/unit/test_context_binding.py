@@ -3,7 +3,7 @@ from typing import Any, List
 
 import pytest
 
-from fapilog import get_logger
+from fapilog import get_logger, runtime_async
 
 
 @pytest.mark.asyncio
@@ -45,6 +45,29 @@ async def test_bind_and_precedence_and_unbind_and_clear() -> None:
     m3 = captured[-1]["metadata"]
     # cleared context shouldn't include previous keys
     assert "request_id" not in m3 and "user_id" not in m3
+
+
+@pytest.mark.asyncio
+async def test_unbind_returns_logger_sync_facade() -> None:
+    logger = get_logger(name="unbind-return-sync")
+    try:
+        bound = logger.bind(request_id="123")
+        assert bound is logger
+        unbound = bound.unbind("request_id")
+        assert unbound is logger
+        assert hasattr(unbound, "info")
+    finally:
+        await logger.stop_and_drain()
+
+
+@pytest.mark.asyncio
+async def test_unbind_returns_logger_async_facade() -> None:
+    async with runtime_async() as logger:
+        bound = logger.bind(request_id="abc")
+        assert bound is logger
+        unbound = bound.unbind("request_id")
+        assert unbound is logger
+        assert hasattr(unbound, "info")
 
 
 @pytest.mark.asyncio
