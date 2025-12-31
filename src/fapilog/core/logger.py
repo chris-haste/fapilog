@@ -564,8 +564,8 @@ class SyncLoggerFacade:
         self._bound_context_var.set(current)
         return self
 
-    def unbind(self, *keys: str) -> None:
-        """Remove specific keys from the bound context for current task."""
+    def unbind(self, *keys: str) -> SyncLoggerFacade:
+        """Remove specific keys from the bound context for current task and return self."""
         try:
             ctx_val = self._bound_context_var.get(None)
             current = dict(ctx_val or {})
@@ -574,6 +574,7 @@ class SyncLoggerFacade:
         for k in keys:
             current.pop(k, None)
         self._bound_context_var.set(current)
+        return self
 
     def clear_context(self) -> None:
         """Clear all bound context for current task."""
@@ -1344,8 +1345,8 @@ class AsyncLoggerFacade:
         self._bound_context_var.set(current)
         return self
 
-    def unbind(self, *keys: str) -> None:
-        """Remove specific keys from the bound context for current task."""
+    def unbind(self, *keys: str) -> AsyncLoggerFacade:
+        """Remove specific keys from the bound context for current task and return self."""
         try:
             ctx_val = self._bound_context_var.get(None)
             current = dict(ctx_val or {})
@@ -1354,6 +1355,7 @@ class AsyncLoggerFacade:
         for k in keys:
             current.pop(k, None)
         self._bound_context_var.set(current)
+        return self
 
     def clear_context(self) -> None:
         """Clear all bound context for current task."""
