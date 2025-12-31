@@ -7,6 +7,16 @@ from .chain_state import GENESIS_HASH, ChainStatePersistence
 from .config import TamperConfig
 from .enricher import IntegrityEnricher
 from .plugin import TamperSealedPlugin, TamperSealedPluginClass
+from .providers import (
+    AwsKmsProvider,
+    AzureKeyVaultProvider,
+    EnvKeyProvider,
+    FileKeyProvider,
+    GcpKmsProvider,
+    KeyProvider,
+    VaultProvider,
+    create_key_provider,
+)
 from .sealed_sink import ManifestGenerator, SealedSink
 from .types import ChainState, IntegrityFields
 from .verify import (
@@ -38,6 +48,14 @@ __all__ = [
     "KeyStore",
     "EnvKeyStore",
     "FileKeyStore",
+    "EnvKeyProvider",
+    "FileKeyProvider",
+    "AwsKmsProvider",
+    "GcpKmsProvider",
+    "AzureKeyVaultProvider",
+    "VaultProvider",
+    "KeyProvider",
+    "create_key_provider",
     "run_self_check",
     "verify_chain_across_files",
     "write_manifest",

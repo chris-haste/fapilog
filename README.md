@@ -198,6 +198,8 @@ Fapilog features a universal plugin ecosystem:
   - Under a simulated 3 ms-per-write sink, fapilog reduced app-side log-call latency by ~75–80% vs stdlib, maintaining sub‑millisecond medians. Reproduce with `scripts/benchmarking.py`.
 - **Burst absorption with predictable behavior**
   - With a 20k burst and a 3 ms sink delay, fapilog processed ~90% and dropped ~10% per policy, keeping the app responsive.
+- **Tamper-evident logging add-on**
+  - Optional `fapilog-tamper` package adds integrity MAC/signatures, sealed manifests, and enterprise key management (AWS/GCP/Azure/Vault). See `docs/addons/tamper-evident-logging.md` and `docs/enterprise/tamper-enterprise-key-management.md`.
 - **Honest note**
   - In steady-state fast-sink scenarios, Python’s stdlib logging can be faster per call. Fapilog shines under constrained sinks, concurrency, and bursts.
 

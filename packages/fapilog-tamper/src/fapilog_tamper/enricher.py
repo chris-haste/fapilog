@@ -8,9 +8,7 @@ import asyncio
 import base64
 import hashlib
 import hmac
-import os
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any
 
 from fapilog.plugins.enrichers import BaseEnricher
@@ -18,6 +16,7 @@ from fapilog.plugins.enrichers import BaseEnricher
 from .canonical import b64url_encode, canonicalize
 from .chain_state import GENESIS_HASH, ChainState, ChainStatePersistence
 from .config import TamperConfig
+from .providers import KeyProvider, create_key_provider
 
 try:  # Optional Ed25519 dependency
     from nacl.signing import SigningKey
@@ -30,7 +29,12 @@ class IntegrityEnricher(BaseEnricher):
 
     name = "tamper-sealed"
 
-    def __init__(self, config: TamperConfig, stream_id: str = "default") -> None:
+    def __init__(
+        self,
+        config: TamperConfig,
+        stream_id: str = "default",
+        provider: KeyProvider | None = None,
+    ) -> None:
         self._config = config
         self._stream_id = stream_id
         self._lock = asyncio.Lock()
@@ -38,11 +42,14 @@ class IntegrityEnricher(BaseEnricher):
         self._signing_key: SigningKey | None = None
         self._state: ChainState | None = None
         self._persistence: ChainStatePersistence | None = None
+        self._provider = provider
 
     async def start(self) -> None:
         self._persistence = ChainStatePersistence(
             state_dir=self._config.state_dir, stream_id=self._stream_id
         )
+        if self._provider is None:
+            self._provider = create_key_provider(self._config)
         self._key, self._signing_key = await self._load_keys()
         self._state = await self._persistence.load()
         if self._state.key_id == "":
@@ -60,7 +67,11 @@ class IntegrityEnricher(BaseEnricher):
             return {}
         if self._config.algorithm == "Ed25519" and not self._signing_key:
             return {}
-        if self._config.algorithm == "HMAC-SHA256" and not self._key:
+        if (
+            self._config.algorithm == "HMAC-SHA256"
+            and not self._config.use_kms_signing
+            and not self._key
+        ):
             return {}
 
         # Ensure state exists
@@ -81,7 +92,7 @@ class IntegrityEnricher(BaseEnricher):
         async with self._lock:
             seq = self._state.seq + 1
 
-            mac = self._compute_mac(payload)
+            mac = await self._compute_mac(payload)
 
             chain_input = (
                 self._state.prev_chain_hash
@@ -111,30 +122,16 @@ class IntegrityEnricher(BaseEnricher):
 
     async def _load_keys(self) -> tuple[bytes | None, SigningKey | None]:
         """Load key material based on configuration."""
-        raw: bytes | None = None
-        if self._config.key_source == "env":
-            env_val = os.getenv(self._config.key_env_var)
-            if env_val:
-                raw = env_val.encode("utf-8")
-            else:
-                self._warn("key not found in env", source="env")
-        elif self._config.key_source == "file":
-            if not self._config.key_file_path:
-                self._warn("key_file_path not provided", source="file")
-            else:
-                try:
-                    raw = await asyncio.to_thread(
-                        Path(self._config.key_file_path).read_bytes
-                    )
-                except FileNotFoundError:
-                    self._warn("key file not found", source="file")
-                except Exception as exc:  # pragma: no cover - defensive
-                    self._warn("failed to read key file", source="file", error=str(exc))
-        else:
-            self._warn("unsupported key source", source=self._config.key_source)
+        if self._provider is None:
+            self._warn("key provider unavailable", source=self._config.key_source)
+            return None, None
+        if self._config.use_kms_signing:
+            return None, None
 
+        raw = await self._provider.get_key(self._config.key_id)
         key_bytes = self._decode_key(raw) if raw is not None else None
         if key_bytes is None:
+            self._warn("failed to decode key", source=self._config.key_source)
             return None, None
 
         if self._config.algorithm == "HMAC-SHA256":
@@ -170,7 +167,9 @@ class IntegrityEnricher(BaseEnricher):
         self._warn("invalid key length", length=len(raw))
         return None
 
-    def _compute_mac(self, payload: bytes) -> bytes:
+    async def _compute_mac(self, payload: bytes) -> bytes:
+        if self._config.use_kms_signing and self._provider:
+            return await self._provider.sign(self._config.key_id, payload)
         if self._config.algorithm == "HMAC-SHA256":
             assert self._key is not None  # for type checkers
             return hmac.new(self._key, payload, hashlib.sha256).digest()
