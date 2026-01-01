@@ -83,6 +83,9 @@ await audit.log_data_access(
     data_classification="confidential",
     contains_pii=True,
 )
+
+# Ensure queued audit events are flushed before shutdown
+await audit.stop()  # stop() drains pending events; use audit.drain() for manual flush
 ```
 
 ### Audit Event Types
@@ -99,7 +102,7 @@ await audit.log_data_access(
 
 ## Tamper-Evident Hash Chains
 
-When you enable the tamper-evident add-on, audit events can include cryptographic integrity fields to detect tampering or gaps:
+Audit events include integrity fields to detect tampering or gaps:
 
 ```python
 # Each AuditEvent automatically includes:
@@ -123,6 +126,8 @@ events = await audit.get_events(
 
 # Verify chain integrity
 result = AuditTrail.verify_chain(events)
+# Or verify directly from disk:
+# result = await audit.verify_chain_from_storage()
 
 if result.valid:
     print(f"✓ {result.events_checked} events verified")
