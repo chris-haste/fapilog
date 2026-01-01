@@ -52,11 +52,9 @@
 | `FAPILOG__OBSERVABILITY__TRACING__ENABLED` | bool | False | Enable distributed tracing features |
 | `FAPILOG__OBSERVABILITY__TRACING__PROVIDER` | Literal | otel | Tracing backend provider ('otel' or 'none') |
 | `FAPILOG__OBSERVABILITY__TRACING__SAMPLING_RATE` | float | 0.1 | Trace sampling probability in range 0.0–1.0 |
-| `FAPILOG__PLUGINS__ALLOWLIST` | list | PydanticUndefined | If non-empty, only plugin names in this list are considered during load |
-| `FAPILOG__PLUGINS__DENYLIST` | list | PydanticUndefined | Plugin names to skip during discovery/load |
-| `FAPILOG__PLUGINS__DISCOVERY_PATHS` | list | PydanticUndefined | Additional filesystem paths to scan for local plugins |
-| `FAPILOG__PLUGINS__ENABLED` | bool | True | Enable plugin discovery and loading |
-| `FAPILOG__PLUGINS__LOAD_ON_STARTUP` | list | PydanticUndefined | Plugins to eagerly load during registry.initialize() if discovered |
+| `FAPILOG__PLUGINS__ALLOWLIST` | list | PydanticUndefined | If non-empty, only these plugin names are allowed |
+| `FAPILOG__PLUGINS__DENYLIST` | list | PydanticUndefined | Plugin names to block from loading |
+| `FAPILOG__PLUGINS__ENABLED` | bool | True | Enable plugin loading |
 | `FAPILOG__SCHEMA_VERSION` | str | 1.0 | Configuration schema version for forward/backward compatibility |
 | `FAPILOG__SECURITY__ACCESS_CONTROL__ALLOWED_ROLES` | list | PydanticUndefined | List of roles granted access to protected operations |
 | `FAPILOG__SECURITY__ACCESS_CONTROL__ALLOW_ANONYMOUS_READ` | bool | False | Permit read access without authentication (discouraged) |

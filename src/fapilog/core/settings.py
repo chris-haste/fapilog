@@ -306,38 +306,23 @@ class Settings(BaseSettings):
         description="Built-in HTTP sink configuration (optional)",
     )
 
-    # Plugin discovery and loading configuration
+    # Plugin configuration (simplified - discovery/registry removed)
     class PluginsSettings(BaseModel):
-        """Settings controlling plugin discovery and load behavior."""
+        """Settings controlling plugin behavior."""
 
-        enabled: bool = Field(
-            default=True, description="Enable plugin discovery and loading"
-        )
+        enabled: bool = Field(default=True, description="Enable plugin loading")
         allowlist: list[str] = Field(
             default_factory=list,
-            description=(
-                "If non-empty, only plugin names in this list are considered"
-                " during load"
-            ),
+            description="If non-empty, only these plugin names are allowed",
         )
         denylist: list[str] = Field(
             default_factory=list,
-            description=("Plugin names to skip during discovery/load"),
-        )
-        load_on_startup: list[str] = Field(
-            default_factory=list,
-            description=(
-                "Plugins to eagerly load during registry.initialize() if discovered"
-            ),
-        )
-        discovery_paths: list[str] = Field(
-            default_factory=list,
-            description=("Additional filesystem paths to scan for local plugins"),
+            description="Plugin names to block from loading",
         )
 
     plugins: PluginsSettings = Field(
         default_factory=PluginsSettings,
-        description="Plugin discovery and load configuration",
+        description="Plugin configuration",
     )
 
     # Settings behavior
