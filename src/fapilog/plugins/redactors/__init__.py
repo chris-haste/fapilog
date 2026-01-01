@@ -12,6 +12,10 @@ from typing import Iterable, Protocol, runtime_checkable
 
 from ...core import diagnostics
 from ...metrics.metrics import MetricsCollector, plugin_timer
+from ..loader import register_builtin
+from .field_mask import FieldMaskRedactor
+from .regex_mask import RegexMaskRedactor
+from .url_credentials import UrlCredentialsRedactor
 
 
 @runtime_checkable
@@ -71,3 +75,32 @@ async def redact_in_order(
                 pass
             continue
     return current
+
+
+# Register built-ins with alias support
+register_builtin(
+    "fapilog.redactors",
+    "field_mask",
+    FieldMaskRedactor,
+    aliases=["field-mask"],
+)
+register_builtin(
+    "fapilog.redactors",
+    "regex_mask",
+    RegexMaskRedactor,
+    aliases=["regex-mask"],
+)
+register_builtin(
+    "fapilog.redactors",
+    "url_credentials",
+    UrlCredentialsRedactor,
+    aliases=["url-credentials"],
+)
+
+__all__ = [
+    "BaseRedactor",
+    "redact_in_order",
+    "FieldMaskRedactor",
+    "RegexMaskRedactor",
+    "UrlCredentialsRedactor",
+]

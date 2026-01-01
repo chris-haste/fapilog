@@ -7,6 +7,13 @@ Provides base protocols for plugin authors and the integrity hook.
 # Public protocols for plugin authors
 from .enrichers import BaseEnricher
 from .integrity import IntegrityPlugin, IntegrityPluginLoadError, load_integrity_plugin
+from .loader import (
+    PluginLoadError,
+    PluginNotFoundError,
+    list_available_plugins,
+    load_plugin,
+    register_builtin,
+)
 from .metadata import (
     PluginCompatibility,
     PluginInfo,
@@ -25,6 +32,12 @@ __all__ = [
     "BaseProcessor",
     "BaseSink",
     "BaseRedactor",
+    # Loader helpers
+    "load_plugin",
+    "list_available_plugins",
+    "register_builtin",
+    "PluginLoadError",
+    "PluginNotFoundError",
     # Integrity hook
     "IntegrityPlugin",
     "IntegrityPluginLoadError",

@@ -4,6 +4,8 @@ from typing import Iterable, Protocol, runtime_checkable
 
 from ...core.processing import process_in_parallel
 from ...metrics.metrics import MetricsCollector, plugin_timer
+from ..loader import register_builtin
+from .zero_copy import ZeroCopyProcessor
 
 
 @runtime_checkable
@@ -81,3 +83,18 @@ async def process_parallel(
     if not processed_lists:
         return current_views
     return processed_lists[-1]
+
+
+# Register built-ins
+register_builtin(
+    "fapilog.processors",
+    "zero_copy",
+    ZeroCopyProcessor,
+    aliases=["zero-copy"],
+)
+
+__all__ = [
+    "BaseProcessor",
+    "process_parallel",
+    "ZeroCopyProcessor",
+]

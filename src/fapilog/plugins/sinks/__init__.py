@@ -2,7 +2,12 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
+from ..loader import register_builtin
+from .http_client import HttpSink
 from .mmap_persistence import MemoryMappedPersistence, PersistenceStats
+from .rotating_file import RotatingFileSink
+from .stdout_json import StdoutJsonSink
+from .webhook import WebhookSink
 
 
 @runtime_checkable
@@ -58,3 +63,28 @@ __all__ = [
     "MemoryMappedPersistence",
     "PersistenceStats",
 ]
+
+
+# Register built-ins with aliases (hyphen/underscore)
+register_builtin(
+    "fapilog.sinks",
+    "stdout_json",
+    StdoutJsonSink,
+    aliases=["stdout-json"],
+)
+register_builtin(
+    "fapilog.sinks",
+    "rotating_file",
+    RotatingFileSink,
+    aliases=["rotating-file"],
+)
+register_builtin(
+    "fapilog.sinks",
+    "http",
+    HttpSink,
+)
+register_builtin(
+    "fapilog.sinks",
+    "webhook",
+    WebhookSink,
+)
