@@ -228,8 +228,11 @@ class TestPluginInfo:
 class TestValidateFapilogCompatibility:
     """Tests for validate_fapilog_compatibility function."""
 
-    def test_compatible_version(self) -> None:
+    @patch("fapilog.plugins.metadata.importlib.metadata.version")
+    def test_compatible_version(self, mock_version: Any) -> None:
         """Test compatible version returns True."""
+        mock_version.return_value = "0.3.4"
+
         metadata = PluginMetadata(
             name="test-plugin",
             version="1.0.0",
@@ -239,7 +242,7 @@ class TestValidateFapilogCompatibility:
             entry_point="test_plugin.main",
             compatibility=PluginCompatibility(min_fapilog_version="0.1.0"),
         )
-        # Should return True as we're compatible with 0.1.0+
+        # Should return True as 0.3.4 >= 0.1.0
         assert validate_fapilog_compatibility(metadata) is True
 
     @patch("fapilog.plugins.metadata.importlib.metadata.version")
