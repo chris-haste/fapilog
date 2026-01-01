@@ -95,7 +95,7 @@ except Exception:
 
 ```python
 logger.bind(**context) -> Logger
-logger.unbind(*keys) -> None
+logger.unbind(*keys) -> Logger
 logger.clear_context() -> None
 ```
 
