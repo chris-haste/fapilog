@@ -10,6 +10,7 @@ Complete API reference for fapilog, organized by functionality.
 top-level-functions
 logger-methods
 context-binding
+audit-trail
 configuration
 plugins/index
 lifecycle-results

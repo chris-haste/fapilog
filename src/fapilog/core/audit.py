@@ -7,15 +7,16 @@ event monitoring for async operations.
 """
 
 import asyncio
+import hashlib
 import json
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Iterable, List, Optional
 from uuid import uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 from .errors import (
     AsyncErrorContext,
@@ -123,6 +124,8 @@ class AuditEvent(BaseModel):
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     event_type: AuditEventType
     log_level: AuditLogLevel = AuditLogLevel.INFO
+    sequence_number: Optional[int] = None
+    previous_hash: Optional[str] = None
 
     # Event details
     message: str
@@ -169,6 +172,14 @@ class AuditEvent(BaseModel):
     model_config = {"extra": "allow"}
 
 
+@dataclass
+class AuditChainVerificationResult:
+    valid: bool
+    events_checked: int
+    first_invalid_sequence: Optional[int] = None
+    error_message: Optional[str] = None
+
+
 class AuditTrail:
     """
     Comprehensive audit trail system for enterprise compliance.
@@ -208,6 +219,11 @@ class AuditTrail:
 
         # Thread safety
         self._lock = asyncio.Lock()
+        self._stopping = False
+
+        # Integrity chain
+        self._seq_counter: int = 0
+        self._last_hash: Optional[str] = None
 
         # Initialize storage
         self._init_storage()
@@ -224,12 +240,31 @@ class AuditTrail:
 
     async def stop(self) -> None:
         """Stop audit trail processing."""
+        self._stopping = True
+        # Drain queued events before cancellation
+        await self.drain()
         if self._processing_task and not self._processing_task.done():
             self._processing_task.cancel()
             try:
                 # Wait for cancellation with timeout to prevent hanging
                 await asyncio.wait_for(self._processing_task, timeout=0.5)
             except (asyncio.CancelledError, asyncio.TimeoutError):
+                pass
+        self._processing_task = None
+        self._stopping = False
+
+    async def drain(self) -> None:
+        """Flush any queued audit events to storage."""
+        while True:
+            try:
+                event = self._event_queue.get_nowait()
+            except asyncio.QueueEmpty:
+                break
+            try:
+                await self._store_event(event)
+                await self._check_compliance_alerts(event)
+            except Exception:
+                # Contain drain failures
                 pass
 
     async def log_event(
@@ -447,6 +482,8 @@ class AuditTrail:
         """Process audit events from the queue."""
         while True:
             try:
+                if self._stopping and self._event_queue.empty():
+                    break
                 # Get event from queue with shorter timeout for CI compatibility
                 event = await asyncio.wait_for(self._event_queue.get(), timeout=0.1)
 
@@ -467,15 +504,27 @@ class AuditTrail:
     async def _store_event(self, event: AuditEvent) -> None:
         """Store audit event to configured storage."""
         try:
-            # Calculate checksum for integrity
-            event_data = event.model_dump_json()
+            async with self._lock:
+                self._seq_counter += 1
+                event.sequence_number = self._seq_counter
+                event.previous_hash = self._last_hash
+
+                payload = event.model_dump(mode="json", exclude_none=False)
+                checksum = self._compute_checksum(payload)
+                event.checksum = checksum
+                payload["checksum"] = checksum
+                payload["previous_hash"] = event.previous_hash
+                payload["sequence_number"] = event.sequence_number
+                self._last_hash = checksum
+
+                json_line = self._canonical_json(payload)
 
             # Store to file (default implementation)
             date_str = event.timestamp.strftime("%Y-%m-%d")
             log_file = self.storage_path / f"audit_{date_str}.jsonl"
 
             with open(log_file, "a", encoding="utf-8") as f:
-                f.write(event_data + "\n")
+                f.write(json_line + "\n")
 
         except Exception:
             # Storage failure - critical for compliance
@@ -527,6 +576,84 @@ class AuditTrail:
             ErrorSeverity.INFO: AuditLogLevel.INFO,
         }
         return mapping.get(severity, AuditLogLevel.INFO)
+
+    @classmethod
+    def verify_chain(cls, events: Iterable[AuditEvent]) -> AuditChainVerificationResult:
+        """Verify integrity chain across provided events."""
+        last_hash: Optional[str] = None
+        expected_seq = 1
+        checked = 0
+
+        for event in events:
+            checked += 1
+            if event.sequence_number != expected_seq:
+                return AuditChainVerificationResult(
+                    valid=False,
+                    events_checked=checked,
+                    first_invalid_sequence=expected_seq,
+                    error_message="sequence mismatch",
+                )
+            if event.previous_hash != last_hash:
+                return AuditChainVerificationResult(
+                    valid=False,
+                    events_checked=checked,
+                    first_invalid_sequence=expected_seq,
+                    error_message="previous hash mismatch",
+                )
+
+            payload = event.model_dump(mode="json", exclude_none=False)
+            computed = cls._compute_checksum(payload)
+            if event.checksum != computed:
+                return AuditChainVerificationResult(
+                    valid=False,
+                    events_checked=checked,
+                    first_invalid_sequence=expected_seq,
+                    error_message="checksum mismatch",
+                )
+
+            last_hash = event.checksum
+            expected_seq += 1
+
+        return AuditChainVerificationResult(valid=True, events_checked=checked)
+
+    async def verify_chain_from_storage(self) -> AuditChainVerificationResult:
+        """Load events from storage_path and verify their hash chain."""
+        events: list[AuditEvent] = []
+        try:
+            for file in sorted(self.storage_path.glob("audit_*.jsonl")):
+                with open(file, encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        try:
+                            events.append(AuditEvent.model_validate_json(line))
+                        except ValidationError:
+                            return AuditChainVerificationResult(
+                                valid=False,
+                                events_checked=len(events),
+                                first_invalid_sequence=len(events) + 1,
+                                error_message="invalid event payload",
+                            )
+        except Exception as exc:
+            return AuditChainVerificationResult(
+                valid=False,
+                events_checked=len(events),
+                error_message=str(exc),
+            )
+        return self.verify_chain(events)
+
+    @staticmethod
+    def _canonical_json(payload: Dict[str, Any]) -> str:
+        return json.dumps(payload, sort_keys=True, separators=(",", ":"))
+
+    @staticmethod
+    def _compute_checksum(payload: Dict[str, Any]) -> str:
+        # Do not include checksum itself in hash computation
+        stripped = dict(payload)
+        stripped.pop("checksum", None)
+        canon = AuditTrail._canonical_json(stripped)
+        return hashlib.sha256(canon.encode("utf-8")).hexdigest()
 
     async def get_events(
         self,

@@ -412,11 +412,19 @@ ignore_names = [
     "signature",
     "model_config",
     
+    # Audit chain verification result fields
+    "valid",
+    "events_checked",
+    "first_invalid_sequence",
+    "error_message",
+    
     # Audit public API methods
     "log_data_access",
     "get_events",
     "get_statistics", 
     "cleanup",
+    "verify_chain_from_storage",
+    "drain",
     
     # Circuit breaker public API
     "call",
