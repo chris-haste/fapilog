@@ -4,6 +4,9 @@ from typing import Iterable, Protocol, runtime_checkable
 
 from ...core.processing import process_in_parallel
 from ...metrics.metrics import MetricsCollector, plugin_timer
+from ..loader import register_builtin
+from .context_vars import ContextVarsEnricher
+from .runtime_info import RuntimeInfoEnricher
 
 
 @runtime_checkable
@@ -80,3 +83,25 @@ async def enrich_parallel(
         if metrics is not None:
             await metrics.record_event_processed()
     return merged
+
+
+# Register built-ins with alias support (hyphen/underscore)
+register_builtin(
+    "fapilog.enrichers",
+    "runtime_info",
+    RuntimeInfoEnricher,
+    aliases=["runtime-info"],
+)
+register_builtin(
+    "fapilog.enrichers",
+    "context_vars",
+    ContextVarsEnricher,
+    aliases=["context-vars"],
+)
+
+__all__ = [
+    "BaseEnricher",
+    "enrich_parallel",
+    "RuntimeInfoEnricher",
+    "ContextVarsEnricher",
+]

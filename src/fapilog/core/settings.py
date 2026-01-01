@@ -7,7 +7,7 @@ async-aware validation hooks used by the loader in `config.py`.
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
 from pydantic_settings import (  # type: ignore[import-not-found]
@@ -24,6 +24,93 @@ from .security import (
     validate_security,
 )
 from .validation import ensure_path_exists
+
+
+class RotatingFileSettings(BaseModel):
+    """Per-plugin configuration for RotatingFileSink."""
+
+    directory: str | None = Field(
+        default=None, description="Log directory for rotating file sink"
+    )
+    filename_prefix: str = Field(default="fapilog", description="Filename prefix")
+    mode: Literal["json", "text"] = Field(
+        default="json", description="Output format: json or text"
+    )
+    max_bytes: int = Field(
+        default=10 * 1024 * 1024, ge=1, description="Max bytes before rotation"
+    )
+    interval_seconds: int | None = Field(
+        default=None, description="Rotation interval in seconds (optional)"
+    )
+    max_files: int | None = Field(
+        default=None, description="Max number of rotated files to keep"
+    )
+    max_total_bytes: int | None = Field(
+        default=None, description="Max total bytes across all rotated files"
+    )
+    compress_rotated: bool = Field(
+        default=False, description="Compress rotated log files with gzip"
+    )
+
+
+class WebhookSettings(BaseModel):
+    """Per-plugin configuration for WebhookSink."""
+
+    endpoint: str | None = Field(default=None, description="Webhook destination URL")
+    secret: str | None = Field(default=None, description="Shared secret for signing")
+    headers: dict[str, str] = Field(
+        default_factory=dict, description="Additional HTTP headers"
+    )
+    retry_max_attempts: int | None = Field(
+        default=None, ge=1, description="Maximum retry attempts on failure"
+    )
+    retry_backoff_seconds: float | None = Field(
+        default=None, gt=0.0, description="Backoff between retries in seconds"
+    )
+    timeout_seconds: float = Field(
+        default=5.0, gt=0.0, description="Request timeout in seconds"
+    )
+
+
+class RedactorFieldMaskSettings(BaseModel):
+    """Per-plugin configuration for FieldMaskRedactor."""
+
+    fields_to_mask: list[str] = Field(
+        default_factory=list, description="Field names to mask (case-insensitive)"
+    )
+    mask_string: str = Field(default="***", description="Replacement mask string")
+    block_on_unredactable: bool = Field(
+        default=False, description="Block log entry if redaction fails"
+    )
+    max_depth: int = Field(default=16, ge=1, description="Max nested depth to scan")
+    max_keys_scanned: int = Field(
+        default=1000, ge=1, description="Max keys to scan before stopping"
+    )
+
+
+class RedactorRegexMaskSettings(BaseModel):
+    """Per-plugin configuration for RegexMaskRedactor."""
+
+    patterns: list[str] = Field(
+        default_factory=list, description="Regex patterns to match and mask"
+    )
+    mask_string: str = Field(default="***", description="Replacement mask string")
+    block_on_unredactable: bool = Field(
+        default=False, description="Block log entry if redaction fails"
+    )
+    max_depth: int = Field(default=16, ge=1, description="Max nested depth to scan")
+    max_keys_scanned: int = Field(
+        default=1000, ge=1, description="Max keys to scan before stopping"
+    )
+
+
+class RedactorUrlCredentialsSettings(BaseModel):
+    """Per-plugin configuration for UrlCredentialsRedactor."""
+
+    max_string_length: int = Field(
+        default=4096, ge=1, description="Max string length to parse for URL credentials"
+    )
+
 
 # Keep explicit version to allow schema gating and forward migrations later
 LATEST_CONFIG_SCHEMA_VERSION = "1.0"
@@ -133,6 +220,25 @@ class CoreSettings(BaseModel):
         ],
         description=("Ordered list of redactor plugin names to apply"),
     )
+    # Plugin selection (new) — canonical lists; empty list disables stage
+    sinks: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Sink plugins to use (by name); falls back to env-based default when empty"
+        ),
+    )
+    enrichers: list[str] = Field(
+        default_factory=lambda: ["runtime_info", "context_vars"],
+        description=("Enricher plugins to use (by name)"),
+    )
+    redactors: list[str] = Field(
+        default_factory=list,
+        description=("Redactor plugins to use (by name); empty to disable"),
+    )
+    processors: list[str] = Field(
+        default_factory=list,
+        description=("Processor plugins to use (by name)"),
+    )
     redaction_max_depth: int | None = Field(
         default=6,
         ge=1,
@@ -218,69 +324,70 @@ class CoreSettings(BaseModel):
         return value
 
 
+class HttpSinkSettings(BaseModel):
+    """Configuration for the built-in HTTP sink."""
+
+    endpoint: str | None = Field(
+        default=None, description="HTTP endpoint to POST log events to"
+    )
+    headers: dict[str, str] = Field(
+        default_factory=dict,
+        description="Default headers to send with each request",
+    )
+    headers_json: str | None = Field(
+        default=None,
+        description=(
+            'JSON-encoded headers map (e.g. \'{"Authorization": "Bearer x"}\')'
+        ),
+    )
+    retry_max_attempts: int | None = Field(
+        default=None,
+        ge=1,
+        description="Optional max attempts for HTTP retries",
+    )
+    retry_backoff_seconds: float | None = Field(
+        default=None,
+        gt=0.0,
+        description="Optional base backoff seconds between retries",
+    )
+    timeout_seconds: float = Field(
+        default=5.0,
+        gt=0.0,
+        description="Request timeout for HTTP sink operations",
+    )
+
+    @field_validator("headers_json")
+    @classmethod
+    def _parse_headers_json(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        if not value:
+            return None
+        try:
+            import json
+
+            parsed = json.loads(value)
+            if not isinstance(parsed, dict):
+                raise ValueError("headers_json must decode to a JSON object")
+        except Exception as exc:
+            raise ValueError(f"Invalid headers_json: {exc}") from exc
+        return value
+
+    def resolved_headers(self) -> dict[str, str]:
+        if self.headers:
+            return dict(self.headers)
+        if self.headers_json:
+            import json
+
+            parsed = json.loads(self.headers_json)
+            if isinstance(parsed, dict):
+                return {str(k): str(v) for k, v in parsed.items()}
+        return {}
+
+
 class Settings(BaseSettings):
     """Top-level configuration model with versioning and core settings."""
-
-    class HttpSinkSettings(BaseModel):
-        """Configuration for the built-in HTTP sink."""
-
-        endpoint: str | None = Field(
-            default=None, description="HTTP endpoint to POST log events to"
-        )
-        headers: dict[str, str] = Field(
-            default_factory=dict,
-            description="Default headers to send with each request",
-        )
-        headers_json: str | None = Field(
-            default=None,
-            description=(
-                'JSON-encoded headers map (e.g. \'{"Authorization": "Bearer x"}\')'
-            ),
-        )
-        retry_max_attempts: int | None = Field(
-            default=None,
-            ge=1,
-            description="Optional max attempts for HTTP retries",
-        )
-        retry_backoff_seconds: float | None = Field(
-            default=None,
-            gt=0.0,
-            description="Optional base backoff seconds between retries",
-        )
-        timeout_seconds: float = Field(
-            default=5.0,
-            gt=0.0,
-            description="Request timeout for HTTP sink operations",
-        )
-
-        @field_validator("headers_json")
-        @classmethod
-        def _parse_headers_json(cls, value: str | None) -> str | None:
-            if value is None:
-                return None
-            value = value.strip()
-            if not value:
-                return None
-            try:
-                import json
-
-                parsed = json.loads(value)
-                if not isinstance(parsed, dict):
-                    raise ValueError("headers_json must decode to a JSON object")
-            except Exception as exc:
-                raise ValueError(f"Invalid headers_json: {exc}") from exc
-            return value
-
-        def resolved_headers(self) -> dict[str, str]:
-            if self.headers:
-                return dict(self.headers)
-            if self.headers_json:
-                import json
-
-                parsed = json.loads(self.headers_json)
-                if isinstance(parsed, dict):
-                    return {str(k): str(v) for k, v in parsed.items()}
-            return {}
 
     # Schema/versioning
     schema_version: str = Field(
@@ -306,6 +413,64 @@ class Settings(BaseSettings):
         description="Built-in HTTP sink configuration (optional)",
     )
 
+    class SinkConfig(BaseModel):
+        """Per-sink configuration for built-in sinks."""
+
+        rotating_file: RotatingFileSettings = Field(
+            default_factory=RotatingFileSettings,
+            description="Configuration for rotating_file sink",
+        )
+        http: HttpSinkSettings = Field(
+            default_factory=HttpSinkSettings,
+            description="Configuration for http sink",
+        )
+        webhook: WebhookSettings = Field(
+            default_factory=WebhookSettings,
+            description="Configuration for webhook sink",
+        )
+        stdout_json: dict[str, Any] = Field(
+            default_factory=dict, description="Configuration for stdout_json sink"
+        )
+        # Third-party sinks use dicts
+        extra: dict[str, dict[str, Any]] = Field(
+            default_factory=dict,
+            description="Configuration for third-party sinks by name",
+        )
+
+    class EnricherConfig(BaseModel):
+        """Per-enricher configuration for built-in enrichers."""
+
+        runtime_info: dict[str, Any] = Field(
+            default_factory=dict, description="Configuration for runtime_info enricher"
+        )
+        context_vars: dict[str, Any] = Field(
+            default_factory=dict, description="Configuration for context_vars enricher"
+        )
+        extra: dict[str, dict[str, Any]] = Field(
+            default_factory=dict,
+            description="Configuration for third-party enrichers by name",
+        )
+
+    class RedactorConfig(BaseModel):
+        """Per-redactor configuration for built-in redactors."""
+
+        field_mask: RedactorFieldMaskSettings = Field(
+            default_factory=RedactorFieldMaskSettings,
+            description="Configuration for field_mask redactor",
+        )
+        regex_mask: RedactorRegexMaskSettings = Field(
+            default_factory=RedactorRegexMaskSettings,
+            description="Configuration for regex_mask redactor",
+        )
+        url_credentials: RedactorUrlCredentialsSettings = Field(
+            default_factory=RedactorUrlCredentialsSettings,
+            description="Configuration for url_credentials redactor",
+        )
+        extra: dict[str, dict[str, Any]] = Field(
+            default_factory=dict,
+            description="Configuration for third-party redactors by name",
+        )
+
     # Plugin configuration (simplified - discovery/registry removed)
     class PluginsSettings(BaseModel):
         """Settings controlling plugin behavior."""
@@ -323,6 +488,16 @@ class Settings(BaseSettings):
     plugins: PluginsSettings = Field(
         default_factory=PluginsSettings,
         description="Plugin configuration",
+    )
+
+    sink_config: SinkConfig = Field(
+        default_factory=SinkConfig, description="Per-sink plugin configuration"
+    )
+    enricher_config: EnricherConfig = Field(
+        default_factory=EnricherConfig, description="Per-enricher plugin configuration"
+    )
+    redactor_config: RedactorConfig = Field(
+        default_factory=RedactorConfig, description="Per-redactor plugin configuration"
     )
 
     # Settings behavior
