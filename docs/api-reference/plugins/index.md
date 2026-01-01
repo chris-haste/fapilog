@@ -14,107 +14,57 @@ processors
 
 ## Overview
 
-fapilog's plugin system allows you to extend functionality in four key areas:
+fapilog's plugin system provides base protocols for extending functionality in four key areas:
 
 - **Sinks** - Output destinations for log messages
 - **Enrichers** - Add context and metadata to messages
 - **Redactors** - Remove or mask sensitive information
 - **Processors** - Transform and optimize messages
 
-## Plugin Types
+## Built-in Plugins
 
-### Sinks (Output Plugins)
+fapilog includes several built-in plugins that ship with the library:
 
-- **[Sinks](sinks.md)** - Output destinations (stdout JSON, rotating file, HTTP, etc.)
+### Sinks
 
-### Enrichers (Input/Context Plugins)
+| Sink | Description |
+|------|-------------|
+| `StdoutJsonSink` | Outputs JSON to stdout |
+| `RotatingFileSink` | Writes to rotating log files |
+| `HttpSink` | Sends logs to HTTP endpoints |
 
-- **[Enrichers](enrichers.md)** - Add runtime/context metadata before sinks
+### Enrichers
 
-### Redactors (Security Plugins)
+| Enricher | Description |
+|----------|-------------|
+| `RuntimeInfoEnricher` | Adds Python version, PID, hostname |
+| `ContextVarsEnricher` | Adds context variables |
 
-- **[Redactors](redactors.md)** - Mask/remove sensitive fields or secrets
+### Redactors
 
-### Processors (Transform Plugins)
+| Redactor | Description |
+|----------|-------------|
+| `FieldMaskRedactor` | Masks specific field names |
+| `RegexMaskRedactor` | Masks values matching regex patterns |
+| `UrlCredentialsRedactor` | Strips credentials from URLs |
 
-- **[Processors](processors.md)** - Transform/filter entries before sinks
+## Plugin Configuration
 
-## Plugin Architecture
-
-### Plugin Lifecycle
-
-```python
-class BasePlugin:
-    async def start(self) -> None:
-        """Initialize the plugin."""
-        pass
-
-    async def stop(self) -> None:
-        """Clean up plugin resources."""
-        pass
-
-    async def health_check(self) -> bool:
-        """Check plugin health."""
-        return True
-```
-
-### Plugin Configuration
-
-Plugins are configured through the main settings:
+Plugins are configured through environment variables or settings:
 
 ```python
 from fapilog import Settings
 
 settings = Settings(
-    # Enable specific plugins
-    plugins__sinks=["stdout", "file"],
-    plugins__enrichers=["runtime_info", "context_vars"],
-    plugins__redactors=["field_mask", "regex_mask"],
-    plugins__processors=["zero_copy"]
+    # Enable/disable plugin loading
+    plugins__enabled=True,
+    
+    # Allow only specific plugins
+    plugins__allowlist=["my-sink", "my-enricher"],
+    
+    # Block specific plugins
+    plugins__denylist=["untrusted-plugin"],
 )
-```
-
-### Plugin Discovery
-
-fapilog automatically discovers available plugins:
-
-```python
-from fapilog import discover_plugins
-
-# Discover all available plugins
-plugins = await discover_plugins()
-
-print(f"Available sinks: {plugins.sinks}")
-print(f"Available enrichers: {plugins.enrichers}")
-print(f"Available redactors: {plugins.redactors}")
-print(f"Available processors: {plugins.processors}")
-```
-
-## Built-in Plugins
-
-### Default Configuration
-
-By default, fapilog includes:
-
-```python
-# Default plugin configuration
-DEFAULT_SINKS = ["stdout_json"]
-DEFAULT_ENRICHERS = ["runtime_info", "context_vars"]
-DEFAULT_REDACTORS = ["field_mask"]
-DEFAULT_PROCESSORS = ["pass_through"]
-```
-
-### Plugin Dependencies
-
-Some plugins have dependencies:
-
-```python
-# Optional dependencies for specific plugins
-OPTIONAL_DEPENDENCIES = {
-    "http_client_sink": ["httpx"],
-    "mmap_sink": ["mmap"],
-    "prometheus_metrics": ["prometheus_client"]
-}
 ```
 
 ## Custom Plugin Development
@@ -184,89 +134,58 @@ class CustomRedactor(BaseRedactor):
         return entry
 ```
 
-## Plugin Configuration Examples
+## Plugin Protocols
 
-### Development Environment
+All plugins follow base protocols defined in `fapilog.plugins`:
 
 ```python
-from fapilog import Settings
-
-dev_settings = Settings(
-    plugins__sinks=["stdout_json"],
-    plugins__enrichers=["runtime_info"],
-    plugins__redactors=["field_mask"],
-    plugins__processors=["pass_through"]
+from fapilog.plugins import (
+    BaseSink,
+    BaseEnricher,
+    BaseRedactor,
+    BaseProcessor,
 )
 ```
 
-### Production Environment
+### Plugin Lifecycle
+
+Plugins implement async lifecycle hooks:
 
 ```python
-from fapilog import Settings
+class BasePlugin:
+    async def start(self) -> None:
+        """Initialize the plugin. Called once on startup."""
+        pass
 
-prod_settings = Settings(
-    plugins__sinks=["rotating_file", "http_client"],
-    plugins__enrichers=["runtime_info", "context_vars"],
-    plugins__redactors=["field_mask", "regex_mask", "url_credentials"],
-    plugins__processors=["zero_copy"]
-)
+    async def stop(self) -> None:
+        """Clean up plugin resources. Called on shutdown."""
+        pass
+
+    async def health_check(self) -> bool:
+        """Check plugin health for monitoring."""
+        return True
 ```
 
-### High-Performance Configuration
+## Enterprise Plugins
+
+For enterprise features like tamper-evident logging, fapilog provides an integrity plugin hook:
 
 ```python
-from fapilog import Settings
+from fapilog.plugins import IntegrityPlugin, load_integrity_plugin
 
-perf_settings = Settings(
-    plugins__sinks=["mmap_persistence"],
-    plugins__enrichers=["context_vars"],  # Minimal enrichers
-    plugins__redactors=["field_mask"],    # Basic redaction
-    plugins__processors=["zero_copy"]     # High-performance processing
-)
+# Load an integrity plugin by entry point name
+plugin = load_integrity_plugin("fapilog-tamper")
 ```
 
-## Plugin Health Monitoring
-
-### Health Checks
-
-All plugins support health monitoring:
-
-```python
-from fapilog import get_plugin_health
-
-# Check health of all plugins
-health = await get_plugin_health()
-
-for plugin_type, plugins in health.items():
-    print(f"{plugin_type}:")
-    for name, status in plugins.items():
-        print(f"  {name}: {'✅' if status else '❌'}")
-```
-
-### Plugin Metrics
-
-Plugins expose metrics for monitoring:
-
-```python
-from fapilog import get_plugin_metrics
-
-# Get metrics from all plugins
-metrics = await get_plugin_metrics()
-
-for plugin_type, plugin_metrics in metrics.items():
-    print(f"{plugin_type} metrics:")
-    for name, metric_data in plugin_metrics.items():
-        print(f"  {name}: {metric_data}")
-```
+The integrity plugin system uses the `fapilog.integrity` entry point group for automatic discovery.
 
 ## Best Practices
 
 1. **Start simple** - Use built-in plugins before creating custom ones
-2. **Health monitoring** - Always implement health checks for custom plugins
-3. **Resource management** - Properly implement start/stop lifecycle
-4. **Error handling** - Gracefully handle failures in custom plugins
-5. **Configuration** - Make plugins configurable through settings
-6. **Testing** - Test plugins in isolation and integration
+2. **Implement lifecycle** - Properly implement `start()` and `stop()` methods
+3. **Error handling** - Gracefully handle failures in custom plugins
+4. **Resource management** - Clean up connections/files in `stop()`
+5. **Testing** - Test plugins in isolation and integration
 
 ---
 

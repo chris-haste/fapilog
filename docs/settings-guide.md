@@ -114,8 +114,6 @@ This guide documents Settings groups and fields.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `plugins.enabled` | bool | True | Enable plugin discovery and loading |
-| `plugins.allowlist` | list | PydanticUndefined | If non-empty, only plugin names in this list are considered during load |
-| `plugins.denylist` | list | PydanticUndefined | Plugin names to skip during discovery/load |
-| `plugins.load_on_startup` | list | PydanticUndefined | Plugins to eagerly load during registry.initialize() if discovered |
-| `plugins.discovery_paths` | list | PydanticUndefined | Additional filesystem paths to scan for local plugins |
+| `plugins.enabled` | bool | True | Enable plugin loading |
+| `plugins.allowlist` | list | PydanticUndefined | If non-empty, only these plugin names are allowed |
+| `plugins.denylist` | list | PydanticUndefined | Plugin names to block from loading |

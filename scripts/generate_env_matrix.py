@@ -15,7 +15,6 @@ from typing import Any, Iterable
 from pydantic import BaseModel
 
 from fapilog.core.settings import Settings
-from fapilog.plugins.discovery import AsyncPluginDiscovery
 
 
 def _iter_fields(model: BaseModel) -> Iterable[tuple[str, Any, Any, str]]:
@@ -328,18 +327,8 @@ def render_schema_guide(
 
 
 async def _discover_plugins() -> dict[str, Any]:
-    disc = AsyncPluginDiscovery()
-    # Include local built-in plugin folders so defaults appear in the catalog
-    for rel in [
-        "src/fapilog/plugins/sinks",
-        "src/fapilog/plugins/redactors",
-        "src/fapilog/plugins/enrichers",
-        "src/fapilog/plugins/processors",
-    ]:
-        p = Path(rel)
-        if p.exists():
-            disc.add_discovery_path(p)
-    return await disc.discover_all_plugins()
+    """Plugin discovery removed - return empty dict."""
+    return {}
 
 
 def main() -> None:
