@@ -12,6 +12,7 @@ redactors
 sinks
 enrichers
 processors
+configuration
 ```
 
 ## Overview

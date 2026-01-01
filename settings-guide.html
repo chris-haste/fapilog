@@ -110,6 +110,7 @@
 <li class="toctree-l2"><a class="reference internal" href="plugins/sinks.html">Sinks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plugins/enrichers.html">Enrichers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plugins/processors.html">Processors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins/configuration.html">Plugin Configuration</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="troubleshooting/index.html">Troubleshooting</a><ul>
@@ -258,6 +259,26 @@
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Ordered list of redactor plugin names to apply</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.sinks</span></code></p></td>
+<td><p>list</p></td>
+<td><p>PydanticUndefined</p></td>
+<td><p>Sink plugins to use (by name); falls back to env-based default when empty</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.enrichers</span></code></p></td>
+<td><p>list</p></td>
+<td><p>PydanticUndefined</p></td>
+<td><p>Enricher plugins to use (by name)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.redactors</span></code></p></td>
+<td><p>list</p></td>
+<td><p>PydanticUndefined</p></td>
+<td><p>Redactor plugins to use (by name); empty to disable</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.processors</span></code></p></td>
+<td><p>list</p></td>
+<td><p>PydanticUndefined</p></td>
+<td><p>Processor plugins to use (by name)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.redaction_max_depth</span></code></p></td>
 <td><p>int</p></td>

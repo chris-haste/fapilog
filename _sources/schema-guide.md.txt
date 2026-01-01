@@ -85,6 +85,14 @@
       "title": "Enable Redactors",
       "type": "boolean"
     },
+    "enrichers": {
+      "description": "Enricher plugins to use (by name)",
+      "items": {
+        "type": "string"
+      },
+      "title": "Enrichers",
+      "type": "array"
+    },
     "error_dedupe_window_seconds": {
       "default": 5.0,
       "description": "Seconds to suppress duplicate ERROR logs with the same message; 0 disables deduplication",
@@ -164,6 +172,14 @@
       "title": "Max Queue Size",
       "type": "integer"
     },
+    "processors": {
+      "description": "Processor plugins to use (by name)",
+      "items": {
+        "type": "string"
+      },
+      "title": "Processors",
+      "type": "array"
+    },
     "redaction_max_depth": {
       "anyOf": [
         {
@@ -191,6 +207,14 @@
       "default": 5000,
       "description": "Optional max keys scanned guardrail for redaction",
       "title": "Redaction Max Keys Scanned"
+    },
+    "redactors": {
+      "description": "Redactor plugins to use (by name); empty to disable",
+      "items": {
+        "type": "string"
+      },
+      "title": "Redactors",
+      "type": "array"
     },
     "redactors_order": {
       "description": "Ordered list of redactor plugin names to apply",
@@ -234,6 +258,14 @@
       "exclusiveMinimum": 0.0,
       "title": "Shutdown Timeout Seconds",
       "type": "number"
+    },
+    "sinks": {
+      "description": "Sink plugins to use (by name); falls back to env-based default when empty",
+      "items": {
+        "type": "string"
+      },
+      "title": "Sinks",
+      "type": "array"
     },
     "strict_envelope_mode": {
       "default": false,
