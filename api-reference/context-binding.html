@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Context Binding &mdash; fapilog 0.3.5 documentation</title>
+  <title>Context Binding &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -15,7 +15,7 @@
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=ba50482b"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -165,10 +165,10 @@
 <section id="bind-bind">
 <h2>bind {#bind}<a class="headerlink" href="#bind-bind" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Logger</span>
-<span class="k">await</span> <span class="n">async_logger</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># returns the same logger</span>
+<span class="n">async_logger</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Logger</span>  <span class="c1"># synchronous, returns self</span>
 </pre></div>
 </div>
-<p>Adds key/value pairs to the bound context for the current task/thread. Bound fields are merged into all subsequent log calls until removed.</p>
+<p>Adds key/value pairs to the bound context for the current task/thread. Bound fields are merged into all subsequent log calls until removed. Returns the logger instance for method chaining.</p>
 <section id="example-sync">
 <h3>Example (sync)<a class="headerlink" href="#example-sync" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
@@ -189,10 +189,10 @@
 </section>
 <section id="unbind-unbind">
 <h2>unbind {#unbind}<a class="headerlink" href="#unbind-unbind" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span><span class="o">.</span><span class="n">unbind</span><span class="p">(</span><span class="o">*</span><span class="n">keys</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span><span class="o">.</span><span class="n">unbind</span><span class="p">(</span><span class="o">*</span><span class="n">keys</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Logger</span>
 </pre></div>
 </div>
-<p>Remove specific keys from the bound context for the current task/thread.</p>
+<p>Remove specific keys from the bound context for the current task/thread. Returns the logger instance for method chaining.</p>
 <section id="example">
 <h3>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">request_id</span><span class="o">=</span><span class="s2">&quot;req-123&quot;</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;user-456&quot;</span><span class="p">,</span> <span class="n">temp_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>

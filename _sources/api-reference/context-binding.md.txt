@@ -6,10 +6,10 @@ Attach request- or task-scoped metadata to every log entry via the logger's cont
 
 ```python
 logger.bind(**kwargs) -> Logger
-await async_logger.bind(**kwargs)  # returns the same logger
+async_logger.bind(**kwargs) -> Logger  # synchronous, returns self
 ```
 
-Adds key/value pairs to the bound context for the current task/thread. Bound fields are merged into all subsequent log calls until removed.
+Adds key/value pairs to the bound context for the current task/thread. Bound fields are merged into all subsequent log calls until removed. Returns the logger instance for method chaining.
 
 ### Example (sync)
 
@@ -31,10 +31,10 @@ async with runtime_async() as logger:
 ## unbind {#unbind}
 
 ```python
-logger.unbind(*keys) -> None
+logger.unbind(*keys) -> Logger
 ```
 
-Remove specific keys from the bound context for the current task/thread.
+Remove specific keys from the bound context for the current task/thread. Returns the logger instance for method chaining.
 
 ### Example
 

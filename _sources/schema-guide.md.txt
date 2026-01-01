@@ -602,10 +602,10 @@
 
 ```json
 {
-  "description": "Settings controlling plugin discovery and load behavior.",
+  "description": "Settings controlling plugin behavior.",
   "properties": {
     "allowlist": {
-      "description": "If non-empty, only plugin names in this list are considered during load",
+      "description": "If non-empty, only these plugin names are allowed",
       "items": {
         "type": "string"
       },
@@ -613,34 +613,18 @@
       "type": "array"
     },
     "denylist": {
-      "description": "Plugin names to skip during discovery/load",
+      "description": "Plugin names to block from loading",
       "items": {
         "type": "string"
       },
       "title": "Denylist",
       "type": "array"
     },
-    "discovery_paths": {
-      "description": "Additional filesystem paths to scan for local plugins",
-      "items": {
-        "type": "string"
-      },
-      "title": "Discovery Paths",
-      "type": "array"
-    },
     "enabled": {
       "default": true,
-      "description": "Enable plugin discovery and loading",
+      "description": "Enable plugin loading",
       "title": "Enabled",
       "type": "boolean"
-    },
-    "load_on_startup": {
-      "description": "Plugins to eagerly load during registry.initialize() if discovered",
-      "items": {
-        "type": "string"
-      },
-      "title": "Load On Startup",
-      "type": "array"
     }
   },
   "title": "PluginsSettings",

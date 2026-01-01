@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plugins &mdash; fapilog 0.3.5 documentation</title>
+  <title>Plugins &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -15,7 +15,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=ba50482b"></script>
+      <script src="../../_static/documentation_options.js?v=c6e86fd7"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -193,7 +193,7 @@
 </div>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
-<p>fapilog’s plugin system allows you to extend functionality in four key areas:</p>
+<p>fapilog’s plugin system provides base protocols for extending functionality in four key areas:</p>
 <ul class="simple">
 <li><p><strong>Sinks</strong> - Output destinations for log messages</p></li>
 <li><p><strong>Enrichers</strong> - Add context and metadata to messages</p></li>
@@ -201,108 +201,87 @@
 <li><p><strong>Processors</strong> - Transform and optimize messages</p></li>
 </ul>
 </section>
-<section id="plugin-types">
-<h2>Plugin Types<a class="headerlink" href="#plugin-types" title="Link to this heading"></a></h2>
-<section id="sinks-output-plugins">
-<h3>Sinks (Output Plugins)<a class="headerlink" href="#sinks-output-plugins" title="Link to this heading"></a></h3>
-<ul class="simple">
-<li><p><strong><a class="reference internal" href="sinks.html"><span class="std std-doc">Sinks</span></a></strong> - Output destinations (stdout JSON, rotating file, HTTP, etc.)</p></li>
-</ul>
+<section id="built-in-plugins">
+<h2>Built-in Plugins<a class="headerlink" href="#built-in-plugins" title="Link to this heading"></a></h2>
+<p>fapilog includes several built-in plugins that ship with the library:</p>
+<section id="sinks">
+<h3>Sinks<a class="headerlink" href="#sinks" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Sink</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">StdoutJsonSink</span></code></p></td>
+<td><p>Outputs JSON to stdout</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">RotatingFileSink</span></code></p></td>
+<td><p>Writes to rotating log files</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">HttpSink</span></code></p></td>
+<td><p>Sends logs to HTTP endpoints</p></td>
+</tr>
+</tbody>
+</table>
 </section>
-<section id="enrichers-input-context-plugins">
-<h3>Enrichers (Input/Context Plugins)<a class="headerlink" href="#enrichers-input-context-plugins" title="Link to this heading"></a></h3>
-<ul class="simple">
-<li><p><strong><a class="reference internal" href="enrichers.html"><span class="std std-doc">Enrichers</span></a></strong> - Add runtime/context metadata before sinks</p></li>
-</ul>
+<section id="enrichers">
+<h3>Enrichers<a class="headerlink" href="#enrichers" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Enricher</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">RuntimeInfoEnricher</span></code></p></td>
+<td><p>Adds Python version, PID, hostname</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ContextVarsEnricher</span></code></p></td>
+<td><p>Adds context variables</p></td>
+</tr>
+</tbody>
+</table>
 </section>
-<section id="redactors-security-plugins">
-<h3>Redactors (Security Plugins)<a class="headerlink" href="#redactors-security-plugins" title="Link to this heading"></a></h3>
-<ul class="simple">
-<li><p><strong><a class="reference internal" href="redactors.html"><span class="std std-doc">Redactors</span></a></strong> - Mask/remove sensitive fields or secrets</p></li>
-</ul>
+<section id="redactors">
+<h3>Redactors<a class="headerlink" href="#redactors" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Redactor</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FieldMaskRedactor</span></code></p></td>
+<td><p>Masks specific field names</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">RegexMaskRedactor</span></code></p></td>
+<td><p>Masks values matching regex patterns</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">UrlCredentialsRedactor</span></code></p></td>
+<td><p>Strips credentials from URLs</p></td>
+</tr>
+</tbody>
+</table>
 </section>
-<section id="processors-transform-plugins">
-<h3>Processors (Transform Plugins)<a class="headerlink" href="#processors-transform-plugins" title="Link to this heading"></a></h3>
-<ul class="simple">
-<li><p><strong><a class="reference internal" href="processors.html"><span class="std std-doc">Processors</span></a></strong> - Transform/filter entries before sinks</p></li>
-</ul>
-</section>
-</section>
-<section id="plugin-architecture">
-<h2>Plugin Architecture<a class="headerlink" href="#plugin-architecture" title="Link to this heading"></a></h2>
-<section id="plugin-lifecycle">
-<h3>Plugin Lifecycle<a class="headerlink" href="#plugin-lifecycle" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">BasePlugin</span><span class="p">:</span>
-    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the plugin.&quot;&quot;&quot;</span>
-        <span class="k">pass</span>
-
-    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clean up plugin resources.&quot;&quot;&quot;</span>
-        <span class="k">pass</span>
-
-    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">health_check</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check plugin health.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="kc">True</span>
-</pre></div>
-</div>
 </section>
 <section id="plugin-configuration">
-<h3>Plugin Configuration<a class="headerlink" href="#plugin-configuration" title="Link to this heading"></a></h3>
-<p>Plugins are configured through the main settings:</p>
+<h2>Plugin Configuration<a class="headerlink" href="#plugin-configuration" title="Link to this heading"></a></h2>
+<p>Plugins are configured through environment variables or settings:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span>
 
 <span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span>
-    <span class="c1"># Enable specific plugins</span>
-    <span class="n">plugins__sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;stdout&quot;</span><span class="p">,</span> <span class="s2">&quot;file&quot;</span><span class="p">],</span>
-    <span class="n">plugins__enrichers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;runtime_info&quot;</span><span class="p">,</span> <span class="s2">&quot;context_vars&quot;</span><span class="p">],</span>
-    <span class="n">plugins__redactors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;field_mask&quot;</span><span class="p">,</span> <span class="s2">&quot;regex_mask&quot;</span><span class="p">],</span>
-    <span class="n">plugins__processors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;zero_copy&quot;</span><span class="p">]</span>
+    <span class="c1"># Enable/disable plugin loading</span>
+    <span class="n">plugins__enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    
+    <span class="c1"># Allow only specific plugins</span>
+    <span class="n">plugins__allowlist</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;my-sink&quot;</span><span class="p">,</span> <span class="s2">&quot;my-enricher&quot;</span><span class="p">],</span>
+    
+    <span class="c1"># Block specific plugins</span>
+    <span class="n">plugins__denylist</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;untrusted-plugin&quot;</span><span class="p">],</span>
 <span class="p">)</span>
 </pre></div>
 </div>
-</section>
-<section id="plugin-discovery">
-<h3>Plugin Discovery<a class="headerlink" href="#plugin-discovery" title="Link to this heading"></a></h3>
-<p>fapilog automatically discovers available plugins:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">discover_plugins</span>
-
-<span class="c1"># Discover all available plugins</span>
-<span class="n">plugins</span> <span class="o">=</span> <span class="k">await</span> <span class="n">discover_plugins</span><span class="p">()</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available sinks: </span><span class="si">{</span><span class="n">plugins</span><span class="o">.</span><span class="n">sinks</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available enrichers: </span><span class="si">{</span><span class="n">plugins</span><span class="o">.</span><span class="n">enrichers</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available redactors: </span><span class="si">{</span><span class="n">plugins</span><span class="o">.</span><span class="n">redactors</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available processors: </span><span class="si">{</span><span class="n">plugins</span><span class="o">.</span><span class="n">processors</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-</section>
-<section id="built-in-plugins">
-<h2>Built-in Plugins<a class="headerlink" href="#built-in-plugins" title="Link to this heading"></a></h2>
-<section id="default-configuration">
-<h3>Default Configuration<a class="headerlink" href="#default-configuration" title="Link to this heading"></a></h3>
-<p>By default, fapilog includes:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Default plugin configuration</span>
-<span class="n">DEFAULT_SINKS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;stdout_json&quot;</span><span class="p">]</span>
-<span class="n">DEFAULT_ENRICHERS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;runtime_info&quot;</span><span class="p">,</span> <span class="s2">&quot;context_vars&quot;</span><span class="p">]</span>
-<span class="n">DEFAULT_REDACTORS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;field_mask&quot;</span><span class="p">]</span>
-<span class="n">DEFAULT_PROCESSORS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;pass_through&quot;</span><span class="p">]</span>
-</pre></div>
-</div>
-</section>
-<section id="plugin-dependencies">
-<h3>Plugin Dependencies<a class="headerlink" href="#plugin-dependencies" title="Link to this heading"></a></h3>
-<p>Some plugins have dependencies:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Optional dependencies for specific plugins</span>
-<span class="n">OPTIONAL_DEPENDENCIES</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;http_client_sink&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;httpx&quot;</span><span class="p">],</span>
-    <span class="s2">&quot;mmap_sink&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;mmap&quot;</span><span class="p">],</span>
-    <span class="s2">&quot;prometheus_metrics&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;prometheus_client&quot;</span><span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</section>
 </section>
 <section id="custom-plugin-development">
 <h2>Custom Plugin Development<a class="headerlink" href="#custom-plugin-development" title="Link to this heading"></a></h2>
@@ -372,89 +351,54 @@
 </div>
 </section>
 </section>
-<section id="plugin-configuration-examples">
-<h2>Plugin Configuration Examples<a class="headerlink" href="#plugin-configuration-examples" title="Link to this heading"></a></h2>
-<section id="development-environment">
-<h3>Development Environment<a class="headerlink" href="#development-environment" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span>
-
-<span class="n">dev_settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span>
-    <span class="n">plugins__sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;stdout_json&quot;</span><span class="p">],</span>
-    <span class="n">plugins__enrichers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;runtime_info&quot;</span><span class="p">],</span>
-    <span class="n">plugins__redactors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;field_mask&quot;</span><span class="p">],</span>
-    <span class="n">plugins__processors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;pass_through&quot;</span><span class="p">]</span>
+<section id="plugin-protocols">
+<h2>Plugin Protocols<a class="headerlink" href="#plugin-protocols" title="Link to this heading"></a></h2>
+<p>All plugins follow base protocols defined in <code class="docutils literal notranslate"><span class="pre">fapilog.plugins</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BaseSink</span><span class="p">,</span>
+    <span class="n">BaseEnricher</span><span class="p">,</span>
+    <span class="n">BaseRedactor</span><span class="p">,</span>
+    <span class="n">BaseProcessor</span><span class="p">,</span>
 <span class="p">)</span>
 </pre></div>
 </div>
-</section>
-<section id="production-environment">
-<h3>Production Environment<a class="headerlink" href="#production-environment" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span>
+<section id="plugin-lifecycle">
+<h3>Plugin Lifecycle<a class="headerlink" href="#plugin-lifecycle" title="Link to this heading"></a></h3>
+<p>Plugins implement async lifecycle hooks:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">BasePlugin</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the plugin. Called once on startup.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
 
-<span class="n">prod_settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span>
-    <span class="n">plugins__sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;rotating_file&quot;</span><span class="p">,</span> <span class="s2">&quot;http_client&quot;</span><span class="p">],</span>
-    <span class="n">plugins__enrichers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;runtime_info&quot;</span><span class="p">,</span> <span class="s2">&quot;context_vars&quot;</span><span class="p">],</span>
-    <span class="n">plugins__redactors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;field_mask&quot;</span><span class="p">,</span> <span class="s2">&quot;regex_mask&quot;</span><span class="p">,</span> <span class="s2">&quot;url_credentials&quot;</span><span class="p">],</span>
-    <span class="n">plugins__processors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;zero_copy&quot;</span><span class="p">]</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="high-performance-configuration">
-<h3>High-Performance Configuration<a class="headerlink" href="#high-performance-configuration" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clean up plugin resources. Called on shutdown.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
 
-<span class="n">perf_settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span>
-    <span class="n">plugins__sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mmap_persistence&quot;</span><span class="p">],</span>
-    <span class="n">plugins__enrichers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;context_vars&quot;</span><span class="p">],</span>  <span class="c1"># Minimal enrichers</span>
-    <span class="n">plugins__redactors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;field_mask&quot;</span><span class="p">],</span>    <span class="c1"># Basic redaction</span>
-    <span class="n">plugins__processors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;zero_copy&quot;</span><span class="p">]</span>     <span class="c1"># High-performance processing</span>
-<span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">health_check</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check plugin health for monitoring.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">True</span>
 </pre></div>
 </div>
 </section>
 </section>
-<section id="plugin-health-monitoring">
-<h2>Plugin Health Monitoring<a class="headerlink" href="#plugin-health-monitoring" title="Link to this heading"></a></h2>
-<section id="health-checks">
-<h3>Health Checks<a class="headerlink" href="#health-checks" title="Link to this heading"></a></h3>
-<p>All plugins support health monitoring:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_plugin_health</span>
+<section id="enterprise-plugins">
+<h2>Enterprise Plugins<a class="headerlink" href="#enterprise-plugins" title="Link to this heading"></a></h2>
+<p>For enterprise features like tamper-evident logging, fapilog provides an integrity plugin hook:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntegrityPlugin</span><span class="p">,</span> <span class="n">load_integrity_plugin</span>
 
-<span class="c1"># Check health of all plugins</span>
-<span class="n">health</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_plugin_health</span><span class="p">()</span>
-
-<span class="k">for</span> <span class="n">plugin_type</span><span class="p">,</span> <span class="n">plugins</span> <span class="ow">in</span> <span class="n">health</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">plugin_type</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">status</span> <span class="ow">in</span> <span class="n">plugins</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="s1">&#39;✅&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">status</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;❌&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="c1"># Load an integrity plugin by entry point name</span>
+<span class="n">plugin</span> <span class="o">=</span> <span class="n">load_integrity_plugin</span><span class="p">(</span><span class="s2">&quot;fapilog-tamper&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-</section>
-<section id="plugin-metrics">
-<h3>Plugin Metrics<a class="headerlink" href="#plugin-metrics" title="Link to this heading"></a></h3>
-<p>Plugins expose metrics for monitoring:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_plugin_metrics</span>
-
-<span class="c1"># Get metrics from all plugins</span>
-<span class="n">metrics</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_plugin_metrics</span><span class="p">()</span>
-
-<span class="k">for</span> <span class="n">plugin_type</span><span class="p">,</span> <span class="n">plugin_metrics</span> <span class="ow">in</span> <span class="n">metrics</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">plugin_type</span><span class="si">}</span><span class="s2"> metrics:&quot;</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">metric_data</span> <span class="ow">in</span> <span class="n">plugin_metrics</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">metric_data</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
+<p>The integrity plugin system uses the <code class="docutils literal notranslate"><span class="pre">fapilog.integrity</span></code> entry point group for automatic discovery.</p>
 </section>
 <section id="best-practices">
 <h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
 <ol class="arabic simple">
 <li><p><strong>Start simple</strong> - Use built-in plugins before creating custom ones</p></li>
-<li><p><strong>Health monitoring</strong> - Always implement health checks for custom plugins</p></li>
-<li><p><strong>Resource management</strong> - Properly implement start/stop lifecycle</p></li>
+<li><p><strong>Implement lifecycle</strong> - Properly implement <code class="docutils literal notranslate"><span class="pre">start()</span></code> and <code class="docutils literal notranslate"><span class="pre">stop()</span></code> methods</p></li>
 <li><p><strong>Error handling</strong> - Gracefully handle failures in custom plugins</p></li>
-<li><p><strong>Configuration</strong> - Make plugins configurable through settings</p></li>
+<li><p><strong>Resource management</strong> - Clean up connections/files in <code class="docutils literal notranslate"><span class="pre">stop()</span></code></p></li>
 <li><p><strong>Testing</strong> - Test plugins in isolation and integration</p></li>
 </ol>
 <hr class="docutils" />
