@@ -115,11 +115,13 @@ class SealedSink(BaseSink):
         provider: KeyProvider | None = None,
         inner_config: dict[str, Any] | None = None,
     ) -> None:
-        cfg = config or {}
-        if isinstance(cfg, dict):
-            cfg = TamperConfig(**cfg)
-        if not isinstance(cfg, TamperConfig):
+        cfg: TamperConfig
+        if config is None:
             cfg = TamperConfig()
+        elif isinstance(config, dict):
+            cfg = TamperConfig(**config)
+        else:
+            cfg = config
 
         if isinstance(inner_sink, str):
             from fapilog.plugins.loader import load_plugin as _load_plugin
