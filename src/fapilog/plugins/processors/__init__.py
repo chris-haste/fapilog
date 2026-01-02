@@ -33,6 +33,10 @@ class BaseProcessor(Protocol):
             count += 1
         return count
 
+    async def health_check(self) -> bool:  # pragma: no cover - optional
+        """Return True if the processor is healthy. Default: assume healthy."""
+        return True
+
 
 async def process_parallel(
     views: list[memoryview],

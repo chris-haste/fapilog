@@ -57,6 +57,10 @@ class BaseSink(Protocol):
         """
         ...
 
+    async def health_check(self) -> bool:  # pragma: no cover - optional
+        """Return True if the sink is healthy. Default: assume healthy."""
+        return True
+
 
 __all__ = [
     "BaseSink",

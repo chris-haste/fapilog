@@ -115,6 +115,8 @@ class SyncLoggerFacade:
         )
         # Error dedupe (message -> (first_ts, suppressed_count))
         self._error_dedupe: dict[str, tuple[float, int]] = {}
+        # Track sinks for health aggregation
+        self._sinks: list[Any] = []
 
     def start(self) -> None:
         """Start worker group bound to an event loop.
@@ -811,6 +813,22 @@ class SyncLoggerFacade:
             return {"ok": True, "sink": "default"}
         except Exception as exc:  # pragma: no cover - error path
             return {"ok": False, "sink": "default", "error": str(exc)}
+
+    async def check_health(self) -> Any:
+        """Aggregated health across enrichers, redactors, and sinks.
+
+        Returns:
+            AggregatedHealth with overall status and per-plugin details.
+        """
+        from ..plugins.health import aggregate_plugin_health
+
+        sinks = getattr(self, "_sinks", None)
+        sink_list = sinks if isinstance(sinks, list) and sinks else [self._sink_write]
+        return await aggregate_plugin_health(
+            enrichers=list(self._enrichers),
+            redactors=list(self._redactors),
+            sinks=sink_list,
+        )
 
     async def _async_enqueue(
         self,
@@ -1590,6 +1608,22 @@ class AsyncLoggerFacade:
             return {"ok": True, "sink": "default"}
         except Exception as exc:  # pragma: no cover - error path
             return {"ok": False, "sink": "default", "error": str(exc)}
+
+    async def check_health(self) -> Any:
+        """Aggregated health across enrichers, redactors, and sinks.
+
+        Returns:
+            AggregatedHealth with overall status and per-plugin details.
+        """
+        from ..plugins.health import aggregate_plugin_health
+
+        sinks = getattr(self, "_sinks", None)
+        sink_list = sinks if isinstance(sinks, list) and sinks else [self._sink_write]
+        return await aggregate_plugin_health(
+            enrichers=list(self._enrichers),
+            redactors=list(self._redactors),
+            sinks=sink_list,
+        )
 
     async def _async_enqueue(
         self,

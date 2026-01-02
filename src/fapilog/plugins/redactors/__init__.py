@@ -38,6 +38,10 @@ class BaseRedactor(Protocol):
     async def redact(self, event: dict) -> dict:  # noqa: D401
         """Return a redacted copy of the input mapping without raising upstream."""
 
+    async def health_check(self) -> bool:  # pragma: no cover - optional
+        """Return True if the redactor is healthy. Default: assume healthy."""
+        return True
+
 
 async def redact_in_order(
     event: dict,

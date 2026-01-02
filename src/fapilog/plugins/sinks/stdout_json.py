@@ -122,6 +122,12 @@ class StdoutJsonSink:
         except Exception:
             return None
 
+    async def health_check(self) -> bool:
+        try:
+            return bool(sys.stdout and sys.stdout.buffer.writable())
+        except Exception:
+            return False
+
 
 # Mark as referenced for static analyzers (vulture)
 _VULTURE_USED: tuple[object, ...] = (
