@@ -87,14 +87,15 @@ class UrlCredentialsRedactor:
         return value
 
 
-# Minimal PLUGIN_METADATA for discovery
+# Plugin metadata for discovery
 PLUGIN_METADATA = {
     "name": "url-credentials",
     "version": "1.0.0",
     "author": "Fapilog Core",
     "plugin_type": "redactor",
-    "entry_point": ("fapilog.plugins.redactors.url_credentials:UrlCredentialsRedactor"),
-    "description": ("Strips user:pass@ credentials from URL-like strings."),
+    "entry_point": "fapilog.plugins.redactors.url_credentials:UrlCredentialsRedactor",
+    "description": "Strips user:pass@ credentials from URL-like strings.",
+    "compatibility": {"min_fapilog_version": "0.3.0"},
     "api_version": "1.0",
 }
 

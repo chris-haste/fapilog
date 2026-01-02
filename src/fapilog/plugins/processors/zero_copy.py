@@ -60,3 +60,16 @@ class ZeroCopyProcessor:
                 _ = await self.process(v)
                 count += 1
         return count
+
+
+# Plugin metadata for discovery
+PLUGIN_METADATA = {
+    "name": "zero-copy",
+    "version": "1.0.0",
+    "plugin_type": "processor",
+    "entry_point": "fapilog.plugins.processors.zero_copy:ZeroCopyProcessor",
+    "description": "Zero-copy pass-through processor for performance benchmarking.",
+    "author": "Fapilog Core",
+    "compatibility": {"min_fapilog_version": "0.3.0"},
+    "api_version": "1.0",
+}

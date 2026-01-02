@@ -164,3 +164,15 @@ class HttpSink:
 
 # Mark public API methods for tooling
 _ = HttpSink.health_check  # pragma: no cover
+
+# Plugin metadata for discovery
+PLUGIN_METADATA = {
+    "name": "http",
+    "version": "1.0.0",
+    "plugin_type": "sink",
+    "entry_point": "fapilog.plugins.sinks.http_client:HttpSink",
+    "description": "Async HTTP sink that POSTs JSON to a configured endpoint.",
+    "author": "Fapilog Core",
+    "compatibility": {"min_fapilog_version": "0.3.0"},
+    "api_version": "1.0",
+}
