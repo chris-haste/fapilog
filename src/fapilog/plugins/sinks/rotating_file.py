@@ -63,6 +63,8 @@ class RotatingFileSink:
     - Never raises upstream; errors are contained
     """
 
+    name = "rotating_file"
+
     _lock: asyncio.Lock
 
     def __init__(self, config: RotatingFileSinkConfig) -> None:

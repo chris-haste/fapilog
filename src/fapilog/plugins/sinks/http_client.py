@@ -73,6 +73,8 @@ class HttpSinkConfig:
 class HttpSink:
     """Async HTTP sink that POSTs JSON to a configured endpoint."""
 
+    name = "http"
+
     def __init__(
         self,
         config: HttpSinkConfig,

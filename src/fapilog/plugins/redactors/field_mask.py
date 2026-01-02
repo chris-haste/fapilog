@@ -16,7 +16,7 @@ class FieldMaskConfig:
 
 
 class FieldMaskRedactor:
-    name = "field-mask"
+    name = "field_mask"
 
     def __init__(self, *, config: FieldMaskConfig | None = None) -> None:
         cfg = config or FieldMaskConfig(fields_to_mask=[])
@@ -191,7 +191,7 @@ class FieldMaskRedactor:
 
 # Minimal built-in PLUGIN_METADATA for optional discovery of core redactor
 PLUGIN_METADATA = {
-    "name": "field-mask",
+    "name": "field_mask",
     "version": "1.0.0",
     "plugin_type": "redactor",
     "entry_point": "fapilog.plugins.redactors.field_mask:FieldMaskRedactor",

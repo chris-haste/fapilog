@@ -25,6 +25,8 @@ class ZeroCopyProcessor:
     The processor returns the same memoryview it receives to avoid copies.
     """
 
+    name = "zero_copy"
+
     def __init__(self) -> None:
         self._lock = asyncio.Lock()
 

@@ -151,7 +151,7 @@ async def test_guardrails_emit_warnings(
 
 
 def test_name_and_plugin_metadata_present() -> None:
-    assert FieldMaskRedactor.name == "field-mask"
+    assert FieldMaskRedactor.name == "field_mask"
     assert isinstance(PLUGIN_METADATA, dict)
-    assert PLUGIN_METADATA.get("name") == "field-mask"
+    assert PLUGIN_METADATA.get("name") == "field_mask"
     assert PLUGIN_METADATA.get("plugin_type") == "redactor"
