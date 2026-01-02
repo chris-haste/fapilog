@@ -28,6 +28,18 @@ class RuntimeInfoEnricher:
         compact = {k: v for k, v in info.items() if v is not None}
         return compact
 
+    async def health_check(self) -> bool:
+        """Verify runtime info can be collected.
+
+        Checks that essential system calls succeed.
+        """
+        try:
+            # Verify we can get hostname (most likely to fail in containers)
+            _ = socket.gethostname()
+            return True
+        except Exception:
+            return False
+
 
 __all__ = ["RuntimeInfoEnricher"]
 
@@ -39,6 +51,6 @@ PLUGIN_METADATA = {
     "entry_point": "fapilog.plugins.enrichers.runtime_info:RuntimeInfoEnricher",
     "description": "Adds runtime/system information such as host, pid, and python version.",
     "author": "Fapilog Core",
-    "compatibility": {"min_fapilog_version": "3.0.0"},
+    "compatibility": {"min_fapilog_version": "0.3.0"},
     "api_version": "1.0",
 }

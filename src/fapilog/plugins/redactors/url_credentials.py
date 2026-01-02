@@ -86,6 +86,22 @@ class UrlCredentialsRedactor:
             return value
         return value
 
+    async def health_check(self) -> bool:
+        """Verify URL parsing capability is available.
+
+        Checks that urllib.parse is functional and config is valid.
+        """
+        try:
+            # Verify max_len is positive
+            if self._max_len <= 0:
+                return False
+            # Verify URL parsing works
+            parts = urlsplit("https://user:pass@example.com/path")
+            _ = urlunsplit((parts.scheme, parts.hostname or "", "", "", ""))
+            return True
+        except Exception:
+            return False
+
 
 # Plugin metadata for discovery
 PLUGIN_METADATA = {

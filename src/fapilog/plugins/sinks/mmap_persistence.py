@@ -274,3 +274,35 @@ class MemoryMappedPersistence:
             write_offset=self._offset,
             total_bytes_written=self._offset,
         )
+
+
+# Plugin metadata for discovery
+PLUGIN_METADATA = {
+    "name": "mmap-persistence",
+    "version": "1.0.0",
+    "plugin_type": "sink",
+    "entry_point": "fapilog.plugins.sinks.mmap_persistence:MemoryMappedPersistence",
+    "description": "Memory-mapped file sink for zero-copy friendly persistence.",
+    "author": "Fapilog Core",
+    "compatibility": {"min_fapilog_version": "0.3.0"},
+    "api_version": "1.0",
+    "config_schema": {
+        "type": "object",
+        "properties": {
+            "path": {"type": "string", "description": "File path for mmap persistence"},
+            "initial_size_bytes": {
+                "type": "integer",
+                "description": "Initial file size",
+            },
+            "growth_chunk_bytes": {
+                "type": "integer",
+                "description": "Growth increment",
+            },
+            "max_size_bytes": {"type": "integer", "description": "Maximum file size"},
+            "flush_on_close": {"type": "boolean"},
+            "periodic_flush_bytes": {"type": "integer"},
+        },
+        "required": ["path"],
+    },
+    "tags": ["experimental", "zero-copy", "performance"],
+}
