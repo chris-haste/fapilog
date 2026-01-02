@@ -39,6 +39,12 @@
 | `FAPILOG__CORE__WORKER_COUNT` | int | 1 | Number of worker tasks for flush processing |
 | `FAPILOG__ENRICHER_CONFIG__CONTEXT_VARS` | dict | PydanticUndefined | Configuration for context_vars enricher |
 | `FAPILOG__ENRICHER_CONFIG__EXTRA` | dict | PydanticUndefined | Configuration for third-party enrichers by name |
+| `FAPILOG__ENRICHER_CONFIG__INTEGRITY__ALGORITHM` | Literal | sha256 | MAC or signature algorithm |
+| `FAPILOG__ENRICHER_CONFIG__INTEGRITY__CHAIN_STATE_PATH` | str | None | — | Directory to persist chain state |
+| `FAPILOG__ENRICHER_CONFIG__INTEGRITY__KEY_ID` | str | None | — | Key identifier used for MAC/signature |
+| `FAPILOG__ENRICHER_CONFIG__INTEGRITY__KEY_PROVIDER` | str | None | env | Key provider for MAC/signature |
+| `FAPILOG__ENRICHER_CONFIG__INTEGRITY__ROTATE_CHAIN` | bool | False | Reset chain after rotation |
+| `FAPILOG__ENRICHER_CONFIG__INTEGRITY__USE_KMS_SIGNING` | bool | False | Sign integrity hashes via KMS provider |
 | `FAPILOG__ENRICHER_CONFIG__RUNTIME_INFO` | dict | PydanticUndefined | Configuration for runtime_info enricher |
 | `FAPILOG__HTTP__ENDPOINT` | str | None | — | HTTP endpoint to POST log events to |
 | `FAPILOG__HTTP__HEADERS` | dict | PydanticUndefined | Default headers to send with each request |
@@ -104,6 +110,18 @@
 | `FAPILOG__SINK_CONFIG__ROTATING_FILE__MAX_FILES` | int | None | — | Max number of rotated files to keep |
 | `FAPILOG__SINK_CONFIG__ROTATING_FILE__MAX_TOTAL_BYTES` | int | None | — | Max total bytes across all rotated files |
 | `FAPILOG__SINK_CONFIG__ROTATING_FILE__MODE` | Literal | json | Output format: json or text |
+| `FAPILOG__SINK_CONFIG__SEALED__CHAIN_STATE_PATH` | str | None | — | Directory to persist chain state |
+| `FAPILOG__SINK_CONFIG__SEALED__COMPRESS_ROTATED` | bool | False | Compress rotated files after sealing |
+| `FAPILOG__SINK_CONFIG__SEALED__FSYNC_ON_ROTATE` | bool | True | Fsync inner sink after rotation |
+| `FAPILOG__SINK_CONFIG__SEALED__FSYNC_ON_WRITE` | bool | False | Fsync inner sink on every write |
+| `FAPILOG__SINK_CONFIG__SEALED__INNER_CONFIG` | dict | PydanticUndefined | Configuration for the inner sink |
+| `FAPILOG__SINK_CONFIG__SEALED__INNER_SINK` | str | rotating_file | Inner sink to wrap with sealing |
+| `FAPILOG__SINK_CONFIG__SEALED__KEY_ID` | str | None | — | Optional override for signing key identifier |
+| `FAPILOG__SINK_CONFIG__SEALED__KEY_PROVIDER` | str | None | env | Key provider for manifest signing |
+| `FAPILOG__SINK_CONFIG__SEALED__MANIFEST_PATH` | str | None | — | Directory where manifests are written |
+| `FAPILOG__SINK_CONFIG__SEALED__ROTATE_CHAIN` | bool | False | Reset chain state on rotation |
+| `FAPILOG__SINK_CONFIG__SEALED__SIGN_MANIFESTS` | bool | True | Sign manifests when keys are available |
+| `FAPILOG__SINK_CONFIG__SEALED__USE_KMS_SIGNING` | bool | False | Sign manifests via external KMS provider |
 | `FAPILOG__SINK_CONFIG__STDOUT_JSON` | dict | PydanticUndefined | Configuration for stdout_json sink |
 | `FAPILOG__SINK_CONFIG__WEBHOOK__ENDPOINT` | str | None | — | Webhook destination URL |
 | `FAPILOG__SINK_CONFIG__WEBHOOK__HEADERS` | dict | PydanticUndefined | Additional HTTP headers |

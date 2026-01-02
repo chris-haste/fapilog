@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .config import TamperConfig
+from .config import TamperConfig, coerce_tamper_config
 from .enricher import IntegrityEnricher
 from .sealed_sink import SealedSink
 
@@ -22,7 +22,7 @@ class _TamperSealedPlugin:
     name = "tamper-sealed"
 
     def _load_config(self, config: dict[str, Any] | None) -> TamperConfig:
-        return TamperConfig(**(config or {}))
+        return coerce_tamper_config(config, enabled_if_unspecified=True)
 
     def _require_crypto(self) -> None:
         """Ensure crypto dependency is available; defer import until needed."""

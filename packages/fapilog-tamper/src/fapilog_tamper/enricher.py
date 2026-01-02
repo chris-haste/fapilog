@@ -15,7 +15,11 @@ from fapilog.plugins.enrichers import BaseEnricher
 
 from .canonical import b64url_encode, canonicalize
 from .chain_state import GENESIS_HASH, ChainState, ChainStatePersistence
-from .config import TamperConfig
+from .config import (
+    IntegrityEnricherConfig,
+    TamperConfig,
+    coerce_tamper_config,
+)
 from .providers import KeyProvider, create_key_provider
 
 try:  # Optional Ed25519 dependency
@@ -31,25 +35,14 @@ class IntegrityEnricher(BaseEnricher):
 
     def __init__(
         self,
-        config: TamperConfig | dict[str, Any] | None = None,
+        config: TamperConfig | IntegrityEnricherConfig | dict[str, Any] | None = None,
         stream_id: str = "default",
         provider: KeyProvider | None = None,
         **kwargs: Any,
     ) -> None:
-        # Support both TamperConfig and plain dict/kwargs for standard plugin loading
-        cfg = config
-        if cfg is None:
-            cfg = {}
-        if isinstance(cfg, dict):
-            merged = {**cfg, **kwargs}
-            cfg = TamperConfig(**merged)
-        if not isinstance(cfg, TamperConfig):
-            cfg = TamperConfig(**kwargs)
-        # Default to enabled when loaded via plugin without explicit flag
-        if config is None and "enabled" not in kwargs:
-            cfg.enabled = True
-
-        self._config = cfg
+        self._config = coerce_tamper_config(
+            config, enabled_if_unspecified=True, overrides=kwargs
+        )
         self._stream_id = stream_id
         self._lock = asyncio.Lock()
         self._key: bytes | None = None

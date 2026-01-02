@@ -108,6 +108,7 @@ def _sink_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
                 timeout_seconds=scfg.webhook.timeout_seconds,
             )
         },
+        "sealed": scfg.sealed.model_dump(exclude_none=True),
     }
     configs.update(scfg.extra)
     return configs
@@ -118,6 +119,7 @@ def _enricher_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
     cfg: dict[str, dict[str, Any]] = {
         "runtime_info": ecfg.runtime_info,
         "context_vars": ecfg.context_vars,
+        "integrity": ecfg.integrity.model_dump(exclude_none=True),
     }
     cfg.update(ecfg.extra)
     return cfg

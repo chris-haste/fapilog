@@ -72,6 +72,68 @@ class WebhookSettings(BaseModel):
     )
 
 
+class SealedSinkSettings(BaseModel):
+    """Standard configuration for the tamper-evident sealed sink."""
+
+    inner_sink: str = Field(
+        default="rotating_file", description="Inner sink to wrap with sealing"
+    )
+    inner_config: dict[str, Any] = Field(
+        default_factory=dict, description="Configuration for the inner sink"
+    )
+    manifest_path: str | None = Field(
+        default=None, description="Directory where manifests are written"
+    )
+    sign_manifests: bool = Field(
+        default=True, description="Sign manifests when keys are available"
+    )
+    key_id: str | None = Field(
+        default=None, description="Optional override for signing key identifier"
+    )
+    key_provider: str | None = Field(
+        default="env", description="Key provider for manifest signing"
+    )
+    chain_state_path: str | None = Field(
+        default=None, description="Directory to persist chain state"
+    )
+    rotate_chain: bool = Field(
+        default=False, description="Reset chain state on rotation"
+    )
+    fsync_on_write: bool = Field(
+        default=False, description="Fsync inner sink on every write"
+    )
+    fsync_on_rotate: bool = Field(
+        default=True, description="Fsync inner sink after rotation"
+    )
+    compress_rotated: bool = Field(
+        default=False, description="Compress rotated files after sealing"
+    )
+    use_kms_signing: bool = Field(
+        default=False, description="Sign manifests via external KMS provider"
+    )
+
+
+class IntegrityEnricherSettings(BaseModel):
+    """Standard configuration for the tamper-evident integrity enricher."""
+
+    algorithm: Literal["sha256", "ed25519"] = Field(
+        default="sha256", description="MAC or signature algorithm"
+    )
+    key_id: str | None = Field(
+        default=None, description="Key identifier used for MAC/signature"
+    )
+    key_provider: str | None = Field(
+        default="env", description="Key provider for MAC/signature"
+    )
+    chain_state_path: str | None = Field(
+        default=None, description="Directory to persist chain state"
+    )
+    rotate_chain: bool = Field(default=False, description="Reset chain after rotation")
+    use_kms_signing: bool = Field(
+        default=False, description="Sign integrity hashes via KMS provider"
+    )
+
+
 class RedactorFieldMaskSettings(BaseModel):
     """Per-plugin configuration for FieldMaskRedactor."""
 
@@ -431,6 +493,10 @@ class Settings(BaseSettings):
         stdout_json: dict[str, Any] = Field(
             default_factory=dict, description="Configuration for stdout_json sink"
         )
+        sealed: SealedSinkSettings = Field(
+            default_factory=SealedSinkSettings,
+            description="Configuration for sealed sink (fapilog-tamper)",
+        )
         # Third-party sinks use dicts
         extra: dict[str, dict[str, Any]] = Field(
             default_factory=dict,
@@ -445,6 +511,10 @@ class Settings(BaseSettings):
         )
         context_vars: dict[str, Any] = Field(
             default_factory=dict, description="Configuration for context_vars enricher"
+        )
+        integrity: IntegrityEnricherSettings = Field(
+            default_factory=IntegrityEnricherSettings,
+            description="Configuration for integrity enricher (fapilog-tamper)",
         )
         extra: dict[str, dict[str, Any]] = Field(
             default_factory=dict,
