@@ -65,35 +65,6 @@ async def test_empty_enrichers_allowed(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.mark.asyncio
-async def test_integrity_wraps_each_sink(monkeypatch: pytest.MonkeyPatch) -> None:
-    instances: list[_DummySink] = []
-    _make_loader(monkeypatch, instances)
-
-    class IntegrityPlugin:
-        def wrap_sink(self, sink: Any, config: dict[str, Any] | None = None) -> Any:
-            return {"wrapped": sink}
-
-    monkeypatch.setattr(
-        "fapilog.plugins.integrity.load_integrity_plugin",
-        lambda name: IntegrityPlugin(),
-    )
-
-    settings = Settings()
-    settings.core.integrity_plugin = "fake"
-    settings.core.sinks = ["one", "two"]
-
-    logger = get_logger(settings=settings)
-    await logger.stop_and_drain()
-
-    # Each sink instance should have been wrapped
-    wrapped = [inst.kwargs.get("wrapped") for inst in instances]
-    assert all(
-        isinstance(w, dict) and "wrapped" in {"wrapped": w}.keys() or True
-        for w in wrapped
-    )  # type: ignore[arg-type]
-
-
-@pytest.mark.asyncio
 async def test_http_env_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
     instances: list[_DummySink] = []
     _make_loader(monkeypatch, instances)

@@ -272,61 +272,8 @@ class TestGetLoggerSinkStartFailure:
                 asyncio.run(logger.stop_and_drain())
 
 
-class TestGetAsyncLoggerIntegrityPluginErrors:
-    """Test integrity plugin error paths in get_async_logger."""
-
-    @pytest.mark.asyncio
-    async def test_get_async_logger_integrity_enricher_exception(self) -> None:
-        """Test integrity enricher exception handling."""
-        from unittest.mock import Mock, patch
-
-        from fapilog import Settings, get_async_logger
-
-        # Mock integrity plugin that raises in get_enricher
-        mock_plugin = Mock()
-        mock_plugin.get_enricher.side_effect = RuntimeError("Enricher failed")
-        mock_plugin.wrap_sink = Mock(return_value=Mock())
-
-        with patch(
-            "fapilog.plugins.integrity.load_integrity_plugin", return_value=mock_plugin
-        ):
-            # Mock diagnostics to also fail
-            with patch(
-                "fapilog.core.diagnostics.warn",
-                side_effect=RuntimeError("Diagnostics failed"),
-            ):
-                settings = Settings()
-                settings.core.integrity_plugin = "test-plugin"
-                logger = await get_async_logger(
-                    name="integrity-enricher-fail", settings=settings
-                )
-                await logger.info("test message")
-                await logger.stop_and_drain()
-
-    @pytest.mark.asyncio
-    async def test_get_async_logger_integrity_plugin_load_exception(self) -> None:
-        """Test integrity plugin load exception handling."""
-        from unittest.mock import patch
-
-        from fapilog import Settings, get_async_logger
-
-        # Mock load_integrity_plugin to raise
-        with patch(
-            "fapilog.plugins.integrity.load_integrity_plugin",
-            side_effect=RuntimeError("Plugin load failed"),
-        ):
-            # Mock diagnostics to also fail
-            with patch(
-                "fapilog.core.diagnostics.warn",
-                side_effect=RuntimeError("Diagnostics failed"),
-            ):
-                settings = Settings()
-                settings.core.integrity_plugin = "test-plugin"
-                logger = await get_async_logger(
-                    name="integrity-load-fail", settings=settings
-                )
-                await logger.info("test message")
-                await logger.stop_and_drain()
+class TestGetAsyncLoggerSinkErrors:
+    """Test sink error paths in get_async_logger."""
 
     @pytest.mark.asyncio
     async def test_get_async_logger_sink_start_failure_with_diagnostics_exception(
@@ -440,90 +387,6 @@ class TestRuntimeCoverage:
                     with runtime() as logger:
                         logger.info("test message")
                     # Should handle both exceptions gracefully
-
-
-class TestGetLoggerIntegrityPlugin:
-    """Test get_logger integrity plugin paths."""
-
-    def test_get_logger_integrity_enricher_exception(self) -> None:
-        """Test get_logger when integrity enricher fails."""
-        from unittest.mock import Mock, patch
-
-        from fapilog import Settings, get_logger
-
-        # Mock integrity plugin that raises in get_enricher
-        mock_plugin = Mock()
-        mock_plugin.get_enricher.side_effect = RuntimeError("Enricher failed")
-        mock_plugin.wrap_sink = Mock(return_value=Mock())
-
-        with patch(
-            "fapilog.plugins.integrity.load_integrity_plugin", return_value=mock_plugin
-        ):
-            # Mock diagnostics to also fail
-            with patch(
-                "fapilog.core.diagnostics.warn",
-                side_effect=RuntimeError("Diagnostics failed"),
-            ):
-                settings = Settings()
-                settings.core.integrity_plugin = "test-plugin"
-                logger = get_logger(
-                    name="integrity-enricher-fail-sync", settings=settings
-                )
-                logger.info("test message")
-                import asyncio
-
-                asyncio.run(logger.stop_and_drain())
-
-    def test_get_logger_integrity_plugin_load_exception(self) -> None:
-        """Test get_logger when integrity plugin load fails."""
-        from unittest.mock import patch
-
-        from fapilog import Settings, get_logger
-
-        # Mock load_integrity_plugin to raise
-        with patch(
-            "fapilog.plugins.integrity.load_integrity_plugin",
-            side_effect=RuntimeError("Plugin load failed"),
-        ):
-            # Mock diagnostics to also fail
-            with patch(
-                "fapilog.core.diagnostics.warn",
-                side_effect=RuntimeError("Diagnostics failed"),
-            ):
-                settings = Settings()
-                settings.core.integrity_plugin = "test-plugin"
-                logger = get_logger(name="integrity-load-fail-sync", settings=settings)
-                logger.info("test message")
-                import asyncio
-
-                asyncio.run(logger.stop_and_drain())
-
-    def test_get_logger_integrity_sink_wrapper_exception(self) -> None:
-        """Test get_logger when integrity sink wrapper fails."""
-        from unittest.mock import Mock, patch
-
-        from fapilog import Settings, get_logger
-
-        # Mock integrity plugin that raises in wrap_sink
-        mock_plugin = Mock()
-        mock_plugin.wrap_sink.side_effect = RuntimeError("Wrap failed")
-        mock_plugin.get_enricher = Mock(return_value=None)
-
-        with patch(
-            "fapilog.plugins.integrity.load_integrity_plugin", return_value=mock_plugin
-        ):
-            # Mock diagnostics to also fail
-            with patch(
-                "fapilog.core.diagnostics.warn",
-                side_effect=RuntimeError("Diagnostics failed"),
-            ):
-                settings = Settings()
-                settings.core.integrity_plugin = "test-plugin"
-                logger = get_logger(name="integrity-wrap-fail-sync", settings=settings)
-                logger.info("test message")
-                import asyncio
-
-                asyncio.run(logger.stop_and_drain())
 
 
 class TestGetLoggerEdgeCases:

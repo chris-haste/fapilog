@@ -19,8 +19,6 @@
 | `FAPILOG__CORE__EXCEPTIONS_ENABLED` | bool | True | Enable structured exception serialization for log calls |
 | `FAPILOG__CORE__EXCEPTIONS_MAX_FRAMES` | int | 50 | Maximum number of stack frames to capture for exceptions |
 | `FAPILOG__CORE__EXCEPTIONS_MAX_STACK_CHARS` | int | 20000 | Maximum total characters for serialized stack string |
-| `FAPILOG__CORE__INTEGRITY_CONFIG` | dict[str, object] | None | — | Opaque configuration mapping passed to the selected integrity plugin |
-| `FAPILOG__CORE__INTEGRITY_PLUGIN` | str | None | — | Optional integrity plugin name (fapilog.integrity entry point) to enable |
 | `FAPILOG__CORE__INTERNAL_LOGGING_ENABLED` | bool | False | Emit DEBUG/WARN diagnostics for internal errors |
 | `FAPILOG__CORE__LOG_LEVEL` | Literal | INFO | Default log level |
 | `FAPILOG__CORE__MAX_QUEUE_SIZE` | int | 10000 | Maximum in-memory queue size for async processing |

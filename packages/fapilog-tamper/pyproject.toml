@@ -29,9 +29,6 @@ integrity = "fapilog_tamper.enricher:IntegrityEnricher"
 [project.entry-points."fapilog.sinks"]
 sealed = "fapilog_tamper.sealed_sink:SealedSink"
 
-[project.entry-points."fapilog.integrity"]
-tamper-sealed = "fapilog_tamper:TamperSealedPlugin"
-
 [project.scripts]
 fapilog-tamper = "fapilog_tamper.cli:main"
 

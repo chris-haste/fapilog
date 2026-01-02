@@ -339,14 +339,13 @@ def test_decode_key_invalid_length(monkeypatch: pytest.MonkeyPatch) -> None:
     assert any(m["message"] == "invalid key length" for m in messages)
 
 
-def test_plugin_wraps_sink_and_helpers(
+def test_sink_and_enricher_helpers(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """Plugin should produce enricher and wrap sinks; cli/manifests/verify covered."""
+    """Test SealedSink and IntegrityEnricher directly; cli/manifests/verify covered."""
     from fapilog_tamper import (
         ChainStatePersistence,
         IntegrityEnricher,
-        TamperSealedPlugin,
         canonicalize,
     )
     from fapilog_tamper.canonical import b64url_decode, b64url_encode
@@ -368,13 +367,15 @@ def test_plugin_wraps_sink_and_helpers(
     monkeypatch.setenv("FAPILOG_CORE__INTERNAL_LOGGING_ENABLED", "0")
     pytest.importorskip("cryptography")
 
-    cfg = TamperConfig(enabled=False, state_dir=str(tmp_path))
-    enricher = TamperSealedPlugin.get_enricher(cfg.model_dump())
+    cfg = TamperConfig(enabled=True, state_dir=str(tmp_path))
+    # Create enricher directly (standard plugin path)
+    enricher = IntegrityEnricher(config=cfg)
     assert isinstance(enricher, IntegrityEnricher)
 
     sink_inner = _Sink()
     sink = SealedSink(sink_inner, cfg, key=b"K" * 32)
-    wrapped = TamperSealedPlugin.wrap_sink(_Sink(), cfg.model_dump())
+    # Create wrapped sink directly via SealedSink
+    wrapped = SealedSink(_Sink(), cfg, key=b"K" * 32)
     null_sink = SealedSink(object(), cfg, key=b"K" * 32)
     asyncio.run(sink.write({"k": "v"}))
     asyncio.run(sink.write_serialized({"k": "v2"}))

@@ -339,19 +339,6 @@ class CoreSettings(BaseModel):
         default=False,
         description=("Automatically install unhandled exception hooks (sys/asyncio)"),
     )
-    # Optional integrity/tamper-evident add-on selection
-    integrity_plugin: str | None = Field(
-        default=None,
-        description=(
-            "Optional integrity plugin name (fapilog.integrity entry point) to enable"
-        ),
-    )
-    integrity_config: dict[str, object] | None = Field(
-        default=None,
-        description=(
-            "Opaque configuration mapping passed to the selected integrity plugin"
-        ),
-    )
     # Fast-path serialization: serialize once in flush and pass to sinks
     serialize_in_flush: bool = Field(
         default=False,

@@ -86,27 +86,6 @@ def test_sealed_sink_loads_and_resolves_inner(monkeypatch: pytest.MonkeyPatch) -
     assert isinstance(sink._inner, _DummySink)  # noqa: SLF001
 
 
-def test_load_integrity_plugin_warns(monkeypatch: pytest.MonkeyPatch) -> None:
-    from fapilog.plugins import integrity
-
-    fake_plugin = object()
-    ep = _fake_entry_point("legacy", fake_plugin)
-
-    class _EPs:
-        def select(self, *, group: str) -> list[Any]:
-            return [ep] if group == "fapilog.integrity" else []
-
-        def get(
-            self, group: str, default: Any = None
-        ) -> list[Any]:  # pragma: no cover - py3.8 path
-            return [ep] if group == "fapilog.integrity" else []
-
-    monkeypatch.setattr(integrity.importlib.metadata, "entry_points", lambda: _EPs())
-
-    with pytest.warns(DeprecationWarning):
-        assert integrity.load_integrity_plugin("legacy") is fake_plugin
-
-
 def test_tamper_config_models_expose_standard_fields() -> None:
     from fapilog_tamper.config import IntegrityEnricherConfig, SealedSinkConfig
 
