@@ -21,6 +21,7 @@ class StdoutJsonSink:
     - Never raises upstream; errors are contained
     """
 
+    name = "stdout_json"
     _lock: asyncio.Lock
 
     def __init__(self) -> None:

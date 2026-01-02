@@ -50,6 +50,8 @@ class MemoryMappedPersistence:
     - Thread-safety: guarded by an asyncio.Lock for concurrent appends.
     """
 
+    name = "mmap_persistence"
+
     def __init__(
         self,
         path: str | Path,

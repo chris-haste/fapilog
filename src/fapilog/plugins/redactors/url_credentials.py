@@ -13,7 +13,7 @@ class UrlCredentialsConfig:
 
 
 class UrlCredentialsRedactor:
-    name = "url-credentials"
+    name = "url_credentials"
 
     def __init__(self, *, config: UrlCredentialsConfig | None = None) -> None:
         cfg = config or UrlCredentialsConfig()
@@ -89,7 +89,7 @@ class UrlCredentialsRedactor:
 
 # Plugin metadata for discovery
 PLUGIN_METADATA = {
-    "name": "url-credentials",
+    "name": "url_credentials",
     "version": "1.0.0",
     "author": "Fapilog Core",
     "plugin_type": "redactor",

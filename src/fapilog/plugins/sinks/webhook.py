@@ -39,6 +39,8 @@ class WebhookSinkConfig:
 class WebhookSink:
     """Reference remote sink that POSTs JSON payloads to a webhook endpoint."""
 
+    name = "webhook"
+
     def __init__(
         self,
         config: WebhookSinkConfig,

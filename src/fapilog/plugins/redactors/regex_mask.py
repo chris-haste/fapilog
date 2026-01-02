@@ -35,7 +35,7 @@ class RegexMaskConfig:
 
 
 class RegexMaskRedactor:
-    name = "regex-mask"
+    name = "regex_mask"
 
     def __init__(self, *, config: RegexMaskConfig | None = None) -> None:
         cfg = config or RegexMaskConfig(patterns=[])
@@ -141,7 +141,7 @@ class RegexMaskRedactor:
 
 # Minimal built-in PLUGIN_METADATA for optional discovery of core redactor
 PLUGIN_METADATA = {
-    "name": "regex-mask",
+    "name": "regex_mask",
     "version": "1.0.0",
     "plugin_type": "redactor",
     "entry_point": "fapilog.plugins.redactors.regex_mask:RegexMaskRedactor",
