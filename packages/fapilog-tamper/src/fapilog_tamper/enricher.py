@@ -27,15 +27,29 @@ except Exception:  # pragma: no cover - optional dep
 class IntegrityEnricher(BaseEnricher):
     """Enricher that adds tamper-evident MAC and chain fields."""
 
-    name = "tamper-sealed"
+    name = "integrity"
 
     def __init__(
         self,
-        config: TamperConfig,
+        config: TamperConfig | dict[str, Any] | None = None,
         stream_id: str = "default",
         provider: KeyProvider | None = None,
+        **kwargs: Any,
     ) -> None:
-        self._config = config
+        # Support both TamperConfig and plain dict/kwargs for standard plugin loading
+        cfg = config
+        if cfg is None:
+            cfg = {}
+        if isinstance(cfg, dict):
+            merged = {**cfg, **kwargs}
+            cfg = TamperConfig(**merged)
+        if not isinstance(cfg, TamperConfig):
+            cfg = TamperConfig(**kwargs)
+        # Default to enabled when loaded via plugin without explicit flag
+        if config is None and "enabled" not in kwargs:
+            cfg.enabled = True
+
+        self._config = cfg
         self._stream_id = stream_id
         self._lock = asyncio.Lock()
         self._key: bytes | None = None

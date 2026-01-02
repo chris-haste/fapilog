@@ -38,6 +38,14 @@ def load_integrity_plugin(name: str) -> IntegrityPlugin:  # noqa: V102
     and return an object implementing some or all of the IntegrityPlugin
     protocol.
     """
+    import warnings
+
+    warnings.warn(
+        "load_integrity_plugin is deprecated; use standard plugins instead "
+        "(core.enrichers=['integrity'], core.sinks=['sealed']).",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     eps = importlib.metadata.entry_points()
     candidates = []
     try:
