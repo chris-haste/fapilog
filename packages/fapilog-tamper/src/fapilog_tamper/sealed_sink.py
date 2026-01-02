@@ -104,16 +104,30 @@ class ManifestGenerator:
 class SealedSink(BaseSink):
     """Sink wrapper that generates signed manifests on rotation."""
 
+    name = "sealed"
+
     def __init__(
         self,
-        inner_sink: BaseSink,
-        config: TamperConfig,
+        inner_sink: BaseSink | str,
+        config: TamperConfig | dict[str, Any] | None = None,
         *,
         key: bytes | None = None,
         provider: KeyProvider | None = None,
+        inner_config: dict[str, Any] | None = None,
     ) -> None:
+        cfg = config or {}
+        if isinstance(cfg, dict):
+            cfg = TamperConfig(**cfg)
+        if not isinstance(cfg, TamperConfig):
+            cfg = TamperConfig()
+
+        if isinstance(inner_sink, str):
+            from fapilog.plugins.loader import load_plugin as _load_plugin
+
+            inner_sink = _load_plugin("fapilog.sinks", inner_sink, inner_config or {})
+
         self._inner = inner_sink
-        self._config = config
+        self._config = cfg
         self._key = key
         self._signing_key: SigningKey | None = None
         self._lock = asyncio.Lock()

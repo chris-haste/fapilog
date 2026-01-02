@@ -23,6 +23,12 @@ azure = ["azure-keyvault-keys>=4.0.0", "azure-identity>=1.0.0"]
 vault = ["hvac>=1.0.0"]
 all-kms = ["fapilog-tamper[aws,gcp,azure,vault,signatures]"]
 
+[project.entry-points."fapilog.enrichers"]
+integrity = "fapilog_tamper.enricher:IntegrityEnricher"
+
+[project.entry-points."fapilog.sinks"]
+sealed = "fapilog_tamper.sealed_sink:SealedSink"
+
 [project.entry-points."fapilog.integrity"]
 tamper-sealed = "fapilog_tamper:TamperSealedPlugin"
 
