@@ -1,8 +1,10 @@
 # fapilog-tamper
 
-Tamper-evident logging add-on for fapilog. This package registers the
-`tamper-sealed` integrity plugin and ships the core types and helpers used by
-subsequent stories (enricher, sealed sink, verification).
+Tamper-evident logging add-on for fapilog. This package provides:
+
+- **IntegrityEnricher** - Adds per-record MAC/signatures and hash chains
+- **SealedSink** - Generates signed manifests on file rotation
+- **Verification tools** - CLI and API for chain verification
 
 ## Installation
 
@@ -24,15 +26,48 @@ pip install './packages/fapilog-tamper[all-kms]'
 
 ## Usage
 
-```python
-from fapilog.plugins.integrity import load_integrity_plugin
+### Via Settings (Recommended)
 
-plugin = load_integrity_plugin("tamper-sealed")
-enricher = plugin.get_enricher()
+```python
+import fapilog
+from fapilog import Settings
+
+settings = Settings(
+    core__enrichers=["integrity"],
+    core__sinks=["sealed"],
+    enricher_config__integrity__algorithm="HMAC-SHA256",
+    enricher_config__integrity__key_id="audit-key-2025",
+)
+
+with fapilog.runtime(settings=settings) as logger:
+    logger.info("Tamper-evident log entry")
 ```
 
-The initial release provides placeholder components; subsequent stories layer on
-full tamper-evident enrichment, sealed sinks, manifests, and verification.
+### Via Direct Plugin Loading
+
+```python
+from fapilog.plugins import load_plugin
+
+# Load the integrity enricher
+enricher = load_plugin("fapilog.enrichers", "integrity", {
+    "algorithm": "HMAC-SHA256",
+    "key_id": "audit-key-2025",
+    "key_source": "env",
+})
+
+# Load the sealed sink
+sink = load_plugin("fapilog.sinks", "sealed", {
+    "inner_sink": "rotating_file",
+    "sign_manifests": True,
+})
+```
+
+### Environment Variables
+
+```bash
+export FAPILOG_TAMPER_KEY="<base64url-encoded-32-byte-key>"
+export FAPILOG_TAMPER_KEY_ID="audit-key-2025"
+```
 
 ## Enterprise key management
 
