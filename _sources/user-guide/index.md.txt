@@ -18,6 +18,7 @@ integration-guide
 fastapi
 comparisons
 reliability-defaults
+testing-plugins
 ```
 
 ## Overview

@@ -79,6 +79,7 @@
 <li class="toctree-l2"><a class="reference internal" href="fastapi.html">FastAPI / ASGI Integration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="comparisons.html">Comparisons: fapilog vs stdlib, structlog, loguru</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing-plugins.html">Testing Plugins</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
@@ -196,13 +197,74 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">runtime-info</span></code>: service/env/version/host/pid/python.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">context-vars</span></code>: request/user IDs from ContextVar when present.</p></li>
 </ul>
-<p>Toggle at runtime:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.enrichers.runtime_info</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuntimeInfoEnricher</span>
+</section>
+<section id="runtime-enricher-control">
+<h2>Runtime Enricher Control<a class="headerlink" href="#runtime-enricher-control" title="Link to this heading"></a></h2>
+<p>You can dynamically enable or disable enrichers at runtime.</p>
+<section id="disabling-an-enricher">
+<h3>Disabling an Enricher<a class="headerlink" href="#disabling-an-enricher" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
 
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
+
+<span class="c1"># Disable the context_vars enricher by name</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">disable_enricher</span><span class="p">(</span><span class="s2">&quot;context_vars&quot;</span><span class="p">)</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">enable_enricher</span><span class="p">(</span><span class="n">RuntimeInfoEnricher</span><span class="p">())</span>
+
+<span class="c1"># Logs after this point won&#39;t include context variables</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No context vars here&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
+</section>
+<section id="enabling-an-enricher">
+<h3>Enabling an Enricher<a class="headerlink" href="#enabling-an-enricher" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.enrichers</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuntimeInfoEnricher</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
+
+<span class="c1"># Add a new enricher instance at runtime</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">enable_enricher</span><span class="p">(</span><span class="n">RuntimeInfoEnricher</span><span class="p">())</span>
+
+<span class="c1"># Logs after this point include runtime info</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Now with runtime info&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="common-patterns">
+<h3>Common Patterns<a class="headerlink" href="#common-patterns" title="Link to this heading"></a></h3>
+<p><strong>Conditional enrichment based on environment:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.enrichers</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuntimeInfoEnricher</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;ENABLE_DETAILED_LOGGING&quot;</span><span class="p">):</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">enable_enricher</span><span class="p">(</span><span class="n">RuntimeInfoEnricher</span><span class="p">())</span>
+</pre></div>
+</div>
+<p><strong>Temporarily disable enrichers for performance:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">process_large_batch</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">logger</span><span class="p">):</span>
+    <span class="c1"># Disable verbose enrichers during high-volume processing</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">disable_enricher</span><span class="p">(</span><span class="s2">&quot;runtime_info&quot;</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;processing&quot;</span><span class="p">,</span> <span class="n">item_id</span><span class="o">=</span><span class="n">item</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+    
+    <span class="c1"># Re-enable after batch</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">enable_enricher</span><span class="p">(</span><span class="n">RuntimeInfoEnricher</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+<section id="important-notes">
+<h3>Important Notes<a class="headerlink" href="#important-notes" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">enable_enricher()</span></code> adds the enricher if no enricher with the same <code class="docutils literal notranslate"><span class="pre">name</span></code> exists</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">disable_enricher()</span></code> removes all enrichers matching the given name</p></li>
+<li><p>Changes take effect for subsequent log calls (not retroactively)</p></li>
+<li><p>Enrichers must have a <code class="docutils literal notranslate"><span class="pre">name</span></code> attribute to be enabled/disabled by name</p></li>
+</ul>
+</section>
 </section>
 <section id="tips">
 <h2>Tips<a class="headerlink" href="#tips" title="Link to this heading"></a></h2>
