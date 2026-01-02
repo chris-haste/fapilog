@@ -55,6 +55,20 @@ class ContextVarsEnricher:
 
         return data
 
+    async def health_check(self) -> bool:
+        """Verify context variables are accessible.
+
+        ContextVars are always available in Python 3.7+, so this
+        primarily validates the module imports are working.
+        """
+        try:
+            # Verify we can access (not get) the context vars
+            _ = request_id_var.get(None)
+            _ = user_id_var.get(None)
+            return True
+        except Exception:
+            return False
+
 
 __all__ = ["ContextVarsEnricher"]
 
@@ -66,6 +80,6 @@ PLUGIN_METADATA = {
     "entry_point": "fapilog.plugins.enrichers.context_vars:ContextVarsEnricher",
     "description": "Adds context variables like request_id and user_id when available.",
     "author": "Fapilog Core",
-    "compatibility": {"min_fapilog_version": "3.0.0"},
+    "compatibility": {"min_fapilog_version": "0.3.0"},
     "api_version": "1.0",
 }

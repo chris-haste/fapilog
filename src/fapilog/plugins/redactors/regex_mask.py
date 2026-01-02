@@ -39,9 +39,16 @@ class RegexMaskRedactor:
 
     def __init__(self, *, config: RegexMaskConfig | None = None) -> None:
         cfg = config or RegexMaskConfig(patterns=[])
-        # Pre-compile patterns for performance; use fullmatch semantics by
-        # default
-        self._patterns: list[re.Pattern[str]] = [re.compile(p) for p in cfg.patterns]
+        # Pre-compile patterns for performance; track any failures
+        self._patterns: list[re.Pattern[str]] = []
+        self._pattern_errors: list[str] = []
+
+        for p in cfg.patterns:
+            try:
+                self._patterns.append(re.compile(p))
+            except re.error as e:
+                self._pattern_errors.append(f"{p}: {e}")
+
         self._mask = str(cfg.mask_string)
         self._block = bool(cfg.block_on_unredactable)
         self._max_depth = int(cfg.max_depth)
@@ -138,6 +145,22 @@ class RegexMaskRedactor:
 
         traverse(root, [], 0)
 
+    async def health_check(self) -> bool:
+        """Verify all regex patterns compiled successfully.
+
+        Returns False if any pattern failed to compile.
+        """
+        try:
+            # Check no pattern compilation errors
+            if self._pattern_errors:
+                return False
+            # Verify guardrails are positive
+            if self._max_depth <= 0 or self._max_scanned <= 0:
+                return False
+            return True
+        except Exception:
+            return False
+
 
 # Minimal built-in PLUGIN_METADATA for optional discovery of core redactor
 PLUGIN_METADATA = {
@@ -149,7 +172,7 @@ PLUGIN_METADATA = {
         "Masks values for fields whose dot-paths match configured regex patterns."
     ),
     "author": "Fapilog Core",
-    "compatibility": {"min_fapilog_version": "3.0.0"},
+    "compatibility": {"min_fapilog_version": "0.3.0"},
     "config_schema": {
         "type": "object",
         "properties": {

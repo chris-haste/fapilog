@@ -92,3 +92,9 @@ register_builtin(
     "webhook",
     WebhookSink,
 )
+register_builtin(
+    "fapilog.sinks",
+    "mmap_persistence",
+    MemoryMappedPersistence,
+    aliases=["mmap-persistence"],
+)

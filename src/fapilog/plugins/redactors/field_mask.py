@@ -188,6 +188,22 @@ class FieldMaskRedactor:
 
         _traverse(root, 0, 0)
 
+    async def health_check(self) -> bool:
+        """Verify redactor configuration is valid.
+
+        Checks that field paths are parsed and guardrails are positive.
+        """
+        try:
+            # Verify configuration is valid
+            if self._max_depth <= 0 or self._max_scanned <= 0:
+                return False
+            # Verify mask string is not empty
+            if not self._mask:
+                return False
+            return True
+        except Exception:
+            return False
+
 
 # Minimal built-in PLUGIN_METADATA for optional discovery of core redactor
 PLUGIN_METADATA = {
@@ -197,7 +213,7 @@ PLUGIN_METADATA = {
     "entry_point": "fapilog.plugins.redactors.field_mask:FieldMaskRedactor",
     "description": "Masks configured fields in structured events.",
     "author": "Fapilog Core",
-    "compatibility": {"min_fapilog_version": "3.0.0"},
+    "compatibility": {"min_fapilog_version": "0.3.0"},
     "config_schema": {
         "type": "object",
         "properties": {
