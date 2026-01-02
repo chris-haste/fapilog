@@ -108,6 +108,7 @@ def _sink_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
                 timeout_seconds=scfg.webhook.timeout_seconds,
             )
         },
+        "sealed": scfg.sealed.model_dump(exclude_none=True),
     }
     configs.update(scfg.extra)
     return configs
@@ -118,6 +119,7 @@ def _enricher_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
     cfg: dict[str, dict[str, Any]] = {
         "runtime_info": ecfg.runtime_info,
         "context_vars": ecfg.context_vars,
+        "integrity": ecfg.integrity.model_dump(exclude_none=True),
     }
     cfg.update(ecfg.extra)
     return cfg
@@ -227,62 +229,6 @@ def _build_pipeline(
     redactors = _load_plugins(
         "fapilog.redactors", redactor_names, settings, _redactor_configs(settings)
     )
-
-    integrity_plugin_name = core_cfg.integrity_plugin
-    if integrity_plugin_name:
-        try:
-            from .plugins.integrity import load_integrity_plugin
-
-            integrity = load_integrity_plugin(integrity_plugin_name)
-            wrapped: list[object] = []
-            for s in sinks:
-                if hasattr(integrity, "wrap_sink"):
-                    try:
-                        s = integrity.wrap_sink(s, core_cfg.integrity_config)
-                    except Exception as exc:
-                        try:
-                            from .core import diagnostics as _diag
-
-                            _diag.warn(
-                                "integrity",
-                                "integrity sink wrapper failed",
-                                plugin=integrity_plugin_name,
-                                sink=type(s).__name__,
-                                error=str(exc),
-                            )
-                        except Exception:
-                            pass
-                wrapped.append(s)
-            sinks = wrapped
-            if hasattr(integrity, "get_enricher"):
-                try:
-                    enricher = integrity.get_enricher(core_cfg.integrity_config)
-                    if enricher is not None:
-                        enrichers.append(enricher)
-                except Exception as exc:
-                    try:
-                        from .core import diagnostics as _diag
-
-                        _diag.warn(
-                            "integrity",
-                            "integrity enricher failed",
-                            plugin=integrity_plugin_name,
-                            error=str(exc),
-                        )
-                    except Exception:
-                        pass
-        except Exception as exc:
-            try:
-                from .core import diagnostics as _diag
-
-                _diag.warn(
-                    "integrity",
-                    "integrity plugin load failed",
-                    plugin=integrity_plugin_name,
-                    error=str(exc),
-                )
-            except Exception:
-                pass
 
     return sinks, enrichers, redactors, metrics
 

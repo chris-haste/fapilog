@@ -1,12 +1,11 @@
 """
 Fapilog Plugin System.
 
-Provides base protocols for plugin authors and the integrity hook.
+Provides base protocols for plugin authors.
 """
 
 # Public protocols for plugin authors
 from .enrichers import BaseEnricher
-from .integrity import IntegrityPlugin, IntegrityPluginLoadError, load_integrity_plugin
 from .loader import (
     PluginLoadError,
     PluginNotFoundError,
@@ -38,10 +37,6 @@ __all__ = [
     "register_builtin",
     "PluginLoadError",
     "PluginNotFoundError",
-    # Integrity hook
-    "IntegrityPlugin",
-    "IntegrityPluginLoadError",
-    "load_integrity_plugin",
     # Metadata utilities
     "PluginCompatibility",
     "PluginInfo",

@@ -15,10 +15,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from pydantic import BaseModel
+
 from fapilog.plugins.sinks import BaseSink
 
 from .canonical import b64url_decode, b64url_encode
-from .config import TamperConfig
+from .config import SealedSinkConfig, TamperConfig, coerce_tamper_config
 from .providers import KeyProvider, create_key_provider
 
 try:  # Optional Ed25519 dependency
@@ -108,28 +110,70 @@ class SealedSink(BaseSink):
 
     def __init__(
         self,
-        inner_sink: BaseSink | str,
-        config: TamperConfig | dict[str, Any] | None = None,
+        inner_sink: BaseSink | str | None = None,
+        config: TamperConfig | SealedSinkConfig | dict[str, Any] | None = None,
         *,
         key: bytes | None = None,
         provider: KeyProvider | None = None,
         inner_config: dict[str, Any] | None = None,
+        manifest_path: str | None = None,
+        sign_manifests: bool | None = None,
+        key_id: str | None = None,
+        chain_state_path: str | None = None,
+        rotate_chain: bool | None = None,
+        **kwargs: Any,
     ) -> None:
-        cfg: TamperConfig
-        if config is None:
-            cfg = TamperConfig()
+        config_dict: dict[str, Any]
+        if isinstance(config, TamperConfig):
+            config_dict = config.model_dump()
+        elif isinstance(config, (SealedSinkConfig, BaseModel)):
+            config_dict = config.model_dump(exclude_none=True)
         elif isinstance(config, dict):
-            cfg = TamperConfig(**config)
+            config_dict = dict(config)
         else:
-            cfg = config
+            config_dict = {}
 
-        if isinstance(inner_sink, str):
+        resolved_inner_sink = inner_sink or config_dict.get("inner_sink")
+        if resolved_inner_sink is None:
+            resolved_inner_sink = "rotating_file"
+        resolved_inner_config = inner_config or config_dict.get("inner_config") or {}
+        resolved_manifest_path = manifest_path or config_dict.get("manifest_path")
+        sign_flag = sign_manifests
+        if sign_flag is None:
+            sign_flag = config_dict.get("sign_manifests")
+        cfg_overrides = {
+            "key_id": key_id,
+            "chain_state_path": chain_state_path,
+            "rotate_chain": rotate_chain,
+        }
+        for key_name in (
+            "algorithm",
+            "key_provider",
+            "key_source",
+            "fsync_on_write",
+            "fsync_on_rotate",
+            "compress_rotated",
+            "use_kms_signing",
+            "enabled",
+        ):
+            if key_name in kwargs:
+                cfg_overrides[key_name] = kwargs[key_name]
+
+        self._config = coerce_tamper_config(
+            config_dict or config,
+            enabled_if_unspecified=True,
+            overrides=cfg_overrides,
+        )
+        if isinstance(resolved_inner_sink, str):
             from fapilog.plugins.loader import load_plugin as _load_plugin
 
-            inner_sink = _load_plugin("fapilog.sinks", inner_sink, inner_config or {})
+            resolved_inner_sink = _load_plugin(
+                "fapilog.sinks", resolved_inner_sink, resolved_inner_config
+            )
 
-        self._inner = inner_sink
-        self._config = cfg
+        self._inner = resolved_inner_sink
+        self._manifest_path = resolved_manifest_path
+        self._sign_manifests = True if sign_flag is None else bool(sign_flag)
         self._key = key
         self._signing_key: SigningKey | None = None
         self._lock = asyncio.Lock()
@@ -143,7 +187,9 @@ class SealedSink(BaseSink):
         if self._provider is None:
             self._provider = create_key_provider(self._config)
         await self._load_key_if_needed()
-        self._manifest_generator = ManifestGenerator(self._config, self._key)
+        self._manifest_generator = ManifestGenerator(
+            self._config, self._key if self._sign_manifests else None
+        )
         self._current_file = FileMetadata(
             filename=self._get_current_filename(),
             created_ts=datetime.now(timezone.utc),
@@ -207,19 +253,23 @@ class SealedSink(BaseSink):
         if not self._current_file:  # pragma: no cover - defensive
             return
         if self._manifest_generator is None:
-            self._manifest_generator = ManifestGenerator(self._config, self._key)
+            self._manifest_generator = ManifestGenerator(
+                self._config, self._key if self._sign_manifests else None
+            )
 
         manifest = self._manifest_generator.generate(
             self._current_file,
             closed_ts=datetime.now(timezone.utc),
         )
-        if self._config.use_kms_signing and self._provider:
+        if self._config.use_kms_signing and self._provider and self._sign_manifests:
             payload = ManifestGenerator._canonical_manifest_payload(
                 {k: v for k, v in manifest.items() if k != "signature"}
             )
             signature = await self._provider.sign(self._config.key_id, payload)
             manifest["signature"] = b64url_encode(signature)
         manifest_path = Path(self._current_file.filename + ".manifest.json")
+        if self._manifest_path:
+            manifest_path = Path(self._manifest_path) / manifest_path.name
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
         await asyncio.to_thread(
             manifest_path.write_text,
@@ -306,7 +356,7 @@ class SealedSink(BaseSink):
             return None
 
     async def _load_key_if_needed(self) -> None:
-        if self._key:
+        if self._key or not self._sign_manifests:
             return
         if self._provider is None:
             return

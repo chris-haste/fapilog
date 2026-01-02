@@ -4,9 +4,13 @@ fapilog-tamper: tamper-evident logging add-on for fapilog.
 
 from .canonical import b64url_decode, b64url_encode, canonicalize
 from .chain_state import GENESIS_HASH, ChainStatePersistence
-from .config import TamperConfig
+from .config import (
+    IntegrityEnricherConfig,
+    SealedSinkConfig,
+    TamperConfig,
+    coerce_tamper_config,
+)
 from .enricher import IntegrityEnricher
-from .plugin import TamperSealedPlugin, TamperSealedPluginClass
 from .providers import (
     AwsKmsProvider,
     AzureKeyVaultProvider,
@@ -32,9 +36,10 @@ from .verify import (
 )
 
 __all__ = [
-    "TamperSealedPlugin",
-    "TamperSealedPluginClass",
     "TamperConfig",
+    "IntegrityEnricherConfig",
+    "SealedSinkConfig",
+    "coerce_tamper_config",
     "IntegrityFields",
     "ChainState",
     "ChainStatePersistence",

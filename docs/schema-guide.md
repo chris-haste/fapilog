@@ -120,33 +120,6 @@
       "title": "Exceptions Max Stack Chars",
       "type": "integer"
     },
-    "integrity_config": {
-      "anyOf": [
-        {
-          "additionalProperties": true,
-          "type": "object"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "description": "Opaque configuration mapping passed to the selected integrity plugin",
-      "title": "Integrity Config"
-    },
-    "integrity_plugin": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "description": "Optional integrity plugin name (fapilog.integrity entry point) to enable",
-      "title": "Integrity Plugin"
-    },
     "internal_logging_enabled": {
       "default": false,
       "description": "Emit DEBUG/WARN diagnostics for internal errors",
