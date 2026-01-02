@@ -371,6 +371,7 @@ exclude = [
     "src/fapilog/plugins/discovery.py",  # Plugin discovery API methods
     "src/fapilog/plugins/lifecycle.py",  # Component lifecycle API methods
     "src/fapilog/plugins/metadata.py",  # Plugin metadata models with Pydantic fields
+    "src/fapilog/testing/",  # Testing utilities with public API for plugin authors
     "tests/",  # Test files have expected unused imports and mocks
 ]
 
