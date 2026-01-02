@@ -15,7 +15,12 @@ class BaseProcessor(Protocol):
     Processors operate on memoryview slices of serialized payloads and return a
     new memoryview. Implementations must be async and should avoid copying where
     possible. Errors propagate to allow caller isolation/metrics to record them.
+
+    Attributes:
+        name: Unique identifier for this processor type (e.g., "zero_copy").
     """
+
+    name: str  # Plugin identifier for discovery and configuration
 
     async def start(self) -> None:  # Optional lifecycle hook
         """Initialize processor resources (optional)."""

@@ -86,6 +86,8 @@ class TestValidateEnricher:
         from fapilog.testing import validate_enricher
 
         class ValidEnricher:
+            name = "valid"
+
             async def start(self) -> None:
                 pass
 
@@ -165,6 +167,8 @@ class TestValidateProcessor:
         from fapilog.testing import validate_processor
 
         class ValidProcessor:
+            name = "valid"
+
             async def start(self) -> None:
                 pass
 

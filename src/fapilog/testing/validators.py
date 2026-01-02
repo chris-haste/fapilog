@@ -39,12 +39,19 @@ def validate_sink(sink: Any) -> ValidationResult:
     """Validate that a sink implements BaseSink protocol correctly.
 
     Checks:
+    - Required 'name' attribute exists and is a string
     - Required methods exist and are async
     - Methods have correct signatures
     - Lifecycle methods don't raise on call
     """
     errors: list[str] = []
     warnings: list[str] = []
+
+    # Check name attribute
+    if not hasattr(sink, "name"):
+        errors.append("Missing required 'name' attribute")
+    elif not isinstance(getattr(sink, "name", None), str):
+        errors.append("'name' attribute must be a string")
 
     # Check required methods
     required_methods = ["start", "stop", "write"]
@@ -81,6 +88,12 @@ def validate_enricher(enricher: Any) -> ValidationResult:
     """Validate that an enricher implements BaseEnricher protocol correctly."""
     errors: list[str] = []
     warnings: list[str] = []
+
+    # Check name attribute
+    if not hasattr(enricher, "name"):
+        errors.append("Missing required 'name' attribute")
+    elif not isinstance(getattr(enricher, "name", None), str):
+        errors.append("'name' attribute must be a string")
 
     required_methods = ["start", "stop", "enrich"]
     for method_name in required_methods:
@@ -139,6 +152,12 @@ def validate_processor(processor: Any) -> ValidationResult:
     """Validate that a processor implements BaseProcessor protocol correctly."""
     errors: list[str] = []
     warnings: list[str] = []
+
+    # Check name attribute
+    if not hasattr(processor, "name"):
+        errors.append("Missing required 'name' attribute")
+    elif not isinstance(getattr(processor, "name", None), str):
+        errors.append("'name' attribute must be a string")
 
     required_methods = ["start", "stop", "process"]
     for method_name in required_methods:

@@ -27,7 +27,12 @@ class BaseSink(Protocol):
     Lifecycle:
     - ``start`` and ``stop`` are optional hooks. If implemented, they should be
       idempotent and tolerate repeated calls.
+
+    Attributes:
+        name: Unique identifier for this sink type (e.g., "stdout_json").
     """
+
+    name: str  # Plugin identifier for discovery and configuration
 
     async def start(self) -> None:  # Optional lifecycle hook
         """Initialize resources for the sink.

@@ -17,7 +17,12 @@ class BaseEnricher(Protocol):
     to be shallow-merged into the event. Implementations must be async and must
     not block the event loop. Failures should be contained; returning an empty
     mapping is acceptable on error.
+
+    Attributes:
+        name: Unique identifier for this enricher type (e.g., "runtime_info").
     """
+
+    name: str  # Plugin identifier for discovery and configuration
 
     async def start(self) -> None:  # Optional lifecycle hook
         """Initialize resources for the enricher (optional)."""
