@@ -6,6 +6,7 @@
 | context-vars-enricher | enricher | 1.0.0 | 1.0 | Fapilog Core | Adds context variables like request_id and user_id when available. |
 | field_mask | redactor | 1.0.0 | 1.0 | Fapilog Core | Masks configured fields in structured events. |
 | http | sink | 1.0.0 | 1.0 | Fapilog Core | Async HTTP sink that POSTs JSON to a configured endpoint. |
+| mmap-persistence | sink | 1.0.0 | 1.0 | Fapilog Core | Memory-mapped file sink for zero-copy friendly persistence. |
 | regex_mask | redactor | 1.0.0 | 1.0 | Fapilog Core | Masks values for fields whose dot-paths match configured regex patterns. |
 | rotating-file | sink | 1.0.0 | 1.0 | Fapilog Core | Async rotating file sink with size/time rotation and retention |
 | runtime-info-enricher | enricher | 1.0.0 | 1.0 | Fapilog Core | Adds runtime/system information such as host, pid, and python version. |
