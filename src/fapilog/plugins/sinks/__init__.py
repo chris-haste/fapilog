@@ -97,9 +97,8 @@ register_builtin(
     "webhook",
     WebhookSink,
 )
-register_builtin(
-    "fapilog.sinks",
-    "mmap_persistence",
-    MemoryMappedPersistence,
-    aliases=["mmap-persistence"],
-)
+
+# NOTE: MemoryMappedPersistence is exported (in __all__) as a building block
+# for custom sinks, but is NOT registered as a sink itself because it does not
+# implement the BaseSink protocol (it uses open/close instead of start/stop,
+# and append_line instead of write). See docs/api-reference/plugins/sinks.md.
