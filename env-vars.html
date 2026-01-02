@@ -253,16 +253,6 @@
 <td><p>20000</p></td>
 <td><p>Maximum total characters for serialized stack string</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__CORE__INTEGRITY_CONFIG</span></code></p></td>
-<td><p>dict[str, object]</p></td>
-<td><p>None</p></td>
-<td><p>—</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__CORE__INTEGRITY_PLUGIN</span></code></p></td>
-<td><p>str</p></td>
-<td><p>None</p></td>
-<td><p>—</p></td>
-</tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__CORE__INTERNAL_LOGGING_ENABLED</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
@@ -352,6 +342,36 @@
 <td><p>dict</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Configuration for third-party enrichers by name</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__ENRICHER_CONFIG__INTEGRITY__ALGORITHM</span></code></p></td>
+<td><p>Literal</p></td>
+<td><p>sha256</p></td>
+<td><p>MAC or signature algorithm</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__ENRICHER_CONFIG__INTEGRITY__CHAIN_STATE_PATH</span></code></p></td>
+<td><p>str</p></td>
+<td><p>None</p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__ENRICHER_CONFIG__INTEGRITY__KEY_ID</span></code></p></td>
+<td><p>str</p></td>
+<td><p>None</p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__ENRICHER_CONFIG__INTEGRITY__KEY_PROVIDER</span></code></p></td>
+<td><p>str</p></td>
+<td><p>None</p></td>
+<td><p>env</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__ENRICHER_CONFIG__INTEGRITY__ROTATE_CHAIN</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><p>Reset chain after rotation</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__ENRICHER_CONFIG__INTEGRITY__USE_KMS_SIGNING</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><p>Sign integrity hashes via KMS provider</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__ENRICHER_CONFIG__RUNTIME_INFO</span></code></p></td>
 <td><p>dict</p></td>
@@ -677,6 +697,66 @@
 <td><p>Literal</p></td>
 <td><p>json</p></td>
 <td><p>Output format: json or text</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__SEALED__CHAIN_STATE_PATH</span></code></p></td>
+<td><p>str</p></td>
+<td><p>None</p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__SEALED__COMPRESS_ROTATED</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><p>Compress rotated files after sealing</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__SEALED__FSYNC_ON_ROTATE</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>True</p></td>
+<td><p>Fsync inner sink after rotation</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__SEALED__FSYNC_ON_WRITE</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><p>Fsync inner sink on every write</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__SEALED__INNER_CONFIG</span></code></p></td>
+<td><p>dict</p></td>
+<td><p>PydanticUndefined</p></td>
+<td><p>Configuration for the inner sink</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__SEALED__INNER_SINK</span></code></p></td>
+<td><p>str</p></td>
+<td><p>rotating_file</p></td>
+<td><p>Inner sink to wrap with sealing</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__SEALED__KEY_ID</span></code></p></td>
+<td><p>str</p></td>
+<td><p>None</p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__SEALED__KEY_PROVIDER</span></code></p></td>
+<td><p>str</p></td>
+<td><p>None</p></td>
+<td><p>env</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__SEALED__MANIFEST_PATH</span></code></p></td>
+<td><p>str</p></td>
+<td><p>None</p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__SEALED__ROTATE_CHAIN</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><p>Reset chain state on rotation</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__SEALED__SIGN_MANIFESTS</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>True</p></td>
+<td><p>Sign manifests when keys are available</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__SEALED__USE_KMS_SIGNING</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><p>Sign manifests via external KMS provider</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__STDOUT_JSON</span></code></p></td>
 <td><p>dict</p></td>

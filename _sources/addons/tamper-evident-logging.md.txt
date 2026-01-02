@@ -23,6 +23,33 @@ This design keeps the core light while offering an opt-in, first-class tamper-ev
 - Core change: small hook to register an integrity enricher and an integrity sink wrapper via settings (e.g., `settings.integrity_plugin="tamper-sealed"`). If absent, behavior is unchanged.
 - Backward compatibility: integrity fields are optional and ignored by default; existing logs remain valid.
 
+## Configuration
+
+- **Recommended (standard plugins)**: use the standard plugin groups exposed by `fapilog-tamper`.
+
+  ```yaml
+  core:
+    enrichers: [runtime_info, integrity]
+    sinks: [sealed]
+
+  enricher_config:
+    integrity:
+      algorithm: sha256
+      chain_state_path: /var/lib/fapilog/chainstate
+      key_provider: env
+      key_id: audit-key
+
+  sink_config:
+    sealed:
+      inner_sink: rotating_file
+      inner_config:
+        directory: /var/log/myapp
+      manifest_path: /var/log/myapp/manifests
+      sign_manifests: true
+  ```
+
+- **Legacy (deprecated)**: `core.integrity_plugin="tamper-sealed"` remains available for backward compatibility and emits a deprecation warning.
+
 ## Threat Model Goals
 
 - Detect insertion, deletion, modification, and reordering of log entries.

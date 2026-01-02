@@ -209,6 +209,34 @@ See <a class="reference internal" href="#../stories/"><span class="xref myst">do
 <li><p>Backward compatibility: integrity fields are optional and ignored by default; existing logs remain valid.</p></li>
 </ul>
 </section>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h2>
+<ul>
+<li><p><strong>Recommended (standard plugins)</strong>: use the standard plugin groups exposed by <code class="docutils literal notranslate"><span class="pre">fapilog-tamper</span></code>.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">core</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">enrichers</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">runtime_info</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">integrity</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">sinks</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">sealed</span><span class="p p-Indicator">]</span>
+
+<span class="nt">enricher_config</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">integrity</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">algorithm</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sha256</span>
+<span class="w">    </span><span class="nt">chain_state_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/var/lib/fapilog/chainstate</span>
+<span class="w">    </span><span class="nt">key_provider</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">env</span>
+<span class="w">    </span><span class="nt">key_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">audit-key</span>
+
+<span class="nt">sink_config</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">sealed</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">inner_sink</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rotating_file</span>
+<span class="w">    </span><span class="nt">inner_config</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">directory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/var/log/myapp</span>
+<span class="w">    </span><span class="nt">manifest_path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/var/log/myapp/manifests</span>
+<span class="w">    </span><span class="nt">sign_manifests</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Legacy (deprecated)</strong>: <code class="docutils literal notranslate"><span class="pre">core.integrity_plugin=&quot;tamper-sealed&quot;</span></code> remains available for backward compatibility and emits a deprecation warning.</p></li>
+</ul>
+</section>
 <section id="threat-model-goals">
 <h2>Threat Model Goals<a class="headerlink" href="#threat-model-goals" title="Link to this heading"></a></h2>
 <ul class="simple">
