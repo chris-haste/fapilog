@@ -139,3 +139,15 @@ class WebhookSink:
 
 # Mark public API methods for tooling
 _ = WebhookSink.health_check  # pragma: no cover
+
+# Plugin metadata for discovery
+PLUGIN_METADATA = {
+    "name": "webhook",
+    "version": "1.0.0",
+    "plugin_type": "sink",
+    "entry_point": "fapilog.plugins.sinks.webhook:WebhookSink",
+    "description": "Webhook sink that POSTs JSON with optional signing.",
+    "author": "Fapilog Core",
+    "compatibility": {"min_fapilog_version": "0.3.0"},
+    "api_version": "1.0",
+}
