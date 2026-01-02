@@ -32,6 +32,10 @@ class BaseEnricher(Protocol):
         the new fields to add. Must not raise upstream.
         """
 
+    async def health_check(self) -> bool:  # pragma: no cover - optional
+        """Return True if the enricher is healthy. Default: assume healthy."""
+        return True
+
 
 async def enrich_parallel(
     event: dict,

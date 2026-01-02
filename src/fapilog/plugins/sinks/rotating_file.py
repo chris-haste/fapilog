@@ -108,6 +108,23 @@ class RotatingFileSink:
         except Exception:
             return None
 
+    async def health_check(self) -> bool:
+        try:
+            directory = Path(self._cfg.directory)
+
+            def _check() -> bool:
+                if not directory.exists():
+                    return False
+                if not os.access(directory, os.W_OK):
+                    return False
+                if self._active_file is not None:
+                    return not self._active_file.closed
+                return True
+
+            return await asyncio.to_thread(_check)
+        except Exception:
+            return False
+
     async def write(self, entry: dict[str, Any]) -> None:
         try:
             # Serialize first (outside lock) so we can check size/time

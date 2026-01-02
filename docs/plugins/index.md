@@ -13,6 +13,7 @@ sinks
 enrichers
 processors
 configuration
+health-checks
 ```
 
 ## Overview

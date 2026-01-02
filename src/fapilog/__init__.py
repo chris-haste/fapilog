@@ -386,6 +386,7 @@ def get_logger(
         pass
     logger.start()
     logger._redactors = cast(list[_BaseRedactor], redactors)  # noqa: SLF001
+    logger._sinks = sinks  # noqa: SLF001
     return logger
 
 
@@ -446,6 +447,7 @@ async def get_async_logger(
         pass
     logger.start()
     logger._redactors = cast(list[_BaseRedactor], redactors)  # noqa: SLF001
+    logger._sinks = sinks  # type: ignore[attr-defined]  # noqa: SLF001
     return logger
 
 

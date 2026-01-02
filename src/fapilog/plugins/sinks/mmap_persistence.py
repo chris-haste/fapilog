@@ -176,6 +176,9 @@ class MemoryMappedPersistence:
                 self._fd = None
                 self._closed = True
 
+    async def health_check(self) -> bool:  # pragma: no cover - simple status
+        return bool(self.is_open and self._mmap is not None and self._fd is not None)
+
     async def _ensure_capacity(self, additional: int) -> None:
         """Grow file/mmap if appending additional bytes exceeds capacity."""
         needed = self._offset + additional
