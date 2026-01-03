@@ -34,7 +34,7 @@ Output destination management for logs and events.
 
 ### [Processors](processors.md)
 
-Data processing and transformation pipelines.
+Transform serialized log data (compression, encryption, format conversion).
 
 ### [Enrichers](enrichers.md)
 
