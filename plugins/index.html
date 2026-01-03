@@ -113,6 +113,7 @@
 <li class="toctree-l2"><a class="reference internal" href="processors.html">Processors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="configuration.html">Plugin Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="health-checks.html">Plugin Health Checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="error-handling.html">Plugin Error Handling</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/index.html">Troubleshooting</a><ul>
@@ -224,6 +225,17 @@
 <li class="toctree-l2"><a class="reference internal" href="health-checks.html#implementing-in-a-custom-plugin">Implementing in a custom plugin</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="error-handling.html">Plugin Error Handling</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="error-handling.html#core-principle-contain-errors">Core Principle: Contain Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="error-handling.html#when-raising-is-acceptable">When Raising Is Acceptable</a></li>
+<li class="toctree-l2"><a class="reference internal" href="error-handling.html#diagnostics-api-rate-limited">Diagnostics API (rate-limited)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="error-handling.html#patterns-by-plugin-type">Patterns by Plugin Type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="error-handling.html#what-fapilog-does-if-you-raise">What Fapilog Does If You Raise</a></li>
+<li class="toctree-l2"><a class="reference internal" href="error-handling.html#health-checks-reflecting-error-state">Health Checks Reflecting Error State</a></li>
+<li class="toctree-l2"><a class="reference internal" href="error-handling.html#retry-for-transient-failures">Retry for Transient Failures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="error-handling.html#quick-reference">Quick Reference</a></li>
+</ul>
+</li>
 </ul>
 </div>
 <section id="overview">
@@ -253,6 +265,10 @@
 <section id="redactors">
 <h3><a class="reference internal" href="redactors.html"><span class="std std-doc">Redactors</span></a><a class="headerlink" href="#redactors" title="Link to this heading"></a></h3>
 <p>Data redaction and masking utilities.</p>
+</section>
+<section id="error-handling">
+<h3><a class="reference internal" href="error-handling.html"><span class="std std-doc">Error Handling</span></a><a class="headerlink" href="#error-handling" title="Link to this heading"></a></h3>
+<p>How to contain errors, emit diagnostics, and keep pipelines healthy.</p>
 </section>
 </section>
 <section id="getting-started">
