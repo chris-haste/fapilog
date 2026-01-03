@@ -198,6 +198,44 @@ class SyncLoggerFacade:
             self._worker_thread.start()
             self._thread_ready.wait(timeout=2.0)
 
+    async def _stop_enrichers_and_redactors(self) -> None:
+        """Stop enrichers and redactors, containing any errors."""
+        # Stop redactors first (reverse order)
+        for redactor in reversed(self._redactors):
+            try:
+                if hasattr(redactor, "stop"):
+                    await redactor.stop()
+            except Exception as exc:
+                try:
+                    from .diagnostics import warn
+
+                    warn(
+                        "redactor",
+                        "plugin stop failed",
+                        plugin=getattr(redactor, "name", type(redactor).__name__),
+                        error=str(exc),
+                    )
+                except Exception:
+                    pass
+
+        # Stop enrichers (reverse order)
+        for enricher in reversed(self._enrichers):
+            try:
+                if hasattr(enricher, "stop"):
+                    await enricher.stop()
+            except Exception as exc:
+                try:
+                    from .diagnostics import warn
+
+                    warn(
+                        "enricher",
+                        "plugin stop failed",
+                        plugin=getattr(enricher, "name", type(enricher).__name__),
+                        error=str(exc),
+                    )
+                except Exception:
+                    pass
+
     async def stop_and_drain(self) -> DrainResult:
         # If we're bound to the current running loop (async mode), await drain
         # directly
@@ -231,6 +269,10 @@ class SyncLoggerFacade:
             except Exception:
                 # Handle other exceptions during drain event wait
                 pass
+
+            # Stop enrichers and redactors
+            await self._stop_enrichers_and_redactors()
+
             flush_latency = time.perf_counter() - start
             return DrainResult(
                 submitted=self._submitted,
@@ -289,7 +331,10 @@ class SyncLoggerFacade:
                 flush_latency_seconds=flush_latency,
             )
 
-        return await asyncio.to_thread(_drain_thread_mode)
+        result = await asyncio.to_thread(_drain_thread_mode)
+        # Stop enrichers and redactors after thread-mode drain
+        await self._stop_enrichers_and_redactors()
+        return result
 
     # Public sync API
     def _enqueue(
@@ -1085,6 +1130,44 @@ class AsyncLoggerFacade:
         """
         return await self.stop_and_drain()
 
+    async def _stop_enrichers_and_redactors(self) -> None:
+        """Stop enrichers and redactors, containing any errors."""
+        # Stop redactors first (reverse order)
+        for redactor in reversed(self._redactors):
+            try:
+                if hasattr(redactor, "stop"):
+                    await redactor.stop()
+            except Exception as exc:
+                try:
+                    from .diagnostics import warn
+
+                    warn(
+                        "redactor",
+                        "plugin stop failed",
+                        plugin=getattr(redactor, "name", type(redactor).__name__),
+                        error=str(exc),
+                    )
+                except Exception:
+                    pass
+
+        # Stop enrichers (reverse order)
+        for enricher in reversed(self._enrichers):
+            try:
+                if hasattr(enricher, "stop"):
+                    await enricher.stop()
+            except Exception as exc:
+                try:
+                    from .diagnostics import warn
+
+                    warn(
+                        "enricher",
+                        "plugin stop failed",
+                        plugin=getattr(enricher, "name", type(enricher).__name__),
+                        error=str(exc),
+                    )
+                except Exception:
+                    pass
+
     async def stop_and_drain(self) -> DrainResult:
         # If we're bound to the current running loop (async mode), await drain
         # directly
@@ -1101,6 +1184,10 @@ class AsyncLoggerFacade:
             start = time.perf_counter()
             self._stop_flag = True
             await self._drained_event.wait()
+
+            # Stop enrichers and redactors
+            await self._stop_enrichers_and_redactors()
+
             flush_latency = time.perf_counter() - start
             return DrainResult(
                 submitted=self._submitted,
@@ -1130,7 +1217,10 @@ class AsyncLoggerFacade:
                 flush_latency_seconds=flush_latency,
             )
 
-        return await asyncio.to_thread(_drain_thread_mode)
+        result = await asyncio.to_thread(_drain_thread_mode)
+        # Stop enrichers and redactors after thread-mode drain
+        await self._stop_enrichers_and_redactors()
+        return result
 
     # Public async API
     async def _enqueue(
