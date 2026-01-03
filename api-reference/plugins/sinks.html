@@ -183,7 +183,7 @@
 <li><p><strong>stdout-json</strong>: default sink, JSON lines to stdout.</p></li>
 <li><p><strong>rotating-file</strong>: size/time-based rotation with optional compression.</p></li>
 <li><p><strong>http_client</strong>: POST log entries to an HTTP endpoint.</p></li>
-<li><p><strong>mmap_persistence</strong>: experimental local persistence.</p></li>
+<li><p><strong>webhook</strong>: POST log entries to a webhook with optional signing.</p></li>
 </ul>
 </section>
 <section id="configuration-env">
@@ -202,6 +202,44 @@
 </pre></div>
 </div>
 </section>
+<section id="building-blocks">
+<h2>Building Blocks<a class="headerlink" href="#building-blocks" title="Link to this heading"></a></h2>
+<section id="memorymappedpersistence">
+<h3>MemoryMappedPersistence<a class="headerlink" href="#memorymappedpersistence" title="Link to this heading"></a></h3>
+<p>A low-level memory-mapped file writer for building custom zero-copy sinks.</p>
+<p><strong>Note:</strong> <code class="docutils literal notranslate"><span class="pre">MemoryMappedPersistence</span></code> is <strong>not a sink itself</strong>—it does not implement
+the <code class="docutils literal notranslate"><span class="pre">BaseSink</span></code> protocol. Instead, it provides efficient byte-level append operations
+that you can use to build performance-critical custom sinks.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.sinks</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseSink</span><span class="p">,</span> <span class="n">MemoryMappedPersistence</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyMmapSink</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Example custom sink using MemoryMappedPersistence.&quot;&quot;&quot;</span>
+    
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my_mmap&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mmap</span> <span class="o">=</span> <span class="n">MemoryMappedPersistence</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mmap</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entry</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mmap</span><span class="o">.</span><span class="n">append_line</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mmap</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">health_check</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mmap</span><span class="o">.</span><span class="n">health_check</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>See the <code class="docutils literal notranslate"><span class="pre">MemoryMappedPersistence</span></code> class documentation for full API details including
+configuration options for initial size, growth factor, and sync behavior.</p>
+</section>
+</section>
 </section>
 
 
@@ -216,7 +254,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on January 02, 2026.
+      <span class="lastupdated">Last updated on January 03, 2026.
       </span></p>
   </div>
 

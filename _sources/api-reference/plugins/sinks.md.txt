@@ -20,7 +20,7 @@ Errors should be contained; do not raise into the pipeline.
 - **stdout-json**: default sink, JSON lines to stdout.
 - **rotating-file**: size/time-based rotation with optional compression.
 - **http_client**: POST log entries to an HTTP endpoint.
-- **mmap_persistence**: experimental local persistence.
+- **webhook**: POST log entries to a webhook with optional signing.
 
 ## Configuration (env)
 
@@ -38,3 +38,43 @@ export FAPILOG_HTTP__ENDPOINT=https://logs.example.com/ingest
 export FAPILOG_HTTP__TIMEOUT_SECONDS=5
 export FAPILOG_HTTP__RETRY_MAX_ATTEMPTS=3
 ```
+
+## Building Blocks
+
+### MemoryMappedPersistence
+
+A low-level memory-mapped file writer for building custom zero-copy sinks.
+
+**Note:** `MemoryMappedPersistence` is **not a sink itself**—it does not implement
+the `BaseSink` protocol. Instead, it provides efficient byte-level append operations
+that you can use to build performance-critical custom sinks.
+
+```python
+from fapilog.plugins.sinks import BaseSink, MemoryMappedPersistence
+import json
+
+
+class MyMmapSink:
+    """Example custom sink using MemoryMappedPersistence."""
+    
+    name = "my_mmap"
+
+    def __init__(self, path: str):
+        self._mmap = MemoryMappedPersistence(path)
+
+    async def start(self) -> None:
+        await self._mmap.open()
+
+    async def write(self, entry: dict) -> None:
+        data = json.dumps(entry).encode()
+        await self._mmap.append_line(data)
+
+    async def stop(self) -> None:
+        await self._mmap.close()
+
+    async def health_check(self) -> bool:
+        return await self._mmap.health_check()
+```
+
+See the `MemoryMappedPersistence` class documentation for full API details including
+configuration options for initial size, growth factor, and sync behavior.
