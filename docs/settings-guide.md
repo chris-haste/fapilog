@@ -38,6 +38,10 @@ This guide documents Settings groups and fields.
 | `core.serialize_in_flush` | bool | False | If True, pre-serialize envelopes once during flush and pass SerializedView to sinks that support write_serialized |
 | `core.resource_pool_max_size` | int | 8 | Default max size for resource pools |
 | `core.resource_pool_acquire_timeout_seconds` | float | 2.0 | Default acquire timeout for pools |
+| `core.sink_circuit_breaker_enabled` | bool | False | Enable circuit breaker for sink fault isolation |
+| `core.sink_circuit_breaker_failure_threshold` | int | 5 | Number of consecutive failures before opening circuit |
+| `core.sink_circuit_breaker_recovery_timeout_seconds` | float | 30.0 | Seconds to wait before probing a failed sink |
+| `core.sink_parallel_writes` | bool | False | Write to multiple sinks in parallel instead of sequentially |
 | `core.benchmark_file_path` | str | None | — | Optional path used by performance benchmarks |
 
 ## security

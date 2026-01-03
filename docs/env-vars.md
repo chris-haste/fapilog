@@ -33,6 +33,10 @@
 | `FAPILOG__CORE__SERIALIZE_IN_FLUSH` | bool | False | If True, pre-serialize envelopes once during flush and pass SerializedView to sinks that support write_serialized |
 | `FAPILOG__CORE__SHUTDOWN_TIMEOUT_SECONDS` | float | 3.0 | Maximum time to flush on shutdown signals |
 | `FAPILOG__CORE__SINKS` | list | PydanticUndefined | Sink plugins to use (by name); falls back to env-based default when empty |
+| `FAPILOG__CORE__SINK_CIRCUIT_BREAKER_ENABLED` | bool | False | Enable circuit breaker for sink fault isolation |
+| `FAPILOG__CORE__SINK_CIRCUIT_BREAKER_FAILURE_THRESHOLD` | int | 5 | Number of consecutive failures before opening circuit |
+| `FAPILOG__CORE__SINK_CIRCUIT_BREAKER_RECOVERY_TIMEOUT_SECONDS` | float | 30.0 | Seconds to wait before probing a failed sink |
+| `FAPILOG__CORE__SINK_PARALLEL_WRITES` | bool | False | Write to multiple sinks in parallel instead of sequentially |
 | `FAPILOG__CORE__STRICT_ENVELOPE_MODE` | bool | False | If True, drop emission when envelope cannot be produced; otherwise fallback to best-effort serialization with diagnostics |
 | `FAPILOG__CORE__WORKER_COUNT` | int | 1 | Number of worker tasks for flush processing |
 | `FAPILOG__ENRICHER_CONFIG__CONTEXT_VARS` | dict | PydanticUndefined | Configuration for context_vars enricher |

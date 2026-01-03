@@ -49,7 +49,8 @@ def run_coverage() -> tuple[bool, float]:
                 "--cov=src/fapilog",
                 "--cov-report=term-missing",
                 "--cov-report=xml",
-                "--cov-fail-under=90",
+                # Don't use --cov-fail-under; we do threshold check ourselves
+                # to avoid floating-point precision edge cases
                 "tests/",
             ],
             capture_output=True,
@@ -61,6 +62,10 @@ def run_coverage() -> tuple[bool, float]:
         # Extract coverage percentage from output
         coverage_percentage = extract_coverage_from_output(result.stdout)
 
+        # Round to 1 decimal place to match display and avoid floating-point issues
+        coverage_percentage = round(coverage_percentage, 1)
+
+        # returncode == 0 means all tests passed; coverage check is done in main()
         return result.returncode == 0, coverage_percentage
 
     except FileNotFoundError:
@@ -139,7 +144,10 @@ def main() -> int:
             return 1
 
     # Run coverage
-    success, coverage = run_coverage()
+    tests_passed, coverage = run_coverage()
+
+    # Check both: tests must pass AND coverage must meet threshold
+    success = tests_passed and coverage >= args.min_coverage
 
     if not success:
         if coverage > 0:

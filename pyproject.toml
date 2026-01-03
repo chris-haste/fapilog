@@ -438,6 +438,11 @@ ignore_names = [
     "reset_all",
     "get_all_stats",
     "list_circuit_breakers",
+    # SinkCircuitBreaker public API
+    "SinkCircuitBreaker",
+    "should_allow",
+    "record_success",
+    "record_failure",
     
     # Context management API
     "error_chain_var",

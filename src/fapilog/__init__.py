@@ -261,16 +261,86 @@ def _make_sink_writer(sink: Any) -> tuple[Any, Any]:
     return _sink_write, _sink_write_serialized
 
 
-def _fanout_writer(sinks: list[object]) -> tuple[Any, Any]:
+def _fanout_writer(
+    sinks: list[object],
+    *,
+    parallel: bool = False,
+    circuit_config: Any | None = None,
+) -> tuple[Any, Any]:
+    """Create fanout writer with optional parallelization and circuit breakers.
+
+    Args:
+        sinks: List of sink instances
+        parallel: If True, write to sinks in parallel
+        circuit_config: Optional SinkCircuitBreakerConfig for fault isolation
+    """
+    from .core.circuit_breaker import SinkCircuitBreaker
+
     writers = [_make_sink_writer(s) for s in sinks]
 
+    # Create circuit breakers for each sink if enabled
+    breakers: dict[int, SinkCircuitBreaker] = {}
+    if circuit_config is not None and getattr(circuit_config, "enabled", False):
+        for sink in sinks:
+            name = getattr(sink, "name", type(sink).__name__)
+            breakers[id(sink)] = SinkCircuitBreaker(name, circuit_config)
+
+    async def _write_one(
+        sink: object,
+        write_fn: Any,
+        entry: dict,
+    ) -> None:
+        """Write to a single sink with circuit breaker protection."""
+        breaker = breakers.get(id(sink))
+
+        if breaker and not breaker.should_allow():
+            return  # Skip - circuit is open
+
+        try:
+            await write_fn(entry)
+            if breaker:
+                breaker.record_success()
+        except Exception:
+            if breaker:
+                breaker.record_failure()
+            # Contain error - don't propagate
+
+    async def _write_sequential(entry: dict) -> None:
+        for i, (write, _) in enumerate(writers):
+            await _write_one(sinks[i], write, entry)
+
+    async def _write_parallel(entry: dict) -> None:
+        if len(writers) <= 1:
+            # Single sink, no need for gather
+            if writers:
+                await _write_one(sinks[0], writers[0][0], entry)
+            return
+
+        tasks = []
+        for i, (write, _) in enumerate(writers):
+            sink = sinks[i]
+            breaker = breakers.get(id(sink))
+
+            if breaker and not breaker.should_allow():
+                continue  # Skip - circuit is open
+
+            tasks.append(_write_one(sink, write, entry))
+
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
+
     async def _write(entry: dict) -> None:
-        for write, _ in writers:
-            await write(entry)
+        if parallel and len(writers) > 1:
+            await _write_parallel(entry)
+        else:
+            await _write_sequential(entry)
 
     async def _write_serialized(view: object) -> None:
         for _, write_s in writers:
-            await write_s(view)
+            try:
+                await write_s(view)
+            except Exception:
+                pass  # Contain errors
 
     return _write, _write_serialized
 
@@ -370,7 +440,22 @@ def get_logger(
     enrichers = enrichers_started
     redactors = redactors_started
 
-    sink_write, sink_write_serialized = _fanout_writer(sinks)
+    # Build circuit breaker config if enabled
+    circuit_config = None
+    if cfg_source.core.sink_circuit_breaker_enabled:
+        from .core.circuit_breaker import SinkCircuitBreakerConfig
+
+        circuit_config = SinkCircuitBreakerConfig(
+            enabled=True,
+            failure_threshold=cfg_source.core.sink_circuit_breaker_failure_threshold,
+            recovery_timeout_seconds=cfg_source.core.sink_circuit_breaker_recovery_timeout_seconds,
+        )
+
+    sink_write, sink_write_serialized = _fanout_writer(
+        sinks,
+        parallel=cfg_source.core.sink_parallel_writes,
+        circuit_config=circuit_config,
+    )
 
     logger = SyncLoggerFacade(
         name=name,
@@ -436,7 +521,22 @@ async def get_async_logger(
     enrichers = await _start_plugins(enrichers, "enricher")
     redactors = await _start_plugins(redactors, "redactor")
 
-    sink_write, sink_write_serialized = _fanout_writer(sinks)
+    # Build circuit breaker config if enabled
+    circuit_config = None
+    if cfg_source.core.sink_circuit_breaker_enabled:
+        from .core.circuit_breaker import SinkCircuitBreakerConfig
+
+        circuit_config = SinkCircuitBreakerConfig(
+            enabled=True,
+            failure_threshold=cfg_source.core.sink_circuit_breaker_failure_threshold,
+            recovery_timeout_seconds=cfg_source.core.sink_circuit_breaker_recovery_timeout_seconds,
+        )
+
+    sink_write, sink_write_serialized = _fanout_writer(
+        sinks,
+        parallel=cfg_source.core.sink_parallel_writes,
+        circuit_config=circuit_config,
+    )
 
     logger = AsyncLoggerFacade(
         name=name,
