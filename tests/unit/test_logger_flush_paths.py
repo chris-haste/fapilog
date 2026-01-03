@@ -1,6 +1,6 @@
 import pytest
 
-import fapilog.core.logger as logger_mod
+import fapilog.core.worker as worker_mod
 from fapilog.core.logger import AsyncLoggerFacade
 
 
@@ -15,7 +15,7 @@ async def test_flush_serialization_strict_drops(monkeypatch):
         raise AssertionError("should not be called in strict drop path")
 
     monkeypatch.setattr(
-        logger_mod,
+        worker_mod,
         "serialize_envelope",
         lambda entry: (_ for _ in ()).throw(ValueError("boom")),
     )
@@ -53,7 +53,7 @@ async def test_flush_serialization_best_effort_uses_fallback(monkeypatch):
         serialized_calls.append(view)
 
     monkeypatch.setattr(
-        logger_mod,
+        worker_mod,
         "serialize_envelope",
         lambda entry: (_ for _ in ()).throw(ValueError("boom")),
     )
