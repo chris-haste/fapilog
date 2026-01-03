@@ -165,36 +165,157 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="processors">
 <h1>Processors<a class="headerlink" href="#processors" title="Link to this heading"></a></h1>
-<p>Transform or filter log entries between enrichment and queue/sink stages. Implement <code class="docutils literal notranslate"><span class="pre">BaseProcessor</span></code>.</p>
+<p>Processors transform <strong>serialized</strong> log data (memoryview) after enrichment/redaction and before sinks run.</p>
+<section id="when-to-use-processors">
+<h2>When to use processors<a class="headerlink" href="#when-to-use-processors" title="Link to this heading"></a></h2>
+<p>Use processors when you need to operate on bytes, not event dicts. Examples:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Use case</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Compression</p></td>
+<td><p>Compress JSON before writing to disk/network</p></td>
+</tr>
+<tr class="row-odd"><td><p>Encryption</p></td>
+<td><p>Encrypt serialized entries for storage or transport</p></td>
+</tr>
+<tr class="row-even"><td><p>Format conversion</p></td>
+<td><p>Convert JSON to MessagePack/BSON/Avro</p></td>
+</tr>
+<tr class="row-odd"><td><p>Checksums</p></td>
+<td><p>Add integrity MAC/CRC for downstream verification</p></td>
+</tr>
+<tr class="row-even"><td><p>Framing</p></td>
+<td><p>Add message boundaries/headers for streaming protocols</p></td>
+</tr>
+</tbody>
+</table>
+<section id="processors-vs-enrichers">
+<h3>Processors vs. Enrichers<a class="headerlink" href="#processors-vs-enrichers" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Question</p></th>
+<th class="head"><p>Use an enricher</p></th>
+<th class="head"><p>Use a processor</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Need to add fields to the event dict?</p></td>
+<td><p>✅</p></td>
+<td><p>❌</p></td>
+</tr>
+<tr class="row-odd"><td><p>Need to transform raw bytes?</p></td>
+<td><p>❌</p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-even"><td><p>Input type</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">memoryview</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Called</p></td>
+<td><p>Before serialization</p></td>
+<td><p>After serialization</p></td>
+</tr>
+</tbody>
+</table>
+<p>Rule of thumb: if you must inspect or add fields, use an enricher. If you only need to transform the serialized bytes, use a processor.</p>
+</section>
+</section>
 <section id="implementing-a-processor">
 <h2>Implementing a processor<a class="headerlink" href="#implementing-a-processor" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseProcessor</span>
 
-<span class="k">class</span><span class="w"> </span><span class="nc">SamplingProcessor</span><span class="p">(</span><span class="n">BaseProcessor</span><span class="p">):</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;sampling-processor&quot;</span>
 
-    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entry</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="c1"># Return None to drop, or a modified entry to continue</span>
-        <span class="k">return</span> <span class="n">entry</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">GzipProcessor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compress serialized entries with gzip.&quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;gzip&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_level</span> <span class="o">=</span> <span class="n">level</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">pass</span>  <span class="c1"># optional</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">pass</span>  <span class="c1"># optional</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">view</span><span class="p">:</span> <span class="nb">memoryview</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">memoryview</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">gzip</span>
+
+        <span class="n">compressed</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">view</span><span class="p">),</span> <span class="n">compresslevel</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_level</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">memoryview</span><span class="p">(</span><span class="n">compressed</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">health_check</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<section id="example-encrypt-before-sinks">
+<h3>Example: Encrypt before sinks<a class="headerlink" href="#example-encrypt-before-sinks" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">cryptography.fernet</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fernet</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">EncryptProcessor</span><span class="p">:</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;encrypt&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fernet</span> <span class="o">=</span> <span class="n">Fernet</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">view</span><span class="p">:</span> <span class="nb">memoryview</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">memoryview</span><span class="p">:</span>
+        <span class="n">encrypted</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fernet</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">view</span><span class="p">))</span>
+        <span class="k">return</span> <span class="nb">memoryview</span><span class="p">(</span><span class="n">encrypted</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
-<section id="registering-a-processor">
-<h2>Registering a processor<a class="headerlink" href="#registering-a-processor" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p>Declare an entry point under <code class="docutils literal notranslate"><span class="pre">fapilog.processors</span></code> in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>.</p></li>
-<li><p>Provide <code class="docutils literal notranslate"><span class="pre">PLUGIN_METADATA</span></code> with <code class="docutils literal notranslate"><span class="pre">plugin_type:</span> <span class="pre">&quot;processor&quot;</span></code> and compatible API version.</p></li>
-</ul>
+<section id="example-convert-json-to-messagepack">
+<h3>Example: Convert JSON to MessagePack<a class="headerlink" href="#example-convert-json-to-messagepack" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">msgpack</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MsgPackProcessor</span><span class="p">:</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;msgpack&quot;</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">view</span><span class="p">:</span> <span class="nb">memoryview</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">memoryview</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">view</span><span class="p">))</span>
+        <span class="n">packed</span> <span class="o">=</span> <span class="n">msgpack</span><span class="o">.</span><span class="n">packb</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">memoryview</span><span class="p">(</span><span class="n">packed</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="built-in-processors">
 <h2>Built-in processors<a class="headerlink" href="#built-in-processors" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Processor</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zero_copy</span></code></p></td>
+<td><p>Pass-through processor for benchmarking (no transformation)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="registration">
+<h2>Registration<a class="headerlink" href="#registration" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Core pipeline currently runs without custom processors by default; processors are reserved for advanced transforms/filters.</p></li>
+<li><p>Declare an entry point under <code class="docutils literal notranslate"><span class="pre">fapilog.processors</span></code> in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>.</p></li>
+<li><p>Include <code class="docutils literal notranslate"><span class="pre">PLUGIN_METADATA</span></code> with <code class="docutils literal notranslate"><span class="pre">plugin_type:</span> <span class="pre">&quot;processor&quot;</span></code> and compatible API version.</p></li>
 </ul>
 </section>
-<section id="usage">
-<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
-<p>Processors execute after enrichers and redactors but before queueing/sink emission when configured. Ensure they are non-blocking and handle errors internally to avoid disrupting the pipeline.</p>
+<section id="configuration-and-order">
+<h2>Configuration and order<a class="headerlink" href="#configuration-and-order" title="Link to this heading"></a></h2>
+<p>Configure processors via settings (<code class="docutils literal notranslate"><span class="pre">core.processors</span></code>) or env (<code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__PROCESSORS</span></code>). They run in order:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Event → Enrichers → Redactors → Serialize → Processor 1 → Processor 2 → Sinks
+</pre></div>
+</div>
+<p>Keep processors async, contain errors, and consider CPU/I/O cost since they run on every log write.</p>
 </section>
 </section>
 
