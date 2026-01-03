@@ -63,6 +63,21 @@ def _plugin_allowed(name: str, settings: _Settings) -> bool:
     return True
 
 
+def _apply_plugin_settings(settings: _Settings) -> None:
+    """Apply plugin validation mode and related settings to the loader."""
+
+    mode_map = {
+        "disabled": _loader.ValidationMode.DISABLED,
+        "warn": _loader.ValidationMode.WARN,
+        "strict": _loader.ValidationMode.STRICT,
+    }
+    mode = mode_map.get(
+        (settings.plugins.validation_mode or "disabled").lower(),
+        _loader.ValidationMode.DISABLED,
+    )
+    _loader.set_validation_mode(mode)
+
+
 def _sink_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
     scfg = settings.sink_config
     configs: dict[str, dict[str, Any]] = {
@@ -405,6 +420,7 @@ def get_logger(
     settings: _Settings | None = None,
 ) -> SyncLoggerFacade:
     cfg_source = settings or _Settings()
+    _apply_plugin_settings(cfg_source)
     sinks, enrichers, redactors, metrics = _build_pipeline(cfg_source)
 
     # Start enrichers and redactors (sync-safe)
@@ -515,6 +531,7 @@ async def get_async_logger(
     settings: _Settings | None = None,
 ) -> AsyncLoggerFacade:
     cfg_source = settings or _Settings()
+    _apply_plugin_settings(cfg_source)
     sinks, enrichers, redactors, metrics = _build_pipeline(cfg_source)
 
     # Start enrichers and redactors (plugins that fail are excluded)

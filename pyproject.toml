@@ -443,6 +443,8 @@ ignore_names = [
     "should_allow",
     "record_success",
     "record_failure",
+    # ValidationMode enum values
+    "WARN",
     
     # Context management API
     "error_chain_var",

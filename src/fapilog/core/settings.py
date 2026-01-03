@@ -561,6 +561,10 @@ class Settings(BaseSettings):
             default_factory=list,
             description="Plugin names to block from loading",
         )
+        validation_mode: str = Field(
+            default="disabled",
+            description="Plugin validation mode: disabled, warn, or strict",
+        )
 
     plugins: PluginsSettings = Field(
         default_factory=PluginsSettings,
