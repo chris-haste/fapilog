@@ -14,6 +14,7 @@ enrichers
 processors
 configuration
 health-checks
+error-handling
 ```
 
 ## Overview
@@ -42,6 +43,10 @@ Data enrichment and augmentation.
 ### [Redactors](redactors.md)
 
 Data redaction and masking utilities.
+
+### [Error Handling](error-handling.md)
+
+How to contain errors, emit diagnostics, and keep pipelines healthy.
 
 ## Getting Started
 
