@@ -275,6 +275,60 @@ def _fanout_writer(sinks: list[object]) -> tuple[Any, Any]:
     return _write, _write_serialized
 
 
+async def _start_plugins(
+    plugins: list[Any],
+    plugin_type: str,
+) -> list[Any]:
+    """Start plugins, returning only successfully started ones.
+
+    Plugins without a start() method are included without calling start().
+    Plugins that fail during start() are excluded and a diagnostic is emitted.
+    """
+    started: list[Any] = []
+    for plugin in plugins:
+        try:
+            if hasattr(plugin, "start"):
+                await plugin.start()
+            started.append(plugin)
+        except Exception as exc:
+            try:
+                from .core import diagnostics as _diag
+
+                _diag.warn(
+                    plugin_type,
+                    "plugin start failed",
+                    plugin=getattr(plugin, "name", type(plugin).__name__),
+                    error=str(exc),
+                )
+            except Exception:
+                pass
+    return started
+
+
+async def _stop_plugins(plugins: list[Any], plugin_type: str) -> None:
+    """Stop all plugins, containing errors.
+
+    Plugins are stopped in reverse order to respect dependency ordering.
+    Errors during stop() are logged but do not prevent other plugins from stopping.
+    """
+    for plugin in reversed(plugins):
+        try:
+            if hasattr(plugin, "stop"):
+                await plugin.stop()
+        except Exception as exc:
+            try:
+                from .core import diagnostics as _diag
+
+                _diag.warn(
+                    plugin_type,
+                    "plugin stop failed",
+                    plugin=getattr(plugin, "name", type(plugin).__name__),
+                    error=str(exc),
+                )
+            except Exception:
+                pass
+
+
 def get_logger(
     name: str | None = None,
     *,
@@ -282,6 +336,40 @@ def get_logger(
 ) -> SyncLoggerFacade:
     cfg_source = settings or _Settings()
     sinks, enrichers, redactors, metrics = _build_pipeline(cfg_source)
+
+    # Start enrichers and redactors (sync-safe)
+    async def _do_start() -> tuple[list[object], list[object]]:
+        started_enrichers = await _start_plugins(enrichers, "enricher")
+        started_redactors = await _start_plugins(redactors, "redactor")
+        return started_enrichers, started_redactors
+
+    enrichers_started: list[object] = list(enrichers)
+    redactors_started: list[object] = list(redactors)
+
+    try:
+        asyncio.get_running_loop()
+        # Inside event loop - can't use asyncio.run, run in a thread.
+        import concurrent.futures
+
+        try:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(asyncio.run, _do_start())
+                enrichers_started, redactors_started = future.result(timeout=5.0)
+        except Exception:
+            # If thread-based startup fails, continue with unstarted plugins
+            # They will be started lazily on first use if they have start()
+            pass
+    except RuntimeError:
+        # No running loop - safe to use asyncio.run
+        try:
+            enrichers_started, redactors_started = asyncio.run(_do_start())
+        except Exception:
+            # If async startup fails, continue with unstarted plugins
+            pass
+
+    enrichers = enrichers_started
+    redactors = redactors_started
+
     sink_write, sink_write_serialized = _fanout_writer(sinks)
 
     logger = SyncLoggerFacade(
@@ -343,6 +431,11 @@ async def get_async_logger(
 ) -> AsyncLoggerFacade:
     cfg_source = settings or _Settings()
     sinks, enrichers, redactors, metrics = _build_pipeline(cfg_source)
+
+    # Start enrichers and redactors (plugins that fail are excluded)
+    enrichers = await _start_plugins(enrichers, "enricher")
+    redactors = await _start_plugins(redactors, "redactor")
+
     sink_write, sink_write_serialized = _fanout_writer(sinks)
 
     logger = AsyncLoggerFacade(
