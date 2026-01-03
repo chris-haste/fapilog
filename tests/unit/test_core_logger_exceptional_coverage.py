@@ -638,7 +638,7 @@ class TestSerializationFallbackPaths:
 
         # Mock serialize_envelope to raise an exception
         with patch(
-            "fapilog.core.logger.serialize_envelope",
+            "fapilog.core.worker.serialize_envelope",
             side_effect=RuntimeError("Serialization error"),
         ):
             # Should fall back to regular sink path
@@ -682,7 +682,7 @@ class TestSerializationFallbackPaths:
             mock_settings.return_value = settings_instance
 
             with patch(
-                "fapilog.core.logger.serialize_envelope",
+                "fapilog.core.worker.serialize_envelope",
                 side_effect=ValueError("Strict serialization error"),
             ):
                 # In strict mode, should drop the entry (line 654: continue)

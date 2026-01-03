@@ -16,13 +16,13 @@ from typing import Any, Iterable, cast
 
 from ..metrics.metrics import MetricsCollector
 from ..plugins.enrichers import BaseEnricher
-from ..plugins.redactors import BaseRedactor, redact_in_order
+from ..plugins.redactors import BaseRedactor
 from .concurrency import NonBlockingRingQueue
 from .events import LogEvent
-from .serialization import (
-    SerializedView,
-    serialize_envelope,
-    serialize_mapping_to_json_bytes,
+from .worker import (
+    LoggerWorker,
+    enqueue_with_backpressure,
+    strict_envelope_mode_enabled,
 )
 
 
@@ -44,7 +44,27 @@ class DrainResult:
     flush_latency_seconds: float
 
 
-class SyncLoggerFacade:
+class _WorkerCountersMixin:
+    _counters: dict[str, int]
+
+    @property
+    def _processed(self) -> int:
+        return self._counters.get("processed", 0)
+
+    @_processed.setter
+    def _processed(self, value: int) -> None:
+        self._counters["processed"] = value
+
+    @property
+    def _dropped(self) -> int:
+        return self._counters.get("dropped", 0)
+
+    @_dropped.setter
+    def _dropped(self, value: int) -> None:
+        self._counters["dropped"] = value
+
+
+class SyncLoggerFacade(_WorkerCountersMixin):
     """Sync facade that enqueues log calls to a background async worker.
 
     - Non-blocking in async contexts
@@ -74,6 +94,7 @@ class SyncLoggerFacade:
         self._name = name or "root"
         self._queue = NonBlockingRingQueue[dict[str, Any]](capacity=queue_capacity)
         self._queue_high_watermark = 0
+        self._counters: dict[str, int] = {"processed": 0, "dropped": 0}
         self._batch_max_size = int(batch_max_size)
         self._batch_timeout_seconds = float(batch_timeout_seconds)
         self._backpressure_wait_ms = int(backpressure_wait_ms)
@@ -97,8 +118,6 @@ class SyncLoggerFacade:
         self._flush_event: asyncio.Event | None = None
         self._flush_done_event: asyncio.Event | None = None
         self._submitted = 0
-        self._processed = 0
-        self._dropped = 0
         self._retried = 0
         # Fast-path serialization toggle
         self._serialize_in_flush = bool(serialize_in_flush)
@@ -641,207 +660,34 @@ class SyncLoggerFacade:
     def disable_enricher(self, name: str) -> None:
         self._enrichers = [e for e in self._enrichers if getattr(e, "name", "") != name]
 
+    def _make_worker(self) -> LoggerWorker:
+        return LoggerWorker(
+            queue=self._queue,
+            batch_max_size=self._batch_max_size,
+            batch_timeout_seconds=self._batch_timeout_seconds,
+            sink_write=self._sink_write,
+            sink_write_serialized=self._sink_write_serialized,
+            enrichers_getter=lambda: list(self._enrichers),
+            redactors_getter=lambda: list(self._redactors),
+            metrics=self._metrics,
+            serialize_in_flush=self._serialize_in_flush,
+            strict_envelope_mode_provider=strict_envelope_mode_enabled,
+            stop_flag=lambda: self._stop_flag,
+            drained_event=self._drained_event,
+            flush_event=self._flush_event,
+            flush_done_event=self._flush_done_event,
+            emit_enricher_diagnostics=True,
+            emit_redactor_diagnostics=True,
+            counters=self._counters,
+        )
+
     async def _worker_main(self) -> None:
-        batch: list[dict[str, Any]] = []
-        next_flush_deadline: float | None = None
-        try:
-            while True:
-                # Stop requested: drain queue and flush immediately
-                if self._stop_flag:
-                    # Drain any remaining items into the batch
-                    while True:
-                        ok, item = self._queue.try_dequeue()
-                        if not ok or item is None:
-                            break
-                        batch.append(item)
-                    await self._flush_batch(batch)
-                    # Stop loop in thread mode
-                    if self._worker_thread is not None:
-                        loop = asyncio.get_running_loop()
-                        loop.stop()
-                    # Signal drained for async mode
-                    if self._drained_event is not None:
-                        self._drained_event.set()
-                    return
-                # Pull as much as possible up to batch size
-                ok, item = self._queue.try_dequeue()
-                if ok and item is not None:
-                    batch.append(item)
-                    if len(batch) >= self._batch_max_size:
-                        await self._flush_batch(batch)
-                        next_flush_deadline = None
-                        continue
-                    if next_flush_deadline is None:
-                        next_flush_deadline = (
-                            time.perf_counter() + self._batch_timeout_seconds
-                        )
-                    continue
-
-                # No item available; check deadline
-                now = time.perf_counter()
-                if next_flush_deadline is not None and now >= next_flush_deadline:
-                    await self._flush_batch(batch)
-                    next_flush_deadline = None
-                    continue
-
-                # Sleep briefly to yield loop
-                await asyncio.sleep(0.001)
-        except asyncio.CancelledError:
-            return
-        except Exception as exc:  # pragma: no cover - defensive catch
-            # Contain worker failures; optionally emit diagnostics
-            try:
-                from .diagnostics import warn
-
-                warn(
-                    "worker",
-                    "worker_main error",
-                    error_type=type(exc).__name__,
-                    error=str(exc),
-                )
-            except Exception:
-                pass
-            return
+        worker = self._make_worker()
+        await worker.run(in_thread_mode=self._worker_thread is not None)
 
     async def _flush_batch(self, batch: list[dict[str, Any]]) -> None:
-        if not batch:
-            return
-        start = time.perf_counter()
-        try:
-            from ..plugins.enrichers import enrich_parallel
-
-            for entry in batch:
-                # Enrich before sink write
-                if self._enrichers:
-                    try:
-                        entry = await enrich_parallel(
-                            entry,
-                            list(self._enrichers),
-                            metrics=self._metrics,
-                        )
-                    except Exception:
-                        # Emit diagnostics for enrichment failures and continue
-                        try:
-                            from .diagnostics import warn as _warn
-
-                            _warn(
-                                "enricher",
-                                "enrichment error",
-                                _rate_limit_key="enrich",
-                            )
-                        except Exception:
-                            pass
-                        pass
-                # Redactors stage (sequential, deterministic)
-                if self._redactors:
-                    try:
-                        entry = await redact_in_order(
-                            entry,
-                            list(self._redactors),
-                            metrics=self._metrics,
-                        )
-                    except Exception:
-                        # Emit diagnostics for redaction failures and continue
-                        try:
-                            from .diagnostics import warn as _warn
-
-                            _warn(
-                                "redactor",
-                                "redaction error",
-                                _rate_limit_key="redact",
-                            )
-                        except Exception:
-                            pass
-                        pass
-                # Optional fast-path: pre-serialize once and pass to sink
-                if self._serialize_in_flush and self._sink_write_serialized is not None:
-                    view: SerializedView | None = None
-                    try:
-                        view = serialize_envelope(entry)
-                    except Exception as e:
-                        # Strict vs best-effort behavior mirrors sinks
-                        strict = False
-                        try:
-                            from . import settings as _settings
-
-                            strict = bool(
-                                _settings.Settings().core.strict_envelope_mode
-                            )
-                        except Exception:
-                            strict = False
-                        # Emit diagnostics but contain errors
-                        try:
-                            from .diagnostics import warn as _warn
-
-                            _warn(
-                                "sink",
-                                "envelope serialization error",
-                                mode="strict" if strict else "best-effort",
-                                reason=type(e).__name__,
-                                detail=str(e),
-                            )
-                        except Exception:
-                            pass
-                        if strict:
-                            # Drop entry on strict failure
-                            continue
-                        try:
-                            view = serialize_mapping_to_json_bytes(entry)
-                        except Exception:
-                            # As ultimate containment, fall back to dict write path
-                            view = None
-
-                    if view is not None:
-                        try:
-                            await self._sink_write_serialized(view)
-                            self._processed += 1
-                            continue
-                        except Exception:
-                            # Contain sink errors on serialized path and fall back below
-                            pass
-
-                # Fallback/default path
-                await self._sink_write(entry)
-                self._processed += 1
-        except Exception as exc:
-            # Contain sink errors; count as dropped
-            self._dropped += len(batch)
-            if self._metrics is not None:
-                try:
-                    # Attempt to derive a sink name if available via write callable
-                    sink_name = None
-                    try:
-                        target = getattr(self._sink_write, "__self__", None)
-                        if target is not None:
-                            sink_name = type(target).__name__
-                    except Exception:
-                        sink_name = None
-                    await self._metrics.record_sink_error(sink=sink_name)
-                except Exception:
-                    pass
-            # Optional diagnostics
-            try:
-                from .diagnostics import warn
-
-                warn(
-                    "sink",
-                    "flush error",
-                    error_type=type(exc).__name__,
-                    error=str(exc),
-                )
-            except Exception:
-                pass
-        finally:
-            if self._metrics is not None:
-                try:
-                    latency = time.perf_counter() - start
-                    await self._metrics.record_flush(
-                        batch_size=len(batch),
-                        latency_seconds=latency,
-                    )
-                except Exception:
-                    pass
-            batch.clear()
+        worker = self._make_worker()
+        await worker.flush_batch(batch)
 
     async def self_test(self) -> dict[str, Any]:
         """Perform a basic sink readiness probe.
@@ -884,50 +730,16 @@ class SyncLoggerFacade:
         """
         Async enqueue executed in the worker loop; returns True if enqueued.
         """
-        effective_timeout: float | None = timeout if self._drop_on_full else None
-        # Fast path
-        if self._queue.try_enqueue(payload):
-            qsize = self._queue.qsize()
-            if qsize > self._queue_high_watermark:
-                self._queue_high_watermark = qsize
-                if self._metrics is not None:
-                    await self._metrics.set_queue_high_watermark(qsize)
-            return True
-        # Backpressure handling
-        if effective_timeout is not None and effective_timeout > 0:
-            if self._metrics is not None:
-                await self._metrics.record_backpressure_wait(1)
-            try:
-                await self._queue.await_enqueue(payload, timeout=effective_timeout)
-                qsize = self._queue.qsize()
-                if qsize > self._queue_high_watermark:
-                    self._queue_high_watermark = qsize
-                    if self._metrics is not None:
-                        await self._metrics.set_queue_high_watermark(qsize)
-                return True
-            except Exception:
-                if self._metrics is not None:
-                    await self._metrics.record_events_dropped(1)
-                return False
-        if not self._drop_on_full:
-            # Wait indefinitely (best-effort) when configured to never drop
-            if self._metrics is not None:
-                await self._metrics.record_backpressure_wait(1)
-            try:
-                await self._queue.await_enqueue(payload, timeout=None)
-                qsize = self._queue.qsize()
-                if qsize > self._queue_high_watermark:
-                    self._queue_high_watermark = qsize
-                    if self._metrics is not None:
-                        await self._metrics.set_queue_high_watermark(qsize)
-                return True
-            except Exception:
-                if self._metrics is not None:
-                    await self._metrics.record_events_dropped(1)
-                return False
-        if self._metrics is not None:
-            await self._metrics.record_events_dropped(1)
-        return False
+        ok, high_watermark = await enqueue_with_backpressure(
+            self._queue,
+            payload,
+            timeout=timeout,
+            drop_on_full=self._drop_on_full,
+            metrics=self._metrics,
+            current_high_watermark=self._queue_high_watermark,
+        )
+        self._queue_high_watermark = high_watermark
+        return ok
 
     def _schedule_metrics_call(self, fn: Any, *args: Any, **kwargs: Any) -> None:
         """Best-effort metrics scheduling without blocking callers.
@@ -955,7 +767,7 @@ class SyncLoggerFacade:
         threading.Thread(target=_run, daemon=True).start()
 
 
-class AsyncLoggerFacade:
+class AsyncLoggerFacade(_WorkerCountersMixin):
     """Async facade that enqueues log calls without blocking and honors backpressure.
 
     - Non-blocking awaitable methods that enqueue without thread hops
@@ -986,6 +798,7 @@ class AsyncLoggerFacade:
         self._name = name or "root"
         self._queue = NonBlockingRingQueue[dict[str, Any]](capacity=queue_capacity)
         self._queue_high_watermark = 0
+        self._counters: dict[str, int] = {"processed": 0, "dropped": 0}
         self._batch_max_size = int(batch_max_size)
         self._batch_timeout_seconds = float(batch_timeout_seconds)
         self._backpressure_wait_ms = int(backpressure_wait_ms)
@@ -1009,8 +822,6 @@ class AsyncLoggerFacade:
         self._flush_event: asyncio.Event | None = None
         self._flush_done_event: asyncio.Event | None = None
         self._submitted = 0
-        self._processed = 0
-        self._dropped = 0
         self._retried = 0
         # Fast-path serialization toggle
         self._serialize_in_flush = bool(serialize_in_flush)
@@ -1483,205 +1294,34 @@ class AsyncLoggerFacade:
     def disable_enricher(self, name: str) -> None:
         self._enrichers = [e for e in self._enrichers if getattr(e, "name", "") != name]
 
+    def _make_worker(self) -> LoggerWorker:
+        return LoggerWorker(
+            queue=self._queue,
+            batch_max_size=self._batch_max_size,
+            batch_timeout_seconds=self._batch_timeout_seconds,
+            sink_write=self._sink_write,
+            sink_write_serialized=self._sink_write_serialized,
+            enrichers_getter=lambda: list(self._enrichers),
+            redactors_getter=lambda: list(self._redactors),
+            metrics=self._metrics,
+            serialize_in_flush=self._serialize_in_flush,
+            strict_envelope_mode_provider=strict_envelope_mode_enabled,
+            stop_flag=lambda: self._stop_flag,
+            drained_event=self._drained_event,
+            flush_event=self._flush_event,
+            flush_done_event=self._flush_done_event,
+            emit_enricher_diagnostics=False,
+            emit_redactor_diagnostics=False,
+            counters=self._counters,
+        )
+
     async def _worker_main(self) -> None:
-        batch: list[dict[str, Any]] = []
-        next_flush_deadline: float | None = None
-        try:
-            while True:
-                # Stop requested: drain queue and flush immediately
-                if self._stop_flag:
-                    # Drain any remaining items into the batch
-                    while True:
-                        ok, item = self._queue.try_dequeue()
-                        if not ok or item is None:
-                            break
-                        batch.append(item)
-                    await self._flush_batch(batch)
-                    # Stop loop in thread mode
-                    if self._worker_thread is not None:
-                        loop = asyncio.get_running_loop()
-                        loop.stop()
-                    # Signal drained for async mode
-                    if self._drained_event is not None:
-                        self._drained_event.set()
-                    return
-
-                # Check for immediate flush request
-                if self._flush_event is not None and self._flush_event.is_set():
-                    # Drain any pending items into batch before flushing
-                    while True:
-                        ok_flush, item_flush = self._queue.try_dequeue()
-                        if not ok_flush or item_flush is None:
-                            break
-                        batch.append(item_flush)
-                    if batch:
-                        await self._flush_batch(batch)
-                        next_flush_deadline = None
-                    # Clear the flush event and signal completion
-                    self._flush_event.clear()
-                    if self._flush_done_event is not None:
-                        self._flush_done_event.set()
-                    continue
-
-                # Pull as much as possible up to batch size
-                ok, item = self._queue.try_dequeue()
-                if ok and item is not None:
-                    batch.append(item)
-                    if len(batch) >= self._batch_max_size:
-                        await self._flush_batch(batch)
-                        next_flush_deadline = None
-                        continue
-                    if next_flush_deadline is None:
-                        next_flush_deadline = (
-                            time.perf_counter() + self._batch_timeout_seconds
-                        )
-                    continue
-
-                # No item available; check deadline
-                now = time.perf_counter()
-                if next_flush_deadline is not None and now >= next_flush_deadline:
-                    await self._flush_batch(batch)
-                    next_flush_deadline = None
-                    continue
-
-                # Sleep briefly to yield loop
-                await asyncio.sleep(0.001)
-        except asyncio.CancelledError:
-            return
-        except Exception as exc:  # pragma: no cover - defensive catch
-            # Contain worker failures; optionally emit diagnostics
-            try:
-                from .diagnostics import warn
-
-                warn(
-                    "worker",
-                    "worker_main error",
-                    error_type=type(exc).__name__,
-                    error=str(exc),
-                )
-            except Exception:
-                pass
-            return
+        worker = self._make_worker()
+        await worker.run(in_thread_mode=self._worker_thread is not None)
 
     async def _flush_batch(self, batch: list[dict[str, Any]]) -> None:
-        if not batch:
-            return
-        start = time.perf_counter()
-        try:
-            from ..plugins.enrichers import enrich_parallel
-
-            for entry in batch:
-                # Enrich before sink write
-                if self._enrichers:
-                    try:
-                        entry = await enrich_parallel(
-                            entry,
-                            list(self._enrichers),
-                            metrics=self._metrics,
-                        )
-                    except Exception:
-                        # Contain enrichment errors
-                        pass
-                # Redactors stage (sequential, deterministic)
-                if self._redactors:
-                    try:
-                        entry = await redact_in_order(
-                            entry,
-                            list(self._redactors),
-                            metrics=self._metrics,
-                        )
-                    except Exception:
-                        # Contain redaction errors and continue
-                        pass
-                # Optional fast-path: pre-serialize once and pass to sink
-                if self._serialize_in_flush and self._sink_write_serialized is not None:
-                    view: SerializedView | None = None
-                    try:
-                        view = serialize_envelope(entry)
-                    except Exception as e:
-                        # Strict vs best-effort behavior mirrors sinks
-                        strict = False
-                        try:
-                            from . import settings as _settings
-
-                            strict = bool(
-                                _settings.Settings().core.strict_envelope_mode
-                            )
-                        except Exception:
-                            strict = False
-                        # Emit diagnostics but contain errors
-                        try:
-                            from .diagnostics import warn as _warn
-
-                            _warn(
-                                "sink",
-                                "envelope serialization error",
-                                mode="strict" if strict else "best-effort",
-                                reason=type(e).__name__,
-                                detail=str(e),
-                            )
-                        except Exception:
-                            pass
-                        if strict:
-                            # Drop entry on strict failure
-                            continue
-                        try:
-                            view = serialize_mapping_to_json_bytes(entry)
-                        except Exception:
-                            # As ultimate containment, fall back to dict write path
-                            view = None
-
-                    if view is not None:
-                        try:
-                            await self._sink_write_serialized(view)
-                            self._processed += 1
-                            continue
-                        except Exception:
-                            # Contain sink errors on serialized path and fall back below
-                            pass
-
-                # Fallback/default path
-                await self._sink_write(entry)
-                self._processed += 1
-        except Exception as exc:
-            # Contain sink errors; count as dropped
-            self._dropped += len(batch)
-            if self._metrics is not None:
-                try:
-                    # Attempt to derive a sink name if available via write callable
-                    sink_name = None
-                    try:
-                        target = getattr(self._sink_write, "__self__", None)
-                        if target is not None:
-                            sink_name = type(target).__name__
-                    except Exception:
-                        sink_name = None
-                    await self._metrics.record_sink_error(sink=sink_name)
-                except Exception:
-                    pass
-            # Optional diagnostics
-            try:
-                from .diagnostics import warn
-
-                warn(
-                    "sink",
-                    "flush error",
-                    error_type=type(exc).__name__,
-                    error=str(exc),
-                )
-            except Exception:
-                pass
-        finally:
-            if self._metrics is not None:
-                try:
-                    latency = time.perf_counter() - start
-                    await self._metrics.record_flush(
-                        batch_size=len(batch),
-                        latency_seconds=latency,
-                    )
-                except Exception:
-                    pass
-            batch.clear()
+        worker = self._make_worker()
+        await worker.flush_batch(batch)
 
     async def self_test(self) -> dict[str, Any]:
         """Perform a basic sink readiness probe.
@@ -1724,47 +1364,13 @@ class AsyncLoggerFacade:
         """
         Async enqueue executed in the worker loop; returns True if enqueued.
         """
-        effective_timeout: float | None = timeout if self._drop_on_full else None
-        # Fast path
-        if self._queue.try_enqueue(payload):
-            qsize = self._queue.qsize()
-            if qsize > self._queue_high_watermark:
-                self._queue_high_watermark = qsize
-                if self._metrics is not None:
-                    await self._metrics.set_queue_high_watermark(qsize)
-            return True
-        # Backpressure handling
-        if effective_timeout is not None and effective_timeout > 0:
-            if self._metrics is not None:
-                await self._metrics.record_backpressure_wait(1)
-            try:
-                await self._queue.await_enqueue(payload, timeout=effective_timeout)
-                qsize = self._queue.qsize()
-                if qsize > self._queue_high_watermark:
-                    self._queue_high_watermark = qsize
-                    if self._metrics is not None:
-                        await self._metrics.set_queue_high_watermark(qsize)
-                return True
-            except Exception:
-                if self._metrics is not None:
-                    await self._metrics.record_events_dropped(1)
-                return False
-        if not self._drop_on_full:
-            # Wait indefinitely (best-effort) when configured to never drop
-            if self._metrics is not None:
-                await self._metrics.record_backpressure_wait(1)
-            try:
-                await self._queue.await_enqueue(payload, timeout=None)
-                qsize = self._queue.qsize()
-                if qsize > self._queue_high_watermark:
-                    self._queue_high_watermark = qsize
-                    if self._metrics is not None:
-                        await self._metrics.set_queue_high_watermark(qsize)
-                return True
-            except Exception:
-                if self._metrics is not None:
-                    await self._metrics.record_events_dropped(1)
-                return False
-        if self._metrics is not None:
-            await self._metrics.record_events_dropped(1)
-        return False
+        ok, high_watermark = await enqueue_with_backpressure(
+            self._queue,
+            payload,
+            timeout=timeout,
+            drop_on_full=self._drop_on_full,
+            metrics=self._metrics,
+            current_high_watermark=self._queue_high_watermark,
+        )
+        self._queue_high_watermark = high_watermark
+        return ok

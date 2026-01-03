@@ -445,6 +445,11 @@ ignore_names = [
     "record_failure",
     # ValidationMode enum values
     "WARN",
+    # LoggerWorker public API
+    "LoggerWorker",
+    "flush_batch",
+    "strict_envelope_mode_enabled",
+    "enqueue_with_backpressure",
     
     # Context management API
     "error_chain_var",
