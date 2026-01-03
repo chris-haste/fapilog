@@ -173,10 +173,28 @@
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">start(self)</span> <span class="pre">-&gt;</span> <span class="pre">None</span></code>: optional initialization.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">write(self,</span> <span class="pre">entry:</span> <span class="pre">dict)</span> <span class="pre">-&gt;</span> <span class="pre">None</span></code>: required; receives enriched/redacted envelope.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">write_serialized(self,</span> <span class="pre">view)</span> <span class="pre">-&gt;</span> <span class="pre">None</span></code>: optional fast-path when <code class="docutils literal notranslate"><span class="pre">serialize_in_flush=True</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">stop(self)</span> <span class="pre">-&gt;</span> <span class="pre">None</span></code>: optional teardown.</p></li>
 </ul>
 <p>Errors should be contained; do not raise into the pipeline.</p>
+<section id="optional-methods">
+<h3>Optional methods<a class="headerlink" href="#optional-methods" title="Link to this heading"></a></h3>
+<section id="write-serialized">
+<h4>write_serialized<a class="headerlink" href="#write-serialized" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">write_serialized</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">view</span><span class="p">:</span> <span class="n">SerializedView</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</pre></div>
+</div>
+<p>Fast path when <code class="docutils literal notranslate"><span class="pre">Settings.core.serialize_in_flush=True</span></code>. If present, fapilog pre-serializes entries once and calls this method instead of <code class="docutils literal notranslate"><span class="pre">write()</span></code> for sinks that consume bytes. If absent, fapilog automatically falls back to <code class="docutils literal notranslate"><span class="pre">write()</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">SerializedView</span></code> exposes:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SerializedView</span><span class="p">:</span>
+    <span class="n">data</span><span class="p">:</span> <span class="nb">memoryview</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__bytes__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
 </section>
 <section id="built-in-sinks">
 <h2>Built-in sinks<a class="headerlink" href="#built-in-sinks" title="Link to this heading"></a></h2>

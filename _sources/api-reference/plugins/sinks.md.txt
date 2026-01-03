@@ -10,10 +10,30 @@ Implement `BaseSink` methods:
 
 - `async start(self) -> None`: optional initialization.
 - `async write(self, entry: dict) -> None`: required; receives enriched/redacted envelope.
-- `async write_serialized(self, view) -> None`: optional fast-path when `serialize_in_flush=True`.
 - `async stop(self) -> None`: optional teardown.
 
 Errors should be contained; do not raise into the pipeline.
+
+### Optional methods
+
+#### write_serialized
+
+```python
+async def write_serialized(self, view: SerializedView) -> None
+```
+
+Fast path when `Settings.core.serialize_in_flush=True`. If present, fapilog pre-serializes entries once and calls this method instead of `write()` for sinks that consume bytes. If absent, fapilog automatically falls back to `write()`.
+
+`SerializedView` exposes:
+
+```python
+@dataclass
+class SerializedView:
+    data: memoryview
+
+    def __bytes__(self) -> bytes:
+        return bytes(self.data)
+```
 
 ## Built-in sinks
 

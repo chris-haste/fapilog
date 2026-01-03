@@ -180,10 +180,6 @@
         <span class="c1"># entry is a dict log envelope; emit to your target</span>
         <span class="o">...</span>
 
-    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">write_serialized</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">view</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="c1"># Optional fast-path when serialize_in_flush=True</span>
-        <span class="o">...</span>
-
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="o">...</span>
 </pre></div>
@@ -208,6 +204,32 @@
 <section id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
 <p>Sinks are discovered via entry points when plugin discovery is enabled. You can also wire custom sinks programmatically by passing them into the container/settings before creating a logger.</p>
+</section>
+<section id="optional-write-serialized-fast-path">
+<h2>Optional: write_serialized fast path<a class="headerlink" href="#optional-write-serialized-fast-path" title="Link to this heading"></a></h2>
+<p>For sinks that operate on bytes (files, sockets, HTTP), implement <code class="docutils literal notranslate"><span class="pre">write_serialized()</span></code> to accept a pre-serialized payload and avoid redundant JSON encoding when <code class="docutils literal notranslate"><span class="pre">Settings.core.serialize_in_flush=True</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.serialization</span><span class="w"> </span><span class="kn">import</span> <span class="n">SerializedView</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyFastSink</span><span class="p">:</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my-fast-sink&quot;</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entry</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Fallback path: serialize yourself</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_send</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">write_serialized</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">view</span><span class="p">:</span> <span class="n">SerializedView</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Fast path: fapilog already serialized; avoid extra work</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_send</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">view</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>When to implement:</p>
+<ul class="simple">
+<li><p>You already need serialized bytes</p></li>
+<li><p>You do not need to inspect/modify the dict entry</p></li>
+<li><p>Performance or allocation reduction is important</p></li>
+</ul>
+<p>If <code class="docutils literal notranslate"><span class="pre">write_serialized</span></code> is absent, fapilog automatically calls <code class="docutils literal notranslate"><span class="pre">write()</span></code> instead. The <code class="docutils literal notranslate"><span class="pre">SerializedView</span></code> wrapper exposes a memoryview via <code class="docutils literal notranslate"><span class="pre">data</span></code> and <code class="docutils literal notranslate"><span class="pre">__bytes__</span></code> for convenience; treat it as read-only.</p>
 </section>
 </section>
 
