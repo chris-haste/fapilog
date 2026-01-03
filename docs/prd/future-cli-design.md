@@ -1,4 +1,11 @@
-# Future CLI Plan
+# Future CLI Design (Not Implemented)
+
+> **Status:** Design Document - Not Implemented
+> 
+> This document captures a potential CLI design for future consideration.
+> There is no timeline for implementation.
+
+---
 
 - **Runtime & Structure**: Choose Go+Cobra or Node+oclif; commands in subpackages; shared modules for config load/validation, logging, HTTP client, plugin manager, telemetry opt-in, UI helpers (spinners/tables/colors); unified error taxonomy; integration tests with golden files and JSON snapshots; global flags `--format json|table`, `--quiet`, `--verbose`, `--config`, `--cwd`, `--no-color`, `--token`, `--yes`, `--output`.
 - **Configuration Lifecycle**: JSON/YAML/TOML schema backed by JSON Schema; loader with precedence (flags > env > config); validation reused by commands; default paths + XDG; errors with line/column; deprecations surfaced.
@@ -22,3 +29,4 @@ Natural next steps:
 1) Confirm language/runtime choice and plugin packaging strategy.
 2) Define config schema and starter templates for `init`.
 3) Sketch registry API contract for plugin search/install.
+
