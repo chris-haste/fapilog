@@ -52,6 +52,97 @@ class CircuitBreakerConfig:
 
 
 @dataclass
+class SinkCircuitBreakerConfig:
+    """Lightweight configuration for sink-specific circuit breakers."""
+
+    enabled: bool = True
+    failure_threshold: int = 5  # Open after N consecutive failures
+    recovery_timeout_seconds: float = 30.0  # Wait before probing
+    half_open_max_calls: int = 1  # Probes before closing
+
+
+class SinkCircuitBreaker:
+    """Simple circuit breaker for individual sink protection.
+
+    This is a lighter-weight circuit breaker specifically for sinks,
+    without the full sliding window statistics of AsyncCircuitBreaker.
+    """
+
+    def __init__(
+        self,
+        sink_name: str,
+        config: SinkCircuitBreakerConfig,
+    ) -> None:
+        self.sink_name = sink_name
+        self._config = config
+        self._state = CircuitState.CLOSED
+        self._failure_count = 0
+        self._last_failure_time: Optional[float] = None
+        self._half_open_calls = 0
+
+    @property
+    def state(self) -> CircuitState:
+        return self._state
+
+    @property
+    def is_open(self) -> bool:
+        return self._state == CircuitState.OPEN
+
+    def should_allow(self) -> bool:
+        """Return True if a call should be attempted."""
+        if self._state == CircuitState.CLOSED:
+            return True
+
+        if self._state == CircuitState.OPEN:
+            # Check if recovery timeout elapsed
+            if self._last_failure_time is not None:
+                elapsed = time.monotonic() - self._last_failure_time
+                if elapsed >= self._config.recovery_timeout_seconds:
+                    self._state = CircuitState.HALF_OPEN
+                    self._half_open_calls = 0
+                    return True
+            return False
+
+        # self._state == CircuitState.HALF_OPEN (only remaining case)
+        return self._half_open_calls < self._config.half_open_max_calls
+
+    def record_success(self) -> None:
+        """Record a successful call."""
+        if self._state == CircuitState.HALF_OPEN:
+            # Recovery confirmed
+            self._state = CircuitState.CLOSED
+            self._emit_state_change("closed")
+        self._failure_count = 0
+
+    def record_failure(self) -> None:
+        """Record a failed call."""
+        self._failure_count += 1
+        self._last_failure_time = time.monotonic()
+
+        if self._state == CircuitState.HALF_OPEN:
+            # Probe failed, back to open
+            self._state = CircuitState.OPEN
+            self._emit_state_change("open")
+        elif self._failure_count >= self._config.failure_threshold:
+            self._state = CircuitState.OPEN
+            self._emit_state_change("open")
+
+    def _emit_state_change(self, new_state: str) -> None:
+        """Emit diagnostic for state change."""
+        try:
+            from .diagnostics import warn
+
+            warn(
+                "circuit-breaker",
+                f"sink circuit {new_state}",
+                sink=self.sink_name,
+                failure_count=self._failure_count,
+            )
+        except Exception:
+            pass
+
+
+@dataclass
 class CircuitBreakerStats:
     """Statistics for circuit breaker monitoring."""
 

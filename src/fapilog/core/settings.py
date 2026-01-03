@@ -358,6 +358,26 @@ class CoreSettings(BaseModel):
         gt=0.0,
         description=("Default acquire timeout for pools"),
     )
+    # Sink fault isolation and circuit breaker
+    sink_circuit_breaker_enabled: bool = Field(
+        default=False,
+        description=("Enable circuit breaker for sink fault isolation"),
+    )
+    sink_circuit_breaker_failure_threshold: int = Field(
+        default=5,
+        ge=1,
+        description=("Number of consecutive failures before opening circuit"),
+    )
+    sink_circuit_breaker_recovery_timeout_seconds: float = Field(
+        default=30.0,
+        gt=0.0,
+        description=("Seconds to wait before probing a failed sink"),
+    )
+    sink_parallel_writes: bool = Field(
+        default=False,
+        description=("Write to multiple sinks in parallel instead of sequentially"),
+    )
+
     # Example of a field requiring async validation
     benchmark_file_path: str | None = Field(
         default=None,
