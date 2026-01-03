@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import importlib
 import importlib.metadata
+from enum import Enum
 from typing import Any, Callable, Iterable, TypeVar
 
 from ..core import diagnostics
@@ -45,6 +46,22 @@ class PluginLoadError(Exception):
     """Plugin found but failed to load/instantiate."""
 
 
+class ValidationMode(Enum):
+    DISABLED = "disabled"
+    WARN = "warn"
+    STRICT = "strict"
+
+
+# Module-level default validation mode
+_validation_mode: ValidationMode = ValidationMode.DISABLED
+
+
+def set_validation_mode(mode: ValidationMode) -> None:
+    """Set the default plugin validation mode for subsequent loads."""
+    global _validation_mode
+    _validation_mode = mode
+
+
 def register_builtin(
     group: str, name: str, cls: type, *, aliases: Iterable[str] | None = None
 ) -> None:
@@ -62,13 +79,75 @@ def register_builtin(
             alias_map[_normalize_plugin_name(alias)] = canonical
 
 
-def load_plugin(group: str, name: str, config: dict[str, Any] | None = None) -> Any:
+def _validate_plugin(instance: Any, group: str, mode: ValidationMode) -> bool:
+    """Validate a plugin against its protocol."""
+    from ..testing.validators import (
+        validate_enricher,
+        validate_processor,
+        validate_redactor,
+        validate_sink,
+    )
+
+    validator_map = {
+        "fapilog.sinks": validate_sink,
+        "fapilog.enrichers": validate_enricher,
+        "fapilog.redactors": validate_redactor,
+        "fapilog.processors": validate_processor,
+    }
+    validator = validator_map.get(group)
+    if validator is None:
+        return True
+
+    result = validator(instance)
+    plugin_name = getattr(instance, "name", type(instance).__name__)
+
+    if not result.valid:
+        error_summary = "; ".join(result.errors)
+        if mode == ValidationMode.STRICT:
+            raise PluginLoadError(
+                f"Plugin '{plugin_name}' failed validation: {error_summary}"
+            )
+        try:
+            diagnostics.warn(
+                "plugins",
+                "plugin validation failed",
+                plugin=plugin_name,
+                group=group,
+                errors=result.errors,
+                warnings=result.warnings,
+            )
+        except Exception:
+            pass
+        return False
+
+    if result.warnings and mode != ValidationMode.DISABLED:
+        try:
+            diagnostics.warn(
+                "plugins",
+                "plugin validation warnings",
+                plugin=plugin_name,
+                warnings=result.warnings,
+            )
+        except Exception:
+            pass
+
+    return True
+
+
+def load_plugin(
+    group: str,
+    name: str,
+    config: dict[str, Any] | None = None,
+    *,
+    validation_mode: ValidationMode | None = None,
+) -> Any:
     """Load a plugin by group and name from built-ins or entry points."""
 
     config = config or {}
     canonical = _normalize_plugin_name(name)
     registry = _registry_for_group(group) or {}
     alias_map = BUILTIN_ALIASES.get(group, {})
+    mode = validation_mode if validation_mode is not None else _validation_mode
 
     # Alias lookup for built-ins
     target_name = alias_map.get(canonical, canonical)
@@ -84,7 +163,7 @@ def load_plugin(group: str, name: str, config: dict[str, Any] | None = None) -> 
                 cls = patched
         except Exception:
             pass
-        return _instantiate(cls, config)
+        return _instantiate(cls, config, group=group, validation_mode=mode)
 
     # Entry point discovery
     try:
@@ -93,7 +172,7 @@ def load_plugin(group: str, name: str, config: dict[str, Any] | None = None) -> 
         for ep in candidates:
             if _normalize_plugin_name(ep.name) == canonical:
                 cls = ep.load()
-                return _instantiate(cls, config)
+                return _instantiate(cls, config, group=group, validation_mode=mode)
     except Exception as exc:  # pragma: no cover - defensive
         raise PluginLoadError(
             f"Failed to load plugin '{name}' from {group}: {exc}"
@@ -141,9 +220,15 @@ def _select_entry_points(eps: Any, group: str) -> list[Any]:
     return list(eps.get(group, []))
 
 
-def _instantiate(cls: Callable[..., T] | type, config: dict[str, Any]) -> T:
+def _instantiate(
+    cls: Callable[..., T] | type,
+    config: dict[str, Any],
+    *,
+    group: str,
+    validation_mode: ValidationMode,
+) -> T:
     try:
-        return cls(**config) if config else cls()
+        instance = cls(**config) if config else cls()
     except Exception as exc:  # pragma: no cover - defensive
         try:
             diagnostics.warn(
@@ -155,6 +240,9 @@ def _instantiate(cls: Callable[..., T] | type, config: dict[str, Any]) -> T:
         except Exception:
             pass
         raise PluginLoadError(str(exc)) from exc
+    if validation_mode != ValidationMode.DISABLED:
+        _validate_plugin(instance, group, validation_mode)
+    return instance
 
 
 __all__ = [
@@ -163,4 +251,6 @@ __all__ = [
     "list_available_plugins",
     "PluginNotFoundError",
     "PluginLoadError",
+    "ValidationMode",
+    "set_validation_mode",
 ]

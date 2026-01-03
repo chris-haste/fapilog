@@ -656,6 +656,12 @@
       "description": "Enable plugin loading",
       "title": "Enabled",
       "type": "boolean"
+    },
+    "validation_mode": {
+      "default": "disabled",
+      "description": "Plugin validation mode: disabled, warn, or strict",
+      "title": "Validation Mode",
+      "type": "string"
     }
   },
   "title": "PluginsSettings",
