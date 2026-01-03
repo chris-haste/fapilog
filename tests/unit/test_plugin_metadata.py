@@ -86,7 +86,7 @@ class TestPluginMetadata:
 
     def test_all_valid_plugin_types(self) -> None:
         """Test all valid plugin types."""
-        for plugin_type in ["sink", "processor", "enricher", "redactor", "alerting"]:
+        for plugin_type in ["sink", "processor", "enricher", "redactor"]:
             metadata = PluginMetadata(
                 name=f"{plugin_type}-plugin",
                 version="1.0.0",
@@ -97,6 +97,19 @@ class TestPluginMetadata:
                 compatibility=PluginCompatibility(min_fapilog_version="3.0.0"),
             )
             assert metadata.plugin_type == plugin_type
+
+    def test_alerting_not_valid_plugin_type(self) -> None:
+        """Alerting is not a valid plugin type (was designed but never implemented)."""
+        with pytest.raises(ValueError, match="Invalid plugin type"):
+            PluginMetadata(
+                name="test",
+                version="1.0.0",
+                plugin_type="alerting",
+                entry_point="test:Test",
+                description="test",
+                author="test",
+                compatibility=PluginCompatibility(min_fapilog_version="0.3.0"),
+            )
 
     def test_invalid_version(self) -> None:
         """Test invalid version raises error."""
