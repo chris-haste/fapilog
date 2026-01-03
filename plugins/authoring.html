@@ -180,9 +180,6 @@
 <span class="p">[</span><span class="n">project</span><span class="o">.</span><span class="n">entry</span><span class="o">-</span><span class="n">points</span><span class="o">.</span><span class="s2">&quot;fapilog.redactors&quot;</span><span class="p">]</span>
 <span class="s2">&quot;my-redactor&quot;</span> <span class="o">=</span> <span class="s2">&quot;my_package.my_redactor&quot;</span>
 
-<span class="p">[</span><span class="n">project</span><span class="o">.</span><span class="n">entry</span><span class="o">-</span><span class="n">points</span><span class="o">.</span><span class="s2">&quot;fapilog.alerting&quot;</span><span class="p">]</span>
-<span class="s2">&quot;my-alert&quot;</span> <span class="o">=</span> <span class="s2">&quot;my_package.my_alert&quot;</span>
-
 <span class="c1"># Fallback generic group (type derived from PLUGIN_METADATA[&quot;plugin_type&quot;]) when needed</span>
 <span class="p">[</span><span class="n">project</span><span class="o">.</span><span class="n">entry</span><span class="o">-</span><span class="n">points</span><span class="o">.</span><span class="s2">&quot;fapilog.plugins&quot;</span><span class="p">]</span>
 <span class="s2">&quot;legacy-plugin&quot;</span> <span class="o">=</span> <span class="s2">&quot;my_package.legacy&quot;</span>
@@ -195,7 +192,7 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">PLUGIN_METADATA</span> <span class="o">=</span> <span class="p">{</span>
   <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;my-plugin&quot;</span><span class="p">,</span>
   <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1.2.3&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;plugin_type&quot;</span><span class="p">:</span> <span class="s2">&quot;sink&quot;</span><span class="p">,</span>  <span class="c1"># sink|processor|enricher|redactor|alerting</span>
+  <span class="s2">&quot;plugin_type&quot;</span><span class="p">:</span> <span class="s2">&quot;sink&quot;</span><span class="p">,</span>  <span class="c1"># sink|processor|enricher|redactor</span>
   <span class="s2">&quot;entry_point&quot;</span><span class="p">:</span> <span class="s2">&quot;my_package.my_sink:Plugin&quot;</span><span class="p">,</span>
   <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">,</span>
   <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="s2">&quot;Your Name&quot;</span><span class="p">,</span>
