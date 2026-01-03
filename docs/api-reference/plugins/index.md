@@ -168,16 +168,24 @@ class BasePlugin:
 
 ## Enterprise Plugins
 
-For enterprise features like tamper-evident logging, fapilog provides an integrity plugin hook:
+For enterprise features like tamper-evident logging, install the `fapilog-tamper` add-on
+and configure it via standard plugin settings:
 
 ```python
-from fapilog.plugins import IntegrityPlugin, load_integrity_plugin
+from fapilog import Settings
 
-# Load an integrity plugin by entry point name
-plugin = load_integrity_plugin("fapilog-tamper")
+settings = Settings(
+    core__enrichers=["runtime_info", "integrity"],
+    core__sinks=["sealed"],
+    enricher_config__integrity={
+        "algorithm": "HMAC-SHA256",
+        "key_provider": "env",
+        "key_id": "audit-key",
+    },
+)
 ```
 
-The integrity plugin system uses the `fapilog.integrity` entry point group for automatic discovery.
+See [Tamper-Evident Logging](../../addons/tamper-evident-logging.md) for full configuration options.
 
 ## Best Practices
 
