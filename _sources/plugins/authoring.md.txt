@@ -62,32 +62,3 @@ from fapilog.plugins import BaseSink, BaseProcessor, BaseEnricher, BaseRedactor
 ```
 
 All interfaces are async-first and must contain errors rather than raising into the core pipeline.
-
-## Testing Your Plugin
-
-fapilog provides comprehensive testing utilities in the `fapilog.testing` module. See the [Testing Plugins Guide](../user-guide/testing-plugins.md) for complete documentation.
-
-Quick example:
-
-```python
-import pytest
-from fapilog.testing import validate_sink, validate_plugin_lifecycle
-
-def test_my_sink_protocol():
-    sink = MySink()
-    result = validate_sink(sink)
-    assert result.valid, f"Protocol errors: {result.errors}"
-
-@pytest.mark.asyncio
-async def test_my_sink_lifecycle():
-    sink = MySink()
-    result = await validate_plugin_lifecycle(sink)
-    assert result.valid
-```
-
-### Available Utilities
-
-- **Mock plugins**: `MockSink`, `MockEnricher`, `MockRedactor`, `MockProcessor`
-- **Validators**: `validate_sink()`, `validate_enricher()`, `validate_redactor()`, `validate_processor()`
-- **Lifecycle testing**: `validate_plugin_lifecycle()`
-- **Event factories**: `create_log_event()`, `create_batch_events()`, `create_sensitive_event()`

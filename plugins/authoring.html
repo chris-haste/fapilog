@@ -224,35 +224,6 @@
 </div>
 <p>All interfaces are async-first and must contain errors rather than raising into the core pipeline.</p>
 </section>
-<section id="testing-your-plugin">
-<h2>Testing Your Plugin<a class="headerlink" href="#testing-your-plugin" title="Link to this heading"></a></h2>
-<p>fapilog provides comprehensive testing utilities in the <code class="docutils literal notranslate"><span class="pre">fapilog.testing</span></code> module. See the <a class="reference internal" href="../user-guide/testing-plugins.html"><span class="std std-doc">Testing Plugins Guide</span></a> for complete documentation.</p>
-<p>Quick example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.testing</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_sink</span><span class="p">,</span> <span class="n">validate_plugin_lifecycle</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">test_my_sink_protocol</span><span class="p">():</span>
-    <span class="n">sink</span> <span class="o">=</span> <span class="n">MySink</span><span class="p">()</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">validate_sink</span><span class="p">(</span><span class="n">sink</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">valid</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Protocol errors: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">errors</span><span class="si">}</span><span class="s2">&quot;</span>
-
-<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">asyncio</span>
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_my_sink_lifecycle</span><span class="p">():</span>
-    <span class="n">sink</span> <span class="o">=</span> <span class="n">MySink</span><span class="p">()</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">validate_plugin_lifecycle</span><span class="p">(</span><span class="n">sink</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">result</span><span class="o">.</span><span class="n">valid</span>
-</pre></div>
-</div>
-<section id="available-utilities">
-<h3>Available Utilities<a class="headerlink" href="#available-utilities" title="Link to this heading"></a></h3>
-<ul class="simple">
-<li><p><strong>Mock plugins</strong>: <code class="docutils literal notranslate"><span class="pre">MockSink</span></code>, <code class="docutils literal notranslate"><span class="pre">MockEnricher</span></code>, <code class="docutils literal notranslate"><span class="pre">MockRedactor</span></code>, <code class="docutils literal notranslate"><span class="pre">MockProcessor</span></code></p></li>
-<li><p><strong>Validators</strong>: <code class="docutils literal notranslate"><span class="pre">validate_sink()</span></code>, <code class="docutils literal notranslate"><span class="pre">validate_enricher()</span></code>, <code class="docutils literal notranslate"><span class="pre">validate_redactor()</span></code>, <code class="docutils literal notranslate"><span class="pre">validate_processor()</span></code></p></li>
-<li><p><strong>Lifecycle testing</strong>: <code class="docutils literal notranslate"><span class="pre">validate_plugin_lifecycle()</span></code></p></li>
-<li><p><strong>Event factories</strong>: <code class="docutils literal notranslate"><span class="pre">create_log_event()</span></code>, <code class="docutils literal notranslate"><span class="pre">create_batch_events()</span></code>, <code class="docutils literal notranslate"><span class="pre">create_sensitive_event()</span></code></p></li>
-</ul>
-</section>
-</section>
 </section>
 
 
