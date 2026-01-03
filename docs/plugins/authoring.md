@@ -19,9 +19,6 @@ Declare entry points in `pyproject.toml` under one of the v3 groups per plugin t
 [project.entry-points."fapilog.redactors"]
 "my-redactor" = "my_package.my_redactor"
 
-[project.entry-points."fapilog.alerting"]
-"my-alert" = "my_package.my_alert"
-
 # Fallback generic group (type derived from PLUGIN_METADATA["plugin_type"]) when needed
 [project.entry-points."fapilog.plugins"]
 "legacy-plugin" = "my_package.legacy"
@@ -35,7 +32,7 @@ Each module must export a `PLUGIN_METADATA` mapping with at least:
 PLUGIN_METADATA = {
   "name": "my-plugin",
   "version": "1.2.3",
-  "plugin_type": "sink",  # sink|processor|enricher|redactor|alerting
+  "plugin_type": "sink",  # sink|processor|enricher|redactor
   "entry_point": "my_package.my_sink:Plugin",
   "description": "...",
   "author": "Your Name",

@@ -48,7 +48,7 @@ class PluginMetadata(BaseModel):
 
     # Plugin type and interface
     plugin_type: str = Field(
-        description="Plugin type (sink, processor, enricher, redactor, alerting)"
+        description="Plugin type (sink, processor, enricher, redactor)"
     )
     entry_point: str = Field(description="Entry point for plugin loading")
 
@@ -89,7 +89,7 @@ class PluginMetadata(BaseModel):
     @classmethod
     def validate_plugin_type(cls, v: str) -> str:
         """Validate plugin type."""
-        valid_types = {"sink", "processor", "enricher", "redactor", "alerting"}
+        valid_types = {"sink", "processor", "enricher", "redactor"}
         if v not in valid_types:
             raise ValueError(f"Invalid plugin type: {v}. Must be one of: {valid_types}")
         return v
