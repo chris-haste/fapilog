@@ -21,6 +21,9 @@ class BaseSink(Protocol):
       the core pipeline. If an error occurs, swallow it or emit diagnostics.
     - Deterministic output: each invocation of ``write`` produces one record in
       the configured destination.
+    - Optional fast path: sinks may expose ``write_serialized(view)`` to accept
+      pre-serialized payloads when serialize_in_flush=True; if absent, fapilog
+      automatically calls ``write`` instead.
     - Concurrency: implementations should be safe to call from multiple tasks or
       protect internal state with an ``asyncio.Lock``.
 

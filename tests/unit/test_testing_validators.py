@@ -32,6 +32,27 @@ class TestValidateSink:
         assert result.valid
         assert result.plugin_type == "BaseSink"
         assert len(result.errors) == 0
+        assert isinstance(result.warnings, list)
+
+    def test_validate_sink_warns_without_write_serialized(self) -> None:
+        """Sink without write_serialized should emit informational warning."""
+        from fapilog.testing import validate_sink
+
+        class NoFastPath:
+            name = "no-fast-path"
+
+            async def start(self) -> None:
+                pass
+
+            async def stop(self) -> None:
+                pass
+
+            async def write(self, entry: dict) -> None:
+                pass
+
+        result = validate_sink(NoFastPath())
+        assert result.valid
+        assert any("write_serialized" in w for w in result.warnings)
 
     def test_validate_sink_missing_method(self) -> None:
         """Sink missing required method should fail."""

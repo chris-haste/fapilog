@@ -69,6 +69,13 @@ def validate_sink(sink: Any) -> ValidationResult:
         if not asyncio.iscoroutinefunction(sink.health_check):
             warnings.append("health_check should be async")
 
+    # Informational: fast-path support
+    if not hasattr(sink, "write_serialized"):
+        warnings.append(
+            "Sink does not implement write_serialized() fast path; "
+            "consider adding it for serialize_in_flush=True"
+        )
+
     # Check write signature
     if hasattr(sink, "write"):
         sig = inspect.signature(sink.write)
