@@ -324,6 +324,26 @@
 <td><p>PydanticUndefined</p></td>
 <td><p>Sink plugins to use (by name); falls back to env-based default when empty</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__CORE__SINK_CIRCUIT_BREAKER_ENABLED</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><p>Enable circuit breaker for sink fault isolation</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__CORE__SINK_CIRCUIT_BREAKER_FAILURE_THRESHOLD</span></code></p></td>
+<td><p>int</p></td>
+<td><p>5</p></td>
+<td><p>Number of consecutive failures before opening circuit</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__CORE__SINK_CIRCUIT_BREAKER_RECOVERY_TIMEOUT_SECONDS</span></code></p></td>
+<td><p>float</p></td>
+<td><p>30.0</p></td>
+<td><p>Seconds to wait before probing a failed sink</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__CORE__SINK_PARALLEL_WRITES</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><p>Write to multiple sinks in parallel instead of sequentially</p></td>
+</tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__CORE__STRICT_ENVELOPE_MODE</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>

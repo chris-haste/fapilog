@@ -232,6 +232,32 @@
       "title": "Shutdown Timeout Seconds",
       "type": "number"
     },
+    "sink_circuit_breaker_enabled": {
+      "default": false,
+      "description": "Enable circuit breaker for sink fault isolation",
+      "title": "Sink Circuit Breaker Enabled",
+      "type": "boolean"
+    },
+    "sink_circuit_breaker_failure_threshold": {
+      "default": 5,
+      "description": "Number of consecutive failures before opening circuit",
+      "minimum": 1,
+      "title": "Sink Circuit Breaker Failure Threshold",
+      "type": "integer"
+    },
+    "sink_circuit_breaker_recovery_timeout_seconds": {
+      "default": 30.0,
+      "description": "Seconds to wait before probing a failed sink",
+      "exclusiveMinimum": 0.0,
+      "title": "Sink Circuit Breaker Recovery Timeout Seconds",
+      "type": "number"
+    },
+    "sink_parallel_writes": {
+      "default": false,
+      "description": "Write to multiple sinks in parallel instead of sequentially",
+      "title": "Sink Parallel Writes",
+      "type": "boolean"
+    },
     "sinks": {
       "description": "Sink plugins to use (by name); falls back to env-based default when empty",
       "items": {
