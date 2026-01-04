@@ -8,7 +8,7 @@ Plugins that transform serialized log data (`memoryview`) after enrichment/redac
 - `async start(self) -> None` (optional)
 - `async stop(self) -> None` (optional)
 - `async process(self, view: memoryview) -> memoryview` (required)
-- `async process_many(self, views: Iterable[memoryview]) -> int` (optional helper)
+- `async process_many(self, views: Iterable[memoryview]) -> list[memoryview]` (optional helper; default delegates to `process`)
 - `async health_check(self) -> bool` (optional)
 
 Errors should be contained by processors; callers isolate failures per processor.

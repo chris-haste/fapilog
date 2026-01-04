@@ -153,9 +153,20 @@ class _DummyHealthSink:
         return True
 
 
+class _DummyHealthProcessor:
+    name = "proc"
+
+    async def process(self, view: memoryview) -> memoryview:
+        return view
+
+    async def health_check(self) -> bool:
+        return True
+
+
 @pytest.mark.asyncio
 async def test_logger_check_health_aggregates() -> None:
     sink = _DummyHealthSink()
+    processor = _DummyHealthProcessor()
     logger = SyncLoggerFacade(
         name="h",
         queue_capacity=4,
@@ -168,6 +179,7 @@ async def test_logger_check_health_aggregates() -> None:
     )
     logger._sinks = [sink]  # noqa: SLF001
     logger._redactors = [_DummyHealthRedactor()]  # noqa: SLF001
+    logger._processors = [processor]  # noqa: SLF001
     health = await logger.check_health()
     assert health.all_healthy is True
 

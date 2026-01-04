@@ -18,6 +18,7 @@ from .core.settings import Settings as _Settings
 from .metrics.metrics import MetricsCollector as _MetricsCollector
 from .plugins import loader as _loader
 from .plugins.enrichers import BaseEnricher as _BaseEnricher
+from .plugins.processors import BaseProcessor as _BaseProcessor
 from .plugins.redactors import BaseRedactor as _BaseRedactor
 from .plugins.redactors.field_mask import FieldMaskConfig
 from .plugins.redactors.regex_mask import RegexMaskConfig
@@ -153,6 +154,15 @@ def _redactor_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
     return cfg
 
 
+def _processor_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
+    pcfg = settings.processor_config
+    cfg: dict[str, dict[str, Any]] = {
+        "zero_copy": pcfg.zero_copy,
+    }
+    cfg.update(pcfg.extra)
+    return cfg
+
+
 def _default_sink_names(settings: _Settings) -> list[str]:
     if settings.http.endpoint:
         return ["http"]
@@ -216,7 +226,13 @@ def _load_plugins(
 
 def _build_pipeline(
     settings: _Settings,
-) -> tuple[list[object], list[object], list[object], _MetricsCollector | None]:
+) -> tuple[
+    list[object],
+    list[object],
+    list[object],
+    list[object],
+    _MetricsCollector | None,
+]:
     core_cfg = settings.core
     metrics: _MetricsCollector | None = (
         _MetricsCollector(enabled=True) if core_cfg.enable_metrics else None
@@ -245,7 +261,15 @@ def _build_pipeline(
         "fapilog.redactors", redactor_names, settings, _redactor_configs(settings)
     )
 
-    return sinks, enrichers, redactors, metrics
+    processor_names = list(core_cfg.processors or [])
+    processors = _load_plugins(
+        "fapilog.processors",
+        processor_names,
+        settings,
+        _processor_configs(settings),
+    )
+
+    return sinks, enrichers, redactors, processors, metrics
 
 
 def _make_sink_writer(sink: Any) -> tuple[Any, Any]:
@@ -421,16 +445,18 @@ def get_logger(
 ) -> SyncLoggerFacade:
     cfg_source = settings or _Settings()
     _apply_plugin_settings(cfg_source)
-    sinks, enrichers, redactors, metrics = _build_pipeline(cfg_source)
+    sinks, enrichers, redactors, processors, metrics = _build_pipeline(cfg_source)
 
-    # Start enrichers and redactors (sync-safe)
-    async def _do_start() -> tuple[list[object], list[object]]:
+    # Start enrichers, redactors, and processors (sync-safe)
+    async def _do_start() -> tuple[list[object], list[object], list[object]]:
         started_enrichers = await _start_plugins(enrichers, "enricher")
         started_redactors = await _start_plugins(redactors, "redactor")
-        return started_enrichers, started_redactors
+        started_processors = await _start_plugins(processors, "processor")
+        return started_enrichers, started_redactors, started_processors
 
     enrichers_started: list[object] = list(enrichers)
     redactors_started: list[object] = list(redactors)
+    processors_started: list[object] = list(processors)
 
     try:
         asyncio.get_running_loop()
@@ -440,7 +466,11 @@ def get_logger(
         try:
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
                 future = executor.submit(asyncio.run, _do_start())
-                enrichers_started, redactors_started = future.result(timeout=5.0)
+                (
+                    enrichers_started,
+                    redactors_started,
+                    processors_started,
+                ) = future.result(timeout=5.0)
         except Exception:
             # If thread-based startup fails, continue with unstarted plugins
             # They will be started lazily on first use if they have start()
@@ -448,13 +478,18 @@ def get_logger(
     except RuntimeError:
         # No running loop - safe to use asyncio.run
         try:
-            enrichers_started, redactors_started = asyncio.run(_do_start())
+            (
+                enrichers_started,
+                redactors_started,
+                processors_started,
+            ) = asyncio.run(_do_start())
         except Exception:
             # If async startup fails, continue with unstarted plugins
             pass
 
     enrichers = enrichers_started
     redactors = redactors_started
+    processors = processors_started
 
     # Build circuit breaker config if enabled
     circuit_config = None
@@ -483,6 +518,7 @@ def get_logger(
         sink_write=sink_write,
         sink_write_serialized=sink_write_serialized,
         enrichers=cast(list[_BaseEnricher], enrichers),
+        processors=cast(list[_BaseProcessor], processors),
         metrics=metrics,
         exceptions_enabled=cfg_source.core.exceptions_enabled,
         exceptions_max_frames=cfg_source.core.exceptions_max_frames,
@@ -521,6 +557,7 @@ def get_logger(
         pass
     logger.start()
     logger._redactors = cast(list[_BaseRedactor], redactors)  # noqa: SLF001
+    logger._processors = cast(list[_BaseProcessor], processors)  # noqa: SLF001
     logger._sinks = sinks  # noqa: SLF001
     return logger
 
@@ -532,11 +569,12 @@ async def get_async_logger(
 ) -> AsyncLoggerFacade:
     cfg_source = settings or _Settings()
     _apply_plugin_settings(cfg_source)
-    sinks, enrichers, redactors, metrics = _build_pipeline(cfg_source)
+    sinks, enrichers, redactors, processors, metrics = _build_pipeline(cfg_source)
 
-    # Start enrichers and redactors (plugins that fail are excluded)
+    # Start enrichers, redactors, and processors (plugins that fail are excluded)
     enrichers = await _start_plugins(enrichers, "enricher")
     redactors = await _start_plugins(redactors, "redactor")
+    processors = await _start_plugins(processors, "processor")
 
     # Build circuit breaker config if enabled
     circuit_config = None
@@ -565,6 +603,7 @@ async def get_async_logger(
         sink_write=sink_write,
         sink_write_serialized=sink_write_serialized,
         enrichers=cast(list[_BaseEnricher], enrichers),
+        processors=cast(list[_BaseProcessor], processors),
         metrics=metrics,
         exceptions_enabled=cfg_source.core.exceptions_enabled,
         exceptions_max_frames=cfg_source.core.exceptions_max_frames,
@@ -603,6 +642,7 @@ async def get_async_logger(
         pass
     logger.start()
     logger._redactors = cast(list[_BaseRedactor], redactors)  # noqa: SLF001
+    logger._processors = cast(list[_BaseProcessor], processors)  # noqa: SLF001
     logger._sinks = sinks  # type: ignore[attr-defined]  # noqa: SLF001
     return logger
 

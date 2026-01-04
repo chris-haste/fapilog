@@ -31,12 +31,9 @@ class BaseProcessor(Protocol):
     async def process(self, view: memoryview) -> memoryview:
         """Transform a single view and return the processed view."""
 
-    async def process_many(self, views: Iterable[memoryview]) -> int:
-        count = 0
-        for v in views:
-            _ = await self.process(v)
-            count += 1
-        return count
+    async def process_many(self, views: Iterable[memoryview]) -> list[memoryview]:
+        """Process multiple views, returning processed views in order."""
+        return [await self.process(v) for v in views]
 
     async def health_check(self) -> bool:  # pragma: no cover - optional
         """Return True if the processor is healthy. Default: assume healthy."""

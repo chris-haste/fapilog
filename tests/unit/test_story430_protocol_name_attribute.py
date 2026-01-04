@@ -127,8 +127,8 @@ class TestIsinstanceChecksWithName:
             async def process(self, view: memoryview) -> memoryview:
                 return view
 
-            async def process_many(self, views) -> int:
-                return 0
+            async def process_many(self, views):
+                return []
 
             async def health_check(self) -> bool:
                 return True
@@ -149,8 +149,8 @@ class TestIsinstanceChecksWithName:
             async def process(self, view: memoryview) -> memoryview:
                 return view
 
-            async def process_many(self, views) -> int:
-                return 0
+            async def process_many(self, views):
+                return []
 
             async def health_check(self) -> bool:
                 return True

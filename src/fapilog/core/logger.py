@@ -16,6 +16,7 @@ from typing import Any, Iterable, cast
 
 from ..metrics.metrics import MetricsCollector
 from ..plugins.enrichers import BaseEnricher
+from ..plugins.processors import BaseProcessor
 from ..plugins.redactors import BaseRedactor
 from .concurrency import NonBlockingRingQueue
 from .events import LogEvent
@@ -84,6 +85,7 @@ class SyncLoggerFacade(_WorkerCountersMixin):
         sink_write: Any,
         sink_write_serialized: Any | None = None,
         enrichers: list[BaseEnricher] | None = None,
+        processors: list[BaseProcessor] | None = None,
         metrics: MetricsCollector | None = None,
         exceptions_enabled: bool = True,
         exceptions_max_frames: int = 50,
@@ -104,6 +106,8 @@ class SyncLoggerFacade(_WorkerCountersMixin):
         self._metrics = metrics
         # Store enrichers with explicit type
         self._enrichers: list[BaseEnricher] = list(enrichers or [])
+        # Processors are applied to serialized views in flush()
+        self._processors: list[BaseProcessor] = list(processors or [])
         # Redactors are optional and configured via settings at construction.
         self._redactors: list[BaseRedactor] = []
         # Worker binding and lifecycle
@@ -218,7 +222,24 @@ class SyncLoggerFacade(_WorkerCountersMixin):
             self._thread_ready.wait(timeout=2.0)
 
     async def _stop_enrichers_and_redactors(self) -> None:
-        """Stop enrichers and redactors, containing any errors."""
+        """Stop processors, redactors, and enrichers, containing any errors."""
+        # Stop processors first (reverse order)
+        for processor in reversed(self._processors):
+            try:
+                if hasattr(processor, "stop"):
+                    await processor.stop()
+            except Exception as exc:
+                try:
+                    from .diagnostics import warn
+
+                    warn(
+                        "processor",
+                        "plugin stop failed",
+                        plugin=getattr(processor, "name", type(processor).__name__),
+                        error=str(exc),
+                    )
+                except Exception:
+                    pass
         # Stop redactors first (reverse order)
         for redactor in reversed(self._redactors):
             try:
@@ -669,6 +690,7 @@ class SyncLoggerFacade(_WorkerCountersMixin):
             sink_write_serialized=self._sink_write_serialized,
             enrichers_getter=lambda: list(self._enrichers),
             redactors_getter=lambda: list(self._redactors),
+            processors_getter=lambda: list(self._processors),
             metrics=self._metrics,
             serialize_in_flush=self._serialize_in_flush,
             strict_envelope_mode_provider=strict_envelope_mode_enabled,
@@ -678,6 +700,7 @@ class SyncLoggerFacade(_WorkerCountersMixin):
             flush_done_event=self._flush_done_event,
             emit_enricher_diagnostics=True,
             emit_redactor_diagnostics=True,
+            emit_processor_diagnostics=True,
             counters=self._counters,
         )
 
@@ -718,6 +741,7 @@ class SyncLoggerFacade(_WorkerCountersMixin):
         return await aggregate_plugin_health(
             enrichers=list(self._enrichers),
             redactors=list(self._redactors),
+            processors=list(self._processors),
             sinks=sink_list,
         )
 
@@ -788,6 +812,7 @@ class AsyncLoggerFacade(_WorkerCountersMixin):
         sink_write: Any,
         sink_write_serialized: Any | None = None,
         enrichers: list[BaseEnricher] | None = None,
+        processors: list[BaseProcessor] | None = None,
         metrics: MetricsCollector | None = None,
         exceptions_enabled: bool = True,
         exceptions_max_frames: int = 50,
@@ -808,6 +833,7 @@ class AsyncLoggerFacade(_WorkerCountersMixin):
         self._metrics = metrics
         # Store enrichers with explicit type
         self._enrichers: list[BaseEnricher] = list(enrichers or [])
+        self._processors: list[BaseProcessor] = list(processors or [])
         # Redactors are optional and configured via settings at construction.
         self._redactors: list[BaseRedactor] = []
         # Worker binding and lifecycle
@@ -942,7 +968,23 @@ class AsyncLoggerFacade(_WorkerCountersMixin):
         return await self.stop_and_drain()
 
     async def _stop_enrichers_and_redactors(self) -> None:
-        """Stop enrichers and redactors, containing any errors."""
+        """Stop processors, redactors, and enrichers, containing any errors."""
+        for processor in reversed(self._processors):
+            try:
+                if hasattr(processor, "stop"):
+                    await processor.stop()
+            except Exception as exc:
+                try:
+                    from .diagnostics import warn
+
+                    warn(
+                        "processor",
+                        "plugin stop failed",
+                        plugin=getattr(processor, "name", type(processor).__name__),
+                        error=str(exc),
+                    )
+                except Exception:
+                    pass
         # Stop redactors first (reverse order)
         for redactor in reversed(self._redactors):
             try:
@@ -1303,6 +1345,7 @@ class AsyncLoggerFacade(_WorkerCountersMixin):
             sink_write_serialized=self._sink_write_serialized,
             enrichers_getter=lambda: list(self._enrichers),
             redactors_getter=lambda: list(self._redactors),
+            processors_getter=lambda: list(self._processors),
             metrics=self._metrics,
             serialize_in_flush=self._serialize_in_flush,
             strict_envelope_mode_provider=strict_envelope_mode_enabled,
@@ -1312,6 +1355,7 @@ class AsyncLoggerFacade(_WorkerCountersMixin):
             flush_done_event=self._flush_done_event,
             emit_enricher_diagnostics=False,
             emit_redactor_diagnostics=False,
+            emit_processor_diagnostics=False,
             counters=self._counters,
         )
 
@@ -1352,6 +1396,7 @@ class AsyncLoggerFacade(_WorkerCountersMixin):
         return await aggregate_plugin_health(
             enrichers=list(self._enrichers),
             redactors=list(self._redactors),
+            processors=list(self._processors),
             sinks=sink_list,
         )
 

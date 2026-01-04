@@ -174,6 +174,19 @@ class RedactorUrlCredentialsSettings(BaseModel):
     )
 
 
+class ProcessorConfigSettings(BaseModel):
+    """Per-processor configuration for built-in and third-party processors."""
+
+    zero_copy: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Configuration for zero_copy processor (reserved for future options)",
+    )
+    extra: dict[str, dict[str, Any]] = Field(
+        default_factory=dict,
+        description="Configuration for third-party processors by name",
+    )
+
+
 # Keep explicit version to allow schema gating and forward migrations later
 LATEST_CONFIG_SCHEMA_VERSION = "1.0"
 
@@ -579,6 +592,10 @@ class Settings(BaseSettings):
     )
     redactor_config: RedactorConfig = Field(
         default_factory=RedactorConfig, description="Per-redactor plugin configuration"
+    )
+    processor_config: ProcessorConfigSettings = Field(
+        default_factory=ProcessorConfigSettings,
+        description="Per-processor plugin configuration",
     )
 
     # Settings behavior
