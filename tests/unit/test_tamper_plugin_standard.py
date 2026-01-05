@@ -139,6 +139,9 @@ async def test_standard_tamper_configs_flow_into_pipeline(
             return _DummySink(**(config or {}))
         if group == "fapilog.enrichers":
             return _DummyEnricher(**(config or {}))
+        if group in ("fapilog.redactors", "fapilog.processors", "fapilog.filters"):
+            # Return a minimal mock for these groups
+            return None
         raise AssertionError(f"unexpected group {group}")
 
     monkeypatch.setattr("fapilog.plugins.loader.load_plugin", _fake_load)

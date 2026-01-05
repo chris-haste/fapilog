@@ -16,6 +16,7 @@ from typing import Any, Iterable, cast
 
 from ..metrics.metrics import MetricsCollector
 from ..plugins.enrichers import BaseEnricher
+from ..plugins.filters.level import LEVEL_PRIORITY
 from ..plugins.processors import BaseProcessor
 from ..plugins.redactors import BaseRedactor
 from .concurrency import NonBlockingRingQueue
@@ -86,12 +87,14 @@ class SyncLoggerFacade(_WorkerCountersMixin):
         sink_write_serialized: Any | None = None,
         enrichers: list[BaseEnricher] | None = None,
         processors: list[BaseProcessor] | None = None,
+        filters: list[Any] | None = None,
         metrics: MetricsCollector | None = None,
         exceptions_enabled: bool = True,
         exceptions_max_frames: int = 50,
         exceptions_max_stack_chars: int = 20000,
         serialize_in_flush: bool = False,
         num_workers: int = 1,
+        level_gate: int | None = None,
     ) -> None:
         self._name = name or "root"
         self._queue = NonBlockingRingQueue[dict[str, Any]](capacity=queue_capacity)
@@ -108,6 +111,8 @@ class SyncLoggerFacade(_WorkerCountersMixin):
         self._enrichers: list[BaseEnricher] = list(enrichers or [])
         # Processors are applied to serialized views in flush()
         self._processors: list[BaseProcessor] = list(processors or [])
+        # Filters run before enrichment
+        self._filters: list[Any] = list(filters or [])
         # Redactors are optional and configured via settings at construction.
         self._redactors: list[BaseRedactor] = []
         # Worker binding and lifecycle
@@ -136,6 +141,10 @@ class SyncLoggerFacade(_WorkerCountersMixin):
                 default=None,
             )
         )
+        # Level gate for fast-path drops (populated when only level filter present)
+        self._level_gate: int | None = None
+        if level_gate is not None:
+            self._level_gate = level_gate
         # Error dedupe (message -> (first_ts, suppressed_count))
         self._error_dedupe: dict[str, tuple[float, int]] = {}
         # Track sinks for health aggregation
@@ -240,6 +249,24 @@ class SyncLoggerFacade(_WorkerCountersMixin):
                     )
                 except Exception:
                     pass
+        # Stop filters (reverse order)
+        for flt in reversed(self._filters):
+            try:
+                if hasattr(flt, "stop"):
+                    await flt.stop()
+            except Exception as exc:
+                try:
+                    from .diagnostics import warn
+
+                    warn(
+                        "filter",
+                        "plugin stop failed",
+                        plugin=getattr(flt, "name", type(flt).__name__),
+                        error=str(exc),
+                    )
+                except Exception:
+                    pass
+
         # Stop redactors first (reverse order)
         for redactor in reversed(self._redactors):
             try:
@@ -386,6 +413,13 @@ class SyncLoggerFacade(_WorkerCountersMixin):
         exc_info: Any | None = None,
         **metadata: Any,
     ) -> None:
+        gate = self._level_gate
+        if gate is not None:
+            priority = LEVEL_PRIORITY.get(level.upper(), 0)
+            if priority < gate:
+                if self._metrics is not None:
+                    self._schedule_metrics_call(self._metrics.record_events_filtered, 1)
+                return
         from uuid import uuid4
 
         from .context import request_id_var
@@ -688,6 +722,7 @@ class SyncLoggerFacade(_WorkerCountersMixin):
             batch_timeout_seconds=self._batch_timeout_seconds,
             sink_write=self._sink_write,
             sink_write_serialized=self._sink_write_serialized,
+            filters_getter=lambda: list(self._filters),
             enrichers_getter=lambda: list(self._enrichers),
             redactors_getter=lambda: list(self._redactors),
             processors_getter=lambda: list(self._processors),
@@ -698,6 +733,7 @@ class SyncLoggerFacade(_WorkerCountersMixin):
             drained_event=self._drained_event,
             flush_event=self._flush_event,
             flush_done_event=self._flush_done_event,
+            emit_filter_diagnostics=True,
             emit_enricher_diagnostics=True,
             emit_redactor_diagnostics=True,
             emit_processor_diagnostics=True,
@@ -741,6 +777,7 @@ class SyncLoggerFacade(_WorkerCountersMixin):
         return await aggregate_plugin_health(
             enrichers=list(self._enrichers),
             redactors=list(self._redactors),
+            filters=list(self._filters),
             processors=list(self._processors),
             sinks=sink_list,
         )
@@ -813,12 +850,14 @@ class AsyncLoggerFacade(_WorkerCountersMixin):
         sink_write_serialized: Any | None = None,
         enrichers: list[BaseEnricher] | None = None,
         processors: list[BaseProcessor] | None = None,
+        filters: list[Any] | None = None,
         metrics: MetricsCollector | None = None,
         exceptions_enabled: bool = True,
         exceptions_max_frames: int = 50,
         exceptions_max_stack_chars: int = 20000,
         serialize_in_flush: bool = False,
         num_workers: int = 1,
+        level_gate: int | None = None,
     ) -> None:
         self._name = name or "root"
         self._queue = NonBlockingRingQueue[dict[str, Any]](capacity=queue_capacity)
@@ -833,6 +872,7 @@ class AsyncLoggerFacade(_WorkerCountersMixin):
         self._metrics = metrics
         # Store enrichers with explicit type
         self._enrichers: list[BaseEnricher] = list(enrichers or [])
+        self._filters: list[Any] = list(filters or [])
         self._processors: list[BaseProcessor] = list(processors or [])
         # Redactors are optional and configured via settings at construction.
         self._redactors: list[BaseRedactor] = []
@@ -862,6 +902,7 @@ class AsyncLoggerFacade(_WorkerCountersMixin):
                 default=None,
             )
         )
+        self._level_gate: int | None = level_gate
         # Error dedupe (message -> (first_ts, suppressed_count))
         self._error_dedupe: dict[str, tuple[float, int]] = {}
 
@@ -985,6 +1026,22 @@ class AsyncLoggerFacade(_WorkerCountersMixin):
                     )
                 except Exception:
                     pass
+        for flt in reversed(self._filters):
+            try:
+                if hasattr(flt, "stop"):
+                    await flt.stop()
+            except Exception as exc:
+                try:
+                    from .diagnostics import warn
+
+                    warn(
+                        "filter",
+                        "plugin stop failed",
+                        plugin=getattr(flt, "name", type(flt).__name__),
+                        error=str(exc),
+                    )
+                except Exception:
+                    pass
         # Stop redactors first (reverse order)
         for redactor in reversed(self._redactors):
             try:
@@ -1085,6 +1142,16 @@ class AsyncLoggerFacade(_WorkerCountersMixin):
         exc_info: Any | None = None,
         **metadata: Any,
     ) -> None:
+        gate = self._level_gate
+        if gate is not None:
+            priority = LEVEL_PRIORITY.get(level.upper(), 0)
+            if priority < gate:
+                if self._metrics is not None:
+                    try:
+                        await self._metrics.record_events_filtered(1)
+                    except Exception:
+                        pass
+                return
         from uuid import uuid4
 
         from .context import request_id_var
@@ -1343,6 +1410,7 @@ class AsyncLoggerFacade(_WorkerCountersMixin):
             batch_timeout_seconds=self._batch_timeout_seconds,
             sink_write=self._sink_write,
             sink_write_serialized=self._sink_write_serialized,
+            filters_getter=lambda: list(self._filters),
             enrichers_getter=lambda: list(self._enrichers),
             redactors_getter=lambda: list(self._redactors),
             processors_getter=lambda: list(self._processors),
@@ -1353,6 +1421,7 @@ class AsyncLoggerFacade(_WorkerCountersMixin):
             drained_event=self._drained_event,
             flush_event=self._flush_event,
             flush_done_event=self._flush_done_event,
+            emit_filter_diagnostics=False,
             emit_enricher_diagnostics=False,
             emit_redactor_diagnostics=False,
             emit_processor_diagnostics=False,
@@ -1396,6 +1465,7 @@ class AsyncLoggerFacade(_WorkerCountersMixin):
         return await aggregate_plugin_health(
             enrichers=list(self._enrichers),
             redactors=list(self._redactors),
+            filters=list(self._filters),
             processors=list(self._processors),
             sinks=sink_list,
         )

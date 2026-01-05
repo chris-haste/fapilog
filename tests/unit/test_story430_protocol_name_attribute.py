@@ -6,7 +6,13 @@ Story 4.30: Plugin API Standardization and Testing Documentation
 
 from __future__ import annotations
 
-from fapilog.plugins import BaseEnricher, BaseProcessor, BaseRedactor, BaseSink
+from fapilog.plugins import (
+    BaseEnricher,
+    BaseFilter,
+    BaseProcessor,
+    BaseRedactor,
+    BaseSink,
+)
 
 
 class TestProtocolsHaveNameAttribute:
@@ -157,3 +163,43 @@ class TestIsinstanceChecksWithName:
 
         processor = _ProcessorWithoutName()
         assert not isinstance(processor, BaseProcessor)
+
+    def test_filter_with_name_satisfies_protocol(self) -> None:
+        """Filter with name should satisfy BaseFilter protocol."""
+
+        class _FilterWithName:
+            name = "filter"
+
+            async def start(self) -> None:
+                pass
+
+            async def stop(self) -> None:
+                pass
+
+            async def filter(self, event: dict) -> dict | None:
+                return event
+
+            async def health_check(self) -> bool:
+                return True
+
+        f = _FilterWithName()
+        assert isinstance(f, BaseFilter)
+
+    def test_filter_without_name_fails_protocol(self) -> None:
+        """Filter without name should NOT satisfy BaseFilter protocol."""
+
+        class _FilterWithoutName:
+            async def start(self) -> None:
+                pass
+
+            async def stop(self) -> None:
+                pass
+
+            async def filter(self, event: dict) -> dict | None:
+                return event
+
+            async def health_check(self) -> bool:
+                return True
+
+        f = _FilterWithoutName()
+        assert not isinstance(f, BaseFilter)

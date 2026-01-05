@@ -86,6 +86,7 @@ async def aggregate_plugin_health(
     redactors: list[Any],
     sinks: list[Any],
     processors: list[Any] | None = None,
+    filters: list[Any] | None = None,
     *,
     timeout_seconds: float = 5.0,
 ) -> AggregatedHealth:
@@ -102,6 +103,8 @@ async def aggregate_plugin_health(
     """
     plugin_healths: list[PluginHealth] = []
 
+    for f in filters or []:
+        plugin_healths.append(await check_plugin_health(f, "filter", timeout_seconds))
     for p in processors or []:
         plugin_healths.append(
             await check_plugin_health(p, "processor", timeout_seconds)

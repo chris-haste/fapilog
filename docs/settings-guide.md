@@ -28,6 +28,7 @@ This guide documents Settings groups and fields.
 | `core.enrichers` | list | PydanticUndefined | Enricher plugins to use (by name) |
 | `core.redactors` | list | PydanticUndefined | Redactor plugins to use (by name); empty to disable |
 | `core.processors` | list | PydanticUndefined | Processor plugins to use (by name) |
+| `core.filters` | list | PydanticUndefined | Filter plugins to apply before enrichment (by name) |
 | `core.redaction_max_depth` | int | None | 6 | Optional max depth guardrail for nested redaction |
 | `core.redaction_max_keys_scanned` | int | None | 5000 | Optional max keys scanned guardrail for redaction |
 | `core.exceptions_enabled` | bool | True | Enable structured exception serialization for log calls |

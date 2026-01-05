@@ -324,7 +324,7 @@ async def test_async_logger_starts_enrichers(monkeypatch):
 
     # Patch _build_pipeline to return our test enricher
     def mock_build_pipeline(settings):
-        return [], [enricher], [], [], None
+        return [], [enricher], [], [], [], None
 
     monkeypatch.setattr("fapilog._build_pipeline", mock_build_pipeline)
 
@@ -340,7 +340,7 @@ async def test_async_logger_starts_redactors(monkeypatch):
     redactor = TrackingRedactor()
 
     def mock_build_pipeline(settings):
-        return [], [], [redactor], [], None
+        return [], [], [redactor], [], [], None
 
     monkeypatch.setattr("fapilog._build_pipeline", mock_build_pipeline)
 
@@ -356,7 +356,7 @@ async def test_async_logger_starts_processors(monkeypatch):
     processor = TrackingProcessor()
 
     def mock_build_pipeline(settings):
-        return [], [], [], [processor], None
+        return [], [], [], [processor], [], None
 
     monkeypatch.setattr("fapilog._build_pipeline", mock_build_pipeline)
 
@@ -373,7 +373,7 @@ async def test_async_logger_excludes_failed_enrichers(monkeypatch):
     working = TrackingEnricher()
 
     def mock_build_pipeline(settings):
-        return [], [failing, working], [], [], None
+        return [], [failing, working], [], [], [], None
 
     monkeypatch.setattr("fapilog._build_pipeline", mock_build_pipeline)
 
@@ -392,7 +392,7 @@ async def test_async_logger_stops_enrichers_on_drain(monkeypatch):
     enricher = TrackingEnricher()
 
     def mock_build_pipeline(settings):
-        return [], [enricher], [], [], None
+        return [], [enricher], [], [], [], None
 
     monkeypatch.setattr("fapilog._build_pipeline", mock_build_pipeline)
 
@@ -411,7 +411,7 @@ async def test_async_logger_stops_redactors_on_drain(monkeypatch):
     redactor = TrackingRedactor()
 
     def mock_build_pipeline(settings):
-        return [], [], [redactor], [], None
+        return [], [], [redactor], [], [], None
 
     monkeypatch.setattr("fapilog._build_pipeline", mock_build_pipeline)
 
@@ -430,7 +430,7 @@ async def test_async_logger_stops_processors_on_drain(monkeypatch):
     processor = TrackingProcessor()
 
     def mock_build_pipeline(settings):
-        return [], [], [], [processor], None
+        return [], [], [], [processor], [], None
 
     monkeypatch.setattr("fapilog._build_pipeline", mock_build_pipeline)
 
@@ -455,7 +455,7 @@ def test_sync_logger_starts_enrichers(monkeypatch):
     enricher = TrackingEnricher()
 
     def mock_build_pipeline(settings):
-        return [], [enricher], [], [], None
+        return [], [enricher], [], [], [], None
 
     monkeypatch.setattr("fapilog._build_pipeline", mock_build_pipeline)
 
@@ -472,7 +472,7 @@ def test_sync_logger_starts_redactors(monkeypatch):
     redactor = TrackingRedactor()
 
     def mock_build_pipeline(settings):
-        return [], [], [redactor], [], None
+        return [], [], [redactor], [], [], None
 
     monkeypatch.setattr("fapilog._build_pipeline", mock_build_pipeline)
 
@@ -489,7 +489,7 @@ def test_sync_logger_starts_processors(monkeypatch):
     processor = TrackingProcessor()
 
     def mock_build_pipeline(settings):
-        return [], [], [], [processor], None
+        return [], [], [], [processor], [], None
 
     monkeypatch.setattr("fapilog._build_pipeline", mock_build_pipeline)
 
@@ -507,7 +507,7 @@ def test_sync_logger_excludes_failed_enrichers(monkeypatch):
     working = TrackingEnricher()
 
     def mock_build_pipeline(settings):
-        return [], [failing, working], [], [], None
+        return [], [failing, working], [], [], [], None
 
     monkeypatch.setattr("fapilog._build_pipeline", mock_build_pipeline)
 
@@ -526,7 +526,7 @@ def test_sync_logger_stops_enrichers_on_drain(monkeypatch):
     enricher = TrackingEnricher()
 
     def mock_build_pipeline(settings):
-        return [], [enricher], [], [], None
+        return [], [enricher], [], [], [], None
 
     monkeypatch.setattr("fapilog._build_pipeline", mock_build_pipeline)
 
@@ -546,7 +546,7 @@ def test_sync_logger_stops_processors_on_drain(monkeypatch):
     processor = TrackingProcessor()
 
     def mock_build_pipeline(settings):
-        return [], [], [], [processor], None
+        return [], [], [], [processor], [], None
 
     monkeypatch.setattr("fapilog._build_pipeline", mock_build_pipeline)
 
@@ -571,7 +571,7 @@ async def test_stop_failure_does_not_prevent_other_stops(monkeypatch):
     working = TrackingEnricher()
 
     def mock_build_pipeline(settings):
-        return [], [failing, working], [], [], None
+        return [], [failing, working], [], [], [], None
 
     monkeypatch.setattr("fapilog._build_pipeline", mock_build_pipeline)
 
@@ -599,7 +599,7 @@ async def test_enricher_without_lifecycle_still_works(monkeypatch):
     enricher = NoLifecycleEnricher()
 
     def mock_build_pipeline(settings):
-        return [], [enricher], [], [], None
+        return [], [enricher], [], [], [], None
 
     monkeypatch.setattr("fapilog._build_pipeline", mock_build_pipeline)
 
@@ -618,7 +618,7 @@ async def test_redactor_without_lifecycle_still_works(monkeypatch):
     redactor = NoLifecycleRedactor()
 
     def mock_build_pipeline(settings):
-        return [], [], [redactor], [], None
+        return [], [], [redactor], [], [], None
 
     monkeypatch.setattr("fapilog._build_pipeline", mock_build_pipeline)
 

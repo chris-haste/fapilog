@@ -19,6 +19,9 @@ Declare entry points in `pyproject.toml` under one of the v3 groups per plugin t
 [project.entry-points."fapilog.redactors"]
 "my_redactor" = "my_package.my_redactor"
 
+[project.entry-points."fapilog.filters"]
+"my_filter" = "my_package.my_filter"
+
 # Fallback generic group (type derived from PLUGIN_METADATA["plugin_type"]) when needed
 [project.entry-points."fapilog.plugins"]
 "legacy-plugin" = "my_package.legacy"

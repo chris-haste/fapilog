@@ -42,6 +42,7 @@ class PipelineMetrics:
     """Captured runtime metrics for quick assertions in tests."""
 
     events_processed: int = 0
+    events_filtered: int = 0
     plugin_errors: int = 0
     # Consumers can fetch per-plugin profiles via MetricsCollector APIs
 
@@ -98,6 +99,7 @@ class MetricsCollector:
         # Additional pipeline metrics (lazy)
         self._c_events_submitted: Any | None = None
         self._c_events_dropped: Any | None = None
+        self._c_events_filtered: Any | None = None
         self._c_backpressure_waits: Any | None = None
         self._h_flush_latency: Any | None = None
         self._h_batch_size: Any | None = None
@@ -168,6 +170,11 @@ class MetricsCollector:
             self._c_events_dropped = Counter(
                 "fapilog_events_dropped_total",
                 "Total number of events dropped due to backpressure",
+                registry=self._registry,
+            )
+            self._c_events_filtered = Counter(
+                "fapilog_events_filtered_total",
+                "Total number of events dropped by filters",
                 registry=self._registry,
             )
             self._c_backpressure_waits = Counter(
@@ -244,6 +251,14 @@ class MetricsCollector:
         if self._c_events_dropped is not None:
             self._c_events_dropped.inc(count)
 
+    async def record_events_filtered(self, count: int = 1) -> None:
+        async with self._lock:
+            self._state.events_filtered += count
+        if not self._enabled:
+            return
+        if self._c_events_filtered is not None:
+            self._c_events_filtered.inc(count)
+
     async def record_backpressure_wait(self, count: int = 1) -> None:
         if not self._enabled:
             return
@@ -295,13 +310,18 @@ class MetricsCollector:
         # Lightweight copy without exposing internals
         async with self._lock:
             events = self._state.events_processed
+            filtered = self._state.events_filtered
             errs = self._state.plugin_errors
         profiles = await self.all_plugin_stats()
         # Force-read attributes to satisfy static analysis (vulture) and
         # make aggregate values available to snapshot consumers if desired.
         _ = sum(s.executions for s in profiles.values())
         _ = sum(s.total_duration_seconds for s in profiles.values())
-        return PipelineMetrics(events_processed=events, plugin_errors=errs)
+        return PipelineMetrics(
+            events_processed=events,
+            events_filtered=filtered,
+            plugin_errors=errs,
+        )
 
     async def record_plugin_execution(
         self,

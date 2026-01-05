@@ -18,6 +18,7 @@ from .core.settings import Settings as _Settings
 from .metrics.metrics import MetricsCollector as _MetricsCollector
 from .plugins import loader as _loader
 from .plugins.enrichers import BaseEnricher as _BaseEnricher
+from .plugins.filters.level import LEVEL_PRIORITY
 from .plugins.processors import BaseProcessor as _BaseProcessor
 from .plugins.redactors import BaseRedactor as _BaseRedactor
 from .plugins.redactors.field_mask import FieldMaskConfig
@@ -154,6 +155,17 @@ def _redactor_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
     return cfg
 
 
+def _filter_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
+    fcfg = settings.filter_config
+    cfg: dict[str, dict[str, Any]] = {
+        "level": fcfg.level,
+        "sampling": fcfg.sampling,
+        "rate_limit": fcfg.rate_limit,
+    }
+    cfg.update(fcfg.extra)
+    return cfg
+
+
 def _processor_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
     pcfg = settings.processor_config
     cfg: dict[str, dict[str, Any]] = {
@@ -231,6 +243,7 @@ def _build_pipeline(
     list[object],
     list[object],
     list[object],
+    list[object],
     _MetricsCollector | None,
 ]:
     core_cfg = settings.core
@@ -269,7 +282,28 @@ def _build_pipeline(
         _processor_configs(settings),
     )
 
-    return sinks, enrichers, redactors, processors, metrics
+    filter_names = list(core_cfg.filters or [])
+    filter_cfgs = _filter_configs(settings)
+
+    # Auto-level filter when log_level set and no explicit override
+    if (
+        not core_cfg.filters
+        and core_cfg.log_level
+        and _normalize(core_cfg.log_level) != "debug"
+    ):
+        filter_names.insert(0, "level")
+        level_cfg = filter_cfgs.setdefault("level", {})
+        level_cfg.setdefault("config", {})
+        level_cfg["config"].setdefault("min_level", core_cfg.log_level)
+
+    filters = _load_plugins(
+        "fapilog.filters",
+        filter_names,
+        settings,
+        filter_cfgs,
+    )
+
+    return sinks, enrichers, redactors, processors, filters, metrics
 
 
 def _make_sink_writer(sink: Any) -> tuple[Any, Any]:
@@ -445,18 +479,24 @@ def get_logger(
 ) -> SyncLoggerFacade:
     cfg_source = settings or _Settings()
     _apply_plugin_settings(cfg_source)
-    sinks, enrichers, redactors, processors, metrics = _build_pipeline(cfg_source)
+    sinks, enrichers, redactors, processors, filters, metrics = _build_pipeline(
+        cfg_source
+    )
 
     # Start enrichers, redactors, and processors (sync-safe)
-    async def _do_start() -> tuple[list[object], list[object], list[object]]:
+    async def _do_start() -> tuple[
+        list[object], list[object], list[object], list[object]
+    ]:
         started_enrichers = await _start_plugins(enrichers, "enricher")
         started_redactors = await _start_plugins(redactors, "redactor")
         started_processors = await _start_plugins(processors, "processor")
-        return started_enrichers, started_redactors, started_processors
+        started_filters = await _start_plugins(filters, "filter")
+        return started_enrichers, started_redactors, started_processors, started_filters
 
     enrichers_started: list[object] = list(enrichers)
     redactors_started: list[object] = list(redactors)
     processors_started: list[object] = list(processors)
+    filters_started: list[object] = list(filters)
 
     try:
         asyncio.get_running_loop()
@@ -470,6 +510,7 @@ def get_logger(
                     enrichers_started,
                     redactors_started,
                     processors_started,
+                    filters_started,
                 ) = future.result(timeout=5.0)
         except Exception:
             # If thread-based startup fails, continue with unstarted plugins
@@ -482,6 +523,7 @@ def get_logger(
                 enrichers_started,
                 redactors_started,
                 processors_started,
+                filters_started,
             ) = asyncio.run(_do_start())
         except Exception:
             # If async startup fails, continue with unstarted plugins
@@ -490,6 +532,7 @@ def get_logger(
     enrichers = enrichers_started
     redactors = redactors_started
     processors = processors_started
+    filters = filters_started
 
     # Build circuit breaker config if enabled
     circuit_config = None
@@ -507,6 +550,12 @@ def get_logger(
         parallel=cfg_source.core.sink_parallel_writes,
         circuit_config=circuit_config,
     )
+
+    level_gate = None
+    if not cfg_source.core.filters:
+        lvl = cfg_source.core.log_level.upper()
+        if lvl != "DEBUG":
+            level_gate = LEVEL_PRIORITY.get(lvl, None)
 
     logger = SyncLoggerFacade(
         name=name,
@@ -519,12 +568,14 @@ def get_logger(
         sink_write_serialized=sink_write_serialized,
         enrichers=cast(list[_BaseEnricher], enrichers),
         processors=cast(list[_BaseProcessor], processors),
+        filters=filters,
         metrics=metrics,
         exceptions_enabled=cfg_source.core.exceptions_enabled,
         exceptions_max_frames=cfg_source.core.exceptions_max_frames,
         exceptions_max_stack_chars=cfg_source.core.exceptions_max_stack_chars,
         serialize_in_flush=cfg_source.core.serialize_in_flush,
         num_workers=cfg_source.core.worker_count,
+        level_gate=level_gate,
     )
     try:
         if (
@@ -558,6 +609,7 @@ def get_logger(
     logger.start()
     logger._redactors = cast(list[_BaseRedactor], redactors)  # noqa: SLF001
     logger._processors = cast(list[_BaseProcessor], processors)  # noqa: SLF001
+    logger._filters = filters  # noqa: SLF001
     logger._sinks = sinks  # noqa: SLF001
     return logger
 
@@ -569,12 +621,15 @@ async def get_async_logger(
 ) -> AsyncLoggerFacade:
     cfg_source = settings or _Settings()
     _apply_plugin_settings(cfg_source)
-    sinks, enrichers, redactors, processors, metrics = _build_pipeline(cfg_source)
+    sinks, enrichers, redactors, processors, filters, metrics = _build_pipeline(
+        cfg_source
+    )
 
     # Start enrichers, redactors, and processors (plugins that fail are excluded)
     enrichers = await _start_plugins(enrichers, "enricher")
     redactors = await _start_plugins(redactors, "redactor")
     processors = await _start_plugins(processors, "processor")
+    filters = await _start_plugins(filters, "filter")
 
     # Build circuit breaker config if enabled
     circuit_config = None
@@ -593,6 +648,12 @@ async def get_async_logger(
         circuit_config=circuit_config,
     )
 
+    level_gate = None
+    if not cfg_source.core.filters:
+        lvl = cfg_source.core.log_level.upper()
+        if lvl != "DEBUG":
+            level_gate = LEVEL_PRIORITY.get(lvl, None)
+
     logger = AsyncLoggerFacade(
         name=name,
         queue_capacity=cfg_source.core.max_queue_size,
@@ -604,12 +665,14 @@ async def get_async_logger(
         sink_write_serialized=sink_write_serialized,
         enrichers=cast(list[_BaseEnricher], enrichers),
         processors=cast(list[_BaseProcessor], processors),
+        filters=filters,
         metrics=metrics,
         exceptions_enabled=cfg_source.core.exceptions_enabled,
         exceptions_max_frames=cfg_source.core.exceptions_max_frames,
         exceptions_max_stack_chars=cfg_source.core.exceptions_max_stack_chars,
         serialize_in_flush=cfg_source.core.serialize_in_flush,
         num_workers=cfg_source.core.worker_count,
+        level_gate=level_gate,
     )
     try:
         if (
@@ -643,6 +706,7 @@ async def get_async_logger(
     logger.start()
     logger._redactors = cast(list[_BaseRedactor], redactors)  # noqa: SLF001
     logger._processors = cast(list[_BaseProcessor], processors)  # noqa: SLF001
+    logger._filters = filters  # noqa: SLF001
     logger._sinks = sinks  # type: ignore[attr-defined]  # noqa: SLF001
     return logger
 
