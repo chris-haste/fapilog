@@ -214,7 +214,7 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">PLUGIN_METADATA</span> <span class="o">=</span> <span class="p">{</span>
   <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;my_plugin&quot;</span><span class="p">,</span>
   <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1.2.3&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;plugin_type&quot;</span><span class="p">:</span> <span class="s2">&quot;sink&quot;</span><span class="p">,</span>  <span class="c1"># sink|processor|enricher|redactor</span>
+  <span class="s2">&quot;plugin_type&quot;</span><span class="p">:</span> <span class="s2">&quot;sink&quot;</span><span class="p">,</span>  <span class="c1"># sink|processor|enricher|redactor|filter</span>
   <span class="s2">&quot;entry_point&quot;</span><span class="p">:</span> <span class="s2">&quot;my_package.my_sink:Plugin&quot;</span><span class="p">,</span>
   <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">,</span>
   <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="s2">&quot;Your Name&quot;</span><span class="p">,</span>
@@ -226,6 +226,14 @@
 <span class="p">}</span>
 </pre></div>
 </div>
+<p><strong>Valid plugin types:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sink</span></code> - Output destinations for log entries</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">processor</span></code> - Transform serialized bytes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">enricher</span></code> - Add fields to log events</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">redactor</span></code> - Sanitize sensitive data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filter</span></code> - Drop or transform events before enrichment</p></li>
+</ul>
 </section>
 <section id="api-versioning">
 <h2>API Versioning<a class="headerlink" href="#api-versioning" title="Link to this heading"></a></h2>
