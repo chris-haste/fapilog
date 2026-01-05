@@ -84,9 +84,22 @@ class TestPluginMetadata:
                 compatibility=PluginCompatibility(min_fapilog_version="3.0.0"),
             )
 
+    def test_filter_plugin_type_is_valid(self) -> None:
+        """Test filter plugin type is accepted."""
+        metadata = PluginMetadata(
+            name="filter-plugin",
+            version="1.0.0",
+            description="Test filter plugin",
+            author="Test Author",
+            plugin_type="filter",
+            entry_point="test_plugin.main",
+            compatibility=PluginCompatibility(min_fapilog_version="3.0.0"),
+        )
+        assert metadata.plugin_type == "filter"
+
     def test_all_valid_plugin_types(self) -> None:
         """Test all valid plugin types."""
-        for plugin_type in ["sink", "processor", "enricher", "redactor"]:
+        for plugin_type in ["sink", "processor", "enricher", "redactor", "filter"]:
             metadata = PluginMetadata(
                 name=f"{plugin_type}-plugin",
                 version="1.0.0",
@@ -109,6 +122,45 @@ class TestPluginMetadata:
                 description="test",
                 author="test",
                 compatibility=PluginCompatibility(min_fapilog_version="0.3.0"),
+            )
+
+    def test_all_builtin_filter_metadata_validates(self) -> None:
+        """All built-in filter PLUGIN_METADATA entries should validate."""
+        from fapilog.plugins.filters.adaptive_sampling import (
+            PLUGIN_METADATA as adaptive_meta,
+        )
+        from fapilog.plugins.filters.first_occurrence import (
+            PLUGIN_METADATA as first_meta,
+        )
+        from fapilog.plugins.filters.level import PLUGIN_METADATA as level_meta
+        from fapilog.plugins.filters.rate_limit import PLUGIN_METADATA as rate_meta
+        from fapilog.plugins.filters.sampling import PLUGIN_METADATA as sampling_meta
+        from fapilog.plugins.filters.trace_sampling import (
+            PLUGIN_METADATA as trace_meta,
+        )
+
+        for meta in [
+            adaptive_meta,
+            first_meta,
+            level_meta,
+            rate_meta,
+            sampling_meta,
+            trace_meta,
+        ]:
+            assert meta["plugin_type"] == "filter"
+            PluginMetadata(
+                name=meta["name"],
+                version=meta["version"],
+                description=meta.get("description", ""),
+                author=meta.get("author", ""),
+                plugin_type=meta["plugin_type"],
+                entry_point=meta["entry_point"],
+                compatibility=PluginCompatibility(
+                    min_fapilog_version=meta.get("compatibility", {}).get(
+                        "min_fapilog_version", "0.4.0"
+                    )
+                ),
+                api_version=meta.get("api_version", "1.0"),
             )
 
     def test_invalid_version(self) -> None:
