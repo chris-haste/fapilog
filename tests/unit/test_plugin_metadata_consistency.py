@@ -16,6 +16,12 @@ from fapilog.plugins.enrichers.runtime_info import (
 from fapilog.plugins.enrichers.runtime_info import (
     RuntimeInfoEnricher,
 )
+from fapilog.plugins.processors.size_guard import (
+    PLUGIN_METADATA as SIZE_GUARD_META,
+)
+from fapilog.plugins.processors.size_guard import (
+    SizeGuardProcessor,
+)
 from fapilog.plugins.processors.zero_copy import (
     PLUGIN_METADATA as ZERO_COPY_META,
 )
@@ -42,6 +48,7 @@ def test_builtin_metadata_matches_class_names() -> None:
         (ContextVarsEnricher, CONTEXT_META),
         (RuntimeInfoEnricher, RUNTIME_META),
         (ZeroCopyProcessor, ZERO_COPY_META),
+        (SizeGuardProcessor, SIZE_GUARD_META),
         (StdoutJsonSink, STDOUT_META),
         (RotatingFileSink, ROTATING_FILE_META),
     ]

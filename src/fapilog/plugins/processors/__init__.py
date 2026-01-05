@@ -5,6 +5,7 @@ from typing import Iterable, Protocol, runtime_checkable
 from ...core.processing import process_in_parallel
 from ...metrics.metrics import MetricsCollector, plugin_timer
 from ..loader import register_builtin
+from .size_guard import SizeGuardProcessor
 from .zero_copy import ZeroCopyProcessor
 
 
@@ -98,9 +99,16 @@ register_builtin(
     ZeroCopyProcessor,
     aliases=["zero-copy"],
 )
+register_builtin(
+    "fapilog.processors",
+    "size_guard",
+    SizeGuardProcessor,
+    aliases=["size-guard"],
+)
 
 __all__ = [
     "BaseProcessor",
     "process_parallel",
     "ZeroCopyProcessor",
+    "SizeGuardProcessor",
 ]

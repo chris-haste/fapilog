@@ -86,6 +86,8 @@ class MetricsCollector:
         self._enabled = bool(enabled and self._prom_available)
         self._lock = asyncio.Lock()
         self._state = PipelineMetrics()
+        self._size_guard_truncated = 0
+        self._size_guard_dropped = 0
         # Per-plugin profiling stats (container scoped)
         self._plugin_stats: dict[str, PluginStats] = {}
 
@@ -107,6 +109,8 @@ class MetricsCollector:
         self._g_queue_high_watermark: Any | None = None
         self._g_filter_sample_rate: Any | None = None
         self._g_rate_limit_keys: Any | None = None
+        self._c_size_guard_truncated: Any | None = None
+        self._c_size_guard_dropped: Any | None = None
 
         if self._enabled:
             # Minimal metric set; names align with conventional Prometheus
@@ -230,6 +234,16 @@ class MetricsCollector:
                 "Number of unique rate limit keys currently tracked",
                 registry=self._registry,
             )
+            self._c_size_guard_truncated = Counter(
+                "processor_size_guard_truncated_total",
+                "Total number of payloads truncated by size_guard",
+                registry=self._registry,
+            )
+            self._c_size_guard_dropped = Counter(
+                "processor_size_guard_dropped_total",
+                "Total number of payloads dropped by size_guard",
+                registry=self._registry,
+            )
 
     @property
     def is_enabled(self) -> bool:
@@ -303,6 +317,22 @@ class MetricsCollector:
             return
         if self._g_rate_limit_keys is not None:
             self._g_rate_limit_keys.set(count)
+
+    async def record_size_guard_truncated(self, count: int = 1) -> None:
+        async with self._lock:
+            self._size_guard_truncated += count
+        if not self._enabled:
+            return
+        if self._c_size_guard_truncated is not None:
+            self._c_size_guard_truncated.inc(count)
+
+    async def record_size_guard_dropped(self, count: int = 1) -> None:
+        async with self._lock:
+            self._size_guard_dropped += count
+        if not self._enabled:
+            return
+        if self._c_size_guard_dropped is not None:
+            self._c_size_guard_dropped.inc(count)
 
     async def record_sink_error(
         self, *, sink: str | None = None, count: int = 1

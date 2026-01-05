@@ -84,6 +84,9 @@
 | `FAPILOG__PLUGINS__ENABLED` | bool | True | Enable plugin loading |
 | `FAPILOG__PLUGINS__VALIDATION_MODE` | str | disabled | Plugin validation mode: disabled, warn, or strict |
 | `FAPILOG__PROCESSOR_CONFIG__EXTRA` | dict | PydanticUndefined | Configuration for third-party processors by name |
+| `FAPILOG__PROCESSOR_CONFIG__SIZE_GUARD__ACTION` | Literal | truncate | Action to take when payload exceeds max_bytes |
+| `FAPILOG__PROCESSOR_CONFIG__SIZE_GUARD__MAX_BYTES` | int | 256000 | Maximum payload size in bytes (min 100) |
+| `FAPILOG__PROCESSOR_CONFIG__SIZE_GUARD__PRESERVE_FIELDS` | list | PydanticUndefined | Fields that should never be removed during truncation |
 | `FAPILOG__PROCESSOR_CONFIG__ZERO_COPY` | dict | PydanticUndefined | Configuration for zero_copy processor (reserved for future options) |
 | `FAPILOG__REDACTOR_CONFIG__EXTRA` | dict | PydanticUndefined | Configuration for third-party redactors by name |
 | `FAPILOG__REDACTOR_CONFIG__FIELD_MASK__BLOCK_ON_UNREDACTABLE` | bool | False | Block log entry if redaction fails |

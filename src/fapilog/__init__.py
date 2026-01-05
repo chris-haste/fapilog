@@ -20,6 +20,7 @@ from .plugins import loader as _loader
 from .plugins.enrichers import BaseEnricher as _BaseEnricher
 from .plugins.filters.level import LEVEL_PRIORITY
 from .plugins.processors import BaseProcessor as _BaseProcessor
+from .plugins.processors.size_guard import SizeGuardConfig
 from .plugins.redactors import BaseRedactor as _BaseRedactor
 from .plugins.redactors.field_mask import FieldMaskConfig
 from .plugins.redactors.regex_mask import RegexMaskConfig
@@ -175,11 +176,18 @@ def _filter_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
     return cfg
 
 
-def _processor_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
+def _processor_configs(
+    settings: _Settings, metrics: _MetricsCollector | None = None
+) -> dict[str, dict[str, Any]]:
     pcfg = settings.processor_config
     cfg: dict[str, dict[str, Any]] = {
         "zero_copy": pcfg.zero_copy,
     }
+    cfg["size_guard"] = {
+        "config": SizeGuardConfig(**pcfg.size_guard.model_dump()),
+    }
+    if metrics is not None:
+        cfg["size_guard"]["metrics"] = metrics
     cfg.update(pcfg.extra)
     return cfg
 
@@ -288,7 +296,7 @@ def _build_pipeline(
         "fapilog.processors",
         processor_names,
         settings,
-        _processor_configs(settings),
+        _processor_configs(settings, metrics),
     )
 
     filter_names = list(core_cfg.filters or [])
