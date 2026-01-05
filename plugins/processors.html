@@ -102,6 +102,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../examples/kubernetes-file-sink.html">Kubernetes File Sink</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/prometheus-metrics.html">Prometheus Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/cloud-sinks/index.html">Cloud Sink Examples</a></li>
 </ul>
 </li>
@@ -121,6 +122,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/index.html">Troubleshooting</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../troubleshooting/logs-dropped-under-load.html">Logs Dropped Under Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/destination-size-limits.html">Logs Rejected by Destination Size Limits</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../troubleshooting/context-values-missing.html">Context Values Missing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../troubleshooting/file-sink-not-rotating.html">File Sink Not Rotating</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../troubleshooting/serialization-errors.html">Serialization Errors</a></li>
@@ -298,6 +300,46 @@
 </div>
 </section>
 </section>
+<section id="sizeguardprocessor">
+<h2>SizeGuardProcessor<a class="headerlink" href="#sizeguardprocessor" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">size_guard</span></code> enforces a maximum serialized payload size before sinks run. It is
+designed for destinations with hard limits (CloudWatch 256 KB, Loki 256 KB, many
+HTTP gateways around 1 MB).</p>
+<ul class="simple">
+<li><p><strong>Actions:</strong> <code class="docutils literal notranslate"><span class="pre">truncate</span></code> (default), <code class="docutils literal notranslate"><span class="pre">drop</span></code>, or <code class="docutils literal notranslate"><span class="pre">warn</span></code></p></li>
+<li><p><strong>Default limit:</strong> <code class="docutils literal notranslate"><span class="pre">max_bytes=256000</span></code> (CloudWatch safe)</p></li>
+<li><p><strong>Truncation:</strong> Marks payloads with <code class="docutils literal notranslate"><span class="pre">_truncated</span></code> and <code class="docutils literal notranslate"><span class="pre">_original_size</span></code>, trims
+<code class="docutils literal notranslate"><span class="pre">message</span></code> first, then prunes metadata, and finally falls back to preserved
+fields only (<code class="docutils literal notranslate"><span class="pre">level</span></code>, <code class="docutils literal notranslate"><span class="pre">timestamp</span></code>, <code class="docutils literal notranslate"><span class="pre">logger</span></code>, <code class="docutils literal notranslate"><span class="pre">correlation_id</span></code> by default).</p></li>
+<li><p><strong>Diagnostics:</strong> Emits a WARN diagnostic with original size and limit (rate
+limited). Metrics counters increment for truncated/dropped events when metrics
+are enabled.</p></li>
+</ul>
+<p>Enable it in settings:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span>
+
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">()</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">processors</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;size_guard&quot;</span><span class="p">]</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">processor_config</span><span class="o">.</span><span class="n">size_guard</span><span class="o">.</span><span class="n">max_bytes</span> <span class="o">=</span> <span class="mi">256_000</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">processor_config</span><span class="o">.</span><span class="n">size_guard</span><span class="o">.</span><span class="n">action</span> <span class="o">=</span> <span class="s2">&quot;truncate&quot;</span>  <span class="c1"># or &quot;drop&quot;/&quot;warn&quot;</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">processor_config</span><span class="o">.</span><span class="n">size_guard</span><span class="o">.</span><span class="n">preserve_fields</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;level&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;timestamp&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;logger&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;correlation_id&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>Environment shortcuts:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__PROCESSORS</span><span class="o">=</span><span class="s1">&#39;[&quot;size_guard&quot;]&#39;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_PROCESSOR_CONFIG__SIZE_GUARD__MAX_BYTES</span><span class="o">=</span><span class="m">200000</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_PROCESSOR_CONFIG__SIZE_GUARD__ACTION</span><span class="o">=</span>drop
+<span class="c1"># Short aliases for ops overrides</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_SIZE_GUARD__MAX_BYTES</span><span class="o">=</span><span class="m">180000</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_SIZE_GUARD__ACTION</span><span class="o">=</span>warn
+</pre></div>
+</div>
+</section>
 <section id="built-in-processors">
 <h2>Built-in processors<a class="headerlink" href="#built-in-processors" title="Link to this heading"></a></h2>
 <table class="docutils align-default">
@@ -307,7 +349,10 @@
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zero_copy</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">size_guard</span></code></p></td>
+<td><p>Enforces maximum payload size with truncate/drop/warn actions</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zero_copy</span></code></p></td>
 <td><p>Pass-through processor for benchmarking (no transformation)</p></td>
 </tr>
 </tbody>
@@ -327,6 +372,9 @@
 </pre></div>
 </div>
 <p>Keep processors async, contain errors, and consider CPU/I/O cost since they run on every log write.</p>
+<p>Processors operate on serialized bytes, so enable <code class="docutils literal notranslate"><span class="pre">core.serialize_in_flush</span></code> when
+using sinks that support <code class="docutils literal notranslate"><span class="pre">write_serialized</span></code> to ensure the processor stage is
+invoked.</p>
 </section>
 </section>
 

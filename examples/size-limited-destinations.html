@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Structured Error Logging &mdash; fapilog latest documentation</title>
+  <title>Handling Size-Limited Destinations &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -24,8 +24,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Kubernetes File Sink" href="kubernetes-file-sink.html" />
-    <link rel="prev" title="Redacting Secrets" href="redacting-secrets.html" /> 
+    <link rel="next" title="Cloud Sink Examples" href="cloud-sinks/index.html" />
+    <link rel="prev" title="Sampling Debug Logs" href="sampling-debug-logs.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -98,11 +98,11 @@
 <li class="toctree-l2"><a class="reference internal" href="fastapi-logging.html">FastAPI Logging</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli-tools.html">Logging in Scripts/CLIs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="redacting-secrets.html">Redacting Secrets</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Structured Error Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="structured-error-logging.html">Structured Error Logging</a></li>
 <li class="toctree-l2"><a class="reference internal" href="kubernetes-file-sink.html">Kubernetes File Sink</a></li>
 <li class="toctree-l2"><a class="reference internal" href="prometheus-metrics.html">Prometheus Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sampling-debug-logs.html">Sampling Debug Logs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Handling Size-Limited Destinations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cloud-sinks/index.html">Cloud Sink Examples</a></li>
 </ul>
 </li>
@@ -158,9 +158,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="index.html">Examples &amp; Recipes</a></li>
-      <li class="breadcrumb-item active">Structured Error Logging</li>
+      <li class="breadcrumb-item active">Handling Size-Limited Destinations</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/examples/structured-error-logging.md.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/examples/size-limited-destinations.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -168,33 +168,78 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="structured-error-logging">
-<h1>Structured Error Logging<a class="headerlink" href="#structured-error-logging" title="Link to this heading"></a></h1>
-<p>Capture exceptions with structured stack data.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_async_logger</span>
+  <section class="tex2jax_ignore mathjax_ignore" id="handling-size-limited-destinations">
+<h1>Handling Size-Limited Destinations<a class="headerlink" href="#handling-size-limited-destinations" title="Link to this heading"></a></h1>
+<p>Many log backends enforce strict per-event limits (CloudWatch and Loki: 256 KB,
+Datadog and Kafka defaults: ~1 MB). Use the built-in <code class="docutils literal notranslate"><span class="pre">size_guard</span></code> processor to
+enforce these limits <strong>before</strong> data hits the sink.</p>
+<section id="enable-size-guard">
+<h2>Enable size_guard<a class="headerlink" href="#enable-size-guard" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">(</span><span class="s2">&quot;worker&quot;</span><span class="p">)</span>
-
-<span class="k">try</span><span class="p">:</span>
-    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;bad input&quot;</span><span class="p">)</span>
-<span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Processing failed&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">job_id</span><span class="o">=</span><span class="s2">&quot;job-1&quot;</span><span class="p">)</span>
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">()</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">processors</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;size_guard&quot;</span><span class="p">]</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">processor_config</span><span class="o">.</span><span class="n">size_guard</span><span class="o">.</span><span class="n">max_bytes</span> <span class="o">=</span> <span class="mi">256_000</span>  <span class="c1"># CloudWatch safe default</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">processor_config</span><span class="o">.</span><span class="n">size_guard</span><span class="o">.</span><span class="n">action</span> <span class="o">=</span> <span class="s2">&quot;truncate&quot;</span>  <span class="c1"># or &quot;drop&quot; / &quot;warn&quot;</span>
 </pre></div>
 </div>
-<p>Output includes exception fields (type/message/stack/frames) merged into the log entry for easier parsing in aggregators.</p>
+<p>Env-based setup:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__PROCESSORS</span><span class="o">=</span><span class="s1">&#39;[&quot;size_guard&quot;]&#39;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_PROCESSOR_CONFIG__SIZE_GUARD__MAX_BYTES</span><span class="o">=</span><span class="m">256000</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_PROCESSOR_CONFIG__SIZE_GUARD__ACTION</span><span class="o">=</span>truncate
+</pre></div>
+</div>
+<p>Short aliases work for ops overrides:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_SIZE_GUARD__MAX_BYTES</span><span class="o">=</span><span class="m">200000</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_SIZE_GUARD__ACTION</span><span class="o">=</span>drop
+</pre></div>
+</div>
+</section>
+<section id="cloudwatch-and-loki-256-kb-limit">
+<h2>CloudWatch and Loki (256 KB limit)<a class="headerlink" href="#cloudwatch-and-loki-256-kb-limit" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__PROCESSORS</span><span class="o">=</span><span class="s1">&#39;[&quot;size_guard&quot;]&#39;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_PROCESSOR_CONFIG__SIZE_GUARD__MAX_BYTES</span><span class="o">=</span><span class="m">256000</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_PROCESSOR_CONFIG__SIZE_GUARD__ACTION</span><span class="o">=</span>truncate
+</pre></div>
+</div>
 <p>Notes:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">exc_info=True</span></code> serializes the current exception; you can also pass <code class="docutils literal notranslate"><span class="pre">exc=&lt;Exception&gt;</span></code>.</p></li>
-<li><p>Stack depth/size respects settings (<code class="docutils literal notranslate"><span class="pre">exceptions_max_frames</span></code>, <code class="docutils literal notranslate"><span class="pre">exceptions_max_stack_chars</span></code>).</p></li>
+<li><p>Truncation adds <code class="docutils literal notranslate"><span class="pre">_truncated:</span> <span class="pre">true</span></code> and <code class="docutils literal notranslate"><span class="pre">_original_size</span></code> for observability.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">message</span></code> is trimmed first; metadata is pruned only if still too large.</p></li>
+<li><p>Diagnostics are rate-limited WARN logs; enable them with
+<code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__INTERNAL_LOGGING_ENABLED=true</span></code> during investigations.</p></li>
 </ul>
+</section>
+<section id="kafka-http-gateways-1-mb">
+<h2>Kafka / HTTP gateways (~1 MB)<a class="headerlink" href="#kafka-http-gateways-1-mb" title="Link to this heading"></a></h2>
+<p>Kafka brokers and many HTTP gateways use ~1 MB defaults. Set a higher threshold:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__PROCESSORS</span><span class="o">=</span><span class="s1">&#39;[&quot;size_guard&quot;]&#39;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_PROCESSOR_CONFIG__SIZE_GUARD__MAX_BYTES</span><span class="o">=</span><span class="m">1000000</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_PROCESSOR_CONFIG__SIZE_GUARD__ACTION</span><span class="o">=</span>warn
+</pre></div>
+</div>
+<p>In <code class="docutils literal notranslate"><span class="pre">warn</span></code> mode the payload passes through unchanged but diagnostics flag the
+oversize condition so you can tune producers.</p>
+</section>
+<section id="metrics-and-troubleshooting">
+<h2>Metrics and troubleshooting<a class="headerlink" href="#metrics-and-troubleshooting" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Metrics (when enabled): <code class="docutils literal notranslate"><span class="pre">processor_size_guard_truncated_total</span></code>,
+<code class="docutils literal notranslate"><span class="pre">processor_size_guard_dropped_total</span></code>.</p></li>
+<li><p>Diagnostics include <code class="docutils literal notranslate"><span class="pre">original_size</span></code> and <code class="docutils literal notranslate"><span class="pre">max_bytes</span></code>; search for component
+<code class="docutils literal notranslate"><span class="pre">processor</span></code> and message prefix <code class="docutils literal notranslate"><span class="pre">size_guard</span></code>.</p></li>
+<li><p>For hard failures from a destination, set <code class="docutils literal notranslate"><span class="pre">action=drop</span></code> to emit a tiny marker
+payload instead of losing the log entirely.</p></li>
+</ul>
+</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="redacting-secrets.html" class="btn btn-neutral float-left" title="Redacting Secrets" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="kubernetes-file-sink.html" class="btn btn-neutral float-right" title="Kubernetes File Sink" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="sampling-debug-logs.html" class="btn btn-neutral float-left" title="Sampling Debug Logs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="cloud-sinks/index.html" class="btn btn-neutral float-right" title="Cloud Sink Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

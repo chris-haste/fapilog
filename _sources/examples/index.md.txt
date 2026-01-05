@@ -14,6 +14,7 @@ structured-error-logging
 kubernetes-file-sink
 prometheus-metrics
 sampling-debug-logs
+size-limited-destinations
 cloud-sinks/index
 ```
 
@@ -28,6 +29,7 @@ These examples show fapilog in action across different use cases and environment
 - **Kubernetes File Sink** - Containerized logging with rotation
 - **Prometheus Metrics** - Monitoring and observability
 - **Sampling Debug Logs** - Development vs production logging
+- **Size-Limited Destinations** - Guardrails for CloudWatch, Loki, and Kafka limits
 
 ## Quick Examples
 

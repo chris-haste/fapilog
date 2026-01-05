@@ -22,6 +22,7 @@ This guide explains the new configuration-driven plugin wiring introduced in Sto
   - `redactor_config.regex_mask`: patterns, mask string, guardrails
   - `redactor_config.url_credentials`: max string length
   - `processor_config.zero_copy`: reserved for zero_copy options; third-party configs via `processor_config.extra`
+  - `processor_config.size_guard`: `max_bytes`, `action`, and `preserve_fields` for the size_guard processor
   - `filter_config.level/sampling/adaptive_sampling/trace_sampling/first_occurrence/rate_limit`: built-in filters; third-party configs via `filter_config.extra`
   - Third-party plugins use `extra` maps (`sink_config.extra`, `enricher_config.extra`, `redactor_config.extra`, `processor_config.extra`) with arbitrary keys.
 
