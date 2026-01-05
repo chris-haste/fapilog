@@ -86,6 +86,14 @@ class MsgPackProcessor:
         data = json.loads(bytes(view))
         packed = msgpack.packb(data)
         return memoryview(packed)
+
+
+### Batch processing
+
+Implement `process_many(self, views: Iterable[memoryview]) -> list[memoryview]`
+when batching improves performance (shared compression dictionary, reused crypto
+context, etc.). The default implementation simply calls `process()` for each
+view and returns the processed results in order.
 ```
 
 ## Built-in processors
@@ -101,7 +109,7 @@ class MsgPackProcessor:
 
 ## Configuration and order
 
-Configure processors via settings (`core.processors`) or env (`FAPILOG_CORE__PROCESSORS`). They run in order:
+Configure processors via settings (`core.processors`) or env (`FAPILOG_CORE__PROCESSORS`). Per-processor kwargs live under `processor_config` (e.g., `processor_config.extra.gzip = {"level": 5}`). They run in order:
 
 ```
 Event → Enrichers → Redactors → Serialize → Processor 1 → Processor 2 → Sinks

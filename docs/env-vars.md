@@ -71,6 +71,8 @@
 | `FAPILOG__PLUGINS__DENYLIST` | list | PydanticUndefined | Plugin names to block from loading |
 | `FAPILOG__PLUGINS__ENABLED` | bool | True | Enable plugin loading |
 | `FAPILOG__PLUGINS__VALIDATION_MODE` | str | disabled | Plugin validation mode: disabled, warn, or strict |
+| `FAPILOG__PROCESSOR_CONFIG__EXTRA` | dict | PydanticUndefined | Configuration for third-party processors by name |
+| `FAPILOG__PROCESSOR_CONFIG__ZERO_COPY` | dict | PydanticUndefined | Configuration for zero_copy processor (reserved for future options) |
 | `FAPILOG__REDACTOR_CONFIG__EXTRA` | dict | PydanticUndefined | Configuration for third-party redactors by name |
 | `FAPILOG__REDACTOR_CONFIG__FIELD_MASK__BLOCK_ON_UNREDACTABLE` | bool | False | Block log entry if redaction fails |
 | `FAPILOG__REDACTOR_CONFIG__FIELD_MASK__FIELDS_TO_MASK` | list | PydanticUndefined | Field names to mask (case-insensitive) |

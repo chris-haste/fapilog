@@ -33,8 +33,10 @@ async def test_process_many_counts() -> None:
     proc = ZeroCopyProcessor()
     events = [LogEvent(level="DEBUG", message=f"m{i}") for i in range(5)]
     views = [serialize_mapping_to_json_bytes(e.to_mapping()).view for e in events]
-    n = await proc.process_many(views)
-    assert n == len(views)
+    out = await proc.process_many(views)
+    assert len(out) == len(views)
+    # Zero-copy: returned memoryviews should be the same objects
+    assert all(a is b for a, b in zip(out, views))
 
 
 @pytest.mark.asyncio
@@ -42,8 +44,9 @@ async def test_process_many_with_generator_iterable() -> None:
     proc = ZeroCopyProcessor()
     events = (LogEvent(level="DEBUG", message=f"g{i}") for i in range(7))
     views = (serialize_mapping_to_json_bytes(e.to_mapping()).view for e in events)
-    n = await proc.process_many(views)
-    assert n == 7
+    out = await proc.process_many(views)
+    assert len(out) == 7
+    assert all(isinstance(v, memoryview) for v in out)
 
 
 @pytest.mark.asyncio
@@ -84,5 +87,5 @@ async def test_process_many_serializes_access_with_lock() -> None:
 @pytest.mark.asyncio
 async def test_process_many_empty_iterable_returns_zero() -> None:
     proc = ZeroCopyProcessor()
-    n = await proc.process_many(())
-    assert n == 0
+    out = await proc.process_many(())
+    assert out == []

@@ -20,7 +20,8 @@ This guide explains the new configuration-driven plugin wiring introduced in Sto
   - `redactor_config.field_mask`: fields, mask string, guardrails
   - `redactor_config.regex_mask`: patterns, mask string, guardrails
   - `redactor_config.url_credentials`: max string length
-- Third-party plugins use `extra` maps (`sink_config.extra`, `enricher_config.extra`, `redactor_config.extra`) with arbitrary keys.
+  - `processor_config.zero_copy`: reserved for zero_copy options; third-party configs via `processor_config.extra`
+  - Third-party plugins use `extra` maps (`sink_config.extra`, `enricher_config.extra`, `redactor_config.extra`, `processor_config.extra`) with arbitrary keys.
 
 ### Environment Examples
 
@@ -31,6 +32,10 @@ FAPILOG_SINK_CONFIG__ROTATING_FILE__DIRECTORY="/var/log/app"
 
 # Disable enrichers
 FAPILOG_CORE__ENRICHERS='[]'
+
+# Processors with config
+FAPILOG_CORE__PROCESSORS='["gzip"]'
+FAPILOG_PROCESSOR_CONFIG__EXTRA__GZIP='{\"level\":4}'
 
 # Redactors via legacy order (still supported)
 FAPILOG_CORE__ENABLE_REDACTORS=true

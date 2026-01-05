@@ -51,17 +51,13 @@ class ZeroCopyProcessor:
                 cause=e,
             ) from e
 
-    async def process_many(self, views: Iterable[memoryview]) -> int:
-        """Process many payloads; returns the number processed.
-
-        Uses a lock to model shared state protection if extended.
-        """
-        count = 0
+    async def process_many(self, views: Iterable[memoryview]) -> list[memoryview]:
+        """Process many payloads; returns processed views."""
+        out: list[memoryview] = []
         async with self._lock:
             for v in views:
-                _ = await self.process(v)
-                count += 1
-        return count
+                out.append(await self.process(v))
+        return out
 
     async def health_check(self) -> bool:
         """Verify processor is ready to accept views.

@@ -10,8 +10,9 @@ import asyncio
 import time
 from typing import Any, Awaitable, Callable
 
-from ..metrics.metrics import MetricsCollector
+from ..metrics.metrics import MetricsCollector, plugin_timer
 from ..plugins.enrichers import BaseEnricher, enrich_parallel
+from ..plugins.processors import BaseProcessor
 from ..plugins.redactors import BaseRedactor, redact_in_order
 from .concurrency import NonBlockingRingQueue
 from .diagnostics import warn
@@ -104,6 +105,7 @@ class LoggerWorker:
         sink_write_serialized: Callable[[SerializedView], Awaitable[None]] | None,
         enrichers_getter: Callable[[], list[BaseEnricher]],
         redactors_getter: Callable[[], list[BaseRedactor]],
+        processors_getter: Callable[[], list[BaseProcessor]] | None = None,
         metrics: MetricsCollector | None,
         serialize_in_flush: bool,
         strict_envelope_mode_provider: Callable[[], bool],
@@ -113,6 +115,7 @@ class LoggerWorker:
         flush_done_event: asyncio.Event | None,
         emit_enricher_diagnostics: bool,
         emit_redactor_diagnostics: bool,
+        emit_processor_diagnostics: bool = False,
         counters: dict[str, int],
     ) -> None:
         self._queue = queue
@@ -122,6 +125,7 @@ class LoggerWorker:
         self._sink_write_serialized = sink_write_serialized
         self._enrichers_getter = enrichers_getter
         self._redactors_getter = redactors_getter
+        self._processors_getter = processors_getter or (lambda: [])
         self._metrics = metrics
         self._serialize_in_flush = serialize_in_flush
         self._strict_envelope_mode_provider = strict_envelope_mode_provider
@@ -131,6 +135,7 @@ class LoggerWorker:
         self._flush_done_event = flush_done_event
         self._emit_enricher_diagnostics = emit_enricher_diagnostics
         self._emit_redactor_diagnostics = emit_redactor_diagnostics
+        self._emit_processor_diagnostics = emit_processor_diagnostics
         self._counters = counters
 
     async def run(self, *, in_thread_mode: bool = False) -> None:
@@ -200,6 +205,7 @@ class LoggerWorker:
                     if drop_entry:
                         continue
                     if view is not None:
+                        view = await self._apply_processors(view)
                         try:
                             await self._sink_write_serialized(view)
                             self._counters["processed"] += 1
@@ -252,6 +258,42 @@ class LoggerWorker:
                 except Exception:
                     pass
             return entry
+
+    async def _apply_processors(self, view: SerializedView) -> SerializedView:
+        processors = self._processors_getter()
+        if not processors:
+            return view
+
+        base_view = view.view
+        current_view: memoryview = base_view
+
+        for processor in processors:
+            proc_name = getattr(processor, "name", type(processor).__name__)
+            try:
+                async with plugin_timer(self._metrics, proc_name):
+                    current_view = await processor.process(current_view)
+            except Exception as exc:
+                if self._emit_processor_diagnostics:
+                    try:
+                        warn(
+                            "processor",
+                            "processor error",
+                            processor=proc_name,
+                            error=str(exc),
+                            _rate_limit_key="process",
+                        )
+                    except Exception:
+                        pass
+                # Preserve original view when processor fails
+                current_view = base_view
+                continue
+
+        if current_view is base_view:
+            return view
+        try:
+            return SerializedView(data=current_view.tobytes())
+        except Exception:
+            return view
 
     async def _try_serialize(
         self, entry: dict[str, Any]
