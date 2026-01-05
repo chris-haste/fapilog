@@ -175,6 +175,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">core.enrichers</span></code>: default <code class="docutils literal notranslate"><span class="pre">runtime_info</span></code>, <code class="docutils literal notranslate"><span class="pre">context_vars</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">core.redactors</span></code>: empty disables; legacy <code class="docutils literal notranslate"><span class="pre">redactors_order</span></code> honored when empty and redactors enabled</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">core.processors</span></code>: optional processors</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">core.filters</span></code>: optional filters that run before enrichers</p></li>
 </ul>
 </li>
 <li><p>Names accept hyphens or underscores; they are normalized internally (<code class="docutils literal notranslate"><span class="pre">field-mask</span></code> == <code class="docutils literal notranslate"><span class="pre">field_mask</span></code>). Built-ins register both forms.</p></li>
@@ -192,6 +193,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">redactor_config.regex_mask</span></code>: patterns, mask string, guardrails</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">redactor_config.url_credentials</span></code>: max string length</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">processor_config.zero_copy</span></code>: reserved for zero_copy options; third-party configs via <code class="docutils literal notranslate"><span class="pre">processor_config.extra</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filter_config.level/sampling/rate_limit</span></code>: built-in filters; third-party configs via <code class="docutils literal notranslate"><span class="pre">filter_config.extra</span></code></p></li>
 <li><p>Third-party plugins use <code class="docutils literal notranslate"><span class="pre">extra</span></code> maps (<code class="docutils literal notranslate"><span class="pre">sink_config.extra</span></code>, <code class="docutils literal notranslate"><span class="pre">enricher_config.extra</span></code>, <code class="docutils literal notranslate"><span class="pre">redactor_config.extra</span></code>, <code class="docutils literal notranslate"><span class="pre">processor_config.extra</span></code>) with arbitrary keys.</p></li>
 </ul>
 </li>
@@ -220,6 +222,7 @@
 <h2>Loader Behavior<a class="headerlink" href="#loader-behavior" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Built-ins register in the loader registry with aliases; third-party plugins discovered via entry points (<code class="docutils literal notranslate"><span class="pre">fapilog.sinks</span></code>, <code class="docutils literal notranslate"><span class="pre">fapilog.enrichers</span></code>, <code class="docutils literal notranslate"><span class="pre">fapilog.redactors</span></code>, <code class="docutils literal notranslate"><span class="pre">fapilog.processors</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">core.log_level</span></code> now gates events via an implicit <code class="docutils literal notranslate"><span class="pre">level</span></code> filter when no explicit <code class="docutils literal notranslate"><span class="pre">core.filters</span></code> are configured (set to <code class="docutils literal notranslate"><span class="pre">DEBUG</span></code> to allow everything).</p></li>
 <li><p>Allow/deny lists live under <code class="docutils literal notranslate"><span class="pre">Settings.plugins</span></code> and are respected for every plugin load.</p></li>
 <li><p>Missing or failing plugins emit diagnostics and are skipped; logging continues with remaining plugins.</p></li>
 </ul>

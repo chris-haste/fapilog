@@ -19,6 +19,7 @@
 | `FAPILOG__CORE__EXCEPTIONS_ENABLED` | bool | True | Enable structured exception serialization for log calls |
 | `FAPILOG__CORE__EXCEPTIONS_MAX_FRAMES` | int | 50 | Maximum number of stack frames to capture for exceptions |
 | `FAPILOG__CORE__EXCEPTIONS_MAX_STACK_CHARS` | int | 20000 | Maximum total characters for serialized stack string |
+| `FAPILOG__CORE__FILTERS` | list | PydanticUndefined | Filter plugins to apply before enrichment (by name) |
 | `FAPILOG__CORE__INTERNAL_LOGGING_ENABLED` | bool | False | Emit DEBUG/WARN diagnostics for internal errors |
 | `FAPILOG__CORE__LOG_LEVEL` | Literal | INFO | Default log level |
 | `FAPILOG__CORE__MAX_QUEUE_SIZE` | int | 10000 | Maximum in-memory queue size for async processing |
@@ -48,6 +49,10 @@
 | `FAPILOG__ENRICHER_CONFIG__INTEGRITY__ROTATE_CHAIN` | bool | False | Reset chain after rotation |
 | `FAPILOG__ENRICHER_CONFIG__INTEGRITY__USE_KMS_SIGNING` | bool | False | Sign integrity hashes via KMS provider |
 | `FAPILOG__ENRICHER_CONFIG__RUNTIME_INFO` | dict | PydanticUndefined | Configuration for runtime_info enricher |
+| `FAPILOG__FILTER_CONFIG__EXTRA` | dict | PydanticUndefined | Configuration for third-party filters by name |
+| `FAPILOG__FILTER_CONFIG__LEVEL` | dict | PydanticUndefined | Configuration for level filter |
+| `FAPILOG__FILTER_CONFIG__RATE_LIMIT` | dict | PydanticUndefined | Configuration for rate_limit filter |
+| `FAPILOG__FILTER_CONFIG__SAMPLING` | dict | PydanticUndefined | Configuration for sampling filter |
 | `FAPILOG__HTTP__ENDPOINT` | str | None | — | HTTP endpoint to POST log events to |
 | `FAPILOG__HTTP__HEADERS` | dict | PydanticUndefined | Default headers to send with each request |
 | `FAPILOG__HTTP__HEADERS_JSON` | str | None | — | JSON-encoded headers map (e.g. '{"Authorization": "Bearer x"}') |

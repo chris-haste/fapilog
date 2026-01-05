@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Authoring Fapilog Plugins &mdash; fapilog latest documentation</title>
+  <title>Filters &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -23,9 +23,7 @@
       <script src="../_static/custom.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Plugin Contracts and API Versioning" href="contracts-and-versioning.html" />
-    <link rel="prev" title="Plugin Development" href="index.html" /> 
+    <link rel="search" title="Search" href="../search.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -48,7 +46,7 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../getting-started/installation.html">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../getting-started/quickstart.html">Quickstart Tutorial</a></li>
@@ -104,8 +102,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">Plugin Development</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Authoring Fapilog Plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Plugin Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="authoring.html">Authoring Fapilog Plugins</a></li>
 <li class="toctree-l2"><a class="reference internal" href="contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="redactors.html">Redactors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sinks.html">Sinks</a></li>
@@ -152,10 +150,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="index.html">Plugin Development</a></li>
-      <li class="breadcrumb-item active">Authoring Fapilog Plugins</li>
+      <li class="breadcrumb-item active">Filters</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/plugins/authoring.md.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/plugins/filters.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -163,86 +160,37 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="authoring-fapilog-plugins">
-<h1>Authoring Fapilog Plugins<a class="headerlink" href="#authoring-fapilog-plugins" title="Link to this heading"></a></h1>
-<p>This guide covers entry points, required metadata, and the Plugin API versioning policy.</p>
-<section id="entry-points">
-<h2>Entry Points<a class="headerlink" href="#entry-points" title="Link to this heading"></a></h2>
-<p>Declare entry points in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> under one of the v3 groups per plugin type:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">project</span><span class="o">.</span><span class="n">entry</span><span class="o">-</span><span class="n">points</span><span class="o">.</span><span class="s2">&quot;fapilog.sinks&quot;</span><span class="p">]</span>
-<span class="s2">&quot;my_sink&quot;</span> <span class="o">=</span> <span class="s2">&quot;my_package.my_sink&quot;</span>
-
-<span class="p">[</span><span class="n">project</span><span class="o">.</span><span class="n">entry</span><span class="o">-</span><span class="n">points</span><span class="o">.</span><span class="s2">&quot;fapilog.processors&quot;</span><span class="p">]</span>
-<span class="s2">&quot;my_processor&quot;</span> <span class="o">=</span> <span class="s2">&quot;my_package.my_processor&quot;</span>
-
-<span class="p">[</span><span class="n">project</span><span class="o">.</span><span class="n">entry</span><span class="o">-</span><span class="n">points</span><span class="o">.</span><span class="s2">&quot;fapilog.enrichers&quot;</span><span class="p">]</span>
-<span class="s2">&quot;my_enricher&quot;</span> <span class="o">=</span> <span class="s2">&quot;my_package.my_enricher&quot;</span>
-
-<span class="p">[</span><span class="n">project</span><span class="o">.</span><span class="n">entry</span><span class="o">-</span><span class="n">points</span><span class="o">.</span><span class="s2">&quot;fapilog.redactors&quot;</span><span class="p">]</span>
-<span class="s2">&quot;my_redactor&quot;</span> <span class="o">=</span> <span class="s2">&quot;my_package.my_redactor&quot;</span>
-
-<span class="p">[</span><span class="n">project</span><span class="o">.</span><span class="n">entry</span><span class="o">-</span><span class="n">points</span><span class="o">.</span><span class="s2">&quot;fapilog.filters&quot;</span><span class="p">]</span>
-<span class="s2">&quot;my_filter&quot;</span> <span class="o">=</span> <span class="s2">&quot;my_package.my_filter&quot;</span>
-
-<span class="c1"># Fallback generic group (type derived from PLUGIN_METADATA[&quot;plugin_type&quot;]) when needed</span>
-<span class="p">[</span><span class="n">project</span><span class="o">.</span><span class="n">entry</span><span class="o">-</span><span class="n">points</span><span class="o">.</span><span class="s2">&quot;fapilog.plugins&quot;</span><span class="p">]</span>
-<span class="s2">&quot;legacy-plugin&quot;</span> <span class="o">=</span> <span class="s2">&quot;my_package.legacy&quot;</span>
-</pre></div>
-</div>
-</section>
-<section id="naming-convention">
-<h2>Naming Convention<a class="headerlink" href="#naming-convention" title="Link to this heading"></a></h2>
+  <section class="tex2jax_ignore mathjax_ignore" id="filters">
+<h1>Filters<a class="headerlink" href="#filters" title="Link to this heading"></a></h1>
+<p>Filters run first in the pipeline. They can drop an event (return <code class="docutils literal notranslate"><span class="pre">None</span></code>) or mutate it before enrichers run.</p>
+<section id="contract">
+<h2>Contract<a class="headerlink" href="#contract" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Use lowercase with underscores (snake_case): <code class="docutils literal notranslate"><span class="pre">field_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">rotating_file</span></code>, <code class="docutils literal notranslate"><span class="pre">runtime_info</span></code>.</p></li>
-<li><p>Avoid type suffixes in names (<code class="docutils literal notranslate"><span class="pre">-sink</span></code>, <code class="docutils literal notranslate"><span class="pre">-processor</span></code>, etc.); the <code class="docutils literal notranslate"><span class="pre">plugin_type</span></code> field already captures that.</p></li>
-<li><p>The class <code class="docutils literal notranslate"><span class="pre">name</span></code> attribute and <code class="docutils literal notranslate"><span class="pre">PLUGIN_METADATA[&quot;name&quot;]</span></code> must match.</p></li>
-<li><p>Hyphen variants are normalized automatically for compatibility, but prefer snake_case in docs/config.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name:</span> <span class="pre">str</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">start()/stop()</span></code> optional lifecycle hooks</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">filter(event:</span> <span class="pre">dict)</span> <span class="pre">-&gt;</span> <span class="pre">dict</span> <span class="pre">|</span> <span class="pre">None</span></code> (return <code class="docutils literal notranslate"><span class="pre">None</span></code> to drop)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">health_check()</span> <span class="pre">-&gt;</span> <span class="pre">bool</span></code> (optional)</p></li>
 </ul>
 </section>
-<section id="plugin-metadata">
-<h2>PLUGIN_METADATA<a class="headerlink" href="#plugin-metadata" title="Link to this heading"></a></h2>
-<p>Each module must export a <code class="docutils literal notranslate"><span class="pre">PLUGIN_METADATA</span></code> mapping with at least:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">PLUGIN_METADATA</span> <span class="o">=</span> <span class="p">{</span>
-  <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;my_plugin&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1.2.3&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;plugin_type&quot;</span><span class="p">:</span> <span class="s2">&quot;sink&quot;</span><span class="p">,</span>  <span class="c1"># sink|processor|enricher|redactor</span>
-  <span class="s2">&quot;entry_point&quot;</span><span class="p">:</span> <span class="s2">&quot;my_package.my_sink:Plugin&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="s2">&quot;Your Name&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;compatibility&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;min_fapilog_version&quot;</span><span class="p">:</span> <span class="s2">&quot;3.0.0&quot;</span><span class="p">},</span>
-  <span class="s2">&quot;api_version&quot;</span><span class="p">:</span> <span class="s2">&quot;1.0&quot;</span><span class="p">,</span>  <span class="c1"># Plugin API contract version</span>
-  <span class="c1"># Optional configuration docs</span>
-  <span class="s2">&quot;config_schema&quot;</span><span class="p">:</span> <span class="p">{</span><span class="o">...</span><span class="p">},</span>
-  <span class="s2">&quot;default_config&quot;</span><span class="p">:</span> <span class="p">{</span><span class="o">...</span><span class="p">},</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</section>
-<section id="api-versioning">
-<h2>API Versioning<a class="headerlink" href="#api-versioning" title="Link to this heading"></a></h2>
+<section id="built-in-filters">
+<h2>Built-in filters<a class="headerlink" href="#built-in-filters" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Current API contract is defined at <code class="docutils literal notranslate"><span class="pre">fapilog.plugins.versioning.PLUGIN_API_VERSION</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">0)</span></code>).</p></li>
-<li><p>Policy: compatible when declared major matches current major, and declared minor is less than or equal to current minor.</p></li>
-<li><p>Utilities: <code class="docutils literal notranslate"><span class="pre">parse_api_version()</span></code> and <code class="docutils literal notranslate"><span class="pre">is_plugin_api_compatible()</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">level</span></code>: drop events below a minimum level.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sampling</span></code>: probabilistic sampling with optional seed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rate_limit</span></code>: token-bucket rate limiting with optional key partitioning.</p></li>
 </ul>
 </section>
-<section id="protocols">
-<h2>Protocols<a class="headerlink" href="#protocols" title="Link to this heading"></a></h2>
-<p>Author implementations should satisfy the runtime-checkable Protocol for their type:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseSink</span><span class="p">,</span> <span class="n">BaseProcessor</span><span class="p">,</span> <span class="n">BaseEnricher</span><span class="p">,</span> <span class="n">BaseRedactor</span>
-</pre></div>
-</div>
-<p>All interfaces are async-first and must contain errors rather than raising into the core pipeline.</p>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h2>
+<p>Configure filters via <code class="docutils literal notranslate"><span class="pre">core.filters</span></code> and <code class="docutils literal notranslate"><span class="pre">filter_config.*</span></code>. When <code class="docutils literal notranslate"><span class="pre">core.log_level</span></code> is set (and no explicit <code class="docutils literal notranslate"><span class="pre">core.filters</span></code> are provided), fapilog automatically prepends a <code class="docutils literal notranslate"><span class="pre">level</span></code> filter using that threshold.</p>
+<p>Execution order is the list order: filters run before enrichers, redactors, processors, and sinks.</p>
 </section>
 </section>
 
 
            </div>
           </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="index.html" class="btn btn-neutral float-left" title="Plugin Development" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="contracts-and-versioning.html" class="btn btn-neutral float-right" title="Plugin Contracts and API Versioning" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-    </div>
+          <footer>
 
   <hr/>
 

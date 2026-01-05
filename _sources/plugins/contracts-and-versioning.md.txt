@@ -10,6 +10,7 @@ Fapilog exposes runtime-checkable Protocols for all plugin types. Implementation
 - Enrichers: `fapilog.plugins.enrichers.BaseEnricher`
 - Processors: `fapilog.plugins.processors.BaseProcessor`
 - Redactors: `fapilog.plugins.redactors.BaseRedactor`
+- Filters: `fapilog.plugins.filters.BaseFilter`
 
 These are re-exported in `fapilog.plugins` for convenient import:
 

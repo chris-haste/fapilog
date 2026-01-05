@@ -170,11 +170,11 @@
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
 <p>fapilog uses a pipeline architecture that processes log messages through several stages, each optimized for specific tasks:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│ Application │───▶│   Context   │───▶│ Enrichers   │───▶│ Redactors   │
+│ Application │───▶│   Context   │───▶│   Filters   │───▶│ Enrichers   │
 └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
-                                                              │
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐        │
-│    Sinks    │◀───│    Queue    │◀───│ Processors  │◀───────┘
+                                                                  │
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐            │
+│    Sinks    │◀───│    Queue    │◀───│ Processors  │◀──────────┘
 └─────────────┘    └─────────────┘    └─────────────┘
 </pre></div>
 </div>
@@ -214,8 +214,18 @@
 <li><p>Environment</p></li>
 </ul>
 </section>
+<section id="filters">
+<h3>3. Filters<a class="headerlink" href="#filters" title="Link to this heading"></a></h3>
+<p>Filters run first and can drop or tweak events before any enrichment or redaction. Returning <code class="docutils literal notranslate"><span class="pre">None</span></code> drops the event; returning a dict continues processing.</p>
+<p><strong>Built-in filters:</strong></p>
+<ul class="simple">
+<li><p><strong>Level</strong> - Drop events below a configured level (wired from <code class="docutils literal notranslate"><span class="pre">core.log_level</span></code>).</p></li>
+<li><p><strong>Sampling</strong> - Keep a percentage of events.</p></li>
+<li><p><strong>Rate Limit</strong> - Token bucket limiter (optionally per key).</p></li>
+</ul>
+</section>
 <section id="enrichers">
-<h3>3. Enrichers<a class="headerlink" href="#enrichers" title="Link to this heading"></a></h3>
+<h3>4. Enrichers<a class="headerlink" href="#enrichers" title="Link to this heading"></a></h3>
 <p>Enrichers add additional metadata to messages:</p>
 <p><strong>Built-in enrichers:</strong></p>
 <ul class="simple">
@@ -240,7 +250,7 @@
 </div>
 </section>
 <section id="redactors">
-<h3>4. Redactors<a class="headerlink" href="#redactors" title="Link to this heading"></a></h3>
+<h3>5. Redactors<a class="headerlink" href="#redactors" title="Link to this heading"></a></h3>
 <p>Redactors remove or mask sensitive information:</p>
 <p><strong>Built-in redactors:</strong></p>
 <ul class="simple">
@@ -268,7 +278,7 @@
 </div>
 </section>
 <section id="processors">
-<h3>5. Processors<a class="headerlink" href="#processors" title="Link to this heading"></a></h3>
+<h3>6. Processors<a class="headerlink" href="#processors" title="Link to this heading"></a></h3>
 <p>Processors transform and optimize messages:</p>
 <p><strong>Built-in processors:</strong></p>
 <ul class="simple">

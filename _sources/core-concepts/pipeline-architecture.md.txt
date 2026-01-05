@@ -8,11 +8,11 @@ fapilog uses a pipeline architecture that processes log messages through several
 
 ```
 ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│ Application │───▶│   Context   │───▶│ Enrichers   │───▶│ Redactors   │
+│ Application │───▶│   Context   │───▶│   Filters   │───▶│ Enrichers   │
 └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
-                                                              │
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐        │
-│    Sinks    │◀───│    Queue    │◀───│ Processors  │◀───────┘
+                                                                  │
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐            │
+│    Sinks    │◀───│    Queue    │◀───│ Processors  │◀──────────┘
 └─────────────┘    └─────────────┘    └─────────────┘
 ```
 
@@ -53,7 +53,17 @@ logger.info("Request processed", status_code=200)
 - Service name
 - Environment
 
-### 3. Enrichers
+### 3. Filters
+
+Filters run first and can drop or tweak events before any enrichment or redaction. Returning `None` drops the event; returning a dict continues processing.
+
+**Built-in filters:**
+
+- **Level** - Drop events below a configured level (wired from `core.log_level`).
+- **Sampling** - Keep a percentage of events.
+- **Rate Limit** - Token bucket limiter (optionally per key).
+
+### 4. Enrichers
 
 Enrichers add additional metadata to messages:
 
@@ -80,7 +90,7 @@ Enrichers add additional metadata to messages:
 }
 ```
 
-### 4. Redactors
+### 5. Redactors
 
 Redactors remove or mask sensitive information:
 
@@ -110,7 +120,7 @@ Redactors remove or mask sensitive information:
 }
 ```
 
-### 5. Processors
+### 6. Processors
 
 Processors transform and optimize messages:
 
