@@ -99,13 +99,13 @@ register_builtin(
     "fapilog.enrichers",
     "runtime_info",
     RuntimeInfoEnricher,
-    aliases=["runtime-info"],
+    aliases=["runtime-info", "runtime-info-enricher"],
 )
 register_builtin(
     "fapilog.enrichers",
     "context_vars",
     ContextVarsEnricher,
-    aliases=["context-vars"],
+    aliases=["context-vars", "context-vars-enricher"],
 )
 
 __all__ = [

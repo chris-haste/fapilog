@@ -8,21 +8,28 @@ Declare entry points in `pyproject.toml` under one of the v3 groups per plugin t
 
 ```
 [project.entry-points."fapilog.sinks"]
-"my-sink" = "my_package.my_sink"
+"my_sink" = "my_package.my_sink"
 
 [project.entry-points."fapilog.processors"]
-"my-processor" = "my_package.my_processor"
+"my_processor" = "my_package.my_processor"
 
 [project.entry-points."fapilog.enrichers"]
-"my-enricher" = "my_package.my_enricher"
+"my_enricher" = "my_package.my_enricher"
 
 [project.entry-points."fapilog.redactors"]
-"my-redactor" = "my_package.my_redactor"
+"my_redactor" = "my_package.my_redactor"
 
 # Fallback generic group (type derived from PLUGIN_METADATA["plugin_type"]) when needed
 [project.entry-points."fapilog.plugins"]
 "legacy-plugin" = "my_package.legacy"
 ```
+
+## Naming Convention
+
+- Use lowercase with underscores (snake_case): `field_mask`, `rotating_file`, `runtime_info`.
+- Avoid type suffixes in names (`-sink`, `-processor`, etc.); the `plugin_type` field already captures that.
+- The class `name` attribute and `PLUGIN_METADATA["name"]` must match.
+- Hyphen variants are normalized automatically for compatibility, but prefer snake_case in docs/config.
 
 ## PLUGIN_METADATA
 
@@ -30,7 +37,7 @@ Each module must export a `PLUGIN_METADATA` mapping with at least:
 
 ```
 PLUGIN_METADATA = {
-  "name": "my-plugin",
+  "name": "my_plugin",
   "version": "1.2.3",
   "plugin_type": "sink",  # sink|processor|enricher|redactor
   "entry_point": "my_package.my_sink:Plugin",

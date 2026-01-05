@@ -139,7 +139,7 @@ _VULTURE_USED: tuple[object, ...] = (
 
 # Minimal plugin metadata for discovery compatibility
 PLUGIN_METADATA = {
-    "name": "stdout-json",
+    "name": "stdout_json",
     "version": "1.0.0",
     "plugin_type": "sink",
     "entry_point": "fapilog.plugins.sinks.stdout_json:StdoutJsonSink",

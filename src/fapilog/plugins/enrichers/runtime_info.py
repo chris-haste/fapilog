@@ -45,7 +45,7 @@ __all__ = ["RuntimeInfoEnricher"]
 
 # Minimal PLUGIN_METADATA for discovery
 PLUGIN_METADATA = {
-    "name": "runtime-info-enricher",
+    "name": "runtime_info",
     "version": "1.0.0",
     "plugin_type": "enricher",
     "entry_point": "fapilog.plugins.enrichers.runtime_info:RuntimeInfoEnricher",

@@ -278,7 +278,7 @@ class MemoryMappedPersistence:
 
 # Plugin metadata for discovery
 PLUGIN_METADATA = {
-    "name": "mmap-persistence",
+    "name": "mmap_persistence",
     "version": "1.0.0",
     "plugin_type": "sink",
     "entry_point": "fapilog.plugins.sinks.mmap_persistence:MemoryMappedPersistence",
