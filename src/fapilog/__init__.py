@@ -109,6 +109,10 @@ def _sink_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
                 if settings.http.retry_max_attempts
                 else None,
                 timeout_seconds=settings.http.timeout_seconds,
+                batch_size=settings.http.batch_size,
+                batch_timeout_seconds=settings.http.batch_timeout_seconds,
+                batch_format=settings.http.batch_format,
+                batch_wrapper_key=settings.http.batch_wrapper_key,
             )
         },
         "webhook": {
@@ -123,6 +127,8 @@ def _sink_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
                 if scfg.webhook.retry_max_attempts
                 else None,
                 timeout_seconds=scfg.webhook.timeout_seconds,
+                batch_size=scfg.webhook.batch_size,
+                batch_timeout_seconds=scfg.webhook.batch_timeout_seconds,
             )
         },
         "sealed": scfg.sealed.model_dump(exclude_none=True),

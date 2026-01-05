@@ -12,58 +12,38 @@ from fapilog.plugins.sinks.http_client import HttpSink, HttpSinkConfig
 
 
 class _StubPool:
-    def __init__(self) -> None:
-        self.started = False
-        self.stopped = False
-
-    async def start(self) -> None:
-        self.started = True
-
-    async def stop(self) -> None:
-        self.stopped = True
-
-
-class _StubSender:
-    def __init__(self, responses: list[Any]) -> None:
-        self.responses = responses
-        self.calls: list[tuple[str, Any]] = []
-
-    async def post_json(
-        self, url: str, json: Any, headers: Any = None
-    ) -> httpx.Response:
-        self.calls.append((url, json))
-        outcome = self.responses.pop(0)
-        if isinstance(outcome, Exception):
-            raise outcome
-        return outcome
-
-
-class _RetryingPool:
-    """Context manager pool that feeds outcomes to AsyncHttpSender."""
-
     def __init__(self, outcomes: list[Any]) -> None:
         self.outcomes = outcomes
+        self.calls: list[dict[str, Any]] = []
         self.started = False
         self.stopped = False
-        self.calls: list[tuple[str, Any]] = []
 
     async def start(self) -> None:
         self.started = True
 
     async def stop(self) -> None:
         self.stopped = True
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, exc_type, exc, tb):
-        return False
 
     def acquire(self):
         return self
 
-    async def post(self, url: str, json: Any, headers: Any = None) -> httpx.Response:
-        self.calls.append((url, json))
+    async def __aenter__(self) -> _StubPool:
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb) -> bool:
+        return False
+
+    async def post(
+        self,
+        url: str,
+        *,
+        json: Any | None = None,
+        content: bytes | None = None,
+        headers: Any = None,
+    ) -> httpx.Response:
+        self.calls.append(
+            {"url": url, "json": json, "content": content, "headers": headers}
+        )
         outcome = self.outcomes.pop(0)
         if isinstance(outcome, Exception):
             raise outcome
@@ -72,13 +52,14 @@ class _RetryingPool:
 
 @pytest.mark.asyncio
 async def test_http_sink_success_records_metrics() -> None:
-    pool = _StubPool()
-    sender = _StubSender([httpx.Response(200, json={"ok": True})])
+    pool = _StubPool([httpx.Response(200, json={"ok": True})])
     metrics = MetricsCollector(enabled=False)
     sink = HttpSink(
-        HttpSinkConfig(endpoint="https://logs.example.com/api/logs"),
+        HttpSinkConfig(
+            endpoint="https://logs.example.com/api/logs",
+            batch_size=1,
+        ),
         pool=pool,
-        sender=sender,
         metrics=metrics,
     )
 
@@ -88,8 +69,8 @@ async def test_http_sink_success_records_metrics() -> None:
 
     assert pool.started is True
     assert pool.stopped is True
-    assert sender.calls
-    # Metrics collector tracks processed even when disabled
+    assert pool.calls
+    # Metrics collector tracks processed even when disabled (accumulates batch size)
     assert metrics._state.events_processed == 1  # type: ignore[attr-defined]
 
 
@@ -104,11 +85,14 @@ async def test_http_sink_warns_on_status_failure(
         warnings.append({"component": component, "message": message, **fields})
 
     with patch("fapilog.core.diagnostics.warn", side_effect=_warn):
-        sender = _StubSender([httpx.Response(500, json={"error": "boom"})])
         sink = HttpSink(
-            HttpSinkConfig(endpoint="https://logs.example.com/api/logs"),
-            pool=_StubPool(),
-            sender=sender,
+            HttpSinkConfig(
+                endpoint="https://logs.example.com/api/logs",
+                batch_size=1,
+            ),
+            pool=_StubPool(
+                [httpx.Response(500, json={"error": "boom"})],
+            ),
         )
         await sink.start()
         await sink.write({"message": "hello"})
@@ -128,11 +112,12 @@ async def test_http_sink_warns_on_exception(monkeypatch: pytest.MonkeyPatch) -> 
         warnings.append({"component": component, "message": message, **fields})
 
     with patch("fapilog.core.diagnostics.warn", side_effect=_warn):
-        sender = _StubSender([httpx.ConnectTimeout("boom")])
         sink = HttpSink(
-            HttpSinkConfig(endpoint="https://logs.example.com/api/logs"),
-            pool=_StubPool(),
-            sender=sender,
+            HttpSinkConfig(
+                endpoint="https://logs.example.com/api/logs",
+                batch_size=1,
+            ),
+            pool=_StubPool([httpx.ConnectTimeout("boom")]),
         )
         await sink.start()
         await sink.write({"message": "hello"})
@@ -155,7 +140,7 @@ async def test_http_sink_retries_on_retryable(monkeypatch: pytest.MonkeyPatch) -
 
     # First call raises, second succeeds via AsyncHttpSender retry
     outcomes = [TimeoutError("timeout"), httpx.Response(200, json={"ok": True})]
-    pool = _RetryingPool(outcomes)
+    pool = _StubPool(outcomes)
     with patch("fapilog.core.diagnostics.warn", side_effect=_warn):
         sink = HttpSink(
             HttpSinkConfig(
@@ -185,12 +170,17 @@ async def test_http_sink_retry_metrics_and_backoff(
     timings: list[float] = []
     sleep_calls: list[float] = []
 
-    class TimedPool(_RetryingPool):
+    class TimedPool(_StubPool):
         async def post(
-            self, url: str, json: Any, headers: Any = None
+            self,
+            url: str,
+            *,
+            json: Any | None = None,
+            content: bytes | None = None,
+            headers: Any = None,
         ) -> httpx.Response:
             timings.append(asyncio.get_event_loop().time())
-            return await super().post(url, json, headers)
+            return await super().post(url, json=json, content=content, headers=headers)
 
     # Retryable then success
     outcomes = [TimeoutError("timeout"), httpx.Response(200, json={"ok": True})]
@@ -232,7 +222,7 @@ async def test_http_sink_health_check_and_diagnostics(
         httpx.Response(503, text="down"),
         httpx.Response(200, json={"ok": True}),
     ]
-    pool = _RetryingPool(outcomes)
+    pool = _StubPool(outcomes)
     sink = HttpSink(
         HttpSinkConfig(endpoint="https://logs.example.com/api/logs"),
         pool=pool,

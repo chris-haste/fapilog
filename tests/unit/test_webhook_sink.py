@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 from unittest.mock import patch
 
@@ -13,7 +14,7 @@ from fapilog.plugins.sinks.webhook import WebhookSink, WebhookSinkConfig
 class _StubPool:
     def __init__(self, outcomes: list[Any]) -> None:
         self.outcomes = outcomes
-        self.calls: list[tuple[str, Any]] = []
+        self.calls: list[tuple[str, Any, Any]] = []
         self.started = False
         self.stopped = False
 
@@ -32,8 +33,15 @@ class _StubPool:
     async def __aexit__(self, exc_type, exc, tb):
         return False
 
-    async def post(self, url: str, json: Any, headers: Any = None) -> httpx.Response:
-        self.calls.append((url, json, headers))
+    async def post(
+        self,
+        url: str,
+        json: Any = None,
+        content: bytes | None = None,
+        headers: Any = None,
+    ) -> httpx.Response:
+        payload = json if json is not None else content
+        self.calls.append((url, payload, headers))
         outcome = self.outcomes.pop(0)
         if isinstance(outcome, Exception):
             raise outcome
@@ -123,3 +131,50 @@ async def test_webhook_sink_serialized_fallback_and_metrics() -> None:
     await sink.stop()
 
     assert pool.calls and metrics._state.events_processed == 1  # type: ignore[attr-defined]
+
+
+@pytest.mark.asyncio
+async def test_webhook_sink_batches_and_flushes() -> None:
+    pool = _StubPool([httpx.Response(200), httpx.Response(200)])
+    sink = WebhookSink(
+        WebhookSinkConfig(
+            endpoint="https://hooks.example.com",
+            secret="abc123",
+            batch_size=2,
+            batch_timeout_seconds=5.0,
+        ),
+        pool=pool,
+    )
+
+    await sink.start()
+    await sink.write({"n": 1})
+    await sink.write({"n": 2})
+    await sink.write({"n": 3})
+    await sink.stop()
+
+    assert len(pool.calls) == 2
+    assert pool.calls[0][1] == [{"n": 1}, {"n": 2}]
+    assert pool.calls[1][1] == [{"n": 3}]
+    # Secret header should be applied to batch requests
+    assert pool.calls[0][2].get("X-Webhook-Secret") == "abc123"
+
+
+@pytest.mark.asyncio
+async def test_webhook_sink_flushes_on_timeout() -> None:
+    pool = _StubPool([httpx.Response(200)])
+    sink = WebhookSink(
+        WebhookSinkConfig(
+            endpoint="https://hooks.example.com",
+            batch_size=10,
+            batch_timeout_seconds=0.05,
+        ),
+        pool=pool,
+    )
+
+    await sink.start()
+    await sink.write({"n": 1})
+    await asyncio.sleep(0.12)
+    await sink.stop()
+
+    assert pool.calls
+    assert pool.calls[0][1] == [{"n": 1}]

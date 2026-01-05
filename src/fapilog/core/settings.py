@@ -70,6 +70,16 @@ class WebhookSettings(BaseModel):
     timeout_seconds: float = Field(
         default=5.0, gt=0.0, description="Request timeout in seconds"
     )
+    batch_size: int = Field(
+        default=1,
+        ge=1,
+        description="Maximum events per webhook request (1 = no batching)",
+    )
+    batch_timeout_seconds: float = Field(
+        default=5.0,
+        gt=0.0,
+        description="Max seconds before flushing a partial webhook batch",
+    )
 
 
 class SealedSinkSettings(BaseModel):
@@ -440,6 +450,24 @@ class HttpSinkSettings(BaseModel):
         default=5.0,
         gt=0.0,
         description="Request timeout for HTTP sink operations",
+    )
+    batch_size: int = Field(
+        default=1,
+        ge=1,
+        description="Maximum events per HTTP request (1 = no batching)",
+    )
+    batch_timeout_seconds: float = Field(
+        default=5.0,
+        gt=0.0,
+        description="Max seconds before flushing a partial batch",
+    )
+    batch_format: str = Field(
+        default="array",
+        description="Batch format: 'array', 'ndjson', or 'wrapped'",
+    )
+    batch_wrapper_key: str = Field(
+        default="logs",
+        description="Wrapper key when batch_format='wrapped'",
     )
 
     @field_validator("headers_json")
