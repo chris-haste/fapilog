@@ -29,6 +29,7 @@ BUILTIN_PLUGINS = [
         "url_credentials",
     ),
     ("fapilog.plugins.processors.zero_copy", "ZeroCopyProcessor", "zero_copy"),
+    ("fapilog.plugins.processors.size_guard", "SizeGuardProcessor", "size_guard"),
 ]
 
 

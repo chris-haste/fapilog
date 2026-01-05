@@ -96,10 +96,54 @@ context, etc.). The default implementation simply calls `process()` for each
 view and returns the processed results in order.
 ```
 
+## SizeGuardProcessor
+
+`size_guard` enforces a maximum serialized payload size before sinks run. It is
+designed for destinations with hard limits (CloudWatch 256 KB, Loki 256 KB, many
+HTTP gateways around 1 MB).
+
+- **Actions:** `truncate` (default), `drop`, or `warn`
+- **Default limit:** `max_bytes=256000` (CloudWatch safe)
+- **Truncation:** Marks payloads with `_truncated` and `_original_size`, trims
+  `message` first, then prunes metadata, and finally falls back to preserved
+  fields only (`level`, `timestamp`, `logger`, `correlation_id` by default).
+- **Diagnostics:** Emits a WARN diagnostic with original size and limit (rate
+  limited). Metrics counters increment for truncated/dropped events when metrics
+  are enabled.
+
+Enable it in settings:
+
+```python
+from fapilog import Settings
+
+settings = Settings()
+settings.core.processors = ["size_guard"]
+settings.processor_config.size_guard.max_bytes = 256_000
+settings.processor_config.size_guard.action = "truncate"  # or "drop"/"warn"
+settings.processor_config.size_guard.preserve_fields = [
+    "level",
+    "timestamp",
+    "logger",
+    "correlation_id",
+]
+```
+
+Environment shortcuts:
+
+```bash
+export FAPILOG_CORE__PROCESSORS='["size_guard"]'
+export FAPILOG_PROCESSOR_CONFIG__SIZE_GUARD__MAX_BYTES=200000
+export FAPILOG_PROCESSOR_CONFIG__SIZE_GUARD__ACTION=drop
+# Short aliases for ops overrides
+export FAPILOG_SIZE_GUARD__MAX_BYTES=180000
+export FAPILOG_SIZE_GUARD__ACTION=warn
+```
+
 ## Built-in processors
 
 | Processor | Description |
 | --- | --- |
+| `size_guard` | Enforces maximum payload size with truncate/drop/warn actions |
 | `zero_copy` | Pass-through processor for benchmarking (no transformation) |
 
 ## Registration
@@ -116,3 +160,7 @@ Event → Enrichers → Redactors → Serialize → Processor 1 → Processor 2 
 ```
 
 Keep processors async, contain errors, and consider CPU/I/O cost since they run on every log write.
+
+Processors operate on serialized bytes, so enable `core.serialize_in_flush` when
+using sinks that support `write_serialized` to ensure the processor stage is
+invoked.

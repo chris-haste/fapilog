@@ -7,9 +7,10 @@ async-aware validation hooks used by the loader in `config.py`.
 
 from __future__ import annotations
 
+import os
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from pydantic_settings import (  # type: ignore[import-not-found]
     BaseSettings,
     SettingsConfigDict,
@@ -184,12 +185,31 @@ class RedactorUrlCredentialsSettings(BaseModel):
     )
 
 
+class SizeGuardSettings(BaseModel):
+    """Per-plugin configuration for SizeGuardProcessor."""
+
+    max_bytes: int = Field(
+        default=256000, ge=100, description="Maximum payload size in bytes (min 100)"
+    )
+    action: Literal["truncate", "drop", "warn"] = Field(
+        default="truncate", description="Action to take when payload exceeds max_bytes"
+    )
+    preserve_fields: list[str] = Field(
+        default_factory=lambda: ["level", "timestamp", "logger", "correlation_id"],
+        description="Fields that should never be removed during truncation",
+    )
+
+
 class ProcessorConfigSettings(BaseModel):
     """Per-processor configuration for built-in and third-party processors."""
 
     zero_copy: dict[str, Any] = Field(
         default_factory=dict,
         description="Configuration for zero_copy processor (reserved for future options)",
+    )
+    size_guard: SizeGuardSettings = Field(
+        default_factory=SizeGuardSettings,
+        description="Configuration for size_guard processor",
     )
     extra: dict[str, dict[str, Any]] = Field(
         default_factory=dict,
@@ -669,6 +689,46 @@ class Settings(BaseSettings):
         extra="ignore",
         case_sensitive=False,
     )
+
+    @staticmethod
+    def _parse_env_list(value: str) -> list[str]:
+        value = value.strip()
+        if not value:
+            return []
+        try:
+            import json
+
+            parsed = json.loads(value)
+            if isinstance(parsed, list):
+                return [str(v) for v in parsed]
+        except Exception:
+            pass
+        return [v for v in (item.strip() for item in value.split(",")) if v]
+
+    @model_validator(mode="after")
+    def _apply_size_guard_env_aliases(self) -> Settings:
+        """Support short env aliases like FAPILOG_SIZE_GUARD__MAX_BYTES."""
+        sg = self.processor_config.size_guard
+        action = os.getenv("FAPILOG_SIZE_GUARD__ACTION")
+        max_bytes = os.getenv("FAPILOG_SIZE_GUARD__MAX_BYTES")
+        preserve = os.getenv("FAPILOG_SIZE_GUARD__PRESERVE_FIELDS")
+
+        if action:
+            normalized = action.strip().lower()
+            if normalized in {"truncate", "drop", "warn"}:
+                sg.action = normalized  # type: ignore[assignment]
+
+        if max_bytes:
+            try:
+                sg.max_bytes = int(max_bytes)
+            except Exception:
+                pass
+
+        if preserve:
+            parsed = self._parse_env_list(preserve)
+            if parsed:
+                sg.preserve_fields = parsed
+        return self
 
     # Async validation entrypoint, called by loader after instantiation
     async def validate_async(self) -> None:

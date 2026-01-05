@@ -27,6 +27,7 @@ BUILTIN_PLUGIN_MODULES = [
     "fapilog.plugins.redactors.url_credentials",
     # Processors
     "fapilog.plugins.processors.zero_copy",
+    "fapilog.plugins.processors.size_guard",
 ]
 
 # Expected min_fapilog_version for all built-ins
