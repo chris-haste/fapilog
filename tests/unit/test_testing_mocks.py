@@ -295,3 +295,79 @@ class TestMockProcessor:
 
         processor = MockProcessor()
         assert await processor.health_check() is True
+
+
+class TestMockFilter:
+    """Tests for MockFilter test utility."""
+
+    @pytest.mark.asyncio
+    async def test_mock_filter_passes_events(self) -> None:
+        """MockFilter should return events it allows."""
+        from fapilog.testing import MockFilter
+
+        filter_plugin = MockFilter()
+        event = {"level": "INFO", "message": "ok"}
+
+        result = await filter_plugin.filter(event)
+
+        assert result == event
+        assert filter_plugin.filtered_events[0]["message"] == "ok"
+        assert filter_plugin.call_count == 1
+
+    @pytest.mark.asyncio
+    async def test_mock_filter_drops_by_level(self) -> None:
+        """MockFilter should drop events matching configured levels."""
+        from fapilog.testing import MockFilter, MockFilterConfig
+
+        filter_plugin = MockFilter(MockFilterConfig(drop_levels=["ERROR"]))
+
+        result = await filter_plugin.filter({"level": "ERROR", "message": "nope"})
+
+        assert result is None
+        assert len(filter_plugin.dropped_events) == 1
+        assert filter_plugin.call_count == 1
+
+    @pytest.mark.asyncio
+    async def test_mock_filter_drops_by_rate(self) -> None:
+        """MockFilter should drop events based on drop_rate."""
+        from fapilog.testing import MockFilter, MockFilterConfig
+
+        filter_plugin = MockFilter(MockFilterConfig(drop_rate=1.0))
+
+        result = await filter_plugin.filter({"level": "INFO", "message": "sometimes"})
+
+        assert result is None
+        assert len(filter_plugin.dropped_events) == 1
+
+    @pytest.mark.asyncio
+    async def test_mock_filter_injects_failure(self) -> None:
+        """MockFilter should raise on configured call number."""
+        from fapilog.testing import MockFilter, MockFilterConfig
+
+        filter_plugin = MockFilter(MockFilterConfig(fail_on_call=2))
+
+        await filter_plugin.filter({"n": 1})
+        with pytest.raises(RuntimeError, match="Mock filter failure"):
+            await filter_plugin.filter({"n": 2})
+
+    @pytest.mark.asyncio
+    async def test_mock_filter_tracks_lifecycle_and_reset(self) -> None:
+        """MockFilter should track lifecycle calls and reset state."""
+        from fapilog.testing import MockFilter
+
+        filter_plugin = MockFilter()
+        assert not filter_plugin.start_called
+        assert not filter_plugin.stop_called
+
+        await filter_plugin.start()
+        await filter_plugin.filter({"level": "INFO"})
+        await filter_plugin.stop()
+
+        assert filter_plugin.start_called is True
+        assert filter_plugin.stop_called is True
+        assert filter_plugin.call_count == 1
+
+        filter_plugin.reset()
+        assert filter_plugin.call_count == 0
+        assert not filter_plugin.start_called
+        assert not filter_plugin.stop_called

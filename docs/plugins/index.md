@@ -13,6 +13,7 @@ sinks
 enrichers
 filters
 processors
+testing
 configuration
 health-checks
 error-handling
@@ -54,6 +55,7 @@ How to contain errors, emit diagnostics, and keep pipelines healthy.
 - [Plugin Authoring Guide](authoring.md) - Learn how to create plugins
 - [Contracts and Versioning](contracts-and-versioning.md) - Understand plugin compatibility
 - [Redaction Plugins](redactors.md) - Data security and compliance
+- [Plugin Testing](testing.md) - Validate contracts, benchmarks, and fixtures
 
 ---
 

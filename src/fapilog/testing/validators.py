@@ -194,7 +194,7 @@ def validate_filter(filter_plugin: Any) -> ValidationResult:
     elif not isinstance(getattr(filter_plugin, "name", None), str):
         errors.append("'name' attribute must be a string")
 
-    required_methods = ["start", "stop", "filter"]
+    required_methods = ["start", "stop", "filter", "health_check"]
     for method_name in required_methods:
         if not hasattr(filter_plugin, method_name):
             errors.append(f"Missing required method: {method_name}")
@@ -202,6 +202,12 @@ def validate_filter(filter_plugin: Any) -> ValidationResult:
         method = getattr(filter_plugin, method_name)
         if not asyncio.iscoroutinefunction(method):
             errors.append(f"{method_name} must be async")
+
+    if hasattr(filter_plugin, "filter"):
+        sig = inspect.signature(filter_plugin.filter)
+        params = [param for name, param in sig.parameters.items() if name != "self"]
+        if len(params) == 0:
+            errors.append("filter must accept event parameter")
 
     return ValidationResult(
         valid=len(errors) == 0,

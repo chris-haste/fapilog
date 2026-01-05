@@ -232,6 +232,72 @@ class MockProcessor:
         return True
 
 
+@dataclass
+class MockFilterConfig:
+    """Configuration for mock filter."""
+
+    drop_levels: list[str] = field(default_factory=list)
+    drop_rate: float = 0.0
+    fail_on_call: int | None = None
+    latency_seconds: float = 0.0
+
+
+class MockFilter:
+    """Mock filter for testing filter chains."""
+
+    name = "mock"
+
+    def __init__(self, config: MockFilterConfig | None = None) -> None:
+        self._config = config or MockFilterConfig()
+        self.filtered_events: list[dict[str, Any]] = []
+        self.dropped_events: list[dict[str, Any]] = []
+        self.call_count: int = 0
+        self.start_called: bool = False
+        self.stop_called: bool = False
+
+    async def start(self) -> None:
+        self.start_called = True
+
+    async def stop(self) -> None:
+        self.stop_called = True
+
+    async def filter(self, event: dict[str, Any]) -> dict[str, Any] | None:
+        self.call_count += 1
+
+        if self._config.fail_on_call is not None:
+            if self.call_count == self._config.fail_on_call:
+                raise RuntimeError("Mock filter failure")
+
+        if self._config.latency_seconds > 0:
+            await asyncio.sleep(self._config.latency_seconds)
+
+        level = str(event.get("level", "")).upper()
+        drop_levels = {lvl.upper() for lvl in self._config.drop_levels}
+        if level in drop_levels:
+            self.dropped_events.append(event.copy())
+            return None
+
+        if self._config.drop_rate > 0:
+            import random
+
+            if random.random() < self._config.drop_rate:
+                self.dropped_events.append(event.copy())
+                return None
+
+        self.filtered_events.append(event.copy())
+        return event
+
+    async def health_check(self) -> bool:
+        return True
+
+    def reset(self) -> None:
+        self.filtered_events.clear()
+        self.dropped_events.clear()
+        self.call_count = 0
+        self.start_called = False
+        self.stop_called = False
+
+
 # Mark as used for static analysis (public API used by tests)
 _VULTURE_USED: tuple[object, ...] = (
     MockSink,
@@ -245,4 +311,7 @@ _VULTURE_USED: tuple[object, ...] = (
     MockRedactor,
     MockRedactorConfig,
     MockProcessor,
+    MockFilter,
+    MockFilter.reset,
+    MockFilterConfig,
 )

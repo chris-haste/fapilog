@@ -204,6 +204,74 @@ class TestValidateProcessor:
         assert result.plugin_type == "BaseProcessor"
 
 
+class TestValidateFilter:
+    """Tests for validate_filter validator."""
+
+    def test_validate_filter_valid(self) -> None:
+        """Valid filter should pass validation."""
+        from fapilog.testing import validate_filter
+
+        class ValidFilter:
+            name = "valid"
+
+            async def start(self) -> None:
+                pass
+
+            async def stop(self) -> None:
+                pass
+
+            async def filter(self, event: dict) -> dict | None:
+                return event
+
+            async def health_check(self) -> bool:
+                return True
+
+        result = validate_filter(ValidFilter())
+        assert result.valid
+        assert result.plugin_type == "BaseFilter"
+        assert not result.errors
+
+    def test_validate_filter_missing_method(self) -> None:
+        """Filter missing required methods should fail validation."""
+        from fapilog.testing import validate_filter
+
+        class MissingFilter:
+            name = "incomplete"
+
+            async def start(self) -> None:
+                pass
+
+            async def stop(self) -> None:
+                pass
+
+        result = validate_filter(MissingFilter())
+        assert not result.valid
+        assert "Missing required method: filter" in result.errors
+
+    def test_validate_filter_bad_signature(self) -> None:
+        """Filter must accept event parameter."""
+        from fapilog.testing import validate_filter
+
+        class NoEventArg:
+            name = "bad-sig"
+
+            async def start(self) -> None:
+                pass
+
+            async def stop(self) -> None:
+                pass
+
+            async def filter(self) -> dict | None:  # type: ignore[override]
+                return {}
+
+            async def health_check(self) -> bool:
+                return True
+
+        result = validate_filter(NoEventArg())
+        assert not result.valid
+        assert any("event parameter" in error for error in result.errors)
+
+
 class TestValidatePluginLifecycle:
     """Tests for validate_plugin_lifecycle validator."""
 
