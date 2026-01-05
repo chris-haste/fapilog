@@ -18,6 +18,7 @@ BUILTIN_PLUGIN_MODULES = [
     "fapilog.plugins.sinks.http_client",
     "fapilog.plugins.sinks.webhook",
     "fapilog.plugins.sinks.mmap_persistence",
+    "fapilog.plugins.sinks.contrib.cloudwatch",
     # Enrichers
     "fapilog.plugins.enrichers.runtime_info",
     "fapilog.plugins.enrichers.context_vars",

@@ -19,6 +19,11 @@ BUILTIN_PLUGINS = [
         "MemoryMappedPersistence",
         "mmap_persistence",
     ),
+    (
+        "fapilog.plugins.sinks.contrib.cloudwatch",
+        "CloudWatchSink",
+        "cloudwatch",
+    ),
     ("fapilog.plugins.enrichers.runtime_info", "RuntimeInfoEnricher", "runtime_info"),
     ("fapilog.plugins.enrichers.context_vars", "ContextVarsEnricher", "context_vars"),
     ("fapilog.plugins.redactors.field_mask", "FieldMaskRedactor", "field_mask"),

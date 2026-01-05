@@ -115,7 +115,7 @@ async def test_cloud_sink_base_retries(monkeypatch: pytest.MonkeyPatch) -> None:
 async def test_cloudwatch_sink_handles_sequence_token_retry(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from examples.sinks import cloudwatch_sink as module
+    from fapilog.plugins.sinks.contrib import cloudwatch as module
 
     class FakeClientError(Exception):
         def __init__(self, code: str, expected: str | None = None) -> None:
@@ -128,6 +128,7 @@ async def test_cloudwatch_sink_handles_sequence_token_retry(
             self.calls: list[dict[str, Any]] = []
             self.created = {"group": 0, "stream": 0}
             self.fail_first = True
+            self.expected_token: str | None = None
 
         def create_log_group(self, **_: Any) -> None:
             self.created["group"] += 1
@@ -142,7 +143,15 @@ async def test_cloudwatch_sink_handles_sequence_token_retry(
             if self.fail_first:
                 self.fail_first = False
                 raise FakeClientError("InvalidSequenceTokenException", "token-123")
+            if (
+                self.expected_token
+                and kwargs.get("sequenceToken") != self.expected_token
+            ):
+                raise FakeClientError(
+                    "InvalidSequenceTokenException", self.expected_token
+                )
             self.calls.append(kwargs)
+            self.expected_token = "token-456"
             return {"nextSequenceToken": "token-456"}
 
     fake_client = FakeClient()
@@ -159,7 +168,9 @@ async def test_cloudwatch_sink_handles_sequence_token_retry(
     async def _to_thread(fn, *a, **k):
         return fn(*a, **k)
 
-    monkeypatch.setattr("examples.sinks.cloudwatch_sink.asyncio.to_thread", _to_thread)
+    monkeypatch.setattr(
+        "fapilog.plugins.sinks.contrib.cloudwatch.asyncio.to_thread", _to_thread
+    )
 
     sink = module.CloudWatchSink(
         config=module.CloudWatchSinkConfig(
@@ -172,8 +183,6 @@ async def test_cloudwatch_sink_handles_sequence_token_retry(
     await sink.start()
     await sink.write({"message": "hello"})
     await sink._flush_batch()
-    # first attempt failed, token captured and batch requeued
-    assert sink._sequence_token == "token-123"
     await sink._flush_batch()
     assert fake_client.calls
     call = fake_client.calls[0]

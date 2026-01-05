@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Protocol, runtime_checkable
 
 from ..loader import register_builtin
+from .contrib.cloudwatch import CloudWatchSink
 from .http_client import HttpSink
 from .mmap_persistence import MemoryMappedPersistence, PersistenceStats
 from .rotating_file import RotatingFileSink
@@ -74,6 +75,7 @@ __all__ = [
     "BaseSink",
     "MemoryMappedPersistence",
     "PersistenceStats",
+    "CloudWatchSink",
 ]
 
 
@@ -99,6 +101,12 @@ register_builtin(
     "fapilog.sinks",
     "webhook",
     WebhookSink,
+)
+register_builtin(
+    "fapilog.sinks",
+    "cloudwatch",
+    CloudWatchSink,
+    aliases=["cloud-watch"],
 )
 
 # NOTE: MemoryMappedPersistence is exported (in __all__) as a building block

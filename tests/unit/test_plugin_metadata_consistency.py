@@ -28,6 +28,12 @@ from fapilog.plugins.processors.zero_copy import (
 from fapilog.plugins.processors.zero_copy import (
     ZeroCopyProcessor,
 )
+from fapilog.plugins.sinks.contrib.cloudwatch import (
+    PLUGIN_METADATA as CLOUDWATCH_META,
+)
+from fapilog.plugins.sinks.contrib.cloudwatch import (
+    CloudWatchSink,
+)
 from fapilog.plugins.sinks.rotating_file import (
     PLUGIN_METADATA as ROTATING_FILE_META,
 )
@@ -51,6 +57,7 @@ def test_builtin_metadata_matches_class_names() -> None:
         (SizeGuardProcessor, SIZE_GUARD_META),
         (StdoutJsonSink, STDOUT_META),
         (RotatingFileSink, ROTATING_FILE_META),
+        (CloudWatchSink, CLOUDWATCH_META),
     ]
 
     for cls, meta in cases:
