@@ -23,12 +23,18 @@ jobs:
     runs-on: ubuntu-latest
     services:
       localstack:
-        image: localstack/localstack:latest
+        image: localstack/localstack:3.0
         ports:
           - 4566:4566
         env:
           SERVICES: logs
           DEFAULT_REGION: us-east-1
+        options: >-
+          --health-cmd="curl -s http://localhost:4566/_localstack/health"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+          --health-start-period=15s
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -37,9 +43,9 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -e ".[aws,dev]"
-      - name: Wait for LocalStack
+      - name: Verify LocalStack is ready
         run: |
-          timeout 60 bash -c 'until curl -s http://localhost:4566/_localstack/health | grep -q running; do sleep 2; done'
+          curl -s http://localhost:4566/_localstack/health | python -c "import sys,json; d=json.load(sys.stdin); print('LocalStack ready:', d)"
       - name: Run CloudWatch tests
         env:
           AWS_ACCESS_KEY_ID: test
