@@ -15,7 +15,13 @@ Fapilog exposes runtime-checkable Protocols for all plugin types. Implementation
 These are re-exported in `fapilog.plugins` for convenient import:
 
 ```python
-from fapilog.plugins import BaseSink, BaseEnricher, BaseProcessor, BaseRedactor
+from fapilog.plugins import (
+    BaseFilter,
+    BaseSink,
+    BaseEnricher,
+    BaseProcessor,
+    BaseRedactor,
+)
 ```
 
 ## Plugin API Version

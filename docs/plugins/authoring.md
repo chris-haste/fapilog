@@ -42,7 +42,7 @@ Each module must export a `PLUGIN_METADATA` mapping with at least:
 PLUGIN_METADATA = {
   "name": "my_plugin",
   "version": "1.2.3",
-  "plugin_type": "sink",  # sink|processor|enricher|redactor
+  "plugin_type": "sink",  # sink|processor|enricher|redactor|filter
   "entry_point": "my_package.my_sink:Plugin",
   "description": "...",
   "author": "Your Name",
@@ -53,6 +53,13 @@ PLUGIN_METADATA = {
   "default_config": {...},
 }
 ```
+
+**Valid plugin types:**
+- `sink` - Output destinations for log entries
+- `processor` - Transform serialized bytes
+- `enricher` - Add fields to log events
+- `redactor` - Sanitize sensitive data
+- `filter` - Drop or transform events before enrichment
 
 ## API Versioning
 
