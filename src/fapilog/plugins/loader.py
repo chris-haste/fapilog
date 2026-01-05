@@ -23,6 +23,42 @@ def _normalize_plugin_name(name: str) -> str:
     return name.replace("-", "_").lower()
 
 
+def _warn_on_name_mismatch(cls: type | Callable[..., Any]) -> None:
+    """Emit a diagnostic when class.name and PLUGIN_METADATA['name'] disagree."""
+
+    try:
+        class_name = getattr(cls, "name", None)
+        module_name = getattr(cls, "__module__", None)
+        if not class_name or not isinstance(class_name, str) or not module_name:
+            return
+
+        mod = importlib.import_module(module_name)
+        metadata = getattr(mod, "PLUGIN_METADATA", None)
+        if not metadata or not isinstance(metadata, dict):
+            return
+        meta_name = metadata.get("name")
+        if not meta_name or not isinstance(meta_name, str):
+            return
+
+        if _normalize_plugin_name(class_name) == _normalize_plugin_name(meta_name):
+            return
+
+        try:
+            diagnostics.warn(
+                "plugins",
+                "plugin name mismatch",
+                class_name=class_name,
+                metadata_name=meta_name,
+                plugin=cls.__name__,
+            )
+        except Exception:
+            # Contain diagnostics failures
+            pass
+    except Exception:
+        # Best-effort only; never raise
+        return
+
+
 # Built-in plugin registry (group -> name -> class)
 BUILTIN_SINKS: dict[str, type] = {}
 BUILTIN_ENRICHERS: dict[str, type] = {}
@@ -242,6 +278,7 @@ def _instantiate(
         raise PluginLoadError(str(exc)) from exc
     if validation_mode != ValidationMode.DISABLED:
         _validate_plugin(instance, group, validation_mode)
+    _warn_on_name_mismatch(cls)
     return instance
 
 

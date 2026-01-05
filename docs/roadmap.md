@@ -3,7 +3,7 @@
 This page lists planned features that are **not implemented yet**. Today, fapilog ships:
 
 - Async/sync factories and runtime contexts (awaitable async factory)
-- Redactors/enrichers, stdout and rotating-file sinks, HTTP client sink
+- Redactors/enrichers, stdout_json and rotating_file sinks, HTTP client sink
 - Metrics hooks and basic CLI commands (`version/settings/emit/flush/drain`)
 
 ## Pipeline & Sinks (planned)

@@ -74,7 +74,7 @@ __all__ = ["ContextVarsEnricher"]
 
 # Minimal PLUGIN_METADATA for discovery
 PLUGIN_METADATA = {
-    "name": "context-vars-enricher",
+    "name": "context_vars",
     "version": "1.0.0",
     "plugin_type": "enricher",
     "entry_point": "fapilog.plugins.enrichers.context_vars:ContextVarsEnricher",

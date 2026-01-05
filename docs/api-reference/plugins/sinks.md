@@ -37,9 +37,9 @@ class SerializedView:
 
 ## Built-in sinks
 
-- **stdout-json**: default sink, JSON lines to stdout.
-- **rotating-file**: size/time-based rotation with optional compression.
-- **http_client**: POST log entries to an HTTP endpoint.
+- **stdout_json**: default sink, JSON lines to stdout.
+- **rotating_file**: size/time-based rotation with optional compression.
+- **http**: POST log entries to an HTTP endpoint.
 - **webhook**: POST log entries to a webhook with optional signing.
 
 ## Configuration (env)

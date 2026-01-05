@@ -461,7 +461,7 @@ class RotatingFileSink:
 
 # Minimal plugin metadata for discovery compatibility (local/entry-point)
 PLUGIN_METADATA = {
-    "name": "rotating-file",
+    "name": "rotating_file",
     "version": "1.0.0",
     "plugin_type": "sink",
     "entry_point": "fapilog.plugins.sinks.rotating_file:RotatingFileSink",
