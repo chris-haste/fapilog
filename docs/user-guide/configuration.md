@@ -40,6 +40,19 @@ logger.info("configured", queue=settings.core.max_queue_size)
 - **HTTP sink**: set `FAPILOG_HTTP__ENDPOINT` and optional timeout/retry envs.
 - **Metrics**: set `FAPILOG_CORE__ENABLE_METRICS=true` to record internal metrics.
 
+## Deprecated setting: legacy sampling
+
+`observability.logging.sampling_rate` is deprecated and now raises a `DeprecationWarning`. Move to filter-based sampling to avoid double-sampling and to unlock sampling metrics:
+
+```yaml
+core:
+  filters: ["sampling"]
+filter_config:
+  sampling:
+    config:
+      sample_rate: 0.25
+```
+
 ## Full reference
 
 See `docs/env-vars.md` for the auto-generated environment variable matrix.

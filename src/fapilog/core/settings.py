@@ -577,6 +577,18 @@ class Settings(BaseSettings):
         rate_limit: dict[str, Any] = Field(
             default_factory=dict, description="Configuration for rate_limit filter"
         )
+        adaptive_sampling: dict[str, Any] = Field(
+            default_factory=dict,
+            description="Configuration for adaptive_sampling filter",
+        )
+        trace_sampling: dict[str, Any] = Field(
+            default_factory=dict,
+            description="Configuration for trace_sampling filter",
+        )
+        first_occurrence: dict[str, Any] = Field(
+            default_factory=dict,
+            description="Configuration for first_occurrence filter",
+        )
         extra: dict[str, dict[str, Any]] = Field(
             default_factory=dict,
             description="Configuration for third-party filters by name",

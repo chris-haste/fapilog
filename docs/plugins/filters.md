@@ -2,6 +2,14 @@
 
 Filters run first in the pipeline. They can drop an event (return `None`) or mutate it before enrichers run.
 
+```{toctree}
+:maxdepth: 1
+:caption: Filter Guides
+
+filters/sampling
+filters/rate-limiting
+```
+
 ## Contract
 
 - `name: str`
@@ -13,7 +21,10 @@ Filters run first in the pipeline. They can drop an event (return `None`) or mut
 
 - `level`: drop events below a minimum level.
 - `sampling`: probabilistic sampling with optional seed.
-- `rate_limit`: token-bucket rate limiting with optional key partitioning.
+- `adaptive_sampling`: adjust sampling to hit a target events-per-second window.
+- `trace_sampling`: deterministic sampling keyed by `trace_id`.
+- `first_occurrence`: always pass the first occurrence of a unique key, then sample duplicates.
+- `rate_limit`: token-bucket rate limiting with optional key partitioning and max bucket guardrails.
 
 ## Configuration
 

@@ -70,6 +70,25 @@ async def test_enabled_basic_counters_and_histograms() -> None:
 
 
 @pytest.mark.asyncio
+async def test_filter_sampling_and_rate_limit_gauges() -> None:
+    mc = MetricsCollector(enabled=True)
+
+    await mc.record_sample_rate("adaptive_sampling", 0.25)
+    await mc.record_rate_limit_keys_tracked(42)
+
+    reg = mc.registry
+    assert reg is not None
+    assert (
+        reg.get_sample_value(
+            "fapilog_filter_sample_rate",
+            {"filter": "adaptive_sampling"},
+        )
+        == 0.25
+    )
+    assert reg.get_sample_value("fapilog_rate_limit_keys_tracked") == 42.0
+
+
+@pytest.mark.asyncio
 async def test_plugin_timer_success_and_error() -> None:
     mc = MetricsCollector(enabled=True)
     # Success path

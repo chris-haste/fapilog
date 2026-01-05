@@ -48,6 +48,10 @@ class SamplingFilter:
             return None
         return event if random.random() < self._rate else None
 
+    @property
+    def current_sample_rate(self) -> float:
+        return self._rate
+
     async def health_check(self) -> bool:
         return True
 

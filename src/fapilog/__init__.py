@@ -161,6 +161,9 @@ def _filter_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
         "level": fcfg.level,
         "sampling": fcfg.sampling,
         "rate_limit": fcfg.rate_limit,
+        "adaptive_sampling": fcfg.adaptive_sampling,
+        "trace_sampling": fcfg.trace_sampling,
+        "first_occurrence": fcfg.first_occurrence,
     }
     cfg.update(fcfg.extra)
     return cfg
