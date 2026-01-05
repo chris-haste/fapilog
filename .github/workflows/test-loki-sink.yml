@@ -1,0 +1,48 @@
+name: Loki Sink Tests
+
+on:
+  pull_request:
+    paths:
+      - "src/fapilog/plugins/sinks/contrib/loki.py"
+      - "tests/integration/test_loki_sink.py"
+      - "tests/unit/test_loki_sink.py"
+      - ".github/workflows/test-loki-sink.yml"
+  push:
+    branches: [main]
+    paths:
+      - "src/fapilog/plugins/sinks/contrib/loki.py"
+      - "tests/integration/test_loki_sink.py"
+      - "tests/unit/test_loki_sink.py"
+      - ".github/workflows/test-loki-sink.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      loki:
+        image: grafana/loki:latest
+        ports:
+          - 3100:3100
+        options: >-
+          --health-cmd "wget --quiet --tries=1 --output-document=/dev/null http://localhost:3100/ready || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          pip install -e ".[dev]"
+      - name: Wait for Loki
+        run: |
+          timeout 60 bash -c 'until curl -s http://localhost:3100/ready | grep -q "ready"; do sleep 2; done'
+      - name: Run Loki tests
+        env:
+          LOKI_URL: http://localhost:3100
+        run: |
+          pytest tests/unit/test_loki_sink.py -q
+          pytest tests/integration/test_loki_sink.py -q

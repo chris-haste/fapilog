@@ -16,6 +16,7 @@ prometheus-metrics
 sampling-debug-logs
 size-limited-destinations
 cloudwatch_logging/index
+loki_logging/index
 cloud-sinks/index
 ```
 
@@ -32,6 +33,7 @@ These examples show fapilog in action across different use cases and environment
 - **Sampling Debug Logs** - Development vs production logging
 - **Size-Limited Destinations** - Guardrails for CloudWatch, Loki, and Kafka limits
 - **CloudWatch Logging** - LocalStack-backed example for AWS CloudWatch Logs
+- **Loki Logging** - Docker-based example for Grafana Loki
 
 ## Quick Examples
 

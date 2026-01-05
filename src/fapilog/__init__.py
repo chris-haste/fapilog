@@ -133,6 +133,24 @@ def _sink_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
                 batch_timeout_seconds=scfg.webhook.batch_timeout_seconds,
             )
         },
+        "loki": {
+            "config": {
+                "url": scfg.loki.url,
+                "tenant_id": scfg.loki.tenant_id,
+                "labels": scfg.loki.labels,
+                "label_keys": scfg.loki.label_keys,
+                "batch_size": scfg.loki.batch_size,
+                "batch_timeout_seconds": scfg.loki.batch_timeout_seconds,
+                "timeout_seconds": scfg.loki.timeout_seconds,
+                "max_retries": scfg.loki.max_retries,
+                "retry_base_delay": scfg.loki.retry_base_delay,
+                "auth_username": scfg.loki.auth_username,
+                "auth_password": scfg.loki.auth_password,
+                "auth_token": scfg.loki.auth_token,
+                "circuit_breaker_enabled": scfg.loki.circuit_breaker_enabled,
+                "circuit_breaker_threshold": scfg.loki.circuit_breaker_threshold,
+            }
+        },
         "cloudwatch": {
             "config": CloudWatchSinkConfig(
                 log_group_name=scfg.cloudwatch.log_group_name,

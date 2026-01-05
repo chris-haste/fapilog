@@ -7,6 +7,7 @@ End-to-end examples for sending logs to cloud observability platforms using fapi
 :titlesonly:
 
 aws-cloudwatch
+loki
 gcp-logging
 datadog
 common-patterns

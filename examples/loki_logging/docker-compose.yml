@@ -1,0 +1,19 @@
+version: "3.8"
+services:
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    volumes:
+      - ./provisioning:/etc/grafana/provisioning
+      - ./dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - loki
