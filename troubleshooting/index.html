@@ -25,7 +25,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Logs Dropped Under Load" href="logs-dropped-under-load.html" />
-    <link rel="prev" title="Plugin Error Handling" href="../plugins/error-handling.html" /> 
+    <link rel="prev" title="Building SDK-Based Sinks" href="../patterns/sdk-sinks.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -103,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../examples/prometheus-metrics.html">Prometheus Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloudwatch_logging/index.html">CloudWatch Logging (LocalStack)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/cloud-sinks/index.html">Cloud Sink Examples</a></li>
 </ul>
 </li>
@@ -118,6 +119,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../plugins/configuration.html">Plugin Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../plugins/health-checks.html">Plugin Health Checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../plugins/error-handling.html">Plugin Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../patterns.html">Integration Patterns</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Troubleshooting</a><ul>
@@ -127,6 +129,7 @@
 <li class="toctree-l2"><a class="reference internal" href="file-sink-not-rotating.html">File Sink Not Rotating</a></li>
 <li class="toctree-l2"><a class="reference internal" href="serialization-errors.html">Serialization Errors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cloudwatch-sink.html">CloudWatch Sink Issues</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
@@ -179,6 +182,7 @@
 <li class="toctree-l1"><a class="reference internal" href="file-sink-not-rotating.html">File Sink Not Rotating</a></li>
 <li class="toctree-l1"><a class="reference internal" href="serialization-errors.html">Serialization Errors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cloudwatch-sink.html">CloudWatch Sink Issues</a></li>
 </ul>
 </div>
 <section id="overview">
@@ -187,6 +191,7 @@
 <ul class="simple">
 <li><p><strong>Logs dropped under load</strong> - Queue overflow and backpressure issues</p></li>
 <li><p><strong>Destination size limits</strong> - Events rejected/truncated by sinks</p></li>
+<li><p><strong>CloudWatch sink</strong> - Sequence tokens, throttling, and LocalStack setup</p></li>
 <li><p><strong>Context values missing</strong> - Context binding and inheritance problems</p></li>
 <li><p><strong>File sink not rotating</strong> - File rotation and retention issues</p></li>
 <li><p><strong>Serialization errors</strong> - JSON and format problems</p></li>
@@ -435,7 +440,7 @@ sudo<span class="w"> </span>chmod<span class="w"> </span><span class="m">755</sp
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../plugins/error-handling.html" class="btn btn-neutral float-left" title="Plugin Error Handling" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../patterns/sdk-sinks.html" class="btn btn-neutral float-left" title="Building SDK-Based Sinks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="logs-dropped-under-load.html" class="btn btn-neutral float-right" title="Logs Dropped Under Load" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

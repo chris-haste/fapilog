@@ -45,7 +45,7 @@ class MySink(CloudSinkBase[dict]):
 
 ```toml
 [project.entry-points."fapilog.sinks"]
-cloudwatch = "myapp.sinks.cloudwatch_sink:CloudWatchSink"
+cloudwatch = "fapilog.plugins.sinks.contrib.cloudwatch:CloudWatchSink"
 datadog = "myapp.sinks.datadog_sink:DatadogSink"
 gcp_cloud_logging = "myapp.sinks.gcp_logging_sink:GCPCloudLoggingSink"
 ```

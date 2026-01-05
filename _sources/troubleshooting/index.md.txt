@@ -13,6 +13,7 @@ context-values-missing
 file-sink-not-rotating
 serialization-errors
 pii-showing-despite-redaction
+cloudwatch-sink
 ```
 
 ## Overview
@@ -21,6 +22,7 @@ This section helps you diagnose and fix common issues with fapilog:
 
 - **Logs dropped under load** - Queue overflow and backpressure issues
 - **Destination size limits** - Events rejected/truncated by sinks
+- **CloudWatch sink** - Sequence tokens, throttling, and LocalStack setup
 - **Context values missing** - Context binding and inheritance problems
 - **File sink not rotating** - File rotation and retention issues
 - **Serialization errors** - JSON and format problems

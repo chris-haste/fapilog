@@ -24,7 +24,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Enrichers" href="enrichers.html" />
+    <link rel="next" title="AWS CloudWatch Logs Sink" href="sinks/cloudwatch.html" />
     <link rel="prev" title="Redactors" href="redactors.html" /> 
 </head>
 
@@ -103,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../examples/prometheus-metrics.html">Prometheus Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloudwatch_logging/index.html">CloudWatch Logging (LocalStack)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/cloud-sinks/index.html">Cloud Sink Examples</a></li>
 </ul>
 </li>
@@ -118,6 +119,7 @@
 <li class="toctree-l2"><a class="reference internal" href="configuration.html">Plugin Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="health-checks.html">Plugin Health Checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="error-handling.html">Plugin Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../patterns.html">Integration Patterns</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../troubleshooting/index.html">Troubleshooting</a><ul>
@@ -127,6 +129,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../troubleshooting/file-sink-not-rotating.html">File Sink Not Rotating</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../troubleshooting/serialization-errors.html">Serialization Errors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../troubleshooting/pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/cloudwatch-sink.html">CloudWatch Sink Issues</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
@@ -203,8 +206,15 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">stdout_json</span></code> (default)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">rotating_file</span></code> (size/time rotation)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">http</span></code> (HTTP POST)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">webhook</span></code> (JSON webhook with optional batching)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cloudwatch</span></code> (AWS CloudWatch Logs; optional <code class="docutils literal notranslate"><span class="pre">fapilog[aws]</span></code>)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">mmap_persistence</span></code> (experimental; local persistence)</p></li>
 </ul>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="sinks/cloudwatch.html">AWS CloudWatch Logs Sink</a></li>
+</ul>
+</div>
 <section id="http-sink-batching">
 <h3>HTTP sink batching<a class="headerlink" href="#http-sink-batching" title="Link to this heading"></a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">HttpSink</span></code> now supports sink-level batching to reduce request volume:</p>
@@ -276,7 +286,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="redactors.html" class="btn btn-neutral float-left" title="Redactors" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="enrichers.html" class="btn btn-neutral float-right" title="Enrichers" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="sinks/cloudwatch.html" class="btn btn-neutral float-right" title="AWS CloudWatch Logs Sink" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

@@ -31,7 +31,16 @@ class MySink(BaseSink):
 - `stdout_json` (default)
 - `rotating_file` (size/time rotation)
 - `http` (HTTP POST)
+- `webhook` (JSON webhook with optional batching)
+- `cloudwatch` (AWS CloudWatch Logs; optional `fapilog[aws]`)
 - `mmap_persistence` (experimental; local persistence)
+
+```{toctree}
+:maxdepth: 1
+:titlesonly:
+
+sinks/cloudwatch
+```
 
 ### HTTP sink batching
 

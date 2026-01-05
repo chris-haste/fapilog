@@ -1,12 +1,12 @@
 # AWS CloudWatch Logs
 
-Complete CloudWatch integration using the example sink in `examples/sinks/cloudwatch_sink.py`.
+Complete CloudWatch integration using the built-in `cloudwatch` sink (`fapilog.plugins.sinks.contrib.cloudwatch`).
 
 ## Quick start (code)
 
 ```python
 from fapilog import Settings, get_logger
-from examples.sinks.cloudwatch_sink import CloudWatchSink, CloudWatchSinkConfig
+from fapilog.plugins.sinks.contrib.cloudwatch import CloudWatchSink, CloudWatchSinkConfig
 
 sink = CloudWatchSink(
     CloudWatchSinkConfig(
@@ -24,8 +24,9 @@ logger.info("cloudwatch ready", service="api")
 
 ```bash
 export AWS_REGION=us-west-2
-export FAPILOG_CLOUDWATCH_LOG_GROUP=/myapp/production
-export FAPILOG_CLOUDWATCH_LOG_STREAM=api-server
+export FAPILOG_CORE__SINKS='["cloudwatch"]'
+export FAPILOG_CLOUDWATCH__LOG_GROUP_NAME=/myapp/production
+export FAPILOG_CLOUDWATCH__LOG_STREAM_NAME=api-server
 # Use IAM role or:
 # export AWS_ACCESS_KEY_ID=...
 # export AWS_SECRET_ACCESS_KEY=...
@@ -35,7 +36,7 @@ Then:
 
 ```python
 from fapilog import get_logger
-from examples.sinks.cloudwatch_sink import CloudWatchSink
+from fapilog.plugins.sinks.contrib.cloudwatch import CloudWatchSink
 
 logger = get_logger(sinks=[CloudWatchSink()])
 logger.error("db connection failed", host="db.internal")
@@ -45,7 +46,7 @@ logger.error("db connection failed", host="db.internal")
 
 ```toml
 [project.entry-points."fapilog.sinks"]
-cloudwatch = "myapp.sinks.cloudwatch_sink:CloudWatchSink"
+cloudwatch = "fapilog.plugins.sinks.contrib.cloudwatch:CloudWatchSink"
 ```
 
 ```yaml

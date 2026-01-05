@@ -103,6 +103,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../prometheus-metrics.html">Prometheus Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sampling-debug-logs.html">Sampling Debug Logs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cloudwatch_logging/index.html">CloudWatch Logging (LocalStack)</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="index.html">Cloud Sink Examples</a></li>
 </ul>
 </li>
@@ -118,6 +119,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../plugins/configuration.html">Plugin Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../plugins/health-checks.html">Plugin Health Checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../plugins/error-handling.html">Plugin Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../patterns.html">Integration Patterns</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting/index.html">Troubleshooting</a><ul>
@@ -127,6 +129,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../troubleshooting/file-sink-not-rotating.html">File Sink Not Rotating</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../troubleshooting/serialization-errors.html">Serialization Errors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../troubleshooting/pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../troubleshooting/cloudwatch-sink.html">CloudWatch Sink Issues</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../faq.html">Frequently Asked Questions</a></li>
@@ -171,11 +174,11 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="aws-cloudwatch-logs">
 <h1>AWS CloudWatch Logs<a class="headerlink" href="#aws-cloudwatch-logs" title="Link to this heading"></a></h1>
-<p>Complete CloudWatch integration using the example sink in <code class="docutils literal notranslate"><span class="pre">examples/sinks/cloudwatch_sink.py</span></code>.</p>
+<p>Complete CloudWatch integration using the built-in <code class="docutils literal notranslate"><span class="pre">cloudwatch</span></code> sink (<code class="docutils literal notranslate"><span class="pre">fapilog.plugins.sinks.contrib.cloudwatch</span></code>).</p>
 <section id="quick-start-code">
 <h2>Quick start (code)<a class="headerlink" href="#quick-start-code" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span><span class="p">,</span> <span class="n">get_logger</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">examples.sinks.cloudwatch_sink</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudWatchSink</span><span class="p">,</span> <span class="n">CloudWatchSinkConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.sinks.contrib.cloudwatch</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudWatchSink</span><span class="p">,</span> <span class="n">CloudWatchSinkConfig</span>
 
 <span class="n">sink</span> <span class="o">=</span> <span class="n">CloudWatchSink</span><span class="p">(</span>
     <span class="n">CloudWatchSinkConfig</span><span class="p">(</span>
@@ -193,8 +196,9 @@
 <section id="environment-setup">
 <h2>Environment setup<a class="headerlink" href="#environment-setup" title="Link to this heading"></a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">AWS_REGION</span><span class="o">=</span>us-west-2
-<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CLOUDWATCH_LOG_GROUP</span><span class="o">=</span>/myapp/production
-<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CLOUDWATCH_LOG_STREAM</span><span class="o">=</span>api-server
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__SINKS</span><span class="o">=</span><span class="s1">&#39;[&quot;cloudwatch&quot;]&#39;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CLOUDWATCH__LOG_GROUP_NAME</span><span class="o">=</span>/myapp/production
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CLOUDWATCH__LOG_STREAM_NAME</span><span class="o">=</span>api-server
 <span class="c1"># Use IAM role or:</span>
 <span class="c1"># export AWS_ACCESS_KEY_ID=...</span>
 <span class="c1"># export AWS_SECRET_ACCESS_KEY=...</span>
@@ -202,7 +206,7 @@
 </div>
 <p>Then:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">examples.sinks.cloudwatch_sink</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudWatchSink</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.sinks.contrib.cloudwatch</span><span class="w"> </span><span class="kn">import</span> <span class="n">CloudWatchSink</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="n">CloudWatchSink</span><span class="p">()])</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;db connection failed&quot;</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s2">&quot;db.internal&quot;</span><span class="p">)</span>
@@ -212,7 +216,7 @@
 <section id="entry-point-registration">
 <h2>Entry-point registration<a class="headerlink" href="#entry-point-registration" title="Link to this heading"></a></h2>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[project.entry-points.</span><span class="s2">&quot;fapilog.sinks&quot;</span><span class="k">]</span>
-<span class="n">cloudwatch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;myapp.sinks.cloudwatch_sink:CloudWatchSink&quot;</span>
+<span class="n">cloudwatch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;fapilog.plugins.sinks.contrib.cloudwatch:CloudWatchSink&quot;</span>
 </pre></div>
 </div>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">core</span><span class="p">:</span>
