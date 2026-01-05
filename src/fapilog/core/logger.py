@@ -11,6 +11,7 @@ import asyncio
 import contextvars
 import threading
 import time
+import warnings
 from dataclasses import dataclass
 from typing import Any, Iterable, cast
 
@@ -437,9 +438,24 @@ class SyncLoggerFacade(_WorkerCountersMixin):
         try:
             s = Settings()
             rate = float(s.observability.logging.sampling_rate)
-            if rate < 1.0 and level in {"DEBUG", "INFO"}:
+            filters = getattr(getattr(s, "core", None), "filters", []) or []
+            sampling_filters = {
+                name.replace("-", "_").lower()
+                for name in filters
+                if isinstance(name, str)
+            }
+            sampling_configured = bool(
+                sampling_filters & {"sampling", "adaptive_sampling", "trace_sampling"}
+            )
+            if rate < 1.0 and level in {"DEBUG", "INFO"} and not sampling_configured:
                 import random
 
+                warnings.warn(
+                    "observability.logging.sampling_rate is deprecated. "
+                    "Use core.filters=['sampling'] with filter_config.sampling instead.",
+                    DeprecationWarning,
+                    stacklevel=3,
+                )
                 if random.random() > rate:
                     return
         except Exception:
@@ -1169,9 +1185,24 @@ class AsyncLoggerFacade(_WorkerCountersMixin):
         try:
             s = Settings()
             rate = float(s.observability.logging.sampling_rate)
-            if rate < 1.0 and level in {"DEBUG", "INFO"}:
+            filters = getattr(getattr(s, "core", None), "filters", []) or []
+            sampling_filters = {
+                name.replace("-", "_").lower()
+                for name in filters
+                if isinstance(name, str)
+            }
+            sampling_configured = bool(
+                sampling_filters & {"sampling", "adaptive_sampling", "trace_sampling"}
+            )
+            if rate < 1.0 and level in {"DEBUG", "INFO"} and not sampling_configured:
                 import random
 
+                warnings.warn(
+                    "observability.logging.sampling_rate is deprecated. "
+                    "Use core.filters=['sampling'] with filter_config.sampling instead.",
+                    DeprecationWarning,
+                    stacklevel=3,
+                )
                 if random.random() > rate:
                     return
         except Exception:

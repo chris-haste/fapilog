@@ -105,6 +105,8 @@ class MetricsCollector:
         self._h_batch_size: Any | None = None
         self._c_sink_errors: Any | None = None
         self._g_queue_high_watermark: Any | None = None
+        self._g_filter_sample_rate: Any | None = None
+        self._g_rate_limit_keys: Any | None = None
 
         if self._enabled:
             # Minimal metric set; names align with conventional Prometheus
@@ -217,6 +219,17 @@ class MetricsCollector:
                 "Observed max queue depth since start",
                 registry=self._registry,
             )
+            self._g_filter_sample_rate = Gauge(
+                "fapilog_filter_sample_rate",
+                "Current sample rate reported by filters",
+                ["filter"],
+                registry=self._registry,
+            )
+            self._g_rate_limit_keys = Gauge(
+                "fapilog_rate_limit_keys_tracked",
+                "Number of unique rate limit keys currently tracked",
+                registry=self._registry,
+            )
 
     @property
     def is_enabled(self) -> bool:
@@ -278,6 +291,18 @@ class MetricsCollector:
             return
         if self._g_queue_high_watermark is not None:
             self._g_queue_high_watermark.set(value)
+
+    async def record_sample_rate(self, filter_name: str, rate: float) -> None:
+        if not self._enabled:
+            return
+        if self._g_filter_sample_rate is not None:
+            self._g_filter_sample_rate.labels(filter=filter_name).set(rate)
+
+    async def record_rate_limit_keys_tracked(self, count: int) -> None:
+        if not self._enabled:
+            return
+        if self._g_rate_limit_keys is not None:
+            self._g_rate_limit_keys.set(count)
 
     async def record_sink_error(
         self, *, sink: str | None = None, count: int = 1

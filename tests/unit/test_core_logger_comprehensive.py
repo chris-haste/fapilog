@@ -14,6 +14,7 @@ import asyncio
 import sys
 import threading
 import time
+import warnings
 from typing import Any
 from unittest.mock import Mock, patch
 
@@ -98,7 +99,13 @@ class TestLoggingLevelsAndSampling:
         )  # error + exception
 
     def test_sampling_rate_effect_on_debug_info(self) -> None:
-        """Test that sampling rate affects DEBUG/INFO levels."""
+        """Test that sampling rate affects DEBUG/INFO levels.
+
+        Note: This tests legacy sampling via observability.logging.sampling_rate.
+        The patch must target the random module imported locally in _enqueue.
+        """
+        import random as random_module
+
         out: list[dict[str, Any]] = []
         logger = _create_test_logger(
             "sampling-test", out, queue_capacity=32, backpressure_wait_ms=0
@@ -109,16 +116,31 @@ class TestLoggingLevelsAndSampling:
         with patch("fapilog.core.settings.Settings") as mock_settings:
             settings_instance = Mock()
             settings_instance.observability.logging.sampling_rate = 0.5  # 50%
+            # Need to mock core.filters to ensure sampling_configured is False
+            settings_instance.core.filters = []
             mock_settings.return_value = settings_instance
 
-            # Mock random to control sampling - alternate between sampled out and kept
-            with patch("random.random", side_effect=[0.6, 0.3, 0.7, 0.2, 0.8, 0.1]):
-                logger.debug("debug1")  # 0.6 > 0.5 -> sampled out
-                logger.info("info1")  # 0.3 <= 0.5 -> kept
-                logger.debug("debug2")  # 0.7 > 0.5 -> sampled out
-                logger.info("info2")  # 0.2 <= 0.5 -> kept
-                logger.debug("debug3")  # 0.8 > 0.5 -> sampled out
-                logger.info("info3")  # 0.1 <= 0.5 -> kept
+            # Patch random.random in the random module itself (used by local import)
+            original_random = random_module.random
+            call_count = [0]
+            values = [0.6, 0.3, 0.7, 0.2, 0.8, 0.1]
+
+            def mock_random() -> float:
+                if call_count[0] < len(values):
+                    val = values[call_count[0]]
+                    call_count[0] += 1
+                    return val
+                return original_random()
+
+            with patch.object(random_module, "random", mock_random):
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", DeprecationWarning)
+                    logger.debug("debug1")  # 0.6 > 0.5 -> sampled out
+                    logger.info("info1")  # 0.3 <= 0.5 -> kept
+                    logger.debug("debug2")  # 0.7 > 0.5 -> sampled out
+                    logger.info("info2")  # 0.2 <= 0.5 -> kept
+                    logger.debug("debug3")  # 0.8 > 0.5 -> sampled out
+                    logger.info("info3")  # 0.1 <= 0.5 -> kept
 
         asyncio.run(logger.stop_and_drain())
 
