@@ -1,0 +1,1 @@
+"""Example integrations for fapilog."""
