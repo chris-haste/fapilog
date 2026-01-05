@@ -11,6 +11,7 @@ contracts-and-versioning
 redactors
 sinks
 enrichers
+filters
 processors
 configuration
 health-checks

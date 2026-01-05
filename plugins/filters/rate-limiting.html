@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Redactors &mdash; fapilog latest documentation</title>
+  <title>Rate Limiting Filter &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -24,8 +24,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Processors" href="processors.html" />
-    <link rel="prev" title="Enrichers" href="enrichers.html" /> 
+    <link rel="next" title="Processors" href="../processors.html" />
+    <link rel="prev" title="Sampling Filters" href="sampling.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -83,15 +83,15 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../enterprise.html">Enterprise Features</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Reference</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="../top-level-functions.html">Top-Level Functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../logger-methods.html">Logger Methods</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../context-binding.html">Context Binding</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../audit-trail.html">Audit Trail</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../configuration.html">Configuration</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="index.html">Plugins</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../lifecycle-results.html">Lifecycle &amp; Results</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../modules.html">API Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api-reference/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api-reference/top-level-functions.html">Top-Level Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api-reference/logger-methods.html">Logger Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api-reference/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api-reference/audit-trail.html">Audit Trail</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api-reference/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api-reference/plugins/index.html">Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api-reference/modules.html">API Modules</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples &amp; Recipes</a><ul>
@@ -104,17 +104,17 @@
 <li class="toctree-l2"><a class="reference internal" href="../../examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../plugins/index.html">Plugin Development</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../plugins/authoring.html">Authoring Fapilog Plugins</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../plugins/contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../plugins/redactors.html">Redactors</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../plugins/sinks.html">Sinks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../plugins/enrichers.html">Enrichers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../plugins/filters.html">Filters</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../plugins/processors.html">Processors</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../plugins/configuration.html">Plugin Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../plugins/health-checks.html">Plugin Health Checks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../plugins/error-handling.html">Plugin Error Handling</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Plugin Development</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../authoring.html">Authoring Fapilog Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../enrichers.html">Enrichers</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../filters.html">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../processors.html">Processors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html">Plugin Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../health-checks.html">Plugin Health Checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../error-handling.html">Plugin Error Handling</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../troubleshooting/index.html">Troubleshooting</a><ul>
@@ -153,11 +153,11 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="../index.html">API Reference</a></li>
-          <li class="breadcrumb-item"><a href="index.html">Plugins</a></li>
-      <li class="breadcrumb-item active">Redactors</li>
+          <li class="breadcrumb-item"><a href="../index.html">Plugin Development</a></li>
+          <li class="breadcrumb-item"><a href="../filters.html">Filters</a></li>
+      <li class="breadcrumb-item active">Rate Limiting Filter</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/api-reference/plugins/redactors.md.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/plugins/filters/rate-limiting.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -165,30 +165,37 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="redactors">
-<h1>Redactors<a class="headerlink" href="#redactors" title="Link to this heading"></a></h1>
-<p>Plugins that mask or remove sensitive data.</p>
-<section id="contract">
-<h2>Contract<a class="headerlink" href="#contract" title="Link to this heading"></a></h2>
-<p>Implement <code class="docutils literal notranslate"><span class="pre">BaseRedactor.redact(entry:</span> <span class="pre">dict)</span> <span class="pre">-&gt;</span> <span class="pre">dict</span></code> (async). Return the updated entry; contain errors so the pipeline continues.</p>
-</section>
-<section id="built-in-redactors">
-<h2>Built-in redactors<a class="headerlink" href="#built-in-redactors" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p><strong>field-mask</strong>: masks configured field names (from <code class="docutils literal notranslate"><span class="pre">sensitive_fields_policy</span></code>).</p></li>
-<li><p><strong>regex-mask</strong>: masks values matching sensitive patterns (default regex covers common secrets).</p></li>
-<li><p><strong>url-credentials</strong>: strips credentials from URL-like strings.</p></li>
-</ul>
-</section>
+  <section class="tex2jax_ignore mathjax_ignore" id="rate-limiting-filter">
+<h1>Rate Limiting Filter<a class="headerlink" href="#rate-limiting-filter" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">rate_limit</span></code> filter applies a token-bucket limit before enrichment. It now supports bounded bucket counts, configurable overflow handling, and diagnostics when nearing capacity.</p>
 <section id="configuration">
 <h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h2>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">core</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">filters</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;rate_limit&quot;</span><span class="p p-Indicator">]</span>
+<span class="nt">filter_config</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rate_limit</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">config</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">capacity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span><span class="w">            </span><span class="c1"># tokens per bucket</span>
+<span class="w">      </span><span class="nt">refill_rate_per_sec</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span><span class="w">  </span><span class="c1"># tokens/second</span>
+<span class="w">      </span><span class="nt">key_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user_id</span><span class="w">      </span><span class="c1"># optional per-key isolation</span>
+<span class="w">      </span><span class="nt">max_keys</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10000</span><span class="w">         </span><span class="c1"># bounded bucket count (LRU eviction)</span>
+<span class="w">      </span><span class="nt">overflow_action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drop</span><span class="w">   </span><span class="c1"># drop | mark</span>
+</pre></div>
+</div>
 <ul class="simple">
-<li><p>Enable/disable: <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__ENABLE_REDACTORS</span></code></p></li>
-<li><p>Order: <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__REDACTORS_ORDER</span></code></p></li>
-<li><p>Guardrails: <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__REDACTION_MAX_DEPTH</span></code>, <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__REDACTION_MAX_KEYS_SCANNED</span></code></p></li>
-<li><p>Sensitive fields: <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SENSITIVE_FIELDS_POLICY</span></code></p></li>
+<li><p><strong>capacity / refill_rate_per_sec</strong>: classic token-bucket controls.</p></li>
+<li><p><strong>key_field</strong>: partitions buckets (e.g., per user, tenant, API key). Omit for a global bucket.</p></li>
+<li><p><strong>max_keys</strong>: bounds memory; oldest buckets evict when the limit is reached.</p></li>
+<li><p><strong>overflow_action</strong>: set to <code class="docutils literal notranslate"><span class="pre">mark</span></code> to keep the event but annotate it with <code class="docutils literal notranslate"><span class="pre">rate_limited=True</span></code> instead of dropping.</p></li>
 </ul>
-<p>Redactors run after enrichers and before sinks.*** End Patch</p>
+</section>
+<section id="health-diagnostics">
+<h2>Health &amp; diagnostics<a class="headerlink" href="#health-diagnostics" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">health_check()</span></code> returns <code class="docutils literal notranslate"><span class="pre">False</span></code> when tracked keys exceed 90% of <code class="docutils literal notranslate"><span class="pre">max_keys</span></code> and emits a diagnostic warning.</p></li>
+<li><p>Gauge <code class="docutils literal notranslate"><span class="pre">fapilog_rate_limit_keys_tracked</span></code> reports current bucket count when metrics are enabled.</p></li>
+<li><p>Drops still increment <code class="docutils literal notranslate"><span class="pre">fapilog_events_filtered_total</span></code>.</p></li>
+</ul>
 </section>
 </section>
 
@@ -196,8 +203,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="enrichers.html" class="btn btn-neutral float-left" title="Enrichers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="processors.html" class="btn btn-neutral float-right" title="Processors" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="sampling.html" class="btn btn-neutral float-left" title="Sampling Filters" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../processors.html" class="btn btn-neutral float-right" title="Processors" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

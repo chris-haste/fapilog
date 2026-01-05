@@ -110,6 +110,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../plugins/redactors.html">Redactors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../plugins/sinks.html">Sinks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../plugins/enrichers.html">Enrichers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/filters.html">Filters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../plugins/processors.html">Processors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../plugins/configuration.html">Plugin Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../plugins/health-checks.html">Plugin Health Checks</a></li>
@@ -165,9 +166,11 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="sampling-debug-logs">
 <h1>Sampling Debug Logs<a class="headerlink" href="#sampling-debug-logs" title="Link to this heading"></a></h1>
-<p>Reduce debug/info volume with sampling.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Keep 20% of DEBUG/INFO logs; WARN/ERROR unaffected</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_OBSERVABILITY__LOGGING__SAMPLING_RATE</span><span class="o">=</span><span class="m">0</span>.2
+<p>Use filter-based sampling to trim DEBUG/INFO noise while keeping critical signals intact.</p>
+<section id="probabilistic-sampling-20">
+<h2>Probabilistic sampling (20%)<a class="headerlink" href="#probabilistic-sampling-20" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__FILTERS</span><span class="o">=</span><span class="s1">&#39;[&quot;sampling&quot;]&#39;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILTER_CONFIG__SAMPLING__CONFIG__SAMPLE_RATE</span><span class="o">=</span><span class="m">0</span>.2
 </pre></div>
 </div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_async_logger</span>
@@ -175,9 +178,33 @@
 <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">()</span>
 <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;expensive debug payload&quot;</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>
 <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;high-volume event&quot;</span><span class="p">)</span>
-<span class="c1"># Sampling applies only to DEBUG/INFO</span>
+<span class="c1"># Sampling applies only to DEBUG/INFO; WARN/ERROR always pass.</span>
 </pre></div>
 </div>
+</section>
+<section id="adaptive-sampling-target-eps">
+<h2>Adaptive sampling (target EPS)<a class="headerlink" href="#adaptive-sampling-target-eps" title="Link to this heading"></a></h2>
+<p>Keep a representative sample at high volume, ramp up sampling during quiet periods.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__FILTERS</span><span class="o">=</span><span class="s1">&#39;[&quot;adaptive_sampling&quot;]&#39;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILTER_CONFIG__ADAPTIVE_SAMPLING__CONFIG__TARGET_EPS</span><span class="o">=</span><span class="m">150</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILTER_CONFIG__ADAPTIVE_SAMPLING__CONFIG__MIN_SAMPLE_RATE</span><span class="o">=</span><span class="m">0</span>.01
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILTER_CONFIG__ADAPTIVE_SAMPLING__CONFIG__MAX_SAMPLE_RATE</span><span class="o">=</span><span class="m">1</span>.0
+</pre></div>
+</div>
+</section>
+<section id="trace-aware-sampling">
+<h2>Trace-aware sampling<a class="headerlink" href="#trace-aware-sampling" title="Link to this heading"></a></h2>
+<p>Ensure whole traces stay together:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__FILTERS</span><span class="o">=</span><span class="s1">&#39;[&quot;trace_sampling&quot;]&#39;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILTER_CONFIG__TRACE_SAMPLING__CONFIG__SAMPLE_RATE</span><span class="o">=</span><span class="m">0</span>.15
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILTER_CONFIG__TRACE_SAMPLING__CONFIG__TRACE_ID_FIELD</span><span class="o">=</span>trace_id
+</pre></div>
+</div>
+</section>
+<section id="migration-note">
+<h2>Migration note<a class="headerlink" href="#migration-note" title="Link to this heading"></a></h2>
+<p>The legacy <code class="docutils literal notranslate"><span class="pre">observability.logging.sampling_rate</span></code> setting now emits a <code class="docutils literal notranslate"><span class="pre">DeprecationWarning</span></code>. Switch to <code class="docutils literal notranslate"><span class="pre">core.filters=[&quot;sampling&quot;]</span></code> (or <code class="docutils literal notranslate"><span class="pre">adaptive_sampling</span></code> / <code class="docutils literal notranslate"><span class="pre">trace_sampling</span></code>) with the corresponding <code class="docutils literal notranslate"><span class="pre">filter_config.*</span></code> block to avoid double-sampling and to expose sampling metrics.</p>
+</section>
 </section>
 
 

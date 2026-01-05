@@ -110,6 +110,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../plugins/redactors.html">Redactors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../plugins/sinks.html">Sinks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../plugins/enrichers.html">Enrichers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/filters.html">Filters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../plugins/processors.html">Processors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../plugins/configuration.html">Plugin Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../plugins/health-checks.html">Plugin Health Checks</a></li>
@@ -204,6 +205,18 @@
 <li><p><strong>HTTP sink</strong>: set <code class="docutils literal notranslate"><span class="pre">FAPILOG_HTTP__ENDPOINT</span></code> and optional timeout/retry envs.</p></li>
 <li><p><strong>Metrics</strong>: set <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__ENABLE_METRICS=true</span></code> to record internal metrics.</p></li>
 </ul>
+</section>
+<section id="deprecated-setting-legacy-sampling">
+<h2>Deprecated setting: legacy sampling<a class="headerlink" href="#deprecated-setting-legacy-sampling" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">observability.logging.sampling_rate</span></code> is deprecated and now raises a <code class="docutils literal notranslate"><span class="pre">DeprecationWarning</span></code>. Move to filter-based sampling to avoid double-sampling and to unlock sampling metrics:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">core</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">filters</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;sampling&quot;</span><span class="p p-Indicator">]</span>
+<span class="nt">filter_config</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">sampling</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">config</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">sample_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.25</span>
+</pre></div>
+</div>
 </section>
 <section id="full-reference">
 <h2>Full reference<a class="headerlink" href="#full-reference" title="Link to this heading"></a></h2>

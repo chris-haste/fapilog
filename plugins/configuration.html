@@ -110,6 +110,7 @@
 <li class="toctree-l2"><a class="reference internal" href="redactors.html">Redactors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sinks.html">Sinks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="enrichers.html">Enrichers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="filters.html">Filters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="processors.html">Processors</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Plugin Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="health-checks.html">Plugin Health Checks</a></li>
@@ -193,7 +194,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">redactor_config.regex_mask</span></code>: patterns, mask string, guardrails</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">redactor_config.url_credentials</span></code>: max string length</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">processor_config.zero_copy</span></code>: reserved for zero_copy options; third-party configs via <code class="docutils literal notranslate"><span class="pre">processor_config.extra</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">filter_config.level/sampling/rate_limit</span></code>: built-in filters; third-party configs via <code class="docutils literal notranslate"><span class="pre">filter_config.extra</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filter_config.level/sampling/adaptive_sampling/trace_sampling/first_occurrence/rate_limit</span></code>: built-in filters; third-party configs via <code class="docutils literal notranslate"><span class="pre">filter_config.extra</span></code></p></li>
 <li><p>Third-party plugins use <code class="docutils literal notranslate"><span class="pre">extra</span></code> maps (<code class="docutils literal notranslate"><span class="pre">sink_config.extra</span></code>, <code class="docutils literal notranslate"><span class="pre">enricher_config.extra</span></code>, <code class="docutils literal notranslate"><span class="pre">redactor_config.extra</span></code>, <code class="docutils literal notranslate"><span class="pre">processor_config.extra</span></code>) with arbitrary keys.</p></li>
 </ul>
 </li>

@@ -23,7 +23,9 @@
       <script src="../_static/custom.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Sampling Filters" href="filters/sampling.html" />
+    <link rel="prev" title="Enrichers" href="enrichers.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -46,7 +48,7 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../getting-started/installation.html">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../getting-started/quickstart.html">Quickstart Tutorial</a></li>
@@ -102,12 +104,13 @@
 <li class="toctree-l2"><a class="reference internal" href="../examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="index.html">Plugin Development</a><ul>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Plugin Development</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="authoring.html">Authoring Fapilog Plugins</a></li>
 <li class="toctree-l2"><a class="reference internal" href="contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="redactors.html">Redactors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sinks.html">Sinks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="enrichers.html">Enrichers</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Filters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="processors.html">Processors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="configuration.html">Plugin Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="health-checks.html">Plugin Health Checks</a></li>
@@ -150,6 +153,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Plugin Development</a></li>
       <li class="breadcrumb-item active">Filters</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/plugins/filters.md.txt" rel="nofollow"> View page source</a>
@@ -163,6 +167,13 @@
   <section class="tex2jax_ignore mathjax_ignore" id="filters">
 <h1>Filters<a class="headerlink" href="#filters" title="Link to this heading"></a></h1>
 <p>Filters run first in the pipeline. They can drop an event (return <code class="docutils literal notranslate"><span class="pre">None</span></code>) or mutate it before enrichers run.</p>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Filter Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filters/sampling.html">Sampling Filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filters/rate-limiting.html">Rate Limiting Filter</a></li>
+</ul>
+</div>
 <section id="contract">
 <h2>Contract<a class="headerlink" href="#contract" title="Link to this heading"></a></h2>
 <ul class="simple">
@@ -177,7 +188,10 @@
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">level</span></code>: drop events below a minimum level.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">sampling</span></code>: probabilistic sampling with optional seed.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">rate_limit</span></code>: token-bucket rate limiting with optional key partitioning.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">adaptive_sampling</span></code>: adjust sampling to hit a target events-per-second window.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trace_sampling</span></code>: deterministic sampling keyed by <code class="docutils literal notranslate"><span class="pre">trace_id</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">first_occurrence</span></code>: always pass the first occurrence of a unique key, then sample duplicates.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rate_limit</span></code>: token-bucket rate limiting with optional key partitioning and max bucket guardrails.</p></li>
 </ul>
 </section>
 <section id="configuration">
@@ -190,7 +204,10 @@
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="enrichers.html" class="btn btn-neutral float-left" title="Enrichers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="filters/sampling.html" class="btn btn-neutral float-right" title="Sampling Filters" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 
