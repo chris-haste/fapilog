@@ -17,6 +17,7 @@ testing
 configuration
 health-checks
 error-handling
+../patterns
 ```
 
 ## Overview

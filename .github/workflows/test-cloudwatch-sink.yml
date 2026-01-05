@@ -1,0 +1,48 @@
+name: CloudWatch Sink Tests
+
+on:
+  pull_request:
+    paths:
+      - "src/fapilog/plugins/sinks/contrib/cloudwatch.py"
+      - "tests/integration/test_cloudwatch_sink_localstack.py"
+      - "tests/unit/test_cloudwatch_sink.py"
+      - ".github/workflows/test-cloudwatch-sink.yml"
+  push:
+    branches: [main]
+    paths:
+      - "src/fapilog/plugins/sinks/contrib/cloudwatch.py"
+      - "tests/integration/test_cloudwatch_sink_localstack.py"
+      - "tests/unit/test_cloudwatch_sink.py"
+      - ".github/workflows/test-cloudwatch-sink.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      localstack:
+        image: localstack/localstack:latest
+        ports:
+          - 4566:4566
+        env:
+          SERVICES: logs
+          DEFAULT_REGION: us-east-1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          pip install -e ".[aws,dev]"
+      - name: Wait for LocalStack
+        run: |
+          timeout 60 bash -c 'until curl -s http://localhost:4566/_localstack/health | grep -q running; do sleep 2; done'
+      - name: Run CloudWatch tests
+        env:
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_DEFAULT_REGION: us-east-1
+          LOCALSTACK_ENDPOINT: http://localhost:4566
+        run: |
+          pytest tests/unit/test_cloudwatch_sink.py -q
+          pytest tests/integration/test_cloudwatch_sink_localstack.py -q

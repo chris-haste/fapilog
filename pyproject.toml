@@ -58,6 +58,11 @@ http = [
     "httpx>=0.24.0",
 ]
 
+# AWS/CloudWatch sink
+aws = [
+    "boto3>=1.26.0",
+]
+
 # Metrics exporter support
 metrics = [
     "prometheus-client>=0.17.0",
@@ -100,7 +105,7 @@ docs = [
 
 # All optional dependencies
 all = [
-    "fapilog[dev,docs,fastapi,http,metrics,system,mqtt]",
+    "fapilog[dev,docs,fastapi,http,metrics,system,mqtt,aws]",
 ]
 
 [project.urls]

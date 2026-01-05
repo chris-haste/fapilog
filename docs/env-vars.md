@@ -115,6 +115,18 @@
 | `FAPILOG__SECURITY__ENCRYPTION__KEY_SOURCE` | Optional | — | Source for key material |
 | `FAPILOG__SECURITY__ENCRYPTION__MIN_TLS_VERSION` | Literal | 1.2 | Minimum TLS version for transport |
 | `FAPILOG__SECURITY__ENCRYPTION__ROTATE_INTERVAL_DAYS` | int | 90 | Recommended key rotation interval |
+| `FAPILOG__SINK_CONFIG__CLOUDWATCH__BATCH_SIZE` | int | 100 | Events per batch |
+| `FAPILOG__SINK_CONFIG__CLOUDWATCH__BATCH_TIMEOUT_SECONDS` | float | 5.0 | Max seconds before flushing a partial batch |
+| `FAPILOG__SINK_CONFIG__CLOUDWATCH__CIRCUIT_BREAKER_ENABLED` | bool | True | Enable internal circuit breaker for CloudWatch sink |
+| `FAPILOG__SINK_CONFIG__CLOUDWATCH__CIRCUIT_BREAKER_THRESHOLD` | int | 5 | Failures before opening circuit |
+| `FAPILOG__SINK_CONFIG__CLOUDWATCH__CREATE_LOG_GROUP` | bool | True | Create log group if missing |
+| `FAPILOG__SINK_CONFIG__CLOUDWATCH__CREATE_LOG_STREAM` | bool | True | Create log stream if missing |
+| `FAPILOG__SINK_CONFIG__CLOUDWATCH__ENDPOINT_URL` | str | None | — | Custom endpoint (e.g., LocalStack) |
+| `FAPILOG__SINK_CONFIG__CLOUDWATCH__LOG_GROUP_NAME` | str | /fapilog/default | CloudWatch log group name |
+| `FAPILOG__SINK_CONFIG__CLOUDWATCH__LOG_STREAM_NAME` | str | None | — | CloudWatch log stream name |
+| `FAPILOG__SINK_CONFIG__CLOUDWATCH__MAX_RETRIES` | int | 3 | Max retries for PutLogEvents |
+| `FAPILOG__SINK_CONFIG__CLOUDWATCH__REGION` | str | None | — | AWS region for CloudWatch Logs API calls |
+| `FAPILOG__SINK_CONFIG__CLOUDWATCH__RETRY_BASE_DELAY` | float | 0.5 | Base delay for exponential backoff |
 | `FAPILOG__SINK_CONFIG__EXTRA` | dict | PydanticUndefined | Configuration for third-party sinks by name |
 | `FAPILOG__SINK_CONFIG__HTTP__BATCH_FORMAT` | str | array | Batch format: 'array', 'ndjson', or 'wrapped' |
 | `FAPILOG__SINK_CONFIG__HTTP__BATCH_SIZE` | int | 1 | Maximum events per HTTP request (1 = no batching) |

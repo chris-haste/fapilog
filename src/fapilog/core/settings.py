@@ -124,6 +124,45 @@ class SealedSinkSettings(BaseModel):
     )
 
 
+class CloudWatchSinkSettings(BaseModel):
+    """Configuration for the CloudWatch sink."""
+
+    log_group_name: str = Field(
+        default="/fapilog/default", description="CloudWatch log group name"
+    )
+    log_stream_name: str | None = Field(
+        default=None, description="CloudWatch log stream name"
+    )
+    region: str | None = Field(
+        default=None, description="AWS region for CloudWatch Logs API calls"
+    )
+    create_log_group: bool = Field(
+        default=True, description="Create log group if missing"
+    )
+    create_log_stream: bool = Field(
+        default=True, description="Create log stream if missing"
+    )
+    batch_size: int = Field(default=100, ge=1, le=10000, description="Events per batch")
+    batch_timeout_seconds: float = Field(
+        default=5.0, gt=0, description="Max seconds before flushing a partial batch"
+    )
+    endpoint_url: str | None = Field(
+        default=None, description="Custom endpoint (e.g., LocalStack)"
+    )
+    max_retries: int = Field(
+        default=3, ge=1, description="Max retries for PutLogEvents"
+    )
+    retry_base_delay: float = Field(
+        default=0.5, gt=0, description="Base delay for exponential backoff"
+    )
+    circuit_breaker_enabled: bool = Field(
+        default=True, description="Enable internal circuit breaker for CloudWatch sink"
+    )
+    circuit_breaker_threshold: int = Field(
+        default=5, ge=1, description="Failures before opening circuit"
+    )
+
+
 class IntegrityEnricherSettings(BaseModel):
     """Standard configuration for the tamper-evident integrity enricher."""
 
@@ -569,6 +608,10 @@ class Settings(BaseSettings):
             default_factory=SealedSinkSettings,
             description="Configuration for sealed sink (fapilog-tamper)",
         )
+        cloudwatch: CloudWatchSinkSettings = Field(
+            default_factory=CloudWatchSinkSettings,
+            description="Configuration for CloudWatch sink",
+        )
         # Third-party sinks use dicts
         extra: dict[str, dict[str, Any]] = Field(
             default_factory=dict,
@@ -728,6 +771,64 @@ class Settings(BaseSettings):
             parsed = self._parse_env_list(preserve)
             if parsed:
                 sg.preserve_fields = parsed
+        return self
+
+    @staticmethod
+    def _parse_bool(value: str | None) -> bool | None:
+        if value is None:
+            return None
+        return value.strip().lower() in {"1", "true", "yes", "on"}
+
+    @model_validator(mode="after")
+    def _apply_cloudwatch_env_aliases(self) -> Settings:
+        """Support short env aliases like FAPILOG_CLOUDWATCH__LOG_GROUP_NAME."""
+        cw = self.sink_config.cloudwatch
+        env_map = {
+            "log_group_name": os.getenv("FAPILOG_CLOUDWATCH__LOG_GROUP_NAME"),
+            "log_stream_name": os.getenv("FAPILOG_CLOUDWATCH__LOG_STREAM_NAME"),
+            "region": os.getenv("FAPILOG_CLOUDWATCH__REGION"),
+            "endpoint_url": os.getenv("FAPILOG_CLOUDWATCH__ENDPOINT_URL"),
+            "batch_size": os.getenv("FAPILOG_CLOUDWATCH__BATCH_SIZE"),
+            "batch_timeout_seconds": os.getenv(
+                "FAPILOG_CLOUDWATCH__BATCH_TIMEOUT_SECONDS"
+            ),
+            "max_retries": os.getenv("FAPILOG_CLOUDWATCH__MAX_RETRIES"),
+            "retry_base_delay": os.getenv("FAPILOG_CLOUDWATCH__RETRY_BASE_DELAY"),
+        }
+        bool_overrides = {
+            "create_log_group": os.getenv("FAPILOG_CLOUDWATCH__CREATE_LOG_GROUP"),
+            "create_log_stream": os.getenv("FAPILOG_CLOUDWATCH__CREATE_LOG_STREAM"),
+            "circuit_breaker_enabled": os.getenv(
+                "FAPILOG_CLOUDWATCH__CIRCUIT_BREAKER_ENABLED"
+            ),
+        }
+
+        for key, value in env_map.items():
+            if value is None:
+                continue
+            try:
+                if key in {"batch_size", "max_retries"}:
+                    setattr(cw, key, int(value))
+                elif key in {"batch_timeout_seconds", "retry_base_delay"}:
+                    setattr(cw, key, float(value))
+                else:
+                    setattr(cw, key, value)
+            except Exception:
+                continue
+
+        for key, value in bool_overrides.items():
+            parsed = self._parse_bool(value)
+            if parsed is not None:
+                setattr(cw, key, parsed)
+
+        if (
+            threshold := os.getenv("FAPILOG_CLOUDWATCH__CIRCUIT_BREAKER_THRESHOLD")
+        ) is not None:
+            try:
+                cw.circuit_breaker_threshold = int(threshold)
+            except Exception:
+                pass
+
         return self
 
     # Async validation entrypoint, called by loader after instantiation

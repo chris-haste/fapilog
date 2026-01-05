@@ -25,6 +25,7 @@ from .plugins.redactors import BaseRedactor as _BaseRedactor
 from .plugins.redactors.field_mask import FieldMaskConfig
 from .plugins.redactors.regex_mask import RegexMaskConfig
 from .plugins.redactors.url_credentials import UrlCredentialsConfig
+from .plugins.sinks.contrib.cloudwatch import CloudWatchSinkConfig
 from .plugins.sinks.http_client import HttpSinkConfig
 from .plugins.sinks.rotating_file import RotatingFileSinkConfig
 from .plugins.sinks.stdout_json import StdoutJsonSink as _StdoutJsonSink
@@ -130,6 +131,22 @@ def _sink_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
                 timeout_seconds=scfg.webhook.timeout_seconds,
                 batch_size=scfg.webhook.batch_size,
                 batch_timeout_seconds=scfg.webhook.batch_timeout_seconds,
+            )
+        },
+        "cloudwatch": {
+            "config": CloudWatchSinkConfig(
+                log_group_name=scfg.cloudwatch.log_group_name,
+                log_stream_name=scfg.cloudwatch.log_stream_name,
+                region=scfg.cloudwatch.region,
+                create_log_group=scfg.cloudwatch.create_log_group,
+                create_log_stream=scfg.cloudwatch.create_log_stream,
+                batch_size=scfg.cloudwatch.batch_size,
+                batch_timeout_seconds=scfg.cloudwatch.batch_timeout_seconds,
+                endpoint_url=scfg.cloudwatch.endpoint_url,
+                max_retries=scfg.cloudwatch.max_retries,
+                retry_base_delay=scfg.cloudwatch.retry_base_delay,
+                circuit_breaker_enabled=scfg.cloudwatch.circuit_breaker_enabled,
+                circuit_breaker_threshold=scfg.cloudwatch.circuit_breaker_threshold,
             )
         },
         "sealed": scfg.sealed.model_dump(exclude_none=True),
