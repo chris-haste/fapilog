@@ -12,6 +12,7 @@ from typing import Any, Awaitable, Callable
 
 from ..metrics.metrics import MetricsCollector, plugin_timer
 from ..plugins.enrichers import BaseEnricher, enrich_parallel
+from ..plugins.filters import filter_in_order
 from ..plugins.processors import BaseProcessor
 from ..plugins.redactors import BaseRedactor, redact_in_order
 from .concurrency import NonBlockingRingQueue
@@ -103,6 +104,7 @@ class LoggerWorker:
         batch_timeout_seconds: float,
         sink_write: Callable[[dict[str, Any]], Awaitable[None]],
         sink_write_serialized: Callable[[SerializedView], Awaitable[None]] | None,
+        filters_getter: Callable[[], list[Any]] | None = None,
         enrichers_getter: Callable[[], list[BaseEnricher]],
         redactors_getter: Callable[[], list[BaseRedactor]],
         processors_getter: Callable[[], list[BaseProcessor]] | None = None,
@@ -113,6 +115,7 @@ class LoggerWorker:
         drained_event: asyncio.Event | None,
         flush_event: asyncio.Event | None,
         flush_done_event: asyncio.Event | None,
+        emit_filter_diagnostics: bool = False,
         emit_enricher_diagnostics: bool,
         emit_redactor_diagnostics: bool,
         emit_processor_diagnostics: bool = False,
@@ -123,6 +126,7 @@ class LoggerWorker:
         self._batch_timeout_seconds = batch_timeout_seconds
         self._sink_write = sink_write
         self._sink_write_serialized = sink_write_serialized
+        self._filters_getter = filters_getter or (lambda: [])
         self._enrichers_getter = enrichers_getter
         self._redactors_getter = redactors_getter
         self._processors_getter = processors_getter or (lambda: [])
@@ -133,6 +137,7 @@ class LoggerWorker:
         self._drained_event = drained_event
         self._flush_event = flush_event
         self._flush_done_event = flush_done_event
+        self._emit_filter_diagnostics = emit_filter_diagnostics
         self._emit_enricher_diagnostics = emit_enricher_diagnostics
         self._emit_redactor_diagnostics = emit_redactor_diagnostics
         self._emit_processor_diagnostics = emit_processor_diagnostics
@@ -198,7 +203,10 @@ class LoggerWorker:
         start = time.perf_counter()
         try:
             for entry in batch:
-                entry = await self._apply_enrichers(entry)
+                filtered = await self._apply_filters(entry)
+                if filtered is None:
+                    continue
+                entry = await self._apply_enrichers(filtered)
                 entry = await self._apply_redactors(entry)
                 if self._serialize_in_flush and self._sink_write_serialized is not None:
                     view, drop_entry = await self._try_serialize(entry)
@@ -241,6 +249,20 @@ class LoggerWorker:
             if self._emit_enricher_diagnostics:
                 try:
                     warn("enricher", "enrichment error", _rate_limit_key="enrich")
+                except Exception:
+                    pass
+            return entry
+
+    async def _apply_filters(self, entry: dict[str, Any]) -> dict[str, Any] | None:
+        filters = self._filters_getter()
+        if not filters:
+            return entry
+        try:
+            return await filter_in_order(entry, filters, metrics=self._metrics)
+        except Exception:
+            if self._emit_filter_diagnostics:
+                try:
+                    warn("filter", "filter error", _rate_limit_key="filter")
                 except Exception:
                     pass
             return entry

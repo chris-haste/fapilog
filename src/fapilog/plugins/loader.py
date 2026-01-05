@@ -64,6 +64,7 @@ BUILTIN_SINKS: dict[str, type] = {}
 BUILTIN_ENRICHERS: dict[str, type] = {}
 BUILTIN_REDACTORS: dict[str, type] = {}
 BUILTIN_PROCESSORS: dict[str, type] = {}
+BUILTIN_FILTERS: dict[str, type] = {}
 
 # Optional alias mapping per group (alias -> canonical name)
 BUILTIN_ALIASES: dict[str, dict[str, str]] = {
@@ -71,6 +72,7 @@ BUILTIN_ALIASES: dict[str, dict[str, str]] = {
     "fapilog.enrichers": {},
     "fapilog.redactors": {},
     "fapilog.processors": {},
+    "fapilog.filters": {},
 }
 
 
@@ -119,6 +121,7 @@ def _validate_plugin(instance: Any, group: str, mode: ValidationMode) -> bool:
     """Validate a plugin against its protocol."""
     from ..testing.validators import (
         validate_enricher,
+        validate_filter,
         validate_processor,
         validate_redactor,
         validate_sink,
@@ -129,6 +132,7 @@ def _validate_plugin(instance: Any, group: str, mode: ValidationMode) -> bool:
         "fapilog.enrichers": validate_enricher,
         "fapilog.redactors": validate_redactor,
         "fapilog.processors": validate_processor,
+        "fapilog.filters": validate_filter,
     }
     validator = validator_map.get(group)
     if validator is None:
@@ -245,6 +249,7 @@ def _registry_for_group(group: str) -> dict[str, type] | None:
         "fapilog.enrichers": BUILTIN_ENRICHERS,
         "fapilog.redactors": BUILTIN_REDACTORS,
         "fapilog.processors": BUILTIN_PROCESSORS,
+        "fapilog.filters": BUILTIN_FILTERS,
     }.get(group)
 
 

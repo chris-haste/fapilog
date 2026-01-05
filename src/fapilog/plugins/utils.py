@@ -81,6 +81,8 @@ def get_plugin_type(plugin: Any) -> str:
         return "enricher"
     elif hasattr(plugin, "redact"):
         return "redactor"
+    elif hasattr(plugin, "filter"):
+        return "filter"
     elif hasattr(plugin, "process"):
         return "processor"
     return "unknown"

@@ -6,6 +6,7 @@ Provides base protocols for plugin authors.
 
 # Public protocols for plugin authors
 from .enrichers import BaseEnricher
+from .filters import BaseFilter
 from .loader import (
     PluginLoadError,
     PluginNotFoundError,
@@ -31,6 +32,7 @@ __all__ = [
     "BaseProcessor",
     "BaseSink",
     "BaseRedactor",
+    "BaseFilter",
     # Loader helpers
     "load_plugin",
     "list_available_plugins",

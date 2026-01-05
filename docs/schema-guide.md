@@ -120,6 +120,14 @@
       "title": "Exceptions Max Stack Chars",
       "type": "integer"
     },
+    "filters": {
+      "description": "Filter plugins to apply before enrichment (by name)",
+      "items": {
+        "type": "string"
+      },
+      "title": "Filters",
+      "type": "array"
+    },
     "internal_logging_enabled": {
       "default": false,
       "description": "Emit DEBUG/WARN diagnostics for internal errors",

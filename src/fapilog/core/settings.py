@@ -314,6 +314,10 @@ class CoreSettings(BaseModel):
         default_factory=list,
         description=("Processor plugins to use (by name)"),
     )
+    filters: list[str] = Field(
+        default_factory=list,
+        description=("Filter plugins to apply before enrichment (by name)"),
+    )
     redaction_max_depth: int | None = Field(
         default=6,
         ge=1,
@@ -561,6 +565,23 @@ class Settings(BaseSettings):
             description="Configuration for third-party redactors by name",
         )
 
+    class FilterConfig(BaseModel):
+        """Per-filter configuration for built-in filters."""
+
+        level: dict[str, Any] = Field(
+            default_factory=dict, description="Configuration for level filter"
+        )
+        sampling: dict[str, Any] = Field(
+            default_factory=dict, description="Configuration for sampling filter"
+        )
+        rate_limit: dict[str, Any] = Field(
+            default_factory=dict, description="Configuration for rate_limit filter"
+        )
+        extra: dict[str, dict[str, Any]] = Field(
+            default_factory=dict,
+            description="Configuration for third-party filters by name",
+        )
+
     # Plugin configuration (simplified - discovery/registry removed)
     class PluginsSettings(BaseModel):
         """Settings controlling plugin behavior."""
@@ -592,6 +613,9 @@ class Settings(BaseSettings):
     )
     redactor_config: RedactorConfig = Field(
         default_factory=RedactorConfig, description="Per-redactor plugin configuration"
+    )
+    filter_config: FilterConfig = Field(
+        default_factory=FilterConfig, description="Per-filter plugin configuration"
     )
     processor_config: ProcessorConfigSettings = Field(
         default_factory=ProcessorConfigSettings,

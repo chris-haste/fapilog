@@ -18,13 +18,16 @@ class _DelegatingProcessor(BaseProcessor):
 
 
 def test_build_pipeline_loads_processors_with_configs(monkeypatch):
-    captured: dict[str, object] = {}
+    captured: dict[str, dict[str, object]] = {}
 
     def fake_load_plugins(group, names, settings, cfgs):
-        captured["group"] = group
-        captured["names"] = list(names)
-        captured["cfgs"] = cfgs
-        return ["proc-instance"]
+        captured[group] = {
+            "names": list(names),
+            "cfgs": cfgs,
+        }
+        if group == "fapilog.processors":
+            return ["proc-instance"]
+        return []
 
     monkeypatch.setattr("fapilog._load_plugins", fake_load_plugins)
 
@@ -33,12 +36,15 @@ def test_build_pipeline_loads_processors_with_configs(monkeypatch):
         plugins={"enabled": True},
     )
 
-    sinks, enrichers, redactors, processors, metrics = _build_pipeline(settings)
+    sinks, enrichers, redactors, processors, filters, metrics = _build_pipeline(
+        settings
+    )
 
     assert processors == ["proc-instance"]
-    assert captured["group"] == "fapilog.processors"
-    assert captured["names"] == ["zero-copy"]
-    assert "zero_copy" in captured["cfgs"]
+    assert "fapilog.processors" in captured
+    proc_capture = captured["fapilog.processors"]
+    assert proc_capture["names"] == ["zero-copy"]
+    assert "zero_copy" in proc_capture["cfgs"]
 
 
 @pytest.mark.asyncio

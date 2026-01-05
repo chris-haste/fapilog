@@ -184,6 +184,33 @@ def validate_processor(processor: Any) -> ValidationResult:
     )
 
 
+def validate_filter(filter_plugin: Any) -> ValidationResult:
+    """Validate that a filter implements BaseFilter protocol correctly."""
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    if not hasattr(filter_plugin, "name"):
+        errors.append("Missing required 'name' attribute")
+    elif not isinstance(getattr(filter_plugin, "name", None), str):
+        errors.append("'name' attribute must be a string")
+
+    required_methods = ["start", "stop", "filter"]
+    for method_name in required_methods:
+        if not hasattr(filter_plugin, method_name):
+            errors.append(f"Missing required method: {method_name}")
+            continue
+        method = getattr(filter_plugin, method_name)
+        if not asyncio.iscoroutinefunction(method):
+            errors.append(f"{method_name} must be async")
+
+    return ValidationResult(
+        valid=len(errors) == 0,
+        plugin_type="BaseFilter",
+        errors=errors,
+        warnings=warnings,
+    )
+
+
 async def validate_plugin_lifecycle(plugin: Any) -> ValidationResult:
     """Validate that a plugin's lifecycle methods work correctly.
 
@@ -200,6 +227,8 @@ async def validate_plugin_lifecycle(plugin: Any) -> ValidationResult:
         plugin_type = "enricher"
     elif hasattr(plugin, "redact"):
         plugin_type = "redactor"
+    elif hasattr(plugin, "filter"):
+        plugin_type = "filter"
     elif hasattr(plugin, "process"):
         plugin_type = "processor"
 
@@ -241,5 +270,6 @@ _VULTURE_USED: tuple[object, ...] = (
     validate_enricher,
     validate_redactor,
     validate_processor,
+    validate_filter,
     validate_plugin_lifecycle,
 )
