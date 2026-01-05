@@ -130,6 +130,7 @@
 <li class="toctree-l2"><a class="reference internal" href="troubleshooting/serialization-errors.html">Serialization Errors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="troubleshooting/pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="troubleshooting/cloudwatch-sink.html">CloudWatch Sink Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/loki-sink.html">Loki Sink Issues</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
@@ -857,6 +858,76 @@
 <td><p>float</p></td>
 <td><p>5.0</p></td>
 <td><p>Request timeout for HTTP sink operations</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__LOKI__AUTH_PASSWORD</span></code></p></td>
+<td><p>str</p></td>
+<td><p>None</p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__LOKI__AUTH_TOKEN</span></code></p></td>
+<td><p>str</p></td>
+<td><p>None</p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__LOKI__AUTH_USERNAME</span></code></p></td>
+<td><p>str</p></td>
+<td><p>None</p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__LOKI__BATCH_SIZE</span></code></p></td>
+<td><p>int</p></td>
+<td><p>100</p></td>
+<td><p>Events per batch</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__LOKI__BATCH_TIMEOUT_SECONDS</span></code></p></td>
+<td><p>float</p></td>
+<td><p>5.0</p></td>
+<td><p>Max seconds before flushing a partial batch</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__LOKI__CIRCUIT_BREAKER_ENABLED</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>True</p></td>
+<td><p>Enable circuit breaker for the Loki sink</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__LOKI__CIRCUIT_BREAKER_THRESHOLD</span></code></p></td>
+<td><p>int</p></td>
+<td><p>5</p></td>
+<td><p>Failures before opening circuit</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__LOKI__LABELS</span></code></p></td>
+<td><p>dict</p></td>
+<td><p>PydanticUndefined</p></td>
+<td><p>Static labels to apply to each log stream</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__LOKI__LABEL_KEYS</span></code></p></td>
+<td><p>list</p></td>
+<td><p>PydanticUndefined</p></td>
+<td><p>Event keys to promote to labels</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__LOKI__MAX_RETRIES</span></code></p></td>
+<td><p>int</p></td>
+<td><p>3</p></td>
+<td><p>Max retries on push failure</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__LOKI__RETRY_BASE_DELAY</span></code></p></td>
+<td><p>float</p></td>
+<td><p>0.5</p></td>
+<td><p>Base delay for backoff</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__LOKI__TENANT_ID</span></code></p></td>
+<td><p>str</p></td>
+<td><p>None</p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__LOKI__TIMEOUT_SECONDS</span></code></p></td>
+<td><p>float</p></td>
+<td><p>10.0</p></td>
+<td><p>HTTP timeout seconds</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__LOKI__URL</span></code></p></td>
+<td><p>str</p></td>
+<td><p>http://localhost:3100</p></td>
+<td><p>Loki push endpoint base URL</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__ROTATING_FILE__COMPRESS_ROTATED</span></code></p></td>
 <td><p>bool</p></td>

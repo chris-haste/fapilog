@@ -7,4 +7,5 @@ Reusable patterns for building sinks, processors, and enrichers.
 :titlesonly:
 
 patterns/sdk-sinks
+patterns/http-sinks
 ```

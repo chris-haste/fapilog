@@ -25,7 +25,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Logs Dropped Under Load" href="logs-dropped-under-load.html" />
-    <link rel="prev" title="Building SDK-Based Sinks" href="../patterns/sdk-sinks.html" /> 
+    <link rel="prev" title="Building HTTP-Based Sinks" href="../patterns/http-sinks.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -130,6 +130,7 @@
 <li class="toctree-l2"><a class="reference internal" href="serialization-errors.html">Serialization Errors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cloudwatch-sink.html">CloudWatch Sink Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="loki-sink.html">Loki Sink Issues</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
@@ -183,6 +184,7 @@
 <li class="toctree-l1"><a class="reference internal" href="serialization-errors.html">Serialization Errors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cloudwatch-sink.html">CloudWatch Sink Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="loki-sink.html">Loki Sink Issues</a></li>
 </ul>
 </div>
 <section id="overview">
@@ -192,6 +194,7 @@
 <li><p><strong>Logs dropped under load</strong> - Queue overflow and backpressure issues</p></li>
 <li><p><strong>Destination size limits</strong> - Events rejected/truncated by sinks</p></li>
 <li><p><strong>CloudWatch sink</strong> - Sequence tokens, throttling, and LocalStack setup</p></li>
+<li><p><strong>Loki sink</strong> - Rate limiting, auth errors, and payload validation</p></li>
 <li><p><strong>Context values missing</strong> - Context binding and inheritance problems</p></li>
 <li><p><strong>File sink not rotating</strong> - File rotation and retention issues</p></li>
 <li><p><strong>Serialization errors</strong> - JSON and format problems</p></li>
@@ -440,7 +443,7 @@ sudo<span class="w"> </span>chmod<span class="w"> </span><span class="m">755</sp
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../patterns/sdk-sinks.html" class="btn btn-neutral float-left" title="Building SDK-Based Sinks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../patterns/http-sinks.html" class="btn btn-neutral float-left" title="Building HTTP-Based Sinks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="logs-dropped-under-load.html" class="btn btn-neutral float-right" title="Logs Dropped Under Load" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

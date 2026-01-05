@@ -138,6 +138,20 @@
 | `FAPILOG__SINK_CONFIG__HTTP__RETRY_BACKOFF_SECONDS` | float | None | — | Optional base backoff seconds between retries |
 | `FAPILOG__SINK_CONFIG__HTTP__RETRY_MAX_ATTEMPTS` | int | None | — | Optional max attempts for HTTP retries |
 | `FAPILOG__SINK_CONFIG__HTTP__TIMEOUT_SECONDS` | float | 5.0 | Request timeout for HTTP sink operations |
+| `FAPILOG__SINK_CONFIG__LOKI__AUTH_PASSWORD` | str | None | — | Basic auth password |
+| `FAPILOG__SINK_CONFIG__LOKI__AUTH_TOKEN` | str | None | — | Bearer token for Loki |
+| `FAPILOG__SINK_CONFIG__LOKI__AUTH_USERNAME` | str | None | — | Basic auth username |
+| `FAPILOG__SINK_CONFIG__LOKI__BATCH_SIZE` | int | 100 | Events per batch |
+| `FAPILOG__SINK_CONFIG__LOKI__BATCH_TIMEOUT_SECONDS` | float | 5.0 | Max seconds before flushing a partial batch |
+| `FAPILOG__SINK_CONFIG__LOKI__CIRCUIT_BREAKER_ENABLED` | bool | True | Enable circuit breaker for the Loki sink |
+| `FAPILOG__SINK_CONFIG__LOKI__CIRCUIT_BREAKER_THRESHOLD` | int | 5 | Failures before opening circuit |
+| `FAPILOG__SINK_CONFIG__LOKI__LABELS` | dict | PydanticUndefined | Static labels to apply to each log stream |
+| `FAPILOG__SINK_CONFIG__LOKI__LABEL_KEYS` | list | PydanticUndefined | Event keys to promote to labels |
+| `FAPILOG__SINK_CONFIG__LOKI__MAX_RETRIES` | int | 3 | Max retries on push failure |
+| `FAPILOG__SINK_CONFIG__LOKI__RETRY_BASE_DELAY` | float | 0.5 | Base delay for backoff |
+| `FAPILOG__SINK_CONFIG__LOKI__TENANT_ID` | str | None | — | Optional multi-tenant identifier |
+| `FAPILOG__SINK_CONFIG__LOKI__TIMEOUT_SECONDS` | float | 10.0 | HTTP timeout seconds |
+| `FAPILOG__SINK_CONFIG__LOKI__URL` | str | http://localhost:3100 | Loki push endpoint base URL |
 | `FAPILOG__SINK_CONFIG__ROTATING_FILE__COMPRESS_ROTATED` | bool | False | Compress rotated log files with gzip |
 | `FAPILOG__SINK_CONFIG__ROTATING_FILE__DIRECTORY` | str | None | — | Log directory for rotating file sink |
 | `FAPILOG__SINK_CONFIG__ROTATING_FILE__FILENAME_PREFIX` | str | fapilog | Filename prefix |
