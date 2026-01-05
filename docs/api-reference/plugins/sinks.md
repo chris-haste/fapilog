@@ -57,6 +57,10 @@ HTTP sink:
 export FAPILOG_HTTP__ENDPOINT=https://logs.example.com/ingest
 export FAPILOG_HTTP__TIMEOUT_SECONDS=5
 export FAPILOG_HTTP__RETRY_MAX_ATTEMPTS=3
+export FAPILOG_HTTP__BATCH_SIZE=100
+export FAPILOG_HTTP__BATCH_TIMEOUT_SECONDS=5
+export FAPILOG_HTTP__BATCH_FORMAT=array   # array|ndjson|wrapped
+export FAPILOG_HTTP__BATCH_WRAPPER_KEY=logs
 ```
 
 ## Building Blocks

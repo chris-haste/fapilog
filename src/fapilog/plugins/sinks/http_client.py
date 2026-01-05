@@ -6,6 +6,8 @@ connection reuse and bounded concurrency.
 
 from __future__ import annotations
 
+import json
+from enum import Enum
 from typing import Any, Mapping
 
 import httpx
@@ -13,8 +15,9 @@ import httpx
 from ...core.resources import HttpClientPool
 from ...core.retry import AsyncRetrier, RetryConfig
 from ...core.serialization import SerializedView
+from ._batching import BatchingMixin
 
-__all__ = ["HttpSink", "HttpSinkConfig"]
+__all__ = ["HttpSink", "HttpSinkConfig", "AsyncHttpSender", "BatchFormat"]
 
 
 class AsyncHttpSender:
@@ -36,10 +39,12 @@ class AsyncHttpSender:
         if retry_config is not None:
             self._retrier = AsyncRetrier(retry_config)
 
-    async def post_json(
+    async def post(
         self,
         url: str,
-        json: Any,
+        *,
+        json: Any | None = None,
+        content: bytes | None = None,
         headers: Mapping[str, str] | None = None,
     ) -> httpx.Response:
         merged_headers = dict(self._default_headers)
@@ -48,11 +53,35 @@ class AsyncHttpSender:
         async with self._pool.acquire() as client:
 
             async def _do_post() -> httpx.Response:
-                return await client.post(url, json=json, headers=merged_headers)
+                if content is not None:
+                    return await client.post(
+                        url,
+                        content=content,
+                        headers=merged_headers,
+                    )
+                return await client.post(
+                    url,
+                    json=json,
+                    headers=merged_headers,
+                )
 
             if self._retrier is not None:
                 return await self._retrier.retry(_do_post)
             return await _do_post()
+
+    async def post_json(
+        self,
+        url: str,
+        json: Any,
+        headers: Mapping[str, str] | None = None,
+    ) -> httpx.Response:
+        return await self.post(url, json=json, headers=headers)
+
+
+class BatchFormat(str, Enum):
+    ARRAY = "array"
+    NDJSON = "ndjson"
+    WRAPPED = "wrapped"
 
 
 class HttpSinkConfig:
@@ -63,14 +92,22 @@ class HttpSinkConfig:
         headers: Mapping[str, str] | None = None,
         retry: RetryConfig | None = None,
         timeout_seconds: float = 5.0,
+        batch_size: int = 1,
+        batch_timeout_seconds: float = 5.0,
+        batch_format: str | BatchFormat = BatchFormat.ARRAY,
+        batch_wrapper_key: str = "logs",
     ) -> None:
         self.endpoint = endpoint
         self.headers = dict(headers or {})
         self.retry = retry
         self.timeout_seconds = timeout_seconds
+        self.batch_size = batch_size
+        self.batch_timeout_seconds = batch_timeout_seconds
+        self.batch_format = BatchFormat(batch_format)
+        self.batch_wrapper_key = batch_wrapper_key
 
 
-class HttpSink:
+class HttpSink(BatchingMixin):
     """Async HTTP sink that POSTs JSON to a configured endpoint."""
 
     name = "http"
@@ -97,54 +134,21 @@ class HttpSink:
         self._metrics = metrics
         self._last_status: int | None = None
         self._last_error: str | None = None
+        self._init_batching(config.batch_size, config.batch_timeout_seconds)
 
     async def start(self) -> None:
         await self._pool.start()
+        await self._start_batching()
 
     async def stop(self) -> None:
+        await self._stop_batching()
         await self._pool.stop()
 
     async def write(self, entry: dict[str, Any]) -> None:
-        try:
-            response = await self._sender.post_json(self._config.endpoint, json=entry)
-            self._last_status = response.status_code
-            self._last_error = None
-            if response.status_code >= 400:
-                from ...core.diagnostics import warn as _warn
-
-                body = None
-                try:
-                    body = response.text
-                except Exception:
-                    body = None
-                _warn(
-                    "http-sink",
-                    "failed to deliver log",
-                    status_code=response.status_code,
-                    endpoint=self._config.endpoint,
-                    body=body[:256] if body else None,
-                )
-                return
-            if self._metrics is not None:
-                await self._metrics.record_event_processed()
-        except Exception as exc:
-            self._last_error = str(exc)
-            try:
-                from ...core.diagnostics import warn as _warn
-
-                _warn(
-                    "http-sink",
-                    "exception while delivering log",
-                    endpoint=self._config.endpoint,
-                    error=str(exc),
-                )
-            except Exception:
-                pass
+        await self._enqueue_for_batch(entry)
 
     async def write_serialized(self, view: SerializedView) -> None:
         try:
-            import json
-
             data = json.loads(bytes(view.data))
         except Exception:
             data = None
@@ -155,6 +159,68 @@ class HttpSink:
             self._config.endpoint,
             json={"message": "fallback"},
         )
+
+    async def _send_batch(self, batch: list[dict[str, Any]]) -> None:
+        try:
+            payload, content_type = self._format_batch(batch)
+            headers = dict(self._config.headers)
+            headers["Content-Type"] = content_type
+
+            response = await self._sender.post(
+                self._config.endpoint,
+                json=payload if not isinstance(payload, (bytes, bytearray)) else None,
+                content=payload if isinstance(payload, (bytes, bytearray)) else None,
+                headers=headers,
+            )
+            self._last_status = response.status_code
+            self._last_error = None
+            if response.status_code >= 400:
+                from ...core.diagnostics import warn as _warn
+
+                _warn(
+                    "http-sink",
+                    "batch delivery failed",
+                    status_code=response.status_code,
+                    endpoint=self._config.endpoint,
+                    batch_size=len(batch),
+                )
+                if self._metrics is not None:
+                    await self._metrics.record_events_dropped(len(batch))
+                return
+
+            if self._metrics is not None:
+                for _ in batch:
+                    await self._metrics.record_event_processed()
+
+        except Exception as exc:
+            self._last_error = str(exc)
+            self._last_status = None
+            try:
+                from ...core.diagnostics import warn as _warn
+
+                _warn(
+                    "http-sink",
+                    "batch delivery exception",
+                    endpoint=self._config.endpoint,
+                    error=str(exc),
+                    batch_size=len(batch),
+                )
+            except Exception:
+                pass
+            if self._metrics is not None:
+                try:
+                    await self._metrics.record_events_dropped(len(batch))
+                except Exception:
+                    pass
+
+    def _format_batch(self, batch: list[dict[str, Any]]) -> tuple[Any, str]:
+        fmt = self._config.batch_format
+        if fmt == BatchFormat.NDJSON:
+            lines = [json.dumps(entry, default=str) for entry in batch]
+            return ("\n".join(lines)).encode("utf-8"), "application/x-ndjson"
+        if fmt == BatchFormat.WRAPPED:
+            return {self._config.batch_wrapper_key: batch}, "application/json"
+        return batch, "application/json"
 
     async def health_check(self) -> bool:
         return (

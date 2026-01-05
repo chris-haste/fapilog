@@ -15,6 +15,7 @@ from ...core.resources import HttpClientPool
 from ...core.retry import AsyncRetrier, RetryConfig
 from ...core.serialization import SerializedView
 from ...metrics.metrics import MetricsCollector
+from ._batching import BatchingMixin
 
 __all__ = ["WebhookSink", "WebhookSinkConfig"]
 
@@ -28,15 +29,19 @@ class WebhookSinkConfig:
         headers: Mapping[str, str] | None = None,
         retry: RetryConfig | None = None,
         timeout_seconds: float = 5.0,
+        batch_size: int = 1,
+        batch_timeout_seconds: float = 5.0,
     ) -> None:
         self.endpoint = endpoint
         self.secret = secret
         self.headers = dict(headers or {})
         self.retry = retry
         self.timeout_seconds = timeout_seconds
+        self.batch_size = batch_size
+        self.batch_timeout_seconds = batch_timeout_seconds
 
 
-class WebhookSink:
+class WebhookSink(BatchingMixin):
     """Reference remote sink that POSTs JSON payloads to a webhook endpoint."""
 
     name = "webhook"
@@ -59,11 +64,14 @@ class WebhookSink:
         self._retrier = AsyncRetrier(config.retry) if config.retry else None
         self._last_status: int | None = None
         self._last_error: str | None = None
+        self._init_batching(config.batch_size, config.batch_timeout_seconds)
 
     async def start(self) -> None:
         await self._pool.start()
+        await self._start_batching()
 
     async def stop(self) -> None:
+        await self._stop_batching()
         await self._pool.stop()
 
     async def _post(self, payload: Any) -> httpx.Response:
@@ -82,8 +90,26 @@ class WebhookSink:
             return await _do_post()
 
     async def write(self, entry: dict[str, Any]) -> None:
+        await self._enqueue_for_batch(entry)
+
+    async def write_serialized(self, view: SerializedView) -> None:
         try:
-            resp = await self._post(entry)
+            import json
+
+            data = json.loads(bytes(view.data))
+        except Exception:
+            data = {"message": "fallback"}
+        await self.write(data)
+
+    async def _send_batch(self, batch: list[dict[str, Any]]) -> None:
+        payload: Any
+        if self._config.batch_size <= 1:
+            payload = batch[0] if batch else {}
+        else:
+            payload = batch
+
+        try:
+            resp = await self._post(payload)
             self._last_status = resp.status_code
             self._last_error = None
             if resp.status_code >= 400:
@@ -102,12 +128,14 @@ class WebhookSink:
                     body=snippet,
                 )
                 if self._metrics is not None:
-                    await self._metrics.record_events_dropped(1)
+                    await self._metrics.record_events_dropped(len(batch))
                 return
             if self._metrics is not None:
-                await self._metrics.record_event_processed()
+                for _ in batch:
+                    await self._metrics.record_event_processed()
         except Exception as exc:
             self._last_error = str(exc)
+            self._last_status = None
             try:
                 from ...core.diagnostics import warn as _warn
 
@@ -120,16 +148,10 @@ class WebhookSink:
             except Exception:
                 pass
             if self._metrics is not None:
-                await self._metrics.record_events_dropped(1)
-
-    async def write_serialized(self, view: SerializedView) -> None:
-        try:
-            import json
-
-            data = json.loads(bytes(view.data))
-        except Exception:
-            data = {"message": "fallback"}
-        await self.write(data)
+                try:
+                    await self._metrics.record_events_dropped(len(batch))
+                except Exception:
+                    pass
 
     async def health_check(self) -> bool:
         return (
