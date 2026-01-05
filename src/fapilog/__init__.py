@@ -479,12 +479,15 @@ def get_logger(
     name: str | None = None,
     *,
     settings: _Settings | None = None,
+    sinks: list[object] | None = None,
 ) -> SyncLoggerFacade:
     cfg_source = settings or _Settings()
     _apply_plugin_settings(cfg_source)
-    sinks, enrichers, redactors, processors, filters, metrics = _build_pipeline(
+    built_sinks, enrichers, redactors, processors, filters, metrics = _build_pipeline(
         cfg_source
     )
+    if sinks is not None:
+        built_sinks = list(sinks)
 
     # Start enrichers, redactors, and processors (sync-safe)
     async def _do_start() -> tuple[
@@ -549,7 +552,7 @@ def get_logger(
         )
 
     sink_write, sink_write_serialized = _fanout_writer(
-        sinks,
+        built_sinks,
         parallel=cfg_source.core.sink_parallel_writes,
         circuit_config=circuit_config,
     )
@@ -613,7 +616,7 @@ def get_logger(
     logger._redactors = cast(list[_BaseRedactor], redactors)  # noqa: SLF001
     logger._processors = cast(list[_BaseProcessor], processors)  # noqa: SLF001
     logger._filters = filters  # noqa: SLF001
-    logger._sinks = sinks  # noqa: SLF001
+    logger._sinks = built_sinks  # noqa: SLF001
     return logger
 
 
@@ -621,12 +624,15 @@ async def get_async_logger(
     name: str | None = None,
     *,
     settings: _Settings | None = None,
+    sinks: list[object] | None = None,
 ) -> AsyncLoggerFacade:
     cfg_source = settings or _Settings()
     _apply_plugin_settings(cfg_source)
-    sinks, enrichers, redactors, processors, filters, metrics = _build_pipeline(
+    built_sinks, enrichers, redactors, processors, filters, metrics = _build_pipeline(
         cfg_source
     )
+    if sinks is not None:
+        built_sinks = list(sinks)
 
     # Start enrichers, redactors, and processors (plugins that fail are excluded)
     enrichers = await _start_plugins(enrichers, "enricher")
@@ -646,7 +652,7 @@ async def get_async_logger(
         )
 
     sink_write, sink_write_serialized = _fanout_writer(
-        sinks,
+        built_sinks,
         parallel=cfg_source.core.sink_parallel_writes,
         circuit_config=circuit_config,
     )
@@ -710,7 +716,7 @@ async def get_async_logger(
     logger._redactors = cast(list[_BaseRedactor], redactors)  # noqa: SLF001
     logger._processors = cast(list[_BaseProcessor], processors)  # noqa: SLF001
     logger._filters = filters  # noqa: SLF001
-    logger._sinks = sinks  # type: ignore[attr-defined]  # noqa: SLF001
+    logger._sinks = built_sinks  # type: ignore[attr-defined]  # noqa: SLF001
     return logger
 
 
