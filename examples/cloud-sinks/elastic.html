@@ -173,9 +173,16 @@
 <section id="quick-sketch">
 <h2>Quick sketch<a class="headerlink" href="#quick-sketch" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.sinks.http_client</span><span class="w"> </span><span class="kn">import</span> <span class="n">HttpSink</span><span class="p">,</span> <span class="n">HttpSinkConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.sinks.http_client</span><span class="w"> </span><span class="kn">import</span> <span class="n">BatchFormat</span><span class="p">,</span> <span class="n">HttpSink</span><span class="p">,</span> <span class="n">HttpSinkConfig</span>
 
-<span class="n">sink</span> <span class="o">=</span> <span class="n">HttpSink</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">HttpSinkConfig</span><span class="p">(</span><span class="n">endpoint</span><span class="o">=</span><span class="s2">&quot;https://elastic.example.com/_bulk&quot;</span><span class="p">))</span>
+<span class="n">sink</span> <span class="o">=</span> <span class="n">HttpSink</span><span class="p">(</span>
+    <span class="n">config</span><span class="o">=</span><span class="n">HttpSinkConfig</span><span class="p">(</span>
+        <span class="n">endpoint</span><span class="o">=</span><span class="s2">&quot;https://elastic.example.com/_bulk&quot;</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">batch_timeout_seconds</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+        <span class="n">batch_format</span><span class="o">=</span><span class="n">BatchFormat</span><span class="o">.</span><span class="n">NDJSON</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="p">)</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="n">sink</span><span class="p">])</span>
 </pre></div>
 </div>

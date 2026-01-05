@@ -221,6 +221,10 @@
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_HTTP__ENDPOINT</span><span class="o">=</span>https://logs.example.com/ingest
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_HTTP__TIMEOUT_SECONDS</span><span class="o">=</span><span class="m">5</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_HTTP__RETRY_MAX_ATTEMPTS</span><span class="o">=</span><span class="m">3</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_HTTP__BATCH_SIZE</span><span class="o">=</span><span class="m">100</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_HTTP__BATCH_TIMEOUT_SECONDS</span><span class="o">=</span><span class="m">5</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_HTTP__BATCH_FORMAT</span><span class="o">=</span>array<span class="w">   </span><span class="c1"># array|ndjson|wrapped</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_HTTP__BATCH_WRAPPER_KEY</span><span class="o">=</span>logs
 </pre></div>
 </div>
 </section>

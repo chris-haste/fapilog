@@ -56,6 +56,10 @@
 | `FAPILOG__FILTER_CONFIG__RATE_LIMIT` | dict | PydanticUndefined | Configuration for rate_limit filter |
 | `FAPILOG__FILTER_CONFIG__SAMPLING` | dict | PydanticUndefined | Configuration for sampling filter |
 | `FAPILOG__FILTER_CONFIG__TRACE_SAMPLING` | dict | PydanticUndefined | Configuration for trace_sampling filter |
+| `FAPILOG__HTTP__BATCH_FORMAT` | str | array | Batch format: 'array', 'ndjson', or 'wrapped' |
+| `FAPILOG__HTTP__BATCH_SIZE` | int | 1 | Maximum events per HTTP request (1 = no batching) |
+| `FAPILOG__HTTP__BATCH_TIMEOUT_SECONDS` | float | 5.0 | Max seconds before flushing a partial batch |
+| `FAPILOG__HTTP__BATCH_WRAPPER_KEY` | str | logs | Wrapper key when batch_format='wrapped' |
 | `FAPILOG__HTTP__ENDPOINT` | str | None | — | HTTP endpoint to POST log events to |
 | `FAPILOG__HTTP__HEADERS` | dict | PydanticUndefined | Default headers to send with each request |
 | `FAPILOG__HTTP__HEADERS_JSON` | str | None | — | JSON-encoded headers map (e.g. '{"Authorization": "Bearer x"}') |
@@ -109,6 +113,10 @@
 | `FAPILOG__SECURITY__ENCRYPTION__MIN_TLS_VERSION` | Literal | 1.2 | Minimum TLS version for transport |
 | `FAPILOG__SECURITY__ENCRYPTION__ROTATE_INTERVAL_DAYS` | int | 90 | Recommended key rotation interval |
 | `FAPILOG__SINK_CONFIG__EXTRA` | dict | PydanticUndefined | Configuration for third-party sinks by name |
+| `FAPILOG__SINK_CONFIG__HTTP__BATCH_FORMAT` | str | array | Batch format: 'array', 'ndjson', or 'wrapped' |
+| `FAPILOG__SINK_CONFIG__HTTP__BATCH_SIZE` | int | 1 | Maximum events per HTTP request (1 = no batching) |
+| `FAPILOG__SINK_CONFIG__HTTP__BATCH_TIMEOUT_SECONDS` | float | 5.0 | Max seconds before flushing a partial batch |
+| `FAPILOG__SINK_CONFIG__HTTP__BATCH_WRAPPER_KEY` | str | logs | Wrapper key when batch_format='wrapped' |
 | `FAPILOG__SINK_CONFIG__HTTP__ENDPOINT` | str | None | — | HTTP endpoint to POST log events to |
 | `FAPILOG__SINK_CONFIG__HTTP__HEADERS` | dict | PydanticUndefined | Default headers to send with each request |
 | `FAPILOG__SINK_CONFIG__HTTP__HEADERS_JSON` | str | None | — | JSON-encoded headers map (e.g. '{"Authorization": "Bearer x"}') |
@@ -136,6 +144,8 @@
 | `FAPILOG__SINK_CONFIG__SEALED__SIGN_MANIFESTS` | bool | True | Sign manifests when keys are available |
 | `FAPILOG__SINK_CONFIG__SEALED__USE_KMS_SIGNING` | bool | False | Sign manifests via external KMS provider |
 | `FAPILOG__SINK_CONFIG__STDOUT_JSON` | dict | PydanticUndefined | Configuration for stdout_json sink |
+| `FAPILOG__SINK_CONFIG__WEBHOOK__BATCH_SIZE` | int | 1 | Maximum events per webhook request (1 = no batching) |
+| `FAPILOG__SINK_CONFIG__WEBHOOK__BATCH_TIMEOUT_SECONDS` | float | 5.0 | Max seconds before flushing a partial webhook batch |
 | `FAPILOG__SINK_CONFIG__WEBHOOK__ENDPOINT` | str | None | — | Webhook destination URL |
 | `FAPILOG__SINK_CONFIG__WEBHOOK__HEADERS` | dict | PydanticUndefined | Additional HTTP headers |
 | `FAPILOG__SINK_CONFIG__WEBHOOK__RETRY_BACKOFF_SECONDS` | float | None | — | Backoff between retries in seconds |

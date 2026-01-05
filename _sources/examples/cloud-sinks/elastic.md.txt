@@ -6,9 +6,16 @@ Send JSON logs to Elastic Cloud or OpenSearch using the HTTP sink or a custom si
 
 ```python
 from fapilog import get_logger
-from fapilog.plugins.sinks.http_client import HttpSink, HttpSinkConfig
+from fapilog.plugins.sinks.http_client import BatchFormat, HttpSink, HttpSinkConfig
 
-sink = HttpSink(config=HttpSinkConfig(endpoint="https://elastic.example.com/_bulk"))
+sink = HttpSink(
+    config=HttpSinkConfig(
+        endpoint="https://elastic.example.com/_bulk",
+        batch_size=100,
+        batch_timeout_seconds=2.0,
+        batch_format=BatchFormat.NDJSON,
+    )
+)
 logger = get_logger(sinks=[sink])
 ```
 

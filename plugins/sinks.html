@@ -203,6 +203,39 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">http</span></code> (HTTP POST)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">mmap_persistence</span></code> (experimental; local persistence)</p></li>
 </ul>
+<section id="http-sink-batching">
+<h3>HTTP sink batching<a class="headerlink" href="#http-sink-batching" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">HttpSink</span></code> now supports sink-level batching to reduce request volume:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">batch_size</span></code> (default: 1 for backward compatibility; set &gt;1 to enable batching)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">batch_timeout_seconds</span></code> (default: 5.0) flush partial batches on timeout</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">batch_format</span></code>: <code class="docutils literal notranslate"><span class="pre">array</span></code> (JSON array), <code class="docutils literal notranslate"><span class="pre">ndjson</span></code> (newline-delimited), <code class="docutils literal notranslate"><span class="pre">wrapped</span></code> (<code class="docutils literal notranslate"><span class="pre">{&quot;logs&quot;:</span> <span class="pre">[...]}</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">batch_wrapper_key</span></code>: wrapper key when <code class="docutils literal notranslate"><span class="pre">batch_format=&quot;wrapped&quot;</span></code> (default: <code class="docutils literal notranslate"><span class="pre">logs</span></code>)</p></li>
+</ul>
+<p>Examples:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_HTTP__ENDPOINT</span><span class="o">=</span>https://logs.example.com/ingest
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_HTTP__BATCH_SIZE</span><span class="o">=</span><span class="m">100</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_HTTP__BATCH_TIMEOUT_SECONDS</span><span class="o">=</span><span class="m">2</span>.0
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_HTTP__BATCH_FORMAT</span><span class="o">=</span>ndjson
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.sinks.http_client</span><span class="w"> </span><span class="kn">import</span> <span class="n">HttpSink</span><span class="p">,</span> <span class="n">HttpSinkConfig</span><span class="p">,</span> <span class="n">BatchFormat</span>
+
+<span class="n">sink</span> <span class="o">=</span> <span class="n">HttpSink</span><span class="p">(</span>
+    <span class="n">HttpSinkConfig</span><span class="p">(</span>
+        <span class="n">endpoint</span><span class="o">=</span><span class="s2">&quot;https://logs.example.com/ingest&quot;</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">batch_timeout_seconds</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+        <span class="n">batch_format</span><span class="o">=</span><span class="n">BatchFormat</span><span class="o">.</span><span class="n">NDJSON</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="webhook-sink-batching">
+<h3>Webhook sink batching<a class="headerlink" href="#webhook-sink-batching" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">WebhookSink</span></code> supports the same <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> and <code class="docutils literal notranslate"><span class="pre">batch_timeout_seconds</span></code> fields to batch webhook POSTs (default <code class="docutils literal notranslate"><span class="pre">batch_size=1</span></code> for compatibility).</p>
+</section>
 </section>
 <section id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>

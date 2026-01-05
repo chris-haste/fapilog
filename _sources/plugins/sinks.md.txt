@@ -33,6 +33,41 @@ class MySink(BaseSink):
 - `http` (HTTP POST)
 - `mmap_persistence` (experimental; local persistence)
 
+### HTTP sink batching
+
+`HttpSink` now supports sink-level batching to reduce request volume:
+
+- `batch_size` (default: 1 for backward compatibility; set >1 to enable batching)
+- `batch_timeout_seconds` (default: 5.0) flush partial batches on timeout
+- `batch_format`: `array` (JSON array), `ndjson` (newline-delimited), `wrapped` (`{"logs": [...]}`)
+- `batch_wrapper_key`: wrapper key when `batch_format="wrapped"` (default: `logs`)
+
+Examples:
+
+```bash
+export FAPILOG_HTTP__ENDPOINT=https://logs.example.com/ingest
+export FAPILOG_HTTP__BATCH_SIZE=100
+export FAPILOG_HTTP__BATCH_TIMEOUT_SECONDS=2.0
+export FAPILOG_HTTP__BATCH_FORMAT=ndjson
+```
+
+```python
+from fapilog.plugins.sinks.http_client import HttpSink, HttpSinkConfig, BatchFormat
+
+sink = HttpSink(
+    HttpSinkConfig(
+        endpoint="https://logs.example.com/ingest",
+        batch_size=100,
+        batch_timeout_seconds=2.0,
+        batch_format=BatchFormat.NDJSON,
+    )
+)
+```
+
+### Webhook sink batching
+
+`WebhookSink` supports the same `batch_size` and `batch_timeout_seconds` fields to batch webhook POSTs (default `batch_size=1` for compatibility).
+
 ## Usage
 
 Sinks are discovered via entry points when plugin discovery is enabled. You can also wire custom sinks programmatically by passing them into the container/settings before creating a logger.

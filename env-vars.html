@@ -443,6 +443,26 @@
 <td><p>PydanticUndefined</p></td>
 <td><p>Configuration for trace_sampling filter</p></td>
 </tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__HTTP__BATCH_FORMAT</span></code></p></td>
+<td><p>str</p></td>
+<td><p>array</p></td>
+<td><p>Batch format: ‘array’, ‘ndjson’, or ‘wrapped’</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__HTTP__BATCH_SIZE</span></code></p></td>
+<td><p>int</p></td>
+<td><p>1</p></td>
+<td><p>Maximum events per HTTP request (1 = no batching)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__HTTP__BATCH_TIMEOUT_SECONDS</span></code></p></td>
+<td><p>float</p></td>
+<td><p>5.0</p></td>
+<td><p>Max seconds before flushing a partial batch</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__HTTP__BATCH_WRAPPER_KEY</span></code></p></td>
+<td><p>str</p></td>
+<td><p>logs</p></td>
+<td><p>Wrapper key when batch_format=‘wrapped’</p></td>
+</tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__HTTP__ENDPOINT</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
@@ -708,6 +728,26 @@
 <td><p>PydanticUndefined</p></td>
 <td><p>Configuration for third-party sinks by name</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__HTTP__BATCH_FORMAT</span></code></p></td>
+<td><p>str</p></td>
+<td><p>array</p></td>
+<td><p>Batch format: ‘array’, ‘ndjson’, or ‘wrapped’</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__HTTP__BATCH_SIZE</span></code></p></td>
+<td><p>int</p></td>
+<td><p>1</p></td>
+<td><p>Maximum events per HTTP request (1 = no batching)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__HTTP__BATCH_TIMEOUT_SECONDS</span></code></p></td>
+<td><p>float</p></td>
+<td><p>5.0</p></td>
+<td><p>Max seconds before flushing a partial batch</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__HTTP__BATCH_WRAPPER_KEY</span></code></p></td>
+<td><p>str</p></td>
+<td><p>logs</p></td>
+<td><p>Wrapper key when batch_format=‘wrapped’</p></td>
+</tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__HTTP__ENDPOINT</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
@@ -842,6 +882,16 @@
 <td><p>dict</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Configuration for stdout_json sink</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__WEBHOOK__BATCH_SIZE</span></code></p></td>
+<td><p>int</p></td>
+<td><p>1</p></td>
+<td><p>Maximum events per webhook request (1 = no batching)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__WEBHOOK__BATCH_TIMEOUT_SECONDS</span></code></p></td>
+<td><p>float</p></td>
+<td><p>5.0</p></td>
+<td><p>Max seconds before flushing a partial webhook batch</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_CONFIG__WEBHOOK__ENDPOINT</span></code></p></td>
 <td><p>str</p></td>
