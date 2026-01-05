@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Filters &mdash; fapilog latest documentation</title>
+  <title>Plugin Testing &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -24,8 +24,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Sampling Filters" href="filters/sampling.html" />
-    <link rel="prev" title="Enrichers" href="enrichers.html" /> 
+    <link rel="next" title="Plugin Configuration" href="configuration.html" />
+    <link rel="prev" title="Processors" href="processors.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -111,9 +111,9 @@
 <li class="toctree-l2"><a class="reference internal" href="redactors.html">Redactors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sinks.html">Sinks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="enrichers.html">Enrichers</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="filters.html">Filters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="processors.html">Processors</a></li>
-<li class="toctree-l2"><a class="reference internal" href="testing.html">Plugin Testing</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Plugin Testing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="configuration.html">Plugin Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="health-checks.html">Plugin Health Checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="error-handling.html">Plugin Error Handling</a></li>
@@ -156,9 +156,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="index.html">Plugin Development</a></li>
-      <li class="breadcrumb-item active">Filters</li>
+      <li class="breadcrumb-item active">Plugin Testing</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/plugins/filters.md.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/plugins/testing.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -166,40 +166,103 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="filters">
-<h1>Filters<a class="headerlink" href="#filters" title="Link to this heading"></a></h1>
-<p>Filters run first in the pipeline. They can drop an event (return <code class="docutils literal notranslate"><span class="pre">None</span></code>) or mutate it before enrichers run.</p>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Filter Guides</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="filters/sampling.html">Sampling Filters</a></li>
-<li class="toctree-l1"><a class="reference internal" href="filters/rate-limiting.html">Rate Limiting Filter</a></li>
-</ul>
+  <section class="tex2jax_ignore mathjax_ignore" id="plugin-testing">
+<h1>Plugin Testing<a class="headerlink" href="#plugin-testing" title="Link to this heading"></a></h1>
+<p>fapilog ships testing utilities for every plugin type so you can validate behavior quickly and catch contract drift.</p>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.testing</span><span class="w"> </span><span class="kn">import</span> <span class="n">MockSink</span><span class="p">,</span> <span class="n">validate_sink</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">asyncio</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_my_sink_contract</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">sink</span> <span class="o">=</span> <span class="n">MockSink</span><span class="p">()</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">validate_sink</span><span class="p">(</span><span class="n">sink</span><span class="p">)</span>
+    <span class="n">result</span><span class="o">.</span><span class="n">raise_if_invalid</span><span class="p">()</span>
+</pre></div>
 </div>
-<section id="contract">
-<h2>Contract<a class="headerlink" href="#contract" title="Link to this heading"></a></h2>
+</section>
+<section id="mock-plugins">
+<h2>Mock Plugins<a class="headerlink" href="#mock-plugins" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">name:</span> <span class="pre">str</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">start()/stop()</span></code> optional lifecycle hooks</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">filter(event:</span> <span class="pre">dict)</span> <span class="pre">-&gt;</span> <span class="pre">dict</span> <span class="pre">|</span> <span class="pre">None</span></code> (return <code class="docutils literal notranslate"><span class="pre">None</span></code> to drop)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">health_check()</span> <span class="pre">-&gt;</span> <span class="pre">bool</span></code> (optional)</p></li>
+<li><p><strong>MockSink</strong>: captures written events, tracks lifecycle calls, optional latency/failure injection (<code class="docutils literal notranslate"><span class="pre">MockSinkConfig</span></code>).</p></li>
+<li><p><strong>MockEnricher</strong>: returns configured fields and tracks calls (<code class="docutils literal notranslate"><span class="pre">MockEnricherConfig</span></code>).</p></li>
+<li><p><strong>MockRedactor</strong>: masks configured fields with deep copy handling (<code class="docutils literal notranslate"><span class="pre">MockRedactorConfig</span></code>).</p></li>
+<li><p><strong>MockProcessor</strong>: echoes bytes, tracking processed views.</p></li>
+<li><p><strong>MockFilter</strong>: drops events by level or probability with optional failure injection (<code class="docutils literal notranslate"><span class="pre">MockFilterConfig</span></code>).</p></li>
+</ul>
+<p>Example filter usage:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.testing</span><span class="w"> </span><span class="kn">import</span> <span class="n">MockFilter</span><span class="p">,</span> <span class="n">MockFilterConfig</span>
+
+<span class="n">filter_plugin</span> <span class="o">=</span> <span class="n">MockFilter</span><span class="p">(</span>
+    <span class="n">MockFilterConfig</span><span class="p">(</span><span class="n">drop_levels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span> <span class="s2">&quot;TRACE&quot;</span><span class="p">],</span> <span class="n">drop_rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="k">await</span> <span class="n">filter_plugin</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="n">event</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="s2">&quot;INFO&quot;</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;kept&quot;</span><span class="p">}</span>
+<span class="k">assert</span> <span class="k">await</span> <span class="n">filter_plugin</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">event</span><span class="p">)</span> <span class="o">==</span> <span class="n">event</span>
+<span class="k">await</span> <span class="n">filter_plugin</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="validators">
+<h2>Validators<a class="headerlink" href="#validators" title="Link to this heading"></a></h2>
+<p>Use validators to ensure plugins satisfy protocol contracts:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">validate_sink</span></code>, <code class="docutils literal notranslate"><span class="pre">validate_enricher</span></code>, <code class="docutils literal notranslate"><span class="pre">validate_redactor</span></code>, <code class="docutils literal notranslate"><span class="pre">validate_processor</span></code>, <code class="docutils literal notranslate"><span class="pre">validate_filter</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">validate_plugin_lifecycle</span></code> to exercise <code class="docutils literal notranslate"><span class="pre">start()</span></code>/<code class="docutils literal notranslate"><span class="pre">stop()</span></code> without changing behavior.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.testing</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_filter</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyFilter</span><span class="p">:</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my-filter&quot;</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="o">...</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="o">...</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span> <span class="o">...</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">health_check</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="kc">True</span>
+
+<span class="n">validate_filter</span><span class="p">(</span><span class="n">MyFilter</span><span class="p">())</span><span class="o">.</span><span class="n">raise_if_invalid</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="pytest-fixtures">
+<h2>pytest Fixtures<a class="headerlink" href="#pytest-fixtures" title="Link to this heading"></a></h2>
+<p>Load fixtures via pytest’s plugin mechanism:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># conftest.py</span>
+<span class="n">pytest_plugins</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;fapilog.testing.fixtures&quot;</span><span class="p">,)</span>
+</pre></div>
+</div>
+<p>Available fixtures: <code class="docutils literal notranslate"><span class="pre">mock_sink</span></code>, <code class="docutils literal notranslate"><span class="pre">mock_enricher</span></code>, <code class="docutils literal notranslate"><span class="pre">mock_redactor</span></code>, <code class="docutils literal notranslate"><span class="pre">mock_processor</span></code>, <code class="docutils literal notranslate"><span class="pre">mock_filter</span></code>, and <code class="docutils literal notranslate"><span class="pre">started_mock_sink</span></code> (async, cleans up automatically).</p>
+<p>Assertion helpers raise <code class="docutils literal notranslate"><span class="pre">ProtocolViolationError</span></code> when contracts break:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">assert_valid_sink</span></code>, <code class="docutils literal notranslate"><span class="pre">assert_valid_enricher</span></code>, <code class="docutils literal notranslate"><span class="pre">assert_valid_redactor</span></code>, <code class="docutils literal notranslate"><span class="pre">assert_valid_processor</span></code>, <code class="docutils literal notranslate"><span class="pre">assert_valid_filter</span></code></p></li>
 </ul>
 </section>
-<section id="built-in-filters">
-<h2>Built-in filters<a class="headerlink" href="#built-in-filters" title="Link to this heading"></a></h2>
+<section id="benchmarks">
+<h2>Benchmarks<a class="headerlink" href="#benchmarks" title="Link to this heading"></a></h2>
+<p>Measure plugin performance with lightweight benchmarks:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">level</span></code>: drop events below a minimum level.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sampling</span></code>: probabilistic sampling with optional seed.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">adaptive_sampling</span></code>: adjust sampling to hit a target events-per-second window.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">trace_sampling</span></code>: deterministic sampling keyed by <code class="docutils literal notranslate"><span class="pre">trace_id</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">first_occurrence</span></code>: always pass the first occurrence of a unique key, then sample duplicates.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">rate_limit</span></code>: token-bucket rate limiting with optional key partitioning and max bucket guardrails.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">benchmark_async</span></code> for generic async call benchmarking</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">benchmark_sink</span></code>, <code class="docutils literal notranslate"><span class="pre">benchmark_enricher</span></code>, <code class="docutils literal notranslate"><span class="pre">benchmark_filter</span></code> helpers that manage lifecycle</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BenchmarkResult</span></code> provides <code class="docutils literal notranslate"><span class="pre">ops_per_second</span></code>, latency metrics, and a readable <code class="docutils literal notranslate"><span class="pre">__str__</span></code></p></li>
 </ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.testing</span><span class="w"> </span><span class="kn">import</span> <span class="n">MockSink</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.testing</span><span class="w"> </span><span class="kn">import</span> <span class="n">benchmark_sink</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">benchmark_sink</span><span class="p">(</span><span class="n">MockSink</span><span class="p">(),</span> <span class="n">iterations</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">warmup</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>  <span class="c1"># sink:mock: 50000 ops/s, avg=0.020ms</span>
+</pre></div>
+</div>
 </section>
-<section id="configuration">
-<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h2>
-<p>Configure filters via <code class="docutils literal notranslate"><span class="pre">core.filters</span></code> and <code class="docutils literal notranslate"><span class="pre">filter_config.*</span></code>. When <code class="docutils literal notranslate"><span class="pre">core.log_level</span></code> is set (and no explicit <code class="docutils literal notranslate"><span class="pre">core.filters</span></code> are provided), fapilog automatically prepends a <code class="docutils literal notranslate"><span class="pre">level</span></code> filter using that threshold.</p>
-<p>Execution order is the list order: filters run before enrichers, redactors, processors, and sinks.</p>
+<section id="ci-cd-integration">
+<h2>CI/CD Integration<a class="headerlink" href="#ci-cd-integration" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Run validators alongside unit tests to catch contract regressions early.</p></li>
+<li><p>Use fixtures for smoke tests that exercise pipelines without hitting external systems.</p></li>
+<li><p>Add a lightweight benchmark job to watch for performance regressions in custom plugins.</p></li>
+<li><p>Gate merges on <code class="docutils literal notranslate"><span class="pre">ProtocolViolationError</span></code>-free results to keep plugins compatible across releases.</p></li>
+</ul>
 </section>
 </section>
 
@@ -207,8 +270,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="enrichers.html" class="btn btn-neutral float-left" title="Enrichers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="filters/sampling.html" class="btn btn-neutral float-right" title="Sampling Filters" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="processors.html" class="btn btn-neutral float-left" title="Processors" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="configuration.html" class="btn btn-neutral float-right" title="Plugin Configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
