@@ -24,6 +24,11 @@ BUILTIN_PLUGINS = [
         "CloudWatchSink",
         "cloudwatch",
     ),
+    (
+        "fapilog.plugins.sinks.contrib.loki",
+        "LokiSink",
+        "loki",
+    ),
     ("fapilog.plugins.enrichers.runtime_info", "RuntimeInfoEnricher", "runtime_info"),
     ("fapilog.plugins.enrichers.context_vars", "ContextVarsEnricher", "context_vars"),
     ("fapilog.plugins.redactors.field_mask", "FieldMaskRedactor", "field_mask"),

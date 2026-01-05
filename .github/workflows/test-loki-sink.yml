@@ -1,0 +1,56 @@
+name: Loki Sink Tests
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    paths:
+      - "src/fapilog/plugins/sinks/contrib/loki.py"
+      - "tests/integration/test_loki_sink.py"
+      - "tests/unit/test_loki_sink_unit.py"
+      - ".github/workflows/test-loki-sink.yml"
+  push:
+    branches: [main]
+    paths:
+      - "src/fapilog/plugins/sinks/contrib/loki.py"
+      - "tests/integration/test_loki_sink.py"
+      - "tests/unit/test_loki_sink_unit.py"
+      - ".github/workflows/test-loki-sink.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      loki:
+        image: grafana/loki:2.9.0
+        ports:
+          - 3100:3100
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          pip install -e ".[dev]"
+      - name: Wait for Loki
+        run: |
+          echo "Waiting for Loki to be ready..."
+          for i in {1..30}; do
+            if curl -sf http://localhost:3100/ready > /dev/null 2>&1; then
+              echo "Loki is ready!"
+              exit 0
+            fi
+            echo "Attempt $i: Loki not ready yet, waiting..."
+            sleep 2
+          done
+          echo "Loki failed to become ready"
+          exit 1
+      - name: Run Loki tests
+        env:
+          LOKI_URL: http://localhost:3100
+        run: |
+          pytest tests/unit/test_loki_sink_unit.py -q
+          pytest tests/integration/test_loki_sink.py -q

@@ -18,6 +18,7 @@ This guide explains the new configuration-driven plugin wiring introduced in Sto
   - `sink_config.rotating_file`: directory, rotation, retention, compression
   - `sink_config.http`: endpoint, headers, retry, timeout
   - `sink_config.webhook`: endpoint, secret, headers, retry, timeout
+  - `sink_config.loki`: url, labels, label_keys, batching, auth, circuit breaker
   - `sink_config.cloudwatch`: log group/stream, region, batching, retries, circuit breaker
   - `redactor_config.field_mask`: fields, mask string, guardrails
   - `redactor_config.regex_mask`: patterns, mask string, guardrails

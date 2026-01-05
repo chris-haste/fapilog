@@ -18,6 +18,7 @@ BUILTIN_PLUGIN_MODULES = [
     "fapilog.plugins.sinks.rotating_file",
     "fapilog.plugins.sinks.http_client",
     "fapilog.plugins.sinks.webhook",
+    "fapilog.plugins.sinks.contrib.loki",
     "fapilog.plugins.sinks.contrib.cloudwatch",
     # Enrichers
     "fapilog.plugins.enrichers.runtime_info",

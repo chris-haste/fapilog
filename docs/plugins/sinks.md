@@ -40,6 +40,7 @@ class MySink(BaseSink):
 :titlesonly:
 
 sinks/cloudwatch
+sinks/loki
 ```
 
 ### HTTP sink batching

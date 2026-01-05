@@ -7,6 +7,7 @@ async-aware validation hooks used by the loader in `config.py`.
 
 from __future__ import annotations
 
+import json
 import os
 from typing import Any, Literal
 
@@ -157,6 +158,45 @@ class CloudWatchSinkSettings(BaseModel):
     )
     circuit_breaker_enabled: bool = Field(
         default=True, description="Enable internal circuit breaker for CloudWatch sink"
+    )
+    circuit_breaker_threshold: int = Field(
+        default=5, ge=1, description="Failures before opening circuit"
+    )
+
+
+class LokiSinkSettings(BaseModel):
+    """Configuration for Grafana Loki sink."""
+
+    url: str = Field(
+        default="http://localhost:3100", description="Loki push endpoint base URL"
+    )
+    tenant_id: str | None = Field(
+        default=None, description="Optional multi-tenant identifier"
+    )
+    labels: dict[str, str] = Field(
+        default_factory=lambda: {"service": "fapilog"},
+        description="Static labels to apply to each log stream",
+    )
+    label_keys: list[str] = Field(
+        default_factory=lambda: ["level"],
+        description="Event keys to promote to labels",
+    )
+    batch_size: int = Field(default=100, ge=1, description="Events per batch")
+    batch_timeout_seconds: float = Field(
+        default=5.0, gt=0, description="Max seconds before flushing a partial batch"
+    )
+    timeout_seconds: float = Field(
+        default=10.0, gt=0, description="HTTP timeout seconds"
+    )
+    max_retries: int = Field(default=3, ge=1, description="Max retries on push failure")
+    retry_base_delay: float = Field(
+        default=0.5, gt=0, description="Base delay for backoff"
+    )
+    auth_username: str | None = Field(default=None, description="Basic auth username")
+    auth_password: str | None = Field(default=None, description="Basic auth password")
+    auth_token: str | None = Field(default=None, description="Bearer token for Loki")
+    circuit_breaker_enabled: bool = Field(
+        default=True, description="Enable circuit breaker for the Loki sink"
     )
     circuit_breaker_threshold: int = Field(
         default=5, ge=1, description="Failures before opening circuit"
@@ -601,6 +641,10 @@ class Settings(BaseSettings):
             default_factory=WebhookSettings,
             description="Configuration for webhook sink",
         )
+        loki: LokiSinkSettings = Field(
+            default_factory=LokiSinkSettings,
+            description="Configuration for Loki sink",
+        )
         stdout_json: dict[str, Any] = Field(
             default_factory=dict, description="Configuration for stdout_json sink"
         )
@@ -826,6 +870,71 @@ class Settings(BaseSettings):
         ) is not None:
             try:
                 cw.circuit_breaker_threshold = int(threshold)
+            except Exception:
+                pass
+
+        return self
+
+    @model_validator(mode="after")
+    def _apply_loki_env_aliases(self) -> Settings:
+        """Support short env aliases like FAPILOG_LOKI__URL."""
+        loki_cfg = self.sink_config.loki
+        env_map = {
+            "url": os.getenv("FAPILOG_LOKI__URL"),
+            "tenant_id": os.getenv("FAPILOG_LOKI__TENANT_ID"),
+            "auth_username": os.getenv("FAPILOG_LOKI__AUTH_USERNAME"),
+            "auth_password": os.getenv("FAPILOG_LOKI__AUTH_PASSWORD"),
+            "auth_token": os.getenv("FAPILOG_LOKI__AUTH_TOKEN"),
+            "timeout_seconds": os.getenv("FAPILOG_LOKI__TIMEOUT_SECONDS"),
+            "batch_size": os.getenv("FAPILOG_LOKI__BATCH_SIZE"),
+            "batch_timeout_seconds": os.getenv("FAPILOG_LOKI__BATCH_TIMEOUT_SECONDS"),
+            "max_retries": os.getenv("FAPILOG_LOKI__MAX_RETRIES"),
+            "retry_base_delay": os.getenv("FAPILOG_LOKI__RETRY_BASE_DELAY"),
+        }
+        label_keys = os.getenv("FAPILOG_LOKI__LABEL_KEYS")
+        labels_json = os.getenv("FAPILOG_LOKI__LABELS")
+        cb_enabled = os.getenv("FAPILOG_LOKI__CIRCUIT_BREAKER_ENABLED")
+        cb_threshold = os.getenv("FAPILOG_LOKI__CIRCUIT_BREAKER_THRESHOLD")
+
+        for key, value in env_map.items():
+            if value is None:
+                continue
+            try:
+                if key in {"batch_size", "max_retries"}:
+                    setattr(loki_cfg, key, int(value))
+                elif key in {
+                    "timeout_seconds",
+                    "batch_timeout_seconds",
+                    "retry_base_delay",
+                }:
+                    setattr(loki_cfg, key, float(value))
+                else:
+                    setattr(loki_cfg, key, value)
+            except Exception:
+                continue
+
+        parsed_cb = self._parse_bool(cb_enabled)
+        if parsed_cb is not None:
+            loki_cfg.circuit_breaker_enabled = parsed_cb
+        if cb_threshold:
+            try:
+                loki_cfg.circuit_breaker_threshold = int(cb_threshold)
+            except Exception:
+                pass
+
+        if labels_json:
+            try:
+                parsed = json.loads(labels_json)
+                if isinstance(parsed, dict):
+                    loki_cfg.labels = {str(k): str(v) for k, v in parsed.items()}
+            except Exception:
+                pass
+
+        if label_keys:
+            try:
+                parsed = json.loads(label_keys)
+                if isinstance(parsed, list):
+                    loki_cfg.label_keys = [str(v) for v in parsed]
             except Exception:
                 pass
 
