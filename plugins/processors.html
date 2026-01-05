@@ -283,6 +283,14 @@
         <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">view</span><span class="p">))</span>
         <span class="n">packed</span> <span class="o">=</span> <span class="n">msgpack</span><span class="o">.</span><span class="n">packb</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">memoryview</span><span class="p">(</span><span class="n">packed</span><span class="p">)</span>
+
+
+<span class="c1">### Batch processing</span>
+
+<span class="n">Implement</span> <span class="err">`</span><span class="n">process_many</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">views</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">memoryview</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">memoryview</span><span class="p">]</span><span class="err">`</span>
+<span class="n">when</span> <span class="n">batching</span> <span class="n">improves</span> <span class="n">performance</span> <span class="p">(</span><span class="n">shared</span> <span class="n">compression</span> <span class="n">dictionary</span><span class="p">,</span> <span class="n">reused</span> <span class="n">crypto</span>
+<span class="n">context</span><span class="p">,</span> <span class="n">etc</span><span class="o">.</span><span class="p">)</span><span class="o">.</span> <span class="n">The</span> <span class="n">default</span> <span class="n">implementation</span> <span class="n">simply</span> <span class="n">calls</span> <span class="err">`</span><span class="n">process</span><span class="p">()</span><span class="err">`</span> <span class="k">for</span> <span class="n">each</span>
+<span class="n">view</span> <span class="ow">and</span> <span class="n">returns</span> <span class="n">the</span> <span class="n">processed</span> <span class="n">results</span> <span class="ow">in</span> <span class="n">order</span><span class="o">.</span>
 </pre></div>
 </div>
 </section>
@@ -311,7 +319,7 @@
 </section>
 <section id="configuration-and-order">
 <h2>Configuration and order<a class="headerlink" href="#configuration-and-order" title="Link to this heading"></a></h2>
-<p>Configure processors via settings (<code class="docutils literal notranslate"><span class="pre">core.processors</span></code>) or env (<code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__PROCESSORS</span></code>). They run in order:</p>
+<p>Configure processors via settings (<code class="docutils literal notranslate"><span class="pre">core.processors</span></code>) or env (<code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__PROCESSORS</span></code>). Per-processor kwargs live under <code class="docutils literal notranslate"><span class="pre">processor_config</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">processor_config.extra.gzip</span> <span class="pre">=</span> <span class="pre">{&quot;level&quot;:</span> <span class="pre">5}</span></code>). They run in order:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Event → Enrichers → Redactors → Serialize → Processor 1 → Processor 2 → Sinks
 </pre></div>
 </div>
@@ -331,7 +339,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on January 03, 2026.
+      <span class="lastupdated">Last updated on January 05, 2026.
       </span></p>
   </div>
 

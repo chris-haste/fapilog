@@ -174,7 +174,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">start(self)</span> <span class="pre">-&gt;</span> <span class="pre">None</span></code> (optional)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">stop(self)</span> <span class="pre">-&gt;</span> <span class="pre">None</span></code> (optional)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">process(self,</span> <span class="pre">view:</span> <span class="pre">memoryview)</span> <span class="pre">-&gt;</span> <span class="pre">memoryview</span></code> (required)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">process_many(self,</span> <span class="pre">views:</span> <span class="pre">Iterable[memoryview])</span> <span class="pre">-&gt;</span> <span class="pre">int</span></code> (optional helper)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">process_many(self,</span> <span class="pre">views:</span> <span class="pre">Iterable[memoryview])</span> <span class="pre">-&gt;</span> <span class="pre">list[memoryview]</span></code> (optional helper; default delegates to <code class="docutils literal notranslate"><span class="pre">process</span></code>)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">health_check(self)</span> <span class="pre">-&gt;</span> <span class="pre">bool</span></code> (optional)</p></li>
 </ul>
 <p>Errors should be contained by processors; callers isolate failures per processor.</p>
@@ -241,7 +241,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on January 03, 2026.
+      <span class="lastupdated">Last updated on January 05, 2026.
       </span></p>
   </div>
 

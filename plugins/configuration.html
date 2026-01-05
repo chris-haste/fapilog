@@ -191,9 +191,10 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">redactor_config.field_mask</span></code>: fields, mask string, guardrails</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">redactor_config.regex_mask</span></code>: patterns, mask string, guardrails</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">redactor_config.url_credentials</span></code>: max string length</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">processor_config.zero_copy</span></code>: reserved for zero_copy options; third-party configs via <code class="docutils literal notranslate"><span class="pre">processor_config.extra</span></code></p></li>
+<li><p>Third-party plugins use <code class="docutils literal notranslate"><span class="pre">extra</span></code> maps (<code class="docutils literal notranslate"><span class="pre">sink_config.extra</span></code>, <code class="docutils literal notranslate"><span class="pre">enricher_config.extra</span></code>, <code class="docutils literal notranslate"><span class="pre">redactor_config.extra</span></code>, <code class="docutils literal notranslate"><span class="pre">processor_config.extra</span></code>) with arbitrary keys.</p></li>
 </ul>
 </li>
-<li><p>Third-party plugins use <code class="docutils literal notranslate"><span class="pre">extra</span></code> maps (<code class="docutils literal notranslate"><span class="pre">sink_config.extra</span></code>, <code class="docutils literal notranslate"><span class="pre">enricher_config.extra</span></code>, <code class="docutils literal notranslate"><span class="pre">redactor_config.extra</span></code>) with arbitrary keys.</p></li>
 </ul>
 <section id="environment-examples">
 <h3>Environment Examples<a class="headerlink" href="#environment-examples" title="Link to this heading"></a></h3>
@@ -203,6 +204,10 @@
 
 <span class="c1"># Disable enrichers</span>
 <span class="nv">FAPILOG_CORE__ENRICHERS</span><span class="o">=</span><span class="s1">&#39;[]&#39;</span>
+
+<span class="c1"># Processors with config</span>
+<span class="nv">FAPILOG_CORE__PROCESSORS</span><span class="o">=</span><span class="s1">&#39;[&quot;gzip&quot;]&#39;</span>
+<span class="nv">FAPILOG_PROCESSOR_CONFIG__EXTRA__GZIP</span><span class="o">=</span><span class="s1">&#39;{\&quot;level\&quot;:4}&#39;</span>
 
 <span class="c1"># Redactors via legacy order (still supported)</span>
 <span class="nv">FAPILOG_CORE__ENABLE_REDACTORS</span><span class="o">=</span><span class="nb">true</span>
@@ -244,7 +249,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on January 03, 2026.
+      <span class="lastupdated">Last updated on January 05, 2026.
       </span></p>
   </div>
 
