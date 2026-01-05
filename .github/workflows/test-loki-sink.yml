@@ -8,14 +8,14 @@ on:
     paths:
       - "src/fapilog/plugins/sinks/contrib/loki.py"
       - "tests/integration/test_loki_sink.py"
-      - "tests/unit/test_loki_sink.py"
+      - "tests/unit/test_loki_sink_unit.py"
       - ".github/workflows/test-loki-sink.yml"
   push:
     branches: [main]
     paths:
       - "src/fapilog/plugins/sinks/contrib/loki.py"
       - "tests/integration/test_loki_sink.py"
-      - "tests/unit/test_loki_sink.py"
+      - "tests/unit/test_loki_sink_unit.py"
       - ".github/workflows/test-loki-sink.yml"
 
 jobs:
@@ -47,5 +47,5 @@ jobs:
         env:
           LOKI_URL: http://localhost:3100
         run: |
-          pytest tests/unit/test_loki_sink.py -q
+          pytest tests/unit/test_loki_sink_unit.py -q
           pytest tests/integration/test_loki_sink.py -q
