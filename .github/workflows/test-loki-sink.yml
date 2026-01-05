@@ -1,5 +1,8 @@
 name: Loki Sink Tests
 
+permissions:
+  contents: read
+
 on:
   pull_request:
     paths:
