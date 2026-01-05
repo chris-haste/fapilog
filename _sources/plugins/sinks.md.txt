@@ -8,7 +8,7 @@ Output destinations for serialized log entries. Implement `BaseSink`.
 from fapilog.plugins import BaseSink
 
 class MySink(BaseSink):
-    name = "my-sink"
+    name = "my_sink"
 
     async def start(self) -> None:
         ...
@@ -28,9 +28,9 @@ class MySink(BaseSink):
 
 ## Built-in sinks (code-supported)
 
-- `stdout-json` (default)
-- `rotating-file` (size/time rotation)
-- `http_client` (HTTP POST)
+- `stdout_json` (default)
+- `rotating_file` (size/time rotation)
+- `http` (HTTP POST)
 - `mmap_persistence` (experimental; local persistence)
 
 ## Usage
@@ -45,7 +45,7 @@ For sinks that operate on bytes (files, sockets, HTTP), implement `write_seriali
 from fapilog.core.serialization import SerializedView
 
 class MyFastSink:
-    name = "my-fast-sink"
+    name = "my_fast_sink"
 
     async def write(self, entry: dict) -> None:
         # Fallback path: serialize yourself

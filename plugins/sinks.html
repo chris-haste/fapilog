@@ -171,7 +171,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseSink</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MySink</span><span class="p">(</span><span class="n">BaseSink</span><span class="p">):</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my-sink&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my_sink&quot;</span>
 
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="o">...</span>
@@ -195,9 +195,9 @@
 <section id="built-in-sinks-code-supported">
 <h2>Built-in sinks (code-supported)<a class="headerlink" href="#built-in-sinks-code-supported" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">stdout-json</span></code> (default)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">rotating-file</span></code> (size/time rotation)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">http_client</span></code> (HTTP POST)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stdout_json</span></code> (default)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rotating_file</span></code> (size/time rotation)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">http</span></code> (HTTP POST)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">mmap_persistence</span></code> (experimental; local persistence)</p></li>
 </ul>
 </section>
@@ -211,7 +211,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.serialization</span><span class="w"> </span><span class="kn">import</span> <span class="n">SerializedView</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MyFastSink</span><span class="p">:</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my-fast-sink&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my_fast_sink&quot;</span>
 
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entry</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># Fallback path: serialize yourself</span>

@@ -170,16 +170,16 @@
 <h2>Entry Points<a class="headerlink" href="#entry-points" title="Link to this heading"></a></h2>
 <p>Declare entry points in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> under one of the v3 groups per plugin type:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">project</span><span class="o">.</span><span class="n">entry</span><span class="o">-</span><span class="n">points</span><span class="o">.</span><span class="s2">&quot;fapilog.sinks&quot;</span><span class="p">]</span>
-<span class="s2">&quot;my-sink&quot;</span> <span class="o">=</span> <span class="s2">&quot;my_package.my_sink&quot;</span>
+<span class="s2">&quot;my_sink&quot;</span> <span class="o">=</span> <span class="s2">&quot;my_package.my_sink&quot;</span>
 
 <span class="p">[</span><span class="n">project</span><span class="o">.</span><span class="n">entry</span><span class="o">-</span><span class="n">points</span><span class="o">.</span><span class="s2">&quot;fapilog.processors&quot;</span><span class="p">]</span>
-<span class="s2">&quot;my-processor&quot;</span> <span class="o">=</span> <span class="s2">&quot;my_package.my_processor&quot;</span>
+<span class="s2">&quot;my_processor&quot;</span> <span class="o">=</span> <span class="s2">&quot;my_package.my_processor&quot;</span>
 
 <span class="p">[</span><span class="n">project</span><span class="o">.</span><span class="n">entry</span><span class="o">-</span><span class="n">points</span><span class="o">.</span><span class="s2">&quot;fapilog.enrichers&quot;</span><span class="p">]</span>
-<span class="s2">&quot;my-enricher&quot;</span> <span class="o">=</span> <span class="s2">&quot;my_package.my_enricher&quot;</span>
+<span class="s2">&quot;my_enricher&quot;</span> <span class="o">=</span> <span class="s2">&quot;my_package.my_enricher&quot;</span>
 
 <span class="p">[</span><span class="n">project</span><span class="o">.</span><span class="n">entry</span><span class="o">-</span><span class="n">points</span><span class="o">.</span><span class="s2">&quot;fapilog.redactors&quot;</span><span class="p">]</span>
-<span class="s2">&quot;my-redactor&quot;</span> <span class="o">=</span> <span class="s2">&quot;my_package.my_redactor&quot;</span>
+<span class="s2">&quot;my_redactor&quot;</span> <span class="o">=</span> <span class="s2">&quot;my_package.my_redactor&quot;</span>
 
 <span class="c1"># Fallback generic group (type derived from PLUGIN_METADATA[&quot;plugin_type&quot;]) when needed</span>
 <span class="p">[</span><span class="n">project</span><span class="o">.</span><span class="n">entry</span><span class="o">-</span><span class="n">points</span><span class="o">.</span><span class="s2">&quot;fapilog.plugins&quot;</span><span class="p">]</span>
@@ -187,11 +187,20 @@
 </pre></div>
 </div>
 </section>
+<section id="naming-convention">
+<h2>Naming Convention<a class="headerlink" href="#naming-convention" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Use lowercase with underscores (snake_case): <code class="docutils literal notranslate"><span class="pre">field_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">rotating_file</span></code>, <code class="docutils literal notranslate"><span class="pre">runtime_info</span></code>.</p></li>
+<li><p>Avoid type suffixes in names (<code class="docutils literal notranslate"><span class="pre">-sink</span></code>, <code class="docutils literal notranslate"><span class="pre">-processor</span></code>, etc.); the <code class="docutils literal notranslate"><span class="pre">plugin_type</span></code> field already captures that.</p></li>
+<li><p>The class <code class="docutils literal notranslate"><span class="pre">name</span></code> attribute and <code class="docutils literal notranslate"><span class="pre">PLUGIN_METADATA[&quot;name&quot;]</span></code> must match.</p></li>
+<li><p>Hyphen variants are normalized automatically for compatibility, but prefer snake_case in docs/config.</p></li>
+</ul>
+</section>
 <section id="plugin-metadata">
 <h2>PLUGIN_METADATA<a class="headerlink" href="#plugin-metadata" title="Link to this heading"></a></h2>
 <p>Each module must export a <code class="docutils literal notranslate"><span class="pre">PLUGIN_METADATA</span></code> mapping with at least:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">PLUGIN_METADATA</span> <span class="o">=</span> <span class="p">{</span>
-  <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;my-plugin&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;my_plugin&quot;</span><span class="p">,</span>
   <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1.2.3&quot;</span><span class="p">,</span>
   <span class="s2">&quot;plugin_type&quot;</span><span class="p">:</span> <span class="s2">&quot;sink&quot;</span><span class="p">,</span>  <span class="c1"># sink|processor|enricher|redactor</span>
   <span class="s2">&quot;entry_point&quot;</span><span class="p">:</span> <span class="s2">&quot;my_package.my_sink:Plugin&quot;</span><span class="p">,</span>

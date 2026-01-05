@@ -36,7 +36,7 @@ Minimal `PLUGIN_METADATA` example for a sink:
 
 ```python
 PLUGIN_METADATA = {
-    "name": "stdout-json-sink",
+    "name": "stdout_json",
     "version": "0.1.0",
     "plugin_type": "sink",
     "entry_point": "your_module:YourPluginClassOrModule",
