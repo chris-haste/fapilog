@@ -14,6 +14,7 @@ structured-error-logging
 kubernetes-file-sink
 prometheus-metrics
 sampling-debug-logs
+cloud-sinks/index
 ```
 
 ## Overview
