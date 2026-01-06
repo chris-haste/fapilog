@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: fapilog
+      POSTGRES_PASSWORD: fapilog
+      POSTGRES_DB: fapilog
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    depends_on:
+      - postgres
+    environment:
+      FAPILOG_POSTGRES__HOST: postgres
+      FAPILOG_POSTGRES__DATABASE: fapilog
+      FAPILOG_POSTGRES__USER: fapilog
+      FAPILOG_POSTGRES__PASSWORD: fapilog
+      FAPILOG_CORE__SINKS: '["postgres"]'
+    ports:
+      - "8000:8000"
+
+volumes:
+  postgres_data:

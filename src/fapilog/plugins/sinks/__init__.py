@@ -5,6 +5,7 @@ from typing import Protocol, runtime_checkable
 from ..loader import register_builtin
 from .contrib.cloudwatch import CloudWatchSink
 from .contrib.loki import LokiSink
+from .contrib.postgres import PostgresSink
 from .http_client import HttpSink
 from .mmap_persistence import MemoryMappedPersistence, PersistenceStats
 from .rotating_file import RotatingFileSink
@@ -78,6 +79,7 @@ __all__ = [
     "PersistenceStats",
     "CloudWatchSink",
     "LokiSink",
+    "PostgresSink",
 ]
 
 
@@ -115,6 +117,12 @@ register_builtin(
     "loki",
     LokiSink,
     aliases=["grafana-loki"],
+)
+register_builtin(
+    "fapilog.sinks",
+    "postgres",
+    PostgresSink,
+    aliases=["postgresql"],
 )
 
 # NOTE: MemoryMappedPersistence is exported (in __all__) as a building block

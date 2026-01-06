@@ -1,0 +1,54 @@
+name: PostgreSQL Sink Tests
+
+permissions:
+  contents: read
+
+on:
+  push:
+    paths:
+      - "src/fapilog/plugins/sinks/contrib/postgres.py"
+      - "tests/integration/test_postgres_sink.py"
+      - "tests/unit/test_postgres_sink_unit.py"
+  pull_request:
+    paths:
+      - "src/fapilog/plugins/sinks/contrib/postgres.py"
+      - "tests/integration/test_postgres_sink.py"
+      - "tests/unit/test_postgres_sink_unit.py"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: fapilog
+          POSTGRES_PASSWORD: fapilog
+          POSTGRES_DB: fapilog_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -e ".[postgres,dev]"
+
+      - name: Run PostgreSQL tests
+        run: |
+          pytest tests/unit/test_postgres_sink_unit.py tests/integration/test_postgres_sink.py -v
+        env:
+          FAPILOG_POSTGRES__HOST: localhost
+          FAPILOG_POSTGRES__PORT: 5432
+          FAPILOG_POSTGRES__DATABASE: fapilog_test
+          FAPILOG_POSTGRES__USER: fapilog
+          FAPILOG_POSTGRES__PASSWORD: fapilog

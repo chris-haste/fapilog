@@ -26,6 +26,7 @@ from .plugins.redactors.field_mask import FieldMaskConfig
 from .plugins.redactors.regex_mask import RegexMaskConfig
 from .plugins.redactors.url_credentials import UrlCredentialsConfig
 from .plugins.sinks.contrib.cloudwatch import CloudWatchSinkConfig
+from .plugins.sinks.contrib.postgres import PostgresSinkConfig
 from .plugins.sinks.http_client import HttpSinkConfig
 from .plugins.sinks.rotating_file import RotatingFileSinkConfig
 from .plugins.sinks.stdout_json import StdoutJsonSink as _StdoutJsonSink
@@ -165,6 +166,31 @@ def _sink_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
                 retry_base_delay=scfg.cloudwatch.retry_base_delay,
                 circuit_breaker_enabled=scfg.cloudwatch.circuit_breaker_enabled,
                 circuit_breaker_threshold=scfg.cloudwatch.circuit_breaker_threshold,
+            )
+        },
+        "postgres": {
+            "config": PostgresSinkConfig(
+                dsn=scfg.postgres.dsn,
+                host=scfg.postgres.host,
+                port=scfg.postgres.port,
+                database=scfg.postgres.database,
+                user=scfg.postgres.user,
+                password=scfg.postgres.password,
+                table_name=scfg.postgres.table_name,
+                schema_name=scfg.postgres.schema_name,
+                create_table=scfg.postgres.create_table,
+                min_pool_size=scfg.postgres.min_pool_size,
+                max_pool_size=scfg.postgres.max_pool_size,
+                pool_acquire_timeout=scfg.postgres.pool_acquire_timeout,
+                batch_size=scfg.postgres.batch_size,
+                batch_timeout_seconds=scfg.postgres.batch_timeout_seconds,
+                max_retries=scfg.postgres.max_retries,
+                retry_base_delay=scfg.postgres.retry_base_delay,
+                circuit_breaker_enabled=scfg.postgres.circuit_breaker_enabled,
+                circuit_breaker_threshold=scfg.postgres.circuit_breaker_threshold,
+                use_jsonb=scfg.postgres.use_jsonb,
+                include_raw_json=scfg.postgres.include_raw_json,
+                extract_fields=scfg.postgres.extract_fields,
             )
         },
         "sealed": scfg.sealed.model_dump(exclude_none=True),

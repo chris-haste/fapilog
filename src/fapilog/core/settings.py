@@ -11,7 +11,7 @@ import json
 import os
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from pydantic_settings import (  # type: ignore[import-not-found]
     BaseSettings,
     SettingsConfigDict,
@@ -167,6 +167,8 @@ class CloudWatchSinkSettings(BaseModel):
 class LokiSinkSettings(BaseModel):
     """Configuration for Grafana Loki sink."""
 
+    model_config = ConfigDict(extra="forbid", validate_default=True)
+
     url: str = Field(
         default="http://localhost:3100", description="Loki push endpoint base URL"
     )
@@ -200,6 +202,63 @@ class LokiSinkSettings(BaseModel):
     )
     circuit_breaker_threshold: int = Field(
         default=5, ge=1, description="Failures before opening circuit"
+    )
+
+
+class PostgresSinkSettings(BaseModel):
+    """Configuration for PostgreSQL sink."""
+
+    model_config = ConfigDict(extra="forbid", validate_default=True)
+
+    dsn: str | None = Field(default=None, description="PostgreSQL connection string")
+    host: str = Field(
+        default="localhost", description="PostgreSQL server hostname or IP address"
+    )
+    port: int = Field(default=5432, ge=1, description="PostgreSQL server port number")
+    database: str = Field(
+        default="fapilog", description="PostgreSQL database name to connect to"
+    )
+    user: str = Field(
+        default="fapilog", description="PostgreSQL username for authentication"
+    )
+    password: str | None = Field(default=None, description="Database password")
+    table_name: str = Field(default="logs", description="Target table name")
+    schema_name: str = Field(default="public", description="Database schema name")
+    create_table: bool = Field(default=True, description="Auto-create table if missing")
+    min_pool_size: int = Field(default=2, ge=1, description="Minimum pool connections")
+    max_pool_size: int = Field(default=10, ge=1, description="Maximum pool connections")
+    pool_acquire_timeout: float = Field(
+        default=10.0, gt=0.0, description="Timeout when acquiring connections"
+    )
+    batch_size: int = Field(default=100, ge=1, description="Events per batch")
+    batch_timeout_seconds: float = Field(
+        default=5.0, gt=0, description="Max seconds before flushing a partial batch"
+    )
+    max_retries: int = Field(
+        default=3, ge=0, description="Maximum retries for failed inserts"
+    )
+    retry_base_delay: float = Field(
+        default=0.5, ge=0.0, description="Base delay for exponential backoff"
+    )
+    circuit_breaker_enabled: bool = Field(
+        default=True, description="Enable circuit breaker for the PostgreSQL sink"
+    )
+    circuit_breaker_threshold: int = Field(
+        default=5, ge=1, description="Failures before opening circuit breaker"
+    )
+    use_jsonb: bool = Field(default=True, description="Use JSONB column type")
+    include_raw_json: bool = Field(
+        default=True, description="Store full event JSON payload"
+    )
+    extract_fields: list[str] = Field(
+        default_factory=lambda: [
+            "timestamp",
+            "level",
+            "logger",
+            "correlation_id",
+            "message",
+        ],
+        description="Fields to promote to columns for fast queries",
     )
 
 
@@ -656,6 +715,10 @@ class Settings(BaseSettings):
             default_factory=CloudWatchSinkSettings,
             description="Configuration for CloudWatch sink",
         )
+        postgres: PostgresSinkSettings = Field(
+            default_factory=PostgresSinkSettings,
+            description="Configuration for PostgreSQL sink",
+        )
         # Third-party sinks use dicts
         extra: dict[str, dict[str, Any]] = Field(
             default_factory=dict,
@@ -935,6 +998,76 @@ class Settings(BaseSettings):
                 parsed = json.loads(label_keys)
                 if isinstance(parsed, list):
                     loki_cfg.label_keys = [str(v) for v in parsed]
+            except Exception:
+                pass
+
+        return self
+
+    @model_validator(mode="after")
+    def _apply_postgres_env_aliases(self) -> Settings:
+        """Support short env aliases like FAPILOG_POSTGRES__HOST."""
+        pg = self.sink_config.postgres
+        env_map = {
+            "dsn": os.getenv("FAPILOG_POSTGRES__DSN"),
+            "host": os.getenv("FAPILOG_POSTGRES__HOST"),
+            "port": os.getenv("FAPILOG_POSTGRES__PORT"),
+            "database": os.getenv("FAPILOG_POSTGRES__DATABASE"),
+            "user": os.getenv("FAPILOG_POSTGRES__USER"),
+            "password": os.getenv("FAPILOG_POSTGRES__PASSWORD"),
+            "table_name": os.getenv("FAPILOG_POSTGRES__TABLE_NAME"),
+            "schema_name": os.getenv("FAPILOG_POSTGRES__SCHEMA_NAME"),
+            "min_pool_size": os.getenv("FAPILOG_POSTGRES__MIN_POOL_SIZE"),
+            "max_pool_size": os.getenv("FAPILOG_POSTGRES__MAX_POOL_SIZE"),
+            "pool_acquire_timeout": os.getenv("FAPILOG_POSTGRES__POOL_ACQUIRE_TIMEOUT"),
+            "batch_size": os.getenv("FAPILOG_POSTGRES__BATCH_SIZE"),
+            "batch_timeout_seconds": os.getenv(
+                "FAPILOG_POSTGRES__BATCH_TIMEOUT_SECONDS"
+            ),
+            "max_retries": os.getenv("FAPILOG_POSTGRES__MAX_RETRIES"),
+            "retry_base_delay": os.getenv("FAPILOG_POSTGRES__RETRY_BASE_DELAY"),
+            "circuit_breaker_threshold": os.getenv(
+                "FAPILOG_POSTGRES__CIRCUIT_BREAKER_THRESHOLD"
+            ),
+        }
+        bool_overrides = {
+            "create_table": os.getenv("FAPILOG_POSTGRES__CREATE_TABLE"),
+            "use_jsonb": os.getenv("FAPILOG_POSTGRES__USE_JSONB"),
+            "include_raw_json": os.getenv("FAPILOG_POSTGRES__INCLUDE_RAW_JSON"),
+            "circuit_breaker_enabled": os.getenv(
+                "FAPILOG_POSTGRES__CIRCUIT_BREAKER_ENABLED"
+            ),
+        }
+        extract_fields_env = os.getenv("FAPILOG_POSTGRES__EXTRACT_FIELDS")
+
+        for key, value in env_map.items():
+            if value is None:
+                continue
+            try:
+                if key in {"port", "min_pool_size", "max_pool_size", "batch_size"}:
+                    setattr(pg, key, int(value))
+                elif key in {
+                    "batch_timeout_seconds",
+                    "retry_base_delay",
+                    "pool_acquire_timeout",
+                }:
+                    setattr(pg, key, float(value))
+                elif key in {"max_retries", "circuit_breaker_threshold"}:
+                    setattr(pg, key, int(value))
+                else:
+                    setattr(pg, key, value)
+            except Exception:
+                continue
+
+        for key, value in bool_overrides.items():
+            parsed = self._parse_bool(value)
+            if parsed is not None:
+                setattr(pg, key, parsed)
+
+        if extract_fields_env:
+            try:
+                parsed = json.loads(extract_fields_env)
+                if isinstance(parsed, list):
+                    pg.extract_fields = [str(v) for v in parsed]
             except Exception:
                 pass
 
