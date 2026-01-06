@@ -200,11 +200,59 @@
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">runtime-info</span></code> (host, pid, python, service/env/version)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">context-vars</span></code> (request/user IDs from ContextVar)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kubernetes</span></code> (pod/namespace/node/container/deployment from Downward API env vars)</p></li>
 </ul>
 </section>
 <section id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
 <p>Enrichers run before redaction and sinks. You can enable/disable at runtime via <code class="docutils literal notranslate"><span class="pre">logger.enable_enricher</span></code> / <code class="docutils literal notranslate"><span class="pre">logger.disable_enricher</span></code> (sync/async facades).</p>
+</section>
+<section id="kubernetes-enricher">
+<h2>Kubernetes Enricher<a class="headerlink" href="#kubernetes-enricher" title="Link to this heading"></a></h2>
+<p>Adds pod metadata when running in Kubernetes using only environment variables (Downward API). No K8s API calls or volume mounts required.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span><span class="p">,</span> <span class="n">Settings</span>
+
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">()</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">enrichers</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;kubernetes&quot;</span><span class="p">]</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;processing request&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="fields-added-default-prefix-k8s">
+<h3>Fields Added (default prefix <code class="docutils literal notranslate"><span class="pre">k8s_</span></code>)<a class="headerlink" href="#fields-added-default-prefix-k8s" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">k8s_pod</span></code>, <code class="docutils literal notranslate"><span class="pre">k8s_namespace</span></code>, <code class="docutils literal notranslate"><span class="pre">k8s_node</span></code>, <code class="docutils literal notranslate"><span class="pre">k8s_container</span></code>, <code class="docutils literal notranslate"><span class="pre">k8s_cluster</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">k8s_deployment</span></code> extracted from pod name (<code class="docutils literal notranslate"><span class="pre">my-app-7d4b8c9f6-abc12</span></code> → <code class="docutils literal notranslate"><span class="pre">my-app</span></code>)</p></li>
+</ul>
+</section>
+<section id="minimal-deployment-snippet">
+<h3>Minimal Deployment Snippet<a class="headerlink" href="#minimal-deployment-snippet" title="Link to this heading"></a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">env</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">POD_NAME</span>
+<span class="w">    </span><span class="nt">valueFrom</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">fieldRef</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">fieldPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">metadata.name</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">POD_NAMESPACE</span>
+<span class="w">    </span><span class="nt">valueFrom</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">fieldRef</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">fieldPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">metadata.namespace</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NODE_NAME</span>
+<span class="w">    </span><span class="nt">valueFrom</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">fieldRef</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">fieldPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">spec.nodeName</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CONTAINER_NAME</span>
+<span class="w">    </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;main&quot;</span><span class="w">          </span><span class="c1"># static; Kubernetes does not inject automatically</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CLUSTER_NAME</span>
+<span class="w">    </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;prod-cluster&quot;</span><span class="w">  </span><span class="c1"># optional, set by your tooling</span>
+</pre></div>
+</div>
+<p>Config options:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.enrichers</span><span class="w"> </span><span class="kn">import</span> <span class="n">KubernetesEnricher</span>
+
+<span class="n">enricher</span> <span class="o">=</span> <span class="n">KubernetesEnricher</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;k8s_&quot;</span><span class="p">,</span> <span class="n">skip_if_not_k8s</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 </section>
 </section>
 
