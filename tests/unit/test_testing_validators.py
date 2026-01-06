@@ -272,6 +272,198 @@ class TestValidateFilter:
         assert any("event parameter" in error for error in result.errors)
 
 
+class TestOptionalMethodsValidation:
+    """Tests for Story 5.18: Optional lifecycle and health_check methods.
+
+    Verifies that all validators treat start, stop, and health_check as optional,
+    and that sync optional methods generate warnings (not errors).
+    """
+
+    # --- Sink ---
+
+    def test_minimal_sink_is_valid(self) -> None:
+        """A sink with only required methods (name + write) should be valid."""
+        from fapilog.testing import validate_sink
+
+        class MinimalSink:
+            name = "minimal"
+
+            async def write(self, entry: dict) -> None:
+                pass
+
+        result = validate_sink(MinimalSink())
+        assert result.valid, f"Errors: {result.errors}"
+        assert len(result.errors) == 0
+        # Should have warnings about missing health_check and write_serialized
+        assert any("health_check" in w for w in result.warnings)
+
+    def test_sink_with_sync_lifecycle_warns(self) -> None:
+        """Sync lifecycle methods should generate warnings, not errors."""
+        from fapilog.testing import validate_sink
+
+        class SyncLifecycleSink:
+            name = "sync-lifecycle"
+
+            def start(self) -> None:  # Not async!
+                pass
+
+            def stop(self) -> None:  # Not async!
+                pass
+
+            async def write(self, entry: dict) -> None:
+                pass
+
+        result = validate_sink(SyncLifecycleSink())
+        assert result.valid  # Should still be valid
+        assert any("start should be async" in w for w in result.warnings)
+        assert any("stop should be async" in w for w in result.warnings)
+
+    # --- Enricher ---
+
+    def test_minimal_enricher_is_valid(self) -> None:
+        """An enricher with only required methods (name + enrich) should be valid."""
+        from fapilog.testing import validate_enricher
+
+        class MinimalEnricher:
+            name = "minimal"
+
+            async def enrich(self, event: dict) -> dict:
+                return {}
+
+        result = validate_enricher(MinimalEnricher())
+        assert result.valid, f"Errors: {result.errors}"
+        assert len(result.errors) == 0
+        assert any("health_check" in w for w in result.warnings)
+
+    def test_enricher_with_sync_health_check_warns(self) -> None:
+        """Sync health_check should generate warning, not error."""
+        from fapilog.testing import validate_enricher
+
+        class SyncHealthEnricher:
+            name = "sync-health"
+
+            async def enrich(self, event: dict) -> dict:
+                return {}
+
+            def health_check(self) -> bool:  # Not async!
+                return True
+
+        result = validate_enricher(SyncHealthEnricher())
+        assert result.valid  # Should still be valid
+        assert any("health_check should be async" in w for w in result.warnings)
+
+    # --- Redactor ---
+
+    def test_minimal_redactor_is_valid(self) -> None:
+        """A redactor with only required methods (name + redact) should be valid."""
+        from fapilog.testing import validate_redactor
+
+        class MinimalRedactor:
+            name = "minimal"
+
+            async def redact(self, event: dict) -> dict:
+                return event
+
+        result = validate_redactor(MinimalRedactor())
+        assert result.valid, f"Errors: {result.errors}"
+        assert len(result.errors) == 0
+        assert any("health_check" in w for w in result.warnings)
+
+    # --- Processor ---
+
+    def test_minimal_processor_is_valid(self) -> None:
+        """A processor with only required methods (name + process) should be valid."""
+        from fapilog.testing import validate_processor
+
+        class MinimalProcessor:
+            name = "minimal"
+
+            async def process(self, view: memoryview) -> memoryview:
+                return view
+
+        result = validate_processor(MinimalProcessor())
+        assert result.valid, f"Errors: {result.errors}"
+        assert len(result.errors) == 0
+        assert any("health_check" in w for w in result.warnings)
+
+    # --- Filter ---
+
+    def test_minimal_filter_is_valid(self) -> None:
+        """A filter with only required methods (name + filter) should be valid."""
+        from fapilog.testing import validate_filter
+
+        class MinimalFilter:
+            name = "minimal"
+
+            async def filter(self, event: dict) -> dict | None:
+                return event
+
+        result = validate_filter(MinimalFilter())
+        assert result.valid, f"Errors: {result.errors}"
+        assert len(result.errors) == 0
+        # Should have warning about missing health_check
+        assert any("health_check" in w for w in result.warnings)
+
+    def test_filter_without_health_check_is_valid(self) -> None:
+        """Missing health_check should not cause validation failure."""
+        from fapilog.testing import validate_filter
+
+        class NoHealthCheck:
+            name = "no_health"
+
+            async def filter(self, event: dict) -> dict | None:
+                return event
+
+        result = validate_filter(NoHealthCheck())
+        assert result.valid
+        # No error about missing health_check
+        assert not any("health_check" in e for e in result.errors)
+        # But should have warning
+        assert any("health_check" in w for w in result.warnings)
+
+    def test_filter_with_sync_health_check_warns(self) -> None:
+        """Sync health_check should generate warning, not error."""
+        from fapilog.testing import validate_filter
+
+        class SyncHealthCheck:
+            name = "sync_health"
+
+            async def filter(self, event: dict) -> dict | None:
+                return event
+
+            def health_check(self) -> bool:  # Not async!
+                return True
+
+        result = validate_filter(SyncHealthCheck())
+        assert result.valid  # Should still be valid
+        assert any("health_check should be async" in w for w in result.warnings)
+
+    def test_full_filter_is_valid(self) -> None:
+        """A filter with all methods should be valid with no health_check warning."""
+        from fapilog.testing import validate_filter
+
+        class FullFilter:
+            name = "full"
+
+            async def start(self) -> None:
+                pass
+
+            async def stop(self) -> None:
+                pass
+
+            async def filter(self, event: dict) -> dict | None:
+                return event
+
+            async def health_check(self) -> bool:
+                return True
+
+        result = validate_filter(FullFilter())
+        assert result.valid, f"Errors: {result.errors}"
+        assert len(result.errors) == 0
+        # Should NOT have warning about missing health_check
+        assert not any("health_check not implemented" in w for w in result.warnings)
+
+
 class TestValidatePluginLifecycle:
     """Tests for validate_plugin_lifecycle validator."""
 

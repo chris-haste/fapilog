@@ -54,7 +54,7 @@ def validate_sink(sink: Any) -> ValidationResult:
         errors.append("'name' attribute must be a string")
 
     # Check required methods
-    required_methods = ["start", "stop", "write"]
+    required_methods = ["write"]
     for method_name in required_methods:
         if not hasattr(sink, method_name):
             errors.append(f"Missing required method: {method_name}")
@@ -64,10 +64,15 @@ def validate_sink(sink: Any) -> ValidationResult:
         if not asyncio.iscoroutinefunction(method):
             errors.append(f"{method_name} must be async")
 
-    # Check optional methods
-    if hasattr(sink, "health_check"):
-        if not asyncio.iscoroutinefunction(sink.health_check):
-            warnings.append("health_check should be async")
+    # Check optional lifecycle and health_check methods
+    optional_methods = ["start", "stop", "health_check"]
+    for method_name in optional_methods:
+        if hasattr(sink, method_name):
+            method = getattr(sink, method_name)
+            if not asyncio.iscoroutinefunction(method):
+                warnings.append(f"{method_name} should be async")
+        elif method_name == "health_check":
+            warnings.append("health_check not implemented; defaulting to healthy")
 
     # Informational: fast-path support
     if not hasattr(sink, "write_serialized"):
@@ -102,7 +107,7 @@ def validate_enricher(enricher: Any) -> ValidationResult:
     elif not isinstance(getattr(enricher, "name", None), str):
         errors.append("'name' attribute must be a string")
 
-    required_methods = ["start", "stop", "enrich"]
+    required_methods = ["enrich"]
     for method_name in required_methods:
         if not hasattr(enricher, method_name):
             errors.append(f"Missing required method: {method_name}")
@@ -111,6 +116,16 @@ def validate_enricher(enricher: Any) -> ValidationResult:
         method = getattr(enricher, method_name)
         if not asyncio.iscoroutinefunction(method):
             errors.append(f"{method_name} must be async")
+
+    # Check optional lifecycle and health_check methods
+    optional_methods = ["start", "stop", "health_check"]
+    for method_name in optional_methods:
+        if hasattr(enricher, method_name):
+            method = getattr(enricher, method_name)
+            if not asyncio.iscoroutinefunction(method):
+                warnings.append(f"{method_name} should be async")
+        elif method_name == "health_check":
+            warnings.append("health_check not implemented; defaulting to healthy")
 
     # Check enrich signature
     if hasattr(enricher, "enrich"):
@@ -137,7 +152,7 @@ def validate_redactor(redactor: Any) -> ValidationResult:
     if not hasattr(redactor, "name"):
         errors.append("Redactor must have 'name' attribute")
 
-    required_methods = ["start", "stop", "redact"]
+    required_methods = ["redact"]
     for method_name in required_methods:
         if not hasattr(redactor, method_name):
             errors.append(f"Missing required method: {method_name}")
@@ -146,6 +161,16 @@ def validate_redactor(redactor: Any) -> ValidationResult:
         method = getattr(redactor, method_name)
         if not asyncio.iscoroutinefunction(method):
             errors.append(f"{method_name} must be async")
+
+    # Check optional lifecycle and health_check methods
+    optional_methods = ["start", "stop", "health_check"]
+    for method_name in optional_methods:
+        if hasattr(redactor, method_name):
+            method = getattr(redactor, method_name)
+            if not asyncio.iscoroutinefunction(method):
+                warnings.append(f"{method_name} should be async")
+        elif method_name == "health_check":
+            warnings.append("health_check not implemented; defaulting to healthy")
 
     return ValidationResult(
         valid=len(errors) == 0,
@@ -166,7 +191,7 @@ def validate_processor(processor: Any) -> ValidationResult:
     elif not isinstance(getattr(processor, "name", None), str):
         errors.append("'name' attribute must be a string")
 
-    required_methods = ["start", "stop", "process"]
+    required_methods = ["process"]
     for method_name in required_methods:
         if not hasattr(processor, method_name):
             errors.append(f"Missing required method: {method_name}")
@@ -175,6 +200,15 @@ def validate_processor(processor: Any) -> ValidationResult:
         method = getattr(processor, method_name)
         if not asyncio.iscoroutinefunction(method):
             errors.append(f"{method_name} must be async")
+
+    optional_methods = ["start", "stop", "health_check", "process_many"]
+    for method_name in optional_methods:
+        if hasattr(processor, method_name):
+            method = getattr(processor, method_name)
+            if not asyncio.iscoroutinefunction(method):
+                warnings.append(f"{method_name} should be async")
+        elif method_name == "health_check":
+            warnings.append("health_check not implemented; defaulting to healthy")
 
     return ValidationResult(
         valid=len(errors) == 0,
@@ -194,7 +228,7 @@ def validate_filter(filter_plugin: Any) -> ValidationResult:
     elif not isinstance(getattr(filter_plugin, "name", None), str):
         errors.append("'name' attribute must be a string")
 
-    required_methods = ["start", "stop", "filter", "health_check"]
+    required_methods = ["filter"]
     for method_name in required_methods:
         if not hasattr(filter_plugin, method_name):
             errors.append(f"Missing required method: {method_name}")
@@ -202,6 +236,15 @@ def validate_filter(filter_plugin: Any) -> ValidationResult:
         method = getattr(filter_plugin, method_name)
         if not asyncio.iscoroutinefunction(method):
             errors.append(f"{method_name} must be async")
+
+    optional_methods = ["start", "stop", "health_check"]
+    for method_name in optional_methods:
+        if hasattr(filter_plugin, method_name):
+            method = getattr(filter_plugin, method_name)
+            if not asyncio.iscoroutinefunction(method):
+                warnings.append(f"{method_name} should be async")
+        elif method_name == "health_check":
+            warnings.append("health_check not implemented; defaulting to healthy")
 
     if hasattr(filter_plugin, "filter"):
         sig = inspect.signature(filter_plugin.filter)

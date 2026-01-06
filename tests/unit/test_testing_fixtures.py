@@ -69,8 +69,7 @@ def test_assert_valid_helpers(
         async def stop(self) -> None:
             pass
 
-        async def filter(self, event: dict) -> dict | None:
-            return event
+        # Missing required filter() method
 
     assert_valid_sink(mock_sink)
     assert_valid_enricher(mock_enricher)
@@ -82,4 +81,4 @@ def test_assert_valid_helpers(
         assert_valid_sink(InvalidSink())
 
     with pytest.raises(ProtocolViolationError):
-        assert_valid_filter(InvalidFilter())  # Missing health_check
+        assert_valid_filter(InvalidFilter())  # Missing required filter method
