@@ -14,16 +14,22 @@ def _pg_env(key: str, default: str) -> str:
     return os.getenv(f"FAPILOG_POSTGRES__{key}", default)
 
 
-@pytest.fixture(scope="module")
+def _get_pool_config() -> dict:
+    """Return connection config for PostgreSQL pool."""
+    return {
+        "host": _pg_env("HOST", "localhost"),
+        "port": int(_pg_env("PORT", "5432")),
+        "database": _pg_env("DATABASE", "fapilog_test"),
+        "user": _pg_env("USER", "fapilog"),
+        "password": _pg_env("PASSWORD", "fapilog"),
+    }
+
+
+@pytest.fixture()
 async def postgres_pool():
+    """Create a fresh connection pool for each test to avoid event loop issues."""
     try:
-        pool = await asyncpg.create_pool(
-            host=_pg_env("HOST", "localhost"),
-            port=int(_pg_env("PORT", "5432")),
-            database=_pg_env("DATABASE", "fapilog_test"),
-            user=_pg_env("USER", "fapilog"),
-            password=_pg_env("PASSWORD", "fapilog"),
-        )
+        pool = await asyncpg.create_pool(**_get_pool_config())
     except Exception as exc:
         pytest.skip(f"PostgreSQL not available: {exc}")
     else:
