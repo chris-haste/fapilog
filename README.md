@@ -54,6 +54,7 @@ See the full guide at `docs/getting-started/installation.md` for extras and upgr
 - Plugin-friendly (enrichers, redactors, processors, sinks)
 - Context binding and exception serialization
 - Guardrails: redaction stages, error de-duplication
+- Level-based sink routing (fan out only the levels you want to each sink)
 
 ## 🎯 Quick Start
 
@@ -68,6 +69,28 @@ logger.info("Application started", environment="production")
 with runtime() as log:
     log.error("Something went wrong", code=500)
 ```
+
+### Sink routing by level
+
+Route errors to a database while sending info logs to stdout:
+
+```bash
+export FAPILOG_SINK_ROUTING__ENABLED=true
+export FAPILOG_SINK_ROUTING__RULES='[
+  {"levels": ["ERROR", "CRITICAL"], "sinks": ["postgres"]},
+  {"levels": ["DEBUG", "INFO", "WARNING"], "sinks": ["stdout_json"]}
+]'
+```
+
+```python
+from fapilog import runtime
+
+with runtime() as log:
+    log.info("Routine operation")   # → stdout_json
+    log.error("Something broke!")   # → postgres
+```
+
+See [docs/user-guide/sink-routing.md](docs/user-guide/sink-routing.md) for advanced routing patterns.
 
 ### FastAPI request logging
 

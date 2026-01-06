@@ -262,6 +262,52 @@ class PostgresSinkSettings(BaseModel):
     )
 
 
+class RoutingRule(BaseModel):
+    """A routing rule mapping levels to sinks."""
+
+    levels: list[str] = Field(default_factory=list, description="Levels to match")
+    sinks: list[str] = Field(default_factory=list, description="Target sink names")
+
+    @field_validator("levels")
+    @classmethod
+    def _normalize_levels(cls, value: list[str]) -> list[str]:
+        return [lvl.upper() for lvl in value]
+
+
+class SinkRoutingSettings(BaseModel):
+    """Configuration for level-based sink routing."""
+
+    enabled: bool = Field(
+        default=False, description="Enable routing (False = fanout to all sinks)"
+    )
+    rules: list[RoutingRule] = Field(
+        default_factory=list, description="Routing rules in priority order"
+    )
+    overlap: bool = Field(
+        default=True, description="Allow events to match multiple rules"
+    )
+    fallback_sinks: list[str] = Field(
+        default_factory=list, description="Sinks used when no rules match"
+    )
+
+    @field_validator("fallback_sinks", mode="before")
+    @classmethod
+    def _coerce_fallback(cls, value: object) -> list[str]:
+        if value is None:
+            return []
+        if isinstance(value, list):
+            return [str(v) for v in value]
+        if isinstance(value, str):
+            try:
+                parsed = json.loads(value)
+                if isinstance(parsed, list):
+                    return [str(v) for v in parsed]
+            except Exception:
+                pass
+            return [v for v in (item.strip() for item in value.split(",")) if v]
+        return []
+
+
 class IntegrityEnricherSettings(BaseModel):
     """Standard configuration for the tamper-evident integrity enricher."""
 
@@ -818,6 +864,10 @@ class Settings(BaseSettings):
     sink_config: SinkConfig = Field(
         default_factory=SinkConfig, description="Per-sink plugin configuration"
     )
+    sink_routing: SinkRoutingSettings = Field(
+        default_factory=SinkRoutingSettings,
+        description="Level-based sink routing configuration",
+    )
     enricher_config: EnricherConfig = Field(
         default_factory=EnricherConfig, description="Per-enricher plugin configuration"
     )
@@ -1070,6 +1120,40 @@ class Settings(BaseSettings):
                     pg.extract_fields = [str(v) for v in parsed]
             except Exception:
                 pass
+
+        return self
+
+    @model_validator(mode="after")
+    def _apply_sink_routing_env_aliases(self) -> Settings:
+        """Support env aliases for sink routing."""
+        routing = self.sink_routing
+        enabled = os.getenv("FAPILOG_SINK_ROUTING__ENABLED")
+        overlap = os.getenv("FAPILOG_SINK_ROUTING__OVERLAP")
+        rules = os.getenv("FAPILOG_SINK_ROUTING__RULES")
+        fallback = os.getenv("FAPILOG_SINK_ROUTING__FALLBACK_SINKS")
+
+        parsed_enabled = self._parse_bool(enabled)
+        if parsed_enabled is not None:
+            routing.enabled = parsed_enabled
+
+        parsed_overlap = self._parse_bool(overlap)
+        if parsed_overlap is not None:
+            routing.overlap = parsed_overlap
+
+        if rules:
+            try:
+                parsed = json.loads(rules)
+                if isinstance(parsed, list):
+                    routing.rules = [
+                        RoutingRule.model_validate(item)
+                        for item in parsed
+                        if isinstance(item, dict)
+                    ]
+            except Exception:
+                pass
+
+        if fallback:
+            routing.fallback_sinks = self._parse_env_list(fallback)
 
         return self
 

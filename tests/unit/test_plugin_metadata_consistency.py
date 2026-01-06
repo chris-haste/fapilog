@@ -58,6 +58,12 @@ from fapilog.plugins.sinks.rotating_file import (
 from fapilog.plugins.sinks.rotating_file import (
     RotatingFileSink,
 )
+from fapilog.plugins.sinks.routing import (
+    PLUGIN_METADATA as ROUTING_META,
+)
+from fapilog.plugins.sinks.routing import (
+    RoutingSink,
+)
 from fapilog.plugins.sinks.stdout_json import (
     PLUGIN_METADATA as STDOUT_META,
 )
@@ -79,6 +85,7 @@ def test_builtin_metadata_matches_class_names() -> None:
         (CloudWatchSink, CLOUDWATCH_META),
         (LokiSink, LOKI_META),
         (PostgresSink, POSTGRES_META),
+        (RoutingSink, ROUTING_META),
     ]
 
     for cls, meta in cases:
