@@ -174,7 +174,24 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="fastapi-logging">
 <h1>FastAPI Logging<a class="headerlink" href="#fastapi-logging" title="Link to this heading"></a></h1>
-<p>Request-scoped logging with dependency injection.</p>
+<p>Request-scoped logging with dependency injection and automatic correlation.</p>
+<section id="basic-setup-with-middleware">
+<h2>Basic Setup with Middleware<a class="headerlink" href="#basic-setup-with-middleware" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">RequestContextMiddleware</span><span class="p">,</span> <span class="n">LoggingMiddleware</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+
+<span class="c1"># Sets request_id for correlation (from X-Request-ID header or UUID)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span><span class="n">RequestContextMiddleware</span><span class="p">)</span>
+
+<span class="c1"># Logs request completion with method, path, status, latency_ms</span>
+<span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span><span class="n">LoggingMiddleware</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="request-scoped-logger">
+<h2>Request-Scoped Logger<a class="headerlink" href="#request-scoped-logger" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">Depends</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_async_logger</span>
 
@@ -186,15 +203,45 @@
 <span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/users/</span><span class="si">{user_id}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_user</span><span class="p">(</span><span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">logger</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">logger_dep</span><span class="p">)):</span>
     <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User lookup&quot;</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="n">user_id</span><span class="p">)</span>
+    <span class="c1"># Log includes request_id automatically via ContextVarsEnricher</span>
     <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">user_id</span><span class="p">}</span>
 </pre></div>
 </div>
-<p>Notes:</p>
+</section>
+<section id="binding-http-context-to-all-logs">
+<h2>Binding HTTP Context to All Logs<a class="headerlink" href="#binding-http-context-to-all-logs" title="Link to this heading"></a></h2>
+<p>If you need HTTP method/path in every log (not just the completion log):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">Request</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_async_logger</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">(</span><span class="s2">&quot;api&quot;</span><span class="p">)</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">middleware</span><span class="p">(</span><span class="s2">&quot;http&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">bind_http_context</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">call_next</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">logger</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">http_method</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">method</span><span class="p">,</span> <span class="n">http_path</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="n">call_next</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="log-correlation">
+<h2>Log Correlation<a class="headerlink" href="#log-correlation" title="Link to this heading"></a></h2>
+<p>All logs during a request share the same <code class="docutils literal notranslate"><span class="pre">request_id</span></code>:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;User lookup&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;request_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;abc-123&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;42&quot;</span><span class="p">}</span>
+<span class="p">{</span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;request_completed&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;request_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;abc-123&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;method&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;GET&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/users/42&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">200</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Query by <code class="docutils literal notranslate"><span class="pre">request_id</span></code> to see all logs for a request, including the HTTP context from the completion log.</p>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Use the async logger in FastAPI apps.</p></li>
-<li><p>Bind additional context (request_id/user_id) per request if needed.</p></li>
-<li><p>Logger methods are awaitable; drain is handled when the app shuts down if you keep a long-lived logger.</p></li>
+<li><p>Use the async logger in FastAPI apps</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">request_id</span></code> flows automatically when using <code class="docutils literal notranslate"><span class="pre">RequestContextMiddleware</span></code> + <code class="docutils literal notranslate"><span class="pre">ContextVarsEnricher</span></code></p></li>
+<li><p>The completion log has method/path/status—use <code class="docutils literal notranslate"><span class="pre">request_id</span></code> to correlate</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">logger.bind()</span></code> only if you specifically need HTTP context in every log entry</p></li>
 </ul>
+</section>
 </section>
 
 
