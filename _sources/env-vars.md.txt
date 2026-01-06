@@ -152,6 +152,27 @@
 | `FAPILOG__SINK_CONFIG__LOKI__TENANT_ID` | str | None | — | Optional multi-tenant identifier |
 | `FAPILOG__SINK_CONFIG__LOKI__TIMEOUT_SECONDS` | float | 10.0 | HTTP timeout seconds |
 | `FAPILOG__SINK_CONFIG__LOKI__URL` | str | http://localhost:3100 | Loki push endpoint base URL |
+| `FAPILOG__SINK_CONFIG__POSTGRES__BATCH_SIZE` | int | 100 | Events per batch |
+| `FAPILOG__SINK_CONFIG__POSTGRES__BATCH_TIMEOUT_SECONDS` | float | 5.0 | Max seconds before flushing a partial batch |
+| `FAPILOG__SINK_CONFIG__POSTGRES__CIRCUIT_BREAKER_ENABLED` | bool | True | Enable circuit breaker for the PostgreSQL sink |
+| `FAPILOG__SINK_CONFIG__POSTGRES__CIRCUIT_BREAKER_THRESHOLD` | int | 5 | Failures before opening circuit breaker |
+| `FAPILOG__SINK_CONFIG__POSTGRES__CREATE_TABLE` | bool | True | Auto-create table if missing |
+| `FAPILOG__SINK_CONFIG__POSTGRES__DATABASE` | str | fapilog | PostgreSQL database name to connect to |
+| `FAPILOG__SINK_CONFIG__POSTGRES__DSN` | str | None | — | PostgreSQL connection string |
+| `FAPILOG__SINK_CONFIG__POSTGRES__EXTRACT_FIELDS` | list | PydanticUndefined | Fields to promote to columns for fast queries |
+| `FAPILOG__SINK_CONFIG__POSTGRES__HOST` | str | localhost | PostgreSQL server hostname or IP address |
+| `FAPILOG__SINK_CONFIG__POSTGRES__INCLUDE_RAW_JSON` | bool | True | Store full event JSON payload |
+| `FAPILOG__SINK_CONFIG__POSTGRES__MAX_POOL_SIZE` | int | 10 | Maximum pool connections |
+| `FAPILOG__SINK_CONFIG__POSTGRES__MAX_RETRIES` | int | 3 | Maximum retries for failed inserts |
+| `FAPILOG__SINK_CONFIG__POSTGRES__MIN_POOL_SIZE` | int | 2 | Minimum pool connections |
+| `FAPILOG__SINK_CONFIG__POSTGRES__PASSWORD` | str | None | — | Database password |
+| `FAPILOG__SINK_CONFIG__POSTGRES__POOL_ACQUIRE_TIMEOUT` | float | 10.0 | Timeout when acquiring connections |
+| `FAPILOG__SINK_CONFIG__POSTGRES__PORT` | int | 5432 | PostgreSQL server port number |
+| `FAPILOG__SINK_CONFIG__POSTGRES__RETRY_BASE_DELAY` | float | 0.5 | Base delay for exponential backoff |
+| `FAPILOG__SINK_CONFIG__POSTGRES__SCHEMA_NAME` | str | public | Database schema name |
+| `FAPILOG__SINK_CONFIG__POSTGRES__TABLE_NAME` | str | logs | Target table name |
+| `FAPILOG__SINK_CONFIG__POSTGRES__USER` | str | fapilog | PostgreSQL username for authentication |
+| `FAPILOG__SINK_CONFIG__POSTGRES__USE_JSONB` | bool | True | Use JSONB column type |
 | `FAPILOG__SINK_CONFIG__ROTATING_FILE__COMPRESS_ROTATED` | bool | False | Compress rotated log files with gzip |
 | `FAPILOG__SINK_CONFIG__ROTATING_FILE__DIRECTORY` | str | None | — | Log directory for rotating file sink |
 | `FAPILOG__SINK_CONFIG__ROTATING_FILE__FILENAME_PREFIX` | str | fapilog | Filename prefix |
