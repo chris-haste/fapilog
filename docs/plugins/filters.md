@@ -10,6 +10,26 @@ filters/sampling
 filters/rate-limiting
 ```
 
+## Implementing a filter
+
+```python
+from fapilog.plugins import BaseFilter
+
+class MyFilter(BaseFilter):
+    name = "my_filter"
+
+    async def filter(self, event: dict) -> dict | None:
+        # Return None to drop, or return (possibly modified) event
+        if event.get("level") == "DEBUG":
+            return None  # drop debug events
+        return event
+```
+
+## Registering a filter
+
+- Declare an entry point under `fapilog.filters` in `pyproject.toml`.
+- Add a `PLUGIN_METADATA` dict with `plugin_type: "filter"` and an API version compatible with `fapilog.plugins.versioning.PLUGIN_API_VERSION`.
+
 ## Contract
 
 - `name: str`

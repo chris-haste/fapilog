@@ -24,7 +24,7 @@ error-handling
 
 fapilog provides a comprehensive plugin system that allows you to:
 
-- **Extend functionality** with custom sinks, processors, and enrichers
+- **Extend functionality** with custom sinks, processors, enrichers, redactors, and filters
 - **Customize behavior** for your specific use cases
 - **Integrate external systems** through plugin interfaces
 - **Maintain compatibility** through versioned plugin contracts
@@ -42,6 +42,10 @@ Transform serialized log data (compression, encryption, format conversion).
 ### [Enrichers](enrichers.md)
 
 Data enrichment and augmentation.
+
+### [Filters](filters.md)
+
+Drop or reshape events before enrichment and processing pipelines.
 
 ### [Redactors](redactors.md)
 

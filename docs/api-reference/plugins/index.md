@@ -1,6 +1,6 @@
 # Plugins
 
-Extensible sinks, enrichers, redactors, and processors for fapilog.
+Extensible sinks, enrichers, redactors, processors, and filters for fapilog.
 
 ```{toctree}
 :maxdepth: 2
@@ -14,12 +14,13 @@ processors
 
 ## Overview
 
-fapilog's plugin system provides base protocols for extending functionality in four key areas:
+fapilog's plugin system provides base protocols for extending functionality in five key areas:
 
 - **Sinks** - Output destinations for log messages
 - **Enrichers** - Add context and metadata to messages
 - **Redactors** - Remove or mask sensitive information
 - **Processors** - Transform and optimize messages
+- **Filters** - Drop or reshape events before enrichment
 
 ## Built-in Plugins
 
@@ -144,6 +145,7 @@ from fapilog.plugins import (
     BaseEnricher,
     BaseRedactor,
     BaseProcessor,
+    BaseFilter,
 )
 ```
 
