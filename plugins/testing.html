@@ -223,14 +223,23 @@
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MyFilter</span><span class="p">:</span>
     <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my-filter&quot;</span>
-    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="o">...</span>
-    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="o">...</span>
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span> <span class="o">...</span>
-    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">health_check</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="kc">True</span>
 
 <span class="n">validate_filter</span><span class="p">(</span><span class="n">MyFilter</span><span class="p">())</span><span class="o">.</span><span class="n">raise_if_invalid</span><span class="p">()</span>
 </pre></div>
 </div>
+<section id="required-vs-optional-methods">
+<h3>Required vs optional methods<a class="headerlink" href="#required-vs-optional-methods" title="Link to this heading"></a></h3>
+<p>Validators treat lifecycle and health checks as optional and surface warnings when a method exists but is not async. Core methods remain required:</p>
+<ul class="simple">
+<li><p><strong>Sinks:</strong> required <code class="docutils literal notranslate"><span class="pre">write</span></code>; optional <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">stop</span></code>, <code class="docutils literal notranslate"><span class="pre">health_check</span></code>, <code class="docutils literal notranslate"><span class="pre">write_serialized</span></code></p></li>
+<li><p><strong>Enrichers:</strong> required <code class="docutils literal notranslate"><span class="pre">enrich</span></code>; optional <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">stop</span></code>, <code class="docutils literal notranslate"><span class="pre">health_check</span></code></p></li>
+<li><p><strong>Redactors:</strong> required <code class="docutils literal notranslate"><span class="pre">redact</span></code>; optional <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">stop</span></code>, <code class="docutils literal notranslate"><span class="pre">health_check</span></code></p></li>
+<li><p><strong>Processors:</strong> required <code class="docutils literal notranslate"><span class="pre">process</span></code>; optional <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">stop</span></code>, <code class="docutils literal notranslate"><span class="pre">health_check</span></code>, <code class="docutils literal notranslate"><span class="pre">process_many</span></code></p></li>
+<li><p><strong>Filters:</strong> required <code class="docutils literal notranslate"><span class="pre">filter</span></code>; optional <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">stop</span></code>, <code class="docutils literal notranslate"><span class="pre">health_check</span></code> (defaults to healthy when absent)</p></li>
+</ul>
+<p>Missing <code class="docutils literal notranslate"><span class="pre">health_check</span></code> yields a warning (not an error); validators assume <code class="docutils literal notranslate"><span class="pre">True</span></code> when it is not implemented.</p>
+</section>
 </section>
 <section id="pytest-fixtures">
 <h2>pytest Fixtures<a class="headerlink" href="#pytest-fixtures" title="Link to this heading"></a></h2>

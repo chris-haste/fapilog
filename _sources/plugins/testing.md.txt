@@ -51,13 +51,22 @@ from fapilog.testing import validate_filter
 
 class MyFilter:
     name = "my-filter"
-    async def start(self): ...
-    async def stop(self): ...
     async def filter(self, event: dict): ...
-    async def health_check(self): return True
 
 validate_filter(MyFilter()).raise_if_invalid()
 ```
+
+### Required vs optional methods
+
+Validators treat lifecycle and health checks as optional and surface warnings when a method exists but is not async. Core methods remain required:
+
+- **Sinks:** required `write`; optional `start`, `stop`, `health_check`, `write_serialized`
+- **Enrichers:** required `enrich`; optional `start`, `stop`, `health_check`
+- **Redactors:** required `redact`; optional `start`, `stop`, `health_check`
+- **Processors:** required `process`; optional `start`, `stop`, `health_check`, `process_many`
+- **Filters:** required `filter`; optional `start`, `stop`, `health_check` (defaults to healthy when absent)
+
+Missing `health_check` yields a warning (not an error); validators assume `True` when it is not implemented.
 
 ## pytest Fixtures
 

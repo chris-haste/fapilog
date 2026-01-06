@@ -207,10 +207,10 @@
 <section id="contract">
 <h2>Contract<a class="headerlink" href="#contract" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">name:</span> <span class="pre">str</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">start()/stop()</span></code> optional lifecycle hooks</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">filter(event:</span> <span class="pre">dict)</span> <span class="pre">-&gt;</span> <span class="pre">dict</span> <span class="pre">|</span> <span class="pre">None</span></code> (return <code class="docutils literal notranslate"><span class="pre">None</span></code> to drop)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">health_check()</span> <span class="pre">-&gt;</span> <span class="pre">bool</span></code> (optional)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">name:</span> <span class="pre">str</span></code> — <strong>required</strong></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">filter(event:</span> <span class="pre">dict)</span> <span class="pre">-&gt;</span> <span class="pre">dict</span> <span class="pre">|</span> <span class="pre">None</span></code> — <strong>required</strong> (return <code class="docutils literal notranslate"><span class="pre">None</span></code> to drop)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">start()/stop()</span></code> — optional lifecycle hooks</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">health_check()</span> <span class="pre">-&gt;</span> <span class="pre">bool</span></code> — optional (defaults to healthy when absent)</p></li>
 </ul>
 </section>
 <section id="built-in-filters">
