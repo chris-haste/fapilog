@@ -24,6 +24,7 @@ from .metadata import (
 from .processors import BaseProcessor
 from .redactors import BaseRedactor
 from .sinks import BaseSink
+from .utils import parse_plugin_config
 from .versioning import PLUGIN_API_VERSION
 
 __all__ = [
@@ -46,4 +47,6 @@ __all__ = [
     "create_plugin_metadata",
     "validate_fapilog_compatibility",
     "PLUGIN_API_VERSION",
+    # Config parsing
+    "parse_plugin_config",
 ]

@@ -2,19 +2,30 @@ from __future__ import annotations
 
 import time
 from collections import OrderedDict
-from dataclasses import dataclass
 from typing import Any
 
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
 from ...core import diagnostics
+from ..utils import parse_plugin_config
 
 
-@dataclass
-class RateLimitFilterConfig:
-    capacity: int = 10  # tokens
-    refill_rate_per_sec: float = 5.0  # tokens per second
+class RateLimitFilterConfig(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid", validate_default=True)
+
+    capacity: int = Field(default=10, ge=1)  # tokens
+    refill_rate_per_sec: float = Field(default=5.0, ge=0.0)  # tokens per second
     key_field: str | None = None  # event key used to partition buckets
-    max_keys: int = 10000  # Max buckets to track
-    overflow_action: str = "drop"  # "drop" or "mark"
+    max_keys: int = Field(default=10000, ge=1)  # Max buckets to track
+    overflow_action: str = Field(default="drop")  # "drop" or "mark"
+
+    @field_validator("overflow_action")
+    @classmethod
+    def _normalize_action(cls, value: str) -> str:
+        normalized = str(value).lower()
+        if normalized not in {"drop", "mark"}:
+            raise ValueError("overflow_action must be 'drop' or 'mark'")
+        return normalized
 
 
 class RateLimitFilter:
@@ -25,24 +36,12 @@ class RateLimitFilter:
     def __init__(
         self, *, config: RateLimitFilterConfig | dict | None = None, **kwargs: Any
     ) -> None:
-        if isinstance(config, dict):
-            raw = config.get("config", config)
-            cfg = RateLimitFilterConfig(**raw)
-        elif config is None:
-            raw_kwargs = kwargs.get("config", kwargs)
-            cfg = (
-                RateLimitFilterConfig(**raw_kwargs)
-                if raw_kwargs
-                else RateLimitFilterConfig()
-            )
-        else:
-            cfg = config
-        self._capacity = max(1, int(cfg.capacity))
-        self._refill_rate = max(0.0, float(cfg.refill_rate_per_sec))
+        cfg = parse_plugin_config(RateLimitFilterConfig, config, **kwargs)
+        self._capacity = cfg.capacity
+        self._refill_rate = cfg.refill_rate_per_sec
         self._key_field = cfg.key_field
-        self._max_keys = max(1, int(cfg.max_keys))
-        action = str(cfg.overflow_action).lower()
-        self._overflow_action = action if action in {"drop", "mark"} else "drop"
+        self._max_keys = cfg.max_keys
+        self._overflow_action = cfg.overflow_action
         self._buckets: OrderedDict[str, tuple[float, float]] = OrderedDict()
         self._warned_capacity = False
 
@@ -126,3 +125,6 @@ PLUGIN_METADATA = {
     "compatibility": {"min_fapilog_version": "0.4.0"},
     "api_version": "1.0",
 }
+
+# Mark Pydantic validators as used for vulture
+_VULTURE_USED: tuple[object, ...] = (RateLimitFilterConfig._normalize_action,)

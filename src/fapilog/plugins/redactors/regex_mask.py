@@ -19,26 +19,31 @@ Configuration fields:
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
 from typing import Any, Iterable
 
+from pydantic import BaseModel, ConfigDict, Field
+
 from ...core import diagnostics
+from ..utils import parse_plugin_config
 
 
-@dataclass
-class RegexMaskConfig:
-    patterns: list[str]
+class RegexMaskConfig(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid", validate_default=True)
+
+    patterns: list[str] = Field(default_factory=list)
     mask_string: str = "***"
     block_on_unredactable: bool = False
-    max_depth: int = 16
-    max_keys_scanned: int = 1000
+    max_depth: int = Field(default=16, ge=1)
+    max_keys_scanned: int = Field(default=1000, ge=1)
 
 
 class RegexMaskRedactor:
     name = "regex_mask"
 
-    def __init__(self, *, config: RegexMaskConfig | None = None) -> None:
-        cfg = config or RegexMaskConfig(patterns=[])
+    def __init__(
+        self, *, config: RegexMaskConfig | dict | None = None, **kwargs: Any
+    ) -> None:
+        cfg = parse_plugin_config(RegexMaskConfig, config, **kwargs)
         # Pre-compile patterns for performance; track any failures
         self._patterns: list[re.Pattern[str]] = []
         self._pattern_errors: list[str] = []

@@ -11,10 +11,12 @@ from enum import Enum
 from typing import Any, Mapping
 
 import httpx
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ...core.resources import HttpClientPool
 from ...core.retry import AsyncRetrier, RetryConfig
 from ...core.serialization import SerializedView
+from ..utils import parse_plugin_config
 from ._batching import BatchingMixin
 
 __all__ = ["HttpSink", "HttpSinkConfig", "AsyncHttpSender", "BatchFormat"]
@@ -84,27 +86,24 @@ class BatchFormat(str, Enum):
     WRAPPED = "wrapped"
 
 
-class HttpSinkConfig:
-    def __init__(
-        self,
-        *,
-        endpoint: str,
-        headers: Mapping[str, str] | None = None,
-        retry: RetryConfig | None = None,
-        timeout_seconds: float = 5.0,
-        batch_size: int = 1,
-        batch_timeout_seconds: float = 5.0,
-        batch_format: str | BatchFormat = BatchFormat.ARRAY,
-        batch_wrapper_key: str = "logs",
-    ) -> None:
-        self.endpoint = endpoint
-        self.headers = dict(headers or {})
-        self.retry = retry
-        self.timeout_seconds = timeout_seconds
-        self.batch_size = batch_size
-        self.batch_timeout_seconds = batch_timeout_seconds
-        self.batch_format = BatchFormat(batch_format)
-        self.batch_wrapper_key = batch_wrapper_key
+class HttpSinkConfig(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid", validate_default=True)
+
+    endpoint: str
+    headers: dict[str, str] = Field(default_factory=dict)
+    retry: RetryConfig | None = None
+    timeout_seconds: float = Field(default=5.0, gt=0.0)
+    batch_size: int = Field(default=1, ge=1)
+    batch_timeout_seconds: float = Field(default=5.0, ge=0.0)
+    batch_format: BatchFormat = Field(default=BatchFormat.ARRAY)
+    batch_wrapper_key: str = "logs"
+
+    @field_validator("headers", mode="before")
+    @classmethod
+    def _coerce_headers(cls, value: Mapping[str, str] | None) -> dict[str, str]:
+        if value is None:
+            return {}
+        return dict(value)
 
 
 class HttpSink(BatchingMixin):
@@ -114,27 +113,29 @@ class HttpSink(BatchingMixin):
 
     def __init__(
         self,
-        config: HttpSinkConfig,
+        config: HttpSinkConfig | dict | None = None,
         *,
         metrics: Any | None = None,
         pool: HttpClientPool | None = None,
         sender: AsyncHttpSender | None = None,
+        **kwargs: Any,
     ) -> None:
-        self._config = config
+        cfg = parse_plugin_config(HttpSinkConfig, config, **kwargs)
+        self._config = cfg
         self._pool = pool or HttpClientPool(
             max_size=4,
-            timeout=config.timeout_seconds,
+            timeout=cfg.timeout_seconds,
             acquire_timeout_seconds=2.0,
         )
         self._sender = sender or AsyncHttpSender(
             pool=self._pool,
-            default_headers=config.headers,
-            retry_config=config.retry,
+            default_headers=cfg.headers,
+            retry_config=cfg.retry,
         )
         self._metrics = metrics
         self._last_status: int | None = None
         self._last_error: str | None = None
-        self._init_batching(config.batch_size, config.batch_timeout_seconds)
+        self._init_batching(cfg.batch_size, cfg.batch_timeout_seconds)
 
     async def start(self) -> None:
         await self._pool.start()
@@ -244,3 +245,6 @@ PLUGIN_METADATA = {
     "compatibility": {"min_fapilog_version": "0.3.0"},
     "api_version": "1.0",
 }
+
+# Mark Pydantic validators as used for vulture
+_VULTURE_USED: tuple[object, ...] = (HttpSinkConfig._coerce_headers,)

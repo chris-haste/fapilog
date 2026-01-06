@@ -16,6 +16,19 @@ async def test_my_sink_contract() -> None:
     result.raise_if_invalid()
 ```
 
+## Config Validation
+
+Plugins now parse configuration with `parse_plugin_config`, so tests can feed dicts directly and rely on Pydantic for coercion and typo checks.
+
+```python
+from fapilog.plugins.redactors.field_mask import FieldMaskRedactor
+from fapilog.plugins.sinks.webhook import WebhookSink
+
+# Dict config is validated and coerced
+redactor = FieldMaskRedactor(config={"fields_to_mask": ["secret"], "max_depth": "5"})
+sink = WebhookSink(config={"endpoint": "https://hooks.example.com", "batch_size": "2"})
+```
+
 ## Mock Plugins
 
 - **MockSink**: captures written events, tracks lifecycle calls, optional latency/failure injection (`MockSinkConfig`).

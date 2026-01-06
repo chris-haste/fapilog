@@ -1,25 +1,30 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
 
+from pydantic import BaseModel, ConfigDict, Field
+
 from ...core import diagnostics
+from ..utils import parse_plugin_config
 
 
-@dataclass
-class FieldMaskConfig:
-    fields_to_mask: list[str]
+class FieldMaskConfig(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid", validate_default=True)
+
+    fields_to_mask: list[str] = Field(default_factory=list)
     mask_string: str = "***"
     block_on_unredactable: bool = False
-    max_depth: int = 16
-    max_keys_scanned: int = 1000
+    max_depth: int = Field(default=16, ge=1)
+    max_keys_scanned: int = Field(default=1000, ge=1)
 
 
 class FieldMaskRedactor:
     name = "field_mask"
 
-    def __init__(self, *, config: FieldMaskConfig | None = None) -> None:
-        cfg = config or FieldMaskConfig(fields_to_mask=[])
+    def __init__(
+        self, *, config: FieldMaskConfig | dict | None = None, **kwargs: Any
+    ) -> None:
+        cfg = parse_plugin_config(FieldMaskConfig, config, **kwargs)
         # Normalize
         self._fields: list[list[str]] = [
             [seg for seg in path.split(".") if seg]

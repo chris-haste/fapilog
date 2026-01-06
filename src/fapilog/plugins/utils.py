@@ -6,7 +6,9 @@ Provides helpers for consistently identifying plugins by name and type.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, TypeVar
+
+from pydantic import BaseModel
 
 
 def get_plugin_name(plugin: Any) -> str:
@@ -88,9 +90,50 @@ def get_plugin_type(plugin: Any) -> str:
     return "unknown"
 
 
+TConfig = TypeVar("TConfig", bound=BaseModel)
+
+
+def parse_plugin_config(
+    config_cls: type[TConfig],
+    raw_config: TConfig | dict[str, Any] | None = None,
+    **kwargs: Any,
+) -> TConfig:
+    """Parse plugin configuration using a shared Pydantic helper.
+
+    Supports config objects, plain dicts, nested {"config": {...}} wrappers,
+    and keyword arguments. Falls back to config_cls() when nothing provided.
+    """
+    if isinstance(raw_config, config_cls):
+        return raw_config
+
+    if isinstance(raw_config, dict):
+        nested = raw_config.get("config") if "config" in raw_config else raw_config
+        if isinstance(nested, config_cls):
+            return nested
+        return config_cls.model_validate(nested)
+
+    if raw_config is None:
+        config_kwargs = dict(kwargs)
+        if "config" in config_kwargs:
+            nested = config_kwargs.pop("config")
+            if isinstance(nested, config_cls):
+                return nested
+            if isinstance(nested, dict):
+                return config_cls.model_validate(nested)
+        if config_kwargs:
+            return config_cls.model_validate(config_kwargs)
+        return config_cls()
+
+    raise TypeError(
+        f"Cannot parse config: expected {config_cls.__name__}, dict, or None; "
+        f"got {type(raw_config).__name__}"
+    )
+
+
 # Mark functions as used for static analysis (vulture)
 _VULTURE_USED: tuple[object, ...] = (
     get_plugin_name,
     normalize_plugin_name,
     get_plugin_type,
+    parse_plugin_config,
 )

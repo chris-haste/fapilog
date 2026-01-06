@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 import httpx
 import pytest
+from pydantic import ValidationError
 
 from fapilog.metrics.metrics import MetricsCollector
 from fapilog.plugins.sinks.http_client import HttpSink, HttpSinkConfig
@@ -239,3 +240,81 @@ async def test_http_sink_health_check_and_diagnostics(
         assert sink._last_status == 200
         assert await sink.health_check() is True
         await sink.stop()
+
+
+# --- Config Parsing Tests ---
+
+
+@pytest.mark.asyncio
+async def test_http_sink_accepts_dict_config_and_coerces() -> None:
+    """Dict config with string numbers should be coerced to correct types."""
+    pool = _StubPool([httpx.Response(200, json={"ok": True})])
+    sink = HttpSink(
+        config={
+            "endpoint": "https://logs.example.com/api",
+            "batch_size": "5",  # String should coerce to int
+            "timeout_seconds": "10.0",  # String should coerce to float
+        },
+        pool=pool,
+    )
+
+    await sink.start()
+    await sink.write({"message": "test"})
+    await sink.stop()
+
+    assert sink._config.batch_size == 5
+    assert sink._config.timeout_seconds == 10.0
+
+
+def test_http_sink_rejects_unknown_config_fields() -> None:
+    """Unknown config keys should raise ValidationError."""
+    with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
+        HttpSink(
+            config={
+                "endpoint": "https://logs.example.com",
+                "unknown_field": "oops",
+            }
+        )
+
+
+def test_http_sink_validates_constraints() -> None:
+    """Pydantic Field constraints should be enforced."""
+    # batch_size must be >= 1
+    with pytest.raises(ValidationError, match="greater than or equal to 1"):
+        HttpSinkConfig(endpoint="https://example.com", batch_size=0)
+
+    # timeout_seconds must be > 0
+    with pytest.raises(ValidationError, match="greater than 0"):
+        HttpSinkConfig(endpoint="https://example.com", timeout_seconds=0)
+
+
+def test_http_sink_requires_endpoint() -> None:
+    """Endpoint is required and has no default."""
+    with pytest.raises(ValidationError, match="endpoint"):
+        HttpSinkConfig()  # type: ignore[call-arg]
+
+
+def test_http_sink_accepts_kwargs() -> None:
+    """Should accept kwargs-style configuration."""
+    sink = HttpSink(
+        endpoint="https://kwargs.example.com/api",
+        batch_size=10,
+        timeout_seconds=15.0,
+        pool=_StubPool([]),
+    )
+    assert sink._config.endpoint == "https://kwargs.example.com/api"
+    assert sink._config.batch_size == 10
+    assert sink._config.timeout_seconds == 15.0
+
+
+@pytest.mark.asyncio
+async def test_http_sink_accepts_loader_format_config() -> None:
+    """Loader-style nested config should work."""
+    pool = _StubPool([httpx.Response(200)])
+    sink = HttpSink(
+        config={"config": {"endpoint": "https://nested.example.com", "batch_size": 3}},
+        pool=pool,
+    )
+
+    assert sink._config.endpoint == "https://nested.example.com"
+    assert sink._config.batch_size == 3

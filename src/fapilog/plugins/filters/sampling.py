@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 import random
-from dataclasses import dataclass
 from typing import Any
 
+from pydantic import BaseModel, ConfigDict, Field
 
-@dataclass
-class SamplingFilterConfig:
-    sample_rate: float = 1.0
+from ..utils import parse_plugin_config
+
+
+class SamplingFilterConfig(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid", validate_default=True)
+
+    sample_rate: float = Field(default=1.0, ge=0.0, le=1.0)
     seed: int | None = None
 
 
@@ -19,19 +23,8 @@ class SamplingFilter:
     def __init__(
         self, *, config: SamplingFilterConfig | dict | None = None, **kwargs: Any
     ) -> None:
-        if isinstance(config, dict):
-            raw = config.get("config", config)
-            cfg = SamplingFilterConfig(**raw)
-        elif config is None:
-            raw_kwargs = kwargs.get("config", kwargs)
-            cfg = (
-                SamplingFilterConfig(**raw_kwargs)
-                if raw_kwargs
-                else SamplingFilterConfig()
-            )
-        else:
-            cfg = config
-        self._rate = max(0.0, min(1.0, float(cfg.sample_rate)))
+        cfg = parse_plugin_config(SamplingFilterConfig, config, **kwargs)
+        self._rate = cfg.sample_rate
         if cfg.seed is not None:
             random.seed(cfg.seed)
 

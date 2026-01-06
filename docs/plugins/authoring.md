@@ -82,3 +82,53 @@ from fapilog.plugins import (
 ```
 
 All interfaces are async-first and must contain errors rather than raising into the core pipeline.
+
+## Configuration Pattern
+
+Use Pydantic v2 models for plugin configuration to get validation, coercion, and typo protection for free.
+
+```python
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class MyPluginConfig(BaseModel):
+    model_config = ConfigDict(
+        frozen=True,
+        extra="forbid",
+        validate_default=True,
+    )
+
+    threshold: int = Field(default=100, ge=1)
+    enabled: bool = True
+```
+
+Parse configs with the shared helper so plugins accept config objects, dicts, kwargs, or loader-style nested `{"config": {...}}`:
+
+```python
+from fapilog.plugins.utils import parse_plugin_config
+
+
+class MyPlugin:
+    name = "my_plugin"
+
+    def __init__(
+        self,
+        *,
+        config: MyPluginConfig | dict | None = None,
+        **kwargs: object,
+    ) -> None:
+        cfg = parse_plugin_config(MyPluginConfig, config, **kwargs)
+        self._threshold = cfg.threshold
+        self._enabled = cfg.enabled
+```
+
+Supported inputs:
+- Config object: `MyPlugin(config=MyPluginConfig(threshold=50))`
+- Dict: `MyPlugin(config={"threshold": 50})`
+- Kwargs: `MyPlugin(threshold=50)`
+- Loader format: `MyPlugin(config={"config": {"threshold": 50}})`
+
+Validation behavior:
+- String numbers coerce to native types (`{"threshold": "5"}` -> `5`)
+- Unknown keys raise `ValidationError` (catches typos)
+- Bounds in `Field(...)` are enforced (e.g., `ge=0`, `le=1`)

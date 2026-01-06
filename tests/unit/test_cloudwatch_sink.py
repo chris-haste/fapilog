@@ -6,6 +6,7 @@ from types import SimpleNamespace
 from typing import Any
 
 import pytest
+from pydantic import ValidationError
 
 from fapilog.core import diagnostics
 from fapilog.core.circuit_breaker import CircuitState
@@ -266,3 +267,82 @@ async def test_throttling_retries_respected(
 
     assert fake_client.put_calls
     assert slept, "Expected backoff sleep when throttled"
+
+
+# --- Config Parsing Tests ---
+
+
+@pytest.mark.asyncio
+async def test_cloudwatch_sink_accepts_dict_config_and_coerces(
+    fake_client: FakeCloudWatchClient,
+) -> None:
+    """Dict config with string numbers should be coerced to correct types."""
+    sink = CloudWatchSink(
+        config={
+            "log_group_name": "/dict/test",
+            "log_stream_name": "stream-dict",
+            "batch_size": "50",  # String should coerce to int
+            "region": "us-west-2",
+        }
+    )
+    await sink.start()
+    await sink.stop()
+
+    assert sink._config.log_group_name == "/dict/test"
+    assert sink._config.batch_size == 50
+    assert fake_client.created_groups == ["/dict/test"]
+
+
+def test_cloudwatch_sink_rejects_unknown_config_fields() -> None:
+    """Unknown config keys should raise ValidationError."""
+    with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
+        CloudWatchSink(
+            config={
+                "log_group_name": "/test",
+                "unknown_field": "oops",
+            }
+        )
+
+
+def test_cloudwatch_sink_validates_constraints() -> None:
+    """Pydantic Field constraints should be enforced."""
+    # batch_size must be >= 1
+    with pytest.raises(ValidationError, match="greater than or equal to 1"):
+        CloudWatchSinkConfig(batch_size=0)
+
+    # batch_timeout_seconds must be > 0
+    with pytest.raises(ValidationError, match="greater than 0"):
+        CloudWatchSinkConfig(batch_timeout_seconds=0)
+
+
+@pytest.mark.asyncio
+async def test_cloudwatch_sink_auto_generates_stream_name(
+    fake_client: FakeCloudWatchClient,
+) -> None:
+    """When log_stream_name is None, sink should auto-generate one."""
+    sink = CloudWatchSink(
+        config={
+            "log_group_name": "/app/autogen",
+            "log_stream_name": None,  # Should auto-generate
+            "region": "us-east-1",
+        }
+    )
+    await sink.start()
+    await sink.stop()
+
+    # Should have auto-generated a stream name and stored it in instance var
+    assert sink._log_stream_name is not None
+    assert "-" in sink._log_stream_name  # hostname-timestamp format
+    assert fake_client.created_streams
+
+
+def test_cloudwatch_sink_accepts_kwargs() -> None:
+    """Should accept kwargs-style configuration."""
+    sink = CloudWatchSink(
+        log_group_name="/kwargs/test",
+        log_stream_name="stream-kwargs",
+        batch_size=25,
+        region="eu-west-1",
+    )
+    assert sink._config.log_group_name == "/kwargs/test"
+    assert sink._config.batch_size == 25

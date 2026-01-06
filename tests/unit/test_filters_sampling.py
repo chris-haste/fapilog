@@ -24,3 +24,9 @@ async def test_sampling_filter_probabilistic_with_seed() -> None:
         if await filt.filter({"level": "INFO"}):
             kept += 1
     assert 60 < kept < 140
+
+
+@pytest.mark.asyncio
+async def test_sampling_filter_accepts_dict_and_coerces() -> None:
+    filt = SamplingFilter(config={"config": {"sample_rate": "0.25", "seed": 1}})
+    assert pytest.approx(filt.current_sample_rate) == 0.25
