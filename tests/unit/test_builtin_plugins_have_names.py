@@ -31,6 +31,7 @@ BUILTIN_PLUGINS = [
     ),
     ("fapilog.plugins.enrichers.runtime_info", "RuntimeInfoEnricher", "runtime_info"),
     ("fapilog.plugins.enrichers.context_vars", "ContextVarsEnricher", "context_vars"),
+    ("fapilog.plugins.enrichers.kubernetes", "KubernetesEnricher", "kubernetes"),
     ("fapilog.plugins.redactors.field_mask", "FieldMaskRedactor", "field_mask"),
     ("fapilog.plugins.redactors.regex_mask", "RegexMaskRedactor", "regex_mask"),
     (

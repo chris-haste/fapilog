@@ -23,6 +23,7 @@ BUILTIN_PLUGIN_MODULES = [
     # Enrichers
     "fapilog.plugins.enrichers.runtime_info",
     "fapilog.plugins.enrichers.context_vars",
+    "fapilog.plugins.enrichers.kubernetes",
     # Redactors
     "fapilog.plugins.redactors.field_mask",
     "fapilog.plugins.redactors.regex_mask",
