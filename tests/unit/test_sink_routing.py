@@ -246,8 +246,10 @@ async def test_update_rules_with_fallback() -> None:
 # --- P1: Performance benchmark for <1μs routing overhead (AC6) ---
 
 
-def test_routing_lookup_performance(benchmark: Any) -> None:
-    """Benchmark: routing lookup should be O(1) and <1μs."""
+def test_routing_lookup_performance() -> None:
+    """Verify routing lookup is O(1) - dict-based lookup."""
+    import time
+
     from fapilog.core.routing import RoutingSinkWriter
 
     sinks = [FakeSink(f"s{i}") for i in range(5)]
@@ -262,9 +264,20 @@ def test_routing_lookup_performance(benchmark: Any) -> None:
         overlap=True,
     )
 
-    result = benchmark(writer.get_sinks_for_level, "ERROR")
+    # Warm up
+    for _ in range(100):
+        writer.get_sinks_for_level("ERROR")
+
+    # Time 10000 lookups
+    start = time.perf_counter_ns()
+    for _ in range(10000):
+        result = writer.get_sinks_for_level("ERROR")
+    elapsed_ns = time.perf_counter_ns() - start
+
+    avg_ns = elapsed_ns / 10000
     assert len(result) == 2
-    # pytest-benchmark will report stats; we assert sub-microsecond in CI
+    # Should be well under 1μs (1000ns) per lookup
+    assert avg_ns < 1000, f"Lookup too slow: {avg_ns:.1f}ns (target <1000ns)"
 
 
 # --- P1: Integration test with real sinks (AC8) ---
