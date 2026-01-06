@@ -174,7 +174,7 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="plugins">
 <h1>Plugins<a class="headerlink" href="#plugins" title="Link to this heading"></a></h1>
-<p>Extensible sinks, enrichers, redactors, and processors for fapilog.</p>
+<p>Extensible sinks, enrichers, redactors, processors, and filters for fapilog.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Plugins</span></p>
 <ul>
@@ -209,12 +209,13 @@
 </div>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
-<p>fapilog’s plugin system provides base protocols for extending functionality in four key areas:</p>
+<p>fapilog’s plugin system provides base protocols for extending functionality in five key areas:</p>
 <ul class="simple">
 <li><p><strong>Sinks</strong> - Output destinations for log messages</p></li>
 <li><p><strong>Enrichers</strong> - Add context and metadata to messages</p></li>
 <li><p><strong>Redactors</strong> - Remove or mask sensitive information</p></li>
 <li><p><strong>Processors</strong> - Transform and optimize messages</p></li>
+<li><p><strong>Filters</strong> - Drop or reshape events before enrichment</p></li>
 </ul>
 </section>
 <section id="built-in-plugins">
@@ -375,6 +376,7 @@
     <span class="n">BaseEnricher</span><span class="p">,</span>
     <span class="n">BaseRedactor</span><span class="p">,</span>
     <span class="n">BaseProcessor</span><span class="p">,</span>
+    <span class="n">BaseFilter</span><span class="p">,</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -442,7 +444,7 @@ and configure it via standard plugin settings:</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on January 05, 2026.
+      <span class="lastupdated">Last updated on January 06, 2026.
       </span></p>
   </div>
 

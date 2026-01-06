@@ -220,6 +220,8 @@
 <li class="toctree-l1"><a class="reference internal" href="filters.html">Filters</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="filters/sampling.html">Sampling Filters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="filters/rate-limiting.html">Rate Limiting Filter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="filters.html#implementing-a-filter">Implementing a filter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="filters.html#registering-a-filter">Registering a filter</a></li>
 <li class="toctree-l2"><a class="reference internal" href="filters.html#contract">Contract</a></li>
 <li class="toctree-l2"><a class="reference internal" href="filters.html#built-in-filters">Built-in filters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="filters.html#configuration">Configuration</a></li>
@@ -277,7 +279,7 @@
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
 <p>fapilog provides a comprehensive plugin system that allows you to:</p>
 <ul class="simple">
-<li><p><strong>Extend functionality</strong> with custom sinks, processors, and enrichers</p></li>
+<li><p><strong>Extend functionality</strong> with custom sinks, processors, enrichers, redactors, and filters</p></li>
 <li><p><strong>Customize behavior</strong> for your specific use cases</p></li>
 <li><p><strong>Integrate external systems</strong> through plugin interfaces</p></li>
 <li><p><strong>Maintain compatibility</strong> through versioned plugin contracts</p></li>
@@ -296,6 +298,10 @@
 <section id="enrichers">
 <h3><a class="reference internal" href="enrichers.html"><span class="std std-doc">Enrichers</span></a><a class="headerlink" href="#enrichers" title="Link to this heading"></a></h3>
 <p>Data enrichment and augmentation.</p>
+</section>
+<section id="filters">
+<h3><a class="reference internal" href="filters.html"><span class="std std-doc">Filters</span></a><a class="headerlink" href="#filters" title="Link to this heading"></a></h3>
+<p>Drop or reshape events before enrichment and processing pipelines.</p>
 </section>
 <section id="redactors">
 <h3><a class="reference internal" href="redactors.html"><span class="std std-doc">Redactors</span></a><a class="headerlink" href="#redactors" title="Link to this heading"></a></h3>
@@ -331,7 +337,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on January 05, 2026.
+      <span class="lastupdated">Last updated on January 06, 2026.
       </span></p>
   </div>
 

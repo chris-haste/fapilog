@@ -182,6 +182,28 @@
 <li class="toctree-l1"><a class="reference internal" href="filters/rate-limiting.html">Rate Limiting Filter</a></li>
 </ul>
 </div>
+<section id="implementing-a-filter">
+<h2>Implementing a filter<a class="headerlink" href="#implementing-a-filter" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseFilter</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyFilter</span><span class="p">(</span><span class="n">BaseFilter</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my_filter&quot;</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Return None to drop, or return (possibly modified) event</span>
+        <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;level&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;DEBUG&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># drop debug events</span>
+        <span class="k">return</span> <span class="n">event</span>
+</pre></div>
+</div>
+</section>
+<section id="registering-a-filter">
+<h2>Registering a filter<a class="headerlink" href="#registering-a-filter" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Declare an entry point under <code class="docutils literal notranslate"><span class="pre">fapilog.filters</span></code> in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>.</p></li>
+<li><p>Add a <code class="docutils literal notranslate"><span class="pre">PLUGIN_METADATA</span></code> dict with <code class="docutils literal notranslate"><span class="pre">plugin_type:</span> <span class="pre">&quot;filter&quot;</span></code> and an API version compatible with <code class="docutils literal notranslate"><span class="pre">fapilog.plugins.versioning.PLUGIN_API_VERSION</span></code>.</p></li>
+</ul>
+</section>
 <section id="contract">
 <h2>Contract<a class="headerlink" href="#contract" title="Link to this heading"></a></h2>
 <ul class="simple">
@@ -221,7 +243,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on January 05, 2026.
+      <span class="lastupdated">Last updated on January 06, 2026.
       </span></p>
   </div>
 
