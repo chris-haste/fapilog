@@ -327,7 +327,7 @@ limitations under the License.
 
 fapilog builds on the work of many open source projects:
 
-- **structlog** - Structured logging foundation
+- **fapilog.core** - Native structured logging pipeline
 - **pydantic** - Data validation and settings
 - **anyio** - Async I/O utilities
 - **asyncio-mqtt** - MQTT client support

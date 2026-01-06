@@ -166,13 +166,15 @@ import sys
 from typing import Any, Dict, Optional
 
 # Third-party imports
-import structlog
 import pydantic
 from fastapi import FastAPI
 
 # Local imports
-from fapilog import configure_logging
-from fapilog.settings import LoggingSettings
+from fapilog import get_logger
+from fapilog.core.settings import Settings
+
+logger = get_logger(settings=Settings())
+logger.info("Development server started", port=8000)
 ```
 
 ### **Type Hints**
@@ -182,18 +184,17 @@ from fapilog.settings import LoggingSettings
 ```python
 from typing import Any, Dict, Optional
 
-def configure_logging(
-    settings: Optional[LoggingSettings] = None,
-    app: Optional[Any] = None
-) -> None:
-    """Configure logging with the given settings."""
-    pass
+from fapilog import get_logger
+from fapilog.core.settings import Settings
 
-async def write_log(
-    event_dict: Dict[str, Any]
-) -> None:
-    """Write log event to all configured sinks."""
-    pass
+
+def build_logger(settings: Optional[Settings] = None) -> Any:
+    """Create a logger with validated settings."""
+    return get_logger(settings=settings or Settings())
+
+def log_event(logger: Any, event_dict: Dict[str, Any]) -> None:
+    """Write a structured log event."""
+    logger.info("event received", **event_dict)
 ```
 
 ### **Docstrings**
