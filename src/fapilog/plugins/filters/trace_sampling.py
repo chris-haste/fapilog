@@ -2,21 +2,21 @@ from __future__ import annotations
 
 import hashlib
 import random
-from dataclasses import dataclass
 from typing import Any
 
+from pydantic import BaseModel, ConfigDict, Field
 
-@dataclass
-class TraceSamplingConfig:
+from ..utils import parse_plugin_config
+
+
+class TraceSamplingConfig(BaseModel):
     """Configuration for trace-aware sampling."""
 
-    sample_rate: float = 0.1
-    trace_id_field: str = "trace_id"
-    always_pass_levels: list[str] | None = None
+    model_config = ConfigDict(frozen=True, extra="forbid", validate_default=True)
 
-    def __post_init__(self) -> None:
-        if self.always_pass_levels is None:
-            self.always_pass_levels = ["ERROR", "CRITICAL"]
+    sample_rate: float = Field(default=0.1, ge=0.0, le=1.0)
+    trace_id_field: str = "trace_id"
+    always_pass_levels: list[str] = Field(default_factory=lambda: ["ERROR", "CRITICAL"])
 
 
 class TraceSamplingFilter:
@@ -27,26 +27,10 @@ class TraceSamplingFilter:
     def __init__(
         self, *, config: TraceSamplingConfig | dict | None = None, **kwargs: Any
     ) -> None:
-        cfg = self._parse_config(config, kwargs)
-        self._rate = max(0.0, min(1.0, float(cfg.sample_rate)))
-        self._trace_field = str(cfg.trace_id_field)
-        self._always_pass = {level.upper() for level in (cfg.always_pass_levels or [])}
-
-    @staticmethod
-    def _parse_config(
-        config: TraceSamplingConfig | dict | None, kwargs: dict[str, Any]
-    ) -> TraceSamplingConfig:
-        if isinstance(config, dict):
-            raw = config.get("config", config)
-            return TraceSamplingConfig(**raw)
-        if config is None:
-            raw_kwargs = kwargs.get("config", kwargs)
-            return (
-                TraceSamplingConfig(**raw_kwargs)
-                if raw_kwargs
-                else TraceSamplingConfig()
-            )
-        return config
+        cfg = parse_plugin_config(TraceSamplingConfig, config, **kwargs)
+        self._rate = cfg.sample_rate
+        self._trace_field = cfg.trace_id_field
+        self._always_pass = {level.upper() for level in cfg.always_pass_levels}
 
     async def start(self) -> None:
         return None

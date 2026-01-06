@@ -13,7 +13,8 @@ from pathlib import Path
 from typing import List, Tuple
 
 # Patterns that indicate Pydantic v1 syntax
-PYDANTIC_V1_PATTERNS = [
+# Each entry is (pattern, message, skip_if_contains) where skip_if_contains is optional
+PYDANTIC_V1_PATTERNS: list[tuple[str, str] | tuple[str, str, str]] = [
     # @validator decorator (should be @field_validator)
     (r"@validator\s*\(", "@validator decorator should be @field_validator"),
     # Config class inside model (should be model_config)
@@ -25,8 +26,13 @@ PYDANTIC_V1_PATTERNS = [
         r"validate_assignment\s*=\s*True",
         "validate_assignment should be in model_config",
     ),
-    # extra = "forbid" (should be in model_config)
-    (r'extra\s*=\s*["\']forbid["\']', "extra should be in model_config"),
+    # extra = "forbid" outside ConfigDict (should be in model_config)
+    # Skip if line contains ConfigDict (valid v2 usage)
+    (
+        r'extra\s*=\s*["\']forbid["\']',
+        "extra should be in model_config",
+        "ConfigDict",
+    ),
     # parse_obj (should be model_validate)
     (r"\.parse_obj\s*\(", ".parse_obj should be .model_validate"),
     # parse_raw (should be model_validate_json)
@@ -57,8 +63,16 @@ def check_file(file_path: Path) -> List[Tuple[int, str, str]]:
             lines = content.split("\n")
 
         for line_num, line in enumerate(lines, 1):
-            for pattern, message in PYDANTIC_V1_PATTERNS:
+            for pattern_entry in PYDANTIC_V1_PATTERNS:
+                pattern = pattern_entry[0]
+                message = pattern_entry[1]
+                # Optional third element: skip if line contains this string
+                skip_if_contains = pattern_entry[2] if len(pattern_entry) > 2 else None
+
                 if re.search(pattern, line):
+                    # Skip if the line contains a valid v2 pattern marker
+                    if skip_if_contains and skip_if_contains in line:
+                        continue
                     issues.append((line_num, line.strip(), message))
 
     except Exception as e:

@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 import httpx
 import pytest
+from pydantic import ValidationError
 
 from fapilog.metrics.metrics import MetricsCollector
 from fapilog.plugins.sinks.webhook import WebhookSink, WebhookSinkConfig
@@ -178,3 +179,25 @@ async def test_webhook_sink_flushes_on_timeout() -> None:
 
     assert pool.calls
     assert pool.calls[0][1] == [{"n": 1}]
+
+
+@pytest.mark.asyncio
+async def test_webhook_sink_accepts_dict_config_and_coerces() -> None:
+    pool = _StubPool([httpx.Response(200)])
+    sink = WebhookSink(
+        config={"endpoint": "https://hooks.example.com", "batch_size": "2"},
+        pool=pool,
+    )
+
+    await sink.start()
+    await sink.write({"n": 1})
+    await sink.write({"n": 2})
+    await sink.stop()
+
+    assert sink._config.batch_size == 2
+    assert pool.calls and pool.calls[0][1] == [{"n": 1}, {"n": 2}]
+
+
+def test_webhook_sink_rejects_extra_config_fields() -> None:
+    with pytest.raises(ValidationError):
+        WebhookSink(config={"endpoint": "https://hooks.example.com", "extra": True})

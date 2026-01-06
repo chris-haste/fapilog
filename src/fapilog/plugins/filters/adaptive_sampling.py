@@ -3,22 +3,32 @@ from __future__ import annotations
 import random
 import time
 from collections import deque
-from dataclasses import dataclass, field
 from typing import Any
 
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-@dataclass
-class AdaptiveSamplingConfig:
+from ..utils import parse_plugin_config
+
+
+class AdaptiveSamplingConfig(BaseModel):
     """Configuration for adaptive sampling."""
 
-    target_eps: float = 100.0
-    min_sample_rate: float = 0.01
-    max_sample_rate: float = 1.0
-    window_seconds: float = 10.0
-    always_pass_levels: list[str] = field(
+    model_config = ConfigDict(frozen=True, extra="forbid", validate_default=True)
+
+    target_eps: float = Field(default=100.0, ge=0.0)
+    min_sample_rate: float = Field(default=0.01, ge=0.0, le=1.0)
+    max_sample_rate: float = Field(default=1.0, ge=0.0, le=1.0)
+    window_seconds: float = Field(default=10.0, gt=0.0)
+    always_pass_levels: list[str] = Field(
         default_factory=lambda: ["ERROR", "CRITICAL", "FATAL"]
     )
-    smoothing_factor: float = 0.3
+    smoothing_factor: float = Field(default=0.3, ge=0.0, le=1.0)
+
+    @model_validator(mode="after")
+    def _validate_ranges(self) -> AdaptiveSamplingConfig:
+        if self.max_sample_rate < self.min_sample_rate:
+            raise ValueError("max_sample_rate must be >= min_sample_rate")
+        return self
 
 
 class AdaptiveSamplingFilter:
@@ -29,33 +39,17 @@ class AdaptiveSamplingFilter:
     def __init__(
         self, *, config: AdaptiveSamplingConfig | dict | None = None, **kwargs: Any
     ) -> None:
-        cfg = self._parse_config(config, kwargs)
-        self._target_eps = max(0.0, float(cfg.target_eps))
-        self._min_rate = max(0.0, min(1.0, float(cfg.min_sample_rate)))
-        self._max_rate = max(self._min_rate, min(1.0, float(cfg.max_sample_rate)))
-        self._window = max(0.001, float(cfg.window_seconds))
+        cfg = parse_plugin_config(AdaptiveSamplingConfig, config, **kwargs)
+        self._target_eps = cfg.target_eps
+        self._min_rate = cfg.min_sample_rate
+        self._max_rate = cfg.max_sample_rate
+        self._window = cfg.window_seconds
         self._always_pass = {level.upper() for level in cfg.always_pass_levels}
-        self._smoothing = max(0.0, min(1.0, float(cfg.smoothing_factor)))
+        self._smoothing = cfg.smoothing_factor
 
         self._current_rate = 1.0
         self._timestamps: deque[float] = deque()
         self._last_adjustment = time.monotonic()
-
-    @staticmethod
-    def _parse_config(
-        config: AdaptiveSamplingConfig | dict | None, kwargs: dict[str, Any]
-    ) -> AdaptiveSamplingConfig:
-        if isinstance(config, dict):
-            raw = config.get("config", config)
-            return AdaptiveSamplingConfig(**raw)
-        if config is None:
-            raw_kwargs = kwargs.get("config", kwargs)
-            return (
-                AdaptiveSamplingConfig(**raw_kwargs)
-                if raw_kwargs
-                else AdaptiveSamplingConfig()
-            )
-        return config
 
     async def start(self) -> None:
         self._timestamps.clear()
@@ -127,3 +121,6 @@ PLUGIN_METADATA = {
     "compatibility": {"min_fapilog_version": "0.4.0"},
     "api_version": "1.0",
 }
+
+# Mark Pydantic validators as used for vulture
+_VULTURE_USED: tuple[object, ...] = (AdaptiveSamplingConfig._validate_ranges,)

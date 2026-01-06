@@ -1,7 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
+
+from pydantic import BaseModel, ConfigDict
+
+from ..utils import parse_plugin_config
 
 LEVEL_PRIORITY = {
     "DEBUG": 10,
@@ -14,8 +17,9 @@ LEVEL_PRIORITY = {
 }
 
 
-@dataclass
-class LevelFilterConfig:
+class LevelFilterConfig(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid", validate_default=True)
+
     min_level: str = "INFO"
     drop_below: bool = True
 
@@ -28,14 +32,7 @@ class LevelFilter:
     def __init__(
         self, *, config: LevelFilterConfig | dict | None = None, **kwargs: Any
     ) -> None:
-        if isinstance(config, dict):
-            raw = config.get("config", config)
-            cfg = LevelFilterConfig(**raw)
-        elif config is None:
-            raw_kwargs = kwargs.get("config", kwargs)
-            cfg = LevelFilterConfig(**raw_kwargs) if raw_kwargs else LevelFilterConfig()
-        else:
-            cfg = config
+        cfg = parse_plugin_config(LevelFilterConfig, config, **kwargs)
         self._min_priority = LEVEL_PRIORITY.get(cfg.min_level.upper(), 20)
         self._drop_below = bool(cfg.drop_below)
 

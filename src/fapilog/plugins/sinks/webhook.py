@@ -10,35 +10,35 @@ from __future__ import annotations
 from typing import Any, Mapping
 
 import httpx
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ...core.resources import HttpClientPool
 from ...core.retry import AsyncRetrier, RetryConfig
 from ...core.serialization import SerializedView
 from ...metrics.metrics import MetricsCollector
+from ..utils import parse_plugin_config
 from ._batching import BatchingMixin
 
 __all__ = ["WebhookSink", "WebhookSinkConfig"]
 
 
-class WebhookSinkConfig:
-    def __init__(
-        self,
-        *,
-        endpoint: str,
-        secret: str | None = None,
-        headers: Mapping[str, str] | None = None,
-        retry: RetryConfig | None = None,
-        timeout_seconds: float = 5.0,
-        batch_size: int = 1,
-        batch_timeout_seconds: float = 5.0,
-    ) -> None:
-        self.endpoint = endpoint
-        self.secret = secret
-        self.headers = dict(headers or {})
-        self.retry = retry
-        self.timeout_seconds = timeout_seconds
-        self.batch_size = batch_size
-        self.batch_timeout_seconds = batch_timeout_seconds
+class WebhookSinkConfig(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid", validate_default=True)
+
+    endpoint: str
+    secret: str | None = None
+    headers: dict[str, str] = Field(default_factory=dict)
+    retry: RetryConfig | None = None
+    timeout_seconds: float = Field(default=5.0, gt=0.0)
+    batch_size: int = Field(default=1, ge=1)
+    batch_timeout_seconds: float = Field(default=5.0, ge=0.0)
+
+    @field_validator("headers", mode="before")
+    @classmethod
+    def _coerce_headers(cls, value: Mapping[str, str] | None) -> dict[str, str]:
+        if value is None:
+            return {}
+        return dict(value)
 
 
 class WebhookSink(BatchingMixin):
@@ -48,23 +48,25 @@ class WebhookSink(BatchingMixin):
 
     def __init__(
         self,
-        config: WebhookSinkConfig,
+        config: WebhookSinkConfig | dict | None = None,
         *,
         metrics: MetricsCollector | None = None,
         pool: HttpClientPool | None = None,
+        **kwargs: Any,
     ) -> None:
-        self._config = config
+        cfg = parse_plugin_config(WebhookSinkConfig, config, **kwargs)
+        self._config = cfg
         self._metrics = metrics
         self._pool = pool or HttpClientPool(
             name="webhook",
             max_size=4,
-            timeout=config.timeout_seconds,
+            timeout=cfg.timeout_seconds,
             acquire_timeout_seconds=2.0,
         )
-        self._retrier = AsyncRetrier(config.retry) if config.retry else None
+        self._retrier = AsyncRetrier(cfg.retry) if cfg.retry else None
         self._last_status: int | None = None
         self._last_error: str | None = None
-        self._init_batching(config.batch_size, config.batch_timeout_seconds)
+        self._init_batching(cfg.batch_size, cfg.batch_timeout_seconds)
 
     async def start(self) -> None:
         await self._pool.start()
@@ -175,3 +177,6 @@ PLUGIN_METADATA = {
     "compatibility": {"min_fapilog_version": "0.3.0"},
     "api_version": "1.0",
 }
+
+# Mark Pydantic validators as used for vulture
+_VULTURE_USED: tuple[object, ...] = (WebhookSinkConfig._coerce_headers,)

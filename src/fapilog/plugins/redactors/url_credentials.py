@@ -1,23 +1,28 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlsplit, urlunsplit
 
+from pydantic import BaseModel, ConfigDict, Field
+
 from ...core import diagnostics
+from ..utils import parse_plugin_config
 
 
-@dataclass
-class UrlCredentialsConfig:
-    max_string_length: int = 4096
+class UrlCredentialsConfig(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid", validate_default=True)
+
+    max_string_length: int = Field(default=4096, ge=1)
 
 
 class UrlCredentialsRedactor:
     name = "url_credentials"
 
-    def __init__(self, *, config: UrlCredentialsConfig | None = None) -> None:
-        cfg = config or UrlCredentialsConfig()
-        self._max_len = int(cfg.max_string_length)
+    def __init__(
+        self, *, config: UrlCredentialsConfig | dict | None = None, **kwargs: Any
+    ) -> None:
+        cfg = parse_plugin_config(UrlCredentialsConfig, config, **kwargs)
+        self._max_len = cfg.max_string_length
 
     async def start(self) -> None:  # pragma: no cover - optional lifecycle
         return None

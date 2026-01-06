@@ -6,45 +6,47 @@ import os
 import re
 import time
 from collections import defaultdict
-from dataclasses import dataclass, field
 from typing import Any
 
 import httpx
+from pydantic import BaseModel, ConfigDict, Field
 
 from ....core import diagnostics
 from ....core.circuit_breaker import SinkCircuitBreaker, SinkCircuitBreakerConfig
 from ....core.serialization import SerializedView
+from ...utils import parse_plugin_config
 from .._batching import BatchingMixin
 
 
-@dataclass
-class LokiSinkConfig:
+class LokiSinkConfig(BaseModel):
     """Configuration for Grafana Loki sink."""
 
-    url: str = field(
+    model_config = ConfigDict(frozen=True, extra="forbid", validate_default=True)
+
+    url: str = Field(
         default_factory=lambda: os.getenv("FAPILOG_LOKI__URL", "http://localhost:3100")
     )
-    tenant_id: str | None = field(
+    tenant_id: str | None = Field(
         default_factory=lambda: os.getenv("FAPILOG_LOKI__TENANT_ID")
     )
-    labels: dict[str, str] = field(default_factory=lambda: {"service": "fapilog"})
-    label_keys: list[str] = field(default_factory=lambda: ["level"])
-    batch_size: int = 100
-    batch_timeout_seconds: float = 5.0
-    timeout_seconds: float = 10.0
-    max_retries: int = 3
-    retry_base_delay: float = 0.5
-    auth_username: str | None = field(
+    labels: dict[str, str] = Field(default_factory=lambda: {"service": "fapilog"})
+    label_keys: list[str] = Field(default_factory=lambda: ["level"])
+    batch_size: int = Field(default=100, ge=1)
+    batch_timeout_seconds: float = Field(default=5.0, gt=0.0)
+    timeout_seconds: float = Field(default=10.0, gt=0.0)
+    max_retries: int = Field(default=3, ge=0)
+    retry_base_delay: float = Field(default=0.5, ge=0.0)
+    auth_username: str | None = Field(
         default_factory=lambda: os.getenv("FAPILOG_LOKI__AUTH_USERNAME")
     )
-    auth_password: str | None = field(
+    auth_password: str | None = Field(
         default_factory=lambda: os.getenv("FAPILOG_LOKI__AUTH_PASSWORD")
     )
-    auth_token: str | None = field(
+    auth_token: str | None = Field(
         default_factory=lambda: os.getenv("FAPILOG_LOKI__AUTH_TOKEN")
     )
     circuit_breaker_enabled: bool = True
-    circuit_breaker_threshold: int = 5
+    circuit_breaker_threshold: int = Field(default=5, ge=1)
 
 
 class LokiSink(BatchingMixin):
@@ -53,13 +55,12 @@ class LokiSink(BatchingMixin):
     name = "loki"
 
     def __init__(self, config: LokiSinkConfig | None = None, **kwargs: Any) -> None:
-        if config is None:
-            config = LokiSinkConfig(**kwargs) if kwargs else LokiSinkConfig()
-        self._config = config
+        cfg = parse_plugin_config(LokiSinkConfig, config, **kwargs)
+        self._config = cfg
         self._client: httpx.AsyncClient | None = None
         self._circuit_breaker: SinkCircuitBreaker | None = None
         self._push_url = f"{self._config.url.rstrip('/')}/loki/api/v1/push"
-        self._init_batching(config.batch_size, config.batch_timeout_seconds)
+        self._init_batching(cfg.batch_size, cfg.batch_timeout_seconds)
 
     async def start(self) -> None:
         headers: dict[str, str] = {"Content-Type": "application/json"}

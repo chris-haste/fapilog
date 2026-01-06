@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+from pydantic import ValidationError
 
 from fapilog.core.diagnostics import set_writer_for_tests
 from fapilog.plugins.redactors.field_mask import (
@@ -148,6 +149,20 @@ async def test_guardrails_emit_warnings(
         for d in diags
     )
     assert has_depth and has_scan
+
+
+@pytest.mark.asyncio
+async def test_field_mask_redactor_accepts_dict_config_and_coerces() -> None:
+    r = FieldMaskRedactor(
+        config={"fields_to_mask": ["secret"], "max_depth": "8", "mask_string": "XX"}
+    )
+    out = await r.redact({"secret": "value"})
+    assert out["secret"] == "XX"
+
+
+def test_field_mask_redactor_rejects_unknown_fields() -> None:
+    with pytest.raises(ValidationError):
+        FieldMaskRedactor(config={"fields_to_mask": ["a"], "unknown": True})
 
 
 def test_name_and_plugin_metadata_present() -> None:

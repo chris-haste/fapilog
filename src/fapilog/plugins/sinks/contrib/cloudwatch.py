@@ -17,12 +17,14 @@ import json
 import os
 import socket
 import time
-from dataclasses import dataclass, field
 from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field
 
 from ....core import diagnostics
 from ....core.circuit_breaker import SinkCircuitBreaker, SinkCircuitBreakerConfig
 from ....core.serialization import SerializedView
+from ...utils import parse_plugin_config
 from .._batching import BatchingMixin
 
 try:  # Optional dependency
@@ -47,24 +49,25 @@ MAX_BATCH_SIZE = 10_000
 MAX_BATCH_BYTES = 1_048_576  # 1 MB
 
 
-@dataclass
-class CloudWatchSinkConfig:
+class CloudWatchSinkConfig(BaseModel):
     """Configuration for AWS CloudWatch Logs sink."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid", validate_default=True)
 
     log_group_name: str = "/fapilog/default"
     log_stream_name: str | None = None
-    region: str | None = field(
+    region: str | None = Field(
         default_factory=lambda: os.getenv("AWS_REGION", os.getenv("AWS_DEFAULT_REGION"))
     )
     create_log_group: bool = True
     create_log_stream: bool = True
-    batch_size: int = 100
-    batch_timeout_seconds: float = 5.0
-    max_retries: int = 3
-    retry_base_delay: float = 0.5
+    batch_size: int = Field(default=100, ge=1)
+    batch_timeout_seconds: float = Field(default=5.0, gt=0.0)
+    max_retries: int = Field(default=3, ge=0)
+    retry_base_delay: float = Field(default=0.5, ge=0.0)
     endpoint_url: str | None = None  # For LocalStack/testing
     circuit_breaker_enabled: bool = True
-    circuit_breaker_threshold: int = 5
+    circuit_breaker_threshold: int = Field(default=5, ge=1)
 
 
 class CloudWatchSink(BatchingMixin):
@@ -85,16 +88,13 @@ class CloudWatchSink(BatchingMixin):
     def __init__(
         self, config: CloudWatchSinkConfig | None = None, **kwargs: Any
     ) -> None:
-        if config is None:
-            if kwargs:
-                config = CloudWatchSinkConfig(**kwargs)
-            else:
-                config = CloudWatchSinkConfig()
-        self._config = config
+        cfg = parse_plugin_config(CloudWatchSinkConfig, config, **kwargs)
+        self._config = cfg
+        self._log_stream_name: str | None = cfg.log_stream_name  # Mutable copy
         self._client: Any = None
         self._sequence_token: str | None = None
         self._circuit_breaker: SinkCircuitBreaker | None = None
-        self._init_batching(config.batch_size, config.batch_timeout_seconds)
+        self._init_batching(cfg.batch_size, cfg.batch_timeout_seconds)
 
     async def start(self) -> None:
         """Initialize boto3 client and ensure log group/stream exist."""
@@ -229,7 +229,7 @@ class CloudWatchSink(BatchingMixin):
             try:
                 kwargs: dict[str, Any] = {
                     "logGroupName": self._config.log_group_name,
-                    "logStreamName": self._config.log_stream_name,
+                    "logStreamName": self._log_stream_name,
                     "logEvents": log_events,
                 }
                 if self._sequence_token:
@@ -325,20 +325,20 @@ class CloudWatchSink(BatchingMixin):
         """Create log stream if it doesn't exist (idempotent)."""
         if self._client is None:
             return
-        if not self._config.log_stream_name:
+        if not self._log_stream_name:
             hostname = socket.gethostname()
-            self._config.log_stream_name = f"{hostname}-{int(time.time())}"
+            self._log_stream_name = f"{hostname}-{int(time.time())}"
         try:
             await asyncio.to_thread(
                 self._client.create_log_stream,
                 logGroupName=self._config.log_group_name,
-                logStreamName=self._config.log_stream_name,
+                logStreamName=self._log_stream_name,
             )
             diagnostics.debug(
                 "sink",
                 "cloudwatch log stream created",
                 log_group=self._config.log_group_name,
-                log_stream=self._config.log_stream_name,
+                log_stream=self._log_stream_name,
             )
         except ClientError as e:
             if (

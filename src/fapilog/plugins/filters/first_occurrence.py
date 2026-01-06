@@ -3,22 +3,22 @@ from __future__ import annotations
 import random
 import time
 from collections import OrderedDict
-from dataclasses import dataclass
 from typing import Any
 
+from pydantic import BaseModel, ConfigDict, Field
 
-@dataclass
-class FirstOccurrenceConfig:
+from ..utils import parse_plugin_config
+
+
+class FirstOccurrenceConfig(BaseModel):
     """Configuration for first-occurrence filter."""
 
-    key_fields: list[str] | None = None
-    window_seconds: float = 60.0
-    max_keys: int = 10000
-    subsequent_sample_rate: float = 0.0
+    model_config = ConfigDict(frozen=True, extra="forbid", validate_default=True)
 
-    def __post_init__(self) -> None:
-        if self.key_fields is None:
-            self.key_fields = ["message"]
+    key_fields: list[str] = Field(default_factory=lambda: ["message"])
+    window_seconds: float = Field(default=60.0, ge=0.0)
+    max_keys: int = Field(default=10000, ge=1)
+    subsequent_sample_rate: float = Field(default=0.0, ge=0.0, le=1.0)
 
 
 class FirstOccurrenceFilter:
@@ -29,28 +29,12 @@ class FirstOccurrenceFilter:
     def __init__(
         self, *, config: FirstOccurrenceConfig | dict | None = None, **kwargs: Any
     ) -> None:
-        cfg = self._parse_config(config, kwargs)
+        cfg = parse_plugin_config(FirstOccurrenceConfig, config, **kwargs)
         self._key_fields = cfg.key_fields
-        self._window = max(0.0, float(cfg.window_seconds))
-        self._max_keys = max(1, int(cfg.max_keys))
-        self._subsequent_rate = max(0.0, min(1.0, float(cfg.subsequent_sample_rate)))
+        self._window = cfg.window_seconds
+        self._max_keys = cfg.max_keys
+        self._subsequent_rate = cfg.subsequent_sample_rate
         self._seen: OrderedDict[str, float] = OrderedDict()
-
-    @staticmethod
-    def _parse_config(
-        config: FirstOccurrenceConfig | dict | None, kwargs: dict[str, Any]
-    ) -> FirstOccurrenceConfig:
-        if isinstance(config, dict):
-            raw = config.get("config", config)
-            return FirstOccurrenceConfig(**raw)
-        if config is None:
-            raw_kwargs = kwargs.get("config", kwargs)
-            return (
-                FirstOccurrenceConfig(**raw_kwargs)
-                if raw_kwargs
-                else FirstOccurrenceConfig()
-            )
-        return config
 
     async def start(self) -> None:
         self._seen.clear()
