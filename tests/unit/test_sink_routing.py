@@ -132,7 +132,8 @@ def test_sink_routing_env_aliases(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("FAPILOG_SINK_ROUTING__ENABLED", "true")
     monkeypatch.setenv("FAPILOG_SINK_ROUTING__OVERLAP", "false")
     monkeypatch.setenv("FAPILOG_SINK_ROUTING__RULES", json.dumps(rules))
-    monkeypatch.setenv("FAPILOG_SINK_ROUTING__FALLBACK_SINKS", "rotating_file")
+    # pydantic-settings expects JSON for list fields in nested models
+    monkeypatch.setenv("FAPILOG_SINK_ROUTING__FALLBACK_SINKS", '["rotating_file"]')
 
     settings = Settings()
     routing = settings.sink_routing
@@ -142,6 +143,16 @@ def test_sink_routing_env_aliases(monkeypatch: pytest.MonkeyPatch) -> None:
     assert len(routing.rules) == 2
     assert routing.rules[0].levels == ["ERROR", "CRITICAL"]
     assert routing.fallback_sinks == ["rotating_file"]
+
+
+def test_sink_routing_fallback_comma_separated(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that comma-separated fallback_sinks works via model validator."""
+    # Use JSON array format for pydantic-settings nested model parsing
+    monkeypatch.setenv("FAPILOG_SINK_ROUTING__ENABLED", "true")
+    monkeypatch.setenv("FAPILOG_SINK_ROUTING__FALLBACK_SINKS", '["file1", "file2"]')
+
+    settings = Settings()
+    assert settings.sink_routing.fallback_sinks == ["file1", "file2"]
 
 
 @pytest.mark.asyncio
@@ -432,3 +443,272 @@ async def test_routing_wildcard_in_rules() -> None:
     # DEBUG -> wildcard (fallback via * rule)
     await writer.write({"level": "DEBUG", "message": "debug"})
     wildcard_sink.write.assert_awaited_once()
+
+
+# --- Additional tests for coverage ---
+
+
+@pytest.mark.asyncio
+async def test_routing_sink_plugin_no_overlap_mode(monkeypatch: pytest.MonkeyPatch):
+    """Test RoutingSink plugin with overlap=False."""
+    from fapilog.plugins.sinks.routing import RoutingSink, RoutingSinkConfig
+    from fapilog.testing.mocks import MockSink
+
+    child = MockSink()
+
+    def fake_load_plugin(group: str, name: str, config: Any):
+        return child
+
+    monkeypatch.setattr(
+        "fapilog.plugins.sinks.routing.loader.load_plugin", fake_load_plugin
+    )
+
+    sink = RoutingSink(
+        RoutingSinkConfig(
+            routes={"ERROR": ["mock1"], "ERROR": ["mock2"]},  # noqa: F601
+            overlap=False,  # First match only
+        )
+    )
+    await sink.start()
+    await sink.write({"level": "ERROR", "message": "test"})
+    await sink.stop()
+
+    assert child.write_count >= 1
+
+
+@pytest.mark.asyncio
+async def test_routing_sink_plugin_load_failure(monkeypatch: pytest.MonkeyPatch):
+    """Test RoutingSink gracefully handles child sink load failures."""
+    from fapilog.plugins.sinks.routing import RoutingSink, RoutingSinkConfig
+
+    def failing_load_plugin(group: str, name: str, config: Any):
+        raise RuntimeError("Sink load failed")
+
+    monkeypatch.setattr(
+        "fapilog.plugins.sinks.routing.loader.load_plugin", failing_load_plugin
+    )
+
+    sink = RoutingSink(
+        RoutingSinkConfig(routes={"ERROR": ["nonexistent"]})
+    )
+    # Should not raise
+    await sink.start()
+    # No sinks loaded, write should be no-op
+    await sink.write({"level": "ERROR", "message": "test"})
+
+
+@pytest.mark.asyncio
+async def test_routing_sink_plugin_sink_configs_without_routes(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """Test that sink_configs without matching routes are still loaded."""
+    from fapilog.plugins.sinks.routing import RoutingSink, RoutingSinkConfig
+    from fapilog.testing.mocks import MockSink
+
+    loaded_sinks: list[str] = []
+
+    def tracking_load_plugin(group: str, name: str, config: Any):
+        loaded_sinks.append(name)
+        return MockSink()
+
+    monkeypatch.setattr(
+        "fapilog.plugins.sinks.routing.loader.load_plugin", tracking_load_plugin
+    )
+
+    sink = RoutingSink(
+        RoutingSinkConfig(
+            routes={"ERROR": ["sink1"]},
+            sink_configs={"sink1": {}, "sink2": {"extra": "config"}},
+        )
+    )
+    await sink.start()
+
+    # Both sink1 and sink2 should be loaded (sink2 from sink_configs)
+    assert "sink1" in loaded_sinks
+    assert "sink2" in loaded_sinks
+
+
+@pytest.mark.asyncio
+async def test_routing_sink_plugin_health_check_no_sinks():
+    """Test health_check returns False when no sinks are loaded."""
+    from fapilog.plugins.sinks.routing import RoutingSink, RoutingSinkConfig
+
+    sink = RoutingSink(RoutingSinkConfig())
+    # Don't call start, so _sinks is empty
+    assert await sink.health_check() is False
+
+
+@pytest.mark.asyncio
+async def test_routing_sink_plugin_health_check_failure(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """Test health_check returns False when a child sink fails."""
+    from fapilog.plugins.sinks.routing import RoutingSink, RoutingSinkConfig
+
+    class FailingHealthSink:
+        name = "failing"
+
+        async def start(self) -> None:
+            pass
+
+        async def health_check(self) -> bool:
+            return False
+
+    def fake_load_plugin(group: str, name: str, config: Any):
+        return FailingHealthSink()
+
+    monkeypatch.setattr(
+        "fapilog.plugins.sinks.routing.loader.load_plugin", fake_load_plugin
+    )
+
+    sink = RoutingSink(RoutingSinkConfig(routes={"ERROR": ["failing"]}))
+    await sink.start()
+
+    assert await sink.health_check() is False
+
+
+@pytest.mark.asyncio
+async def test_routing_sink_plugin_health_check_exception(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """Test health_check returns False when a child sink raises."""
+    from fapilog.plugins.sinks.routing import RoutingSink, RoutingSinkConfig
+
+    class ExceptionHealthSink:
+        name = "exception"
+
+        async def start(self) -> None:
+            pass
+
+        async def health_check(self) -> bool:
+            raise RuntimeError("Health check failed")
+
+    def fake_load_plugin(group: str, name: str, config: Any):
+        return ExceptionHealthSink()
+
+    monkeypatch.setattr(
+        "fapilog.plugins.sinks.routing.loader.load_plugin", fake_load_plugin
+    )
+
+    sink = RoutingSink(RoutingSinkConfig(routes={"ERROR": ["exception"]}))
+    await sink.start()
+
+    assert await sink.health_check() is False
+
+
+@pytest.mark.asyncio
+async def test_routing_sink_plugin_write_error_contained(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """Test that write errors in child sinks are contained."""
+    from fapilog.plugins.sinks.routing import RoutingSink, RoutingSinkConfig
+
+    class FailingWriteSink:
+        name = "failing"
+
+        async def start(self) -> None:
+            pass
+
+        async def write(self, entry: dict) -> None:
+            raise RuntimeError("Write failed")
+
+    def fake_load_plugin(group: str, name: str, config: Any):
+        return FailingWriteSink()
+
+    monkeypatch.setattr(
+        "fapilog.plugins.sinks.routing.loader.load_plugin", fake_load_plugin
+    )
+
+    sink = RoutingSink(RoutingSinkConfig(routes={"ERROR": ["failing"]}))
+    await sink.start()
+
+    # Should not raise
+    await sink.write({"level": "ERROR", "message": "test"})
+
+
+@pytest.mark.asyncio
+async def test_routing_sink_plugin_stop_error_contained(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """Test that stop errors in child sinks are contained."""
+    from fapilog.plugins.sinks.routing import RoutingSink, RoutingSinkConfig
+
+    class FailingStopSink:
+        name = "failing"
+
+        async def start(self) -> None:
+            pass
+
+        async def stop(self) -> None:
+            raise RuntimeError("Stop failed")
+
+    def fake_load_plugin(group: str, name: str, config: Any):
+        return FailingStopSink()
+
+    monkeypatch.setattr(
+        "fapilog.plugins.sinks.routing.loader.load_plugin", fake_load_plugin
+    )
+
+    sink = RoutingSink(RoutingSinkConfig(routes={"ERROR": ["failing"]}))
+    await sink.start()
+
+    # Should not raise
+    await sink.stop()
+
+
+@pytest.mark.asyncio
+async def test_routing_sink_plugin_parallel_mode(monkeypatch: pytest.MonkeyPatch):
+    """Test RoutingSink plugin with parallel=True and multiple sinks."""
+    from fapilog.plugins.sinks.routing import RoutingSink, RoutingSinkConfig
+    from fapilog.testing.mocks import MockSink
+
+    sinks_by_name: dict[str, MockSink] = {}
+
+    def fake_load_plugin(group: str, name: str, config: Any):
+        s = MockSink()
+        sinks_by_name[name] = s
+        return s
+
+    monkeypatch.setattr(
+        "fapilog.plugins.sinks.routing.loader.load_plugin", fake_load_plugin
+    )
+
+    sink = RoutingSink(
+        RoutingSinkConfig(
+            routes={"ERROR": ["sink1", "sink2"]},
+            parallel=True,
+        )
+    )
+    await sink.start()
+    await sink.write({"level": "ERROR", "message": "test"})
+    await sink.stop()
+
+    # Both sinks should have received the write
+    assert sinks_by_name["sink1"].write_count == 1
+    assert sinks_by_name["sink2"].write_count == 1
+
+
+@pytest.mark.asyncio
+async def test_routing_sink_plugin_no_matching_level(monkeypatch: pytest.MonkeyPatch):
+    """Test RoutingSink when event level doesn't match any route."""
+    from fapilog.plugins.sinks.routing import RoutingSink, RoutingSinkConfig
+    from fapilog.testing.mocks import MockSink
+
+    child = MockSink()
+
+    def fake_load_plugin(group: str, name: str, config: Any):
+        return child
+
+    monkeypatch.setattr(
+        "fapilog.plugins.sinks.routing.loader.load_plugin", fake_load_plugin
+    )
+
+    sink = RoutingSink(
+        RoutingSinkConfig(routes={"ERROR": ["mock"]})  # Only ERROR level
+    )
+    await sink.start()
+
+    # INFO level has no route and no fallback
+    await sink.write({"level": "INFO", "message": "test"})
+
+    assert child.write_count == 0  # Should not be called

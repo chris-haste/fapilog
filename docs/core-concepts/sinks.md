@@ -50,6 +50,7 @@ export FAPILOG_SINK_ROUTING__RULES='[
   {"levels": ["ERROR", "CRITICAL"], "sinks": ["postgres"]},
   {"levels": ["DEBUG", "INFO"], "sinks": ["stdout_json"]}
 ]'
+export FAPILOG_SINK_ROUTING__FALLBACK_SINKS='["rotating_file"]'
 ```
 
 When disabled (default), all events fan out to all configured sinks.

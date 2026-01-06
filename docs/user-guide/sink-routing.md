@@ -10,7 +10,7 @@ export FAPILOG_SINK_ROUTING__RULES='[
   {"levels": ["ERROR", "CRITICAL"], "sinks": ["postgres"]},
   {"levels": ["DEBUG", "INFO", "WARNING"], "sinks": ["stdout_json"]}
 ]'
-export FAPILOG_SINK_ROUTING__FALLBACK_SINKS=rotating_file
+export FAPILOG_SINK_ROUTING__FALLBACK_SINKS='["rotating_file"]'
 ```
 
 ```python
