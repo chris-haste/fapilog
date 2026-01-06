@@ -67,3 +67,28 @@ def test_public_version_constant():
     from fapilog import VERSION
 
     assert isinstance(VERSION, str) and VERSION
+
+
+def test_basefilter_importable_from_plugins() -> None:
+    """BaseFilter should be importable from the public plugins package."""
+    from fapilog.plugins import BaseFilter
+
+    assert hasattr(BaseFilter, "filter")
+    assert "name" in getattr(BaseFilter, "__annotations__", {})
+
+
+def test_all_base_protocols_importable() -> None:
+    """All base protocols should be importable from fapilog.plugins."""
+    from fapilog.plugins import (
+        BaseEnricher,
+        BaseFilter,
+        BaseProcessor,
+        BaseRedactor,
+        BaseSink,
+    )
+
+    assert hasattr(BaseSink, "write")
+    assert hasattr(BaseProcessor, "process")
+    assert hasattr(BaseEnricher, "enrich")
+    assert hasattr(BaseRedactor, "redact")
+    assert hasattr(BaseFilter, "filter")

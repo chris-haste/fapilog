@@ -72,7 +72,13 @@ PLUGIN_METADATA = {
 Author implementations should satisfy the runtime-checkable Protocol for their type:
 
 ```
-from fapilog.plugins import BaseSink, BaseProcessor, BaseEnricher, BaseRedactor
+from fapilog.plugins import (
+    BaseSink,
+    BaseProcessor,
+    BaseEnricher,
+    BaseRedactor,
+    BaseFilter,
+)
 ```
 
 All interfaces are async-first and must contain errors rather than raising into the core pipeline.
