@@ -248,7 +248,7 @@ async def test_update_rules_with_fallback() -> None:
 
 def test_routing_lookup_is_o1() -> None:
     """Verify routing lookup is O(1) via dict-based implementation.
-    
+
     Note: We verify O(1) by checking implementation (dict lookup), not timing,
     since CI runners have variable performance that makes timing unreliable.
     """
@@ -272,7 +272,7 @@ def test_routing_lookup_is_o1() -> None:
     assert len(writer.get_sinks_for_level("INFO")) == 2
     assert len(writer.get_sinks_for_level("WARNING")) == 2
     assert len(writer.get_sinks_for_level("DEBUG")) == 1
-    
+
     # Verify O(1) by confirming dict-based lookup (implementation detail)
     assert isinstance(writer._level_to_entries, dict)
 
