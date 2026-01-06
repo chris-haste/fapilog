@@ -550,9 +550,12 @@ ignore_names = [
     "gather_with_limit",
     "process_in_parallel",
     # Concurrency control public API
-    "AsyncBoundedExecutor",
     "BackpressurePolicy",
     "BackpressureError",
+    "WAIT",
+    "REJECT",
+    "await_enqueue",
+    "await_dequeue",
     "run_all",
     # Adaptive processing public API
     "AdaptiveBatchSizer",
@@ -586,10 +589,6 @@ ignore_names = [
     "in_use",
     "idle",
     "errors",
-    # Lock-free concurrency APIs used by callers/tests
-    "LockFreeRingBuffer",
-    "await_push",
-    "await_pop",
     # Metrics API accessor
     "registry",
   # MetricsCollector dynamic API methods (invoked via runtime worker/tests)
