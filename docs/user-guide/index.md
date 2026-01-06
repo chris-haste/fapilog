@@ -11,6 +11,7 @@ configuration
 using-logger
 context-enrichment
 rotating-file-sink
+sink-routing
 redactors
 graceful-shutdown
 performance-tuning

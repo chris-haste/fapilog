@@ -496,6 +496,34 @@ def _fanout_writer(
     return _write, _write_serialized
 
 
+def _routing_or_fanout_writer(
+    sinks: list[object],
+    cfg_source: _Settings,
+    circuit_config: Any | None,
+) -> tuple[Any, Any]:
+    """Return sink writer honoring routing configuration when enabled."""
+    routing = getattr(cfg_source, "sink_routing", None)
+    routing_enabled = routing is not None and routing.enabled and bool(routing.rules)
+    if routing_enabled:
+        try:
+            from .core.routing import build_routing_writer
+        except Exception:
+            routing_enabled = False
+        else:
+            return build_routing_writer(
+                sinks,
+                routing,
+                parallel=cfg_source.core.sink_parallel_writes,
+                circuit_config=circuit_config,
+            )
+
+    return _fanout_writer(
+        sinks,
+        parallel=cfg_source.core.sink_parallel_writes,
+        circuit_config=circuit_config,
+    )
+
+
 async def _start_plugins(
     plugins: list[Any],
     plugin_type: str,
@@ -626,10 +654,10 @@ def get_logger(
             recovery_timeout_seconds=cfg_source.core.sink_circuit_breaker_recovery_timeout_seconds,
         )
 
-    sink_write, sink_write_serialized = _fanout_writer(
+    sink_write, sink_write_serialized = _routing_or_fanout_writer(
         built_sinks,
-        parallel=cfg_source.core.sink_parallel_writes,
-        circuit_config=circuit_config,
+        cfg_source,
+        circuit_config,
     )
 
     level_gate = None
@@ -726,10 +754,10 @@ async def get_async_logger(
             recovery_timeout_seconds=cfg_source.core.sink_circuit_breaker_recovery_timeout_seconds,
         )
 
-    sink_write, sink_write_serialized = _fanout_writer(
+    sink_write, sink_write_serialized = _routing_or_fanout_writer(
         built_sinks,
-        parallel=cfg_source.core.sink_parallel_writes,
-        circuit_config=circuit_config,
+        cfg_source,
+        circuit_config,
     )
 
     level_gate = None

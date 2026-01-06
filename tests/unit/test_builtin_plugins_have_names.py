@@ -34,6 +34,7 @@ BUILTIN_PLUGINS = [
         "PostgresSink",
         "postgres",
     ),
+    ("fapilog.plugins.sinks.routing", "RoutingSink", "routing"),
     ("fapilog.plugins.enrichers.runtime_info", "RuntimeInfoEnricher", "runtime_info"),
     ("fapilog.plugins.enrichers.context_vars", "ContextVarsEnricher", "context_vars"),
     ("fapilog.plugins.enrichers.kubernetes", "KubernetesEnricher", "kubernetes"),

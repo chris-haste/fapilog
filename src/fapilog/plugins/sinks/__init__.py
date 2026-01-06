@@ -9,6 +9,7 @@ from .contrib.postgres import PostgresSink
 from .http_client import HttpSink
 from .mmap_persistence import MemoryMappedPersistence, PersistenceStats
 from .rotating_file import RotatingFileSink
+from .routing import RoutingSink
 from .stdout_json import StdoutJsonSink
 from .webhook import WebhookSink
 
@@ -80,6 +81,7 @@ __all__ = [
     "CloudWatchSink",
     "LokiSink",
     "PostgresSink",
+    "RoutingSink",
 ]
 
 
@@ -123,6 +125,11 @@ register_builtin(
     "postgres",
     PostgresSink,
     aliases=["postgresql"],
+)
+register_builtin(
+    "fapilog.sinks",
+    "routing",
+    RoutingSink,
 )
 
 # NOTE: MemoryMappedPersistence is exported (in __all__) as a building block

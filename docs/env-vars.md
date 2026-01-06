@@ -202,3 +202,7 @@
 | `FAPILOG__SINK_CONFIG__WEBHOOK__RETRY_MAX_ATTEMPTS` | int | None | — | Maximum retry attempts on failure |
 | `FAPILOG__SINK_CONFIG__WEBHOOK__SECRET` | str | None | — | Shared secret for signing |
 | `FAPILOG__SINK_CONFIG__WEBHOOK__TIMEOUT_SECONDS` | float | 5.0 | Request timeout in seconds |
+| `FAPILOG__SINK_ROUTING__ENABLED` | bool | False | Enable routing (False = fanout to all sinks) |
+| `FAPILOG__SINK_ROUTING__FALLBACK_SINKS` | list | PydanticUndefined | Sinks used when no rules match |
+| `FAPILOG__SINK_ROUTING__OVERLAP` | bool | True | Allow events to match multiple rules |
+| `FAPILOG__SINK_ROUTING__RULES` | list | PydanticUndefined | Routing rules in priority order |
