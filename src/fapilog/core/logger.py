@@ -25,6 +25,7 @@ from .events import LogEvent
 from .worker import (
     LoggerWorker,
     enqueue_with_backpressure,
+    stop_plugins,
     strict_envelope_mode_enabled,
 )
 
@@ -232,77 +233,13 @@ class SyncLoggerFacade(_WorkerCountersMixin):
             self._thread_ready.wait(timeout=2.0)
 
     async def _stop_enrichers_and_redactors(self) -> None:
-        """Stop processors, redactors, and enrichers, containing any errors."""
-        # Stop processors first (reverse order)
-        for processor in reversed(self._processors):
-            try:
-                if hasattr(processor, "stop"):
-                    await processor.stop()
-            except Exception as exc:
-                try:
-                    from .diagnostics import warn
-
-                    warn(
-                        "processor",
-                        "plugin stop failed",
-                        plugin=getattr(processor, "name", type(processor).__name__),
-                        error=str(exc),
-                    )
-                except Exception:
-                    pass
-        # Stop filters (reverse order)
-        for flt in reversed(self._filters):
-            try:
-                if hasattr(flt, "stop"):
-                    await flt.stop()
-            except Exception as exc:
-                try:
-                    from .diagnostics import warn
-
-                    warn(
-                        "filter",
-                        "plugin stop failed",
-                        plugin=getattr(flt, "name", type(flt).__name__),
-                        error=str(exc),
-                    )
-                except Exception:
-                    pass
-
-        # Stop redactors first (reverse order)
-        for redactor in reversed(self._redactors):
-            try:
-                if hasattr(redactor, "stop"):
-                    await redactor.stop()
-            except Exception as exc:
-                try:
-                    from .diagnostics import warn
-
-                    warn(
-                        "redactor",
-                        "plugin stop failed",
-                        plugin=getattr(redactor, "name", type(redactor).__name__),
-                        error=str(exc),
-                    )
-                except Exception:
-                    pass
-
-        # Stop enrichers (reverse order)
-        for enricher in reversed(self._enrichers):
-            try:
-                if hasattr(enricher, "stop"):
-                    await enricher.stop()
-            except Exception as exc:
-                try:
-                    from .diagnostics import warn
-
-                    warn(
-                        "enricher",
-                        "plugin stop failed",
-                        plugin=getattr(enricher, "name", type(enricher).__name__),
-                        error=str(exc),
-                    )
-                except Exception:
-                    pass
+        """Stop processors, filters, redactors, and enrichers using shared logic."""
+        await stop_plugins(
+            self._processors,
+            self._filters,
+            self._redactors,
+            self._enrichers,
+        )
 
     async def stop_and_drain(self) -> DrainResult:
         # If we're bound to the current running loop (async mode), await drain
@@ -1025,74 +962,13 @@ class AsyncLoggerFacade(_WorkerCountersMixin):
         return await self.stop_and_drain()
 
     async def _stop_enrichers_and_redactors(self) -> None:
-        """Stop processors, redactors, and enrichers, containing any errors."""
-        for processor in reversed(self._processors):
-            try:
-                if hasattr(processor, "stop"):
-                    await processor.stop()
-            except Exception as exc:
-                try:
-                    from .diagnostics import warn
-
-                    warn(
-                        "processor",
-                        "plugin stop failed",
-                        plugin=getattr(processor, "name", type(processor).__name__),
-                        error=str(exc),
-                    )
-                except Exception:
-                    pass
-        for flt in reversed(self._filters):
-            try:
-                if hasattr(flt, "stop"):
-                    await flt.stop()
-            except Exception as exc:
-                try:
-                    from .diagnostics import warn
-
-                    warn(
-                        "filter",
-                        "plugin stop failed",
-                        plugin=getattr(flt, "name", type(flt).__name__),
-                        error=str(exc),
-                    )
-                except Exception:
-                    pass
-        # Stop redactors first (reverse order)
-        for redactor in reversed(self._redactors):
-            try:
-                if hasattr(redactor, "stop"):
-                    await redactor.stop()
-            except Exception as exc:
-                try:
-                    from .diagnostics import warn
-
-                    warn(
-                        "redactor",
-                        "plugin stop failed",
-                        plugin=getattr(redactor, "name", type(redactor).__name__),
-                        error=str(exc),
-                    )
-                except Exception:
-                    pass
-
-        # Stop enrichers (reverse order)
-        for enricher in reversed(self._enrichers):
-            try:
-                if hasattr(enricher, "stop"):
-                    await enricher.stop()
-            except Exception as exc:
-                try:
-                    from .diagnostics import warn
-
-                    warn(
-                        "enricher",
-                        "plugin stop failed",
-                        plugin=getattr(enricher, "name", type(enricher).__name__),
-                        error=str(exc),
-                    )
-                except Exception:
-                    pass
+        """Stop processors, filters, redactors, and enrichers using shared logic."""
+        await stop_plugins(
+            self._processors,
+            self._filters,
+            self._redactors,
+            self._enrichers,
+        )
 
     async def stop_and_drain(self) -> DrainResult:
         # If we're bound to the current running loop (async mode), await drain
