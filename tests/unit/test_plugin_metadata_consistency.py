@@ -10,6 +10,12 @@ from fapilog.plugins.enrichers.context_vars import (
 from fapilog.plugins.enrichers.context_vars import (
     ContextVarsEnricher,
 )
+from fapilog.plugins.enrichers.kubernetes import (
+    PLUGIN_METADATA as KUBERNETES_META,
+)
+from fapilog.plugins.enrichers.kubernetes import (
+    KubernetesEnricher,
+)
 from fapilog.plugins.enrichers.runtime_info import (
     PLUGIN_METADATA as RUNTIME_META,
 )
@@ -59,6 +65,7 @@ def test_builtin_metadata_matches_class_names() -> None:
     cases = [
         (ContextVarsEnricher, CONTEXT_META),
         (RuntimeInfoEnricher, RUNTIME_META),
+        (KubernetesEnricher, KUBERNETES_META),
         (ZeroCopyProcessor, ZERO_COPY_META),
         (SizeGuardProcessor, SIZE_GUARD_META),
         (StdoutJsonSink, STDOUT_META),

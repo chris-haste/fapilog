@@ -6,6 +6,7 @@ from ...core.processing import process_in_parallel
 from ...metrics.metrics import MetricsCollector, plugin_timer
 from ..loader import register_builtin
 from .context_vars import ContextVarsEnricher
+from .kubernetes import KubernetesEnricher
 from .runtime_info import RuntimeInfoEnricher
 
 
@@ -107,10 +108,17 @@ register_builtin(
     ContextVarsEnricher,
     aliases=["context-vars", "context-vars-enricher"],
 )
+register_builtin(
+    "fapilog.enrichers",
+    "kubernetes",
+    KubernetesEnricher,
+    aliases=["k8s", "k8s-enricher"],
+)
 
 __all__ = [
     "BaseEnricher",
     "enrich_parallel",
     "RuntimeInfoEnricher",
     "ContextVarsEnricher",
+    "KubernetesEnricher",
 ]
