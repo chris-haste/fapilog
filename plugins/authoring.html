@@ -257,6 +257,55 @@
 </div>
 <p>All interfaces are async-first and must contain errors rather than raising into the core pipeline.</p>
 </section>
+<section id="configuration-pattern">
+<h2>Configuration Pattern<a class="headerlink" href="#configuration-pattern" title="Link to this heading"></a></h2>
+<p>Use Pydantic v2 models for plugin configuration to get validation, coercion, and typo protection for free.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">ConfigDict</span><span class="p">,</span> <span class="n">Field</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyPluginConfig</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span>
+        <span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">extra</span><span class="o">=</span><span class="s2">&quot;forbid&quot;</span><span class="p">,</span>
+        <span class="n">validate_default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">enabled</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<p>Parse configs with the shared helper so plugins accept config objects, dicts, kwargs, or loader-style nested <code class="docutils literal notranslate"><span class="pre">{&quot;config&quot;:</span> <span class="pre">{...}}</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_plugin_config</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyPlugin</span><span class="p">:</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my_plugin&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">MyPluginConfig</span> <span class="o">|</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">parse_plugin_config</span><span class="p">(</span><span class="n">MyPluginConfig</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">threshold</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_enabled</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">enabled</span>
+</pre></div>
+</div>
+<p>Supported inputs:</p>
+<ul class="simple">
+<li><p>Config object: <code class="docutils literal notranslate"><span class="pre">MyPlugin(config=MyPluginConfig(threshold=50))</span></code></p></li>
+<li><p>Dict: <code class="docutils literal notranslate"><span class="pre">MyPlugin(config={&quot;threshold&quot;:</span> <span class="pre">50})</span></code></p></li>
+<li><p>Kwargs: <code class="docutils literal notranslate"><span class="pre">MyPlugin(threshold=50)</span></code></p></li>
+<li><p>Loader format: <code class="docutils literal notranslate"><span class="pre">MyPlugin(config={&quot;config&quot;:</span> <span class="pre">{&quot;threshold&quot;:</span> <span class="pre">50}})</span></code></p></li>
+</ul>
+<p>Validation behavior:</p>
+<ul class="simple">
+<li><p>String numbers coerce to native types (<code class="docutils literal notranslate"><span class="pre">{&quot;threshold&quot;:</span> <span class="pre">&quot;5&quot;}</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">5</span></code>)</p></li>
+<li><p>Unknown keys raise <code class="docutils literal notranslate"><span class="pre">ValidationError</span></code> (catches typos)</p></li>
+<li><p>Bounds in <code class="docutils literal notranslate"><span class="pre">Field(...)</span></code> are enforced (e.g., <code class="docutils literal notranslate"><span class="pre">ge=0</span></code>, <code class="docutils literal notranslate"><span class="pre">le=1</span></code>)</p></li>
+</ul>
+</section>
 </section>
 
 

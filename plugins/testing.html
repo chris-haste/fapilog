@@ -189,6 +189,18 @@
 </pre></div>
 </div>
 </section>
+<section id="config-validation">
+<h2>Config Validation<a class="headerlink" href="#config-validation" title="Link to this heading"></a></h2>
+<p>Plugins now parse configuration with <code class="docutils literal notranslate"><span class="pre">parse_plugin_config</span></code>, so tests can feed dicts directly and rely on Pydantic for coercion and typo checks.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.redactors.field_mask</span><span class="w"> </span><span class="kn">import</span> <span class="n">FieldMaskRedactor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.sinks.webhook</span><span class="w"> </span><span class="kn">import</span> <span class="n">WebhookSink</span>
+
+<span class="c1"># Dict config is validated and coerced</span>
+<span class="n">redactor</span> <span class="o">=</span> <span class="n">FieldMaskRedactor</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;fields_to_mask&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;secret&quot;</span><span class="p">],</span> <span class="s2">&quot;max_depth&quot;</span><span class="p">:</span> <span class="s2">&quot;5&quot;</span><span class="p">})</span>
+<span class="n">sink</span> <span class="o">=</span> <span class="n">WebhookSink</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;endpoint&quot;</span><span class="p">:</span> <span class="s2">&quot;https://hooks.example.com&quot;</span><span class="p">,</span> <span class="s2">&quot;batch_size&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">})</span>
+</pre></div>
+</div>
+</section>
 <section id="mock-plugins">
 <h2>Mock Plugins<a class="headerlink" href="#mock-plugins" title="Link to this heading"></a></h2>
 <ul class="simple">
