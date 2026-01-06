@@ -345,12 +345,14 @@ import os
 import sys
 
 # Third-party imports
-import structlog
 import pydantic
 
 # Local imports
-from fapilog import configure_logging
-from fapilog.settings import LoggingSettings
+from fapilog import get_logger
+from fapilog.core.settings import Settings
+
+logger = get_logger(settings=Settings())
+logger.info("Development server started", port=8000)
 ```
 
 ## Thank You!

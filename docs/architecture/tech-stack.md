@@ -22,7 +22,7 @@ Based on your async-first requirements, performance targets, and enterprise comp
 | **Documentation**       | MkDocs Material    | 9.2+     | Documentation generation             | Beautiful docs for community adoption                            |
 | **CLI Framework**       | Typer              | 0.9+     | Command line interface               | FastAPI ecosystem, excellent async support                       |
 | **Metrics Collection**  | Prometheus Client  | 0.17+    | Performance metrics                  | Industry standard, enterprise SIEM integration                   |
-| **Structured Logging**  | structlog          | 23.1+    | Internal structured logging          | Async-first, zero-copy operations                                |
+| **Structured Logging**  | fapilog core       | N/A      | Native structured logging pipeline    | Async-first, zero-copy operations without external frameworks    |
 | **Plugin Packaging**    | setuptools         | 68.0+    | Plugin distribution                  | Standard Python packaging for marketplace                        |
 | **Container Platform**  | Docker             | 24.0+    | Containerization                     | Enterprise deployment requirements                               |
 | **CI/CD**               | GitHub Actions     | Latest   | Continuous integration               | Plugin marketplace automation                                    |

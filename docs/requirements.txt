@@ -7,7 +7,6 @@ sphinx-copybutton>=0.5.0
 
 # Project dependencies needed for autodoc
 # These are required for Sphinx to import and document the code
-structlog
 pydantic>=2.11.0
 pydantic-settings>=2.0.0
 anyio
