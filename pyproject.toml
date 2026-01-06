@@ -616,4 +616,9 @@ ignore_names = [
   "wrap_sink",
   # Audit compliance API - public helper function
   "emit_compliance_alert",
+  # Size guard processor metrics - used for observability via MetricsCollector
+  "_size_guard_truncated",
+  "_size_guard_dropped",
+  "_truncated_count",
+  "_dropped_count",
 ]

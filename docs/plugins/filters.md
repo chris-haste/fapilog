@@ -32,10 +32,10 @@ class MyFilter(BaseFilter):
 
 ## Contract
 
-- `name: str`
-- `async start()/stop()` optional lifecycle hooks
-- `async filter(event: dict) -> dict | None` (return `None` to drop)
-- `async health_check() -> bool` (optional)
+- `name: str` — **required**
+- `async filter(event: dict) -> dict | None` — **required** (return `None` to drop)
+- `async start()/stop()` — optional lifecycle hooks
+- `async health_check() -> bool` — optional (defaults to healthy when absent)
 
 ## Built-in filters
 
