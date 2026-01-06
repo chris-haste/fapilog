@@ -29,6 +29,11 @@ BUILTIN_PLUGINS = [
         "LokiSink",
         "loki",
     ),
+    (
+        "fapilog.plugins.sinks.contrib.postgres",
+        "PostgresSink",
+        "postgres",
+    ),
     ("fapilog.plugins.enrichers.runtime_info", "RuntimeInfoEnricher", "runtime_info"),
     ("fapilog.plugins.enrichers.context_vars", "ContextVarsEnricher", "context_vars"),
     ("fapilog.plugins.enrichers.kubernetes", "KubernetesEnricher", "kubernetes"),
