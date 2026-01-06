@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Redactors &mdash; fapilog latest documentation</title>
+  <title>Sink routing by level &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -24,8 +24,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Graceful Shutdown" href="graceful-shutdown.html" />
-    <link rel="prev" title="Sink routing by level" href="sink-routing.html" /> 
+    <link rel="next" title="Redactors" href="redactors.html" />
+    <link rel="prev" title="Rotating File Sink" href="rotating-file-sink.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -72,8 +72,8 @@
 <li class="toctree-l2"><a class="reference internal" href="using-logger.html">Using the Logger</a></li>
 <li class="toctree-l2"><a class="reference internal" href="context-enrichment.html">Context Enrichment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rotating-file-sink.html">Rotating File Sink</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sink-routing.html">Sink routing by level</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Redactors</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Sink routing by level</a></li>
+<li class="toctree-l2"><a class="reference internal" href="redactors.html">Redactors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="graceful-shutdown.html">Graceful Shutdown</a></li>
 <li class="toctree-l2"><a class="reference internal" href="performance-tuning.html">Performance Tuning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="integration-guide.html">Integration Guide</a></li>
@@ -163,9 +163,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="index.html">User Guide</a></li>
-      <li class="breadcrumb-item active">Redactors</li>
+      <li class="breadcrumb-item active">Sink routing by level</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/user-guide/redactors.md.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/user-guide/sink-routing.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -173,46 +173,98 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="redactors">
-<h1>Redactors<a class="headerlink" href="#redactors" title="Link to this heading"></a></h1>
-<p>Configure masking of sensitive data.</p>
-<section id="defaults">
-<h2>Defaults<a class="headerlink" href="#defaults" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p>Enabled: <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__ENABLE_REDACTORS=true</span></code>.</p></li>
-<li><p>Order: <code class="docutils literal notranslate"><span class="pre">field-mask</span></code>, <code class="docutils literal notranslate"><span class="pre">regex-mask</span></code>, <code class="docutils literal notranslate"><span class="pre">url-credentials</span></code>.</p></li>
-<li><p>Guardrails: depth/keys via <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__REDACTION_MAX_DEPTH</span></code>, <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__REDACTION_MAX_KEYS_SCANNED</span></code>.</p></li>
-</ul>
-</section>
-<section id="common-configuration">
-<h2>Common configuration<a class="headerlink" href="#common-configuration" title="Link to this heading"></a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__SENSITIVE_FIELDS_POLICY</span><span class="o">=</span>password,api_key,secret,token
-<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__REDACTORS_ORDER</span><span class="o">=</span>field-mask,regex-mask,url-credentials
+  <section class="tex2jax_ignore mathjax_ignore" id="sink-routing-by-level">
+<h1>Sink routing by level<a class="headerlink" href="#sink-routing-by-level" title="Link to this heading"></a></h1>
+<p>Route different log levels to different sinks for cost control, compliance, and targeted alerting.</p>
+<section id="quick-start-settings">
+<h2>Quick start (settings)<a class="headerlink" href="#quick-start-settings" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_SINK_ROUTING__ENABLED</span><span class="o">=</span><span class="nb">true</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_SINK_ROUTING__RULES</span><span class="o">=</span><span class="s1">&#39;[</span>
+<span class="s1">  {&quot;levels&quot;: [&quot;ERROR&quot;, &quot;CRITICAL&quot;], &quot;sinks&quot;: [&quot;postgres&quot;]},</span>
+<span class="s1">  {&quot;levels&quot;: [&quot;DEBUG&quot;, &quot;INFO&quot;, &quot;WARNING&quot;], &quot;sinks&quot;: [&quot;stdout_json&quot;]}</span>
+<span class="s1">]&#39;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_SINK_ROUTING__FALLBACK_SINKS</span><span class="o">=</span><span class="s1">&#39;[&quot;rotating_file&quot;]&#39;</span>
 </pre></div>
 </div>
-</section>
-<section id="example">
-<h2>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">runtime</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-    <span class="s2">&quot;User credentials&quot;</span><span class="p">,</span>
-    <span class="n">username</span><span class="o">=</span><span class="s2">&quot;john&quot;</span><span class="p">,</span>
-    <span class="n">password</span><span class="o">=</span><span class="s2">&quot;secret123&quot;</span><span class="p">,</span>
-    <span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;sk-123&quot;</span><span class="p">,</span>
-    <span class="n">email</span><span class="o">=</span><span class="s2">&quot;john@example.com&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="c1"># password/api_key/email are masked before reaching sinks</span>
+<span class="k">with</span> <span class="n">runtime</span><span class="p">()</span> <span class="k">as</span> <span class="n">log</span><span class="p">:</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Stored in postgres&quot;</span><span class="p">)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Goes to stdout&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
-<section id="customizing">
-<h2>Customizing<a class="headerlink" href="#customizing" title="Link to this heading"></a></h2>
+<section id="configuration-schema">
+<h2>Configuration schema<a class="headerlink" href="#configuration-schema" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Adjust <code class="docutils literal notranslate"><span class="pre">sensitive_fields_policy</span></code> to add/remove fields for field-mask.</p></li>
-<li><p>Override <code class="docutils literal notranslate"><span class="pre">redactors_order</span></code> to change or disable specific stages.</p></li>
-<li><p>Add custom regex patterns via settings if needed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">enabled</span></code>: turn routing on (defaults to fanout when false)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rules</span></code>: list of <code class="docutils literal notranslate"><span class="pre">{levels:</span> <span class="pre">[...],</span> <span class="pre">sinks:</span> <span class="pre">[...]}</span></code>; levels are case-insensitive</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">overlap</span></code>: when true, multiple rules can apply; when false, first match wins</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fallback_sinks</span></code>: used when no rule matches (empty drops unmatched events)</p></li>
+</ul>
+<section id="yaml-configuration">
+<h3>YAML configuration<a class="headerlink" href="#yaml-configuration" title="Link to this heading"></a></h3>
+<p>If loading settings from a YAML file:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">sink_routing</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">overlap</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">levels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">ERROR</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">CRITICAL</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">sinks</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">postgres</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">webhook</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">levels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">INFO</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">WARNING</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">sinks</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">stdout_json</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">levels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">DEBUG</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">sinks</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">rotating_file</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">fallback_sinks</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rotating_file</span>
+</pre></div>
+</div>
+</section>
+<section id="programmatic-example">
+<h3>Programmatic example<a class="headerlink" href="#programmatic-example" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span><span class="p">,</span> <span class="n">get_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">RoutingRule</span>
+
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">()</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">sink_routing</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">sink_routing</span><span class="o">.</span><span class="n">rules</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">RoutingRule</span><span class="p">(</span><span class="n">levels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">],</span> <span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;postgres&quot;</span><span class="p">,</span> <span class="s2">&quot;webhook&quot;</span><span class="p">]),</span>
+    <span class="n">RoutingRule</span><span class="p">(</span><span class="n">levels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span> <span class="s2">&quot;WARNING&quot;</span><span class="p">],</span> <span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;stdout_json&quot;</span><span class="p">]),</span>
+<span class="p">]</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">sink_routing</span><span class="o">.</span><span class="n">fallback_sinks</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;rotating_file&quot;</span><span class="p">]</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="routingsink-plugin">
+<h2>RoutingSink plugin<a class="headerlink" href="#routingsink-plugin" title="Link to this heading"></a></h2>
+<p>For manual composition without touching global settings:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.sinks.routing</span><span class="w"> </span><span class="kn">import</span> <span class="n">RoutingSink</span><span class="p">,</span> <span class="n">RoutingSinkConfig</span>
+
+<span class="n">routing_sink</span> <span class="o">=</span> <span class="n">RoutingSink</span><span class="p">(</span>
+    <span class="n">RoutingSinkConfig</span><span class="p">(</span>
+        <span class="n">routes</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;ERROR&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;postgres&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;CRITICAL&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;postgres&quot;</span><span class="p">,</span> <span class="s2">&quot;webhook&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;INFO&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;stdout_json&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;*&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;rotating_file&quot;</span><span class="p">],</span>  <span class="c1"># fallback</span>
+        <span class="p">},</span>
+        <span class="n">sink_configs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;postgres&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;table_name&quot;</span><span class="p">:</span> <span class="s2">&quot;errors_only&quot;</span><span class="p">}},</span>
+        <span class="n">parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="tips">
+<h2>Tips<a class="headerlink" href="#tips" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Keep rule lists small; routing is O(1) per event.</p></li>
+<li><p>Use overlap=true to send errors to multiple sinks (e.g., DB + webhook).</p></li>
+<li><p>Provide fallback_sinks to avoid accidental drops when rules change.</p></li>
+<li><p>Routing respects sink circuit breakers; open circuits are skipped automatically.</p></li>
 </ul>
 </section>
 </section>
@@ -221,8 +273,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="sink-routing.html" class="btn btn-neutral float-left" title="Sink routing by level" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="graceful-shutdown.html" class="btn btn-neutral float-right" title="Graceful Shutdown" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="rotating-file-sink.html" class="btn btn-neutral float-left" title="Rotating File Sink" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="redactors.html" class="btn btn-neutral float-right" title="Redactors" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

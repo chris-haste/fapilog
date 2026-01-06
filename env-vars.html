@@ -72,6 +72,7 @@
 <li class="toctree-l2"><a class="reference internal" href="user-guide/using-logger.html">Using the Logger</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/context-enrichment.html">Context Enrichment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/sink-routing.html">Sink routing by level</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/redactors.html">Redactors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/performance-tuning.html">Performance Tuning</a></li>
@@ -1178,6 +1179,26 @@
 <td><p>float</p></td>
 <td><p>5.0</p></td>
 <td><p>Request timeout in seconds</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_ROUTING__ENABLED</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><p>Enable routing (False = fanout to all sinks)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_ROUTING__FALLBACK_SINKS</span></code></p></td>
+<td><p>list</p></td>
+<td><p>PydanticUndefined</p></td>
+<td><p>Sinks used when no rules match</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_ROUTING__OVERLAP</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>True</p></td>
+<td><p>Allow events to match multiple rules</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG__SINK_ROUTING__RULES</span></code></p></td>
+<td><p>list</p></td>
+<td><p>PydanticUndefined</p></td>
+<td><p>Routing rules in priority order</p></td>
 </tr>
 </tbody>
 </table>

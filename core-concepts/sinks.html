@@ -72,6 +72,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/using-logger.html">Using the Logger</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/context-enrichment.html">Context Enrichment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/sink-routing.html">Sink routing by level</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/redactors.html">Redactors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/performance-tuning.html">Performance Tuning</a></li>
@@ -211,6 +212,19 @@
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_HTTP__RETRY_MAX_ATTEMPTS</span><span class="o">=</span><span class="m">3</span>
 </pre></div>
 </div>
+</section>
+<section id="routing-by-level">
+<h2>Routing by level<a class="headerlink" href="#routing-by-level" title="Link to this heading"></a></h2>
+<p>Enable <code class="docutils literal notranslate"><span class="pre">sink_routing</span></code> to send different levels to different sinks:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_SINK_ROUTING__ENABLED</span><span class="o">=</span><span class="nb">true</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_SINK_ROUTING__RULES</span><span class="o">=</span><span class="s1">&#39;[</span>
+<span class="s1">  {&quot;levels&quot;: [&quot;ERROR&quot;, &quot;CRITICAL&quot;], &quot;sinks&quot;: [&quot;postgres&quot;]},</span>
+<span class="s1">  {&quot;levels&quot;: [&quot;DEBUG&quot;, &quot;INFO&quot;], &quot;sinks&quot;: [&quot;stdout_json&quot;]}</span>
+<span class="s1">]&#39;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_SINK_ROUTING__FALLBACK_SINKS</span><span class="o">=</span><span class="s1">&#39;[&quot;rotating_file&quot;]&#39;</span>
+</pre></div>
+</div>
+<p>When disabled (default), all events fan out to all configured sinks.</p>
 </section>
 </section>
 

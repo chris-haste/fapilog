@@ -39,3 +39,18 @@ export FAPILOG_HTTP__ENDPOINT=https://logs.example.com/ingest
 export FAPILOG_HTTP__TIMEOUT_SECONDS=5
 export FAPILOG_HTTP__RETRY_MAX_ATTEMPTS=3
 ```
+
+## Routing by level
+
+Enable `sink_routing` to send different levels to different sinks:
+
+```bash
+export FAPILOG_SINK_ROUTING__ENABLED=true
+export FAPILOG_SINK_ROUTING__RULES='[
+  {"levels": ["ERROR", "CRITICAL"], "sinks": ["postgres"]},
+  {"levels": ["DEBUG", "INFO"], "sinks": ["stdout_json"]}
+]'
+export FAPILOG_SINK_ROUTING__FALLBACK_SINKS='["rotating_file"]'
+```
+
+When disabled (default), all events fan out to all configured sinks.
