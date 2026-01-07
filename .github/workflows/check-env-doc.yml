@@ -31,4 +31,7 @@ jobs:
             echo 'docs/env-vars.md is out of date. Run scripts/generate_env_matrix.py and commit the result.';
             exit 1;
           }
+      - name: Check manual env docs coverage
+        run: |
+          python scripts/check_env_docs.py
 
