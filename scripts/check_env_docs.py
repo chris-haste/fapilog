@@ -167,8 +167,8 @@ OPTIONAL_PREFIXES = (
 def extract_env_vars(markdown_content: str) -> set[str]:
     """Extract all FAPILOG_* env var names from markdown content."""
     # Match backtick-wrapped env vars like `FAPILOG_CORE__LOG_LEVEL`
-    # Must have at least one component after FAPILOG_ (letters/numbers/underscores)
-    pattern = r"`(FAPILOG_[A-Z][A-Z0-9_]*(?:__[A-Z0-9_]+)*)`"
+    # Simple pattern without nested quantifiers to avoid ReDoS
+    pattern = r"`(FAPILOG_[A-Z0-9_]+)`"
     matches = re.findall(pattern, markdown_content)
     # Also match ENV (used in runtime_info section)
     if "`ENV`" in markdown_content:
