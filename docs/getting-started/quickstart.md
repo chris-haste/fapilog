@@ -158,6 +158,8 @@ export FAPILOG_FILE__DIRECTORY=/var/log/myapp
 export FAPILOG_CORE__ENABLE_METRICS=true
 ```
 
+Need the full matrix of supported env vars and short aliases? See [Environment Variables](../user-guide/environment-variables.md).
+
 ## Next Steps
 
 - **[Hello World](hello-world.md)** - Complete walkthrough with examples

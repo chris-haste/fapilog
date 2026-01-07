@@ -55,4 +55,4 @@ filter_config:
 
 ## Full reference
 
-See `docs/env-vars.md` for the auto-generated environment variable matrix.
+See [Environment Variables](environment-variables.md) for the full matrix of env names and aliases (including short forms like `FAPILOG_CLOUDWATCH__REGION`).

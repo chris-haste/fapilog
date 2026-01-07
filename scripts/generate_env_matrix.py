@@ -369,7 +369,7 @@ def main() -> None:
     args = parser.parse_args()
 
     cfg = Settings()
-    rows = flatten("FAPILOG", cfg)
+    rows = flatten("", cfg)
     env_md = render_env_markdown(rows)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(env_md, encoding="utf-8")

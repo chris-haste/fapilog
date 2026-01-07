@@ -8,6 +8,7 @@ Practical usage patterns and configuration for fapilog.
 :caption: User Guide
 
 configuration
+environment-variables
 using-logger
 context-enrichment
 rotating-file-sink
