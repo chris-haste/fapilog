@@ -25,6 +25,7 @@ from .plugins.redactors import BaseRedactor as _BaseRedactor
 from .plugins.redactors.field_mask import FieldMaskConfig
 from .plugins.redactors.regex_mask import RegexMaskConfig
 from .plugins.redactors.url_credentials import UrlCredentialsConfig
+from .plugins.sinks.audit import AuditSinkConfig
 from .plugins.sinks.contrib.cloudwatch import CloudWatchSinkConfig
 from .plugins.sinks.contrib.postgres import PostgresSinkConfig
 from .plugins.sinks.http_client import HttpSinkConfig
@@ -191,6 +192,16 @@ def _sink_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
                 use_jsonb=scfg.postgres.use_jsonb,
                 include_raw_json=scfg.postgres.include_raw_json,
                 extract_fields=scfg.postgres.extract_fields,
+            )
+        },
+        "audit": {
+            "config": AuditSinkConfig(
+                compliance_level=scfg.audit.compliance_level,
+                storage_path=scfg.audit.storage_path,
+                retention_days=scfg.audit.retention_days,
+                encrypt_logs=scfg.audit.encrypt_logs,
+                require_integrity=scfg.audit.require_integrity,
+                real_time_alerts=scfg.audit.real_time_alerts,
             )
         },
         "sealed": scfg.sealed.model_dump(exclude_none=True),

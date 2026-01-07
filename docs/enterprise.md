@@ -14,6 +14,14 @@ Fapilog provides building blocks for enterprise environments. This page highligh
 
 ---
 
+## Built-in Audit Sink
+
+- Enable compliance logging via `core.sinks = ["audit"]`; configure with `sink_config.audit.*`
+- Uses the existing `AuditTrail` with hash-chain integrity and compliance metadata
+- See [Audit Sink (Compliance Trail)](enterprise/audit-sink.md) for configuration and verification
+
+---
+
 ## Add-on spotlight: Tamper-Evident Logging + KMS/Vault
 
 - **What**: `fapilog-tamper` add-on that adds per-record MAC/signatures, sealed manifests, and cross-file chain verification.
