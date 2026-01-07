@@ -85,6 +85,7 @@ from .errors import (
     set_error_context,
     user_id_var,
 )
+from .events import LogEvent
 from .fallback import (
     AsyncFallbackWrapper,
     CacheFallback,
@@ -101,6 +102,7 @@ from .fallback import (
     get_fallback_manager,
     with_fallback,
 )
+from .logger import DrainResult
 from .marketplace import MarketplaceSettings
 from .observability import ObservabilitySettings, validate_observability
 from .plugin_config import (
@@ -236,6 +238,9 @@ __all__ = [
     # Concurrency utilities
     "BackpressurePolicy",
     "NonBlockingRingQueue",
+    # Event model and drain result
+    "LogEvent",
+    "DrainResult",
     # Audit trails
     "AuditEvent",
     "AuditEventType",

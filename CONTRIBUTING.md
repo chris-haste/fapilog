@@ -8,6 +8,7 @@ Thank you for your interest in contributing to fapilog! This document provides g
 
 - [Project Setup](#project-setup)
 - [Development Workflow](#development-workflow)
+- [Public API Policy](#public-api-policy)
 - [Commit & PR Guidelines](#commit--pr-guidelines)
 - [Release Process](#release-process)
 - [How to Get Help or Suggest Features](#how-to-get-help-or-suggest-features)
@@ -115,6 +116,21 @@ The hooks will run automatically on staged files when you commit. They include:
 - **Ruff** - Linting and code formatting
 - **MyPy** - Type checking
 - **Vulture** - Dead code detection
+
+## Public API Policy
+
+The stable public API is defined by each module's `__all__`. Symbols listed in `__all__` are versioned; anything else is internal and may change without notice. Conventions:
+
+- Use leading underscores (`as _Alias`) for internal imports to keep them out of the public namespace.
+- Add new public symbols to the module's `__all__` and keep it in sync with the intended surface.
+- Verify with `from fapilog import *` — only items in `__all__` should import.
+
+Inspect the current public surface:
+
+```python
+from fapilog import __all__
+print(__all__)
+```
 
 ### 5. Update CHANGELOG.md
 
