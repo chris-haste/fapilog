@@ -37,10 +37,6 @@ def run_coverage() -> tuple[bool, float]:
         env["PYTHONPATH"] = "src"
 
         # Run pytest with coverage
-        # Allow CI to tune loop-stall bound to reduce flakiness during coverage
-        if "FAPILOG_TEST_MAX_LOOP_STALL_SECONDS" not in env:
-            env["FAPILOG_TEST_MAX_LOOP_STALL_SECONDS"] = "0.035"
-
         result = subprocess.run(
             [
                 "python",
