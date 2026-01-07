@@ -845,7 +845,7 @@ async def get_async_logger(
     logger._redactors = _cast(list[_BaseRedactor], redactors)  # noqa: SLF001
     logger._processors = _cast(list[_BaseProcessor], processors)  # noqa: SLF001
     logger._filters = filters  # noqa: SLF001
-    logger._sinks = built_sinks  # type: ignore[attr-defined]  # noqa: SLF001
+    logger._sinks = built_sinks  # noqa: SLF001
     return logger
 
 
