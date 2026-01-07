@@ -3,6 +3,7 @@
 
 | Name | Type | Version | API | Author | Description |
 |------|------|---------|-----|--------|-------------|
+| audit | sink | 1.0.0 | 1.0 | Fapilog Core | Writes log entries to compliance audit trail with hash-chain integrity. |
 | context_vars | enricher | 1.0.0 | 1.0 | Fapilog Core | Adds context variables like request_id and user_id when available. |
 | field_mask | redactor | 1.0.0 | 1.0 | Fapilog Core | Masks configured fields in structured events. |
 | http | sink | 1.0.0 | 1.0 | Fapilog Core | Async HTTP sink that POSTs JSON to a configured endpoint. |

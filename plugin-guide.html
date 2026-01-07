@@ -187,98 +187,105 @@
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>context_vars</p></td>
+<tr class="row-even"><td><p>audit</p></td>
+<td><p>sink</p></td>
+<td><p>1.0.0</p></td>
+<td><p>1.0</p></td>
+<td><p>Fapilog Core</p></td>
+<td><p>Writes log entries to compliance audit trail with hash-chain integrity.</p></td>
+</tr>
+<tr class="row-odd"><td><p>context_vars</p></td>
 <td><p>enricher</p></td>
 <td><p>1.0.0</p></td>
 <td><p>1.0</p></td>
 <td><p>Fapilog Core</p></td>
 <td><p>Adds context variables like request_id and user_id when available.</p></td>
 </tr>
-<tr class="row-odd"><td><p>field_mask</p></td>
+<tr class="row-even"><td><p>field_mask</p></td>
 <td><p>redactor</p></td>
 <td><p>1.0.0</p></td>
 <td><p>1.0</p></td>
 <td><p>Fapilog Core</p></td>
 <td><p>Masks configured fields in structured events.</p></td>
 </tr>
-<tr class="row-even"><td><p>http</p></td>
+<tr class="row-odd"><td><p>http</p></td>
 <td><p>sink</p></td>
 <td><p>1.0.0</p></td>
 <td><p>1.0</p></td>
 <td><p>Fapilog Core</p></td>
 <td><p>Async HTTP sink that POSTs JSON to a configured endpoint.</p></td>
 </tr>
-<tr class="row-odd"><td><p>kubernetes</p></td>
+<tr class="row-even"><td><p>kubernetes</p></td>
 <td><p>enricher</p></td>
 <td><p>1.0.0</p></td>
 <td><p>1.0</p></td>
 <td><p>Fapilog Core</p></td>
 <td><p>Adds Kubernetes pod metadata (pod, namespace, node, deployment) from env vars.</p></td>
 </tr>
-<tr class="row-even"><td><p>mmap_persistence</p></td>
+<tr class="row-odd"><td><p>mmap_persistence</p></td>
 <td><p>sink</p></td>
 <td><p>1.0.0</p></td>
 <td><p>1.0</p></td>
 <td><p>Fapilog Core</p></td>
 <td><p>Memory-mapped file sink for zero-copy friendly persistence.</p></td>
 </tr>
-<tr class="row-odd"><td><p>regex_mask</p></td>
+<tr class="row-even"><td><p>regex_mask</p></td>
 <td><p>redactor</p></td>
 <td><p>1.0.0</p></td>
 <td><p>1.0</p></td>
 <td><p>Fapilog Core</p></td>
 <td><p>Masks values for fields whose dot-paths match configured regex patterns.</p></td>
 </tr>
-<tr class="row-even"><td><p>rotating_file</p></td>
+<tr class="row-odd"><td><p>rotating_file</p></td>
 <td><p>sink</p></td>
 <td><p>1.0.0</p></td>
 <td><p>1.0</p></td>
 <td><p>Fapilog Core</p></td>
 <td><p>Async rotating file sink with size/time rotation and retention</p></td>
 </tr>
-<tr class="row-odd"><td><p>routing</p></td>
+<tr class="row-even"><td><p>routing</p></td>
 <td><p>sink</p></td>
 <td><p>1.0.0</p></td>
 <td><p>1.0</p></td>
 <td><p>Fapilog Core</p></td>
 <td><p>Routes log events to different sinks based on log level.</p></td>
 </tr>
-<tr class="row-even"><td><p>runtime_info</p></td>
+<tr class="row-odd"><td><p>runtime_info</p></td>
 <td><p>enricher</p></td>
 <td><p>1.0.0</p></td>
 <td><p>1.0</p></td>
 <td><p>Fapilog Core</p></td>
 <td><p>Adds runtime/system information such as host, pid, and python version.</p></td>
 </tr>
-<tr class="row-odd"><td><p>size_guard</p></td>
+<tr class="row-even"><td><p>size_guard</p></td>
 <td><p>processor</p></td>
 <td><p>1.0.0</p></td>
 <td><p>1.0</p></td>
 <td><p>Fapilog Core</p></td>
 <td><p>Enforces maximum payload size for downstream compatibility.</p></td>
 </tr>
-<tr class="row-even"><td><p>stdout_json</p></td>
+<tr class="row-odd"><td><p>stdout_json</p></td>
 <td><p>sink</p></td>
 <td><p>1.0.0</p></td>
 <td><p>1.0</p></td>
 <td><p>Fapilog Core</p></td>
 <td><p>Async stdout JSONL sink</p></td>
 </tr>
-<tr class="row-odd"><td><p>url_credentials</p></td>
+<tr class="row-even"><td><p>url_credentials</p></td>
 <td><p>redactor</p></td>
 <td><p>1.0.0</p></td>
 <td><p>1.0</p></td>
 <td><p>Fapilog Core</p></td>
 <td><p>Strips user:pass&#64; credentials from URL-like strings.</p></td>
 </tr>
-<tr class="row-even"><td><p>webhook</p></td>
+<tr class="row-odd"><td><p>webhook</p></td>
 <td><p>sink</p></td>
 <td><p>1.0.0</p></td>
 <td><p>1.0</p></td>
 <td><p>Fapilog Core</p></td>
 <td><p>Webhook sink that POSTs JSON with optional signing.</p></td>
 </tr>
-<tr class="row-odd"><td><p>zero_copy</p></td>
+<tr class="row-even"><td><p>zero_copy</p></td>
 <td><p>processor</p></td>
 <td><p>1.0.0</p></td>
 <td><p>1.0</p></td>
