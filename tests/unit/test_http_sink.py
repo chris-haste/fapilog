@@ -51,6 +51,15 @@ class _StubPool:
         return outcome
 
 
+class _CountingRetry:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    async def __call__(self, func, *args, **kwargs):  # type: ignore[no-untyped-def]
+        self.calls += 1
+        return await func(*args, **kwargs)
+
+
 @pytest.mark.asyncio
 async def test_http_sink_success_records_metrics() -> None:
     pool = _StubPool([httpx.Response(200, json={"ok": True})])
@@ -128,6 +137,26 @@ async def test_http_sink_warns_on_exception(monkeypatch: pytest.MonkeyPatch) -> 
     assert warnings[0]["component"] == "http-sink"
     assert "boom" in warnings[0]["error"]
     assert sink._last_error is not None
+
+
+@pytest.mark.asyncio
+async def test_http_sink_accepts_retry_callable() -> None:
+    retry = _CountingRetry()
+    pool = _StubPool([httpx.Response(200, json={"ok": True})])
+    sink = HttpSink(
+        HttpSinkConfig(
+            endpoint="https://logs.example.com/api/logs",
+            retry=retry,
+        ),
+        pool=pool,
+    )
+
+    await sink.start()
+    await sink.write({"message": "hello"})
+    await sink.stop()
+
+    assert retry.calls == 1
+    assert pool.calls
 
 
 @pytest.mark.asyncio

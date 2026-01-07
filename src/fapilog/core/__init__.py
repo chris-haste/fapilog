@@ -2,8 +2,8 @@
 Fapilog v3 Core Module.
 
 This module provides the core async error handling hierarchy with comprehensive
-features including circuit breakers, retry mechanisms, fallback patterns,
-audit trails, and context preservation for enterprise-grade logging systems.
+features including sink circuit breakers, retry mechanisms, audit trails, and
+context preservation for enterprise-grade logging systems.
 """
 
 from .access_control import AccessControlSettings, validate_access_control
@@ -18,15 +18,7 @@ from .audit import (
     audit_security_event,
     get_audit_trail,
 )
-from .circuit_breaker import (
-    AsyncCircuitBreaker,
-    CircuitBreakerConfig,
-    CircuitBreakerManager,
-    CircuitBreakerOpenError,
-    CircuitState,
-    circuit_breaker,
-    get_circuit_breaker_manager,
-)
+from .circuit_breaker import CircuitState, SinkCircuitBreaker, SinkCircuitBreakerConfig
 from .compliance import (
     AuditConfig,
     DataHandlingSettings,
@@ -86,22 +78,6 @@ from .errors import (
     user_id_var,
 )
 from .events import LogEvent
-from .fallback import (
-    AsyncFallbackWrapper,
-    CacheFallback,
-    ChainedFallback,
-    FallbackConfig,
-    FallbackError,
-    FallbackManager,
-    FallbackProvider,
-    FallbackStrategy,
-    FallbackTrigger,
-    FunctionFallback,
-    StaticValueFallback,
-    fallback,
-    get_fallback_manager,
-    with_fallback,
-)
 from .logger import DrainResult
 from .marketplace import MarketplaceSettings
 from .observability import ObservabilitySettings, validate_observability
@@ -113,16 +89,10 @@ from .plugin_config import (
     validate_quality_gates,
 )
 from .retry import (
-    DATABASE_RETRY_CONFIG,
-    EXTERNAL_SERVICE_RETRY_CONFIG,
-    # Predefined configurations
-    NETWORK_RETRY_CONFIG,
     AsyncRetrier,
-    JitterType,
+    RetryCallable,
     RetryConfig,
     RetryExhaustedError,
-    RetryStrategy,
-    retry,
     retry_async,
 )
 from .security import SecuritySettings, validate_security
@@ -174,39 +144,15 @@ __all__ = [
     "get_error_context",
     "create_error_context",
     # Circuit breaker
-    "AsyncCircuitBreaker",
-    "CircuitBreakerConfig",
-    "CircuitBreakerManager",
-    "CircuitBreakerOpenError",
     "CircuitState",
-    "circuit_breaker",
-    "get_circuit_breaker_manager",
+    "SinkCircuitBreaker",
+    "SinkCircuitBreakerConfig",
     # Retry mechanism
     "AsyncRetrier",
+    "RetryCallable",
     "RetryConfig",
     "RetryExhaustedError",
-    "RetryStrategy",
-    "JitterType",
     "retry_async",
-    "retry",
-    "NETWORK_RETRY_CONFIG",
-    "DATABASE_RETRY_CONFIG",
-    "EXTERNAL_SERVICE_RETRY_CONFIG",
-    # Fallback mechanisms
-    "AsyncFallbackWrapper",
-    "FallbackConfig",
-    "FallbackError",
-    "FallbackManager",
-    "FallbackProvider",
-    "FallbackStrategy",
-    "FallbackTrigger",
-    "StaticValueFallback",
-    "FunctionFallback",
-    "CacheFallback",
-    "ChainedFallback",
-    "fallback",
-    "get_fallback_manager",
-    "with_fallback",
     # Configuration
     "Settings",
     "CoreSettings",

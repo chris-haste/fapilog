@@ -14,7 +14,7 @@ import httpx
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ...core.resources import HttpClientPool
-from ...core.retry import AsyncRetrier, RetryConfig
+from ...core.retry import AsyncRetrier, RetryCallable, RetryConfig
 from ...core.serialization import SerializedView
 from ..utils import parse_plugin_config
 from ._batching import BatchingMixin
@@ -25,7 +25,8 @@ __all__ = ["HttpSink", "HttpSinkConfig", "AsyncHttpSender", "BatchFormat"]
 class AsyncHttpSender:
     """Thin wrapper around a `HttpClientPool` to send requests efficiently.
 
-    Optional retry/backoff can be enabled by providing a ``RetryConfig``.
+    Optional retry/backoff can be enabled by providing a ``RetryConfig`` or any
+    callable that matches the retry protocol.
     """
 
     def __init__(
@@ -33,13 +34,17 @@ class AsyncHttpSender:
         *,
         pool: HttpClientPool,
         default_headers: Mapping[str, str] | None = None,
-        retry_config: RetryConfig | None = None,
+        retry_config: RetryCallable | RetryConfig | None = None,
     ) -> None:
         self._pool = pool
         self._default_headers = dict(default_headers or {})
-        self._retrier: AsyncRetrier | None = None
+        self._retrier: RetryCallable | None = None
         if retry_config is not None:
-            self._retrier = AsyncRetrier(retry_config)
+            self._retrier = (
+                AsyncRetrier(retry_config)
+                if isinstance(retry_config, RetryConfig)
+                else retry_config
+            )
 
     async def post(
         self,
@@ -68,7 +73,7 @@ class AsyncHttpSender:
                 )
 
             if self._retrier is not None:
-                return await self._retrier.retry(_do_post)
+                return await self._retrier(_do_post)
             return await _do_post()
 
     async def post_json(
@@ -87,11 +92,11 @@ class BatchFormat(str, Enum):
 
 
 class HttpSinkConfig(BaseModel):
-    model_config = ConfigDict(frozen=True, extra="forbid", validate_default=True)
+    model_config = ConfigDict(frozen=True, extra="forbid", validate_default=True, arbitrary_types_allowed=True)  # fmt: skip
 
     endpoint: str
     headers: dict[str, str] = Field(default_factory=dict)
-    retry: RetryConfig | None = None
+    retry: RetryCallable | RetryConfig | None = None
     timeout_seconds: float = Field(default=5.0, gt=0.0)
     batch_size: int = Field(default=1, ge=1)
     batch_timeout_seconds: float = Field(default=5.0, ge=0.0)
