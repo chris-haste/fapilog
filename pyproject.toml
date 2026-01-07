@@ -447,14 +447,23 @@ ignore_names = [
     "is_open", 
     "is_half_open",
     "remove",
-    "reset_all",
-    "get_all_stats",
-    "list_circuit_breakers",
     # SinkCircuitBreaker public API
     "SinkCircuitBreaker",
     "should_allow",
     "record_success",
     "record_failure",
+    # Retry public API
+    "get_stats",
+    # Cache async methods (public API)
+    "aget",
+    "aset",
+    "aclear",
+    # Error cache_key attributes (used for caching)
+    "cache_key",
+    # Resources
+    "timeouts",
+    # Health check attributes
+    "last_error",
     # ValidationMode enum values
     "WARN",
     # LoggerWorker public API
@@ -482,27 +491,6 @@ ignore_names = [
     "call_stack",
     "operation_start_time",
     "to_dict",
-    
-    # Fallback enum values and config
-    "FUNCTION_CALL",
-    "DEGRADED_SERVICE", 
-    "CHAIN",
-    "CIRCUIT_OPEN",
-    "RATE_LIMIT",
-    "CUSTOM",
-    "static_value",
-    "fallback_function",
-    "cache_ttl",
-    "track_fallback_usage",
-    
-    # Fallback public API methods
-    "unregister",
-    "get_all_stats",
-    "reset_all_stats", 
-    "list_fallback_wrappers",
-    
-    # Retry configuration
-    "jitter_factor",
     
     # Context manager protocol parameters (required by __aexit__)
     "exc_val",

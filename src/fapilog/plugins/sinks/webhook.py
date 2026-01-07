@@ -13,7 +13,7 @@ import httpx
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ...core.resources import HttpClientPool
-from ...core.retry import AsyncRetrier, RetryConfig
+from ...core.retry import AsyncRetrier, RetryCallable, RetryConfig
 from ...core.serialization import SerializedView
 from ...metrics.metrics import MetricsCollector
 from ..utils import parse_plugin_config
@@ -23,12 +23,12 @@ __all__ = ["WebhookSink", "WebhookSinkConfig"]
 
 
 class WebhookSinkConfig(BaseModel):
-    model_config = ConfigDict(frozen=True, extra="forbid", validate_default=True)
+    model_config = ConfigDict(frozen=True, extra="forbid", validate_default=True, arbitrary_types_allowed=True)  # fmt: skip
 
     endpoint: str
     secret: str | None = None
     headers: dict[str, str] = Field(default_factory=dict)
-    retry: RetryConfig | None = None
+    retry: RetryCallable | RetryConfig | None = None
     timeout_seconds: float = Field(default=5.0, gt=0.0)
     batch_size: int = Field(default=1, ge=1)
     batch_timeout_seconds: float = Field(default=5.0, ge=0.0)
@@ -63,7 +63,12 @@ class WebhookSink(BatchingMixin):
             timeout=cfg.timeout_seconds,
             acquire_timeout_seconds=2.0,
         )
-        self._retrier = AsyncRetrier(cfg.retry) if cfg.retry else None
+        if cfg.retry is None:
+            self._retrier: RetryCallable | None = None
+        elif isinstance(cfg.retry, RetryConfig):
+            self._retrier = AsyncRetrier(cfg.retry)
+        else:
+            self._retrier = cfg.retry
         self._last_status: int | None = None
         self._last_error: str | None = None
         self._init_batching(cfg.batch_size, cfg.batch_timeout_seconds)
@@ -88,7 +93,7 @@ class WebhookSink(BatchingMixin):
                 )
 
             if self._retrier:
-                return await self._retrier.retry(_do_post)
+                return await self._retrier(_do_post)
             return await _do_post()
 
     async def write(self, entry: dict[str, Any]) -> None:
