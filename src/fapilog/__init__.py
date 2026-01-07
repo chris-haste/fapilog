@@ -10,9 +10,12 @@ import asyncio as _asyncio
 import os as _os
 from contextlib import asynccontextmanager as _asynccontextmanager
 from contextlib import contextmanager as _contextmanager
+from dataclasses import dataclass
 from pathlib import Path as _Path
 from typing import Any as _Any
 from typing import AsyncIterator as _AsyncIterator
+from typing import Callable as _Callable
+from typing import Coroutine as _Coroutine
 from typing import Iterator as _Iterator
 from typing import cast as _cast
 
@@ -550,6 +553,78 @@ def _routing_or_fanout_writer(
     )
 
 
+@dataclass(slots=True)
+class _LoggerSetup:
+    """Container for logger configuration results (internal use)."""
+
+    settings: _Settings
+    sinks: list[object]
+    enrichers: list[object]
+    redactors: list[object]
+    processors: list[object]
+    filters: list[object]
+    metrics: _MetricsCollector | None
+    sink_write: _Callable[[dict[str, _Any]], _Coroutine[_Any, _Any, None]]
+    sink_write_serialized: _Callable[[object], _Coroutine[_Any, _Any, None]] | None
+    circuit_config: _Any  # SinkCircuitBreakerConfig | None (lazy import)
+    level_gate: int | None
+
+
+def _configure_logger_common(
+    settings: _Settings | None,
+    sinks: list[object] | None,
+) -> _LoggerSetup:
+    """
+    Configure logger components without creating facade.
+
+    Shared setup logic for sync and async loggers. Returns unstarted plugins.
+    """
+    cfg_source = settings or _Settings()
+    _apply_plugin_settings(cfg_source)
+    built_sinks, enrichers, redactors, processors, filters, metrics = _build_pipeline(
+        cfg_source
+    )
+
+    if sinks is not None:
+        built_sinks = list(sinks)
+
+    circuit_config = None
+    if cfg_source.core.sink_circuit_breaker_enabled:
+        from .core.circuit_breaker import SinkCircuitBreakerConfig
+
+        circuit_config = SinkCircuitBreakerConfig(
+            enabled=True,
+            failure_threshold=cfg_source.core.sink_circuit_breaker_failure_threshold,
+            recovery_timeout_seconds=cfg_source.core.sink_circuit_breaker_recovery_timeout_seconds,
+        )
+
+    sink_write, sink_write_serialized = _routing_or_fanout_writer(
+        built_sinks,
+        cfg_source,
+        circuit_config,
+    )
+
+    level_gate = None
+    if not cfg_source.core.filters:
+        lvl = cfg_source.core.log_level.upper()
+        if lvl != "DEBUG":
+            level_gate = _LEVEL_PRIORITY.get(lvl, None)
+
+    return _LoggerSetup(
+        settings=cfg_source,
+        sinks=built_sinks,
+        enrichers=enrichers,
+        redactors=redactors,
+        processors=processors,
+        filters=filters,
+        metrics=metrics,
+        sink_write=sink_write,
+        sink_write_serialized=sink_write_serialized,
+        circuit_config=circuit_config,
+        level_gate=level_gate,
+    )
+
+
 async def _start_plugins(
     plugins: list[_Any],
     plugin_type: str,
@@ -580,6 +655,46 @@ async def _start_plugins(
     return started
 
 
+def _start_plugins_sync(
+    enrichers: list[_Any],
+    redactors: list[_Any],
+    processors: list[_Any],
+    filters: list[_Any],
+) -> tuple[list[_Any], list[_Any], list[_Any], list[_Any]]:
+    """
+    Start plugins in sync context, falling back safely on failure.
+
+    If an event loop is running, startup is offloaded to a thread to avoid
+    blocking the loop. On failure, returns the original unstarted plugins.
+    """
+
+    async def _do_start() -> tuple[list[_Any], list[_Any], list[_Any], list[_Any]]:
+        return (
+            await _start_plugins(enrichers, "enricher"),
+            await _start_plugins(redactors, "redactor"),
+            await _start_plugins(processors, "processor"),
+            await _start_plugins(filters, "filter"),
+        )
+
+    def _run_sync() -> tuple[list[_Any], list[_Any], list[_Any], list[_Any]]:
+        return _asyncio.run(_do_start())
+
+    try:
+        _asyncio.get_running_loop()
+        import concurrent.futures
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(_run_sync)
+            return future.result(timeout=5.0)
+    except RuntimeError:
+        try:
+            return _run_sync()
+        except Exception:
+            return enrichers, redactors, processors, filters
+    except Exception:
+        return enrichers, redactors, processors, filters
+
+
 async def _stop_plugins(plugins: list[_Any], plugin_type: str) -> None:
     """Stop all plugins, containing errors.
 
@@ -604,148 +719,102 @@ async def _stop_plugins(plugins: list[_Any], plugin_type: str) -> None:
                 pass
 
 
+def _apply_logger_extras(
+    logger: _SyncLoggerFacade | _AsyncLoggerFacade,
+    setup: _LoggerSetup,
+    *,
+    started_enrichers: list[_Any],
+    started_redactors: list[_Any],
+    started_processors: list[_Any],
+    started_filters: list[_Any],
+) -> None:
+    """Apply post-creation configuration to logger."""
+    cfg = setup.settings
+
+    try:
+        if cfg.core.context_binding_enabled and cfg.core.default_bound_context:
+            logger.bind(**cfg.core.default_bound_context)
+    except Exception:
+        pass
+
+    try:
+        if cfg.core.sensitive_fields_policy:
+            from .core.diagnostics import warn as _warn
+
+            _warn(
+                "redactor",
+                "sensitive fields policy present",
+                fields=len(cfg.core.sensitive_fields_policy),
+                _rate_limit_key="policy",
+            )
+    except Exception:
+        pass
+
+    try:
+        if cfg.core.capture_unhandled_enabled:
+            from .core.errors import capture_unhandled_exceptions as _cap_unhandled
+
+            _cap_unhandled(logger)
+    except Exception:
+        pass
+
+    logger._redactors = _cast(list[_BaseRedactor], started_redactors)  # noqa: SLF001
+    logger._processors = _cast(list[_BaseProcessor], started_processors)  # noqa: SLF001
+    logger._filters = started_filters  # noqa: SLF001
+    logger._sinks = setup.sinks  # noqa: SLF001
+
+
 def get_logger(
     name: str | None = None,
     *,
     settings: _Settings | None = None,
     sinks: list[object] | None = None,
 ) -> _SyncLoggerFacade:
-    cfg_source = settings or _Settings()
-    _apply_plugin_settings(cfg_source)
-    built_sinks, enrichers, redactors, processors, filters, metrics = _build_pipeline(
-        cfg_source
-    )
-    if sinks is not None:
-        built_sinks = list(sinks)
+    setup = _configure_logger_common(settings, sinks)
 
-    # Start enrichers, redactors, and processors (sync-safe)
-    async def _do_start() -> tuple[
-        list[object], list[object], list[object], list[object]
-    ]:
-        started_enrichers = await _start_plugins(enrichers, "enricher")
-        started_redactors = await _start_plugins(redactors, "redactor")
-        started_processors = await _start_plugins(processors, "processor")
-        started_filters = await _start_plugins(filters, "filter")
-        return started_enrichers, started_redactors, started_processors, started_filters
-
-    enrichers_started: list[object] = list(enrichers)
-    redactors_started: list[object] = list(redactors)
-    processors_started: list[object] = list(processors)
-    filters_started: list[object] = list(filters)
-
-    try:
-        _asyncio.get_running_loop()
-        # Inside event loop - can't use asyncio.run, run in a thread.
-        import concurrent.futures
-
-        try:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                future = executor.submit(_asyncio.run, _do_start())
-                (
-                    enrichers_started,
-                    redactors_started,
-                    processors_started,
-                    filters_started,
-                ) = future.result(timeout=5.0)
-        except Exception:
-            # If thread-based startup fails, continue with unstarted plugins
-            # They will be started lazily on first use if they have start()
-            pass
-    except RuntimeError:
-        # No running loop - safe to use asyncio.run
-        try:
-            (
-                enrichers_started,
-                redactors_started,
-                processors_started,
-                filters_started,
-            ) = _asyncio.run(_do_start())
-        except Exception:
-            # If async startup fails, continue with unstarted plugins
-            pass
-
-    enrichers = enrichers_started
-    redactors = redactors_started
-    processors = processors_started
-    filters = filters_started
-
-    # Build circuit breaker config if enabled
-    circuit_config = None
-    if cfg_source.core.sink_circuit_breaker_enabled:
-        from .core.circuit_breaker import SinkCircuitBreakerConfig
-
-        circuit_config = SinkCircuitBreakerConfig(
-            enabled=True,
-            failure_threshold=cfg_source.core.sink_circuit_breaker_failure_threshold,
-            recovery_timeout_seconds=cfg_source.core.sink_circuit_breaker_recovery_timeout_seconds,
-        )
-
-    sink_write, sink_write_serialized = _routing_or_fanout_writer(
-        built_sinks,
-        cfg_source,
-        circuit_config,
+    (
+        enrichers,
+        redactors,
+        processors,
+        filters,
+    ) = _start_plugins_sync(
+        setup.enrichers,
+        setup.redactors,
+        setup.processors,
+        setup.filters,
     )
 
-    level_gate = None
-    if not cfg_source.core.filters:
-        lvl = cfg_source.core.log_level.upper()
-        if lvl != "DEBUG":
-            level_gate = _LEVEL_PRIORITY.get(lvl, None)
-
+    cfg = setup.settings
     logger = _SyncLoggerFacade(
         name=name,
-        queue_capacity=cfg_source.core.max_queue_size,
-        batch_max_size=cfg_source.core.batch_max_size,
-        batch_timeout_seconds=cfg_source.core.batch_timeout_seconds,
-        backpressure_wait_ms=cfg_source.core.backpressure_wait_ms,
-        drop_on_full=cfg_source.core.drop_on_full,
-        sink_write=sink_write,
-        sink_write_serialized=sink_write_serialized,
+        queue_capacity=cfg.core.max_queue_size,
+        batch_max_size=cfg.core.batch_max_size,
+        batch_timeout_seconds=cfg.core.batch_timeout_seconds,
+        backpressure_wait_ms=cfg.core.backpressure_wait_ms,
+        drop_on_full=cfg.core.drop_on_full,
+        sink_write=setup.sink_write,
+        sink_write_serialized=setup.sink_write_serialized,
         enrichers=_cast(list[_BaseEnricher], enrichers),
         processors=_cast(list[_BaseProcessor], processors),
         filters=filters,
-        metrics=metrics,
-        exceptions_enabled=cfg_source.core.exceptions_enabled,
-        exceptions_max_frames=cfg_source.core.exceptions_max_frames,
-        exceptions_max_stack_chars=cfg_source.core.exceptions_max_stack_chars,
-        serialize_in_flush=cfg_source.core.serialize_in_flush,
-        num_workers=cfg_source.core.worker_count,
-        level_gate=level_gate,
+        metrics=setup.metrics,
+        exceptions_enabled=cfg.core.exceptions_enabled,
+        exceptions_max_frames=cfg.core.exceptions_max_frames,
+        exceptions_max_stack_chars=cfg.core.exceptions_max_stack_chars,
+        serialize_in_flush=cfg.core.serialize_in_flush,
+        num_workers=cfg.core.worker_count,
+        level_gate=setup.level_gate,
     )
-    try:
-        if (
-            cfg_source.core.context_binding_enabled
-            and cfg_source.core.default_bound_context
-        ):
-            logger.bind(**cfg_source.core.default_bound_context)
-    except Exception:
-        pass
-    try:
-        if cfg_source.core.sensitive_fields_policy:
-            from .core.diagnostics import warn as _warn
 
-            _warn(
-                "redactor",
-                "sensitive fields policy present",
-                fields=len(cfg_source.core.sensitive_fields_policy),
-                _rate_limit_key="policy",
-            )
-    except Exception:
-        pass
-    try:
-        if cfg_source.core.capture_unhandled_enabled:
-            from .core.errors import (
-                capture_unhandled_exceptions as _cap_unhandled,
-            )
-
-            _cap_unhandled(logger)
-    except Exception:
-        pass
+    _apply_logger_extras(
+        logger,
+        setup,
+        started_enrichers=enrichers,
+        started_redactors=redactors,
+        started_processors=processors,
+        started_filters=filters,
+    )
     logger.start()
-    logger._redactors = _cast(list[_BaseRedactor], redactors)  # noqa: SLF001
-    logger._processors = _cast(list[_BaseProcessor], processors)  # noqa: SLF001
-    logger._filters = filters  # noqa: SLF001
-    logger._sinks = built_sinks  # noqa: SLF001
     return logger
 
 
@@ -755,97 +824,44 @@ async def get_async_logger(
     settings: _Settings | None = None,
     sinks: list[object] | None = None,
 ) -> _AsyncLoggerFacade:
-    cfg_source = settings or _Settings()
-    _apply_plugin_settings(cfg_source)
-    built_sinks, enrichers, redactors, processors, filters, metrics = _build_pipeline(
-        cfg_source
-    )
-    if sinks is not None:
-        built_sinks = list(sinks)
+    setup = _configure_logger_common(settings, sinks)
 
-    # Start enrichers, redactors, and processors (plugins that fail are excluded)
-    enrichers = await _start_plugins(enrichers, "enricher")
-    redactors = await _start_plugins(redactors, "redactor")
-    processors = await _start_plugins(processors, "processor")
-    filters = await _start_plugins(filters, "filter")
+    enrichers = await _start_plugins(setup.enrichers, "enricher")
+    redactors = await _start_plugins(setup.redactors, "redactor")
+    processors = await _start_plugins(setup.processors, "processor")
+    filters = await _start_plugins(setup.filters, "filter")
 
-    # Build circuit breaker config if enabled
-    circuit_config = None
-    if cfg_source.core.sink_circuit_breaker_enabled:
-        from .core.circuit_breaker import SinkCircuitBreakerConfig
-
-        circuit_config = SinkCircuitBreakerConfig(
-            enabled=True,
-            failure_threshold=cfg_source.core.sink_circuit_breaker_failure_threshold,
-            recovery_timeout_seconds=cfg_source.core.sink_circuit_breaker_recovery_timeout_seconds,
-        )
-
-    sink_write, sink_write_serialized = _routing_or_fanout_writer(
-        built_sinks,
-        cfg_source,
-        circuit_config,
-    )
-
-    level_gate = None
-    if not cfg_source.core.filters:
-        lvl = cfg_source.core.log_level.upper()
-        if lvl != "DEBUG":
-            level_gate = _LEVEL_PRIORITY.get(lvl, None)
-
+    cfg = setup.settings
     logger = _AsyncLoggerFacade(
         name=name,
-        queue_capacity=cfg_source.core.max_queue_size,
-        batch_max_size=cfg_source.core.batch_max_size,
-        batch_timeout_seconds=cfg_source.core.batch_timeout_seconds,
-        backpressure_wait_ms=cfg_source.core.backpressure_wait_ms,
-        drop_on_full=cfg_source.core.drop_on_full,
-        sink_write=sink_write,
-        sink_write_serialized=sink_write_serialized,
+        queue_capacity=cfg.core.max_queue_size,
+        batch_max_size=cfg.core.batch_max_size,
+        batch_timeout_seconds=cfg.core.batch_timeout_seconds,
+        backpressure_wait_ms=cfg.core.backpressure_wait_ms,
+        drop_on_full=cfg.core.drop_on_full,
+        sink_write=setup.sink_write,
+        sink_write_serialized=setup.sink_write_serialized,
         enrichers=_cast(list[_BaseEnricher], enrichers),
         processors=_cast(list[_BaseProcessor], processors),
         filters=filters,
-        metrics=metrics,
-        exceptions_enabled=cfg_source.core.exceptions_enabled,
-        exceptions_max_frames=cfg_source.core.exceptions_max_frames,
-        exceptions_max_stack_chars=cfg_source.core.exceptions_max_stack_chars,
-        serialize_in_flush=cfg_source.core.serialize_in_flush,
-        num_workers=cfg_source.core.worker_count,
-        level_gate=level_gate,
+        metrics=setup.metrics,
+        exceptions_enabled=cfg.core.exceptions_enabled,
+        exceptions_max_frames=cfg.core.exceptions_max_frames,
+        exceptions_max_stack_chars=cfg.core.exceptions_max_stack_chars,
+        serialize_in_flush=cfg.core.serialize_in_flush,
+        num_workers=cfg.core.worker_count,
+        level_gate=setup.level_gate,
     )
-    try:
-        if (
-            cfg_source.core.context_binding_enabled
-            and cfg_source.core.default_bound_context
-        ):
-            logger.bind(**cfg_source.core.default_bound_context)
-    except Exception:
-        pass
-    try:
-        if cfg_source.core.sensitive_fields_policy:
-            from .core.diagnostics import warn as _warn
 
-            _warn(
-                "redactor",
-                "sensitive fields policy present",
-                fields=len(cfg_source.core.sensitive_fields_policy),
-                _rate_limit_key="policy",
-            )
-    except Exception:
-        pass
-    try:
-        if cfg_source.core.capture_unhandled_enabled:
-            from .core.errors import (
-                capture_unhandled_exceptions as _cap_unhandled,
-            )
-
-            _cap_unhandled(logger)
-    except Exception:
-        pass
+    _apply_logger_extras(
+        logger,
+        setup,
+        started_enrichers=enrichers,
+        started_redactors=redactors,
+        started_processors=processors,
+        started_filters=filters,
+    )
     logger.start()
-    logger._redactors = _cast(list[_BaseRedactor], redactors)  # noqa: SLF001
-    logger._processors = _cast(list[_BaseProcessor], processors)  # noqa: SLF001
-    logger._filters = filters  # noqa: SLF001
-    logger._sinks = built_sinks  # noqa: SLF001
     return logger
 
 
