@@ -147,31 +147,48 @@ def main() -> int:
     tests_passed, coverage = run_coverage()
 
     # Check both: tests must pass AND coverage must meet threshold
-    success = tests_passed and coverage >= args.min_coverage
+    coverage_met = coverage >= args.min_coverage
+    success = tests_passed and coverage_met
 
     if not success:
-        if coverage > 0:
-            # Print status message for pre-commit
+        if not tests_passed:
+            # Tests failed - this is the primary issue
+            print("FAILED: Tests did not pass")
+            print(f"{Colors.RED}{Colors.BOLD}Tests: Failed{Colors.END}")
+            if coverage > 0:
+                if coverage_met:
+                    print(
+                        f"{Colors.YELLOW}   Coverage: {coverage:.1f}% (would pass, but tests failed){Colors.END}"
+                    )
+                else:
+                    print(
+                        f"{Colors.RED}   Coverage: {coverage:.1f}% (also below {args.min_coverage:.1f}% threshold){Colors.END}"
+                    )
+            print(f"\n{Colors.BLUE}💡 To fix:{Colors.END}")
+            print(
+                f"{Colors.BLUE}   1. Run 'pytest -v' to see failing tests{Colors.END}"
+            )
+            print(f"{Colors.BLUE}   2. Fix the failing tests{Colors.END}")
+        elif coverage > 0:
+            # Tests passed but coverage is below threshold
             print(
                 f"FAILED: Coverage {coverage:.1f}% < {args.min_coverage:.1f}% required"
             )
-            # Print with red color for failure
             print(
                 f"{Colors.RED}{Colors.BOLD}Coverage: {coverage:.1f}% (Failed - Required: {args.min_coverage:.1f}%){Colors.END}"
             )
             print(
                 f"{Colors.RED}   Shortfall: {args.min_coverage - coverage:.1f}%{Colors.END}"
             )
+            print(f"\n{Colors.BLUE}💡 To improve coverage:{Colors.END}")
+            print(f"{Colors.BLUE}   1. Add tests for uncovered code{Colors.END}")
+            print(f"{Colors.BLUE}   2. Remove unused code{Colors.END}")
+            print(
+                f"{Colors.BLUE}   3. Run 'pytest --cov=src/fapilog --cov-report=html' for detailed report{Colors.END}"
+            )
         else:
             print("FAILED: Could not run coverage tests")
             print(f"{Colors.RED}{Colors.BOLD}Coverage: Failed to run tests{Colors.END}")
-
-        print(f"\n{Colors.BLUE}💡 To improve coverage:{Colors.END}")
-        print(f"{Colors.BLUE}   1. Add tests for uncovered code{Colors.END}")
-        print(f"{Colors.BLUE}   2. Remove unused code{Colors.END}")
-        print(
-            f"{Colors.BLUE}   3. Run 'pytest --cov=src/fapilog --cov-report=html' for detailed report{Colors.END}"
-        )
 
         return 1
 
