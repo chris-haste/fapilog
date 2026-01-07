@@ -34,6 +34,41 @@ def strict_envelope_mode_enabled() -> bool:
         return False
 
 
+async def stop_plugins(
+    processors: list[Any],
+    filters: list[Any],
+    redactors: list[Any],
+    enrichers: list[Any],
+) -> None:
+    """Stop plugins in reverse order, containing errors and emitting diagnostics.
+
+    Stop order: processors → filters → redactors → enrichers.
+    Within each category, plugins are stopped in reverse registration order.
+    Errors during stop() are logged via diagnostics but never propagate.
+    """
+    for plugin_type, plugins in [
+        ("processor", processors),
+        ("filter", filters),
+        ("redactor", redactors),
+        ("enricher", enrichers),
+    ]:
+        for plugin in reversed(plugins):
+            try:
+                if hasattr(plugin, "stop"):
+                    await plugin.stop()
+            except Exception as exc:  # noqa: BLE001
+                try:
+                    warn(
+                        plugin_type,
+                        "plugin stop failed",
+                        plugin=getattr(plugin, "name", type(plugin).__name__),
+                        error=str(exc),
+                    )
+                except Exception:
+                    # Diagnostics should never block shutdown
+                    pass
+
+
 async def enqueue_with_backpressure(
     queue: NonBlockingRingQueue[dict[str, Any]],
     payload: dict[str, Any],
