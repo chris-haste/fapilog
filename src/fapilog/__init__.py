@@ -6,32 +6,45 @@ Provides zero-config `get_logger()` and `runtime()` per Story #79.
 
 from __future__ import annotations
 
-import asyncio
-import os
-from contextlib import asynccontextmanager, contextmanager
-from pathlib import Path
-from typing import Any, AsyncIterator, Iterator, cast
+import asyncio as _asyncio
+import os as _os
+from contextlib import asynccontextmanager as _asynccontextmanager
+from contextlib import contextmanager as _contextmanager
+from pathlib import Path as _Path
+from typing import Any as _Any
+from typing import AsyncIterator as _AsyncIterator
+from typing import Iterator as _Iterator
+from typing import cast as _cast
 
-from .core.logger import AsyncLoggerFacade, SyncLoggerFacade
+from .core.events import LogEvent
+from .core.logger import AsyncLoggerFacade as _AsyncLoggerFacade
+from .core.logger import DrainResult
+from .core.logger import SyncLoggerFacade as _SyncLoggerFacade
 from .core.retry import RetryConfig as _RetryConfig
 from .core.settings import Settings as _Settings
 from .metrics.metrics import MetricsCollector as _MetricsCollector
 from .plugins import loader as _loader
 from .plugins.enrichers import BaseEnricher as _BaseEnricher
-from .plugins.filters.level import LEVEL_PRIORITY
+from .plugins.filters.level import LEVEL_PRIORITY as _LEVEL_PRIORITY
 from .plugins.processors import BaseProcessor as _BaseProcessor
-from .plugins.processors.size_guard import SizeGuardConfig
+from .plugins.processors.size_guard import SizeGuardConfig as _SizeGuardConfig
 from .plugins.redactors import BaseRedactor as _BaseRedactor
-from .plugins.redactors.field_mask import FieldMaskConfig
-from .plugins.redactors.regex_mask import RegexMaskConfig
-from .plugins.redactors.url_credentials import UrlCredentialsConfig
-from .plugins.sinks.audit import AuditSinkConfig
-from .plugins.sinks.contrib.cloudwatch import CloudWatchSinkConfig
-from .plugins.sinks.contrib.postgres import PostgresSinkConfig
-from .plugins.sinks.http_client import HttpSinkConfig
-from .plugins.sinks.rotating_file import RotatingFileSinkConfig
+from .plugins.redactors.field_mask import FieldMaskConfig as _FieldMaskConfig
+from .plugins.redactors.regex_mask import RegexMaskConfig as _RegexMaskConfig
+from .plugins.redactors.url_credentials import (
+    UrlCredentialsConfig as _UrlCredentialsConfig,
+)
+from .plugins.sinks.audit import AuditSinkConfig as _AuditSinkConfig
+from .plugins.sinks.contrib.cloudwatch import (
+    CloudWatchSinkConfig as _CloudWatchSinkConfig,
+)
+from .plugins.sinks.contrib.postgres import PostgresSinkConfig as _PostgresSinkConfig
+from .plugins.sinks.http_client import HttpSinkConfig as _HttpSinkConfig
+from .plugins.sinks.rotating_file import (
+    RotatingFileSinkConfig as _RotatingFileSinkConfig,
+)
 from .plugins.sinks.stdout_json import StdoutJsonSink as _StdoutJsonSink
-from .plugins.sinks.webhook import WebhookSinkConfig
+from .plugins.sinks.webhook import WebhookSinkConfig as _WebhookSinkConfig
 
 # Public exports
 Settings = _Settings
@@ -42,6 +55,8 @@ __all__ = [
     "runtime",
     "runtime_async",
     "Settings",
+    "DrainResult",
+    "LogEvent",
     "__version__",
     "VERSION",
 ]
@@ -84,15 +99,15 @@ def _apply_plugin_settings(settings: _Settings) -> None:
     _loader.set_validation_mode(mode)
 
 
-def _sink_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
+def _sink_configs(settings: _Settings) -> dict[str, dict[str, _Any]]:
     scfg = settings.sink_config
-    configs: dict[str, dict[str, Any]] = {
+    configs: dict[str, dict[str, _Any]] = {
         "stdout_json": {},
         "rotating_file": {
-            "config": RotatingFileSinkConfig(
-                directory=Path(scfg.rotating_file.directory)
+            "config": _RotatingFileSinkConfig(
+                directory=_Path(scfg.rotating_file.directory)
                 if scfg.rotating_file.directory
-                else Path("."),
+                else _Path("."),
                 filename_prefix=scfg.rotating_file.filename_prefix,
                 mode=scfg.rotating_file.mode,
                 max_bytes=scfg.rotating_file.max_bytes,
@@ -103,7 +118,7 @@ def _sink_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
             )
         },
         "http": {
-            "config": HttpSinkConfig(
+            "config": _HttpSinkConfig(
                 endpoint=settings.http.endpoint or "",
                 headers=settings.http.resolved_headers(),
                 retry=_RetryConfig(
@@ -120,7 +135,7 @@ def _sink_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
             )
         },
         "webhook": {
-            "config": WebhookSinkConfig(
+            "config": _WebhookSinkConfig(
                 endpoint=scfg.webhook.endpoint or "",
                 secret=scfg.webhook.secret,
                 headers=scfg.webhook.headers,
@@ -154,7 +169,7 @@ def _sink_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
             }
         },
         "cloudwatch": {
-            "config": CloudWatchSinkConfig(
+            "config": _CloudWatchSinkConfig(
                 log_group_name=scfg.cloudwatch.log_group_name,
                 log_stream_name=scfg.cloudwatch.log_stream_name,
                 region=scfg.cloudwatch.region,
@@ -170,7 +185,7 @@ def _sink_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
             )
         },
         "postgres": {
-            "config": PostgresSinkConfig(
+            "config": _PostgresSinkConfig(
                 dsn=scfg.postgres.dsn,
                 host=scfg.postgres.host,
                 port=scfg.postgres.port,
@@ -195,7 +210,7 @@ def _sink_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
             )
         },
         "audit": {
-            "config": AuditSinkConfig(
+            "config": _AuditSinkConfig(
                 compliance_level=scfg.audit.compliance_level,
                 storage_path=scfg.audit.storage_path,
                 retention_days=scfg.audit.retention_days,
@@ -210,9 +225,9 @@ def _sink_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
     return configs
 
 
-def _enricher_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
+def _enricher_configs(settings: _Settings) -> dict[str, dict[str, _Any]]:
     ecfg = settings.enricher_config
-    cfg: dict[str, dict[str, Any]] = {
+    cfg: dict[str, dict[str, _Any]] = {
         "runtime_info": ecfg.runtime_info,
         "context_vars": ecfg.context_vars,
         "integrity": ecfg.integrity.model_dump(exclude_none=True),
@@ -221,22 +236,22 @@ def _enricher_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
     return cfg
 
 
-def _redactor_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
+def _redactor_configs(settings: _Settings) -> dict[str, dict[str, _Any]]:
     rcfg = settings.redactor_config
-    cfg: dict[str, dict[str, Any]] = {
-        "field_mask": {"config": FieldMaskConfig(**rcfg.field_mask.model_dump())},
-        "regex_mask": {"config": RegexMaskConfig(**rcfg.regex_mask.model_dump())},
+    cfg: dict[str, dict[str, _Any]] = {
+        "field_mask": {"config": _FieldMaskConfig(**rcfg.field_mask.model_dump())},
+        "regex_mask": {"config": _RegexMaskConfig(**rcfg.regex_mask.model_dump())},
         "url_credentials": {
-            "config": UrlCredentialsConfig(**rcfg.url_credentials.model_dump())
+            "config": _UrlCredentialsConfig(**rcfg.url_credentials.model_dump())
         },
     }
     cfg.update(rcfg.extra)
     return cfg
 
 
-def _filter_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
+def _filter_configs(settings: _Settings) -> dict[str, dict[str, _Any]]:
     fcfg = settings.filter_config
-    cfg: dict[str, dict[str, Any]] = {
+    cfg: dict[str, dict[str, _Any]] = {
         "level": fcfg.level,
         "sampling": fcfg.sampling,
         "rate_limit": fcfg.rate_limit,
@@ -250,13 +265,13 @@ def _filter_configs(settings: _Settings) -> dict[str, dict[str, Any]]:
 
 def _processor_configs(
     settings: _Settings, metrics: _MetricsCollector | None = None
-) -> dict[str, dict[str, Any]]:
+) -> dict[str, dict[str, _Any]]:
     pcfg = settings.processor_config
-    cfg: dict[str, dict[str, Any]] = {
+    cfg: dict[str, dict[str, _Any]] = {
         "zero_copy": pcfg.zero_copy,
     }
     cfg["size_guard"] = {
-        "config": SizeGuardConfig(**pcfg.size_guard.model_dump()),
+        "config": _SizeGuardConfig(**pcfg.size_guard.model_dump()),
     }
     if metrics is not None:
         cfg["size_guard"]["metrics"] = metrics
@@ -267,27 +282,27 @@ def _processor_configs(
 def _default_sink_names(settings: _Settings) -> list[str]:
     if settings.http.endpoint:
         return ["http"]
-    if os.getenv("FAPILOG_FILE__DIRECTORY"):
+    if _os.getenv("FAPILOG_FILE__DIRECTORY"):
         return ["rotating_file"]
     return ["stdout_json"]
 
 
-def _default_env_sink_cfg(name: str) -> dict[str, Any]:
+def _default_env_sink_cfg(name: str) -> dict[str, _Any]:
     if name == "rotating_file":
         return {
-            "config": RotatingFileSinkConfig(
-                directory=Path(os.getenv("FAPILOG_FILE__DIRECTORY", ".")),
-                filename_prefix=os.getenv("FAPILOG_FILE__FILENAME_PREFIX", "fapilog"),
-                mode=os.getenv("FAPILOG_FILE__MODE", "json"),
-                max_bytes=int(os.getenv("FAPILOG_FILE__MAX_BYTES", "10485760")),
+            "config": _RotatingFileSinkConfig(
+                directory=_Path(_os.getenv("FAPILOG_FILE__DIRECTORY", ".")),
+                filename_prefix=_os.getenv("FAPILOG_FILE__FILENAME_PREFIX", "fapilog"),
+                mode=_os.getenv("FAPILOG_FILE__MODE", "json"),
+                max_bytes=int(_os.getenv("FAPILOG_FILE__MAX_BYTES", "10485760")),
                 interval_seconds=(
-                    int(os.getenv("FAPILOG_FILE__INTERVAL_SECONDS", "0")) or None
+                    int(_os.getenv("FAPILOG_FILE__INTERVAL_SECONDS", "0")) or None
                 ),
-                max_files=(int(os.getenv("FAPILOG_FILE__MAX_FILES", "0")) or None),
+                max_files=(int(_os.getenv("FAPILOG_FILE__MAX_FILES", "0")) or None),
                 max_total_bytes=(
-                    int(os.getenv("FAPILOG_FILE__MAX_TOTAL_BYTES", "0")) or None
+                    int(_os.getenv("FAPILOG_FILE__MAX_TOTAL_BYTES", "0")) or None
                 ),
-                compress_rotated=os.getenv(
+                compress_rotated=_os.getenv(
                     "FAPILOG_FILE__COMPRESS_ROTATED", "false"
                 ).lower()
                 in {"1", "true", "yes"},
@@ -297,7 +312,7 @@ def _default_env_sink_cfg(name: str) -> dict[str, Any]:
 
 
 def _load_plugins(
-    group: str, names: list[str], settings: _Settings, cfgs: dict[str, dict[str, Any]]
+    group: str, names: list[str], settings: _Settings, cfgs: dict[str, dict[str, _Any]]
 ) -> list[object]:
     plugins: list[object] = []
     if not settings.plugins.enabled:
@@ -395,7 +410,7 @@ def _build_pipeline(
     return sinks, enrichers, redactors, processors, filters, metrics
 
 
-def _make_sink_writer(sink: Any) -> tuple[Any, Any]:
+def _make_sink_writer(sink: _Any) -> tuple[_Any, _Any]:
     async def _sink_write(entry: dict) -> None:
         if hasattr(sink, "start") and not getattr(sink, "_started", False):
             try:
@@ -427,8 +442,8 @@ def _fanout_writer(
     sinks: list[object],
     *,
     parallel: bool = False,
-    circuit_config: Any | None = None,
-) -> tuple[Any, Any]:
+    circuit_config: _Any | None = None,
+) -> tuple[_Any, _Any]:
     """Create fanout writer with optional parallelization and circuit breakers.
 
     Args:
@@ -449,7 +464,7 @@ def _fanout_writer(
 
     async def _write_one(
         sink: object,
-        write_fn: Any,
+        write_fn: _Any,
         entry: dict,
     ) -> None:
         """Write to a single sink with circuit breaker protection."""
@@ -489,7 +504,7 @@ def _fanout_writer(
             tasks.append(_write_one(sink, write, entry))
 
         if tasks:
-            await asyncio.gather(*tasks, return_exceptions=True)
+            await _asyncio.gather(*tasks, return_exceptions=True)
 
     async def _write(entry: dict) -> None:
         if parallel and len(writers) > 1:
@@ -510,8 +525,8 @@ def _fanout_writer(
 def _routing_or_fanout_writer(
     sinks: list[object],
     cfg_source: _Settings,
-    circuit_config: Any | None,
-) -> tuple[Any, Any]:
+    circuit_config: _Any | None,
+) -> tuple[_Any, _Any]:
     """Return sink writer honoring routing configuration when enabled."""
     routing = getattr(cfg_source, "sink_routing", None)
     routing_enabled = routing is not None and routing.enabled and bool(routing.rules)
@@ -536,15 +551,15 @@ def _routing_or_fanout_writer(
 
 
 async def _start_plugins(
-    plugins: list[Any],
+    plugins: list[_Any],
     plugin_type: str,
-) -> list[Any]:
+) -> list[_Any]:
     """Start plugins, returning only successfully started ones.
 
     Plugins without a start() method are included without calling start().
     Plugins that fail during start() are excluded and a diagnostic is emitted.
     """
-    started: list[Any] = []
+    started: list[_Any] = []
     for plugin in plugins:
         try:
             if hasattr(plugin, "start"):
@@ -565,7 +580,7 @@ async def _start_plugins(
     return started
 
 
-async def _stop_plugins(plugins: list[Any], plugin_type: str) -> None:
+async def _stop_plugins(plugins: list[_Any], plugin_type: str) -> None:
     """Stop all plugins, containing errors.
 
     Plugins are stopped in reverse order to respect dependency ordering.
@@ -594,7 +609,7 @@ def get_logger(
     *,
     settings: _Settings | None = None,
     sinks: list[object] | None = None,
-) -> SyncLoggerFacade:
+) -> _SyncLoggerFacade:
     cfg_source = settings or _Settings()
     _apply_plugin_settings(cfg_source)
     built_sinks, enrichers, redactors, processors, filters, metrics = _build_pipeline(
@@ -619,13 +634,13 @@ def get_logger(
     filters_started: list[object] = list(filters)
 
     try:
-        asyncio.get_running_loop()
+        _asyncio.get_running_loop()
         # Inside event loop - can't use asyncio.run, run in a thread.
         import concurrent.futures
 
         try:
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-                future = executor.submit(asyncio.run, _do_start())
+                future = executor.submit(_asyncio.run, _do_start())
                 (
                     enrichers_started,
                     redactors_started,
@@ -644,7 +659,7 @@ def get_logger(
                 redactors_started,
                 processors_started,
                 filters_started,
-            ) = asyncio.run(_do_start())
+            ) = _asyncio.run(_do_start())
         except Exception:
             # If async startup fails, continue with unstarted plugins
             pass
@@ -675,9 +690,9 @@ def get_logger(
     if not cfg_source.core.filters:
         lvl = cfg_source.core.log_level.upper()
         if lvl != "DEBUG":
-            level_gate = LEVEL_PRIORITY.get(lvl, None)
+            level_gate = _LEVEL_PRIORITY.get(lvl, None)
 
-    logger = SyncLoggerFacade(
+    logger = _SyncLoggerFacade(
         name=name,
         queue_capacity=cfg_source.core.max_queue_size,
         batch_max_size=cfg_source.core.batch_max_size,
@@ -686,8 +701,8 @@ def get_logger(
         drop_on_full=cfg_source.core.drop_on_full,
         sink_write=sink_write,
         sink_write_serialized=sink_write_serialized,
-        enrichers=cast(list[_BaseEnricher], enrichers),
-        processors=cast(list[_BaseProcessor], processors),
+        enrichers=_cast(list[_BaseEnricher], enrichers),
+        processors=_cast(list[_BaseProcessor], processors),
         filters=filters,
         metrics=metrics,
         exceptions_enabled=cfg_source.core.exceptions_enabled,
@@ -727,8 +742,8 @@ def get_logger(
     except Exception:
         pass
     logger.start()
-    logger._redactors = cast(list[_BaseRedactor], redactors)  # noqa: SLF001
-    logger._processors = cast(list[_BaseProcessor], processors)  # noqa: SLF001
+    logger._redactors = _cast(list[_BaseRedactor], redactors)  # noqa: SLF001
+    logger._processors = _cast(list[_BaseProcessor], processors)  # noqa: SLF001
     logger._filters = filters  # noqa: SLF001
     logger._sinks = built_sinks  # noqa: SLF001
     return logger
@@ -739,7 +754,7 @@ async def get_async_logger(
     *,
     settings: _Settings | None = None,
     sinks: list[object] | None = None,
-) -> AsyncLoggerFacade:
+) -> _AsyncLoggerFacade:
     cfg_source = settings or _Settings()
     _apply_plugin_settings(cfg_source)
     built_sinks, enrichers, redactors, processors, filters, metrics = _build_pipeline(
@@ -775,9 +790,9 @@ async def get_async_logger(
     if not cfg_source.core.filters:
         lvl = cfg_source.core.log_level.upper()
         if lvl != "DEBUG":
-            level_gate = LEVEL_PRIORITY.get(lvl, None)
+            level_gate = _LEVEL_PRIORITY.get(lvl, None)
 
-    logger = AsyncLoggerFacade(
+    logger = _AsyncLoggerFacade(
         name=name,
         queue_capacity=cfg_source.core.max_queue_size,
         batch_max_size=cfg_source.core.batch_max_size,
@@ -786,8 +801,8 @@ async def get_async_logger(
         drop_on_full=cfg_source.core.drop_on_full,
         sink_write=sink_write,
         sink_write_serialized=sink_write_serialized,
-        enrichers=cast(list[_BaseEnricher], enrichers),
-        processors=cast(list[_BaseProcessor], processors),
+        enrichers=_cast(list[_BaseEnricher], enrichers),
+        processors=_cast(list[_BaseProcessor], processors),
         filters=filters,
         metrics=metrics,
         exceptions_enabled=cfg_source.core.exceptions_enabled,
@@ -827,17 +842,17 @@ async def get_async_logger(
     except Exception:
         pass
     logger.start()
-    logger._redactors = cast(list[_BaseRedactor], redactors)  # noqa: SLF001
-    logger._processors = cast(list[_BaseProcessor], processors)  # noqa: SLF001
+    logger._redactors = _cast(list[_BaseRedactor], redactors)  # noqa: SLF001
+    logger._processors = _cast(list[_BaseProcessor], processors)  # noqa: SLF001
     logger._filters = filters  # noqa: SLF001
     logger._sinks = built_sinks  # type: ignore[attr-defined]  # noqa: SLF001
     return logger
 
 
-@asynccontextmanager
+@_asynccontextmanager
 async def runtime_async(
     *, settings: _Settings | None = None
-) -> AsyncIterator[AsyncLoggerFacade]:
+) -> _AsyncIterator[_AsyncLoggerFacade]:
     """Async context manager that initializes and drains the default async runtime."""
     logger = await get_async_logger(settings=settings)
     try:
@@ -855,15 +870,13 @@ async def runtime_async(
                 pass
 
 
-@contextmanager
+@_contextmanager
 def runtime(
     *,
     settings: _Settings | None = None,
     allow_in_event_loop: bool = False,
-) -> Iterator[SyncLoggerFacade]:
+) -> _Iterator[_SyncLoggerFacade]:
     """Context manager that initializes and drains the default runtime."""
-    import asyncio as _asyncio
-
     try:
         _asyncio.get_running_loop()
     except RuntimeError:
@@ -879,11 +892,9 @@ def runtime(
     try:
         yield logger
     finally:
-        import asyncio
-
         coro = logger.stop_and_drain()
         try:
-            loop: asyncio.AbstractEventLoop | None = asyncio.get_running_loop()
+            loop: _asyncio.AbstractEventLoop | None = _asyncio.get_running_loop()
         except RuntimeError:
             loop = None
 
@@ -898,7 +909,7 @@ def runtime(
                     pass
         else:
             try:
-                _ = asyncio.run(coro)
+                _ = _asyncio.run(coro)
             except RuntimeError:
                 try:
                     coro.close()
@@ -907,8 +918,6 @@ def runtime(
                 import threading as _threading
 
                 def _runner() -> None:  # pragma: no cover - rare fallback
-                    import asyncio as _asyncio
-
                     try:
                         coro_inner = logger.stop_and_drain()
                         _asyncio.run(coro_inner)
