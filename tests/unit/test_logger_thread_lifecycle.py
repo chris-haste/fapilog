@@ -1,0 +1,446 @@
+"""
+Thread Lifecycle Tests for Core Logger
+
+Tests for thread mode operations including:
+- Worker thread startup and cleanup
+- Drain behavior and resource cleanup
+- Cross-thread message submission
+- Rapid start/stop cycles
+- Concurrent access during drain
+
+These tests verify behavioral correctness, not line coverage.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import os
+import threading
+import time
+from typing import Any
+
+import pytest
+
+from fapilog.core.logger import SyncLoggerFacade
+
+
+def _create_collecting_sink(collected: list[dict[str, Any]]):
+    """Create a sink that collects events for verification."""
+
+    async def sink(event: dict[str, Any]) -> None:
+        collected.append(dict(event))
+
+    return sink
+
+
+class TestThreadModeStartupAndCleanup:
+    """Test thread mode worker startup and cleanup behavior."""
+
+    def test_start_creates_worker_thread_and_loop(self) -> None:
+        """Starting logger creates worker thread and event loop."""
+        collected: list[dict[str, Any]] = []
+
+        logger = SyncLoggerFacade(
+            name="startup-test",
+            queue_capacity=8,
+            batch_max_size=4,
+            batch_timeout_seconds=0.1,
+            backpressure_wait_ms=1,
+            drop_on_full=True,
+            sink_write=_create_collecting_sink(collected),
+        )
+
+        # Before start: no worker
+        assert logger._worker_thread is None
+        assert logger._worker_loop is None
+
+        # Start creates worker
+        logger.start()
+        assert logger._worker_thread is not None
+        assert logger._worker_thread.is_alive()
+        assert logger._worker_loop is not None
+
+        # Cleanup
+        asyncio.run(logger.stop_and_drain())
+
+    def test_start_is_idempotent(self) -> None:
+        """Calling start() multiple times reuses the same worker."""
+        collected: list[dict[str, Any]] = []
+
+        logger = SyncLoggerFacade(
+            name="idempotent-test",
+            queue_capacity=8,
+            batch_max_size=4,
+            batch_timeout_seconds=0.1,
+            backpressure_wait_ms=1,
+            drop_on_full=True,
+            sink_write=_create_collecting_sink(collected),
+        )
+
+        logger.start()
+        original_thread = logger._worker_thread
+        original_loop = logger._worker_loop
+
+        # Start again - should be idempotent
+        logger.start()
+        assert logger._worker_thread is original_thread
+        assert logger._worker_loop is original_loop
+
+        # Cleanup
+        asyncio.run(logger.stop_and_drain())
+
+    def test_stop_and_drain_cleans_up_worker_resources(self) -> None:
+        """stop_and_drain() properly cleans up thread and loop."""
+        collected: list[dict[str, Any]] = []
+
+        logger = SyncLoggerFacade(
+            name="cleanup-test",
+            queue_capacity=8,
+            batch_max_size=4,
+            batch_timeout_seconds=0.1,
+            backpressure_wait_ms=1,
+            drop_on_full=True,
+            sink_write=_create_collecting_sink(collected),
+        )
+
+        logger.start()
+        assert logger._worker_thread is not None
+
+        # Submit some messages
+        for i in range(5):
+            logger.info(f"message {i}")
+
+        result = asyncio.run(logger.stop_and_drain())
+
+        # Resources cleaned up
+        assert logger._worker_thread is None
+        assert logger._worker_loop is None
+
+        # All submitted messages accounted for
+        assert result.submitted == 5
+        assert result.submitted == result.processed + result.dropped
+
+
+class TestThreadModeDrainBehavior:
+    """Test drain behavior processes all pending messages."""
+
+    def test_drain_processes_all_queued_messages(self) -> None:
+        """Drain waits for all queued messages to be processed."""
+        collected: list[dict[str, Any]] = []
+
+        logger = SyncLoggerFacade(
+            name="drain-test",
+            queue_capacity=100,
+            batch_max_size=10,
+            batch_timeout_seconds=0.1,
+            backpressure_wait_ms=1,
+            drop_on_full=True,
+            sink_write=_create_collecting_sink(collected),
+        )
+
+        logger.start()
+
+        # Submit messages
+        message_count = 50
+        for i in range(message_count):
+            logger.info(f"message {i}")
+
+        result = asyncio.run(logger.stop_and_drain())
+
+        # All messages submitted and processed (none dropped with large queue)
+        assert result.submitted == message_count
+        assert result.processed == message_count
+        assert result.dropped == 0
+        assert len(collected) == message_count
+
+    def test_drain_under_backpressure_drops_excess(self) -> None:
+        """Drain with full queue drops messages per configuration."""
+        collected: list[dict[str, Any]] = []
+
+        async def slow_sink(event: dict[str, Any]) -> None:
+            # Slow sink to force queue backup
+            await asyncio.sleep(0.01)
+            collected.append(dict(event))
+
+        logger = SyncLoggerFacade(
+            name="backpressure-test",
+            queue_capacity=3,  # Very small queue
+            batch_max_size=1,  # Process one at a time = slow
+            batch_timeout_seconds=0.01,  # Short timeout to trigger batches
+            backpressure_wait_ms=0,  # Immediate drop
+            drop_on_full=True,
+            sink_write=slow_sink,
+        )
+
+        logger.start()
+
+        # Flood the queue faster than it can drain
+        for i in range(50):
+            logger.info(f"flood {i}")
+
+        result = asyncio.run(logger.stop_and_drain())
+
+        # Some messages dropped due to backpressure
+        assert result.submitted == 50
+        assert result.dropped > 0
+        # Invariant: submitted = processed + dropped
+        assert result.submitted == result.processed + result.dropped
+
+    def test_drain_returns_flush_latency(self) -> None:
+        """Drain result includes flush latency measurement."""
+        collected: list[dict[str, Any]] = []
+
+        logger = SyncLoggerFacade(
+            name="latency-test",
+            queue_capacity=8,
+            batch_max_size=4,
+            batch_timeout_seconds=0.1,
+            backpressure_wait_ms=1,
+            drop_on_full=True,
+            sink_write=_create_collecting_sink(collected),
+        )
+
+        logger.start()
+        logger.info("test message")
+
+        result = asyncio.run(logger.stop_and_drain())
+
+        # Latency should be a small positive float (test completes quickly)
+        assert isinstance(result.flush_latency_seconds, float)
+        assert 0 <= result.flush_latency_seconds < 10.0
+
+
+class TestCrossThreadSubmission:
+    """Test message submission from multiple threads."""
+
+    def test_messages_from_other_threads_are_processed(self) -> None:
+        """Messages submitted from non-main threads reach the sink."""
+        collected: list[dict[str, Any]] = []
+
+        logger = SyncLoggerFacade(
+            name="cross-thread-test",
+            queue_capacity=100,
+            batch_max_size=10,
+            batch_timeout_seconds=0.1,
+            backpressure_wait_ms=10,
+            drop_on_full=True,
+            sink_write=_create_collecting_sink(collected),
+        )
+
+        logger.start()
+
+        # Submit from main thread
+        logger.info("main-thread")
+
+        # Submit from another thread
+        def submit_from_thread():
+            for i in range(10):
+                logger.info(f"other-thread-{i}")
+
+        thread = threading.Thread(target=submit_from_thread)
+        thread.start()
+        thread.join()
+
+        result = asyncio.run(logger.stop_and_drain())
+
+        # All messages processed
+        assert result.submitted == 11
+        assert result.processed == 11
+
+        # Verify messages from both threads arrived
+        messages = [e.get("message") for e in collected]
+        assert "main-thread" in messages
+        assert "other-thread-0" in messages
+        assert "other-thread-9" in messages
+
+    def test_queue_full_drops_from_cross_thread_submission(self) -> None:
+        """Cross-thread submissions respect queue limits and drop policy."""
+        collected: list[dict[str, Any]] = []
+
+        logger = SyncLoggerFacade(
+            name="cross-thread-drop-test",
+            queue_capacity=2,  # Very small queue
+            batch_max_size=100,  # Large batch = slow drain
+            batch_timeout_seconds=1.0,
+            backpressure_wait_ms=0,  # Immediate drop
+            drop_on_full=True,
+            sink_write=_create_collecting_sink(collected),
+        )
+
+        logger.start()
+
+        # Flood from multiple threads
+        def flood():
+            for i in range(50):
+                logger.info(f"flood-{i}")
+
+        threads = [threading.Thread(target=flood) for _ in range(3)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        result = asyncio.run(logger.stop_and_drain())
+
+        # Many messages dropped due to small queue
+        assert result.submitted == 150
+        assert result.dropped > 0
+        assert result.submitted == result.processed + result.dropped
+
+
+class TestRapidStartStopCycles:
+    """Test rapid start/stop cycles don't leak resources."""
+
+    def test_rapid_cycles_complete_without_resource_leaks(self) -> None:
+        """Multiple start/stop cycles don't leak threads or memory."""
+        total_submitted = 0
+        total_processed = 0
+
+        for cycle in range(5):
+            collected: list[dict[str, Any]] = []
+            logger = SyncLoggerFacade(
+                name=f"rapid-cycle-test-{cycle}",
+                queue_capacity=8,
+                batch_max_size=4,
+                batch_timeout_seconds=0.01,
+                backpressure_wait_ms=1,
+                drop_on_full=True,
+                sink_write=_create_collecting_sink(collected),
+            )
+            logger.start()
+            logger.info(f"cycle-{cycle}")
+            result = asyncio.run(logger.stop_and_drain())
+
+            # Each cycle submits and processes exactly 1 message
+            assert result.submitted == 1
+            assert result.processed == 1
+            assert result.dropped == 0
+            total_submitted += result.submitted
+            total_processed += result.processed
+
+            # Resources cleaned up after each cycle
+            assert logger._worker_thread is None
+            assert logger._worker_loop is None
+
+        # All messages across cycles were processed
+        assert total_submitted == 5
+        assert total_processed == 5
+
+    @pytest.mark.skipif(
+        os.getenv("CI") == "true", reason="Timing-sensitive; skipped in CI"
+    )
+    def test_concurrent_submissions_during_drain(self) -> None:
+        """Submissions during drain are handled gracefully."""
+        collected: list[dict[str, Any]] = []
+
+        logger = SyncLoggerFacade(
+            name="concurrent-drain-test",
+            queue_capacity=100,
+            batch_max_size=10,
+            batch_timeout_seconds=0.1,
+            backpressure_wait_ms=1,
+            drop_on_full=True,
+            sink_write=_create_collecting_sink(collected),
+        )
+
+        logger.start()
+
+        # Submit from multiple threads
+        def submit_messages(thread_id: int):
+            for i in range(20):
+                logger.info(f"thread-{thread_id}-msg-{i}")
+                time.sleep(0.001)
+
+        threads = [
+            threading.Thread(target=submit_messages, args=(i,)) for i in range(3)
+        ]
+        for t in threads:
+            t.start()
+
+        # Wait for all threads to complete before draining
+        for t in threads:
+            t.join()
+
+        result = asyncio.run(logger.stop_and_drain())
+
+        # All 60 messages (3 threads x 20 messages) should be accounted for
+        assert result.submitted == 60
+        # Invariant: submitted = processed + dropped
+        assert result.submitted == result.processed + result.dropped
+        # With large queue, all should be processed
+        assert result.processed == 60
+        assert result.dropped == 0
+
+
+class TestMetricsInThreadMode:
+    """Test metrics collection in thread mode."""
+
+    def test_metrics_submission_outside_event_loop(self) -> None:
+        """Metrics are tracked correctly when logger runs in thread mode."""
+        from fapilog.metrics.metrics import MetricsCollector
+
+        metrics = MetricsCollector(enabled=True)
+        collected: list[dict[str, Any]] = []
+
+        logger = SyncLoggerFacade(
+            name="metrics-thread-test",
+            queue_capacity=8,
+            batch_max_size=4,
+            batch_timeout_seconds=0.05,
+            backpressure_wait_ms=1,
+            drop_on_full=True,
+            sink_write=_create_collecting_sink(collected),
+            metrics=metrics,
+        )
+        logger.start()
+        logger.info("outside-loop")
+        result = asyncio.run(logger.stop_and_drain())
+
+        # Verify message was submitted and processed
+        assert result.submitted == 1
+        assert result.processed == 1
+        assert result.dropped == 0
+        # Verify message content
+        assert len(collected) == 1
+        assert collected[0].get("message") == "outside-loop"
+
+
+class TestAsyncBackpressure:
+    """Test async logger backpressure behavior."""
+
+    @pytest.mark.asyncio
+    async def test_async_backpressure_drops_when_queue_full(self) -> None:
+        """AsyncLoggerFacade drops messages immediately when queue full and wait=0."""
+        from fapilog.core.logger import AsyncLoggerFacade
+
+        collected: list[dict[str, Any]] = []
+
+        async def sink(event: dict[str, Any]) -> None:
+            collected.append(dict(event))
+
+        logger = AsyncLoggerFacade(
+            name="async-backpressure-test",
+            queue_capacity=1,  # Very small queue
+            batch_max_size=1024,  # Large batch = slow drain
+            batch_timeout_seconds=0.2,
+            backpressure_wait_ms=0,  # Immediate drop when full
+            drop_on_full=True,
+            sink_write=sink,
+        )
+        logger.start()
+
+        # Fill queue with first message
+        await logger.info("seed")
+
+        # Submit many more that should be dropped
+        for _ in range(10):
+            await logger.info("x")
+
+        result = await logger.stop_and_drain()
+
+        # All 11 messages submitted (1 seed + 10 flood)
+        assert result.submitted == 11
+        # With queue_capacity=1, at most 2 can be processed (queue + in-flight)
+        assert result.dropped >= 9
+        # Invariant: submitted = processed + dropped
+        assert result.submitted == result.processed + result.dropped

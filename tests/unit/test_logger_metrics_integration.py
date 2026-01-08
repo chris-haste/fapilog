@@ -42,6 +42,6 @@ async def test_sink_error_counter_and_flush_histogram_recorded() -> None:
 
     reg = metrics.registry
     assert reg is not None
-    # Flush histogram should have at least one count
+    # Flush histogram should have exactly one count (one flush occurred)
     flush_count = _sum_samples(reg, "fapilog_flush_seconds", "_count")
-    assert flush_count >= 1.0
+    assert flush_count == 1.0
