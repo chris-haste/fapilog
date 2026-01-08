@@ -156,7 +156,10 @@ class TestSinkCircuitBreaker:
         assert breaker.state == CircuitState.OPEN
 
     def test_half_open_limits_calls(self):
-        """Half-open state limits number of probe calls."""
+        """Half-open state limits number of probe calls.
+
+        should_allow() atomically increments and checks the call limit.
+        """
         from fapilog.core.circuit_breaker import (
             SinkCircuitBreaker,
             SinkCircuitBreakerConfig,
@@ -169,19 +172,16 @@ class TestSinkCircuitBreaker:
         )
         breaker = SinkCircuitBreaker("test_sink", config)
 
-        # Open and transition to half-open
+        # Open and transition to half-open (counts as call 1)
         breaker.record_failure()
         time.sleep(0.02)
-        breaker.should_allow()
+        assert breaker.should_allow()  # Transitions to HALF_OPEN, call 1
         assert breaker.state == CircuitState.HALF_OPEN
 
-        # Should allow up to half_open_max_calls
+        # Second call should be allowed (call 2, at limit)
         assert breaker.should_allow()
-        breaker._half_open_calls += 1
-        assert breaker.should_allow()
-        breaker._half_open_calls += 1
 
-        # Beyond max calls should not allow
+        # Third call should be denied (exceeds half_open_max_calls=2)
         assert not breaker.should_allow()
 
 
