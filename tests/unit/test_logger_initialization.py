@@ -1,7 +1,13 @@
 """
-Comprehensive tests for src/fapilog/__init__.py to improve coverage.
+Logger Initialization Tests
 
-This file targets the missing coverage areas identified in the coverage report.
+Tests for logger initialization behavior including:
+- get_async_logger configuration and startup
+- runtime and runtime_async context managers
+- Settings configuration and validation
+- Edge cases in logger creation
+
+These tests verify initialization correctness with strong behavioral assertions.
 """
 
 import os

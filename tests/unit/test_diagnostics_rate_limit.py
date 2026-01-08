@@ -30,7 +30,7 @@ def test_diagnostics_emit_exception_handling(monkeypatch: pytest.MonkeyPatch) ->
     # Force diagnostics enabled
     monkeypatch.setattr(diag, "_is_enabled", lambda: True)
 
-    # Test exception when getting request_id_var (lines 99-100)
+    # Test exception handling when request_id context var is unavailable
     from unittest.mock import patch
 
     # Patch the context module where request_id_var is imported from
@@ -40,7 +40,7 @@ def test_diagnostics_emit_exception_handling(monkeypatch: pytest.MonkeyPatch) ->
         diag.emit(component="test", level="DEBUG", message="test")
         # Verify it handled the exception
 
-    # Test exception when calling _writer (lines 114-116)
+    # Test exception handling when writer callback fails
     def failing_writer(payload: dict[str, Any]) -> None:
         raise RuntimeError("Writer error")
 

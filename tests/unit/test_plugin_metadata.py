@@ -394,7 +394,7 @@ class TestValidateFapilogCompatibility:
             entry_point="test_plugin.main",
             compatibility=PluginCompatibility(min_fapilog_version="3.0.0"),
         )
-        # Should return True on errors (permissive) - covers lines 171-173
+        # Should return True on errors (permissive fallback behavior)
         assert validate_fapilog_compatibility(metadata) is True
 
     @patch("fapilog.plugins.metadata.importlib.metadata.version")
