@@ -76,6 +76,15 @@ repos:
         always_run: true
         types: [python]
 
+      - id: lint-test-assertions
+        name: Lint weak test assertions
+        entry: python scripts/lint_test_assertions.py tests/ --baseline .weak-assertion-baseline.txt
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+        description: "Detect weak assertion patterns (>= 0, >= 1, is not None)"
+
       - id: release-guardrails
         name: Release Guardrails Check
         entry: python scripts/check_release_guardrails.py
