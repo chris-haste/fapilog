@@ -8,11 +8,13 @@ on:
     paths:
       - "src/fapilog/plugins/sinks/contrib/postgres.py"
       - "tests/integration/test_postgres_sink.py"
+      - "tests/integration/test_redaction_sinks.py"
       - "tests/unit/test_postgres_sink_unit.py"
   pull_request:
     paths:
       - "src/fapilog/plugins/sinks/contrib/postgres.py"
       - "tests/integration/test_postgres_sink.py"
+      - "tests/integration/test_redaction_sinks.py"
       - "tests/unit/test_postgres_sink_unit.py"
 
 jobs:
@@ -45,7 +47,7 @@ jobs:
 
       - name: Run PostgreSQL tests
         run: |
-          pytest tests/unit/test_postgres_sink_unit.py tests/integration/test_postgres_sink.py -v
+          pytest tests/unit/test_postgres_sink_unit.py tests/integration/test_postgres_sink.py tests/integration/test_redaction_sinks.py -v
         env:
           FAPILOG_POSTGRES__HOST: localhost
           FAPILOG_POSTGRES__PORT: 5432

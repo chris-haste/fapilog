@@ -259,6 +259,7 @@ markers = [
     "integration: marks tests as integration tests",
     "benchmark: marks tests as benchmark tests",
     "enterprise: marks tests as enterprise features",
+    "security: marks tests as security-critical (redaction, audit trails)",
 ]
 
 [tool.ruff]
