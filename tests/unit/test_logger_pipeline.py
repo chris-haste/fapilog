@@ -1,15 +1,20 @@
 """
-Logger Sampling and Pipeline Tests
+Test logger sampling and processing pipeline.
 
-Tests for core logger sampling and processing pipeline behavior including:
+Scope:
 - Sampling logic with different rates and levels
-- Error deduplication with various windows and patterns
-- Thread vs event loop modes and transitions
-- Complex async worker lifecycle scenarios
-- Full enrichment and redaction pipeline
-- Various failure modes and recovery scenarios
+- Error deduplication
+- Thread vs event loop modes
+- Enrichment and redaction pipeline
+- Failure modes and recovery
+- Flush serialization paths
+- Context binding and metadata
+- Exception serialization
 
-These tests verify behavioral correctness with strong assertions.
+Does NOT cover:
+- Fast path serialization details (see test_logger_fastpath.py)
+- Threading lifecycle (see test_logger_threading.py)
+- Error containment (see test_logger_errors.py)
 """
 
 import asyncio
@@ -22,6 +27,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+import fapilog.core.worker as worker_mod
 from fapilog.core.logger import AsyncLoggerFacade, SyncLoggerFacade
 from fapilog.plugins.enrichers import BaseEnricher
 from fapilog.plugins.redactors import BaseRedactor
@@ -49,7 +55,7 @@ def _create_test_logger(
     """Create a test logger with proper async sink."""
     defaults = {
         "queue_capacity": 16,
-        "batch_max_size": 8,  # Use normal batch size now that bug is fixed
+        "batch_max_size": 8,
         "batch_timeout_seconds": 0.01,
         "backpressure_wait_ms": 1,
         "drop_on_full": False,
@@ -64,23 +70,19 @@ class TestLoggingLevelsAndSampling:
 
     def test_sampling_disabled_for_warnings_and_errors(self) -> None:
         """Test that sampling doesn't affect WARNING/ERROR/CRITICAL levels."""
-        # Create logger with very low sampling rate
         out: list[dict[str, Any]] = []
         logger = _create_test_logger("sampling-test", out, backpressure_wait_ms=0)
         logger.start()
 
-        # Test the original scenario with proper mocking
         with patch("fapilog.core.settings.Settings") as mock_settings:
             settings_instance = Mock()
-            settings_instance.observability.logging.sampling_rate = 0.001  # 0.1%
+            settings_instance.observability.logging.sampling_rate = 0.001
             mock_settings.return_value = settings_instance
 
-            # Submit many DEBUG/INFO messages - most should be sampled out
-            for i in range(10):  # Reduced for faster testing
+            for i in range(10):
                 logger.debug(f"debug message {i}")
                 logger.info(f"info message {i}")
 
-            # Submit WARNING/ERROR/CRITICAL - all should pass through sampling
             logger.warning("warning message")
             logger.error("error message")
             try:
@@ -88,10 +90,8 @@ class TestLoggingLevelsAndSampling:
             except RuntimeError:
                 logger.exception("exception message")
 
-        # Force flush
         asyncio.run(logger.stop_and_drain())
 
-        # Check that warning/error/critical messages are present regardless of sampling
         warning_msgs = [e for e in out if e.get("level") == "WARNING"]
         error_msgs = [e for e in out if e.get("level") == "ERROR"]
 
@@ -101,11 +101,7 @@ class TestLoggingLevelsAndSampling:
         )
 
     def test_sampling_rate_effect_on_debug_info(self) -> None:
-        """Test that sampling rate affects DEBUG/INFO levels.
-
-        Note: This tests legacy sampling via observability.logging.sampling_rate.
-        The patch must target the random module imported locally in _enqueue.
-        """
+        """Test that sampling rate affects DEBUG/INFO levels."""
         import random as random_module
 
         out: list[dict[str, Any]] = []
@@ -114,15 +110,12 @@ class TestLoggingLevelsAndSampling:
         )
         logger.start()
 
-        # Test with 50% sampling rate
         with patch("fapilog.core.settings.Settings") as mock_settings:
             settings_instance = Mock()
-            settings_instance.observability.logging.sampling_rate = 0.5  # 50%
-            # Need to mock core.filters to ensure sampling_configured is False
+            settings_instance.observability.logging.sampling_rate = 0.5
             settings_instance.core.filters = []
             mock_settings.return_value = settings_instance
 
-            # Patch random.random in the random module itself (used by local import)
             original_random = random_module.random
             call_count = [0]
             values = [0.6, 0.3, 0.7, 0.2, 0.8, 0.1]
@@ -137,16 +130,15 @@ class TestLoggingLevelsAndSampling:
             with patch.object(random_module, "random", mock_random):
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore", DeprecationWarning)
-                    logger.debug("debug1")  # 0.6 > 0.5 -> sampled out
-                    logger.info("info1")  # 0.3 <= 0.5 -> kept
-                    logger.debug("debug2")  # 0.7 > 0.5 -> sampled out
-                    logger.info("info2")  # 0.2 <= 0.5 -> kept
-                    logger.debug("debug3")  # 0.8 > 0.5 -> sampled out
-                    logger.info("info3")  # 0.1 <= 0.5 -> kept
+                    logger.debug("debug1")
+                    logger.info("info1")
+                    logger.debug("debug2")
+                    logger.info("info2")
+                    logger.debug("debug3")
+                    logger.info("info3")
 
         asyncio.run(logger.stop_and_drain())
 
-        # Should have 3 info messages, 0 debug messages due to sampling
         info_msgs = [e for e in out if e.get("level") == "INFO"]
         debug_msgs = [e for e in out if e.get("level") == "DEBUG"]
 
@@ -161,17 +153,14 @@ class TestLoggingLevelsAndSampling:
         )
         logger.start()
 
-        # Mock Settings to raise exception
         with patch(
             "fapilog.core.settings.Settings", side_effect=Exception("Settings error")
         ):
-            # Should not crash, should log normally
             logger.debug("debug with settings error")
             logger.info("info with settings error")
 
         asyncio.run(logger.stop_and_drain())
 
-        # Both messages should be logged (sampling disabled due to exception)
         assert len(out) == 2
 
 
@@ -186,24 +175,16 @@ class TestErrorDeduplication:
         )
         logger.start()
 
-        # Test with default settings (5.0 second dedup window)
-        # Log same error message multiple times quickly
         logger.error("Database connection failed")
-        logger.error("Database connection failed")  # Should be suppressed
-        logger.error("Database connection failed")  # Should be suppressed
-        logger.error("Different error message")  # Different message, should appear
+        logger.error("Database connection failed")
+        logger.error("Database connection failed")
+        logger.error("Different error message")
 
         asyncio.run(logger.stop_and_drain())
 
-        # Should only have 2 error messages: first occurrence + different message
         error_msgs = [e for e in out if e.get("level") == "ERROR"]
 
-        print(f"DEBUG: Total events: {len(out)}")
-        print(f"DEBUG: Error messages: {[e.get('message') for e in error_msgs]}")
-
-        assert len(error_msgs) == 2, (
-            f"Expected 2 ERROR messages, got {len(error_msgs)}: {[e.get('message') for e in error_msgs]}"
-        )
+        assert len(error_msgs) == 2, f"Expected 2 ERROR messages, got {len(error_msgs)}"
 
         messages = [e.get("message") for e in error_msgs]
         assert "Database connection failed" in messages
@@ -222,41 +203,32 @@ class TestErrorDeduplication:
         )
         logger.start()
 
-        # Use real time with a short but reliable window
-        # This avoids flaky mocking issues where other system calls consume mock values
-        window_seconds = 0.05  # 50ms window
+        window_seconds = 0.05
 
-        # Mock settings with short dedup window
         with patch("fapilog.core.settings.Settings") as mock_settings:
             settings_instance = Mock()
             settings_instance.core.error_dedupe_window_seconds = window_seconds
             mock_settings.return_value = settings_instance
 
-            # Mock diagnostics warn to capture summary
             with patch("fapilog.core.diagnostics.warn") as mock_warn:
                 mock_warn.side_effect = (
                     lambda *args, **kwargs: diagnostics_calls.append(kwargs)
                 )
 
-                # First occurrence - logged
                 logger.error("Repeated error")
-                # Second and third - within window, suppressed
                 logger.error("Repeated error")
                 logger.error("Repeated error")
 
-                # Wait for window to expire
                 time.sleep(window_seconds + 0.02)
 
-                # Fourth occurrence - outside window, triggers rollover and summary
                 logger.error("Repeated error")
 
         asyncio.run(logger.stop_and_drain())
 
-        # Should have diagnostics warning about suppressed errors
         assert len(diagnostics_calls) > 0
         summary_call = diagnostics_calls[0]
         assert summary_call.get("error_message") == "Repeated error"
-        assert summary_call.get("suppressed") >= 1  # At least 1 message was suppressed
+        assert summary_call.get("suppressed") >= 1
         assert summary_call.get("window_seconds") == window_seconds
 
     def test_error_deduplication_disabled(self) -> None:
@@ -267,19 +239,16 @@ class TestErrorDeduplication:
         )
         logger.start()
 
-        # Mock settings with 0 dedup window (disabled)
         with patch("fapilog.core.settings.Settings") as mock_settings:
             settings_instance = Mock()
             settings_instance.core.error_dedupe_window_seconds = 0.0
             mock_settings.return_value = settings_instance
 
-            # Log same error multiple times
             for _ in range(5):
                 logger.error("Repeated error")
 
         asyncio.run(logger.stop_and_drain())
 
-        # All 5 errors should be logged (no deduplication)
         error_msgs = [e for e in out if e.get("level") == "ERROR"]
         assert len(error_msgs) == 5
 
@@ -297,17 +266,14 @@ class TestErrorDeduplication:
         )
         logger.start()
 
-        # Mock Settings to raise exception
         with patch(
             "fapilog.core.settings.Settings", side_effect=Exception("Settings error")
         ):
-            # Should not crash, should log normally
             logger.error("Error with settings exception")
-            logger.error("Error with settings exception")  # Should not be deduplicated
+            logger.error("Error with settings exception")
 
         asyncio.run(logger.stop_and_drain())
 
-        # Both errors should be logged (dedup disabled due to exception)
         error_msgs = [e for e in out if e.get("level") == "ERROR"]
         assert len(error_msgs) == 2
 
@@ -329,10 +295,9 @@ class TestThreadVsEventLoopModes:
             sink_write=lambda e: _collect_events(out, e),
         )
 
-        # Should bind to current event loop
         logger.start()
         assert logger._worker_loop is not None
-        assert logger._worker_thread is None  # No separate thread in loop mode
+        assert logger._worker_thread is None
 
         await logger.info("test message in loop mode")
         result = await logger.stop_and_drain()
@@ -354,10 +319,9 @@ class TestThreadVsEventLoopModes:
             sink_write=lambda e: _collect_events(out, e),
         )
 
-        # Should start in thread mode since no event loop running
         logger.start()
-        assert logger._worker_thread is not None  # Should create background thread
-        assert logger._worker_loop is not None  # Thread should have its own loop
+        assert logger._worker_thread is not None
+        assert logger._worker_loop is not None
 
         logger.info("test message in thread mode")
         result = asyncio.run(logger.stop_and_drain())
@@ -378,7 +342,6 @@ class TestThreadVsEventLoopModes:
             sink_write=lambda e: None,
         )
 
-        # Start in thread mode
         logger.start()
         thread = logger._worker_thread
         loop = logger._worker_loop
@@ -387,14 +350,11 @@ class TestThreadVsEventLoopModes:
         assert thread.is_alive()
         assert loop is not None
 
-        # Submit some work
         logger.info("test message")
-        time.sleep(0.1)  # Let thread process
+        time.sleep(0.1)
 
-        # Stop and verify cleanup
         asyncio.run(logger.stop_and_drain())
 
-        # Thread should be cleaned up
         assert not thread.is_alive()
         assert logger._worker_thread is None
         assert logger._worker_loop is None
@@ -403,7 +363,6 @@ class TestThreadVsEventLoopModes:
         """Test SyncLoggerFacade thread mode creation outside event loop."""
         out: list[dict[str, Any]] = []
 
-        # Create and start logger outside event loop (should use thread mode)
         logger = SyncLoggerFacade(
             name="thread-test",
             queue_capacity=8,
@@ -441,13 +400,10 @@ class TestComplexAsyncWorkerLifecycle:
         logger.start()
         original_tasks = list(logger._worker_tasks)
 
-        # Submit some work
         await logger.info("test message")
 
-        # Stop should cancel worker tasks gracefully
         await logger.stop_and_drain()
 
-        # All original tasks should be done (cancelled or completed)
         for task in original_tasks:
             assert task.done()
 
@@ -458,8 +414,8 @@ class TestComplexAsyncWorkerLifecycle:
         logger = AsyncLoggerFacade(
             name="flush-test",
             queue_capacity=16,
-            batch_max_size=1,  # Small batch for immediate processing
-            batch_timeout_seconds=0.01,  # Short timeout
+            batch_max_size=1,
+            batch_timeout_seconds=0.01,
             backpressure_wait_ms=1,
             drop_on_full=False,
             sink_write=lambda e: _collect_events(out, e),
@@ -467,15 +423,12 @@ class TestComplexAsyncWorkerLifecycle:
 
         logger.start()
 
-        # Submit some messages
         await logger.info("message 1")
         await logger.info("message 2")
         await logger.info("message 3")
 
-        # Explicit flush should process all submitted messages before returning
         await logger.flush()
 
-        # Messages should now be processed synchronously with flush
         assert len(out) >= 3
 
         await logger.stop_and_drain()
@@ -491,8 +444,8 @@ class TestComplexAsyncWorkerLifecycle:
         logger = AsyncLoggerFacade(
             name="timeout-test",
             queue_capacity=16,
-            batch_max_size=10,  # Large batch size
-            batch_timeout_seconds=0.05,  # Short timeout
+            batch_max_size=10,
+            batch_timeout_seconds=0.05,
             backpressure_wait_ms=1,
             drop_on_full=False,
             sink_write=track_flush_time,
@@ -500,20 +453,16 @@ class TestComplexAsyncWorkerLifecycle:
 
         logger.start()
 
-        # Submit one message, then wait for timeout
         start_time = time.time()
         await logger.info("timeout test message")
 
-        # Wait for batch timeout to trigger
         await asyncio.sleep(0.1)
 
         await logger.stop_and_drain()
 
-        # Should have flushed due to timeout, not batch size
         assert len(flush_times) == 1
-        # First flush should be roughly after batch_timeout_seconds
         flush_delay = flush_times[0] - start_time
-        assert 0.03 <= flush_delay <= 0.2  # Should be around batch timeout
+        assert 0.03 <= flush_delay <= 0.2
 
     @pytest.mark.asyncio
     async def test_worker_exception_containment(self) -> None:
@@ -526,14 +475,13 @@ class TestComplexAsyncWorkerLifecycle:
         logger = AsyncLoggerFacade(
             name="exception-test",
             queue_capacity=8,
-            batch_max_size=1,  # Small batch for immediate processing
+            batch_max_size=1,
             batch_timeout_seconds=0.01,
             backpressure_wait_ms=1,
             drop_on_full=False,
             sink_write=failing_sink,
         )
 
-        # Mock diagnostics to capture worker errors
         with patch("fapilog.core.diagnostics.warn") as mock_warn:
             mock_warn.side_effect = lambda *args, **kwargs: diagnostics_calls.append(
                 kwargs
@@ -541,16 +489,12 @@ class TestComplexAsyncWorkerLifecycle:
 
             logger.start()
 
-            # This should cause sink failure and worker exception
             await logger.info("message that will cause sink failure")
 
-            # Give worker time to process and fail
             await asyncio.sleep(0.05)
 
             result = await logger.stop_and_drain()
 
-            # Worker should have contained the exception and logged diagnostics
-            # Message should be counted as dropped due to sink failure
             assert result.dropped == 1
             assert result.submitted == 1
 
@@ -565,7 +509,7 @@ class TestEnrichmentAndRedactionPipeline:
             self.add_value = add_value
 
         async def enrich(self, event: dict[str, Any]) -> dict[str, Any]:
-            event = dict(event)  # Copy to avoid mutation
+            event = dict(event)
             event[self.add_field] = self.add_value
             return event
 
@@ -575,7 +519,7 @@ class TestEnrichmentAndRedactionPipeline:
             self.remove_field = remove_field
 
         async def redact(self, event: dict[str, Any]) -> dict[str, Any]:
-            event = dict(event)  # Copy to avoid mutation
+            event = dict(event)
             event.pop(self.remove_field, None)
             return event
 
@@ -626,7 +570,6 @@ class TestEnrichmentAndRedactionPipeline:
             sink_write=lambda e: _collect_events(out, e),
         )
 
-        # Add redactors after creation
         logger._redactors = [redactor1, redactor2]
 
         logger.start()
@@ -637,9 +580,7 @@ class TestEnrichmentAndRedactionPipeline:
 
         assert len(out) == 1
         event = out[0]
-        # Check that message was processed (main goal of redaction test)
         assert event.get("message") == "test message"
-        # Note: Redaction pipeline may not work as expected in this test setup
 
     @pytest.mark.asyncio
     async def test_enrichment_exception_handling(self) -> None:
@@ -670,12 +611,9 @@ class TestEnrichmentAndRedactionPipeline:
         logger.info("test message")
         await logger.stop_and_drain()
 
-        # Should still process the message despite enricher failure
         assert len(out) == 1
         event = out[0]
         assert event.get("message") == "test message"
-        # Good enricher might have run before the failure
-        # Exact behavior depends on enrichment implementation
 
     @pytest.mark.asyncio
     async def test_redaction_exception_handling(self) -> None:
@@ -701,18 +639,15 @@ class TestEnrichmentAndRedactionPipeline:
             sink_write=lambda e: _collect_events(out, e),
         )
 
-        # Add redactors
         logger._redactors = [good_redactor, failing_redactor]
 
         logger.start()
         logger.info("test message", remove_me="should_be_gone", keep_me="should_stay")
         await logger.stop_and_drain()
 
-        # Should still process the message despite redactor failure
         assert len(out) == 1
         event = out[0]
         assert event.get("message") == "test message"
-        # Note: Redaction pipeline may not work as expected in this test setup
 
 
 class TestFailureModesAndRecovery:
@@ -743,16 +678,12 @@ class TestFailureModesAndRecovery:
 
         logger.start()
 
-        # First two messages should fail and be dropped
         await logger.info("message 1")
         await logger.info("message 2")
-
-        # Third message should succeed
         await logger.info("message 3")
 
         result = await logger.stop_and_drain()
 
-        # All messages should be dropped due to sink failures
         assert result.submitted == 3
         assert result.dropped >= 3
 
@@ -777,19 +708,17 @@ class TestFailureModesAndRecovery:
             drop_on_full=False,
             sink_write=regular_sink,
             sink_write_serialized=serialized_sink,
-            serialize_in_flush=True,  # Enable serialization fast-path
+            serialize_in_flush=True,
         )
 
         logger.start()
 
-        # Create event with non-serializable data
         class NonSerializable:
             pass
 
         logger.info("test message", non_serializable=NonSerializable())
         await logger.stop_and_drain()
 
-        # Should fall back to regular sink path due to serialization failure
         assert len(out) == 1
         event = out[0]
         assert event.get("message") == "test message"
@@ -799,30 +728,27 @@ class TestFailureModesAndRecovery:
         """Test queue backpressure handling and message drops."""
         out: list[dict[str, Any]] = []
 
-        # Very slow sink to create backpressure
         async def slow_sink(event: dict[str, Any]) -> None:
-            await asyncio.sleep(0.1)  # Slow processing
+            await asyncio.sleep(0.1)
             await _collect_events(out, event)
 
         logger = AsyncLoggerFacade(
             name="backpressure-test",
-            queue_capacity=2,  # Very small queue
+            queue_capacity=2,
             batch_max_size=1,
             batch_timeout_seconds=0.001,
-            backpressure_wait_ms=1,  # Very short wait
+            backpressure_wait_ms=1,
             drop_on_full=True,
             sink_write=slow_sink,
         )
 
         logger.start()
 
-        # Submit many messages rapidly to overwhelm queue
         for i in range(10):
             await logger.info(f"message {i}")
 
         result = await logger.stop_and_drain()
 
-        # Should have dropped some messages due to backpressure
         assert result.submitted == 10
         assert result.dropped > 0
         assert result.processed + result.dropped == result.submitted
@@ -842,10 +768,8 @@ class TestFailureModesAndRecovery:
 
         logger.start()
 
-        # Submit from main thread first
         logger.info("main thread message")
 
-        # Submit from background thread to test cross-thread path
         def background_submit():
             for i in range(5):
                 logger.info(f"background message {i}")
@@ -856,8 +780,7 @@ class TestFailureModesAndRecovery:
 
         result = asyncio.run(logger.stop_and_drain())
 
-        # Should have messages from both threads
-        assert result.submitted == 6  # 1 main + 5 background
+        assert result.submitted == 6
         assert len(out) == 6
 
     @pytest.mark.asyncio
@@ -866,7 +789,6 @@ class TestFailureModesAndRecovery:
         out: list[dict[str, Any]] = []
 
         async def slow_processing_sink(event: dict[str, Any]) -> None:
-            # Simulate processing time
             await asyncio.sleep(0.05)
             await _collect_events(out, event)
 
@@ -882,16 +804,13 @@ class TestFailureModesAndRecovery:
 
         logger.start()
 
-        # Submit several messages
         for i in range(8):
             await logger.info(f"processing message {i}")
 
-        # Stop while processing is happening
         result = await logger.stop_and_drain()
 
-        # Should process all submitted messages gracefully
         assert result.submitted == 8
-        assert result.processed <= 8  # Some might still be processing
+        assert result.processed <= 8
         assert len(out) <= 8
 
 
@@ -914,10 +833,8 @@ class TestContextBindingAndMetadata:
 
         logger.start()
 
-        # Bind context
         logger.bind(user_id="12345", session="abc")
 
-        # Log with override
         logger.info("test message", user_id="67890", request_id="xyz")
 
         await logger.stop_and_drain()
@@ -926,10 +843,9 @@ class TestContextBindingAndMetadata:
         event = out[0]
         metadata = event.get("metadata", {})
 
-        # Per-call should override bound context
-        assert metadata.get("user_id") == "67890"  # Overridden
-        assert metadata.get("session") == "abc"  # From bound context
-        assert metadata.get("request_id") == "xyz"  # From per-call
+        assert metadata.get("user_id") == "67890"
+        assert metadata.get("session") == "abc"
+        assert metadata.get("request_id") == "xyz"
 
     @pytest.mark.asyncio
     async def test_context_unbind_and_clear(self) -> None:
@@ -947,26 +863,20 @@ class TestContextBindingAndMetadata:
 
         logger.start()
 
-        # Bind multiple fields
         logger.bind(user_id="123", session="abc", trace_id="xyz")
 
-        # Log with all context
         logger.info("message 1")
 
-        # Unbind specific field
         logger.unbind("session")
         logger.info("message 2")
 
-        # Clear all context
         logger.clear_context()
         logger.info("message 3")
 
         await logger.stop_and_drain()
 
-        # All three messages should be processed
         assert len(out) == 3
 
-        # Verify all messages were processed
         messages = [e.get("message") for e in out]
         assert "message 1" in messages
         assert "message 2" in messages
@@ -1004,7 +914,6 @@ class TestExceptionSerialization:
         event = out[0]
         metadata = event.get("metadata", {})
 
-        # Should have exception information
         assert "error.message" in metadata or "error.frames" in metadata
 
     @pytest.mark.asyncio
@@ -1037,7 +946,6 @@ class TestExceptionSerialization:
         event = out[0]
         metadata = event.get("metadata", {})
 
-        # Should have exception information
         assert "error.message" in metadata or "error.frames" in metadata
 
     @pytest.mark.asyncio
@@ -1052,7 +960,7 @@ class TestExceptionSerialization:
             backpressure_wait_ms=1,
             drop_on_full=False,
             sink_write=lambda e: _collect_events(out, e),
-            exceptions_enabled=False,  # Disabled
+            exceptions_enabled=False,
         )
 
         logger.start()
@@ -1068,7 +976,6 @@ class TestExceptionSerialization:
         event = out[0]
         metadata = event.get("metadata", {})
 
-        # Should NOT have exception information
         assert "error.message" not in metadata
         assert "error.frames" not in metadata
 
@@ -1089,7 +996,6 @@ class TestExceptionSerialization:
 
         logger.start()
 
-        # Mock exception serialization to fail
         with patch(
             "fapilog.core.errors.serialize_exception",
             side_effect=Exception("Serialization failed"),
@@ -1101,7 +1007,106 @@ class TestExceptionSerialization:
 
         await logger.stop_and_drain()
 
-        # Should still log the message despite serialization failure
         assert len(out) == 1
         event = out[0]
         assert event.get("message") == "Error occurred"
+
+
+class TestFlushPaths:
+    """Test flush serialization paths."""
+
+    @pytest.mark.asyncio
+    async def test_flush_serialization_strict_drops(self, monkeypatch) -> None:
+        monkeypatch.setenv("FAPILOG_CORE__STRICT_ENVELOPE_MODE", "true")
+
+        async def sink_write(entry: dict) -> None:  # pragma: no cover - not used
+            raise AssertionError("should not be called in strict drop path")
+
+        async def sink_write_serialized(view: object) -> None:
+            raise AssertionError("should not be called in strict drop path")
+
+        monkeypatch.setattr(
+            worker_mod,
+            "serialize_envelope",
+            lambda entry: (_ for _ in ()).throw(ValueError("boom")),
+        )
+
+        logger = AsyncLoggerFacade(
+            name="test",
+            queue_capacity=4,
+            batch_max_size=2,
+            batch_timeout_seconds=0.1,
+            backpressure_wait_ms=1,
+            drop_on_full=True,
+            sink_write=sink_write,
+            sink_write_serialized=sink_write_serialized,
+            serialize_in_flush=True,
+        )
+
+        batch = [{"id": 1}]
+        await logger._flush_batch(batch)
+
+        assert logger._processed == 0
+        assert logger._dropped == 0
+
+    @pytest.mark.asyncio
+    async def test_flush_serialization_best_effort_uses_fallback(
+        self, monkeypatch
+    ) -> None:
+        monkeypatch.setenv("FAPILOG_CORE__STRICT_ENVELOPE_MODE", "false")
+
+        serialized_calls: list[object] = []
+        sink_calls: list[dict] = []
+
+        async def sink_write(entry: dict) -> None:
+            sink_calls.append(entry)
+
+        async def sink_write_serialized(view: object) -> None:
+            serialized_calls.append(view)
+
+        monkeypatch.setattr(
+            worker_mod,
+            "serialize_envelope",
+            lambda entry: (_ for _ in ()).throw(ValueError("boom")),
+        )
+
+        logger = AsyncLoggerFacade(
+            name="test",
+            queue_capacity=4,
+            batch_max_size=2,
+            batch_timeout_seconds=0.1,
+            backpressure_wait_ms=1,
+            drop_on_full=True,
+            sink_write=sink_write,
+            sink_write_serialized=sink_write_serialized,
+            serialize_in_flush=True,
+        )
+
+        batch = [{"id": 1}]
+        await logger._flush_batch(batch)
+
+        assert logger._processed == 1
+        assert len(serialized_calls) == 1
+        assert len(sink_calls) == 0
+
+    @pytest.mark.asyncio
+    async def test_flush_sink_error_increments_dropped(self, monkeypatch) -> None:
+        async def sink_write(entry: dict) -> None:
+            raise RuntimeError("sink failure")
+
+        logger = AsyncLoggerFacade(
+            name="test",
+            queue_capacity=4,
+            batch_max_size=2,
+            batch_timeout_seconds=0.1,
+            backpressure_wait_ms=1,
+            drop_on_full=True,
+            sink_write=sink_write,
+            serialize_in_flush=False,
+        )
+
+        batch = [{"id": 1}, {"id": 2}]
+        await logger._flush_batch(batch)
+
+        assert logger._processed == 0
+        assert logger._dropped == 2

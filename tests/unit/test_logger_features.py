@@ -1,15 +1,20 @@
 """
 Logger Feature Tests for Core Logger
 
-Tests for logger feature behavior including:
+Scope:
 - Enricher enable/disable operations
 - Redactor stage application
 - Serialize-in-flush fast path
 - Self-test functionality
 - Log level sampling behavior
-- Metrics integration
+- Metrics integration (counters and histograms)
+- Context binding precedence
+- No-copy enqueue (object identity preservation)
 
-These tests verify feature correctness with strong behavioral assertions.
+Does NOT cover:
+- Threading and worker lifecycle (see test_logger_threading.py)
+- Error containment (see test_logger_errors.py)
+- Pipeline stages and sampling (see test_logger_pipeline.py)
 """
 
 from __future__ import annotations
@@ -470,3 +475,113 @@ class TestEnricherEdgeCases:
         assert len(logger._enrichers) == 0  # type: ignore[attr-defined]
         assert len(collected) == 1
         assert collected[0]["message"] == "test"
+
+
+def _sum_samples(registry: Any, name: str, sample_suffix: str) -> float:
+    """Sum samples from prometheus registry for a given metric name."""
+    total = 0.0
+    for metric in registry.collect():
+        if metric.name == name:
+            for s in metric.samples:
+                if s.name.endswith(sample_suffix):
+                    total += float(s.value)
+    return total
+
+
+class TestMetricsPrometheus:
+    """Test prometheus metrics recording."""
+
+    @pytest.mark.asyncio
+    async def test_sink_error_counter_and_flush_histogram_recorded(self) -> None:
+        """Sink errors increment counter and flush histogram records timing."""
+        metrics = MetricsCollector(enabled=True)
+
+        async def raising_sink(_entry: dict[str, Any]) -> None:
+            raise RuntimeError("fail")
+
+        logger = SyncLoggerFacade(
+            name="metrics-prometheus-test",
+            queue_capacity=8,
+            batch_max_size=4,
+            batch_timeout_seconds=0.01,
+            backpressure_wait_ms=1,
+            drop_on_full=True,
+            sink_write=raising_sink,
+            metrics=metrics,
+        )
+        logger.start()
+        logger.info("x")
+        await asyncio.sleep(0.05)
+        await logger.stop_and_drain()
+
+        reg = metrics.registry
+        assert reg is not None
+        # Flush histogram should have exactly one count (one flush occurred)
+        flush_count = _sum_samples(reg, "fapilog_flush_seconds", "_count")
+        assert flush_count == 1.0
+
+
+def _cross_thread_submit(logger: SyncLoggerFacade, sentinel: object) -> None:
+    """Submit from a different thread to exercise cross-thread path."""
+    logger.info("x", marker=sentinel)
+
+
+class TestNoCopyEnqueue:
+    """Test that enqueue preserves object identity (no-copy behavior)."""
+
+    @pytest.mark.asyncio
+    async def test_same_thread_enqueue_preserves_identity(self) -> None:
+        """Same-thread enqueue preserves object identity in metadata."""
+        seen: list[dict[str, Any]] = []
+
+        async def capture(entry: dict[str, Any]) -> None:
+            seen.append(entry)
+
+        logger = SyncLoggerFacade(
+            name="no-copy-same-thread",
+            queue_capacity=8,
+            batch_max_size=1,
+            batch_timeout_seconds=0.01,
+            backpressure_wait_ms=1,
+            drop_on_full=True,
+            sink_write=capture,
+        )
+        logger.start()
+
+        sentinel = object()
+        logger.info("m", sentinel=sentinel)
+        await asyncio.sleep(0.05)
+        await logger.stop_and_drain()
+
+        assert seen, "expected at least one entry"
+        meta = seen[0].get("metadata", {})
+        # The sentinel is embedded under metadata.sentinel; ensure same identity
+        assert meta.get("sentinel") is sentinel
+
+    @pytest.mark.asyncio
+    async def test_cross_thread_enqueue_preserves_identity(self) -> None:
+        """Cross-thread enqueue preserves object identity in metadata."""
+        seen: list[dict[str, Any]] = []
+
+        async def capture(entry: dict[str, Any]) -> None:
+            seen.append(entry)
+
+        logger = SyncLoggerFacade(
+            name="no-copy-cross-thread",
+            queue_capacity=8,
+            batch_max_size=8,
+            batch_timeout_seconds=0.05,
+            backpressure_wait_ms=1,
+            drop_on_full=True,
+            sink_write=capture,
+        )
+        logger.start()
+        sentinel = object()
+        # Submit from a thread
+        await asyncio.to_thread(_cross_thread_submit, logger, sentinel)
+        await asyncio.sleep(0.1)
+        await logger.stop_and_drain()
+
+        assert seen, "expected emitted entries"
+        meta = seen[0].get("metadata", {})
+        assert meta.get("marker") is sentinel

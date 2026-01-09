@@ -1,12 +1,16 @@
 """
-Error Containment Tests for Core Logger
+Test logger error handling and containment.
 
-Tests for error handling behavior including:
-- Worker exception containment (sink, enricher, redactor failures)
-- Exception serialization and recovery
-- Cross-thread exception handling
+Scope:
+- Sink exception containment
+- Enricher exception containment
+- Redactor exception containment
+- Exception serialization
+- Sink error metrics tracking
 
-These tests verify that errors are contained and don't crash the logger.
+Does NOT cover:
+- Exception serialization in pipeline (see test_logger_pipeline.py)
+- Fast path fallback on errors (see test_logger_fastpath.py)
 """
 
 from __future__ import annotations

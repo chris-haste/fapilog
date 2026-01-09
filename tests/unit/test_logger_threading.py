@@ -1,14 +1,18 @@
 """
-Thread Lifecycle Tests for Core Logger
+Test logger threading and worker behavior.
 
-Tests for thread mode operations including:
+Scope:
 - Worker thread startup and cleanup
 - Drain behavior and resource cleanup
 - Cross-thread message submission
 - Rapid start/stop cycles
-- Concurrent access during drain
+- Worker count configuration
+- LoggerWorker direct testing
+- Async backpressure behavior
 
-These tests verify behavioral correctness, not line coverage.
+Does NOT cover:
+- In-loop mode details (see test_logger_core.py)
+- Async logger facade (see test_logger_async.py)
 """
 
 from __future__ import annotations
@@ -21,7 +25,9 @@ from typing import Any
 
 import pytest
 
-from fapilog.core.logger import SyncLoggerFacade
+from fapilog.core.concurrency import NonBlockingRingQueue
+from fapilog.core.logger import AsyncLoggerFacade, SyncLoggerFacade
+from fapilog.core.worker import LoggerWorker, strict_envelope_mode_enabled
 
 
 def _create_collecting_sink(collected: list[dict[str, Any]]):
@@ -411,8 +417,6 @@ class TestAsyncBackpressure:
     @pytest.mark.asyncio
     async def test_async_backpressure_drops_when_queue_full(self) -> None:
         """AsyncLoggerFacade drops messages immediately when queue full and wait=0."""
-        from fapilog.core.logger import AsyncLoggerFacade
-
         collected: list[dict[str, Any]] = []
 
         async def sink(event: dict[str, Any]) -> None:
@@ -444,3 +448,162 @@ class TestAsyncBackpressure:
         assert result.dropped >= 9
         # Invariant: submitted = processed + dropped
         assert result.submitted == result.processed + result.dropped
+
+
+class TestWorkerCount:
+    """Test worker count configuration."""
+
+    @pytest.mark.asyncio
+    async def test_sync_logger_respects_worker_count_in_loop(self) -> None:
+        async def sink_write(entry: dict) -> None:
+            return None
+
+        logger = SyncLoggerFacade(
+            name="loop",
+            queue_capacity=8,
+            batch_max_size=4,
+            batch_timeout_seconds=0.1,
+            backpressure_wait_ms=5,
+            drop_on_full=True,
+            sink_write=sink_write,
+            num_workers=3,
+        )
+        logger.start()
+        assert len(logger._worker_tasks) == 3
+        await logger.stop_and_drain()
+
+    def test_sync_logger_respects_worker_count_thread_mode(self) -> None:
+        async def sink_write(entry: dict) -> None:
+            return None
+
+        logger = SyncLoggerFacade(
+            name="thread",
+            queue_capacity=8,
+            batch_max_size=4,
+            batch_timeout_seconds=0.1,
+            backpressure_wait_ms=5,
+            drop_on_full=True,
+            sink_write=sink_write,
+            num_workers=2,
+        )
+        logger.start()
+        assert len(logger._worker_tasks) == 2
+        asyncio.run(logger.stop_and_drain())
+
+    @pytest.mark.asyncio
+    async def test_async_logger_respects_worker_count(self) -> None:
+        async def sink_write(entry: dict) -> None:
+            return None
+
+        logger = AsyncLoggerFacade(
+            name="async",
+            queue_capacity=8,
+            batch_max_size=4,
+            batch_timeout_seconds=0.1,
+            backpressure_wait_ms=5,
+            drop_on_full=True,
+            sink_write=sink_write,
+            num_workers=4,
+        )
+        logger.start()
+        assert len(logger._worker_tasks) == 4
+        await logger.stop_and_drain()
+
+
+class TestLoggerWorkerDirect:
+    """Direct tests for LoggerWorker class."""
+
+    @pytest.mark.asyncio
+    async def test_worker_run_flushes_and_signals_drained(self) -> None:
+        queue: NonBlockingRingQueue[dict[str, object]] = NonBlockingRingQueue(
+            capacity=4
+        )
+        assert queue.try_enqueue({"id": 1})
+
+        drained = asyncio.Event()
+        counters = {"processed": 0, "dropped": 0}
+        stop_flag = False
+        sink_calls: list[dict[str, object]] = []
+
+        async def sink_write(entry: dict[str, object]) -> None:
+            sink_calls.append(entry)
+
+        worker = LoggerWorker(
+            queue=queue,
+            batch_max_size=2,
+            batch_timeout_seconds=0.01,
+            sink_write=sink_write,
+            sink_write_serialized=None,
+            enrichers_getter=lambda: [],
+            redactors_getter=lambda: [],
+            metrics=None,
+            serialize_in_flush=False,
+            strict_envelope_mode_provider=strict_envelope_mode_enabled,
+            stop_flag=lambda: stop_flag,
+            drained_event=drained,
+            flush_event=None,
+            flush_done_event=None,
+            emit_enricher_diagnostics=True,
+            emit_redactor_diagnostics=True,
+            counters=counters,
+        )
+
+        task = asyncio.create_task(worker.run())
+        await asyncio.sleep(0.01)
+        stop_flag = True
+
+        await asyncio.wait_for(task, timeout=1.0)
+
+        assert drained.is_set()
+        assert counters["processed"] == 1
+        assert counters["dropped"] == 0
+        assert sink_calls == [{"id": 1}]
+
+    @pytest.mark.asyncio
+    async def test_worker_flush_event_triggers_immediate_flush(self) -> None:
+        queue: NonBlockingRingQueue[dict[str, object]] = NonBlockingRingQueue(
+            capacity=4
+        )
+        assert queue.try_enqueue({"id": 99})
+
+        flush_event = asyncio.Event()
+        flush_done = asyncio.Event()
+        drained = asyncio.Event()
+        counters = {"processed": 0, "dropped": 0}
+        stop_flag = False
+        sink_calls: list[dict[str, object]] = []
+
+        async def sink_write(entry: dict[str, object]) -> None:
+            sink_calls.append(entry)
+
+        worker = LoggerWorker(
+            queue=queue,
+            batch_max_size=1,
+            batch_timeout_seconds=0.5,
+            sink_write=sink_write,
+            sink_write_serialized=None,
+            enrichers_getter=lambda: [],
+            redactors_getter=lambda: [],
+            metrics=None,
+            serialize_in_flush=False,
+            strict_envelope_mode_provider=strict_envelope_mode_enabled,
+            stop_flag=lambda: stop_flag,
+            drained_event=drained,
+            flush_event=flush_event,
+            flush_done_event=flush_done,
+            emit_enricher_diagnostics=True,
+            emit_redactor_diagnostics=True,
+            counters=counters,
+        )
+
+        task = asyncio.create_task(worker.run())
+
+        flush_event.set()
+        await asyncio.wait_for(flush_done.wait(), timeout=1.0)
+        stop_flag = True
+
+        await asyncio.wait_for(task, timeout=1.0)
+
+        assert sink_calls == [{"id": 99}]
+        assert counters["processed"] == 1
+        assert drained.is_set()
