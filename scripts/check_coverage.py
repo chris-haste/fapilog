@@ -11,6 +11,8 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import Optional
+from xml.etree import ElementTree
 
 
 # ANSI color codes for terminal output
@@ -43,6 +45,7 @@ def run_coverage() -> tuple[bool, float]:
                 "-m",
                 "pytest",
                 "--cov=src/fapilog",
+                "--cov-branch",
                 "--cov-report=term-missing",
                 "--cov-report=xml",
                 # Don't use --cov-fail-under; we do threshold check ourselves
@@ -55,8 +58,10 @@ def run_coverage() -> tuple[bool, float]:
             env=env,
         )
 
-        # Extract coverage percentage from output
-        coverage_percentage = extract_coverage_from_output(result.stdout)
+        # Extract coverage percentage from XML (more stable than stdout parsing)
+        coverage_percentage = extract_coverage_from_xml(Path("coverage.xml"))
+        if coverage_percentage is None:
+            coverage_percentage = extract_coverage_from_output(result.stdout)
 
         # Round to 1 decimal place to match display and avoid floating-point issues
         coverage_percentage = round(coverage_percentage, 1)
@@ -87,6 +92,43 @@ def extract_coverage_from_output(output: str) -> float:
                     except ValueError:
                         continue
     return 0.0
+
+
+def extract_coverage_from_xml(xml_path: Path) -> Optional[float]:
+    """Extract coverage percentage from coverage.xml."""
+    if not xml_path.exists():
+        return None
+
+    try:
+        root = ElementTree.parse(xml_path).getroot()
+    except (ElementTree.ParseError, OSError):
+        return None
+
+    lines_valid = root.get("lines-valid")
+    lines_covered = root.get("lines-covered")
+    branches_valid = root.get("branches-valid", "0")
+    branches_covered = root.get("branches-covered", "0")
+    if lines_valid is not None and lines_covered is not None:
+        try:
+            lines_valid_int = int(lines_valid)
+            lines_covered_int = int(lines_covered)
+            branches_valid_int = int(branches_valid)
+            branches_covered_int = int(branches_covered)
+        except ValueError:
+            return None
+        total_valid = lines_valid_int + branches_valid_int
+        total_covered = lines_covered_int + branches_covered_int
+        if total_valid == 0:
+            return 0.0
+        return (total_covered / total_valid) * 100.0
+
+    line_rate = root.get("line-rate")
+    if line_rate is None:
+        return None
+    try:
+        return float(line_rate) * 100.0
+    except ValueError:
+        return None
 
 
 def check_tests_exist() -> bool:
@@ -180,7 +222,7 @@ def main() -> int:
             print(f"{Colors.BLUE}   1. Add tests for uncovered code{Colors.END}")
             print(f"{Colors.BLUE}   2. Remove unused code{Colors.END}")
             print(
-                f"{Colors.BLUE}   3. Run 'pytest --cov=src/fapilog --cov-report=html' for detailed report{Colors.END}"
+                f"{Colors.BLUE}   3. Run 'pytest --cov=src/fapilog --cov-branch --cov-report=html' for detailed report{Colors.END}"
             )
         else:
             print("FAILED: Could not run coverage tests")

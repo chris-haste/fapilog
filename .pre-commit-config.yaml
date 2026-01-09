@@ -78,7 +78,7 @@ repos:
 
       - id: lint-test-assertions
         name: Lint weak test assertions
-        entry: python scripts/lint_test_assertions.py tests/ --baseline .weak-assertion-baseline.txt
+        entry: python scripts/lint_test_assertions.py tests/ --baseline .weak-assertion-baseline.txt --strict
         language: system
         pass_filenames: false
         always_run: true

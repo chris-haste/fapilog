@@ -6,6 +6,11 @@ Tests for plugin name utilities: get_plugin_name, normalize_plugin_name, get_plu
 
 from __future__ import annotations
 
+import sys
+import types
+
+from pydantic import BaseModel
+
 
 class PluginWithName:
     """Test plugin with explicit name attribute."""
@@ -87,6 +92,64 @@ class TestGetPluginName:
 
         assert get_plugin_name(PaddedName()) == "padded"
 
+    def test_get_plugin_name_from_module_metadata(self) -> None:
+        """PLUGIN_METADATA name should be used when present."""
+        from fapilog.plugins.utils import get_plugin_name
+
+        module_name = "tests.fake_plugin_module"
+        module = types.ModuleType(module_name)
+        module.PLUGIN_METADATA = {"name": "from-metadata"}
+
+        class Plugin:
+            pass
+
+        Plugin.__module__ = module_name
+        module.Plugin = Plugin
+        sys.modules[module_name] = module
+        try:
+            assert get_plugin_name(Plugin()) == "from-metadata"
+        finally:
+            sys.modules.pop(module_name, None)
+
+    def test_get_plugin_name_falls_back_when_metadata_missing_name(self) -> None:
+        """Metadata without name should fall back to class name."""
+        from fapilog.plugins.utils import get_plugin_name
+
+        module_name = "tests.fake_plugin_module_no_name"
+        module = types.ModuleType(module_name)
+        module.PLUGIN_METADATA = {"version": "1.0.0"}
+
+        class Plugin:
+            pass
+
+        Plugin.__module__ = module_name
+        module.Plugin = Plugin
+        sys.modules[module_name] = module
+        try:
+            assert get_plugin_name(Plugin()) == "Plugin"
+        finally:
+            sys.modules.pop(module_name, None)
+
+    def test_get_plugin_name_falls_back_on_import_error(self) -> None:
+        """Import errors in metadata lookup fall back to class name."""
+        from fapilog.plugins.utils import get_plugin_name
+
+        class Ghost:
+            pass
+
+        Ghost.__module__ = "missing.module.name"
+        assert get_plugin_name(Ghost()) == "Ghost"
+
+    def test_get_plugin_name_falls_back_when_module_name_missing(self) -> None:
+        """Missing module name should fall back to class name."""
+        from fapilog.plugins.utils import get_plugin_name
+
+        class Nameless:
+            pass
+
+        Nameless.__module__ = ""
+        assert get_plugin_name(Nameless()) == "Nameless"
+
 
 class TestNormalizePluginName:
     """Tests for normalize_plugin_name utility."""
@@ -159,6 +222,16 @@ class TestGetPluginType:
 
         assert get_plugin_type(Processor()) == "processor"
 
+    def test_get_plugin_type_filter(self) -> None:
+        """Plugin with filter method is a filter."""
+        from fapilog.plugins.utils import get_plugin_type
+
+        class Filter:
+            async def filter(self, event: dict) -> bool:
+                return True
+
+        assert get_plugin_type(Filter()) == "filter"
+
     def test_get_plugin_type_unknown(self) -> None:
         """Plugin without recognized method is unknown."""
         from fapilog.plugins.utils import get_plugin_type
@@ -177,3 +250,29 @@ class TestGetPluginType:
                 pass
 
         assert get_plugin_type(Sink) == "sink"
+
+
+class DemoConfig(BaseModel):
+    value: int = 1
+
+
+class TestParsePluginConfigExtras:
+    def test_nested_config_instance_is_returned(self) -> None:
+        from fapilog.plugins.utils import parse_plugin_config
+
+        cfg = DemoConfig(value=2)
+        result = parse_plugin_config(DemoConfig, {"config": cfg})
+        assert result is cfg
+
+    def test_kwargs_config_instance_is_returned(self) -> None:
+        from fapilog.plugins.utils import parse_plugin_config
+
+        cfg = DemoConfig(value=3)
+        result = parse_plugin_config(DemoConfig, None, config=cfg)
+        assert result is cfg
+
+    def test_kwargs_config_non_mapping_is_ignored(self) -> None:
+        from fapilog.plugins.utils import parse_plugin_config
+
+        result = parse_plugin_config(DemoConfig, None, config="ignored", value=4)
+        assert result.value == 4

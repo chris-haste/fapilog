@@ -368,7 +368,9 @@ async def test_basic_auth_configured(monkeypatch) -> None:
 
 
 @pytest.mark.asyncio
-async def test_write_serialized_with_invalid_bytes(fake_client: FakeAsyncClient) -> None:
+async def test_write_serialized_with_invalid_bytes(
+    fake_client: FakeAsyncClient,
+) -> None:
     """write_serialized should handle non-UTF8 bytes gracefully."""
     sink = LokiSink(LokiSinkConfig(url="http://loki", batch_size=1))
     await sink.start()
@@ -496,7 +498,9 @@ async def test_health_check_exception_returns_false(monkeypatch) -> None:
     monkeypatch.setattr(
         loki,
         "httpx",
-        SimpleNamespace(AsyncClient=lambda **_k: ErrorClient(), BasicAuth=lambda *a: None),
+        SimpleNamespace(
+            AsyncClient=lambda **_k: ErrorClient(), BasicAuth=lambda *a: None
+        ),
     )
 
     sink = LokiSink(LokiSinkConfig(url="http://loki", circuit_breaker_enabled=False))

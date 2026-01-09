@@ -67,3 +67,38 @@ def test_dependency_check_handles_missing_and_conflicts() -> None:
     meta = _make_plugin(dependencies=["nonexistentpkg>=1.0.0"]).metadata
     missing, conflicts = check_dependencies(meta)
     assert any(r.startswith("nonexistentpkg") for r in missing)
+
+
+def test_dependency_check_handles_invalid_requirement() -> None:
+    meta = _make_plugin(dependencies=["not a requirement"]).metadata
+    missing, conflicts = check_dependencies(meta)
+    assert missing == []
+    assert "not a requirement" in conflicts
+
+
+def test_strict_compatibility_adds_error(monkeypatch) -> None:
+    monkeypatch.setenv("FAPILOG_STRICT_PLUGIN_COMPAT", "true")
+    meta = PluginMetadata(
+        name="strict",
+        version="1.0.0",
+        plugin_type="sink",
+        entry_point="demo:Plugin",
+        description="demo",
+        author="demo",
+        compatibility=PluginCompatibility(min_fapilog_version="999.0.0"),
+        config_schema=None,
+        default_config=None,
+        dependencies=[],
+    )
+    plugin = PluginInfo(metadata=meta, loaded=False, source="entry_point")
+
+    result = validate_plugin_configuration(plugin)
+
+    assert result.ok is False
+    assert any(issue.field == "compatibility" for issue in result.issues)
+
+
+def test_security_check_flags_short_secret() -> None:
+    plugin = _make_plugin(default_config={"api_key": "short"})
+    result = validate_plugin_configuration(plugin)
+    assert any(issue.field == "api_key" for issue in result.issues)

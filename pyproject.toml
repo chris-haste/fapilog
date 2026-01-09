@@ -159,7 +159,7 @@ dependencies = [
 
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
-test-cov = "pytest --cov=src/fapilog --cov-report=html --cov-report=term {args:tests}"
+test-cov = "pytest --cov=src/fapilog --cov-branch --cov-report=html --cov-report=term --cov-report=xml {args:tests}"
 test-benchmark = "pytest --benchmark-only {args:tests}"
 lint = "ruff check {args:src tests}"
 format = "ruff format {args:src tests}"
@@ -241,7 +241,7 @@ FAPILOG_TEST_MAX_LOOP_STALL_SECONDS = "0.25"
 
 [tool.hatch.envs.test.scripts]
 test = "python -m pytest tests"
-test-cov = "python -m pytest --cov=src/fapilog --cov-report=html --cov-report=term tests"
+test-cov = "python -m pytest --cov=src/fapilog --cov-branch --cov-report=html --cov-report=term --cov-report=xml tests"
 test-benchmark = "python -m pytest --benchmark-only tests"
 
 [tool.pytest.ini_options]
@@ -329,6 +329,7 @@ warn_unused_ignores = false
 
 [tool.coverage.run]
 source = ["src"]
+branch = true
 omit = [
     "*/tests/*",
     "*/test_*",
