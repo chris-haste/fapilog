@@ -88,7 +88,7 @@ class TestInLoopMode:
         res = await logger.stop_and_drain()
         assert res.submitted == 2
         assert res.processed == 1
-        assert res.dropped >= 1
+        assert res.dropped == res.submitted - res.processed
 
 
 class TestThreadMode:
@@ -107,7 +107,7 @@ class TestThreadMode:
         )
         # Start outside of any running loop: spawns dedicated thread+loop
         logger.start()
-        assert logger._worker_thread is not None  # type: ignore[attr-defined]
+        assert isinstance(logger._worker_thread, threading.Thread)  # type: ignore[attr-defined]
 
         # Saturate the queue; some submissions may drop under pressure
         for i in range(200):
@@ -116,8 +116,8 @@ class TestThreadMode:
         # Drain synchronously via helper
         res = asyncio.run(logger.stop_and_drain())
         assert res.submitted == 200
-        assert res.processed >= 1
-        assert res.dropped >= 0
+        assert res.processed > 0
+        assert res.processed + res.dropped == res.submitted
 
     def test_no_loop_creates_thread_and_in_loop_uses_tasks(self) -> None:
         collected: list[dict[str, Any]] = []
@@ -132,7 +132,7 @@ class TestThreadMode:
             sink_write=lambda e: _collecting_sink(collected, e),
         )
         logger.start()
-        assert logger._worker_thread is not None  # type: ignore[attr-defined]
+        assert isinstance(logger._worker_thread, threading.Thread)  # type: ignore[attr-defined]
         res = asyncio.run(logger.stop_and_drain())
         assert isinstance(res.submitted, int)
 
@@ -151,7 +151,7 @@ class TestThreadMode:
             logger2.start()
             assert logger2._worker_thread is None  # type: ignore[attr-defined]
             # At least one worker task is created on this loop
-            assert len(logger2._worker_tasks) >= 1  # type: ignore[attr-defined]
+            assert len(logger2._worker_tasks) > 0  # type: ignore[attr-defined]
             await logger2.stop_and_drain()
 
         asyncio.run(_inner())
@@ -272,7 +272,7 @@ class TestBackpressure:
 
         res = await logger.stop_and_drain()
         assert res.submitted == 100
-        assert res.dropped >= 1
+        assert res.dropped > 0
         # Expect a throttled WARN diagnostic for backpressure component
         assert any(
             (d.get("level") == "WARN") and (d.get("component") == "backpressure")

@@ -84,7 +84,7 @@ class TestGetAsyncLoggerCoverage:
     async def test_get_async_logger_basic_usage(self) -> None:
         """Test basic async logger creation."""
         logger = await get_async_logger(name="async-test")
-        assert logger is not None
+        assert logger._name == "async-test"
         await logger.info("test message")
         await logger.stop_and_drain()
 
@@ -109,7 +109,7 @@ class TestGetAsyncLoggerCoverage:
         settings.core.max_queue_size = 100
 
         logger = await get_async_logger(name="async-settings-test", settings=settings)
-        assert logger is not None
+        assert logger._queue.capacity == 100
         await logger.info("test message")
         await logger.stop_and_drain()
 
@@ -588,7 +588,6 @@ class TestConfigureLoggerCommon:
         assert setup.metrics == "metrics"
         assert setup.sink_write == "sink_write"
         assert setup.sink_write_serialized == "sink_write_serialized"
-        assert setup.circuit_config is not None
         assert setup.circuit_config.enabled
         assert (
             setup.circuit_config.failure_threshold
@@ -793,8 +792,6 @@ class TestPreparePayloadSharedBehavior:
         sync_payload = sync_logger._prepare_payload("INFO", "hello")  # type: ignore[attr-defined]
         async_payload = async_logger._prepare_payload("INFO", "hello-async")  # type: ignore[attr-defined]
 
-        assert sync_payload is not None
-        assert async_payload is not None
         assert sync_payload["metadata"]["user"] == "alice"
         assert async_payload["metadata"]["user"] == "alice"
 
@@ -805,7 +802,7 @@ class TestPreparePayloadSharedBehavior:
         first = logger._prepare_payload("ERROR", "boom")  # type: ignore[attr-defined]
         second = logger._prepare_payload("ERROR", "boom")  # type: ignore[attr-defined]
 
-        assert first is not None
+        assert first["message"] == "boom"
         assert second is None
 
     def test_prepare_payload_returns_dict(self) -> None:
@@ -814,7 +811,6 @@ class TestPreparePayloadSharedBehavior:
 
         payload = logger._prepare_payload("INFO", "test message")  # type: ignore[attr-defined]
 
-        assert payload is not None
         assert isinstance(payload, dict)
         assert "level" in payload
         assert "message" in payload
@@ -832,7 +828,6 @@ class TestPreparePayloadSharedBehavior:
             user_id=42,
         )
 
-        assert payload is not None
         assert payload["metadata"]["request_id"] == "abc123"
         assert payload["metadata"]["user_id"] == 42
 
@@ -864,7 +859,6 @@ class TestContextBindingSharedBehavior:
         logger.unbind("role")
 
         payload = logger._prepare_payload("INFO", "test")  # type: ignore[attr-defined]
-        assert payload is not None
         assert "user" in payload["metadata"]
         assert "session" in payload["metadata"]
         assert "role" not in payload["metadata"]
@@ -877,7 +871,6 @@ class TestContextBindingSharedBehavior:
         logger.clear_context()
 
         payload = logger._prepare_payload("INFO", "test")  # type: ignore[attr-defined]
-        assert payload is not None
         assert "user" not in payload["metadata"]
         assert "role" not in payload["metadata"]
 
@@ -890,14 +883,16 @@ class TestMixinInheritance:
         logger = SyncLoggerFacade(**_logger_args())
 
         worker = logger._make_worker()  # type: ignore[attr-defined]
-        assert worker is not None
+        assert worker._queue is logger._queue  # type: ignore[attr-defined]
+        assert worker._batch_max_size == logger._batch_max_size  # type: ignore[attr-defined]
 
     def test_async_facade_inherits_make_worker(self) -> None:
         """AsyncLoggerFacade should use _make_worker from mixin."""
         logger = AsyncLoggerFacade(**_logger_args())
 
         worker = logger._make_worker()  # type: ignore[attr-defined]
-        assert worker is not None
+        assert worker._queue is logger._queue  # type: ignore[attr-defined]
+        assert worker._batch_max_size == logger._batch_max_size  # type: ignore[attr-defined]
 
     def test_async_facade_has_diagnostics_disabled(self) -> None:
         """AsyncLoggerFacade should have worker diagnostics disabled."""
@@ -928,6 +923,6 @@ class TestLevelGateSharedBehavior:
         warning_payload = logger._prepare_payload("WARNING", "warn msg")  # type: ignore[attr-defined]
 
         assert logger._level_gate == LEVEL_PRIORITY["WARNING"]  # type: ignore[attr-defined]
-        assert debug_payload is not None
-        assert info_payload is not None
-        assert warning_payload is not None
+        assert debug_payload["level"] == "DEBUG"
+        assert info_payload["level"] == "INFO"
+        assert warning_payload["level"] == "WARNING"

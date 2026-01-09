@@ -228,7 +228,7 @@ class TestErrorDeduplication:
         assert len(diagnostics_calls) > 0
         summary_call = diagnostics_calls[0]
         assert summary_call.get("error_message") == "Repeated error"
-        assert summary_call.get("suppressed") >= 1
+        assert summary_call.get("suppressed") == 2
         assert summary_call.get("window_seconds") == window_seconds
 
     def test_error_deduplication_disabled(self) -> None:
@@ -296,7 +296,7 @@ class TestThreadVsEventLoopModes:
         )
 
         logger.start()
-        assert logger._worker_loop is not None
+        assert logger._worker_loop is asyncio.get_running_loop()
         assert logger._worker_thread is None
 
         await logger.info("test message in loop mode")
@@ -320,8 +320,10 @@ class TestThreadVsEventLoopModes:
         )
 
         logger.start()
-        assert logger._worker_thread is not None
-        assert logger._worker_loop is not None
+        thread = logger._worker_thread
+        loop = logger._worker_loop
+        assert isinstance(thread, threading.Thread)
+        assert loop.is_running()
 
         logger.info("test message in thread mode")
         result = asyncio.run(logger.stop_and_drain())
@@ -346,9 +348,9 @@ class TestThreadVsEventLoopModes:
         thread = logger._worker_thread
         loop = logger._worker_loop
 
-        assert thread is not None
+        assert isinstance(thread, threading.Thread)
         assert thread.is_alive()
-        assert loop is not None
+        assert loop.is_running()
 
         logger.info("test message")
         time.sleep(0.1)

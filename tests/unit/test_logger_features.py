@@ -515,7 +515,6 @@ class TestMetricsPrometheus:
         await logger.stop_and_drain()
 
         reg = metrics.registry
-        assert reg is not None
         # Flush histogram should have exactly one count (one flush occurred)
         flush_count = _sum_samples(reg, "fapilog_flush_seconds", "_count")
         assert flush_count == 1.0

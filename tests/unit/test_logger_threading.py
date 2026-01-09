@@ -62,9 +62,11 @@ class TestThreadModeStartupAndCleanup:
 
         # Start creates worker
         logger.start()
-        assert logger._worker_thread is not None
-        assert logger._worker_thread.is_alive()
-        assert logger._worker_loop is not None
+        thread = logger._worker_thread
+        loop = logger._worker_loop
+        assert isinstance(thread, threading.Thread)
+        assert thread.is_alive()
+        assert loop.is_running()
 
         # Cleanup
         asyncio.run(logger.stop_and_drain())
@@ -110,7 +112,7 @@ class TestThreadModeStartupAndCleanup:
         )
 
         logger.start()
-        assert logger._worker_thread is not None
+        assert isinstance(logger._worker_thread, threading.Thread)
 
         # Submit some messages
         for i in range(5):

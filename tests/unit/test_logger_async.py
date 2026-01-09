@@ -87,8 +87,9 @@ class TestAsyncLoggerFacade:
         res = await logger.drain()
         assert res.submitted == 2
         # In async mode, both messages might be processed due to fast processing
-        assert res.processed >= 1
-        assert res.dropped >= 0
+        assert res.processed in {1, 2}
+        assert res.dropped in {0, 1}
+        assert res.processed + res.dropped == res.submitted
 
     def test_async_logger_thread_mode_wait_then_drop(self) -> None:
         """Test async logger in thread mode with dedicated event loop."""
@@ -104,7 +105,9 @@ class TestAsyncLoggerFacade:
         )
         # Start outside of any running loop: spawns dedicated thread+loop
         logger.start()
-        assert logger._worker_thread is not None
+        thread = logger._worker_thread
+        assert isinstance(thread, threading.Thread)
+        assert thread.is_alive()
 
         # Saturate the queue; some submissions may drop under pressure
         async def _submit_logs():
@@ -117,8 +120,8 @@ class TestAsyncLoggerFacade:
         # Drain synchronously via helper
         res = asyncio.run(logger.drain())
         assert res.submitted == 200
-        assert res.processed >= 1
-        assert res.dropped >= 0
+        assert res.processed > 0
+        assert res.processed + res.dropped == res.submitted
 
     @pytest.mark.asyncio
     async def test_async_logger_flush_method(self) -> None:
@@ -362,7 +365,7 @@ class TestAsyncLoggerFacade:
 
         # Start workers
         logger.start()
-        assert logger._worker_loop is not None
+        assert logger._worker_loop is asyncio.get_running_loop()
         assert len(logger._worker_tasks) > 0
 
         # Submit some work
@@ -426,8 +429,7 @@ class TestGetAsyncLogger:
 
         # Verify logger is properly configured
         assert logger._name == "test_logger"
-        assert logger._queue is not None
-        assert logger._enrichers is not None
+        assert logger._queue.capacity > 0
         assert len(logger._enrichers) >= 2  # Should have default enrichers
 
         # Test basic logging
@@ -444,7 +446,8 @@ class TestGetAsyncLogger:
         logger = await get_async_logger("test_logger", settings=settings)
 
         # Verify metrics are enabled
-        assert logger._metrics is not None
+        assert isinstance(logger._metrics, MetricsCollector)
+        assert logger._metrics.is_enabled == (logger._metrics.registry is not None)
 
         # Test logging
         await logger.info("test message")
@@ -554,7 +557,7 @@ class TestGetAsyncLogger:
         logger = await get_async_logger("lifecycle_test")
 
         # Verify workers are started
-        assert logger._worker_loop is not None
+        assert logger._worker_loop is asyncio.get_running_loop()
         assert len(logger._worker_tasks) > 0
 
         # Test logging
@@ -582,7 +585,7 @@ class TestRuntimeAsync:
 
             # Verify logger is properly configured
             assert logger._name == "root"
-            assert logger._worker_loop is not None
+            assert logger._worker_loop is asyncio.get_running_loop()
 
         # Context manager should have automatically drained the logger
 

@@ -363,7 +363,7 @@ class TestSinkErrorMetrics:
         logger = SyncLoggerFacade(
             name="sink-fail-metrics-test",
             queue_capacity=8,
-            batch_max_size=4,
+            batch_max_size=1,
             batch_timeout_seconds=0.01,
             backpressure_wait_ms=0,
             drop_on_full=True,
@@ -383,5 +383,5 @@ class TestSinkErrorMetrics:
         assert result.submitted == 5
         # All should be dropped due to sink failure
         assert result.dropped == 5
-        # Sink was called at least once
-        assert calls["writes"] >= 1
+        # Sink attempted each entry with batch_size=1
+        assert calls["writes"] == 5

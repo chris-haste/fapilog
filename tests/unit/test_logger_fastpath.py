@@ -69,7 +69,7 @@ class TestFastPathSuccess:
         await asyncio.sleep(0.05)
         await logger.stop_and_drain()
 
-        assert observed["calls"] >= 1
+        assert observed["calls"] == 1
         # Validate serialized payload structure without depending on exact bytes
         import json as _json
 
@@ -164,7 +164,7 @@ class TestFastPathFallback:
         await logger.stop_and_drain()
 
         # Fast path attempted, but fell back to dict write
-        assert attempted["serialized_calls"] >= 1
+        assert attempted["serialized_calls"] == 1
         assert len(collected) == 1
 
 

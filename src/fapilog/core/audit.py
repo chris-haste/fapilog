@@ -819,7 +819,7 @@ async def audit_security_event(
     )
 
 
-async def emit_compliance_alert(event: AuditEvent) -> None:  # noqa: V102
+async def emit_compliance_alert(event: AuditEvent) -> None:  # noqa
     """Public helper to emit a compliance alert for a given audit event."""
     trail = await get_audit_trail()
     try:
