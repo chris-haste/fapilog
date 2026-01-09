@@ -259,3 +259,7 @@ htmlcov/
 # Claude commands
 .claude/
 CLAUDE.md
+
+# Codex commands
+.codex/
+
