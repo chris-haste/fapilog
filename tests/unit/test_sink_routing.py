@@ -498,9 +498,7 @@ async def test_routing_sink_plugin_load_failure(monkeypatch: pytest.MonkeyPatch)
         "fapilog.plugins.sinks.routing.loader.load_plugin", failing_load_plugin
     )
 
-    sink = RoutingSink(
-        RoutingSinkConfig(routes={"ERROR": ["nonexistent"]})
-    )
+    sink = RoutingSink(RoutingSinkConfig(routes={"ERROR": ["nonexistent"]}))
     # Should not raise
     await sink.start()
     # No sinks loaded, write should be no-op
