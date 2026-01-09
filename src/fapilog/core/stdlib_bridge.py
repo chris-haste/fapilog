@@ -122,7 +122,7 @@ class _BridgeLoopManager:
         except Exception:
             return False
 
-    def shutdown(self, *, timeout: float = 2.0) -> None:  # noqa: V102
+    def shutdown(self, *, timeout: float = 2.0) -> None:  # noqa
         loop = self._loop
         thread = self._thread
         if loop is None or thread is None:

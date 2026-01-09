@@ -109,7 +109,7 @@ class WeakAssertionVisitor(ast.NodeVisitor):
         if lineno < 1 or lineno > len(self.source_lines):
             return False
         line = self.source_lines[lineno - 1]
-        # Check for # noqa: WA001 or # noqa (blanket)
+        # Check for noqa suppression (blanket or with specific codes)
         if "# noqa" in line:
             # Blanket noqa
             if "# noqa:" not in line and "# noqa " not in line:
@@ -117,7 +117,7 @@ class WeakAssertionVisitor(ast.NodeVisitor):
             # Specific code suppression
             if f"# noqa: {code}" in line:
                 return True
-            # Check comma-separated codes like # noqa: WA001, WA002
+            # Check comma-separated codes like noqa: WA001, WA002
             noqa_idx = line.find("# noqa:")
             if noqa_idx != -1:
                 noqa_part = line[noqa_idx + 7 :].strip()

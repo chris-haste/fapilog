@@ -1,12 +1,16 @@
 """
-Error Containment Tests for Core Logger
+Test logger error handling and containment.
 
-Tests for error handling behavior including:
-- Worker exception containment (sink, enricher, redactor failures)
-- Exception serialization and recovery
-- Cross-thread exception handling
+Scope:
+- Sink exception containment
+- Enricher exception containment
+- Redactor exception containment
+- Exception serialization
+- Sink error metrics tracking
 
-These tests verify that errors are contained and don't crash the logger.
+Does NOT cover:
+- Exception serialization in pipeline (see test_logger_pipeline.py)
+- Fast path fallback on errors (see test_logger_fastpath.py)
 """
 
 from __future__ import annotations
@@ -359,7 +363,7 @@ class TestSinkErrorMetrics:
         logger = SyncLoggerFacade(
             name="sink-fail-metrics-test",
             queue_capacity=8,
-            batch_max_size=4,
+            batch_max_size=1,
             batch_timeout_seconds=0.01,
             backpressure_wait_ms=0,
             drop_on_full=True,
@@ -379,5 +383,5 @@ class TestSinkErrorMetrics:
         assert result.submitted == 5
         # All should be dropped due to sink failure
         assert result.dropped == 5
-        # Sink was called at least once
-        assert calls["writes"] >= 1
+        # Sink attempted each entry with batch_size=1
+        assert calls["writes"] == 5
