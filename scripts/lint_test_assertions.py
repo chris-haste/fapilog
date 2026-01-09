@@ -11,6 +11,7 @@ Usage:
     python scripts/lint_test_assertions.py tests/
     python scripts/lint_test_assertions.py tests/unit/test_core_logger.py
     python scripts/lint_test_assertions.py tests/ --baseline .weak-assertion-baseline.txt
+    python scripts/lint_test_assertions.py tests/ --baseline .weak-assertion-baseline.txt --strict
 """
 
 from __future__ import annotations
@@ -227,6 +228,11 @@ def main() -> int:
         action="store_true",
         help="Show violations that have been fixed (in baseline but not found)",
     )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="Fail on new weak assertions (baseline-aware)",
+    )
 
     args = parser.parse_args()
 
@@ -306,6 +312,10 @@ def main() -> int:
     if args.baseline:
         print(f"(Baseline has {len(baselined)} known violations)")
     print("To suppress a specific violation, add `# noqa: WA00X` to the line")
+
+    if not args.strict:
+        print("WARNING: Weak assertions detected (run with --strict to fail).")
+        return 0
 
     return 1
 

@@ -76,6 +76,21 @@ class TestAsyncLoggingContainer:
         await container.cleanup()
         assert not container.is_initialized
 
+    async def test_container_initialize_is_idempotent(
+        self, container: AsyncLoggingContainer
+    ):
+        """Repeated initialize should be a no-op after first run."""
+        await container.initialize()
+        await container.initialize()
+        assert container.is_initialized
+
+    async def test_container_cleanup_noop_when_uninitialized(
+        self, container: AsyncLoggingContainer
+    ):
+        """Cleanup should be safe before initialization."""
+        await container.cleanup()
+        assert container.is_initialized is False
+
     async def test_context_manager(self):
         """Test container as async context manager."""
         async with AsyncLoggingContainer() as container:
@@ -145,6 +160,25 @@ class TestAsyncLoggingContainer:
         assert isinstance(main_component, MockComponentWithDependency)
         assert isinstance(main_component.dependency, MockComponent)
 
+    async def test_dependency_created_on_demand(
+        self, container: AsyncLoggingContainer
+    ) -> None:
+        """Dependencies should be created and cached when needed."""
+        container.register_component("dependency", MockComponent, mock_factory)
+        container.register_component(
+            "main_component",
+            MockComponentWithDependency,
+            mock_factory_with_dependency,
+            dependencies=["dependency"],
+        )
+
+        main_component = await container.get_component(
+            "main_component", MockComponentWithDependency
+        )
+        dependency = await container.get_component("dependency", MockComponent)
+
+        assert main_component.dependency is dependency
+
     async def test_component_not_found_error(self, container: AsyncLoggingContainer):
         """Test error when requesting non-existent component."""
         await container.initialize()
@@ -193,6 +227,36 @@ class TestAsyncLoggingContainer:
 
         assert cleanup_called
 
+    async def test_cleanup_handles_callback_exception(
+        self, container: AsyncLoggingContainer
+    ) -> None:
+        called: list[str] = []
+
+        async def good_callback() -> None:
+            called.append("good")
+
+        async def bad_callback() -> None:
+            raise RuntimeError("boom")
+
+        container.add_cleanup_callback(good_callback)
+        container.add_cleanup_callback(bad_callback)
+        await container.initialize()
+        await container.cleanup()
+
+        assert called == ["good"]
+
+    async def test_cleanup_handles_resource_cleanup_exception(
+        self, container: AsyncLoggingContainer, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        async def bad_cleanup() -> None:
+            raise RuntimeError("boom")
+
+        monkeypatch.setattr(container._resources, "cleanup_all", bad_cleanup)
+        await container.initialize()
+        await container.cleanup()
+
+        assert container.is_initialized is False
+
     async def test_zero_global_state_isolation(self):
         """Test that containers are completely isolated from each other."""
         container1 = AsyncLoggingContainer()
@@ -215,6 +279,11 @@ class TestAsyncLoggingContainer:
 
         await container1.cleanup()
         await container2.cleanup()
+
+    def test_resources_property_exposes_manager(self) -> None:
+        container = AsyncLoggingContainer()
+        resources = container.resources
+        assert resources is container.resources
 
     async def test_concurrent_access_thread_safety(self):
         """Test thread-safe concurrent access to container."""
@@ -430,7 +499,7 @@ class TestMemoryEfficiency:
 
         await container.initialize()
         component = await container.get_component("test_component", MockComponent)
-        assert component is not None
+        assert isinstance(component, MockComponent)
 
         await container.cleanup()
 
@@ -487,7 +556,7 @@ class TestPerformance:
 
         for _ in range(1000):
             component = await container.get_component("test_component", MockComponent)
-            assert component is not None
+            assert isinstance(component, MockComponent)
 
         end = time.time()
         await container.cleanup()

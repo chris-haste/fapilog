@@ -89,3 +89,26 @@ async def test_process_many_empty_iterable_returns_zero() -> None:
     proc = ZeroCopyProcessor()
     out = await proc.process_many(())
     assert out == []
+
+
+@pytest.mark.asyncio
+async def test_health_check_handles_locked_state() -> None:
+    proc = ZeroCopyProcessor()
+    await proc._lock.acquire()
+    try:
+        assert await proc.health_check() is True
+    finally:
+        proc._lock.release()
+
+
+@pytest.mark.asyncio
+async def test_health_check_handles_lock_errors() -> None:
+    proc = ZeroCopyProcessor()
+
+    class BrokenLock:
+        def locked(self) -> bool:
+            raise RuntimeError("boom")
+
+    proc._lock = BrokenLock()  # type: ignore[assignment]
+
+    assert await proc.health_check() is False

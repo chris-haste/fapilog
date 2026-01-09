@@ -56,6 +56,8 @@ jobs:
         python-version: ["3.11"]
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -78,6 +80,16 @@ jobs:
           name: codecov-umbrella
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Fetch base branch for diff coverage
+        if: github.event_name == 'pull_request'
+        run: git fetch origin ${{ github.base_ref }} --depth=1
+
+      - name: Diff coverage (changed lines)
+        if: github.event_name == 'pull_request'
+        run: |
+          python -m pip install diff-cover
+          diff-cover coverage.xml --compare-branch=origin/${{ github.base_ref }} --fail-under=85
 
   tox:
     name: Tox (Compatibility)
