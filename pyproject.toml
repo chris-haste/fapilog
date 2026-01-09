@@ -226,6 +226,7 @@ dependencies = [
     "pytest-asyncio>=1.1.0", 
     "pytest-cov>=6.2.0",
     "pytest-benchmark>=4.0.0",
+    "hypothesis>=6.100.0",
     # Core runtime dependencies needed for tests
     "fastapi>=0.115.0",
     "pydantic>=2.11.0",
