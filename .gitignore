@@ -255,5 +255,7 @@ htmlcov/
 # Test artifacts
 .pytest_cache/
 .tox/ 
-.claude/review-work.md
+
+# Claude commands
+.claude/
 CLAUDE.md
