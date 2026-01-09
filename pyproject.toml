@@ -90,6 +90,7 @@ dev = [
     "pytest-asyncio>=1.1.0",
     "pytest-cov>=6.2.0",
     "pytest-benchmark>=4.0.0",
+    "hypothesis>=6.100.0",
     "ruff>=0.12.0",
     "mypy>=1.17.1",
     "pre-commit>=3.3.0",
@@ -225,6 +226,7 @@ dependencies = [
     "pytest-asyncio>=1.1.0", 
     "pytest-cov>=6.2.0",
     "pytest-benchmark>=4.0.0",
+    "hypothesis>=6.100.0",
     # Core runtime dependencies needed for tests
     "fastapi>=0.115.0",
     "pydantic>=2.11.0",
@@ -238,6 +240,7 @@ dependencies = [
 [tool.hatch.envs.test.env-vars]
 PYTHONPATH = "src"
 FAPILOG_TEST_MAX_LOOP_STALL_SECONDS = "0.25"
+HYPOTHESIS_MAX_EXAMPLES = "100"
 
 [tool.hatch.envs.test.scripts]
 test = "python -m pytest tests"
@@ -260,6 +263,7 @@ markers = [
     "benchmark: marks tests as benchmark tests",
     "enterprise: marks tests as enterprise features",
     "security: marks tests as security-critical (redaction, audit trails)",
+    "property: property-based tests (may be slower)",
 ]
 
 [tool.ruff]
