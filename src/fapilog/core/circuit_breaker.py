@@ -7,6 +7,7 @@ the heavier async breaker machinery that isn't used.
 
 from __future__ import annotations
 
+import threading
 import time
 from dataclasses import dataclass
 from enum import Enum
@@ -31,7 +32,20 @@ class SinkCircuitBreakerConfig:
 
 
 class SinkCircuitBreaker:
-    """Simple circuit breaker for individual sink protection."""
+    """Simple circuit breaker for individual sink protection.
+
+    Thread Safety
+    -------------
+    This implementation is thread-safe. All state mutations are protected
+    by an internal lock. Safe to use from multiple threads or async tasks.
+
+    The lock is a standard threading.Lock which is also safe in async
+    contexts (Python's GIL ensures atomicity of lock acquisition).
+
+    The should_allow() method atomically checks AND increments the
+    half_open_calls counter, preventing race conditions where multiple
+    callers could bypass the call limit.
+    """
 
     def __init__(
         self,
@@ -40,6 +54,7 @@ class SinkCircuitBreaker:
     ) -> None:
         self.sink_name = sink_name
         self._config = config
+        self._lock = threading.Lock()
         self._state = CircuitState.CLOSED
         self._failure_count = 0
         self._last_failure_time: float | None = None
@@ -55,42 +70,49 @@ class SinkCircuitBreaker:
 
     def should_allow(self) -> bool:
         """Return True if a call should be attempted."""
-        if self._state == CircuitState.CLOSED:
-            return True
+        with self._lock:
+            if self._state == CircuitState.CLOSED:
+                return True
 
-        if self._state == CircuitState.OPEN:
-            # Check if recovery timeout elapsed
-            if self._last_failure_time is not None:
-                elapsed = time.monotonic() - self._last_failure_time
-                if elapsed >= self._config.recovery_timeout_seconds:
-                    self._state = CircuitState.HALF_OPEN
-                    self._half_open_calls = 0
-                    return True
+            if self._state == CircuitState.OPEN:
+                # Check if recovery timeout elapsed
+                if self._last_failure_time is not None:
+                    elapsed = time.monotonic() - self._last_failure_time
+                    if elapsed >= self._config.recovery_timeout_seconds:
+                        self._state = CircuitState.HALF_OPEN
+                        self._half_open_calls = 1  # Count this transition as first call
+                        return True
+                return False
+
+            # self._state == CircuitState.HALF_OPEN
+            # Atomically check and increment call count
+            if self._half_open_calls < self._config.half_open_max_calls:
+                self._half_open_calls += 1
+                return True
             return False
-
-        # self._state == CircuitState.HALF_OPEN (only remaining case)
-        return self._half_open_calls < self._config.half_open_max_calls
 
     def record_success(self) -> None:
         """Record a successful call."""
-        if self._state == CircuitState.HALF_OPEN:
-            # Recovery confirmed
-            self._state = CircuitState.CLOSED
-            self._emit_state_change("closed")
-        self._failure_count = 0
+        with self._lock:
+            if self._state == CircuitState.HALF_OPEN:
+                # Recovery confirmed
+                self._state = CircuitState.CLOSED
+                self._emit_state_change("closed")
+            self._failure_count = 0
 
     def record_failure(self) -> None:
         """Record a failed call."""
-        self._failure_count += 1
-        self._last_failure_time = time.monotonic()
+        with self._lock:
+            self._failure_count += 1
+            self._last_failure_time = time.monotonic()
 
-        if self._state == CircuitState.HALF_OPEN:
-            # Probe failed, back to open
-            self._state = CircuitState.OPEN
-            self._emit_state_change("open")
-        elif self._failure_count >= self._config.failure_threshold:
-            self._state = CircuitState.OPEN
-            self._emit_state_change("open")
+            if self._state == CircuitState.HALF_OPEN:
+                # Probe failed, back to open
+                self._state = CircuitState.OPEN
+                self._emit_state_change("open")
+            elif self._failure_count >= self._config.failure_threshold:
+                self._state = CircuitState.OPEN
+                self._emit_state_change("open")
 
     def _emit_state_change(self, new_state: str) -> None:
         """Emit diagnostic for state change."""
