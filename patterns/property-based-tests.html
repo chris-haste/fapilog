@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Building HTTP-Based Sinks &mdash; fapilog latest documentation</title>
+  <title>Property-Based Tests &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -24,8 +24,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Property-Based Tests" href="property-based-tests.html" />
-    <link rel="prev" title="Building SDK-Based Sinks" href="sdk-sinks.html" /> 
+    <link rel="next" title="Troubleshooting" href="../troubleshooting/index.html" />
+    <link rel="prev" title="Building HTTP-Based Sinks" href="http-sinks.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -165,9 +165,9 @@
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../plugins/index.html">Plugin Development</a></li>
           <li class="breadcrumb-item"><a href="../patterns.html">Integration Patterns</a></li>
-      <li class="breadcrumb-item active">Building HTTP-Based Sinks</li>
+      <li class="breadcrumb-item active">Property-Based Tests</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/patterns/http-sinks.md.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/patterns/property-based-tests.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -175,37 +175,54 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="building-http-based-sinks">
-<h1>Building HTTP-Based Sinks<a class="headerlink" href="#building-http-based-sinks" title="Link to this heading"></a></h1>
-<p>HTTP sinks (Loki, Datadog HTTP intake, Splunk HEC, Elastic ingest) share a core pattern:</p>
-<ol class="arabic simple">
-<li><p><strong>Async HTTP client:</strong> use <code class="docutils literal notranslate"><span class="pre">httpx.AsyncClient</span></code> with timeouts.</p></li>
-<li><p><strong>Batching:</strong> accumulate events with size/time triggers; respect provider limits.</p></li>
-<li><p><strong>Authentication:</strong> support bearer tokens or basic auth via headers.</p></li>
-<li><p><strong>Retry/backoff:</strong> handle 429/5xx with exponential backoff; emit diagnostics.</p></li>
-<li><p><strong>Circuit breaker:</strong> contain repeated failures per sink.</p></li>
-<li><p><strong>Fast path:</strong> implement <code class="docutils literal notranslate"><span class="pre">write_serialized</span></code> when the sink consumes raw bytes/strings.</p></li>
-</ol>
-<p>Reference implementations:</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="property-based-tests">
+<h1>Property-Based Tests<a class="headerlink" href="#property-based-tests" title="Link to this heading"></a></h1>
+<p>Use Hypothesis to validate invariants across a wide input space. Property tests
+live under <code class="docutils literal notranslate"><span class="pre">tests/property</span></code> and are marked with <code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.property</span></code> for easy
+selection.</p>
+<section id="guidelines">
+<h2>Guidelines<a class="headerlink" href="#guidelines" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">fapilog.plugins.sinks.contrib.loki</span></code> (Grafana Loki HTTP push)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">docs/plugins/sinks/loki.md</span></code> (configuration)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">tests/integration/test_loki_sink.py</span></code> (Docker-backed CI pattern)</p></li>
+<li><p>Keep strategies focused and JSON-safe when targeting serialization paths.</p></li>
+<li><p>Limit input sizes and use <code class="docutils literal notranslate"><span class="pre">&#64;settings(max_examples=...)</span></code> to control runtime.</p></li>
+<li><p>Prefer deterministic assertions over inspecting private state.</p></li>
+<li><p>Use shared strategies from <code class="docutils literal notranslate"><span class="pre">tests/property/strategies.py</span></code> when possible.</p></li>
+<li><p>CI caps example counts via <code class="docutils literal notranslate"><span class="pre">HYPOTHESIS_MAX_EXAMPLES</span></code> (see <code class="docutils literal notranslate"><span class="pre">tox.ini</span></code>).</p></li>
 </ul>
-<p>Testing tips:</p>
-<ul class="simple">
-<li><p>Use dockerized services (Loki) in CI; gate tests on env vars to avoid local failures.</p></li>
-<li><p>Stub the HTTP client in unit tests to avoid network calls and assert payload shapes.</p></li>
-<li><p>Enable <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__INTERNAL_LOGGING_ENABLED=true</span></code> when capturing diagnostics during tests.</p></li>
-</ul>
+</section>
+<section id="example">
+<h2>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hypothesis</span><span class="w"> </span><span class="kn">import</span> <span class="n">given</span><span class="p">,</span> <span class="n">settings</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.serialization</span><span class="w"> </span><span class="kn">import</span> <span class="n">serialize_mapping_to_json_bytes</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">tests.property.strategies</span><span class="w"> </span><span class="kn">import</span> <span class="n">json_dicts</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">property</span>
+<span class="nd">@given</span><span class="p">(</span><span class="n">payload</span><span class="o">=</span><span class="n">json_dicts</span><span class="p">)</span>
+<span class="nd">@settings</span><span class="p">(</span><span class="n">max_examples</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_json_serialization_round_trip</span><span class="p">(</span><span class="n">payload</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">view</span> <span class="o">=</span> <span class="n">serialize_mapping_to_json_bytes</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">view</span><span class="o">.</span><span class="n">data</span>
+</pre></div>
+</div>
+</section>
+<section id="running-locally">
+<h2>Running Locally<a class="headerlink" href="#running-locally" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>-m<span class="w"> </span>property
+</pre></div>
+</div>
+</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="sdk-sinks.html" class="btn btn-neutral float-left" title="Building SDK-Based Sinks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="property-based-tests.html" class="btn btn-neutral float-right" title="Property-Based Tests" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="http-sinks.html" class="btn btn-neutral float-left" title="Building HTTP-Based Sinks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../troubleshooting/index.html" class="btn btn-neutral float-right" title="Troubleshooting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
