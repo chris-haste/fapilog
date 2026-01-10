@@ -5,9 +5,6 @@ from typing import Any
 
 import pytest
 
-# Skip this module if pytest-benchmark plugin is not available (e.g., in some CI tox envs)
-pytest.importorskip("pytest_benchmark")
-
 from fapilog.core.concurrency import NonBlockingRingQueue
 from fapilog.core.serialization import (
     convert_json_bytes_to_jsonl,
@@ -18,6 +15,11 @@ from fapilog.plugins.sinks.rotating_file import (
     RotatingFileSinkConfig,
 )
 from fapilog.plugins.sinks.stdout_json import StdoutJsonSink
+
+# Skip this module if pytest-benchmark plugin is not available (e.g., in some CI tox envs)
+pytest.importorskip("pytest_benchmark")
+
+pytestmark = [pytest.mark.benchmark, pytest.mark.slow]
 
 
 def test_serialize_mapping_benchmark(benchmark: Any) -> None:

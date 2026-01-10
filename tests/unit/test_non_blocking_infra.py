@@ -4,6 +4,8 @@ from fapilog.core.concurrency import NonBlockingRingQueue
 from fapilog.core.errors import BackpressureError
 from fapilog.core.resources import AsyncResourcePool
 
+pytestmark = pytest.mark.critical
+
 
 @pytest.mark.asyncio
 async def test_non_blocking_ring_queue_basic():

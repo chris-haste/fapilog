@@ -7,6 +7,8 @@ from fapilog.plugins.redactors.field_mask import (
     FieldMaskRedactor,
 )
 
+pytestmark = pytest.mark.security
+
 
 @pytest.mark.asyncio
 async def test_mask_simple_and_idempotent(monkeypatch: pytest.MonkeyPatch) -> None:

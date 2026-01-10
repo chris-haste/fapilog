@@ -13,10 +13,13 @@ except Exception:  # pragma: no cover - optional dependency
     boto3 = None  # type: ignore
 
 
-pytestmark = pytest.mark.skipif(
-    boto3 is None or LOCALSTACK_ENDPOINT is None,
-    reason="LocalStack endpoint or boto3 not available",
-)
+pytestmark = [
+    pytest.mark.integration,
+    pytest.mark.skipif(
+        boto3 is None or LOCALSTACK_ENDPOINT is None,
+        reason="LocalStack endpoint or boto3 not available",
+    ),
+]
 
 
 @pytest.mark.asyncio

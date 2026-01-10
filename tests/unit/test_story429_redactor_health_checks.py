@@ -15,6 +15,8 @@ from fapilog.plugins.redactors.url_credentials import (
     UrlCredentialsRedactor,
 )
 
+pytestmark = pytest.mark.security
+
 
 # FieldMaskRedactor tests
 @pytest.mark.asyncio

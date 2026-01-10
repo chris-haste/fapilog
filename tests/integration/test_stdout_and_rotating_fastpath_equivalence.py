@@ -10,6 +10,8 @@ import pytest
 
 from fapilog import get_logger
 
+pytestmark = pytest.mark.integration
+
 
 @pytest.mark.asyncio
 async def test_stdout_fastpath_on_off_equivalence(

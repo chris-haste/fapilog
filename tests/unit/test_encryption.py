@@ -8,6 +8,8 @@ from fapilog.core.encryption import (
     validate_encryption_async,
 )
 
+pytestmark = pytest.mark.security
+
 
 def test_validate_encryption_disabled_warns() -> None:
     s = EncryptionSettings(enabled=False)

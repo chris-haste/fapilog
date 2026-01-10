@@ -7,14 +7,14 @@
 #   WA002: assert x >= 1 (may be too weak)
 #   WA003: assert x is not None (standalone)
 
-tests/integration/test_load_metrics.py:145  # WA003
+tests/integration/test_load_metrics.py:147  # WA003
 tests/integration/test_load_metrics.py:165  # WA002
 tests/integration/test_load_metrics.py:247  # WA003
-tests/integration/test_postgres_sink.py:119  # WA003
-tests/integration/test_redaction_sinks.py:339  # WA003
-tests/integration/test_redactors_stage.py:124  # WA002
-tests/integration/test_redactors_stage.py:125  # WA002
-tests/integration/test_serialization_recovery.py:296  # WA002
+tests/integration/test_postgres_sink.py:121  # WA003
+tests/integration/test_redaction_sinks.py:342  # WA003
+tests/integration/test_redactors_stage.py:126  # WA002
+tests/integration/test_redactors_stage.py:127  # WA002
+tests/integration/test_serialization_recovery.py:298  # WA002
 tests/unit/test_adaptive_processing.py:32  # WA002
 tests/unit/test_advanced_config.py:102  # WA002
 tests/unit/test_advanced_config.py:141  # WA002
@@ -37,8 +37,8 @@ tests/unit/test_async_logger_factory.py:21  # WA003
 tests/unit/test_async_logger_factory.py:39  # WA003
 tests/unit/test_async_logger_factory.py:89  # WA003
 tests/unit/test_async_logger_factory.py:208  # WA003
-tests/unit/test_audit_sink.py:52  # WA003
-tests/unit/test_audit_sink.py:121  # WA003
+tests/unit/test_audit_sink.py:54  # WA003
+tests/unit/test_audit_sink.py:123  # WA003
 tests/unit/test_cloudwatch_sink.py:167  # WA002
 tests/unit/test_cloudwatch_sink.py:168  # WA003
 tests/unit/test_cloudwatch_sink.py:235  # WA003
@@ -167,9 +167,9 @@ tests/unit/test_rotating_file_sink.py:755  # WA003
 tests/unit/test_sealed_sink.py:111  # WA003
 tests/unit/test_sealed_sink.py:216  # WA002
 tests/unit/test_sealed_sink.py:217  # WA002
-tests/unit/test_security.py:132  # WA003
-tests/unit/test_security.py:137  # WA003
-tests/unit/test_security.py:142  # WA003
+tests/unit/test_security.py:134  # WA003
+tests/unit/test_security.py:139  # WA003
+tests/unit/test_security.py:144  # WA003
 tests/unit/test_sink_circuit_breaker.py:277  # WA002
 tests/unit/test_sink_circuit_breaker.py:394  # WA003
 tests/unit/test_sink_circuit_breaker.py:408  # WA003

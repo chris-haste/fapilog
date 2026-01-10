@@ -29,6 +29,8 @@ from fapilog import get_logger
 from fapilog.plugins.redactors import BaseRedactor
 from fapilog.plugins.redactors.field_mask import FieldMaskRedactor
 
+pytestmark = [pytest.mark.integration, pytest.mark.security]
+
 
 def _swap_stdout_bytesio() -> tuple[io.BytesIO, Any]:
     """Swap stdout with a BytesIO buffer for capturing output."""
@@ -278,6 +280,7 @@ async def redaction_postgres_pool():
 
 @pytest.mark.asyncio
 @pytest.mark.security
+@pytest.mark.postgres
 async def test_redaction_reaches_postgres_sink(redaction_postgres_pool: Any) -> None:
     """Verify redacted data appears in PostgreSQL rows.
 

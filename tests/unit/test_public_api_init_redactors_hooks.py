@@ -5,6 +5,8 @@ import pytest
 from fapilog import get_logger
 from fapilog.core.settings import Settings
 
+pytestmark = pytest.mark.security
+
 
 @pytest.mark.asyncio
 async def test_get_logger_injects_redactors_and_unhandled_hook(

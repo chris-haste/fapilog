@@ -8,9 +8,12 @@ import pytest
 
 LOKI_URL = os.getenv("LOKI_URL")
 
-pytestmark = pytest.mark.skipif(
-    not LOKI_URL, reason="LOKI_URL not set; start Loki to run integration test"
-)
+pytestmark = [
+    pytest.mark.integration,
+    pytest.mark.skipif(
+        not LOKI_URL, reason="LOKI_URL not set; start Loki to run integration test"
+    ),
+]
 
 
 @pytest.mark.asyncio

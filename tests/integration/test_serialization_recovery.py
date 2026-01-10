@@ -38,6 +38,8 @@ import pytest
 from fapilog.core.logger import AsyncLoggerFacade
 from fapilog.core.serialization import SerializedView
 
+pytestmark = pytest.mark.integration
+
 
 class NonSerializable:
     """Object that cannot be JSON serialized by orjson."""

@@ -1,11 +1,14 @@
 import asyncio
 from typing import Any
 
+import pytest
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
 from fapilog.fastapi.context import RequestContextMiddleware
 from fapilog.fastapi.logging import LoggingMiddleware
+
+pytestmark = pytest.mark.integration
 
 
 class _StubAsyncLogger:

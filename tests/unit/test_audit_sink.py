@@ -9,6 +9,8 @@ from fapilog.core.audit import AuditEventType
 from fapilog.plugins import loader
 from fapilog.plugins.sinks.audit import AuditSink, AuditSinkConfig
 
+pytestmark = pytest.mark.security
+
 
 def test_audit_sink_is_registered() -> None:
     names = loader.list_available_plugins("fapilog.sinks")
