@@ -677,7 +677,15 @@ def _start_plugins_sync(
         )
 
     def _run_sync() -> tuple[list[_Any], list[_Any], list[_Any], list[_Any]]:
-        return _asyncio.run(_do_start())
+        coro = _do_start()
+        try:
+            return _asyncio.run(coro)
+        except Exception:
+            try:
+                coro.close()
+            except Exception:
+                pass
+            raise
 
     try:
         _asyncio.get_running_loop()
