@@ -70,6 +70,38 @@ with runtime() as log:
     log.error("Something went wrong", code=500)
 ```
 
+### Configuration Presets
+
+Get started quickly with built-in presets for common scenarios:
+
+```python
+from fapilog import get_logger, get_async_logger
+
+# Development: DEBUG level, immediate flush, no redaction
+logger = get_logger(preset="dev")
+logger.debug("Debugging info")
+
+# Production: INFO level, file rotation, automatic redaction
+logger = get_logger(preset="production")
+logger.info("User login", password="secret")  # password auto-redacted
+
+# FastAPI: Optimized for async with context propagation
+logger = await get_async_logger(preset="fastapi")
+await logger.info("Request handled", request_id="abc-123")
+
+# Minimal: Matches default behavior (backwards compatible)
+logger = get_logger(preset="minimal")
+```
+
+| Preset | Log Level | File Logging | Redaction | Batch Size | Use Case |
+|--------|-----------|--------------|-----------|------------|----------|
+| `dev` | DEBUG | No | No | 1 (immediate) | Local development |
+| `production` | INFO | Yes (50MB rotation) | Yes (9 fields) | 100 | Production deployments |
+| `fastapi` | INFO | No | No | 50 | FastAPI/async apps |
+| `minimal` | INFO | No | No | Default | Backwards compatible |
+
+See [docs/user-guide/configuration.md](docs/user-guide/configuration.md) for full preset details.
+
 ### Sink routing by level
 
 Route errors to a database while sending info logs to stdout:
