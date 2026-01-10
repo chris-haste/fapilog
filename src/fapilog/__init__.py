@@ -10,6 +10,7 @@ import asyncio as _asyncio
 import os as _os
 from contextlib import asynccontextmanager as _asynccontextmanager
 from contextlib import contextmanager as _contextmanager
+from contextlib import suppress as _suppress
 from dataclasses import dataclass
 from pathlib import Path as _Path
 from typing import Any as _Any
@@ -681,10 +682,8 @@ def _start_plugins_sync(
         try:
             return _asyncio.run(coro)
         except Exception:
-            try:
+            with _suppress(Exception):
                 coro.close()
-            except Exception:
-                pass
             raise
 
     try:
