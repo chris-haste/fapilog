@@ -1,0 +1,783 @@
+# Story 10.1: Configuration Presets (dev, production, fastapi, minimal)
+
+## Context / Background
+
+New users currently need to assemble Settings objects and sinks manually, which creates a high barrier to entry. This story introduces built-in configuration presets that provide a fast path for common scenarios (development, production, FastAPI apps) while preserving full configurability for advanced users.
+
+Presets solve the "10 lines of boilerplate vs 1 line" problem that makes loguru more approachable than fapilog for beginners.
+
+## Scope (In / Out)
+
+### In Scope
+
+- Add 4 built-in presets: `dev`, `production`, `fastapi`, `minimal`
+- `preset` parameter support in `get_logger(preset="...")` and `get_async_logger(preset="...")`
+- Preset validation with clear error messages for invalid preset names
+- Backwards compatibility: no preset = current behavior (minimal)
+- Documentation updates with preset examples and comparison table
+- Comprehensive test coverage
+
+### Out of Scope
+
+- User-defined preset registration (defer to future story if needed)
+- Preset + Settings override merging (defer to future story based on demand)
+- Pretty console output sink (deferred to Story 10.2)
+- FastAPI middleware auto-configuration (Story 10.3)
+- Breaking changes to the Settings schema
+
+## Acceptance Criteria
+
+### AC1: Preset Parameter Support
+- `get_logger(preset="production")` accepts preset parameter
+- `get_async_logger(preset="production")` accepts preset parameter
+- Invalid preset raises `ValueError` with message: `"Invalid preset 'xyz'. Valid presets: dev, production, fastapi, minimal"`
+- Case-sensitive validation (reject "Dev", "PRODUCTION", etc.)
+- `preset=None` or no preset defaults to minimal behavior (backwards compatible)
+
+### AC2: Dev Preset Configuration
+**Purpose**: Local development with verbose logging and diagnostics
+
+Configuration:
+- Log level: `DEBUG`
+- Sink: `stdout_json` (pretty console will be added in Story 10.2)
+- File logging: Disabled
+- Enrichers: `runtime_info`, `context_vars` enabled
+- Redactors: Disabled (safe for local development)
+- Internal logging: Enabled (`core.internal_logging_enabled=True`)
+- Batch size: 1 (immediate flushing for debugging)
+
+### AC3: Production Preset Configuration
+**Purpose**: Production deployments with file rotation, compression, and redaction
+
+Configuration:
+- Log level: `INFO`
+- Sinks: `stdout_json`, `rotating_file`
+- File logging:
+  - Directory: `./logs`
+  - Filename prefix: `fapilog`
+  - Max bytes: `52_428_800` (50 MB)
+  - Max files: `10`
+  - Compress rotated: `True`
+  - Interval: `None` (size-based rotation only)
+- Enrichers: `runtime_info`, `context_vars` enabled
+- Redactors:
+  - `field_mask` enabled with fields: `["password", "api_key", "token", "secret", "authorization", "api_secret", "private_key", "ssn", "credit_card"]`
+  - `url_credentials` enabled (masks credentials in URLs)
+  - `regex_mask` disabled (users can enable via Settings if needed)
+- Batch size: `100` (optimize for throughput)
+- Drop on full: `False` (don't lose logs under pressure)
+
+### AC4: FastAPI Preset Configuration
+**Purpose**: FastAPI applications with request context propagation
+
+Configuration:
+- Log level: `INFO`
+- Sink: `stdout_json`
+- File logging: Disabled (deploy to container stdout)
+- Enrichers: `context_vars` enabled (for request_id, user_id propagation)
+- Async mode: Implicit (via `get_async_logger`)
+- Batch size: `50` (balance latency and throughput)
+
+**Note**: This preset does NOT configure FastAPI middleware. Users must still add middleware manually or use Story 10.3's `setup_logging()` helper.
+
+### AC5: Minimal Preset Configuration
+**Purpose**: Matches current default behavior for backwards compatibility
+
+Configuration:
+- Log level: `INFO`
+- Sink: `stdout_json` only
+- File logging: Disabled
+- Enrichers: Default enrichers only
+- Redactors: Disabled
+- Matches exact behavior of `get_logger()` with no parameters
+
+### AC6: Mutual Exclusivity
+- `get_logger(preset="production", settings=Settings(...))` raises `ValueError`
+- Error message: `"Cannot specify both 'preset' and 'settings'. Use preset for quick setup or settings for full control."`
+- Users must choose: simple preset OR full Settings control, not both
+- Rationale: Keeps mental model simple for v1; override mechanism can be added in future story if demand exists
+
+### AC7: Documentation Updates
+- `README.md` includes preset examples in Quick Start section
+- `docs/api-reference/configuration.md` includes preset comparison table
+- `docs/user-guide/configuration.md` includes detailed preset documentation
+- Before/after code examples showing line reduction
+- Migration guide from manual Settings to presets
+
+### AC8: Backwards Compatibility
+- `get_logger()` with no preset → minimal preset (current behavior)
+- `get_logger(preset=None)` → minimal preset
+- `get_logger(settings=Settings())` → unchanged behavior (ignores presets)
+- Existing code unaffected - preset is optional parameter
+- No performance regression (preset application overhead < 1ms)
+
+## API Design Decision
+
+**Chosen Approach**: Preset XOR Settings (Mutually Exclusive)
+
+```python
+# Option 1: Use preset (simple, quick setup)
+logger = get_logger(preset="production")
+
+# Option 2: Use settings (full control)
+logger = get_logger(settings=Settings(...))
+
+# Option 3: Neither (backwards compatible, uses minimal)
+logger = get_logger()
+
+# ❌ NOT ALLOWED: Both together
+logger = get_logger(preset="production", settings=Settings(...))
+# Raises: ValueError("Cannot specify both 'preset' and 'settings'...")
+```
+
+**Rationale**:
+- Simple mental model for users
+- Preserves type safety and IDE autocomplete
+- Users needing customization use Settings() directly
+- Can add override mechanism in future story based on user feedback
+- Avoids complex merging logic and precedence rules
+
+**Future Enhancement** (out of scope for this story):
+- Story 10.x could add: `get_logger(preset="production", overrides={"core.log_level": "DEBUG"})`
+
+## Implementation Notes
+
+### File Structure
+```
+src/fapilog/core/presets.py (NEW)
+src/fapilog/__init__.py (MODIFIED - add preset parameter)
+tests/unit/test_presets.py (NEW)
+tests/integration/test_preset_integration.py (NEW)
+examples/presets/ (NEW - example files for each preset)
+```
+
+### Implementation Steps
+
+#### Step 1: Create `src/fapilog/core/presets.py`
+
+```python
+"""Built-in configuration presets for common use cases."""
+
+from __future__ import annotations
+from typing import Any
+
+# Preset definitions as Settings-compatible dicts
+PRESETS: dict[str, dict[str, Any]] = {
+    "dev": {
+        "core": {
+            "log_level": "DEBUG",
+            "internal_logging_enabled": True,
+            "batch_max_size": 1,  # Immediate flushing for debugging
+        },
+        "sink_config": {
+            "rotating_file": {
+                "directory": None,  # Disable file logging
+            }
+        },
+        "enricher_config": {
+            "runtime_info": {"enabled": True},
+            "context_vars": {"enabled": True},
+        },
+        "redactor_config": {
+            "field_mask": {"enabled": False},
+            "url_credentials": {"enabled": False},
+        },
+    },
+    "production": {
+        "core": {
+            "log_level": "INFO",
+            "batch_max_size": 100,
+            "drop_on_full": False,
+        },
+        "sink_config": {
+            "rotating_file": {
+                "directory": "./logs",
+                "filename_prefix": "fapilog",
+                "max_bytes": 52_428_800,  # 50 MB
+                "max_files": 10,
+                "compress_rotated": True,
+            }
+        },
+        "enricher_config": {
+            "runtime_info": {"enabled": True},
+            "context_vars": {"enabled": True},
+        },
+        "redactor_config": {
+            "field_mask": {
+                "enabled": True,
+                "fields": [
+                    "password",
+                    "api_key",
+                    "token",
+                    "secret",
+                    "authorization",
+                    "api_secret",
+                    "private_key",
+                    "ssn",
+                    "credit_card",
+                ],
+            },
+            "url_credentials": {"enabled": True},
+        },
+    },
+    "fastapi": {
+        "core": {
+            "log_level": "INFO",
+            "batch_max_size": 50,
+        },
+        "sink_config": {
+            "rotating_file": {
+                "directory": None,  # Disable file logging
+            }
+        },
+        "enricher_config": {
+            "context_vars": {"enabled": True},
+        },
+    },
+    "minimal": {
+        # Empty dict - uses all Settings defaults
+    },
+}
+
+
+def get_preset(name: str) -> dict[str, Any]:
+    """Get preset configuration by name.
+
+    Args:
+        name: Preset name (dev, production, fastapi, minimal)
+
+    Returns:
+        Settings-compatible configuration dict
+
+    Raises:
+        ValueError: If preset name is invalid
+    """
+    validate_preset(name)
+    return PRESETS[name].copy()
+
+
+def validate_preset(name: str) -> None:
+    """Validate preset name.
+
+    Args:
+        name: Preset name to validate
+
+    Raises:
+        ValueError: If preset name is invalid
+    """
+    if name not in PRESETS:
+        valid = ", ".join(sorted(PRESETS.keys()))
+        raise ValueError(f"Invalid preset '{name}'. Valid presets: {valid}")
+
+
+def list_presets() -> list[str]:
+    """Return list of available preset names."""
+    return sorted(PRESETS.keys())
+```
+
+#### Step 2: Update `src/fapilog/__init__.py`
+
+Add preset parameter to both logger factories:
+
+```python
+def get_logger(
+    name: str | None = None,
+    *,
+    preset: str | None = None,  # NEW
+    settings: _Settings | None = None,
+    sinks: list[object] | None = None,
+) -> _SyncLoggerFacade:
+    """Get a synchronous logger.
+
+    Args:
+        name: Logger name
+        preset: Configuration preset (dev, production, fastapi, minimal)
+        settings: Full Settings object for advanced configuration
+        sinks: Custom sink instances
+
+    Raises:
+        ValueError: If both preset and settings are provided
+        ValueError: If preset name is invalid
+    """
+    # Validate mutual exclusivity
+    if preset is not None and settings is not None:
+        raise ValueError(
+            "Cannot specify both 'preset' and 'settings'. "
+            "Use preset for quick setup or settings for full control."
+        )
+
+    # Apply preset if provided
+    if preset is not None:
+        from .core.presets import get_preset
+        preset_config = get_preset(preset)
+        settings = _Settings(**preset_config)
+
+    # Continue with existing logic...
+    setup = _configure_logger_common(settings, sinks)
+    # ... rest of function unchanged
+```
+
+Same for `get_async_logger()`.
+
+#### Step 3: Preset to Settings Conversion
+
+The preset dict uses nested structure matching Settings model:
+
+```python
+# Preset dict structure matches Settings __init__ kwargs
+preset_config = {
+    "core": {"log_level": "DEBUG"},
+    "sink_config": {"rotating_file": {"directory": None}}
+}
+
+# Convert to Settings via unpacking
+settings = Settings(**preset_config)
+```
+
+Pydantic validates the structure automatically.
+
+### Preset Validation Rules
+
+- **Valid presets**: `["dev", "production", "fastapi", "minimal"]`
+- **Case sensitivity**: Exact match required (reject "Dev", "PRODUCTION")
+- **None handling**: `preset=None` defaults to minimal behavior
+- **Error message format**: `"Invalid preset 'xyz'. Valid presets: dev, production, fastapi, minimal"`
+
+### Backwards Compatibility Guarantee
+
+```python
+# These are equivalent (minimal preset = current default)
+logger1 = get_logger()
+logger2 = get_logger(preset=None)
+logger3 = get_logger(preset="minimal")
+
+# Settings still works unchanged
+logger4 = get_logger(settings=Settings(...))
+```
+
+## Tasks
+
+### Implementation Tasks
+- [ ] Create `src/fapilog/core/presets.py` with preset definitions
+- [ ] Add `PRESETS` dict with all 4 presets (dev, production, fastapi, minimal)
+- [ ] Implement `get_preset(name)` function with validation
+- [ ] Implement `validate_preset(name)` function
+- [ ] Update `src/fapilog/__init__.py` - add `preset` parameter to `get_logger()`
+- [ ] Update `src/fapilog/__init__.py` - add `preset` parameter to `get_async_logger()`
+- [ ] Implement mutual exclusivity check (preset XOR settings)
+- [ ] Add preset → Settings conversion logic
+
+### Testing Tasks
+- [ ] Create `tests/unit/test_presets.py` for preset module tests
+- [ ] Unit test: `get_preset("dev")` returns correct config dict
+- [ ] Unit test: `get_preset("production")` returns correct config dict
+- [ ] Unit test: `get_preset("fastapi")` returns correct config dict
+- [ ] Unit test: `get_preset("minimal")` returns correct config dict
+- [ ] Unit test: `get_preset("invalid")` raises ValueError with helpful message
+- [ ] Unit test: `validate_preset()` rejects invalid names
+- [ ] Unit test: `list_presets()` returns all preset names
+- [ ] Integration test: `get_logger(preset="production")` creates working logger
+- [ ] Integration test: `get_async_logger(preset="fastapi")` creates working logger
+- [ ] Integration test: preset + settings raises ValueError
+- [ ] Integration test: production preset creates files in ./logs
+- [ ] Integration test: production preset redacts sensitive fields
+- [ ] Regression test: `get_logger()` with no preset preserves current behavior
+- [ ] Performance test: preset application overhead < 1ms
+
+### Documentation Tasks
+- [ ] Update `README.md` - add preset examples to Quick Start section
+- [ ] Update `docs/api-reference/configuration.md` - add preset parameter docs
+- [ ] Create preset comparison table in `docs/api-reference/configuration.md`
+- [ ] Update `docs/user-guide/configuration.md` - add preset usage guide
+- [ ] Create `examples/presets/dev_preset.py` example
+- [ ] Create `examples/presets/production_preset.py` example
+- [ ] Create `examples/presets/fastapi_preset.py` example
+- [ ] Create `examples/presets/minimal_preset.py` example
+- [ ] Update `CHANGELOG.md` - add preset feature announcement
+- [ ] Update `docs/user-guide/comparisons.md` - mention presets
+
+## Tests
+
+### Unit Tests (`tests/unit/test_presets.py`)
+
+```python
+"""Test preset definitions and validation."""
+
+import pytest
+from fapilog.core.presets import get_preset, validate_preset, list_presets, PRESETS
+from fapilog.core.settings import Settings
+
+
+class TestPresetDefinitions:
+    """Test preset configuration dictionaries."""
+
+    def test_dev_preset_structure(self):
+        """Dev preset has expected structure."""
+        config = get_preset("dev")
+        assert config["core"]["log_level"] == "DEBUG"
+        assert config["core"]["internal_logging_enabled"] is True
+
+    def test_production_preset_structure(self):
+        """Production preset has expected structure."""
+        config = get_preset("production")
+        assert config["core"]["log_level"] == "INFO"
+        assert config["sink_config"]["rotating_file"]["max_bytes"] == 52_428_800
+        assert config["sink_config"]["rotating_file"]["compress_rotated"] is True
+
+    def test_fastapi_preset_structure(self):
+        """FastAPI preset has expected structure."""
+        config = get_preset("fastapi")
+        assert config["core"]["log_level"] == "INFO"
+        assert config["enricher_config"]["context_vars"]["enabled"] is True
+
+    def test_minimal_preset_is_empty(self):
+        """Minimal preset is empty dict (uses defaults)."""
+        config = get_preset("minimal")
+        assert config == {}
+
+
+class TestPresetValidation:
+    """Test preset name validation."""
+
+    def test_valid_presets_accepted(self):
+        """All valid preset names are accepted."""
+        for name in ["dev", "production", "fastapi", "minimal"]:
+            validate_preset(name)  # Should not raise
+
+    def test_invalid_preset_raises_error(self):
+        """Invalid preset name raises ValueError."""
+        with pytest.raises(ValueError, match="Invalid preset 'foobar'"):
+            validate_preset("foobar")
+
+    def test_case_sensitive_validation(self):
+        """Preset names are case-sensitive."""
+        with pytest.raises(ValueError):
+            validate_preset("Dev")
+        with pytest.raises(ValueError):
+            validate_preset("PRODUCTION")
+
+    def test_error_message_shows_valid_presets(self):
+        """Error message lists valid presets."""
+        with pytest.raises(ValueError, match="Valid presets: dev, fastapi, minimal, production"):
+            validate_preset("invalid")
+
+
+class TestPresetToSettings:
+    """Test converting presets to Settings objects."""
+
+    def test_dev_preset_creates_valid_settings(self):
+        """Dev preset can be converted to Settings."""
+        config = get_preset("dev")
+        settings = Settings(**config)
+        assert settings.core.log_level == "DEBUG"
+
+    def test_production_preset_creates_valid_settings(self):
+        """Production preset can be converted to Settings."""
+        config = get_preset("production")
+        settings = Settings(**config)
+        assert settings.core.log_level == "INFO"
+        assert settings.sink_config.rotating_file.compress_rotated is True
+
+    def test_all_presets_create_valid_settings(self):
+        """All presets produce valid Settings objects."""
+        for name in list_presets():
+            config = get_preset(name)
+            settings = Settings(**config)
+            assert settings is not None
+
+
+class TestPresetList:
+    """Test preset listing."""
+
+    def test_list_presets_returns_all(self):
+        """list_presets returns all preset names."""
+        presets = list_presets()
+        assert set(presets) == {"dev", "production", "fastapi", "minimal"}
+
+    def test_list_presets_is_sorted(self):
+        """list_presets returns sorted list."""
+        presets = list_presets()
+        assert presets == sorted(presets)
+```
+
+### Integration Tests (`tests/integration/test_preset_integration.py`)
+
+```python
+"""Test presets with actual logger creation."""
+
+import pytest
+from pathlib import Path
+from fapilog import get_logger, get_async_logger
+
+
+class TestGetLoggerWithPresets:
+    """Test get_logger with preset parameter."""
+
+    def test_dev_preset_creates_logger(self):
+        """Dev preset creates working logger."""
+        logger = get_logger(preset="dev")
+        logger.info("test message")
+        # Should not raise
+
+    def test_production_preset_creates_logger(self):
+        """Production preset creates working logger."""
+        logger = get_logger(preset="production")
+        logger.info("test message")
+        # Should create ./logs directory
+        assert Path("./logs").exists()
+
+    def test_fastapi_preset_creates_logger(self):
+        """FastAPI preset creates working logger."""
+        logger = get_logger(preset="fastapi")
+        logger.info("test message")
+
+    def test_minimal_preset_creates_logger(self):
+        """Minimal preset creates working logger."""
+        logger = get_logger(preset="minimal")
+        logger.info("test message")
+
+
+class TestAsyncLoggerWithPresets:
+    """Test get_async_logger with preset parameter."""
+
+    async def test_fastapi_preset_async(self):
+        """FastAPI preset works with async logger."""
+        logger = await get_async_logger(preset="fastapi")
+        await logger.info("test message")
+
+
+class TestMutualExclusivity:
+    """Test preset and settings cannot be used together."""
+
+    def test_preset_and_settings_raises_error(self):
+        """Using both preset and settings raises ValueError."""
+        from fapilog import Settings
+
+        with pytest.raises(ValueError, match="Cannot specify both"):
+            get_logger(preset="production", settings=Settings())
+
+    def test_error_message_is_helpful(self):
+        """Error message guides users."""
+        from fapilog import Settings
+
+        with pytest.raises(ValueError, match="Use preset for quick setup or settings for full control"):
+            get_logger(preset="dev", settings=Settings())
+
+
+class TestBackwardsCompatibility:
+    """Test backwards compatibility with existing code."""
+
+    def test_no_preset_uses_defaults(self):
+        """get_logger() with no preset works as before."""
+        logger = get_logger()
+        logger.info("test message")
+
+    def test_preset_none_uses_defaults(self):
+        """preset=None uses default behavior."""
+        logger = get_logger(preset=None)
+        logger.info("test message")
+
+    def test_settings_still_works(self):
+        """Explicit settings still works unchanged."""
+        from fapilog import Settings
+
+        settings = Settings(core={"log_level": "DEBUG"})
+        logger = get_logger(settings=settings)
+        logger.info("test message")
+
+
+class TestProductionPresetFeatures:
+    """Test production preset specific features."""
+
+    def test_creates_log_directory(self, tmp_path):
+        """Production preset creates ./logs directory."""
+        import os
+        os.chdir(tmp_path)
+
+        logger = get_logger(preset="production")
+        logger.info("test message")
+
+        assert (tmp_path / "logs").exists()
+
+    def test_redacts_sensitive_fields(self):
+        """Production preset redacts configured fields."""
+        logger = get_logger(preset="production")
+
+        # Log with sensitive data
+        logger.info("user login", password="secret123", api_key="key123")
+
+        # TODO: Add assertion to verify redaction
+        # This requires capturing log output and checking for [REDACTED]
+
+
+class TestPerformance:
+    """Test preset performance characteristics."""
+
+    def test_preset_application_fast(self, benchmark):
+        """Preset application overhead < 1ms."""
+        def create_logger():
+            return get_logger(preset="production")
+
+        result = benchmark(create_logger)
+        # Benchmark will fail if too slow
+```
+
+### Regression Tests
+
+Add to existing `tests/unit/test_logger_setup.py`:
+
+```python
+def test_get_logger_no_params_unchanged():
+    """get_logger() with no parameters works as before (regression test)."""
+    logger = get_logger()
+    assert logger is not None
+    logger.info("test")
+    # No errors = backwards compatible
+```
+
+## Documentation Examples
+
+### README.md Quick Start Section
+
+```markdown
+## 🎯 Quick Start
+
+### Zero-Config with Presets
+
+Fapilog now includes built-in presets for common scenarios:
+
+```python
+from fapilog import get_logger
+
+# Development: verbose logging, no file output
+logger = get_logger(preset="dev")
+logger.debug("Application started")
+
+# Production: file rotation, compression, redaction
+logger = get_logger(preset="production")
+logger.info("User login", user_id=123)  # password fields auto-redacted
+
+# FastAPI: async-optimized with request context
+logger = await get_async_logger(preset="fastapi")
+await logger.info("Request handled", request_id=request.id)
+```
+
+### Advanced Configuration
+
+Need more control? Use the full Settings API:
+
+```python
+from fapilog import get_logger, Settings
+
+settings = Settings(
+    core={"log_level": "DEBUG"},
+    file={"max_bytes": "100 MB", "retention": "30 days"}
+)
+logger = get_logger(settings=settings)
+```
+```
+
+### Preset Comparison Table
+
+```markdown
+| Feature | dev | production | fastapi | minimal |
+|---------|-----|------------|---------|---------|
+| **Log Level** | DEBUG | INFO | INFO | INFO |
+| **Output Format** | JSON* | JSON | JSON | JSON |
+| **File Logging** | ❌ | ✅ (50MB rotation) | ❌ | ❌ |
+| **Compression** | - | ✅ | - | - |
+| **Redaction** | ❌ | ✅ (9 fields) | ❌ | ❌ |
+| **Context Enrichment** | ✅ | ✅ | ✅ | Default |
+| **Internal Diagnostics** | ✅ | ❌ | ❌ | ❌ |
+| **Batch Size** | 1 (immediate) | 100 | 50 | Default |
+| **Use Case** | Local dev | Production | FastAPI apps | Default |
+
+*Pretty console coming in Story 10.2
+```
+
+## Definition of Done
+
+- [ ] `src/fapilog/core/presets.py` created with all 4 preset definitions
+- [ ] `get_preset()`, `validate_preset()`, `list_presets()` functions implemented
+- [ ] `get_logger()` accepts `preset` parameter
+- [ ] `get_async_logger()` accepts `preset` parameter
+- [ ] Invalid preset raises ValueError with helpful message
+- [ ] preset + settings together raises ValueError with helpful message
+- [ ] Dev preset: DEBUG, stdout JSON, enrichers on, redaction off ✓
+- [ ] Production preset: INFO, stdout + file, rotation 50MB/10 files, redaction on ✓
+- [ ] FastAPI preset: INFO, stdout JSON, context_vars enricher ✓
+- [ ] Minimal preset: matches current `get_logger()` behavior ✓
+- [ ] Unit tests: >95% coverage of `presets.py`
+- [ ] Integration tests: each preset works end-to-end
+- [ ] Regression tests: no preset = current behavior
+- [ ] Performance test: preset application < 1ms overhead
+- [ ] `README.md` updated with preset examples
+- [ ] `docs/api-reference/configuration.md` has preset table
+- [ ] `examples/presets/` directory created with 4 example files
+- [ ] `CHANGELOG.md` updated
+- [ ] All tests passing (unit, integration, type checks)
+- [ ] No performance regression (benchmarks run clean)
+- [ ] Code review approved
+- [ ] Documentation reviewed for clarity
+
+## Risks / Rollback / Monitoring
+
+### Risks
+
+1. **Risk**: Preset defaults become controversial or stale
+   - **Mitigation**: Document rationale for each preset choice
+   - **Mitigation**: Make presets easily discoverable via `list_presets()`
+   - **Mitigation**: Keep Settings API as primary for full control
+
+2. **Risk**: Users confused about preset vs settings
+   - **Mitigation**: Clear error message when both provided
+   - **Mitigation**: Documentation emphasizes "preset for simple, settings for advanced"
+   - **Mitigation**: Examples show both approaches
+
+3. **Risk**: Production preset file logging breaks in read-only filesystems
+   - **Mitigation**: Document that ./logs must be writable
+   - **Mitigation**: Future story could add filesystem permission detection
+
+4. **Risk**: Redaction fields too aggressive or too lenient
+   - **Mitigation**: Document exact fields being redacted
+   - **Mitigation**: Users can override via Settings if needed
+   - **Mitigation**: Field list based on OWASP common sensitive data
+
+### Rollback Plan
+
+If presets cause issues:
+1. Keep `presets.py` but mark as experimental
+2. Remove `preset` parameter from `get_logger()` signatures
+3. Presets remain accessible via `get_preset()` for users who want them
+4. Minimal code churn due to isolated implementation
+
+### Monitoring
+
+- Track preset usage via documentation page views
+- Monitor GitHub issues for preset-related confusion
+- Collect feedback on preset defaults
+- Consider telemetry opt-in for preset usage stats (future story)
+
+## Dependencies
+
+- **Depends on**: None (standalone feature)
+- **Blocks**: Story 10.2 (Pretty Console - will enhance dev preset)
+- **Blocks**: Story 10.3 (FastAPI Integration - will enhance fastapi preset)
+
+## Estimated Effort
+
+- Implementation: 4 hours
+- Testing: 2 hours
+- Documentation: 2 hours
+- **Total**: 6-8 hours for one developer
+
+## Open Questions
+
+None - all decisions made in this updated version.
+
+## Related Stories
+
+- **Story 10.2**: Pretty Console Output (will enhance dev preset)
+- **Story 10.3**: One-Liner FastAPI Integration (will enhance fastapi preset usage)
+- **Story 10.4**: Human-Readable Config Strings (future: `rotation="10 MB"`)
+- **Future**: Preset override mechanism if user demand exists
