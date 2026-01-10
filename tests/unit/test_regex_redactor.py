@@ -7,6 +7,8 @@ from fapilog.plugins.redactors.regex_mask import (
     RegexMaskRedactor,
 )
 
+pytestmark = pytest.mark.security
+
 
 @pytest.mark.asyncio
 async def test_regex_masks_flat_nested_and_lists() -> None:

@@ -10,6 +10,8 @@ from fapilog.metrics.metrics import MetricsCollector
 from fapilog.plugins.enrichers import BaseEnricher
 from fapilog.plugins.redactors import BaseRedactor
 
+pytestmark = [pytest.mark.integration, pytest.mark.security]
+
 
 class _StubEnricher:
     name = "stub_enricher"

@@ -10,6 +10,8 @@ from fapilog.plugins.redactors.field_mask import (
     FieldMaskRedactor,
 )
 
+pytestmark = pytest.mark.security
+
 
 @pytest.mark.asyncio
 async def test_block_on_unredactable_intermediate_emits_warning(

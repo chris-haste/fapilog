@@ -13,6 +13,8 @@ from fapilog.core import (
     validate_security,
 )
 
+pytestmark = pytest.mark.security
+
 
 @pytest.mark.asyncio
 async def test_encryption_validation_env_ok() -> None:

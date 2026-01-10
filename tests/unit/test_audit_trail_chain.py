@@ -11,6 +11,8 @@ from fapilog.core.audit import (
     CompliancePolicy,
 )
 
+pytestmark = pytest.mark.security
+
 
 @pytest.mark.asyncio
 async def test_audit_stop_drains_queue(tmp_path) -> None:

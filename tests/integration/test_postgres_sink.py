@@ -9,6 +9,8 @@ import pytest
 pytest.importorskip("asyncpg")
 import asyncpg  # noqa: E402
 
+pytestmark = [pytest.mark.integration, pytest.mark.postgres]
+
 
 def _pg_env(key: str, default: str) -> str:
     return os.getenv(f"FAPILOG_POSTGRES__{key}", default)

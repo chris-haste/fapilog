@@ -19,6 +19,7 @@ Please see our comprehensive **[Contributing Guide](https://github.com/chris-has
 - **[Report a Bug](https://github.com/chris-haste/fapilog/issues/new?labels=bug)** - Found an issue? Let us know
 - **[Request a Feature](https://github.com/chris-haste/fapilog/issues/new?labels=enhancement)** - Have an idea? Share it
 - **[Ask a Question](https://github.com/chris-haste/fapilog/discussions)** - Need help? Start a discussion
+- **[Test Categories](test-categories.md)** - Test markers and CI subsets
 
 ## Key Development Commands
 

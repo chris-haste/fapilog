@@ -39,6 +39,7 @@ async def _collecting_sink(
 class TestInLoopMode:
     """Tests for logger behavior when running inside an event loop."""
 
+    @pytest.mark.critical
     @pytest.mark.asyncio
     async def test_in_loop_bind_and_flush(self) -> None:
         collected: list[dict[str, Any]] = []
@@ -94,6 +95,7 @@ class TestInLoopMode:
 class TestThreadMode:
     """Tests for logger behavior when running outside an event loop."""
 
+    @pytest.mark.critical
     def test_thread_mode_wait_then_drop(self) -> None:
         collected: list[dict[str, Any]] = []
         logger = SyncLoggerFacade(

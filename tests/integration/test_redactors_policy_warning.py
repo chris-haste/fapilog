@@ -8,6 +8,8 @@ import pytest
 from fapilog import get_logger
 from fapilog.core.diagnostics import set_writer_for_tests
 
+pytestmark = [pytest.mark.integration, pytest.mark.security]
+
 
 @pytest.mark.asyncio
 async def test_policy_warning_emitted_when_policy_present_but_disabled(

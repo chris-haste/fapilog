@@ -258,12 +258,17 @@ addopts = [
     "--asyncio-mode=auto",
 ]
 markers = [
+    "critical: Tests that must never fail - core functionality",
+    "security: Security-critical tests (redaction, auth, secrets)",
+    "standard: Default risk category for typical unit tests",
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
+    "flaky: marks tests with known intermittent failures",
+    "postgres: marks tests requiring PostgreSQL",
     "benchmark: marks tests as benchmark tests",
     "enterprise: marks tests as enterprise features",
-    "security: marks tests as security-critical (redaction, audit trails)",
     "property: property-based tests (may be slower)",
+    "asyncio: async tests (pytest-asyncio)",
 ]
 
 [tool.ruff]

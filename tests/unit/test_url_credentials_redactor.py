@@ -4,6 +4,8 @@ import pytest
 
 from fapilog.plugins.redactors.url_credentials import UrlCredentialsRedactor
 
+pytestmark = pytest.mark.security
+
 
 @pytest.mark.asyncio
 async def test_url_credentials_stripping_basic() -> None:

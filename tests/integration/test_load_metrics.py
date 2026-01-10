@@ -12,6 +12,8 @@ from fapilog.plugins.sinks.rotating_file import (
     RotatingFileSinkConfig,
 )
 
+pytestmark = pytest.mark.integration
+
 
 async def _monitor_loop_latency(
     stop_evt: asyncio.Event, period: float = 0.001

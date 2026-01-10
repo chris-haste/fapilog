@@ -8,6 +8,8 @@ import pytest
 
 from fapilog import Settings, get_logger
 
+pytestmark = [pytest.mark.integration, pytest.mark.security]
+
 
 @pytest.mark.asyncio
 async def test_audit_sink_pipeline_writes_logs(tmp_path: Path) -> None:

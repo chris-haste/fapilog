@@ -10,6 +10,7 @@ import asyncio as _asyncio
 import os as _os
 from contextlib import asynccontextmanager as _asynccontextmanager
 from contextlib import contextmanager as _contextmanager
+from contextlib import suppress as _suppress
 from dataclasses import dataclass
 from pathlib import Path as _Path
 from typing import Any as _Any
@@ -677,7 +678,13 @@ def _start_plugins_sync(
         )
 
     def _run_sync() -> tuple[list[_Any], list[_Any], list[_Any], list[_Any]]:
-        return _asyncio.run(_do_start())
+        coro = _do_start()
+        try:
+            return _asyncio.run(coro)
+        except Exception:
+            with _suppress(Exception):
+                coro.close()
+            raise
 
     try:
         _asyncio.get_running_loop()

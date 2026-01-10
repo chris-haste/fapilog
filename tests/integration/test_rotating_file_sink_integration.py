@@ -13,6 +13,8 @@ if "FAPILOG_TEST_MAX_LOOP_STALL_SECONDS" not in os.environ:
 
 from fapilog.plugins.sinks.rotating_file import RotatingFileSink, RotatingFileSinkConfig
 
+pytestmark = pytest.mark.integration
+
 
 async def _monitor_loop_latency(
     stop_evt: asyncio.Event, period: float = 0.001

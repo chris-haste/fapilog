@@ -8,6 +8,8 @@ import pytest
 from fapilog import get_logger
 from fapilog.core.errors import capture_unhandled_exceptions
 
+pytestmark = pytest.mark.integration
+
 
 @pytest.mark.asyncio
 async def test_unhandled_async_exception_is_captured() -> None:

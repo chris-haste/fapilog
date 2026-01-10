@@ -69,7 +69,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install hatch
 
-      - name: Run tests with coverage
+      - name: Run quick tests with coverage (PR)
+        if: github.event_name == 'pull_request'
+        run: >
+          hatch run test:test-cov --
+          -m "((critical or security) and not flaky) or (not slow and not integration and not flaky)"
+
+      - name: Run flaky tests (PR)
+        if: github.event_name == 'pull_request'
+        run: hatch run test:test -- -m flaky
+        continue-on-error: true
+
+      - name: Run full tests with coverage
+        if: github.event_name != 'pull_request'
         run: hatch run test:test-cov
 
       - name: Upload coverage to Codecov
