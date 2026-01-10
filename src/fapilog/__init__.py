@@ -24,6 +24,9 @@ from .core.events import LogEvent
 from .core.logger import AsyncLoggerFacade as _AsyncLoggerFacade
 from .core.logger import DrainResult
 from .core.logger import SyncLoggerFacade as _SyncLoggerFacade
+
+# Preset discovery (public API)
+from .core.presets import list_presets
 from .core.retry import RetryConfig as _RetryConfig
 from .core.settings import Settings as _Settings
 from .metrics.metrics import MetricsCollector as _MetricsCollector
@@ -61,6 +64,7 @@ __all__ = [
     "Settings",
     "DrainResult",
     "LogEvent",
+    "list_presets",
     "__version__",
     "VERSION",
 ]
@@ -774,9 +778,24 @@ def _apply_logger_extras(
 def get_logger(
     name: str | None = None,
     *,
+    preset: str | None = None,
     settings: _Settings | None = None,
     sinks: list[object] | None = None,
 ) -> _SyncLoggerFacade:
+    # Validate mutual exclusivity
+    if preset is not None and settings is not None:
+        raise ValueError(
+            "Cannot specify both 'preset' and 'settings'. "
+            "Use preset for quick setup or settings for full control."
+        )
+
+    # Apply preset if provided
+    if preset is not None:
+        from .core.presets import get_preset
+
+        preset_config = get_preset(preset)
+        settings = _Settings(**preset_config)
+
     setup = _configure_logger_common(settings, sinks)
 
     (
@@ -828,9 +847,24 @@ def get_logger(
 async def get_async_logger(
     name: str | None = None,
     *,
+    preset: str | None = None,
     settings: _Settings | None = None,
     sinks: list[object] | None = None,
 ) -> _AsyncLoggerFacade:
+    # Validate mutual exclusivity
+    if preset is not None and settings is not None:
+        raise ValueError(
+            "Cannot specify both 'preset' and 'settings'. "
+            "Use preset for quick setup or settings for full control."
+        )
+
+    # Apply preset if provided
+    if preset is not None:
+        from .core.presets import get_preset
+
+        preset_config = get_preset(preset)
+        settings = _Settings(**preset_config)
+
     setup = _configure_logger_common(settings, sinks)
 
     enrichers = await _start_plugins(setup.enrichers, "enricher")
