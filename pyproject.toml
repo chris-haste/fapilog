@@ -385,6 +385,7 @@ exclude = [
     "src/fapilog/containers/lifecycle.py",  # API methods for container lifecycle
     "src/fapilog/core/events.py",  # Enum values and API methods
     "src/fapilog/core/logger.py",  # API methods and context manager params
+    "src/fapilog/core/presets.py",  # Public API functions for preset discovery
     "src/fapilog/core/worker.py",  # Shared internal functions used across facades
     "src/fapilog/core/settings.py",  # Enum values and validator methods
     "src/fapilog/core/routing.py",  # Routing API methods (build_routing_writer, update_rules)
