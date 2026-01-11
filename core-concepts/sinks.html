@@ -180,7 +180,8 @@
 <section id="built-in-sinks">
 <h2>Built-in sinks<a class="headerlink" href="#built-in-sinks" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><strong>Stdout JSON</strong>: default sink; emits JSON lines to stdout.</p></li>
+<li><p><strong>Stdout pretty</strong>: human-readable console output (TTY).</p></li>
+<li><p><strong>Stdout JSON</strong>: structured JSON lines to stdout.</p></li>
 <li><p><strong>Rotating file</strong>: size/time-based rotation with optional compression.</p></li>
 <li><p><strong>HTTP client</strong>: POST log entries to an HTTP endpoint.</p></li>
 <li><p><strong>MMAP persistence</strong>: experimental local persistence sink.</p></li>
@@ -191,7 +192,7 @@
 <ul class="simple">
 <li><p>If <code class="docutils literal notranslate"><span class="pre">FAPILOG_HTTP__ENDPOINT</span></code> is set, the HTTP sink is used.</p></li>
 <li><p>Else if <code class="docutils literal notranslate"><span class="pre">FAPILOG_FILE__DIRECTORY</span></code> is set, the rotating file sink is used.</p></li>
-<li><p>Otherwise, stdout JSON is used.</p></li>
+<li><p>Otherwise, stdout auto is used (pretty in TTY, JSON when piped).</p></li>
 </ul>
 </section>
 <section id="fast-path-serialization">

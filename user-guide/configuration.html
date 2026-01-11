@@ -204,28 +204,28 @@
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dev</span></code></p></td>
 <td><p>DEBUG</p></td>
-<td><p>stdout</p></td>
+<td><p>stdout_pretty</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 <td><p>1 (immediate)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">production</span></code></p></td>
 <td><p>INFO</p></td>
-<td><p>stdout + file</p></td>
+<td><p>stdout_json + file</p></td>
 <td><p>50MB × 10 files</p></td>
 <td><p>Yes (9 fields)</p></td>
 <td><p>100</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
 <td><p>INFO</p></td>
-<td><p>stdout</p></td>
+<td><p>stdout_json</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 <td><p>50</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
 <td><p>INFO</p></td>
-<td><p>stdout</p></td>
+<td><p>stdout_json</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 <td><p>256 (default)</p></td>
@@ -240,6 +240,7 @@
 <li><p>DEBUG level shows all messages</p></li>
 <li><p>Immediate flushing (batch_size=1) for real-time debugging</p></li>
 <li><p>Internal diagnostics enabled</p></li>
+<li><p>Pretty console output in terminals</p></li>
 <li><p>No redaction (safe for local secrets)</p></li>
 </ul>
 <p><strong><code class="docutils literal notranslate"><span class="pre">production</span></code></strong> - Production deployments with safety features:</p>
@@ -275,6 +276,23 @@
 <p>If you need customization beyond what presets offer, use the <code class="docutils literal notranslate"><span class="pre">Settings</span></code> class directly.</p>
 </section>
 </section>
+<section id="output-format">
+<h2>Output format<a class="headerlink" href="#output-format" title="Link to this heading"></a></h2>
+<p>Use <code class="docutils literal notranslate"><span class="pre">format</span></code> to control stdout output without building a full <code class="docutils literal notranslate"><span class="pre">Settings</span></code> object:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span>   <span class="c1"># Default: pretty in TTY, JSON when piped</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;pretty&quot;</span><span class="p">)</span> <span class="c1"># Force human-readable output</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;json&quot;</span><span class="p">)</span>   <span class="c1"># Force structured JSON</span>
+</pre></div>
+</div>
+<p>Notes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">format</span></code> is mutually exclusive with <code class="docutils literal notranslate"><span class="pre">settings</span></code>.</p></li>
+<li><p>If both <code class="docutils literal notranslate"><span class="pre">preset</span></code> and <code class="docutils literal notranslate"><span class="pre">format</span></code> are provided, <code class="docutils literal notranslate"><span class="pre">format</span></code> overrides the preset’s stdout sink.</p></li>
+<li><p>When <code class="docutils literal notranslate"><span class="pre">settings</span></code> is omitted, <code class="docutils literal notranslate"><span class="pre">format</span></code> defaults to <code class="docutils literal notranslate"><span class="pre">auto</span></code>.</p></li>
+</ul>
+</section>
 <section id="quick-setup-env">
 <h2>Quick setup (env)<a class="headerlink" href="#quick-setup-env" title="Link to this heading"></a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Log level</span>
@@ -308,7 +326,7 @@
 <section id="common-patterns">
 <h2>Common patterns<a class="headerlink" href="#common-patterns" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><strong>Stdout JSON (default)</strong>: no env needed; <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> works out of the box.</p></li>
+<li><p><strong>Stdout auto (default)</strong>: pretty in TTY, JSON when piped.</p></li>
 <li><p><strong>File sink</strong>: set <code class="docutils literal notranslate"><span class="pre">FAPILOG_FILE__DIRECTORY</span></code>; tune rotation via <code class="docutils literal notranslate"><span class="pre">FAPILOG_FILE__MAX_BYTES</span></code>, <code class="docutils literal notranslate"><span class="pre">FAPILOG_FILE__MAX_FILES</span></code>.</p></li>
 <li><p><strong>HTTP sink</strong>: set <code class="docutils literal notranslate"><span class="pre">FAPILOG_HTTP__ENDPOINT</span></code> and optional timeout/retry envs.</p></li>
 <li><p><strong>Metrics</strong>: set <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__ENABLE_METRICS=true</span></code> to record internal metrics.</p></li>

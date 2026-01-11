@@ -15,6 +15,7 @@
 | runtime_info | enricher | 1.0.0 | 1.0 | Fapilog Core | Adds runtime/system information such as host, pid, and python version. |
 | size_guard | processor | 1.0.0 | 1.0 | Fapilog Core | Enforces maximum payload size for downstream compatibility. |
 | stdout_json | sink | 1.0.0 | 1.0 | Fapilog Core | Async stdout JSONL sink |
+| stdout_pretty | sink | 1.0.0 | 1.0 | Fapilog Core | Async stdout pretty console sink |
 | url_credentials | redactor | 1.0.0 | 1.0 | Fapilog Core | Strips user:pass@ credentials from URL-like strings. |
 | webhook | sink | 1.0.0 | 1.0 | Fapilog Core | Webhook sink that POSTs JSON with optional signing. |
 | zero_copy | processor | 1.0.0 | 1.0 | Fapilog Core | Zero-copy pass-through processor for performance benchmarking. |
