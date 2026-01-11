@@ -1,0 +1,1601 @@
+# Story 10.2: Pretty Console Output for Development
+
+## Context / Background
+
+Currently, fapilog outputs JSON to stdout in all cases. While JSON is excellent for production (structured, parseable, machine-readable), it's terrible for local development. Developers debug with their eyes, not with `jq`.
+
+**Current experience (JSON output):**
+```json
+{"timestamp":"2025-01-11T14:30:22.123Z","level":"INFO","message":"User login successful","user_id":123,"request_id":"abc-123","duration_ms":45}
+{"timestamp":"2025-01-11T14:30:23.456Z","level":"ERROR","message":"Database connection failed","host":"localhost","port":5432,"error":"timeout"}
+```
+
+**Target experience (Pretty output):**
+```
+2025-01-11 14:30:22 | INFO     | User login successful user_id=123 request_id=abc-123 duration_ms=45
+2025-01-11 14:30:23 | ERROR    | Database connection failed host=localhost port=5432 error=timeout
+```
+
+This story implements human-readable console output with colors, making fapilog as pleasant for development as loguru while maintaining its superior async architecture.
+
+## Scope (In / Out)
+
+### In Scope
+
+- New `StdoutPrettySink` plugin for human-readable console output
+- ANSI color codes for log levels (ERROR=red, WARNING=yellow, INFO=blue, DEBUG=gray)
+- TTY auto-detection (colors in terminal, no colors when piped)
+- `format` parameter in `get_logger()` and `get_async_logger()`
+- Exception traceback formatting (Python-style, readable)
+- Integration with Story 10.1's dev preset
+- Comprehensive tests and documentation
+
+### Out of Scope
+
+- Syntax highlighting of exception code (defer to future story if demand exists)
+- Rich library integration (manual ANSI codes sufficient)
+- Custom color schemes (fixed color palette for consistency)
+- Pretty formatting for file sinks (files should stay JSON)
+- Variable inspection in exception frames (security risk)
+- Source code snippets in tracebacks (too verbose)
+
+## Acceptance Criteria
+
+### AC1: Pretty Sink Implementation
+
+**New sink created**: `src/fapilog/plugins/sinks/stdout_pretty.py`
+
+**Features:**
+- Human-readable timestamp format: `YYYY-MM-DD HH:MM:SS`
+- Colored log levels with consistent width padding
+- Message followed by key-value pairs inline
+- ANSI color codes for terminals
+- Graceful degradation (no colors in pipes/files)
+- Exception tracebacks formatted like Python's native output
+
+**Code structure:**
+```python
+class StdoutPrettySink:
+    """Human-readable console sink with ANSI colors."""
+
+    name = "stdout_pretty"
+
+    def __init__(self, *, colors: bool = True):
+        """
+        Args:
+            colors: Enable ANSI colors (default True, auto-disabled for non-TTY)
+        """
+        self._colors_enabled = colors
+        self._use_colors = colors and sys.stdout.isatty()
+
+    async def write(self, entry: dict[str, Any]) -> None:
+        """Format and write entry to stdout."""
+        formatted = self._format_pretty(entry)
+        sys.stdout.write(formatted + "\n")
+        sys.stdout.flush()
+```
+
+### AC2: Format Parameter API
+
+**Add `format` parameter** to both logger factories:
+
+```python
+def get_logger(
+    name: str | None = None,
+    *,
+    preset: str | None = None,
+    format: Literal["json", "pretty", "auto"] | None = "auto",
+    settings: _Settings | None = None,
+    sinks: list[object] | None = None,
+) -> _SyncLoggerFacade:
+    """
+    Args:
+        format: Output format - "json" (structured), "pretty" (human-readable),
+                "auto" (pretty in TTY, json otherwise). Default: "auto"
+    """
+```
+
+**Behavior:**
+- `format="auto"` (default): Use pretty in TTY, JSON otherwise
+- `format="pretty"`: Force pretty output
+- `format="json"`: Force JSON output
+- `format` is mutually exclusive with `settings` (raises ValueError)
+- If both `preset` and `format` provided, `format` wins (explicit override)
+
+**Examples:**
+```python
+# Auto-detect (default)
+logger = get_logger()  # Pretty in terminal, JSON when piped
+
+# Explicit pretty
+logger = get_logger(format="pretty")
+
+# Explicit JSON
+logger = get_logger(format="json")
+
+# Override preset
+logger = get_logger(preset="production", format="pretty")  # Force pretty
+```
+
+### AC3: ANSI Color Codes
+
+**Color mapping:**
+```python
+COLORS = {
+    "DEBUG": "\033[90m",      # Bright black (gray)
+    "INFO": "\033[34m",       # Blue
+    "WARNING": "\033[33m",    # Yellow
+    "ERROR": "\033[31m",      # Red
+    "CRITICAL": "\033[1;31m", # Bold red
+    "RESET": "\033[0m",       # Reset
+}
+```
+
+**Behavior:**
+- Colors only applied when `sys.stdout.isatty()` returns `True`
+- No colors when output is piped: `python app.py | tee log.txt`
+- No colors when redirected: `python app.py > output.txt`
+- Colors work on: Linux, macOS, Windows 10+ (ANSI support built-in)
+
+**Validation:**
+```python
+# In terminal (TTY)
+$ python app.py
+2025-01-11 14:30:22 | ERROR    | Connection failed  # Red "ERROR"
+
+# Piped (no TTY)
+$ python app.py | cat
+2025-01-11 14:30:22 | ERROR    | Connection failed  # No ANSI codes
+```
+
+### AC4: Output Format Specification
+
+**Format structure:**
+```
+{timestamp} | {level:8} | {message} {key1=value1} {key2=value2} ...
+
+# Examples:
+2025-01-11 14:30:22 | INFO     | Application started env=production version=1.0.0
+2025-01-11 14:30:23 | WARNING  | High memory usage percent=85 threshold=80
+2025-01-11 14:30:24 | ERROR    | Database query failed query=SELECT table=users duration_ms=5000
+2025-01-11 14:30:25 | DEBUG    | Cache hit key=user:123 ttl=3600
+```
+
+**Formatting rules:**
+- Timestamp: `YYYY-MM-DD HH:MM:SS` (local timezone, no milliseconds for readability)
+- Separator: ` | ` (pipe with spaces)
+- Level: Right-padded to 8 characters for alignment
+- Message: First, no quotes
+- Context: Space-separated key=value pairs
+- String values: No quotes unless they contain spaces
+- String values with spaces: Single quotes (`key='value with spaces'`)
+- Nested objects: Flatten to dot notation (`user.name=John`)
+
+### AC5: Exception Formatting
+
+**Traceback format** (Python-style):
+
+```python
+logger.error("Database operation failed", exc_info=True)
+
+# Output:
+2025-01-11 14:30:24 | ERROR    | Database operation failed
+Traceback (most recent call last):
+  File "/app/main.py", line 42, in connect_db
+    conn = psycopg2.connect(dsn)
+  File "/usr/lib/python3.11/site-packages/psycopg2/__init__.py", line 122, in connect
+    return Connection(dsn)
+psycopg2.OperationalError: connection timeout after 30 seconds
+
+Context: host=localhost port=5432 database=myapp retry_count=3
+```
+
+**Features:**
+- Native Python traceback format (familiar, copy-paste to Stack Overflow)
+- Full file paths with line numbers
+- Exception type and message
+- Log context printed below traceback
+- Frame limit: 10 frames by default (configurable via Settings)
+- No syntax highlighting (v1 - defer to future story)
+- No variable values from frames (security risk)
+
+### AC6: Integration with Story 10.1 Dev Preset
+
+**Update dev preset** to use pretty output:
+
+```python
+# src/fapilog/core/presets.py
+PRESETS = {
+    "dev": {
+        "core": {
+            "log_level": "DEBUG",
+            "internal_logging_enabled": True,
+            "batch_max_size": 1,
+        },
+        "sinks": ["stdout_pretty"],  # CHANGED: was stdout_json
+        "enricher_config": {
+            "runtime_info": {"enabled": True},
+            "context_vars": {"enabled": True},
+        },
+        # ... rest unchanged
+    },
+    # Other presets unchanged
+}
+```
+
+**Result:**
+```python
+# Now dev preset gives pretty output automatically
+logger = get_logger(preset="dev")
+logger.info("Starting app")  # Colored, human-readable
+```
+
+### AC7: Performance Requirements
+
+**Benchmark thresholds:**
+- Pretty formatting overhead: < 2x JSON formatting
+- Absolute performance: < 100 microseconds per log entry
+- TTY detection: Cached (not checked per-log)
+- Color application: Lazy (skip if colors disabled)
+
+**Performance tests pass:**
+```python
+def test_pretty_format_performance(benchmark):
+    """Pretty formatting < 100 microseconds."""
+    sink = StdoutPrettySink()
+    event = {"level": "INFO", "message": "Test", "key": "value"}
+
+    result = benchmark(lambda: sink._format_pretty(event))
+    assert result.stats.mean < 0.0001  # 100 μs
+
+def test_pretty_vs_json_overhead(benchmark):
+    """Pretty < 2x JSON formatting time."""
+    # Compare StdoutPrettySink vs StdoutJsonSink
+    # Assert pretty_time < json_time * 2
+```
+
+### AC8: Documentation & Examples
+
+**Documentation updated:**
+- `README.md`: Add pretty output example in Quick Start
+- `docs/user-guide/configuration.md`: Document `format` parameter
+- `docs/api-reference/sinks.md`: Document StdoutPrettySink
+- `examples/pretty_console/`: Add example showing pretty output
+
+**Before/after comparison** in docs:
+```markdown
+### Before (JSON output)
+{"timestamp":"2025-01-11T14:30:22Z","level":"INFO","message":"User login"}
+
+### After (Pretty output)
+2025-01-11 14:30:22 | INFO     | User login user_id=123
+```
+
+## API Design Decision
+
+### Problem Statement
+
+Where should the `format` parameter live, and how does it interact with presets and settings?
+
+### Options Considered
+
+**Option A: Top-level parameter (CHOSEN)**
+```python
+def get_logger(
+    name: str | None = None,
+    *,
+    preset: str | None = None,
+    format: Literal["json", "pretty", "auto"] | None = "auto",  # NEW
+    settings: _Settings | None = None,
+    sinks: list[object] | None = None,
+) -> _SyncLoggerFacade:
+```
+
+**Pros:**
+- ✅ Simple, discoverable API
+- ✅ Consistent with `preset` parameter (Story 10.1)
+- ✅ Type-safe with Literal type
+- ✅ Matches loguru's simplicity (single function call)
+- ✅ Auto-detection is default (smart)
+
+**Cons:**
+- ❌ Adds another parameter to signature
+- ❌ Mutually exclusive with `settings` (more validation)
+
+---
+
+**Option B: Settings-only**
+```python
+settings = Settings(sinks={"stdout_pretty": {"enabled": True}})
+logger = get_logger(settings=settings)
+```
+
+**Pros:**
+- ✅ No signature changes
+- ✅ Full control via Settings
+
+**Cons:**
+- ❌ Requires Settings object for simple case
+- ❌ Verbose (10 lines vs 1 line)
+- ❌ Doesn't match loguru simplicity
+- ❌ No auto-detection
+
+---
+
+**Option C: Environment variable only**
+```python
+# FAPILOG_FORMAT=pretty python app.py
+logger = get_logger()
+```
+
+**Pros:**
+- ✅ No code changes needed
+- ✅ Easy to toggle per-environment
+
+**Cons:**
+- ❌ Not discoverable (hidden configuration)
+- ❌ Can't be set programmatically in tests
+- ❌ Environment pollution
+
+---
+
+### Decision: Option A (Top-level Parameter)
+
+**Rationale:**
+1. **Best DX**: One parameter, auto-detects TTY, just works
+2. **Progressive disclosure**: Simple for beginners (`format="pretty"`), powerful for experts (Settings)
+3. **Consistent**: Follows same pattern as `preset` parameter from Story 10.1
+4. **Explicit > Implicit**: Developers can force format when needed
+5. **Type-safe**: Literal type provides IDE autocomplete
+
+**Precedence rules:**
+```python
+# format and settings are mutually exclusive
+get_logger(format="pretty", settings=Settings())  # ❌ Raises ValueError
+
+# format overrides preset default
+get_logger(preset="production", format="pretty")  # ✅ Forces pretty despite production
+
+# Auto-detection is smart default
+get_logger()  # ✅ Pretty in TTY, JSON when piped
+```
+
+**Future considerations:**
+- Story 10.x could add per-sink format control
+- Environment variable `FAPILOG_FORMAT` could override default
+
+## Implementation Notes
+
+### File Structure
+
+```
+src/fapilog/plugins/sinks/stdout_pretty.py (NEW)
+src/fapilog/__init__.py (MODIFIED - add format parameter)
+src/fapilog/core/presets.py (MODIFIED - update dev preset)
+tests/unit/test_stdout_pretty_sink.py (NEW)
+tests/integration/test_pretty_output_integration.py (NEW)
+examples/pretty_console/ (NEW)
+```
+
+### Implementation Steps
+
+#### Step 1: Create `StdoutPrettySink`
+
+**File**: `src/fapilog/plugins/sinks/stdout_pretty.py`
+
+```python
+"""Human-readable console sink with ANSI colors."""
+
+from __future__ import annotations
+
+import sys
+import traceback
+from datetime import datetime
+from typing import Any
+
+# ANSI color codes
+COLORS = {
+    "DEBUG": "\033[90m",      # Bright black (gray)
+    "INFO": "\033[34m",       # Blue
+    "WARNING": "\033[33m",    # Yellow
+    "ERROR": "\033[31m",      # Red
+    "CRITICAL": "\033[1;31m", # Bold red
+    "RESET": "\033[0m",       # Reset
+}
+
+LEVEL_PADDING = 8  # "CRITICAL" is 8 chars
+
+
+class StdoutPrettySink:
+    """Pretty console sink with human-readable output and colors.
+
+    Features:
+    - Human-readable timestamps (YYYY-MM-DD HH:MM:SS)
+    - Colored log levels (auto-disabled in non-TTY)
+    - Inline key-value pairs
+    - Python-style exception tracebacks
+    - Zero external dependencies (pure ANSI codes)
+    """
+
+    name = "stdout_pretty"
+
+    def __init__(self, *, colors: bool = True):
+        """Initialize pretty console sink.
+
+        Args:
+            colors: Enable ANSI colors. Auto-disabled if not TTY.
+        """
+        self._colors_enabled = colors
+        self._use_colors = colors and sys.stdout.isatty()
+
+    async def start(self) -> None:
+        """Lifecycle hook - no setup needed."""
+        pass
+
+    async def stop(self) -> None:
+        """Lifecycle hook - no cleanup needed."""
+        pass
+
+    async def write(self, entry: dict[str, Any]) -> None:
+        """Format and write log entry to stdout.
+
+        Args:
+            entry: Log event dict with timestamp, level, message, etc.
+        """
+        try:
+            formatted = self._format_pretty(entry)
+            sys.stdout.write(formatted + "\n")
+            sys.stdout.flush()
+        except Exception as e:
+            # Fallback to stderr if formatting fails
+            sys.stderr.write(f"[fapilog] Pretty sink error: {e}\n")
+
+    def _format_pretty(self, entry: dict[str, Any]) -> str:
+        """Format log entry as human-readable string.
+
+        Format: {timestamp} | {level:8} | {message} {key=value} ...
+        """
+        # Extract core fields
+        timestamp = entry.get("timestamp", "")
+        level = entry.get("level", "INFO")
+        message = entry.get("message", "")
+
+        # Format timestamp (human-readable)
+        ts_formatted = self._format_timestamp(timestamp)
+
+        # Format level with color and padding
+        level_formatted = self._format_level(level)
+
+        # Format context (key-value pairs)
+        context = self._format_context(entry)
+
+        # Build main log line
+        parts = [ts_formatted, level_formatted, message]
+        if context:
+            parts.append(context)
+
+        result = " | ".join(parts[:3])  # timestamp | level | message
+        if len(parts) > 3:
+            result += " " + parts[3]  # Append context
+
+        # Add exception traceback if present
+        if "exception" in entry:
+            result += "\n" + self._format_exception(entry)
+
+        return result
+
+    def _format_timestamp(self, timestamp: str | float | datetime) -> str:
+        """Format timestamp as YYYY-MM-DD HH:MM:SS."""
+        if isinstance(timestamp, str):
+            # Parse ISO format
+            try:
+                dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+            except (ValueError, AttributeError):
+                return timestamp[:19]  # Fallback: truncate to YYYY-MM-DD HH:MM:SS
+        elif isinstance(timestamp, (int, float)):
+            dt = datetime.fromtimestamp(timestamp)
+        elif isinstance(timestamp, datetime):
+            dt = timestamp
+        else:
+            return str(timestamp)
+
+        return dt.strftime("%Y-%m-%d %H:%M:%S")
+
+    def _format_level(self, level: str) -> str:
+        """Format level with color and padding."""
+        # Pad to consistent width
+        padded = level.ljust(LEVEL_PADDING)
+
+        # Apply color
+        if self._use_colors and level in COLORS:
+            color = COLORS[level]
+            reset = COLORS["RESET"]
+            return f"{color}{padded}{reset}"
+
+        return padded
+
+    def _format_context(self, entry: dict[str, Any]) -> str:
+        """Format context as key=value pairs.
+
+        Skip internal fields: timestamp, level, message, exception
+        """
+        skip_keys = {"timestamp", "level", "message", "exception", "logger", "name"}
+
+        pairs = []
+        for key, value in entry.items():
+            if key in skip_keys:
+                continue
+
+            # Format value
+            if isinstance(value, str):
+                # Quote if contains spaces
+                formatted_value = f"'{value}'" if " " in value else value
+            elif isinstance(value, dict):
+                # Flatten nested dicts (e.g., user.name=John)
+                for nested_key, nested_value in value.items():
+                    pairs.append(f"{key}.{nested_key}={nested_value}")
+                continue
+            else:
+                formatted_value = str(value)
+
+            pairs.append(f"{key}={formatted_value}")
+
+        return " ".join(pairs)
+
+    def _format_exception(self, entry: dict[str, Any]) -> str:
+        """Format exception as Python-style traceback.
+
+        Output:
+            Traceback (most recent call last):
+              File "app.py", line 42, in func
+                code()
+            ExceptionType: message
+
+            Context: key=value ...
+        """
+        exc_info = entry.get("exception")
+        if not exc_info or not isinstance(exc_info, dict):
+            return ""
+
+        # Extract exception data
+        exc_type = exc_info.get("type", "Exception")
+        exc_value = exc_info.get("value", "")
+        exc_traceback = exc_info.get("traceback", "")
+
+        # Format traceback (use stdlib if available, fallback to string)
+        if exc_traceback and hasattr(exc_traceback, '__traceback__'):
+            # Full traceback object available
+            tb_lines = traceback.format_exception(
+                type(exc_type),
+                exc_value,
+                exc_traceback,
+                limit=10  # Frame limit from settings
+            )
+            formatted = "".join(tb_lines)
+        else:
+            # Fallback: build from stored data
+            formatted = f"Traceback (most recent call last):\n"
+            if isinstance(exc_traceback, str):
+                formatted += exc_traceback
+            formatted += f"\n{exc_type}: {exc_value}"
+
+        # Add context below traceback
+        context = self._format_context(entry)
+        if context:
+            formatted += f"\n\nContext: {context}"
+
+        return formatted
+
+
+# Plugin registration
+def get_sink_config():
+    """Plugin entrypoint for sink discovery."""
+    return {
+        "name": "stdout_pretty",
+        "class": StdoutPrettySink,
+        "config_class": None,  # No config needed
+    }
+```
+
+#### Step 2: Add `format` Parameter to `get_logger()`
+
+**File**: `src/fapilog/__init__.py`
+
+```python
+from typing import Literal
+
+def get_logger(
+    name: str | None = None,
+    *,
+    preset: str | None = None,
+    format: Literal["json", "pretty", "auto"] | None = "auto",  # NEW
+    settings: _Settings | None = None,
+    sinks: list[object] | None = None,
+) -> _SyncLoggerFacade:
+    """Get a synchronous logger.
+
+    Args:
+        name: Logger name
+        preset: Configuration preset (dev, production, fastapi, minimal)
+        format: Output format - "json" (structured), "pretty" (human-readable),
+                "auto" (pretty in TTY, json otherwise). Default: "auto"
+        settings: Full Settings object for advanced configuration
+        sinks: Custom sink instances
+
+    Raises:
+        ValueError: If both preset and settings provided
+        ValueError: If both format and settings provided
+        ValueError: If format is invalid
+    """
+    # Validate mutual exclusivity
+    if format is not None and settings is not None:
+        raise ValueError(
+            "Cannot specify both 'format' and 'settings'. "
+            "Use format for simple output control or settings for full control."
+        )
+
+    if preset is not None and settings is not None:
+        raise ValueError(
+            "Cannot specify both 'preset' and 'settings'. "
+            "Use preset for quick setup or settings for full control."
+        )
+
+    # Apply format if provided
+    if format is not None:
+        settings = _apply_format(format, preset)
+
+    # Apply preset if provided (and format didn't already create settings)
+    elif preset is not None:
+        from .core.presets import get_preset
+        preset_config = get_preset(preset)
+        settings = _Settings(**preset_config)
+
+    # Continue with existing logic...
+    setup = _configure_logger_common(settings, sinks)
+    # ... rest unchanged
+
+
+def _apply_format(
+    format: str,
+    preset: str | None = None,
+) -> _Settings:
+    """Apply format setting, respecting preset if provided.
+
+    Args:
+        format: "json", "pretty", or "auto"
+        preset: Optional preset to use as base
+
+    Returns:
+        Settings object with appropriate sink configured
+    """
+    import sys
+
+    # Determine which sink to use
+    if format == "auto":
+        # Auto-detect TTY
+        use_pretty = sys.stdout.isatty()
+    elif format == "pretty":
+        use_pretty = True
+    elif format == "json":
+        use_pretty = False
+    else:
+        raise ValueError(
+            f"Invalid format '{format}'. Valid formats: json, pretty, auto"
+        )
+
+    # Start with preset if provided
+    if preset:
+        from .core.presets import get_preset
+        config = get_preset(preset)
+    else:
+        config = {}
+
+    # Override sink based on format
+    if use_pretty:
+        config["sinks"] = ["stdout_pretty"]
+    else:
+        config["sinks"] = ["stdout_json"]
+
+    return _Settings(**config)
+
+
+# Same for get_async_logger()
+async def get_async_logger(
+    name: str | None = None,
+    *,
+    preset: str | None = None,
+    format: Literal["json", "pretty", "auto"] | None = "auto",  # NEW
+    settings: _Settings | None = None,
+    sinks: list[object] | None = None,
+) -> _AsyncLoggerFacade:
+    """Get an async logger.
+
+    Args:
+        name: Logger name
+        preset: Configuration preset
+        format: Output format (json, pretty, auto)
+        settings: Full Settings object
+        sinks: Custom sink instances
+    """
+    # Same validation and format application as get_logger()
+    # ... (duplicate logic from above)
+```
+
+#### Step 3: Update Dev Preset
+
+**File**: `src/fapilog/core/presets.py`
+
+```python
+PRESETS: dict[str, dict[str, Any]] = {
+    "dev": {
+        "core": {
+            "log_level": "DEBUG",
+            "internal_logging_enabled": True,
+            "batch_max_size": 1,
+        },
+        "sinks": ["stdout_pretty"],  # CHANGED: was stdout_json
+        "enricher_config": {
+            "runtime_info": {"enabled": True},
+            "context_vars": {"enabled": True},
+        },
+        "redactor_config": {
+            "field_mask": {"enabled": False},
+            "url_credentials": {"enabled": False},
+        },
+    },
+    # Other presets unchanged
+}
+```
+
+#### Step 4: Register Plugin
+
+**File**: `src/fapilog/plugins/sinks/__init__.py`
+
+```python
+# Add to imports
+from .stdout_pretty import StdoutPrettySink
+
+# Add to __all__
+__all__ = [
+    "StdoutJsonSink",
+    "StdoutPrettySink",  # NEW
+    # ... rest
+]
+```
+
+**File**: `pyproject.toml` (if using entry points)
+
+```toml
+[project.entry-points."fapilog.sinks"]
+stdout_pretty = "fapilog.plugins.sinks.stdout_pretty:StdoutPrettySink"
+```
+
+### Color Application Strategy
+
+```python
+# Optimization: Cache TTY detection result
+class StdoutPrettySink:
+    def __init__(self, *, colors: bool = True):
+        # Check TTY once at init, not per-log
+        self._use_colors = colors and sys.stdout.isatty()
+
+    def _colorize(self, text: str, color_code: str) -> str:
+        """Apply color only if enabled."""
+        if not self._use_colors:
+            return text
+        return f"{color_code}{text}{COLORS['RESET']}"
+```
+
+### Exception Handling Strategy
+
+```python
+async def write(self, entry: dict[str, Any]) -> None:
+    """Write with error handling."""
+    try:
+        formatted = self._format_pretty(entry)
+        sys.stdout.write(formatted + "\n")
+        sys.stdout.flush()
+    except Exception as e:
+        # Never crash the app due to logging errors
+        # Fallback to stderr with minimal formatting
+        import sys
+        sys.stderr.write(
+            f"[fapilog] Pretty sink formatting error: {e}\n"
+            f"[fapilog] Original entry: {entry.get('message', 'N/A')}\n"
+        )
+```
+
+## Tasks
+
+### Phase 1: Core Implementation
+
+- [ ] Create `src/fapilog/plugins/sinks/stdout_pretty.py` module
+- [ ] Implement `StdoutPrettySink` class with `write()` method
+- [ ] Implement `_format_pretty()` for main log line formatting
+- [ ] Implement `_format_timestamp()` for human-readable timestamps
+- [ ] Implement `_format_level()` with ANSI color codes
+- [ ] Implement `_format_context()` for key-value pairs
+- [ ] Implement `_format_exception()` for Python-style tracebacks
+- [ ] Add TTY detection (`sys.stdout.isatty()`)
+- [ ] Add color enable/disable logic
+
+### Phase 2: API Integration
+
+- [ ] Add `format` parameter to `get_logger()` signature
+- [ ] Add `format` parameter to `get_async_logger()` signature
+- [ ] Implement `_apply_format()` helper function
+- [ ] Add format validation (raise on invalid format)
+- [ ] Add mutual exclusivity check (format XOR settings)
+- [ ] Implement format precedence (format overrides preset)
+- [ ] Register `StdoutPrettySink` as plugin
+
+### Phase 3: Preset Integration
+
+- [ ] Update dev preset in `src/fapilog/core/presets.py`
+- [ ] Change dev preset sink from `stdout_json` to `stdout_pretty`
+- [ ] Test dev preset produces pretty output
+- [ ] Verify other presets unchanged
+
+### Phase 4: Testing
+
+- [ ] Create `tests/unit/test_stdout_pretty_sink.py`
+- [ ] Unit test: `test_format_timestamp()`
+- [ ] Unit test: `test_format_level_with_colors()`
+- [ ] Unit test: `test_format_level_without_colors()`
+- [ ] Unit test: `test_format_context_simple()`
+- [ ] Unit test: `test_format_context_with_spaces()`
+- [ ] Unit test: `test_format_context_nested_dict()`
+- [ ] Unit test: `test_format_exception()`
+- [ ] Unit test: `test_tty_detection()`
+- [ ] Unit test: `test_colors_disabled_in_non_tty()`
+- [ ] Integration test: `test_get_logger_format_pretty()`
+- [ ] Integration test: `test_get_logger_format_json()`
+- [ ] Integration test: `test_get_logger_format_auto()`
+- [ ] Integration test: `test_format_overrides_preset()`
+- [ ] Integration test: `test_dev_preset_uses_pretty()`
+- [ ] Performance test: `test_pretty_format_performance()`
+- [ ] Performance test: `test_pretty_vs_json_overhead()`
+
+### Phase 5: Documentation
+
+- [ ] Update `README.md` - add pretty output example
+- [ ] Update `docs/user-guide/configuration.md` - document format parameter
+- [ ] Update `docs/api-reference/sinks.md` - document StdoutPrettySink
+- [ ] Create `examples/pretty_console/basic.py` example
+- [ ] Create `examples/pretty_console/with_exceptions.py` example
+- [ ] Add before/after comparison in docs
+- [ ] Update `CHANGELOG.md`
+
+## Tests
+
+### Unit Tests (`tests/unit/test_stdout_pretty_sink.py`)
+
+```python
+"""Unit tests for StdoutPrettySink."""
+
+import sys
+from datetime import datetime
+from io import StringIO
+from unittest.mock import patch
+
+import pytest
+
+from fapilog.plugins.sinks.stdout_pretty import StdoutPrettySink, COLORS
+
+
+class TestTimestampFormatting:
+    """Test timestamp formatting."""
+
+    def test_format_timestamp_from_datetime(self):
+        """Format datetime object."""
+        sink = StdoutPrettySink(colors=False)
+        dt = datetime(2025, 1, 11, 14, 30, 22)
+
+        result = sink._format_timestamp(dt)
+
+        assert result == "2025-01-11 14:30:22"
+
+    def test_format_timestamp_from_iso_string(self):
+        """Format ISO timestamp string."""
+        sink = StdoutPrettySink(colors=False)
+
+        result = sink._format_timestamp("2025-01-11T14:30:22.123Z")
+
+        assert result == "2025-01-11 14:30:22"
+
+    def test_format_timestamp_from_unix_timestamp(self):
+        """Format Unix timestamp (float)."""
+        sink = StdoutPrettySink(colors=False)
+        # 2025-01-11 14:30:22 UTC
+        timestamp = 1736604622.0
+
+        result = sink._format_timestamp(timestamp)
+
+        assert "2025-01-11" in result  # Date should match
+        assert "14:30:22" in result or "14:30:2" in result  # Time close (timezone dependent)
+
+
+class TestLevelFormatting:
+    """Test log level formatting."""
+
+    def test_format_level_without_colors(self):
+        """Format level without colors."""
+        sink = StdoutPrettySink(colors=False)
+
+        result = sink._format_level("INFO")
+
+        assert result == "INFO    "  # Padded to 8 chars
+        assert "\033" not in result  # No ANSI codes
+
+    @patch("sys.stdout.isatty", return_value=True)
+    def test_format_level_with_colors(self, mock_isatty):
+        """Format level with colors in TTY."""
+        sink = StdoutPrettySink(colors=True)
+
+        result = sink._format_level("ERROR")
+
+        assert COLORS["ERROR"] in result  # Red color code
+        assert COLORS["RESET"] in result  # Reset code
+        assert "ERROR" in result
+
+    def test_format_level_padding(self):
+        """All levels padded to same width."""
+        sink = StdoutPrettySink(colors=False)
+
+        debug = sink._format_level("DEBUG")
+        info = sink._format_level("INFO")
+        warning = sink._format_level("WARNING")
+        error = sink._format_level("ERROR")
+        critical = sink._format_level("CRITICAL")
+
+        # All should be 8 characters
+        assert len(debug) == 8
+        assert len(info) == 8
+        assert len(warning) == 8
+        assert len(error) == 8
+        assert len(critical) == 8
+
+
+class TestContextFormatting:
+    """Test context key-value formatting."""
+
+    def test_format_context_simple(self):
+        """Format simple key-value pairs."""
+        sink = StdoutPrettySink(colors=False)
+        entry = {
+            "timestamp": "2025-01-11T14:30:22Z",
+            "level": "INFO",
+            "message": "Test",
+            "user_id": 123,
+            "request_id": "abc-123",
+        }
+
+        result = sink._format_context(entry)
+
+        assert "user_id=123" in result
+        assert "request_id=abc-123" in result
+        assert "timestamp" not in result  # Skipped
+        assert "level" not in result  # Skipped
+        assert "message" not in result  # Skipped
+
+    def test_format_context_string_with_spaces(self):
+        """String values with spaces are quoted."""
+        sink = StdoutPrettySink(colors=False)
+        entry = {
+            "level": "INFO",
+            "message": "Test",
+            "error": "connection timeout",  # Has space
+        }
+
+        result = sink._format_context(entry)
+
+        assert "error='connection timeout'" in result
+
+    def test_format_context_nested_dict(self):
+        """Nested dicts are flattened."""
+        sink = StdoutPrettySink(colors=False)
+        entry = {
+            "level": "INFO",
+            "message": "Test",
+            "user": {"id": 123, "name": "John"},
+        }
+
+        result = sink._format_context(entry)
+
+        assert "user.id=123" in result
+        assert "user.name=John" in result
+
+    def test_format_context_empty(self):
+        """Entry with no context returns empty string."""
+        sink = StdoutPrettySink(colors=False)
+        entry = {
+            "timestamp": "2025-01-11T14:30:22Z",
+            "level": "INFO",
+            "message": "Test",
+        }
+
+        result = sink._format_context(entry)
+
+        assert result == ""
+
+
+class TestExceptionFormatting:
+    """Test exception traceback formatting."""
+
+    def test_format_exception_basic(self):
+        """Format exception with traceback."""
+        sink = StdoutPrettySink(colors=False)
+        entry = {
+            "level": "ERROR",
+            "message": "Operation failed",
+            "exception": {
+                "type": "ValueError",
+                "value": "Invalid input",
+                "traceback": "  File 'app.py', line 42\n    raise ValueError()",
+            },
+            "user_id": 123,
+        }
+
+        result = sink._format_exception(entry)
+
+        assert "Traceback" in result
+        assert "ValueError" in result
+        assert "Invalid input" in result
+        assert "app.py" in result
+        assert "Context: user_id=123" in result
+
+    def test_format_exception_no_exception(self):
+        """Entry without exception returns empty string."""
+        sink = StdoutPrettySink(colors=False)
+        entry = {"level": "INFO", "message": "Test"}
+
+        result = sink._format_exception(entry)
+
+        assert result == ""
+
+
+class TestTTYDetection:
+    """Test TTY detection and color auto-disable."""
+
+    @patch("sys.stdout.isatty", return_value=True)
+    def test_colors_enabled_in_tty(self, mock_isatty):
+        """Colors enabled when stdout is TTY."""
+        sink = StdoutPrettySink(colors=True)
+
+        assert sink._use_colors is True
+
+    @patch("sys.stdout.isatty", return_value=False)
+    def test_colors_disabled_in_non_tty(self, mock_isatty):
+        """Colors disabled when stdout is not TTY (pipe/redirect)."""
+        sink = StdoutPrettySink(colors=True)
+
+        assert sink._use_colors is False
+
+    def test_colors_can_be_force_disabled(self):
+        """Colors can be explicitly disabled."""
+        sink = StdoutPrettySink(colors=False)
+
+        assert sink._use_colors is False
+
+
+class TestPrettyFormatComplete:
+    """Test complete pretty formatting."""
+
+    def test_format_pretty_complete(self):
+        """Complete log line formatting."""
+        sink = StdoutPrettySink(colors=False)
+        entry = {
+            "timestamp": "2025-01-11T14:30:22Z",
+            "level": "INFO",
+            "message": "User login successful",
+            "user_id": 123,
+            "request_id": "abc-123",
+        }
+
+        result = sink._format_pretty(entry)
+
+        # Should match format: timestamp | level | message context
+        assert "2025-01-11 14:30:22" in result
+        assert "INFO" in result
+        assert "User login successful" in result
+        assert "user_id=123" in result
+        assert "request_id=abc-123" in result
+        assert "|" in result  # Separator
+
+    def test_format_pretty_with_exception(self):
+        """Log line with exception includes traceback."""
+        sink = StdoutPrettySink(colors=False)
+        entry = {
+            "timestamp": "2025-01-11T14:30:22Z",
+            "level": "ERROR",
+            "message": "Database error",
+            "exception": {
+                "type": "psycopg2.OperationalError",
+                "value": "connection timeout",
+                "traceback": "  File 'db.py', line 10",
+            },
+        }
+
+        result = sink._format_pretty(entry)
+
+        assert "ERROR" in result
+        assert "Database error" in result
+        assert "Traceback" in result
+        assert "psycopg2.OperationalError" in result
+
+
+class TestSinkWrite:
+    """Test sink write() method."""
+
+    @pytest.mark.asyncio
+    async def test_write_outputs_to_stdout(self):
+        """write() outputs formatted log to stdout."""
+        sink = StdoutPrettySink(colors=False)
+        entry = {
+            "timestamp": "2025-01-11T14:30:22Z",
+            "level": "INFO",
+            "message": "Test message",
+        }
+
+        # Capture stdout
+        captured_output = StringIO()
+        with patch("sys.stdout", captured_output):
+            await sink.write(entry)
+
+        output = captured_output.getvalue()
+        assert "INFO" in output
+        assert "Test message" in output
+        assert "\n" in output  # Newline added
+
+    @pytest.mark.asyncio
+    async def test_write_handles_formatting_errors(self):
+        """write() handles formatting errors gracefully."""
+        sink = StdoutPrettySink(colors=False)
+
+        # Entry that might cause formatting error
+        entry = {"level": None, "message": None}
+
+        # Should not raise, should write to stderr instead
+        captured_stderr = StringIO()
+        with patch("sys.stderr", captured_stderr):
+            await sink.write(entry)
+
+        # Error should be logged to stderr
+        # (exact behavior depends on error handling implementation)
+```
+
+### Integration Tests (`tests/integration/test_pretty_output_integration.py`)
+
+```python
+"""Integration tests for pretty console output."""
+
+import sys
+from io import StringIO
+from unittest.mock import patch
+
+import pytest
+
+from fapilog import get_logger, get_async_logger, Settings
+
+
+class TestGetLoggerFormatParameter:
+    """Test get_logger with format parameter."""
+
+    @patch("sys.stdout.isatty", return_value=True)
+    def test_format_pretty_uses_pretty_sink(self, mock_isatty):
+        """format='pretty' uses StdoutPrettySink."""
+        captured = StringIO()
+
+        with patch("sys.stdout", captured):
+            logger = get_logger(format="pretty")
+            logger.info("Test message", key="value")
+            logger.drain()
+
+        output = captured.getvalue()
+
+        # Pretty format characteristics
+        assert "INFO" in output
+        assert "Test message" in output
+        assert "key=value" in output
+        assert "{" not in output  # Not JSON
+
+    def test_format_json_uses_json_sink(self):
+        """format='json' uses StdoutJsonSink."""
+        captured = StringIO()
+
+        with patch("sys.stdout", captured):
+            logger = get_logger(format="json")
+            logger.info("Test message", key="value")
+            logger.drain()
+
+        output = captured.getvalue()
+
+        # JSON format characteristics
+        assert "{" in output
+        assert '"level":"INFO"' in output or '"level": "INFO"' in output
+        assert '"message":"Test message"' in output or '"message": "Test message"' in output
+
+    @patch("sys.stdout.isatty", return_value=True)
+    def test_format_auto_uses_pretty_in_tty(self, mock_isatty):
+        """format='auto' uses pretty in TTY."""
+        captured = StringIO()
+
+        with patch("sys.stdout", captured):
+            logger = get_logger(format="auto")
+            logger.info("Test")
+            logger.drain()
+
+        output = captured.getvalue()
+        assert "INFO" in output
+        assert "{" not in output  # Not JSON
+
+    @patch("sys.stdout.isatty", return_value=False)
+    def test_format_auto_uses_json_when_piped(self, mock_isatty):
+        """format='auto' uses JSON when not TTY."""
+        captured = StringIO()
+
+        with patch("sys.stdout", captured):
+            logger = get_logger(format="auto")
+            logger.info("Test")
+            logger.drain()
+
+        output = captured.getvalue()
+        assert "{" in output  # JSON
+
+
+class TestFormatMutualExclusivity:
+    """Test format parameter mutual exclusivity."""
+
+    def test_format_and_settings_raises_error(self):
+        """format and settings together raises ValueError."""
+        with pytest.raises(ValueError, match="Cannot specify both 'format' and 'settings'"):
+            get_logger(format="pretty", settings=Settings())
+
+    def test_error_message_is_helpful(self):
+        """Error message guides users."""
+        with pytest.raises(
+            ValueError,
+            match="Use format for simple output control or settings for full control"
+        ):
+            get_logger(format="json", settings=Settings())
+
+
+class TestFormatOverridesPreset:
+    """Test format parameter overrides preset."""
+
+    @patch("sys.stdout.isatty", return_value=False)
+    def test_format_overrides_preset_sink(self, mock_isatty):
+        """Explicit format overrides preset default."""
+        captured = StringIO()
+
+        with patch("sys.stdout", captured):
+            # production preset uses JSON, but format forces pretty
+            logger = get_logger(preset="production", format="pretty")
+            logger.info("Test")
+            logger.drain()
+
+        output = captured.getvalue()
+
+        # Should be pretty despite production preset
+        assert "INFO" in output
+        assert "{" not in output
+
+
+class TestDevPresetIntegration:
+    """Test dev preset uses pretty output."""
+
+    @patch("sys.stdout.isatty", return_value=True)
+    def test_dev_preset_uses_pretty_sink(self, mock_isatty):
+        """Dev preset automatically uses pretty output."""
+        captured = StringIO()
+
+        with patch("sys.stdout", captured):
+            logger = get_logger(preset="dev")
+            logger.debug("Debug message", context="value")
+            logger.drain()
+
+        output = captured.getvalue()
+
+        # Pretty format
+        assert "DEBUG" in output
+        assert "Debug message" in output
+        assert "context=value" in output
+        assert "{" not in output  # Not JSON
+
+
+class TestAsyncLoggerFormat:
+    """Test get_async_logger with format parameter."""
+
+    @pytest.mark.asyncio
+    async def test_async_logger_format_pretty(self):
+        """Async logger supports format parameter."""
+        captured = StringIO()
+
+        with patch("sys.stdout", captured):
+            logger = await get_async_logger(format="pretty")
+            await logger.info("Async test")
+            await logger.drain()
+
+        output = captured.getvalue()
+
+        assert "INFO" in output
+        assert "Async test" in output
+
+
+class TestColorOutput:
+    """Test ANSI color output in TTY."""
+
+    @patch("sys.stdout.isatty", return_value=True)
+    def test_colors_in_tty(self, mock_isatty):
+        """Colors included in TTY output."""
+        captured = StringIO()
+
+        with patch("sys.stdout", captured):
+            logger = get_logger(format="pretty")
+            logger.error("Error message")
+            logger.drain()
+
+        output = captured.getvalue()
+
+        # Should contain ANSI codes
+        assert "\033[" in output  # ANSI escape sequence
+        assert "ERROR" in output
+
+    @patch("sys.stdout.isatty", return_value=False)
+    def test_no_colors_when_piped(self, mock_isatty):
+        """No ANSI codes when output is piped."""
+        captured = StringIO()
+
+        with patch("sys.stdout", captured):
+            logger = get_logger(format="pretty")
+            logger.error("Error message")
+            logger.drain()
+
+        output = captured.getvalue()
+
+        # Should NOT contain ANSI codes
+        assert "\033[" not in output
+        assert "ERROR" in output  # But still formatted
+
+
+class TestExceptionOutput:
+    """Test exception formatting in pretty output."""
+
+    def test_exception_formatted_python_style(self):
+        """Exceptions formatted as Python tracebacks."""
+        captured = StringIO()
+
+        with patch("sys.stdout", captured):
+            logger = get_logger(format="pretty")
+
+            try:
+                raise ValueError("Invalid value")
+            except ValueError:
+                logger.exception("Operation failed")
+
+            logger.drain()
+
+        output = captured.getvalue()
+
+        assert "ERROR" in output
+        assert "Operation failed" in output
+        assert "Traceback" in output
+        assert "ValueError" in output
+        assert "Invalid value" in output
+```
+
+### Performance Tests
+
+```python
+"""Performance tests for pretty output."""
+
+def test_pretty_format_performance(benchmark):
+    """Pretty formatting < 100 microseconds."""
+    from fapilog.plugins.sinks.stdout_pretty import StdoutPrettySink
+
+    sink = StdoutPrettySink(colors=False)
+    entry = {
+        "timestamp": "2025-01-11T14:30:22Z",
+        "level": "INFO",
+        "message": "Test message",
+        "user_id": 123,
+        "request_id": "abc-123",
+        "duration_ms": 45,
+    }
+
+    result = benchmark(lambda: sink._format_pretty(entry))
+
+    # Should be < 100 microseconds
+    assert result.stats.mean < 0.0001
+
+
+def test_pretty_vs_json_overhead(benchmark):
+    """Pretty overhead < 2x JSON formatting."""
+    from fapilog.plugins.sinks.stdout_pretty import StdoutPrettySink
+    from fapilog.plugins.sinks.stdout_json import StdoutJsonSink
+    import time
+
+    entry = {
+        "timestamp": "2025-01-11T14:30:22Z",
+        "level": "INFO",
+        "message": "Test message",
+        "user_id": 123,
+    }
+
+    # Benchmark JSON
+    json_sink = StdoutJsonSink()
+    json_times = []
+    for _ in range(1000):
+        start = time.perf_counter()
+        # Simulate formatting
+        import json
+        json.dumps(entry)
+        json_times.append(time.perf_counter() - start)
+
+    json_mean = sum(json_times) / len(json_times)
+
+    # Benchmark Pretty
+    pretty_sink = StdoutPrettySink(colors=False)
+    pretty_times = []
+    for _ in range(1000):
+        start = time.perf_counter()
+        pretty_sink._format_pretty(entry)
+        pretty_times.append(time.perf_counter() - start)
+
+    pretty_mean = sum(pretty_times) / len(pretty_times)
+
+    # Pretty should be < 2x JSON
+    assert pretty_mean < json_mean * 2
+```
+
+## Definition of Done
+
+### Code Complete
+- [ ] `StdoutPrettySink` class implemented with all formatting methods
+- [ ] `format` parameter added to `get_logger()`
+- [ ] `format` parameter added to `get_async_logger()`
+- [ ] `_apply_format()` helper function implemented
+- [ ] ANSI color codes defined and applied
+- [ ] TTY detection implemented (`sys.stdout.isatty()`)
+- [ ] Exception formatting (Python-style traceback)
+- [ ] Dev preset updated to use `stdout_pretty`
+- [ ] Plugin registration complete
+
+### Quality Assurance
+- [ ] Unit tests: >95% coverage of `stdout_pretty.py`
+- [ ] All timestamp formatting tests passing
+- [ ] All level formatting tests passing (with/without colors)
+- [ ] All context formatting tests passing
+- [ ] All exception formatting tests passing
+- [ ] TTY detection tests passing
+- [ ] Integration tests: all scenarios passing
+- [ ] format parameter validation tests passing
+- [ ] Mutual exclusivity tests passing
+- [ ] Dev preset integration tests passing
+- [ ] Performance tests: pretty < 100μs, < 2x JSON overhead
+- [ ] No regression in existing tests
+
+### Documentation
+- [ ] `README.md` updated with pretty output example
+- [ ] `docs/user-guide/configuration.md` documents format parameter
+- [ ] `docs/api-reference/sinks.md` documents StdoutPrettySink
+- [ ] Before/after comparison added to docs
+- [ ] `examples/pretty_console/basic.py` created
+- [ ] `examples/pretty_console/with_exceptions.py` created
+- [ ] `CHANGELOG.md` updated with feature announcement
+- [ ] API docstrings complete and accurate
+
+### Review & Release
+- [ ] Code review approved
+- [ ] Documentation reviewed for clarity
+- [ ] CI/CD pipeline passing (all tests, linting, type checks)
+- [ ] No performance regression (benchmarks pass)
+- [ ] Ready for merge to main branch
+
+### Integration
+- [ ] Story 10.1 dev preset now uses pretty output
+- [ ] `get_logger(preset="dev")` produces colored output in terminal
+- [ ] `get_logger(preset="dev")` produces plain output when piped
+- [ ] No impact on production/fastapi/minimal presets
+
+## Risks / Rollback / Monitoring
+
+### Risks
+
+1. **Risk**: ANSI codes break on some terminals
+   - **Mitigation**: TTY detection auto-disables colors when not supported
+   - **Mitigation**: `colors=False` parameter allows manual override
+   - **Mitigation**: Thoroughly test on Linux, macOS, Windows 10+
+
+2. **Risk**: Pretty formatting is too slow
+   - **Mitigation**: Performance benchmarks enforce < 100μs threshold
+   - **Mitigation**: Only used in development (not production-critical)
+   - **Mitigation**: Lazy color application (skip if disabled)
+
+3. **Risk**: Exception formatting differs from Python's
+   - **Mitigation**: Use stdlib `traceback.format_exception()` when possible
+   - **Mitigation**: Match Python's output format exactly (familiar to users)
+
+4. **Risk**: format parameter conflicts with Settings
+   - **Mitigation**: Mutual exclusivity validation (raises clear error)
+   - **Mitigation**: Documentation clarifies when to use each
+
+5. **Risk**: Colors look bad or are hard to read
+   - **Mitigation**: Use standard ANSI colors (widely tested)
+   - **Mitigation**: Conservative color choices (red/yellow/blue/gray)
+   - **Mitigation**: Future story can add custom color schemes if needed
+
+### Rollback Plan
+
+If pretty output causes issues:
+
+1. **Easy rollback**: Remove from dev preset
+   ```python
+   # Revert presets.py
+   "dev": {"sinks": ["stdout_json"]}  # Back to JSON
+   ```
+
+2. **Keep feature available**: Users can still opt-in
+   ```python
+   # Pretty sink remains available
+   logger = get_logger(format="pretty")
+   ```
+
+3. **Full removal**: Delete `stdout_pretty.py`, remove format parameter
+   - Minimal code churn (isolated to one file + parameter)
+   - No impact on production presets
+
+### Success Metrics
+
+**Quantitative:**
+- [ ] Dev preset adoption: >50% of local dev usage
+- [ ] Performance: Pretty formatting < 100μs (measured)
+- [ ] Error rate: No increase in logging errors (monitored)
+
+**Qualitative:**
+- [ ] Developer feedback: "Much easier to read during development"
+- [ ] GitHub issues: No complaints about color output
+- [ ] Documentation: Clear examples reduce confusion
+
+### Monitoring
+
+- Track format parameter usage (if telemetry added in future story)
+- Monitor GitHub issues for color/formatting complaints
+- Collect user feedback on pretty output readability
+- Watch for performance regressions in CI benchmarks
+
+## Dependencies
+
+- **Depends on**: Story 10.1 (Configuration Presets) - dev preset exists
+- **Blocks**: None
+- **Related**: Story 10.3 (FastAPI Integration) - may want pretty output in dev
+
+## Estimated Effort
+
+- **Implementation**: 6 hours
+  - StdoutPrettySink: 3 hours
+  - format parameter integration: 2 hours
+  - Dev preset update: 1 hour
+
+- **Testing**: 3 hours
+  - Unit tests: 2 hours
+  - Integration tests: 1 hour
+
+- **Documentation**: 2 hours
+  - Docs updates: 1 hour
+  - Examples: 1 hour
+
+- **Total**: 8-11 hours for one developer
+
+## Related Stories
+
+- **Story 10.1**: Configuration Presets (provides dev preset to enhance)
+- **Story 10.3**: One-Liner FastAPI Integration (may use pretty output)
+- **Future Story**: Custom Color Schemes (if demand exists)
+- **Future Story**: Syntax Highlighting for Exceptions (advanced formatting)
+
+## Change Log
+
+| Date       | Change                                    | Author |
+| ---------- | ----------------------------------------- | ------ |
+| 2025-01-11 | Initial story creation (implementation-ready) | Claude |
