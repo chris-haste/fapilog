@@ -14,6 +14,7 @@ import pytest
 BUILTIN_PLUGIN_MODULES = [
     # Sinks
     "fapilog.plugins.sinks.stdout_json",
+    "fapilog.plugins.sinks.stdout_pretty",
     "fapilog.plugins.sinks.rotating_file",
     "fapilog.plugins.sinks.http_client",
     "fapilog.plugins.sinks.webhook",

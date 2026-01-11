@@ -20,10 +20,10 @@ logger = get_logger(preset="minimal")     # Backwards compatible default
 
 | Preset | Log Level | Sinks | File Rotation | Redaction | Batch Size |
 |--------|-----------|-------|---------------|-----------|------------|
-| `dev` | DEBUG | stdout | No | No | 1 (immediate) |
-| `production` | INFO | stdout + file | 50MB × 10 files | Yes (9 fields) | 100 |
-| `fastapi` | INFO | stdout | No | No | 50 |
-| `minimal` | INFO | stdout | No | No | 256 (default) |
+| `dev` | DEBUG | stdout_pretty | No | No | 1 (immediate) |
+| `production` | INFO | stdout_json + file | 50MB × 10 files | Yes (9 fields) | 100 |
+| `fastapi` | INFO | stdout_json | No | No | 50 |
+| `minimal` | INFO | stdout_json | No | No | 256 (default) |
 
 ### Preset Details
 
@@ -31,6 +31,7 @@ logger = get_logger(preset="minimal")     # Backwards compatible default
 - DEBUG level shows all messages
 - Immediate flushing (batch_size=1) for real-time debugging
 - Internal diagnostics enabled
+- Pretty console output in terminals
 - No redaction (safe for local secrets)
 
 **`production`** - Production deployments with safety features:
@@ -62,6 +63,23 @@ logger = get_logger(preset="production", settings=Settings(...))
 ```
 
 If you need customization beyond what presets offer, use the `Settings` class directly.
+
+## Output format
+
+Use `format` to control stdout output without building a full `Settings` object:
+
+```python
+from fapilog import get_logger
+
+logger = get_logger(format="auto")   # Default: pretty in TTY, JSON when piped
+logger = get_logger(format="pretty") # Force human-readable output
+logger = get_logger(format="json")   # Force structured JSON
+```
+
+Notes:
+- `format` is mutually exclusive with `settings`.
+- If both `preset` and `format` are provided, `format` overrides the preset's stdout sink.
+- When `settings` is omitted, `format` defaults to `auto`.
 
 ## Quick setup (env)
 
@@ -95,7 +113,7 @@ logger.info("configured", queue=settings.core.max_queue_size)
 
 ## Common patterns
 
-- **Stdout JSON (default)**: no env needed; `get_logger()` works out of the box.
+- **Stdout auto (default)**: pretty in TTY, JSON when piped.
 - **File sink**: set `FAPILOG_FILE__DIRECTORY`; tune rotation via `FAPILOG_FILE__MAX_BYTES`, `FAPILOG_FILE__MAX_FILES`.
 - **HTTP sink**: set `FAPILOG_HTTP__ENDPOINT` and optional timeout/retry envs.
 - **Metrics**: set `FAPILOG_CORE__ENABLE_METRICS=true` to record internal metrics.

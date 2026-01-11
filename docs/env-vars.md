@@ -17,7 +17,7 @@
 | `FAPILOG_CORE__ENRICHERS` | list | PydanticUndefined | Enricher plugins to use (by name) |
 | `FAPILOG_CORE__ERROR_DEDUPE_WINDOW_SECONDS` | float | 5.0 | Seconds to suppress duplicate ERROR logs with the same message; 0 disables deduplication |
 | `FAPILOG_CORE__EXCEPTIONS_ENABLED` | bool | True | Enable structured exception serialization for log calls |
-| `FAPILOG_CORE__EXCEPTIONS_MAX_FRAMES` | int | 50 | Maximum number of stack frames to capture for exceptions |
+| `FAPILOG_CORE__EXCEPTIONS_MAX_FRAMES` | int | 10 | Maximum number of stack frames to capture for exceptions |
 | `FAPILOG_CORE__EXCEPTIONS_MAX_STACK_CHARS` | int | 20000 | Maximum total characters for serialized stack string |
 | `FAPILOG_CORE__FILTERS` | list | PydanticUndefined | Filter plugins to apply before enrichment (by name) |
 | `FAPILOG_CORE__INTERNAL_LOGGING_ENABLED` | bool | False | Emit DEBUG/WARN diagnostics for internal errors |

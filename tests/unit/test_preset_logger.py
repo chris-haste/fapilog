@@ -115,3 +115,27 @@ class TestBackwardsCompatibility:
         """Name and preset can be used together."""
         logger = get_logger(name="my-logger", preset="dev")
         assert callable(logger.info)
+
+
+class TestFormatParameter:
+    """Test format parameter validation."""
+
+    def test_invalid_format_raises_value_error(self):
+        """Unknown format values raise ValueError."""
+        with pytest.raises(ValueError, match="Invalid format"):
+            get_logger(format="xml")  # type: ignore[arg-type]
+
+    def test_format_and_settings_raises_value_error(self):
+        """format and settings are mutually exclusive."""
+        with pytest.raises(
+            ValueError, match="Cannot specify both 'format' and 'settings'"
+        ):
+            get_logger(format="pretty", settings=Settings())
+
+    @pytest.mark.asyncio
+    async def test_async_format_and_settings_raises_value_error(self):
+        """format and settings are mutually exclusive in async."""
+        with pytest.raises(
+            ValueError, match="Cannot specify both 'format' and 'settings'"
+        ):
+            await get_async_logger(format="json", settings=Settings())

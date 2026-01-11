@@ -32,7 +32,7 @@ This guide documents Settings groups and fields.
 | `core.redaction_max_depth` | int | None | 6 | Optional max depth guardrail for nested redaction |
 | `core.redaction_max_keys_scanned` | int | None | 5000 | Optional max keys scanned guardrail for redaction |
 | `core.exceptions_enabled` | bool | True | Enable structured exception serialization for log calls |
-| `core.exceptions_max_frames` | int | 50 | Maximum number of stack frames to capture for exceptions |
+| `core.exceptions_max_frames` | int | 10 | Maximum number of stack frames to capture for exceptions |
 | `core.exceptions_max_stack_chars` | int | 20000 | Maximum total characters for serialized stack string |
 | `core.strict_envelope_mode` | bool | False | If True, drop emission when envelope cannot be produced; otherwise fallback to best-effort serialization with diagnostics |
 | `core.capture_unhandled_enabled` | bool | False | Automatically install unhandled exception hooks (sys/asyncio) |

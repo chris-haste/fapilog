@@ -11,6 +11,7 @@ import pytest
 # Expected name for each built-in plugin class
 BUILTIN_PLUGINS = [
     ("fapilog.plugins.sinks.stdout_json", "StdoutJsonSink", "stdout_json"),
+    ("fapilog.plugins.sinks.stdout_pretty", "StdoutPrettySink", "stdout_pretty"),
     ("fapilog.plugins.sinks.rotating_file", "RotatingFileSink", "rotating_file"),
     ("fapilog.plugins.sinks.http_client", "HttpSink", "http"),
     ("fapilog.plugins.sinks.webhook", "WebhookSink", "webhook"),

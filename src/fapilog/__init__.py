@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio as _asyncio
 import os as _os
+import sys as _sys
 from contextlib import asynccontextmanager as _asynccontextmanager
 from contextlib import contextmanager as _contextmanager
 from contextlib import suppress as _suppress
@@ -18,6 +19,7 @@ from typing import AsyncIterator as _AsyncIterator
 from typing import Callable as _Callable
 from typing import Coroutine as _Coroutine
 from typing import Iterator as _Iterator
+from typing import Literal as _Literal
 from typing import cast as _cast
 
 from .core.events import LogEvent
@@ -111,6 +113,7 @@ def _sink_configs(settings: _Settings) -> dict[str, dict[str, _Any]]:
     scfg = settings.sink_config
     configs: dict[str, dict[str, _Any]] = {
         "stdout_json": {},
+        "stdout_pretty": {},
         "rotating_file": {
             "config": _RotatingFileSinkConfig(
                 directory=_Path(scfg.rotating_file.directory)
@@ -293,6 +296,51 @@ def _default_sink_names(settings: _Settings) -> list[str]:
     if _os.getenv("FAPILOG_FILE__DIRECTORY"):
         return ["rotating_file"]
     return ["stdout_json"]
+
+
+def _stdout_is_tty() -> bool:
+    try:
+        isatty = getattr(_sys.stdout, "isatty", None)
+        return bool(isatty and isatty())
+    except Exception:
+        return False
+
+
+def _resolve_format(
+    fmt: _Literal["json", "pretty", "auto"] | None,
+    settings: _Settings,
+) -> str | None:
+    if fmt is None:
+        return None
+    fmt_norm = str(fmt).lower()
+    if fmt_norm not in {"json", "pretty", "auto"}:
+        raise ValueError(f"Invalid format '{fmt}'. Valid formats: json, pretty, auto.")
+    if fmt_norm == "auto":
+        if not settings.core.sinks and _default_sink_names(settings) != ["stdout_json"]:
+            return None
+        return "pretty" if _stdout_is_tty() else "json"
+    return fmt_norm
+
+
+def _apply_format(settings: _Settings, fmt: str) -> None:
+    target = "stdout_pretty" if fmt == "pretty" else "stdout_json"
+    sinks = list(settings.core.sinks or [])
+    if not sinks:
+        settings.core.sinks = [target]
+        return
+    updated: list[str] = []
+    replaced = False
+    for name in sinks:
+        norm = _normalize(name)
+        if norm in {"stdout_json", "stdout_pretty"}:
+            if not replaced:
+                updated.append(target)
+                replaced = True
+            continue
+        updated.append(name)
+    if not replaced:
+        updated.insert(0, target)
+    settings.core.sinks = updated
 
 
 def _default_env_sink_cfg(name: str) -> dict[str, _Any]:
@@ -779,10 +827,26 @@ def get_logger(
     name: str | None = None,
     *,
     preset: str | None = None,
+    format: _Literal["json", "pretty", "auto"] | None = None,
     settings: _Settings | None = None,
     sinks: list[object] | None = None,
 ) -> _SyncLoggerFacade:
+    """Return a sync logger with optional preset or output format controls.
+
+    Args:
+        name: Optional logger name.
+        preset: Built-in preset name (dev, production, fastapi, minimal).
+        format: Output format ("json", "pretty", "auto"); defaults to auto when
+            no settings are provided.
+        settings: Explicit Settings object (mutually exclusive with preset/format).
+        sinks: Custom sink instances (overrides configured sinks).
+    """
     # Validate mutual exclusivity
+    if format is not None and settings is not None:
+        raise ValueError(
+            "Cannot specify both 'format' and 'settings'. "
+            "Use format for simple output control or settings for full control."
+        )
     if preset is not None and settings is not None:
         raise ValueError(
             "Cannot specify both 'preset' and 'settings'. "
@@ -796,7 +860,15 @@ def get_logger(
         preset_config = get_preset(preset)
         settings = _Settings(**preset_config)
 
-    setup = _configure_logger_common(settings, sinks)
+    cfg_source = settings or _Settings()
+    fmt_input = format
+    if fmt_input is None and settings is None:
+        fmt_input = "auto"
+    fmt = _resolve_format(fmt_input, cfg_source)
+    if fmt:
+        _apply_format(cfg_source, fmt)
+
+    setup = _configure_logger_common(cfg_source, sinks)
 
     (
         enrichers,
@@ -848,10 +920,26 @@ async def get_async_logger(
     name: str | None = None,
     *,
     preset: str | None = None,
+    format: _Literal["json", "pretty", "auto"] | None = None,
     settings: _Settings | None = None,
     sinks: list[object] | None = None,
 ) -> _AsyncLoggerFacade:
+    """Return an async logger with optional preset or output format controls.
+
+    Args:
+        name: Optional logger name.
+        preset: Built-in preset name (dev, production, fastapi, minimal).
+        format: Output format ("json", "pretty", "auto"); defaults to auto when
+            no settings are provided.
+        settings: Explicit Settings object (mutually exclusive with preset/format).
+        sinks: Custom sink instances (overrides configured sinks).
+    """
     # Validate mutual exclusivity
+    if format is not None and settings is not None:
+        raise ValueError(
+            "Cannot specify both 'format' and 'settings'. "
+            "Use format for simple output control or settings for full control."
+        )
     if preset is not None and settings is not None:
         raise ValueError(
             "Cannot specify both 'preset' and 'settings'. "
@@ -865,7 +953,15 @@ async def get_async_logger(
         preset_config = get_preset(preset)
         settings = _Settings(**preset_config)
 
-    setup = _configure_logger_common(settings, sinks)
+    cfg_source = settings or _Settings()
+    fmt_input = format
+    if fmt_input is None and settings is None:
+        fmt_input = "auto"
+    fmt = _resolve_format(fmt_input, cfg_source)
+    if fmt:
+        _apply_format(cfg_source, fmt)
+
+    setup = _configure_logger_common(cfg_source, sinks)
 
     enrichers = await _start_plugins(setup.enrichers, "enricher")
     redactors = await _start_plugins(setup.redactors, "redactor")

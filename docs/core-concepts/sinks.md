@@ -6,7 +6,8 @@ Destinations for log output.
 
 ## Built-in sinks
 
-- **Stdout JSON**: default sink; emits JSON lines to stdout.
+- **Stdout pretty**: human-readable console output (TTY).
+- **Stdout JSON**: structured JSON lines to stdout.
 - **Rotating file**: size/time-based rotation with optional compression.
 - **HTTP client**: POST log entries to an HTTP endpoint.
 - **MMAP persistence**: experimental local persistence sink.
@@ -15,7 +16,7 @@ Destinations for log output.
 
 - If `FAPILOG_HTTP__ENDPOINT` is set, the HTTP sink is used.
 - Else if `FAPILOG_FILE__DIRECTORY` is set, the rotating file sink is used.
-- Otherwise, stdout JSON is used.
+- Otherwise, stdout auto is used (pretty in TTY, JSON when piped).
 
 ## Fast-path serialization
 

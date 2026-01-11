@@ -28,7 +28,8 @@ class MySink(BaseSink):
 
 ## Built-in sinks (code-supported)
 
-- `stdout_json` (default)
+- `stdout_json` (structured JSON)
+- `stdout_pretty` (human-readable console output)
 - `rotating_file` (size/time rotation)
 - `http` (HTTP POST)
 - `webhook` (JSON webhook with optional batching)

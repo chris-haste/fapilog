@@ -107,7 +107,7 @@
       "type": "boolean"
     },
     "exceptions_max_frames": {
-      "default": 50,
+      "default": 10,
       "description": "Maximum number of stack frames to capture for exceptions",
       "minimum": 1,
       "title": "Exceptions Max Frames",
