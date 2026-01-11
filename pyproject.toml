@@ -243,9 +243,9 @@ FAPILOG_TEST_MAX_LOOP_STALL_SECONDS = "0.25"
 HYPOTHESIS_MAX_EXAMPLES = "100"
 
 [tool.hatch.envs.test.scripts]
-test = "python -m pytest tests"
-test-cov = "python -m pytest --cov=src/fapilog --cov-branch --cov-report=html --cov-report=term --cov-report=xml tests"
-test-benchmark = "python -m pytest --benchmark-only tests"
+test = "python -m pytest {args:tests}"
+test-cov = "python -m pytest --cov=src/fapilog --cov-branch --cov-report=html --cov-report=term --cov-report=xml {args:tests}"
+test-benchmark = "python -m pytest --benchmark-only {args:tests}"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
