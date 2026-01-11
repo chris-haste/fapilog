@@ -12,6 +12,7 @@ from .mmap_persistence import MemoryMappedPersistence, PersistenceStats
 from .rotating_file import RotatingFileSink
 from .routing import RoutingSink
 from .stdout_json import StdoutJsonSink
+from .stdout_pretty import StdoutPrettySink
 from .webhook import WebhookSink
 
 
@@ -93,6 +94,12 @@ register_builtin(
     "stdout_json",
     StdoutJsonSink,
     aliases=["stdout-json"],
+)
+register_builtin(
+    "fapilog.sinks",
+    "stdout_pretty",
+    StdoutPrettySink,
+    aliases=["stdout-pretty"],
 )
 register_builtin(
     "fapilog.sinks",

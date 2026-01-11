@@ -37,7 +37,8 @@ class SerializedView:
 
 ## Built-in sinks
 
-- **stdout_json**: default sink, JSON lines to stdout.
+- **stdout_json**: JSON lines to stdout.
+- **stdout_pretty**: human-readable console output with ANSI colors (TTY only).
 - **rotating_file**: size/time-based rotation with optional compression.
 - **http**: POST log entries to an HTTP endpoint.
 - **webhook**: POST log entries to a webhook with optional signing.

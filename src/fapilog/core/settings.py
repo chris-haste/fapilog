@@ -571,7 +571,7 @@ class CoreSettings(BaseModel):
         description=("Enable structured exception serialization for log calls"),
     )
     exceptions_max_frames: int = Field(
-        default=50,
+        default=10,
         ge=1,
         description=("Maximum number of stack frames to capture for exceptions"),
     )

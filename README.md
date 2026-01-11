@@ -50,7 +50,7 @@ See the full guide at `docs/getting-started/installation.md` for extras and upgr
 ## 🚀 Features (core)
 
 - Async-first architecture (background worker, non-blocking enqueue)
-- Structured JSON output (stdout sink by default)
+- Auto console output (pretty in TTY, JSON when piped)
 - Plugin-friendly (enrichers, redactors, processors, sinks)
 - Context binding and exception serialization
 - Guardrails: redaction stages, error de-duplication
@@ -61,13 +61,18 @@ See the full guide at `docs/getting-started/installation.md` for extras and upgr
 ```python
 from fapilog import get_logger, runtime
 
-# Zero-config logger with isolated background worker and stdout JSON sink
+# Zero-config logger with isolated background worker and auto console output
 logger = get_logger(name="app")
 logger.info("Application started", environment="production")
 
 # Scoped runtime that auto-flushes on exit
 with runtime() as log:
     log.error("Something went wrong", code=500)
+```
+
+Example output (TTY):
+```
+2025-01-11 14:30:22 | INFO     | Application started environment=production
 ```
 
 ### Configuration Presets

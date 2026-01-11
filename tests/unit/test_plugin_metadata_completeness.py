@@ -15,6 +15,7 @@ import pytest
 BUILTIN_PLUGIN_MODULES = [
     # Sinks
     "fapilog.plugins.sinks.stdout_json",
+    "fapilog.plugins.sinks.stdout_pretty",
     "fapilog.plugins.sinks.rotating_file",
     "fapilog.plugins.sinks.http_client",
     "fapilog.plugins.sinks.webhook",
@@ -85,7 +86,7 @@ def test_plugin_metadata_api_version_format(module_path: str) -> None:
     api_version = metadata.get("api_version", "1.0")
     # Should not raise
     major, minor = parse_api_version(api_version)
-    assert major >= 1, f"{module_path} api_version major must be >= 1"
+    assert major == 1, f"{module_path} api_version major must be 1"
 
 
 @pytest.mark.parametrize("module_path", BUILTIN_PLUGIN_MODULES)

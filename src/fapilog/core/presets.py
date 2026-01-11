@@ -11,7 +11,7 @@ PRESETS: dict[str, dict[str, Any]] = {
             "log_level": "DEBUG",
             "internal_logging_enabled": True,
             "batch_max_size": 1,
-            "sinks": ["stdout_json"],
+            "sinks": ["stdout_pretty"],
             "enrichers": ["runtime_info", "context_vars"],
         },
         "enricher_config": {

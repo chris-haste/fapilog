@@ -8,6 +8,8 @@ Main entry points and utilities for fapilog.
 def get_logger(
     name: str | None = None,
     *,
+    preset: str | None = None,
+    format: Literal["json", "pretty", "auto"] | None = None,
     settings: _Settings | None = None,
 ) -> _SyncLoggerFacade
 ```
@@ -19,6 +21,8 @@ Return a ready-to-use **synchronous** logger facade wired to a container-scoped 
 | Parameter  | Type                | Default | Description                                                    |
 | ---------- | ------------------- | ------- | -------------------------------------------------------------- |
 | `name`     | `str \| None`       | `None`  | Logger name for identification. If None, uses the module name. |
+| `preset`   | `str \| None`       | `None`  | Built-in preset (`dev`, `production`, `fastapi`, `minimal`).   |
+| `format`   | `Literal[...]`      | `None`  | Output format: `json`, `pretty`, `auto` (pretty in TTY).        |
 | `settings` | `_Settings \| None` | `None`  | Custom settings. If None, uses environment variables.          |
 
 ### Returns
@@ -45,6 +49,10 @@ settings = Settings(core__enable_metrics=True)
 logger = get_logger(settings=settings)
 logger.info("Metrics-enabled logger ready")
 
+# Force pretty output
+logger = get_logger(format="pretty")
+logger.info("Readable output", request_id="abc-123")
+
 # Manual cleanup if you are not using runtime()
 asyncio.run(logger.stop_and_drain())
 ```
@@ -61,7 +69,9 @@ The following environment variables are automatically read:
 
 - Sync API surface: `debug`, `info`, `warning`, `error`, `exception`, `bind`, `unbind`, `clear_context`
 - Worker lifecycle is managed automatically; call `logger.stop_and_drain()` if you need explicit shutdown.
-- Automatic sink selection: chooses stdout JSON by default or file/http sink when configured via settings/env.
+- Automatic sink selection: pretty in TTY, JSON when piped; file/http sink when configured via settings/env.
+- `preset` and `settings` are mutually exclusive; `format` and `settings` are mutually exclusive.
+- When `settings` is omitted, the default `format` behavior is `auto`.
 
 ## get_async_logger (async) {#get_async_logger}
 
@@ -69,6 +79,8 @@ The following environment variables are automatically read:
 async def get_async_logger(
     name: str | None = None,
     *,
+    preset: str | None = None,
+    format: Literal["json", "pretty", "auto"] | None = None,
     settings: _Settings | None = None,
 ) -> _AsyncLoggerFacade
 ```
@@ -80,6 +92,8 @@ Return a ready-to-use **async** logger facade with awaitable methods.
 | Parameter  | Type                | Default | Description                                                    |
 | ---------- | ------------------- | ------- | -------------------------------------------------------------- |
 | `name`     | `str \| None`       | `None`  | Logger name for identification. If None, uses the module name. |
+| `preset`   | `str \| None`       | `None`  | Built-in preset (`dev`, `production`, `fastapi`, `minimal`).   |
+| `format`   | `Literal[...]`      | `None`  | Output format: `json`, `pretty`, `auto` (pretty in TTY).        |
 | `settings` | `_Settings \| None` | `None`  | Custom settings. If None, uses environment variables.          |
 
 ### Returns

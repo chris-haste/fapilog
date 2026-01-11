@@ -70,6 +70,12 @@ from fapilog.plugins.sinks.stdout_json import (
 from fapilog.plugins.sinks.stdout_json import (
     StdoutJsonSink,
 )
+from fapilog.plugins.sinks.stdout_pretty import (
+    PLUGIN_METADATA as STDOUT_PRETTY_META,
+)
+from fapilog.plugins.sinks.stdout_pretty import (
+    StdoutPrettySink,
+)
 from fapilog.plugins.utils import normalize_plugin_name
 
 
@@ -81,6 +87,7 @@ def test_builtin_metadata_matches_class_names() -> None:
         (ZeroCopyProcessor, ZERO_COPY_META),
         (SizeGuardProcessor, SIZE_GUARD_META),
         (StdoutJsonSink, STDOUT_META),
+        (StdoutPrettySink, STDOUT_PRETTY_META),
         (RotatingFileSink, ROTATING_FILE_META),
         (CloudWatchSink, CLOUDWATCH_META),
         (LokiSink, LOKI_META),

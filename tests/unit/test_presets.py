@@ -24,10 +24,10 @@ class TestPresetDefinitions:
         config = get_preset("dev")
         assert config["core"]["batch_max_size"] == 1
 
-    def test_dev_preset_uses_stdout_json_sink(self):
-        """Dev preset uses stdout_json sink."""
+    def test_dev_preset_uses_stdout_pretty_sink(self):
+        """Dev preset uses stdout_pretty sink."""
         config = get_preset("dev")
-        assert config["core"]["sinks"] == ["stdout_json"]
+        assert config["core"]["sinks"] == ["stdout_pretty"]
 
     def test_production_preset_has_info_log_level(self):
         """Production preset sets log level to INFO."""
