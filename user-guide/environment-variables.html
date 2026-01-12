@@ -91,6 +91,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../api-reference/context-binding.html">Context Binding</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api-reference/audit-trail.html">Audit Trail</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api-reference/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/types.html">Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api-reference/plugins/index.html">Plugins</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api-reference/modules.html">API Modules</a></li>
@@ -186,6 +187,8 @@
 <li><p>Booleans: <code class="docutils literal notranslate"><span class="pre">true/false</span></code>, <code class="docutils literal notranslate"><span class="pre">1/0</span></code>, <code class="docutils literal notranslate"><span class="pre">yes/no</span></code></p></li>
 </ul>
 <p>Example: <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SINKS='[&quot;cloudwatch&quot;]'</span></code> maps to <code class="docutils literal notranslate"><span class="pre">settings.core.sinks</span></code>.</p>
+<p>Size and duration fields accept human-readable strings (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;10</span> <span class="pre">MB&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;5s&quot;</span></code>) as
+well as numeric values. Rotation intervals also accept <code class="docutils literal notranslate"><span class="pre">&quot;hourly&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;daily&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;weekly&quot;</span></code>.</p>
 </section>
 <section id="how-env-vars-are-resolved">
 <h2>How Env Vars Are Resolved<a class="headerlink" href="#how-env-vars-are-resolved" title="Link to this heading"></a></h2>
@@ -318,14 +321,14 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">json</span></code> or <code class="docutils literal notranslate"><span class="pre">text</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_FILE__MAX_BYTES</span></code></p></td>
-<td><p>int</p></td>
+<td><p>size</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">10485760</span></code></p></td>
-<td><p>Rotate at/after this size</p></td>
+<td><p>Rotate at/after this size (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;10</span> <span class="pre">MB&quot;</span></code>)</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_FILE__INTERVAL_SECONDS</span></code></p></td>
-<td><p>int</p></td>
+<td><p>duration</p></td>
 <td><p>unset</p></td>
-<td><p>Optional time-based rotation</p></td>
+<td><p>Optional time-based rotation (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;daily&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;1h&quot;</span></code>)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_FILE__MAX_FILES</span></code></p></td>
 <td><p>int</p></td>
@@ -333,9 +336,9 @@
 <td><p>Retain at most this many rotated files</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_FILE__MAX_TOTAL_BYTES</span></code></p></td>
-<td><p>int</p></td>
+<td><p>size</p></td>
 <td><p>unset</p></td>
-<td><p>Retain up to this many bytes across rotated files</p></td>
+<td><p>Retain up to this many bytes across rotated files (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;100</span> <span class="pre">MB&quot;</span></code>)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_FILE__COMPRESS_ROTATED</span></code></p></td>
 <td><p>bool</p></td>
@@ -830,9 +833,9 @@
 <td><p>Action on oversize (<code class="docutils literal notranslate"><span class="pre">truncate</span></code>, <code class="docutils literal notranslate"><span class="pre">drop</span></code>, <code class="docutils literal notranslate"><span class="pre">warn</span></code>)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SIZE_GUARD__MAX_BYTES</span></code></p></td>
-<td><p>int</p></td>
+<td><p>size</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">256000</span></code></p></td>
-<td><p>Max bytes before action</p></td>
+<td><p>Max bytes before action (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;1</span> <span class="pre">MB&quot;</span></code>)</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SIZE_GUARD__PRESERVE_FIELDS</span></code></p></td>
 <td><p>JSON list</p></td>

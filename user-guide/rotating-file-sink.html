@@ -91,6 +91,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../api-reference/context-binding.html">Context Binding</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api-reference/audit-trail.html">Audit Trail</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api-reference/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/types.html">Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api-reference/plugins/index.html">Plugins</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api-reference/modules.html">API Modules</a></li>
@@ -180,13 +181,14 @@
 <section id="enable-via-environment">
 <h2>Enable via environment<a class="headerlink" href="#enable-via-environment" title="Link to this heading"></a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__DIRECTORY</span><span class="o">=</span>/var/log/myapp
-<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__MAX_BYTES</span><span class="o">=</span><span class="m">10485760</span><span class="w">  </span><span class="c1"># 10MB</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__MAX_BYTES</span><span class="o">=</span><span class="s2">&quot;10 MB&quot;</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__MAX_FILES</span><span class="o">=</span><span class="m">5</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__COMPRESS_ROTATED</span><span class="o">=</span><span class="nb">true</span>
-<span class="c1"># Optional time-based rotation (seconds)</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__INTERVAL_SECONDS</span><span class="o">=</span><span class="m">0</span>
+<span class="c1"># Optional time-based rotation</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__INTERVAL_SECONDS</span><span class="o">=</span><span class="s2">&quot;daily&quot;</span>
 </pre></div>
 </div>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;daily&quot;</span></code>/<code class="docutils literal notranslate"><span class="pre">&quot;hourly&quot;</span></code>/<code class="docutils literal notranslate"><span class="pre">&quot;weekly&quot;</span></code> are fixed intervals (e.g., 24 hours), not wall-clock boundaries.</p>
 </section>
 <section id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>

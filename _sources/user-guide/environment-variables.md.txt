@@ -11,6 +11,9 @@ Fapilog follows 12-factor conventions: every setting can be supplied via environ
 
 Example: `FAPILOG_CORE__SINKS='["cloudwatch"]'` maps to `settings.core.sinks`.
 
+Size and duration fields accept human-readable strings (e.g., `"10 MB"`, `"5s"`) as
+well as numeric values. Rotation intervals also accept `"hourly"`, `"daily"`, `"weekly"`.
+
 ## How Env Vars Are Resolved
 
 Fapilog env vars fall into three categories:
@@ -51,10 +54,10 @@ When `FAPILOG_FILE__DIRECTORY` is set, the rotating file sink is auto-enabled wi
 | `FAPILOG_FILE__DIRECTORY` | string | unset | Directory for rotated files |
 | `FAPILOG_FILE__FILENAME_PREFIX` | string | `fapilog` | Filename prefix |
 | `FAPILOG_FILE__MODE` | string | `json` | `json` or `text` |
-| `FAPILOG_FILE__MAX_BYTES` | int | `10485760` | Rotate at/after this size |
-| `FAPILOG_FILE__INTERVAL_SECONDS` | int | unset | Optional time-based rotation |
+| `FAPILOG_FILE__MAX_BYTES` | size | `10485760` | Rotate at/after this size (e.g., `"10 MB"`) |
+| `FAPILOG_FILE__INTERVAL_SECONDS` | duration | unset | Optional time-based rotation (e.g., `"daily"`, `"1h"`) |
 | `FAPILOG_FILE__MAX_FILES` | int | unset | Retain at most this many rotated files |
-| `FAPILOG_FILE__MAX_TOTAL_BYTES` | int | unset | Retain up to this many bytes across rotated files |
+| `FAPILOG_FILE__MAX_TOTAL_BYTES` | size | unset | Retain up to this many bytes across rotated files (e.g., `"100 MB"`) |
 | `FAPILOG_FILE__COMPRESS_ROTATED` | bool | `false` | Gzip rotated files |
 
 ### CloudWatch Sink (short aliases)
@@ -171,7 +174,7 @@ When `FAPILOG_FILE__DIRECTORY` is set, the rotating file sink is auto-enabled wi
 | Variable | Type | Default | Description |
 | --- | --- | --- | --- |
 | `FAPILOG_SIZE_GUARD__ACTION` | string | `truncate` | Action on oversize (`truncate`, `drop`, `warn`) |
-| `FAPILOG_SIZE_GUARD__MAX_BYTES` | int | `256000` | Max bytes before action |
+| `FAPILOG_SIZE_GUARD__MAX_BYTES` | size | `256000` | Max bytes before action (e.g., `"1 MB"`) |
 | `FAPILOG_SIZE_GUARD__PRESERVE_FIELDS` | JSON list | `["level","timestamp","logger","correlation_id"]` | Fields to keep when truncating |
 
 ### Runtime Info Enricher (common env helpers)

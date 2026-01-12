@@ -91,6 +91,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../api-reference/context-binding.html">Context Binding</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api-reference/audit-trail.html">Audit Trail</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api-reference/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/types.html">Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api-reference/plugins/index.html">Plugins</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api-reference/modules.html">API Modules</a></li>
@@ -330,7 +331,8 @@
 
 <span class="c1"># File sink (optional)</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__DIRECTORY</span><span class="o">=</span>/var/log/myapp
-<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__MAX_BYTES</span><span class="o">=</span><span class="m">10485760</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__MAX_BYTES</span><span class="o">=</span><span class="s2">&quot;10 MB&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__INTERVAL_SECONDS</span><span class="o">=</span><span class="s2">&quot;daily&quot;</span>
 
 <span class="c1"># Performance tuning</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__BATCH_MAX_SIZE</span><span class="o">=</span><span class="m">128</span>
@@ -352,6 +354,9 @@
 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;configured&quot;</span><span class="p">,</span> <span class="n">queue</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">max_queue_size</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>Size and duration fields accept human-readable strings (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;10</span> <span class="pre">MB&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;5s&quot;</span></code>) as well as
+numeric values. Rotation keywords (<code class="docutils literal notranslate"><span class="pre">&quot;hourly&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;daily&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;weekly&quot;</span></code>) apply to rotation
+interval settings and represent fixed intervals (not wall-clock boundaries).</p>
 </section>
 <section id="common-patterns">
 <h2>Common patterns<a class="headerlink" href="#common-patterns" title="Link to this heading"></a></h2>

@@ -91,6 +91,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../context-binding.html">Context Binding</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../audit-trail.html">Audit Trail</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../types.html">Types</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="index.html">Plugins</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../lifecycle-results.html">Lifecycle &amp; Results</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../modules.html">API Modules</a></li>
@@ -221,9 +222,10 @@
 <h2>Configuration (env)<a class="headerlink" href="#configuration-env" title="Link to this heading"></a></h2>
 <p>Rotating file:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__DIRECTORY</span><span class="o">=</span>/var/log/myapp
-<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__MAX_BYTES</span><span class="o">=</span><span class="m">10485760</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__MAX_BYTES</span><span class="o">=</span><span class="s2">&quot;10 MB&quot;</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__MAX_FILES</span><span class="o">=</span><span class="m">5</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__COMPRESS_ROTATED</span><span class="o">=</span><span class="nb">true</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__INTERVAL_SECONDS</span><span class="o">=</span><span class="s2">&quot;daily&quot;</span>
 </pre></div>
 </div>
 <p>HTTP sink:</p>

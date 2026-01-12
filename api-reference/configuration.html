@@ -24,7 +24,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Plugins" href="plugins/index.html" />
+    <link rel="next" title="Types" href="types.html" />
     <link rel="prev" title="Audit Trail" href="audit-trail.html" /> 
 </head>
 
@@ -91,6 +91,7 @@
 <li class="toctree-l2"><a class="reference internal" href="context-binding.html">Context Binding</a></li>
 <li class="toctree-l2"><a class="reference internal" href="audit-trail.html">Audit Trail</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="types.html">Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plugins/index.html">Plugins</a></li>
 <li class="toctree-l2"><a class="reference internal" href="lifecycle-results.html">Lifecycle &amp; Results</a></li>
 <li class="toctree-l2"><a class="reference internal" href="modules.html">API Modules</a></li>
@@ -203,7 +204,8 @@
 
 <span class="c1"># Enable rotating file sink via env (uses defaults for prefix/size/rotation)</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__DIRECTORY</span><span class="o">=</span>/var/log/myapp
-<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__MAX_BYTES</span><span class="o">=</span><span class="m">10485760</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__MAX_BYTES</span><span class="o">=</span><span class="s2">&quot;10 MB&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__INTERVAL_SECONDS</span><span class="o">=</span><span class="s2">&quot;daily&quot;</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__MAX_FILES</span><span class="o">=</span><span class="m">5</span>
 
 <span class="c1"># Optional HTTP sink</span>
@@ -235,6 +237,10 @@
 <h2>HTTP sink (optional)<a class="headerlink" href="#http-sink-optional" title="Link to this heading"></a></h2>
 <p>Set <code class="docutils literal notranslate"><span class="pre">http.endpoint</span></code> (or <code class="docutils literal notranslate"><span class="pre">FAPILOG_HTTP__ENDPOINT</span></code>) to route logs to an HTTP endpoint. Optional retry/backoff and headers are available through the <code class="docutils literal notranslate"><span class="pre">http</span></code> settings group.</p>
 </section>
+<section id="human-readable-sizes-and-durations">
+<h2>Human-readable sizes and durations<a class="headerlink" href="#human-readable-sizes-and-durations" title="Link to this heading"></a></h2>
+<p>Size and duration fields accept human-readable strings (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;10</span> <span class="pre">MB&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;5s&quot;</span></code>) in addition to numeric values. Rotation intervals also accept <code class="docutils literal notranslate"><span class="pre">&quot;hourly&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;daily&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;weekly&quot;</span></code>. See <code class="docutils literal notranslate"><span class="pre">docs/api-reference/types.md</span></code> for the full format list.</p>
+</section>
 <section id="plugin-discovery">
 <h2>Plugin discovery<a class="headerlink" href="#plugin-discovery" title="Link to this heading"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">settings.plugins</span></code> controls plugin discovery allow/deny lists and additional search paths. Defaults: enabled, load-on-startup empty.</p>
@@ -253,7 +259,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="audit-trail.html" class="btn btn-neutral float-left" title="Audit Trail" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="plugins/index.html" class="btn btn-neutral float-right" title="Plugins" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="types.html" class="btn btn-neutral float-right" title="Types" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

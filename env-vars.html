@@ -91,6 +91,7 @@
 <li class="toctree-l2"><a class="reference internal" href="api-reference/context-binding.html">Context Binding</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api-reference/audit-trail.html">Audit Trail</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api-reference/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/types.html">Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api-reference/plugins/index.html">Plugins</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api-reference/modules.html">API Modules</a></li>
@@ -464,7 +465,7 @@
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_HTTP__BATCH_TIMEOUT_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>5.0</p></td>
-<td><p>Max seconds before flushing a partial batch</p></td>
+<td><p>Max seconds before flushing a partial batch. Accepts ‘5s’ or 5.0</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_HTTP__BATCH_WRAPPER_KEY</span></code></p></td>
 <td><p>str</p></td>
@@ -499,7 +500,7 @@
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_HTTP__TIMEOUT_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>5.0</p></td>
-<td><p>Request timeout for HTTP sink operations</p></td>
+<td><p>Request timeout for HTTP sink operations. Accepts ‘5s’ or 5.0</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_OBSERVABILITY__ALERTING__ENABLED</span></code></p></td>
 <td><p>bool</p></td>
@@ -599,7 +600,7 @@
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_PROCESSOR_CONFIG__SIZE_GUARD__MAX_BYTES</span></code></p></td>
 <td><p>int</p></td>
 <td><p>256000</p></td>
-<td><p>Maximum payload size in bytes (min 100)</p></td>
+<td><p>Maximum payload size in bytes (min 100). Accepts ‘1 MB’ or 1048576</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_PROCESSOR_CONFIG__SIZE_GUARD__PRESERVE_FIELDS</span></code></p></td>
 <td><p>list</p></td>
@@ -784,7 +785,7 @@
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__BATCH_TIMEOUT_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>5.0</p></td>
-<td><p>Max seconds before flushing a partial batch</p></td>
+<td><p>Max seconds before flushing a partial batch. Accepts ‘5s’ or 5.0</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__CIRCUIT_BREAKER_ENABLED</span></code></p></td>
 <td><p>bool</p></td>
@@ -834,7 +835,7 @@
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__RETRY_BASE_DELAY</span></code></p></td>
 <td><p>float</p></td>
 <td><p>0.5</p></td>
-<td><p>Base delay for exponential backoff</p></td>
+<td><p>Base delay for exponential backoff. Accepts ‘1s’ or 0.5</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__EXTRA</span></code></p></td>
 <td><p>dict</p></td>
@@ -854,7 +855,7 @@
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__BATCH_TIMEOUT_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>5.0</p></td>
-<td><p>Max seconds before flushing a partial batch</p></td>
+<td><p>Max seconds before flushing a partial batch. Accepts ‘5s’ or 5.0</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__BATCH_WRAPPER_KEY</span></code></p></td>
 <td><p>str</p></td>
@@ -889,7 +890,7 @@
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__TIMEOUT_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>5.0</p></td>
-<td><p>Request timeout for HTTP sink operations</p></td>
+<td><p>Request timeout for HTTP sink operations. Accepts ‘5s’ or 5.0</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__AUTH_PASSWORD</span></code></p></td>
 <td><p>str</p></td>
@@ -914,7 +915,7 @@
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__BATCH_TIMEOUT_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>5.0</p></td>
-<td><p>Max seconds before flushing a partial batch</p></td>
+<td><p>Max seconds before flushing a partial batch. Accepts ‘5s’ or 5.0</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__CIRCUIT_BREAKER_ENABLED</span></code></p></td>
 <td><p>bool</p></td>
@@ -944,7 +945,7 @@
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__RETRY_BASE_DELAY</span></code></p></td>
 <td><p>float</p></td>
 <td><p>0.5</p></td>
-<td><p>Base delay for backoff</p></td>
+<td><p>Base delay for backoff. Accepts ‘1s’ or 0.5</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__TENANT_ID</span></code></p></td>
 <td><p>str</p></td>
@@ -954,7 +955,7 @@
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__TIMEOUT_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>10.0</p></td>
-<td><p>HTTP timeout seconds</p></td>
+<td><p>HTTP timeout seconds. Accepts ‘10s’ or 10.0</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__URL</span></code></p></td>
 <td><p>str</p></td>
@@ -969,7 +970,7 @@
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__BATCH_TIMEOUT_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>5.0</p></td>
-<td><p>Max seconds before flushing a partial batch</p></td>
+<td><p>Max seconds before flushing a partial batch. Accepts ‘5s’ or 5.0</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__CIRCUIT_BREAKER_ENABLED</span></code></p></td>
 <td><p>bool</p></td>
@@ -1034,7 +1035,7 @@
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__POOL_ACQUIRE_TIMEOUT</span></code></p></td>
 <td><p>float</p></td>
 <td><p>10.0</p></td>
-<td><p>Timeout when acquiring connections</p></td>
+<td><p>Timeout when acquiring connections. Accepts ‘10s’ or 10.0</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__PORT</span></code></p></td>
 <td><p>int</p></td>
@@ -1044,7 +1045,7 @@
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__RETRY_BASE_DELAY</span></code></p></td>
 <td><p>float</p></td>
 <td><p>0.5</p></td>
-<td><p>Base delay for exponential backoff</p></td>
+<td><p>Base delay for exponential backoff. Accepts ‘1s’ or 0.5</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__SCHEMA_NAME</span></code></p></td>
 <td><p>str</p></td>
@@ -1082,14 +1083,14 @@
 <td><p>Filename prefix</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__INTERVAL_SECONDS</span></code></p></td>
-<td><p>int</p></td>
+<td><p>float</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_BYTES</span></code></p></td>
 <td><p>int</p></td>
 <td><p>10485760</p></td>
-<td><p>Max bytes before rotation</p></td>
+<td><p>Max bytes before rotation. Accepts ‘10 MB’ or 10485760</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_FILES</span></code></p></td>
 <td><p>int</p></td>
@@ -1179,7 +1180,7 @@
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__BATCH_TIMEOUT_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>5.0</p></td>
-<td><p>Max seconds before flushing a partial webhook batch</p></td>
+<td><p>Max seconds before flushing a partial webhook batch. Accepts ‘5s’ or 5.0</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__ENDPOINT</span></code></p></td>
 <td><p>str</p></td>
@@ -1209,7 +1210,7 @@
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__TIMEOUT_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>5.0</p></td>
-<td><p>Request timeout in seconds</p></td>
+<td><p>Request timeout. Accepts ‘5s’ or 5.0</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_ROUTING__ENABLED</span></code></p></td>
 <td><p>bool</p></td>
