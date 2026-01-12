@@ -3,6 +3,28 @@
 
 Write logs to disk with size/time rotation.
 
+## Quick Start (Convenience Function)
+
+```python
+from fapilog import get_logger
+from fapilog.sinks import rotating_file
+
+# Simple file logging
+logger = get_logger(sinks=[rotating_file("logs/app.log")])
+
+# With rotation and retention
+logger = get_logger(
+    sinks=[
+        rotating_file(
+            "logs/app.log",
+            rotation="10 MB",
+            retention=7,
+            compression=True,
+        )
+    ]
+)
+```
+
 ## Enable via environment
 
 ```bash
@@ -16,6 +38,27 @@ export FAPILOG_FILE__INTERVAL_SECONDS="daily"
 
 `"daily"`/`"hourly"`/`"weekly"` are fixed intervals (e.g., 24 hours), not wall-clock boundaries.
 
+## Programmatic settings
+
+```python
+from fapilog import Settings, get_logger
+from fapilog.core.settings import RotatingFileSettings
+
+settings = Settings(
+    sink_config=Settings.SinkConfig(
+        rotating_file=RotatingFileSettings(
+            directory="logs",
+            filename_prefix="app",
+            max_bytes="10 MB",
+            max_files=7,
+            compress_rotated=True,
+        )
+    )
+)
+logger = get_logger(settings=settings)
+logger.info("configured via Settings")
+```
+
 ## Usage
 
 ```python
@@ -25,10 +68,15 @@ logger = get_logger()
 logger.info("to file", event="startup")
 ```
 
+## Migration
+
+See `docs/guides/migration-file-rotation.md` for a before/after conversion from
+`RotatingFileSinkConfig` to the `rotating_file()` convenience factory.
+
 ## What to expect
 
-- Files named `fapilog.log`, `fapilog.log.1`, `fapilog.log.2.gz`, etc.
-- Rotation by size (`max_bytes`); optional max file count and compression.
+- Files named like `fapilog-20250111-120000.jsonl` (or `.log` in text mode).
+- Rotation by size (`max_bytes`) or interval; optional retention and compression.
 
 ## Tips
 

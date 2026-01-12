@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Redacting Secrets &mdash; fapilog latest documentation</title>
+  <title>Migration Guide: Simplified Rotating File Setup &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -23,9 +23,7 @@
       <script src="../_static/custom.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Structured Error Logging" href="structured-error-logging.html" />
-    <link rel="prev" title="Logging in Scripts/CLIs" href="cli-tools.html" /> 
+    <link rel="search" title="Search" href="../search.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -48,7 +46,7 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../getting-started/installation.html">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../getting-started/quickstart.html">Quickstart Tutorial</a></li>
@@ -97,17 +95,17 @@
 <li class="toctree-l2"><a class="reference internal" href="../api-reference/modules.html">API Modules</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples &amp; Recipes</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="fastapi-logging.html">FastAPI Logging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli-tools.html">Logging in Scripts/CLIs</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Redacting Secrets</a></li>
-<li class="toctree-l2"><a class="reference internal" href="structured-error-logging.html">Structured Error Logging</a></li>
-<li class="toctree-l2"><a class="reference internal" href="kubernetes-file-sink.html">Kubernetes File Sink</a></li>
-<li class="toctree-l2"><a class="reference internal" href="prometheus-metrics.html">Prometheus Metrics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sampling-debug-logs.html">Sampling Debug Logs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cloudwatch_logging/index.html">CloudWatch Logging (LocalStack)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cloud-sinks/index.html">Cloud Sink Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples &amp; Recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/fastapi-logging.html">FastAPI Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cli-tools.html">Logging in Scripts/CLIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/redacting-secrets.html">Redacting Secrets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/structured-error-logging.html">Structured Error Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/kubernetes-file-sink.html">Kubernetes File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/prometheus-metrics.html">Prometheus Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloudwatch_logging/index.html">CloudWatch Logging (LocalStack)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloud-sinks/index.html">Cloud Sink Examples</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugin Development</a><ul>
@@ -164,10 +162,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="index.html">Examples &amp; Recipes</a></li>
-      <li class="breadcrumb-item active">Redacting Secrets</li>
+      <li class="breadcrumb-item active">Migration Guide: Simplified Rotating File Setup</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/examples/redacting-secrets.md.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/guides/migration-file-rotation.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -175,46 +172,73 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="redacting-secrets">
-<h1>Redacting Secrets<a class="headerlink" href="#redacting-secrets" title="Link to this heading"></a></h1>
-<p>Built-in redactors mask sensitive fields by default.</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="migration-guide-simplified-rotating-file-setup">
+<h1>Migration Guide: Simplified Rotating File Setup<a class="headerlink" href="#migration-guide-simplified-rotating-file-setup" title="Link to this heading"></a></h1>
+<p>This guide shows how to migrate from the verbose <code class="docutils literal notranslate"><span class="pre">RotatingFileSinkConfig</span></code> pattern
+to the new <code class="docutils literal notranslate"><span class="pre">fapilog.sinks.rotating_file()</span></code> convenience factory.</p>
+<section id="before-verbose-configuration">
+<h2>Before (Verbose Configuration)<a class="headerlink" href="#before-verbose-configuration" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.sinks.rotating_file</span><span class="w"> </span><span class="kn">import</span> <span class="n">RotatingFileSink</span><span class="p">,</span> <span class="n">RotatingFileSinkConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">RotatingFileSinkConfig</span><span class="p">(</span>
+    <span class="n">directory</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;logs&quot;</span><span class="p">),</span>
+    <span class="n">filename_prefix</span><span class="o">=</span><span class="s2">&quot;app&quot;</span><span class="p">,</span>
+    <span class="n">max_bytes</span><span class="o">=</span><span class="mi">10485760</span><span class="p">,</span>
+    <span class="n">max_files</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+    <span class="n">compress_rotated</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">sink</span> <span class="o">=</span> <span class="n">RotatingFileSink</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="n">sink</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="after-convenience-factory">
+<h2>After (Convenience Factory)<a class="headerlink" href="#after-convenience-factory" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.sinks</span><span class="w"> </span><span class="kn">import</span> <span class="n">rotating_file</span>
 
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-    <span class="s2">&quot;User credentials&quot;</span><span class="p">,</span>
-    <span class="n">username</span><span class="o">=</span><span class="s2">&quot;john&quot;</span><span class="p">,</span>
-    <span class="n">password</span><span class="o">=</span><span class="s2">&quot;secret123&quot;</span><span class="p">,</span>
-    <span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;sk-abc&quot;</span><span class="p">,</span>
-    <span class="n">email</span><span class="o">=</span><span class="s2">&quot;john@example.com&quot;</span><span class="p">,</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span>
+    <span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="n">rotating_file</span><span class="p">(</span><span class="s2">&quot;logs/app.log&quot;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="s2">&quot;10 MB&quot;</span><span class="p">,</span> <span class="n">retention</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="kc">True</span><span class="p">)]</span>
 <span class="p">)</span>
 </pre></div>
 </div>
-<p>Output (masked):</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;User credentials&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;username&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;john&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;password&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;***REDACTED***&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;api_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;***REDACTED***&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;***REDACTED***&quot;</span>
-<span class="p">}</span>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>The factory parses the path into directory + filename prefix automatically.</p></li>
+<li><p>Rotation values accept human-readable strings (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;10</span> <span class="pre">MB&quot;</span></code>).</p></li>
+<li><p>Behavior is additive; the old configuration path still works.</p></li>
+</ul>
+</section>
+<section id="settings-alternative">
+<h2>Settings Alternative<a class="headerlink" href="#settings-alternative" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span><span class="p">,</span> <span class="n">get_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">RotatingFileSettings</span>
+
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span>
+    <span class="n">sink_config</span><span class="o">=</span><span class="n">Settings</span><span class="o">.</span><span class="n">SinkConfig</span><span class="p">(</span>
+        <span class="n">rotating_file</span><span class="o">=</span><span class="n">RotatingFileSettings</span><span class="p">(</span>
+            <span class="n">directory</span><span class="o">=</span><span class="s2">&quot;logs&quot;</span><span class="p">,</span>
+            <span class="n">filename_prefix</span><span class="o">=</span><span class="s2">&quot;app&quot;</span><span class="p">,</span>
+            <span class="n">max_bytes</span><span class="o">=</span><span class="s2">&quot;10 MB&quot;</span><span class="p">,</span>
+            <span class="n">max_files</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+            <span class="n">compress_rotated</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Notes:</p>
-<ul class="simple">
-<li><p>Redactors are enabled by default; configure <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SENSITIVE_FIELDS_POLICY</span></code> to add field names.</p></li>
-<li><p>Regex redactor catches common secrets (password/token/email) by default.</p></li>
-</ul>
+</section>
 </section>
 
 
            </div>
           </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="cli-tools.html" class="btn btn-neutral float-left" title="Logging in Scripts/CLIs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="structured-error-logging.html" class="btn btn-neutral float-right" title="Structured Error Logging" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-    </div>
+          <footer>
 
   <hr/>
 

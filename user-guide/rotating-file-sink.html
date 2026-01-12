@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Rotating File Sink &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
@@ -178,6 +178,28 @@
   <section class="tex2jax_ignore mathjax_ignore" id="rotating-file-sink">
 <h1>Rotating File Sink<a class="headerlink" href="#rotating-file-sink" title="Link to this heading"></a></h1>
 <p>Write logs to disk with size/time rotation.</p>
+<section id="quick-start-convenience-function">
+<h2>Quick Start (Convenience Function)<a class="headerlink" href="#quick-start-convenience-function" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.sinks</span><span class="w"> </span><span class="kn">import</span> <span class="n">rotating_file</span>
+
+<span class="c1"># Simple file logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="n">rotating_file</span><span class="p">(</span><span class="s2">&quot;logs/app.log&quot;</span><span class="p">)])</span>
+
+<span class="c1"># With rotation and retention</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span>
+    <span class="n">sinks</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">rotating_file</span><span class="p">(</span>
+            <span class="s2">&quot;logs/app.log&quot;</span><span class="p">,</span>
+            <span class="n">rotation</span><span class="o">=</span><span class="s2">&quot;10 MB&quot;</span><span class="p">,</span>
+            <span class="n">retention</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+            <span class="n">compression</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
 <section id="enable-via-environment">
 <h2>Enable via environment<a class="headerlink" href="#enable-via-environment" title="Link to this heading"></a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__DIRECTORY</span><span class="o">=</span>/var/log/myapp
@@ -190,6 +212,27 @@
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">&quot;daily&quot;</span></code>/<code class="docutils literal notranslate"><span class="pre">&quot;hourly&quot;</span></code>/<code class="docutils literal notranslate"><span class="pre">&quot;weekly&quot;</span></code> are fixed intervals (e.g., 24 hours), not wall-clock boundaries.</p>
 </section>
+<section id="programmatic-settings">
+<h2>Programmatic settings<a class="headerlink" href="#programmatic-settings" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span><span class="p">,</span> <span class="n">get_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">RotatingFileSettings</span>
+
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span>
+    <span class="n">sink_config</span><span class="o">=</span><span class="n">Settings</span><span class="o">.</span><span class="n">SinkConfig</span><span class="p">(</span>
+        <span class="n">rotating_file</span><span class="o">=</span><span class="n">RotatingFileSettings</span><span class="p">(</span>
+            <span class="n">directory</span><span class="o">=</span><span class="s2">&quot;logs&quot;</span><span class="p">,</span>
+            <span class="n">filename_prefix</span><span class="o">=</span><span class="s2">&quot;app&quot;</span><span class="p">,</span>
+            <span class="n">max_bytes</span><span class="o">=</span><span class="s2">&quot;10 MB&quot;</span><span class="p">,</span>
+            <span class="n">max_files</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
+            <span class="n">compress_rotated</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;configured via Settings&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 <section id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
@@ -199,11 +242,16 @@
 </pre></div>
 </div>
 </section>
+<section id="migration">
+<h2>Migration<a class="headerlink" href="#migration" title="Link to this heading"></a></h2>
+<p>See <code class="docutils literal notranslate"><span class="pre">docs/guides/migration-file-rotation.md</span></code> for a before/after conversion from
+<code class="docutils literal notranslate"><span class="pre">RotatingFileSinkConfig</span></code> to the <code class="docutils literal notranslate"><span class="pre">rotating_file()</span></code> convenience factory.</p>
+</section>
 <section id="what-to-expect">
 <h2>What to expect<a class="headerlink" href="#what-to-expect" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Files named <code class="docutils literal notranslate"><span class="pre">fapilog.log</span></code>, <code class="docutils literal notranslate"><span class="pre">fapilog.log.1</span></code>, <code class="docutils literal notranslate"><span class="pre">fapilog.log.2.gz</span></code>, etc.</p></li>
-<li><p>Rotation by size (<code class="docutils literal notranslate"><span class="pre">max_bytes</span></code>); optional max file count and compression.</p></li>
+<li><p>Files named like <code class="docutils literal notranslate"><span class="pre">fapilog-20250111-120000.jsonl</span></code> (or <code class="docutils literal notranslate"><span class="pre">.log</span></code> in text mode).</p></li>
+<li><p>Rotation by size (<code class="docutils literal notranslate"><span class="pre">max_bytes</span></code>) or interval; optional retention and compression.</p></li>
 </ul>
 </section>
 <section id="tips">

@@ -43,6 +43,29 @@ class SerializedView:
 - **http**: POST log entries to an HTTP endpoint.
 - **webhook**: POST log entries to a webhook with optional signing.
 
+## Convenience factories
+
+### rotating_file (fapilog.sinks)
+
+```python
+from fapilog.sinks import rotating_file
+
+sink = rotating_file(
+    "logs/app.log",
+    rotation="10 MB",
+    retention=7,
+    compression=True,
+    mode="json",
+)
+```
+
+Parameters:
+- `path`: file path (directory is created if missing)
+- `rotation`: size-based rotation (string or int bytes)
+- `retention`: max rotated files to keep
+- `compression`: gzip rotated files
+- `mode`: `json` or `text`
+
 ## Configuration (env)
 
 Rotating file:
