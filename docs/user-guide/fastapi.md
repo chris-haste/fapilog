@@ -1,5 +1,38 @@
 # FastAPI / ASGI Integration
 
+## One-liner setup
+
+```python
+from fastapi import Depends, FastAPI
+from fapilog.fastapi import get_request_logger, setup_logging
+
+app = FastAPI(
+    lifespan=setup_logging(
+        preset="fastapi",
+        skip_paths=["/health"],
+        sample_rate=1.0,
+        redact_headers=["authorization"],
+    )
+)
+
+@app.get("/")
+async def root(logger=Depends(get_request_logger)):
+    await logger.info("Request handled")  # request_id auto-included
+    return {"message": "Hello World"}
+```
+
+Automatic middleware registration is enabled by default. Disable it for manual control:
+
+```python
+from fapilog.fastapi import setup_logging
+from fapilog.fastapi.context import RequestContextMiddleware
+from fapilog.fastapi.logging import LoggingMiddleware
+
+app = FastAPI(lifespan=setup_logging(preset="fastapi", auto_middleware=False))
+app.add_middleware(RequestContextMiddleware)
+app.add_middleware(LoggingMiddleware)
+```
+
 ## Request/response logging middleware
 
 Add the built-in middleware for automatic request/response logs with latency and status codes:
@@ -40,19 +73,16 @@ app.add_middleware(
 
 ## Dependency-based logging
 
-Prefer the async factory for request-scoped logging with dependency injection:
+Prefer the async dependency helper for request-scoped logging with dependency injection:
 
 ```python
 from fastapi import Depends, FastAPI
-from fapilog import get_async_logger
+from fapilog.fastapi import get_request_logger
 
 app = FastAPI()
 
-async def get_logger():
-    return await get_async_logger("request")
-
 @app.get("/users/{user_id}")
-async def get_user(user_id: int, logger = Depends(get_logger)):
+async def get_user(user_id: int, logger=Depends(get_request_logger)):
     await logger.info("User lookup", user_id=user_id)
     return {"user_id": user_id}
 ```
