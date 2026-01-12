@@ -130,7 +130,7 @@ def _apply_default_log_level(
         return settings
     from .core.defaults import get_default_log_level
 
-    updated = _cast(_Settings, settings.model_copy(deep=True))
+    updated: _Settings = settings.model_copy(deep=True)
     updated.core.log_level = _cast(
         _Literal["DEBUG", "INFO", "WARNING", "ERROR"],
         get_default_log_level(),
