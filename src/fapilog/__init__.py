@@ -113,6 +113,31 @@ def _apply_plugin_settings(settings: _Settings) -> None:
     _loader.set_validation_mode(mode)
 
 
+def _apply_default_log_level(
+    settings: _Settings,
+    *,
+    preset: str | None,
+) -> _Settings:
+    if preset is not None:
+        return settings
+    try:
+        explicit = "log_level" in settings.core.model_fields_set
+    except Exception:
+        explicit = False
+    if not explicit and _os.getenv("FAPILOG_CORE__LOG_LEVEL"):
+        explicit = True
+    if explicit:
+        return settings
+    from .core.defaults import get_default_log_level
+
+    updated: _Settings = settings.model_copy(deep=True)
+    updated.core.log_level = _cast(
+        _Literal["DEBUG", "INFO", "WARNING", "ERROR"],
+        get_default_log_level(),
+    )
+    return updated
+
+
 def _sink_configs(settings: _Settings) -> dict[str, dict[str, _Any]]:
     scfg = settings.sink_config
     configs: dict[str, dict[str, _Any]] = {
@@ -545,9 +570,20 @@ def _fanout_writer(
             await write_fn(entry)
             if breaker:
                 breaker.record_success()
-        except Exception:
+        except Exception as exc:
             if breaker:
                 breaker.record_failure()
+            try:
+                from .plugins.sinks.fallback import handle_sink_write_failure
+
+                await handle_sink_write_failure(
+                    entry,
+                    sink=sink,
+                    error=exc,
+                    serialized=False,
+                )
+            except Exception:
+                pass
             # Contain error - don't propagate
 
     async def _write_sequential(entry: dict) -> None:
@@ -581,11 +617,21 @@ def _fanout_writer(
             await _write_sequential(entry)
 
     async def _write_serialized(view: object) -> None:
-        for _, write_s in writers:
+        for i, (_, write_s) in enumerate(writers):
             try:
                 await write_s(view)
-            except Exception:
-                pass  # Contain errors
+            except Exception as exc:
+                try:
+                    from .plugins.sinks.fallback import handle_sink_write_failure
+
+                    await handle_sink_write_failure(
+                        view,
+                        sink=sinks[i],
+                        error=exc,
+                        serialized=True,
+                    )
+                except Exception:
+                    pass  # Contain errors
 
     return _write, _write_serialized
 
@@ -865,6 +911,8 @@ def get_logger(
             "Use preset for quick setup or settings for full control."
         )
 
+    implicit_settings = settings is None and preset is None
+
     # Apply preset if provided
     if preset is not None:
         from .core.presets import get_preset
@@ -873,8 +921,9 @@ def get_logger(
         settings = _Settings(**preset_config)
 
     cfg_source = settings or _Settings()
+    cfg_source = _apply_default_log_level(cfg_source, preset=preset)
     fmt_input = format
-    if fmt_input is None and settings is None:
+    if fmt_input is None and implicit_settings:
         fmt_input = "auto"
     fmt = _resolve_format(fmt_input, cfg_source)
     if fmt:
@@ -958,6 +1007,8 @@ async def get_async_logger(
             "Use preset for quick setup or settings for full control."
         )
 
+    implicit_settings = settings is None and preset is None
+
     # Apply preset if provided
     if preset is not None:
         from .core.presets import get_preset
@@ -966,8 +1017,9 @@ async def get_async_logger(
         settings = _Settings(**preset_config)
 
     cfg_source = settings or _Settings()
+    cfg_source = _apply_default_log_level(cfg_source, preset=preset)
     fmt_input = format
-    if fmt_input is None and settings is None:
+    if fmt_input is None and implicit_settings:
         fmt_input = "auto"
     fmt = _resolve_format(fmt_input, cfg_source)
     if fmt:

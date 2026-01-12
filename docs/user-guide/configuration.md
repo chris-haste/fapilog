@@ -117,6 +117,25 @@ Notes:
 - If both `preset` and `format` are provided, `format` overrides the preset's stdout sink.
 - When `settings` is omitted, `format` defaults to `auto`.
 
+## Default behaviors
+
+When you call `get_logger()` without a preset, settings, or `FAPILOG_CORE__LOG_LEVEL`,
+fapilog selects a sensible default log level:
+
+- TTY (interactive terminal): `DEBUG`
+- Non-TTY (pipes, scripts): `INFO`
+- CI: forces `INFO` even if TTY
+
+Explicit `core.log_level` or a preset always overrides these defaults.
+
+On sink write failures (exceptions raised by a sink), fapilog falls back to stderr.
+If stderr fails too, the entry is dropped. Diagnostics warnings are emitted when
+internal diagnostics are enabled:
+
+```bash
+export FAPILOG_CORE__INTERNAL_LOGGING_ENABLED=true
+```
+
 ## Quick setup (env)
 
 ```bash

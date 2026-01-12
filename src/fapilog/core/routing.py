@@ -186,9 +186,20 @@ class RoutingSinkWriter:
                 await target.write(payload)
             if breaker:
                 breaker.record_success()
-        except Exception:
+        except Exception as exc:
             if breaker:
                 breaker.record_failure()
+            try:
+                from ..plugins.sinks.fallback import handle_sink_write_failure
+
+                await handle_sink_write_failure(
+                    payload,
+                    sink=target.sink,
+                    error=exc,
+                    serialized=serialized,
+                )
+            except Exception:
+                pass
 
     def update_rules(
         self, rules: list[tuple[set[str], list[str]]], fallback_sink_names: list[str]

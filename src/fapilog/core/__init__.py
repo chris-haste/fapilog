@@ -45,6 +45,12 @@ from .context import (
     with_context,
     with_request_context,
 )
+from .defaults import (
+    get_default_log_level,
+    is_ci_environment,
+    is_tty_environment,
+    should_fallback_sink,
+)
 from .encryption import EncryptionSettings, validate_encryption_async
 from .errors import (
     AsyncErrorContext,
@@ -176,6 +182,10 @@ __all__ = [
     "OptionalDurationField",
     "RotationDurationField",
     "OptionalRotationDurationField",
+    "get_default_log_level",
+    "is_ci_environment",
+    "is_tty_environment",
+    "should_fallback_sink",
     # Compliance configuration validation
     "AuditConfig",
     "DataHandlingSettings",
