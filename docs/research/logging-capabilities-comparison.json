@@ -1,0 +1,492 @@
+{
+  "schema_version": "0.2.0",
+  "purpose": "Combined capability checklist for structlog + loguru, ordered from simplest to most sophisticated. Intended to drive future example-code creation and fapilog comparison.",
+  "ordering_rule": "Ascending sophistication: higher-order items typically depend on configuration, integration, or advanced runtime behavior.",
+  "last_updated": "2026-01-12",
+  "capabilities": [
+    {
+      "id": "basic-log-emission",
+      "order": 1,
+      "name": "Basic log emission (severity methods)",
+      "category": "basics",
+      "description": "Emit log events using standard severity methods (debug/info/warning/error/critical/exception).",
+      "libraries": { "structlog": true, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "structlog", "api": "structlog.get_logger().info/debug/warning/error/exception(...)" },
+        { "library": "loguru", "api": "loguru.logger.info/debug/warning/error/exception(...)" }
+      ],
+      "example_scenarios": ["Hello world logging", "Logging an exception with stack trace"],
+      "notes_or_pitfalls": ["Decide early whether you want structured output or human-friendly output as the default."]
+    },
+    {
+      "id": "message-formatting",
+      "order": 2,
+      "name": "Message interpolation / formatting style",
+      "category": "basics",
+      "description": "Format messages with library-supported interpolation conventions.",
+      "libraries": { "structlog": true, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "structlog", "api": "logger.info('User %s logged in', user_id)  # printf-style" },
+        { "library": "loguru", "api": "logger.info('User {} logged in', user_id)  # str.format-style" }
+      ],
+      "example_scenarios": ["Formatting simple values", "Formatting complex objects safely"],
+      "notes_or_pitfalls": [
+        "Avoid heavy string building if the log may be filtered out (see lazy logging later).",
+        "structlog also supports keyword args: logger.info('logged in', user_id=user_id)"
+      ]
+    },
+    {
+      "id": "sensible-defaults",
+      "order": 3,
+      "name": "Sensible defaults (minimal setup)",
+      "category": "basics",
+      "description": "Get useful output with little-to-no configuration.",
+      "libraries": { "structlog": true, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "structlog", "api": "structlog.get_logger()  # stdout by default" },
+        { "library": "loguru", "api": "from loguru import logger  # default stderr sink" }
+      ],
+      "example_scenarios": ["Quick start in a script", "Quick start in a small service"],
+      "notes_or_pitfalls": ["Defaults are great for local dev; production often needs explicit formatting, sinks, and filtering."]
+    },
+    {
+      "id": "extra-log-levels",
+      "order": 4,
+      "name": "Extra log levels (TRACE, SUCCESS)",
+      "category": "basics",
+      "description": "Use additional severity levels beyond the standard debug/info/warning/error/critical.",
+      "libraries": { "structlog": false, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "loguru", "api": "logger.trace('fine-grained detail'); logger.success('operation completed')" }
+      ],
+      "example_scenarios": ["TRACE (5) for fine-grained execution flow", "SUCCESS (25) to indicate operation completion"],
+      "notes_or_pitfalls": [
+        "loguru has 7 built-in levels: TRACE(5), DEBUG(10), INFO(20), SUCCESS(25), WARNING(30), ERROR(40), CRITICAL(50).",
+        "structlog uses stdlib levels; custom levels require modifying structlog.stdlib._NAME_TO_LEVEL."
+      ]
+    },
+    {
+      "id": "custom-log-levels",
+      "order": 5,
+      "name": "Custom log levels",
+      "category": "basics",
+      "description": "Define application-specific log levels with custom names, severity numbers, colors, and icons.",
+      "libraries": { "structlog": false, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "loguru", "api": "logger.level('SNAKY', no=38, color='<yellow>', icon='🐍'); logger.log('SNAKY', 'msg')" }
+      ],
+      "example_scenarios": ["Domain-specific levels (AUDIT, METRIC, SECURITY)", "Modifying existing level icons/colors"],
+      "notes_or_pitfalls": [
+        "In loguru, cannot modify severity number after creation.",
+        "structlog: requires accessing private structlog.stdlib._NAME_TO_LEVEL dict."
+      ]
+    },
+    {
+      "id": "per-call-structured-fields",
+      "order": 6,
+      "name": "Per-call structured fields (key-values)",
+      "category": "structure",
+      "description": "Attach key-value fields to a log event at the callsite.",
+      "libraries": { "structlog": true, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "structlog", "api": "logger.info('msg', request_id='...', user_id=...)" },
+        { "library": "loguru", "api": "logger.bind(...).info('msg')  # or configure extra fields globally" }
+      ],
+      "example_scenarios": ["Attach request_id and user_id", "Attach domain-specific fields (order_id, sku, etc.)"],
+      "notes_or_pitfalls": ["Keep field names consistent across services; define a naming convention early."]
+    },
+    {
+      "id": "bound-context-loggers",
+      "order": 7,
+      "name": "Bound/contextual loggers (persistent fields)",
+      "category": "context",
+      "description": "Bind context once so subsequent log calls automatically include the bound fields.",
+      "libraries": { "structlog": true, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "structlog", "api": "logger = logger.bind(request_id='...'); logger.unbind('key'); logger.try_unbind('key'); logger.new(...)" },
+        { "library": "loguru", "api": "logger = logger.bind(request_id='...')" }
+      ],
+      "example_scenarios": ["Request-scoped logger in a web handler", "Service-scoped logger with service metadata"],
+      "notes_or_pitfalls": [
+        "Be careful not to leak context across requests (especially in async servers).",
+        "structlog's try_unbind() doesn't raise if key is missing."
+      ]
+    },
+    {
+      "id": "scoped-context-manager",
+      "order": 8,
+      "name": "Scoped context (context manager)",
+      "category": "context",
+      "description": "Temporarily add context for a block of code and automatically revert afterwards.",
+      "libraries": { "structlog": true, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "structlog", "api": "with structlog.contextvars.bound_contextvars(request_id='...'): ...  # also works as decorator" },
+        { "library": "loguru", "api": "with logger.contextualize(request_id='...'): ..." }
+      ],
+      "example_scenarios": ["Span-like block logging", "Add temporary 'phase' field inside a pipeline stage"],
+      "notes_or_pitfalls": [
+        "structlog's bound_contextvars() added in v21.4.0.",
+        "Both use contextvars under the hood for async safety."
+      ]
+    },
+    {
+      "id": "pretty-console-output",
+      "order": 9,
+      "name": "Human-friendly console output (incl. color)",
+      "category": "rendering",
+      "description": "Render logs in a developer-friendly format suitable for terminals.",
+      "libraries": { "structlog": true, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "structlog", "api": "structlog.dev.ConsoleRenderer(colors=True, ...)" },
+        { "library": "loguru", "api": "logger.add(sys.stderr, colorize=True, format='...')" }
+      ],
+      "example_scenarios": ["Local dev console logs", "Readable exceptions during debugging"],
+      "notes_or_pitfalls": ["Color/markup should usually be disabled in JSON/production sinks."]
+    },
+    {
+      "id": "multiple-outputs",
+      "order": 10,
+      "name": "Multiple outputs (sinks/handlers)",
+      "category": "sinks",
+      "description": "Send logs to multiple destinations and dynamically add/remove outputs.",
+      "libraries": { "structlog": true, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "loguru", "api": "sink_id = logger.add(...); logger.remove(sink_id)" },
+        { "library": "structlog", "api": "stdlib logging handlers + structlog ProcessorFormatter integration" }
+      ],
+      "example_scenarios": ["Console + file", "Console + JSON to stdout for collectors"],
+      "notes_or_pitfalls": [
+        "In structlog, routing is commonly delegated to stdlib logging configuration.",
+        "loguru's add() returns an ID for later removal."
+      ]
+    },
+    {
+      "id": "file-logging",
+      "order": 11,
+      "name": "File logging",
+      "category": "sinks",
+      "description": "Write logs to files.",
+      "libraries": { "structlog": true, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "loguru", "api": "logger.add('app.log', ...)" },
+        { "library": "structlog", "api": "logging.FileHandler + ProcessorFormatter/JSONRenderer/ConsoleRenderer pipeline" }
+      ],
+      "example_scenarios": ["Single rolling file", "Separate file per service instance"],
+      "notes_or_pitfalls": ["Avoid blocking I/O on the request path unless you use queueing/enqueue patterns."]
+    },
+    {
+      "id": "rotation-retention-compression",
+      "order": 12,
+      "name": "Rotation / retention / compression",
+      "category": "sinks",
+      "description": "Automatically rotate log files, keep a retention window, and optionally compress archives.",
+      "libraries": { "structlog": false, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "loguru", "api": "logger.add('file.log', rotation='10 MB', retention='7 days', compression='zip')" }
+      ],
+      "example_scenarios": ["Size-based rotation", "Time-based retention + compression"],
+      "notes_or_pitfalls": [
+        "Rotation policies should align with your container/log shipping strategy.",
+        "structlog relies on stdlib RotatingFileHandler/TimedRotatingFileHandler."
+      ]
+    },
+    {
+      "id": "filtering-and-routing",
+      "order": 13,
+      "name": "Filtering & routing logic",
+      "category": "filtering",
+      "description": "Filter events by module, level, or custom rules; route different subsets to different outputs.",
+      "libraries": { "structlog": true, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "loguru", "api": "logger.add(..., filter=callable|str|dict, level='INFO')" },
+        { "library": "structlog", "api": "structlog.make_filtering_bound_logger(min_level); raise structlog.DropEvent in processor" }
+      ],
+      "example_scenarios": ["Only ERROR to one sink, INFO+ to another", "Drop noisy libraries/modules"],
+      "notes_or_pitfalls": [
+        "Define a consistent filtering policy across services to avoid debugging blind spots.",
+        "structlog's DropEvent exception allows conditional event dropping in processors."
+      ]
+    },
+    {
+      "id": "callsite-enrichment",
+      "order": 14,
+      "name": "Callsite enrichment (filename, function, line)",
+      "category": "structure",
+      "description": "Automatically add source code location information to log events.",
+      "libraries": { "structlog": true, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "structlog", "api": "structlog.processors.CallsiteParameterAdder(parameters=[CallsiteParameter.FILENAME, .FUNC_NAME, .LINENO, .MODULE, .THREAD, .PROCESS, .QUAL_NAME])" },
+        { "library": "loguru", "api": "format string placeholders: {file}, {function}, {line}, {module}, {name}, {thread}, {process}" }
+      ],
+      "example_scenarios": ["Debug logs with file:line info", "Include function name for tracing"],
+      "notes_or_pitfalls": [
+        "structlog's QUAL_NAME (qualified name with class) added in v25.5.0, Python 3.11+ only.",
+        "loguru includes these by default in format; structlog requires explicit processor."
+      ]
+    },
+    {
+      "id": "async-safe-context-propagation",
+      "order": 15,
+      "name": "Async-safe context propagation (contextvars)",
+      "category": "context",
+      "description": "Maintain request/task-local context across async boundaries without manual threading of fields.",
+      "libraries": { "structlog": true, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "structlog", "api": "structlog.contextvars.bind_contextvars(...); unbind_contextvars(...); clear_contextvars(); merge_contextvars processor" },
+        { "library": "loguru", "api": "with logger.contextualize(...): ...  # uses contextvars internally" }
+      ],
+      "example_scenarios": ["FastAPI request_id propagation", "Background tasks inheriting trace context"],
+      "notes_or_pitfalls": [
+        "Be explicit about clearing contextvars at request end to prevent leakage.",
+        "structlog has more granular control (separate bind/unbind/clear functions).",
+        "loguru's contextualize() is context-manager only, but is fully async-safe.",
+        "Neither auto-propagates to ThreadPoolExecutor threads; use asyncio.to_thread() for propagation."
+      ]
+    },
+    {
+      "id": "stdlib-logging-interop",
+      "order": 16,
+      "name": "Interop with Python stdlib logging",
+      "category": "integration",
+      "description": "Bridge into/from the standard logging module ecosystem (handlers, formatters, libraries).",
+      "libraries": { "structlog": true, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "structlog", "api": "structlog.stdlib.ProcessorFormatter; wrap_for_formatter(); structlog.stdlib.BoundLogger" },
+        { "library": "loguru", "api": "logger.add(logging.Handler(...)); InterceptHandler pattern for capturing stdlib logs" }
+      ],
+      "example_scenarios": ["Use syslog/HTTP handlers via stdlib", "Capture logs from third-party libraries"],
+      "notes_or_pitfalls": [
+        "Interop is often where duplicate logs happen; plan propagation/disable_existing_loggers carefully.",
+        "structlog designed as stdlib wrapper; loguru requires InterceptHandler pattern to capture stdlib."
+      ]
+    },
+    {
+      "id": "json-structured-output",
+      "order": 17,
+      "name": "Structured serialization (JSON output)",
+      "category": "structure",
+      "description": "Emit logs as JSON for ingestion by log processors/observability stacks.",
+      "libraries": { "structlog": true, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "structlog", "api": "structlog.processors.JSONRenderer()" },
+        { "library": "loguru", "api": "logger.add(..., serialize=True)" }
+      ],
+      "example_scenarios": ["JSON to stdout in containers", "JSON file sink for ingestion"],
+      "notes_or_pitfalls": ["Ensure timestamps, level, logger name, and trace fields are consistently present."]
+    },
+    {
+      "id": "structured-exception-serialization",
+      "order": 18,
+      "name": "Structured exception serialization",
+      "category": "structure",
+      "description": "Serialize exception tracebacks as structured data (JSON-compatible) rather than plain text.",
+      "libraries": { "structlog": true, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "structlog", "api": "structlog.processors.dict_tracebacks; ExceptionRenderer(ExceptionDictTransformer(show_locals=...))" },
+        { "library": "loguru", "api": "serialize=True includes exception info in JSON structure" }
+      ],
+      "example_scenarios": ["Machine-parseable exception data for log aggregators", "Include local variables for debugging"],
+      "notes_or_pitfalls": [
+        "structlog's dict_tracebacks provides highly configurable structured exceptions.",
+        "loguru's serialize=True includes exceptions but with less granular control."
+      ]
+    },
+    {
+      "id": "event-processing-pipeline",
+      "order": 19,
+      "name": "Event/record mutation pipeline",
+      "category": "processing",
+      "description": "Transform/enrich/remove fields before rendering or writing to sinks (extensible processing).",
+      "libraries": { "structlog": true, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "structlog", "api": "processors=[...custom callables...]; each receives (logger, method_name, event_dict)" },
+        { "library": "loguru", "api": "logger.patch(patcher_function)  # patcher receives record dict" }
+      ],
+      "example_scenarios": ["Add service/version/env fields globally", "Redact secrets (password, token)"],
+      "notes_or_pitfalls": [
+        "Redaction should happen as early as possible; avoid leaking secrets to any sink.",
+        "structlog processors are the core design principle; loguru's patch() is more limited."
+      ]
+    },
+    {
+      "id": "per-call-behavior-options",
+      "order": 20,
+      "name": "Per-call behavior modifications (opt)",
+      "category": "processing",
+      "description": "Modify logging behavior for individual calls (lazy eval, depth adjustment, raw output, etc.).",
+      "libraries": { "structlog": false, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "loguru", "api": "logger.opt(lazy=True, depth=N, raw=True, colors=True, record=True, capture=False, exception=...)" }
+      ],
+      "example_scenarios": [
+        "lazy=True: defer expensive computation until log is emitted",
+        "depth=1: adjust call stack for accurate caller info in wrappers",
+        "raw=True: bypass sink formatting",
+        "colors=True: per-message color markup"
+      ],
+      "notes_or_pitfalls": [
+        "Cannot chain opt() calls; last one wins.",
+        "structlog achieves some of these via processors or callsite patterns."
+      ]
+    },
+    {
+      "id": "performance-avoid-work",
+      "order": 21,
+      "name": "Performance patterns (avoid paying for filtered logs)",
+      "category": "performance",
+      "description": "Avoid expensive computations when the log call won't be emitted.",
+      "libraries": { "structlog": true, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "loguru", "api": "logger.opt(lazy=True).debug('...{x}...', x=lambda: expensive())" },
+        { "library": "structlog", "api": "make_filtering_bound_logger(...) filters at method-call time before processing" }
+      ],
+      "example_scenarios": ["Lazy formatting", "Skip debug-only payload serialization"],
+      "notes_or_pitfalls": [
+        "Document your team's preferred pattern so people don't reintroduce overhead.",
+        "loguru's lazy=True is explicit; structlog filters early but still evaluates args."
+      ]
+    },
+    {
+      "id": "exception-catching-decorator",
+      "order": 22,
+      "name": "Exception catching decorator/context manager",
+      "category": "diagnostics",
+      "description": "Automatically catch and log exceptions from functions or code blocks.",
+      "libraries": { "structlog": false, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "loguru", "api": "@logger.catch; @logger.catch(exception=ValueError, reraise=True, message='...', onerror=callback)" }
+      ],
+      "example_scenarios": [
+        "Wrap main() to catch all unhandled exceptions",
+        "Log and continue (reraise=False) vs log and propagate (reraise=True)",
+        "Custom exit code on error with onerror callback"
+      ],
+      "notes_or_pitfalls": [
+        "Default reraise=False swallows exceptions; be explicit about desired behavior.",
+        "Pretty tracebacks may not work correctly with async functions decorated with @logger.catch.",
+        "structlog requires manual try/except with logger.exception()."
+      ]
+    },
+    {
+      "id": "advanced-tracebacks-diagnostics",
+      "order": 23,
+      "name": "Advanced exception diagnostics",
+      "category": "diagnostics",
+      "description": "Enhanced tracebacks and introspective diagnostics for debugging.",
+      "libraries": { "structlog": true, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "loguru", "api": "logger.add(..., backtrace=True, diagnose=True)" },
+        { "library": "structlog", "api": "ConsoleRenderer(exception_formatter=RichTracebackFormatter(show_locals=True, max_frames=100))" }
+      ],
+      "example_scenarios": ["Developer mode with enhanced tracebacks", "Production mode without sensitive locals"],
+      "notes_or_pitfalls": [
+        "Diagnostics can expose sensitive data; keep diagnose=False / show_locals=False in production.",
+        "structlog's RichTracebackFormatter added in v23.2.0; requires Rich library.",
+        "loguru's backtrace extends trace upward beyond catch point."
+      ]
+    },
+    {
+      "id": "global-exception-handler",
+      "order": 24,
+      "name": "Global uncaught exception handler",
+      "category": "diagnostics",
+      "description": "Intercept and log uncaught exceptions at the application level.",
+      "libraries": { "structlog": false, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "loguru", "api": "sys.excepthook integration; @logger.catch on main()" }
+      ],
+      "example_scenarios": ["Ensure all crashes are logged", "Custom formatting for unhandled exceptions"],
+      "notes_or_pitfalls": [
+        "structlog relies on stdlib sys.excepthook configuration.",
+        "Thread exceptions need threading.excepthook (Python 3.8+)."
+      ]
+    },
+    {
+      "id": "async-multiprocess-safe-delivery",
+      "order": 25,
+      "name": "Async + multiprocess-safe delivery (queueing, async sinks)",
+      "category": "concurrency",
+      "description": "Non-blocking logging with queued delivery and support for async sinks.",
+      "libraries": { "structlog": true, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "loguru", "api": "logger.add(..., enqueue=True); coroutine sinks; await logger.complete()" },
+        { "library": "structlog", "api": "async bound logger methods (ainfo/adebug/etc.); stdlib QueueHandler" }
+      ],
+      "example_scenarios": ["Avoid blocking in request path", "Central log writer process via queue"],
+      "notes_or_pitfalls": [
+        "Queueing can reorder logs slightly; include timestamps/sequence ids if needed.",
+        "loguru's complete() has known deadlock issues in some async contexts due to threading.Lock.",
+        "For multiprocess, loguru's enqueue=True is simpler; structlog needs QueueHandler setup."
+      ]
+    },
+    {
+      "id": "logging-failure-containment",
+      "order": 26,
+      "name": "Failure containment (sink errors don't crash app)",
+      "category": "reliability",
+      "description": "Prevent exceptions raised by logging sinks from taking down your process.",
+      "libraries": { "structlog": false, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "loguru", "api": "logger.add(..., catch=True)" }
+      ],
+      "example_scenarios": ["Broken file permissions", "Network sink temporarily unavailable"],
+      "notes_or_pitfalls": [
+        "If you swallow sink failures, ensure you still emit a health signal/metric elsewhere.",
+        "structlog: sink exceptions propagate; wrap in try/except if needed."
+      ]
+    },
+    {
+      "id": "testing-capture-logs",
+      "order": 27,
+      "name": "Testing support (capture structured logs)",
+      "category": "testing",
+      "description": "Capture emitted events in tests for assertions without parsing strings.",
+      "libraries": { "structlog": true, "loguru": false },
+      "primary_entrypoints": [
+        { "library": "structlog", "api": "structlog.testing.capture_logs(); LogCapture processor" }
+      ],
+      "example_scenarios": ["Assert a warning log is emitted with expected fields", "Assert no error logs were emitted"],
+      "notes_or_pitfalls": [
+        "Keep tests resilient: assert on keys/values, not on full rendered output strings.",
+        "loguru: no built-in support, but can override pytest's caplog fixture or use pytest-loguru package.",
+        "loguru workaround: logger.add(output_list.append, ...) to capture to a list."
+      ]
+    },
+    {
+      "id": "type-hints-static-typing",
+      "order": 28,
+      "name": "Type hints / static typing support",
+      "category": "developer-experience",
+      "description": "Provide type annotations for IDE autocompletion and static type checkers (mypy, pyright).",
+      "libraries": { "structlog": true, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "structlog", "api": "structlog.stdlib.get_logger() -> BoundLogger; structlog.typing.BindableLogger protocol" },
+        { "library": "loguru", "api": "from loguru import logger  # typed, but less granular" }
+      ],
+      "example_scenarios": ["IDE autocompletion for log methods", "Mypy checking of logger usage"],
+      "notes_or_pitfalls": [
+        "structlog.get_logger() returns Any; use structlog.stdlib.get_logger() for proper typing.",
+        "structlog has comprehensive type hints since v20.2.0.",
+        "loguru has basic typing but less flexibility for custom configurations."
+      ]
+    },
+    {
+      "id": "deep-configuration-and-factories",
+      "order": 29,
+      "name": "Deep configuration (factories, wrappers, caching)",
+      "category": "configuration",
+      "description": "Control logger construction and behavior at an architectural level (wrappers, factories, caching, processor chains).",
+      "libraries": { "structlog": true, "loguru": true },
+      "primary_entrypoints": [
+        { "library": "structlog", "api": "structlog.configure(processors=..., wrapper_class=..., logger_factory=..., cache_logger_on_first_use=...)" },
+        { "library": "loguru", "api": "logger.configure(handlers=[...], levels=[...], extra={...}, patcher=..., activation=[...])" }
+      ],
+      "example_scenarios": ["Standardize logging across many services", "Environment-based config (dev vs prod)"],
+      "notes_or_pitfalls": [
+        "Centralize configuration to avoid divergent behavior across services.",
+        "structlog's wrapper_class allows complete customization of bound logger behavior.",
+        "loguru's configure() is simpler but less flexible than structlog's processor chain model."
+      ]
+    }
+  ]
+}
