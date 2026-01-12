@@ -155,7 +155,7 @@ app.add_middleware(
 
 - Core APIs (logger, FastAPI middleware) are treated as stable; breaking changes follow semver with deprecations.
 - Experimental: plugin marketplace surface; expect changes.
-- Feedback: open GitHub issues or join the community Discord for pilots and feature requests.
+- Feedback: open GitHub issues or join the [community Discord](https://discord.gg/gHaNsczWte) for pilots and feature requests.
 
 ## 🏗️ Architecture
 
