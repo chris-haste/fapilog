@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file. This change
 ## [Unreleased]
 
 - Added pretty console output (`stdout_pretty`) and `format` selection for stdout logging.
+- Added one-liner FastAPI setup helpers (`setup_logging`, `get_request_logger`) with lifespan support.
 
 ## [0.3.3] - 2025-12-22
 

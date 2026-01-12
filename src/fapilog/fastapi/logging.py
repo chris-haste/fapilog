@@ -90,7 +90,27 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 except Exception:  # pragma: no cover - best-effort reset
                     pass
 
-    async def _get_logger(self) -> Any:
+    async def _get_logger(self, request: Request) -> Any:
+        state_logger = None
+        try:
+            state = request.app.state
+        except Exception:
+            state = None
+        if state is not None:
+            try:
+                state_map = getattr(state, "_state", None)
+            except Exception:
+                state_map = None
+            if isinstance(state_map, dict):
+                state_logger = state_map.get("fapilog_logger")
+            else:
+                try:
+                    state_logger = state.__dict__.get("fapilog_logger")
+                except Exception:
+                    state_logger = None
+        if state_logger is not None and state_logger is not self._logger:
+            self._logger = state_logger
+            return self._logger
         if self._logger is not None:
             return self._logger
         async with self._logger_lock:
@@ -119,7 +139,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 # If sampling fails, proceed to log
                 pass
         try:
-            logger = await self._get_logger()
+            logger = await self._get_logger(request)
             headers: dict[str, str] | None = None
             if self._include_headers:
                 headers = {}
@@ -163,7 +183,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         exc: Exception,
     ) -> None:
         try:
-            logger = await self._get_logger()
+            logger = await self._get_logger(request)
             await logger.error(
                 "request_failed",
                 method=request.method,
