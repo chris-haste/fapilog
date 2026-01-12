@@ -120,7 +120,7 @@ Documentation = "https://fapilog.readthedocs.io/"
 Repository = "https://github.com/chris-haste/fapilog"
 "Bug Tracker" = "https://github.com/chris-haste/fapilog/issues"
 # "Plugin Marketplace" = "https://plugins.fapilog.dev/"  # Coming soon
-# Discord = "https://discord.gg/fapilog"  # Coming soon
+Discord = "https://discord.gg/gHaNsczWte"
 
 # [project.scripts]
 # fapilog = "fapilog.cli:main"  # CLI coming in future release
