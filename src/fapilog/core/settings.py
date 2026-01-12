@@ -25,6 +25,15 @@ from .security import (
     SecuritySettings,
     validate_security,
 )
+from .types import (
+    DurationField,
+    OptionalDurationField,
+    OptionalRotationDurationField,
+    OptionalSizeField,
+    SizeField,
+    _parse_duration,
+    _parse_size,
+)
 from .validation import ensure_path_exists
 
 
@@ -38,17 +47,21 @@ class RotatingFileSettings(BaseModel):
     mode: Literal["json", "text"] = Field(
         default="json", description="Output format: json or text"
     )
-    max_bytes: int = Field(
-        default=10 * 1024 * 1024, ge=1, description="Max bytes before rotation"
+    max_bytes: SizeField = Field(
+        default=10 * 1024 * 1024,
+        ge=1,
+        description="Max bytes before rotation. Accepts '10 MB' or 10485760",
     )
-    interval_seconds: int | None = Field(
-        default=None, description="Rotation interval in seconds (optional)"
+    interval_seconds: OptionalRotationDurationField = Field(
+        default=None,
+        description="Rotation interval. Accepts '1h', 'daily', or 3600",
     )
     max_files: int | None = Field(
         default=None, description="Max number of rotated files to keep"
     )
-    max_total_bytes: int | None = Field(
-        default=None, description="Max total bytes across all rotated files"
+    max_total_bytes: OptionalSizeField = Field(
+        default=None,
+        description="Max total bytes across all rotated files. Accepts '100 MB' or 104857600",
     )
     compress_rotated: bool = Field(
         default=False, description="Compress rotated log files with gzip"
@@ -66,21 +79,25 @@ class WebhookSettings(BaseModel):
     retry_max_attempts: int | None = Field(
         default=None, ge=1, description="Maximum retry attempts on failure"
     )
-    retry_backoff_seconds: float | None = Field(
-        default=None, gt=0.0, description="Backoff between retries in seconds"
+    retry_backoff_seconds: OptionalDurationField = Field(
+        default=None,
+        gt=0.0,
+        description="Backoff between retries. Accepts '2s' or 2.0",
     )
-    timeout_seconds: float = Field(
-        default=5.0, gt=0.0, description="Request timeout in seconds"
+    timeout_seconds: DurationField = Field(
+        default=5.0,
+        gt=0.0,
+        description="Request timeout. Accepts '5s' or 5.0",
     )
     batch_size: int = Field(
         default=1,
         ge=1,
         description="Maximum events per webhook request (1 = no batching)",
     )
-    batch_timeout_seconds: float = Field(
+    batch_timeout_seconds: DurationField = Field(
         default=5.0,
         gt=0.0,
-        description="Max seconds before flushing a partial webhook batch",
+        description="Max seconds before flushing a partial webhook batch. Accepts '5s' or 5.0",
     )
 
 
@@ -144,8 +161,10 @@ class CloudWatchSinkSettings(BaseModel):
         default=True, description="Create log stream if missing"
     )
     batch_size: int = Field(default=100, ge=1, le=10000, description="Events per batch")
-    batch_timeout_seconds: float = Field(
-        default=5.0, gt=0, description="Max seconds before flushing a partial batch"
+    batch_timeout_seconds: DurationField = Field(
+        default=5.0,
+        gt=0,
+        description="Max seconds before flushing a partial batch. Accepts '5s' or 5.0",
     )
     endpoint_url: str | None = Field(
         default=None, description="Custom endpoint (e.g., LocalStack)"
@@ -153,8 +172,10 @@ class CloudWatchSinkSettings(BaseModel):
     max_retries: int = Field(
         default=3, ge=1, description="Max retries for PutLogEvents"
     )
-    retry_base_delay: float = Field(
-        default=0.5, gt=0, description="Base delay for exponential backoff"
+    retry_base_delay: DurationField = Field(
+        default=0.5,
+        gt=0,
+        description="Base delay for exponential backoff. Accepts '1s' or 0.5",
     )
     circuit_breaker_enabled: bool = Field(
         default=True, description="Enable internal circuit breaker for CloudWatch sink"
@@ -207,15 +228,21 @@ class LokiSinkSettings(BaseModel):
         description="Event keys to promote to labels",
     )
     batch_size: int = Field(default=100, ge=1, description="Events per batch")
-    batch_timeout_seconds: float = Field(
-        default=5.0, gt=0, description="Max seconds before flushing a partial batch"
+    batch_timeout_seconds: DurationField = Field(
+        default=5.0,
+        gt=0,
+        description="Max seconds before flushing a partial batch. Accepts '5s' or 5.0",
     )
-    timeout_seconds: float = Field(
-        default=10.0, gt=0, description="HTTP timeout seconds"
+    timeout_seconds: DurationField = Field(
+        default=10.0,
+        gt=0,
+        description="HTTP timeout seconds. Accepts '10s' or 10.0",
     )
     max_retries: int = Field(default=3, ge=1, description="Max retries on push failure")
-    retry_base_delay: float = Field(
-        default=0.5, gt=0, description="Base delay for backoff"
+    retry_base_delay: DurationField = Field(
+        default=0.5,
+        gt=0,
+        description="Base delay for backoff. Accepts '1s' or 0.5",
     )
     auth_username: str | None = Field(default=None, description="Basic auth username")
     auth_password: str | None = Field(default=None, description="Basic auth password")
@@ -250,18 +277,24 @@ class PostgresSinkSettings(BaseModel):
     create_table: bool = Field(default=True, description="Auto-create table if missing")
     min_pool_size: int = Field(default=2, ge=1, description="Minimum pool connections")
     max_pool_size: int = Field(default=10, ge=1, description="Maximum pool connections")
-    pool_acquire_timeout: float = Field(
-        default=10.0, gt=0.0, description="Timeout when acquiring connections"
+    pool_acquire_timeout: DurationField = Field(
+        default=10.0,
+        gt=0.0,
+        description="Timeout when acquiring connections. Accepts '10s' or 10.0",
     )
     batch_size: int = Field(default=100, ge=1, description="Events per batch")
-    batch_timeout_seconds: float = Field(
-        default=5.0, gt=0, description="Max seconds before flushing a partial batch"
+    batch_timeout_seconds: DurationField = Field(
+        default=5.0,
+        gt=0,
+        description="Max seconds before flushing a partial batch. Accepts '5s' or 5.0",
     )
     max_retries: int = Field(
         default=3, ge=0, description="Maximum retries for failed inserts"
     )
-    retry_base_delay: float = Field(
-        default=0.5, ge=0.0, description="Base delay for exponential backoff"
+    retry_base_delay: DurationField = Field(
+        default=0.5,
+        ge=0.0,
+        description="Base delay for exponential backoff. Accepts '1s' or 0.5",
     )
     circuit_breaker_enabled: bool = Field(
         default=True, description="Enable circuit breaker for the PostgreSQL sink"
@@ -395,8 +428,10 @@ class RedactorUrlCredentialsSettings(BaseModel):
 class SizeGuardSettings(BaseModel):
     """Per-plugin configuration for SizeGuardProcessor."""
 
-    max_bytes: int = Field(
-        default=256000, ge=100, description="Maximum payload size in bytes (min 100)"
+    max_bytes: SizeField = Field(
+        default=256000,
+        ge=100,
+        description="Maximum payload size in bytes (min 100). Accepts '1 MB' or 1048576",
     )
     action: Literal["truncate", "drop", "warn"] = Field(
         default="truncate", description="Action to take when payload exceeds max_bytes"
@@ -668,25 +703,25 @@ class HttpSinkSettings(BaseModel):
         ge=1,
         description="Optional max attempts for HTTP retries",
     )
-    retry_backoff_seconds: float | None = Field(
+    retry_backoff_seconds: OptionalDurationField = Field(
         default=None,
         gt=0.0,
-        description="Optional base backoff seconds between retries",
+        description="Optional base backoff between retries. Accepts '2s' or 2.0",
     )
-    timeout_seconds: float = Field(
+    timeout_seconds: DurationField = Field(
         default=5.0,
         gt=0.0,
-        description="Request timeout for HTTP sink operations",
+        description="Request timeout for HTTP sink operations. Accepts '5s' or 5.0",
     )
     batch_size: int = Field(
         default=1,
         ge=1,
         description="Maximum events per HTTP request (1 = no batching)",
     )
-    batch_timeout_seconds: float = Field(
+    batch_timeout_seconds: DurationField = Field(
         default=5.0,
         gt=0.0,
-        description="Max seconds before flushing a partial batch",
+        description="Max seconds before flushing a partial batch. Accepts '5s' or 5.0",
     )
     batch_format: str = Field(
         default="array",
@@ -947,14 +982,16 @@ class Settings(BaseSettings):
 
         if max_bytes:
             try:
-                sg.max_bytes = int(max_bytes)
+                parsed_size = _parse_size(max_bytes)
+                if parsed_size is not None:
+                    sg.max_bytes = parsed_size
             except Exception:
                 pass
 
         if preserve:
-            parsed = self._parse_env_list(preserve)
-            if parsed:
-                sg.preserve_fields = parsed
+            parsed_fields = self._parse_env_list(preserve)
+            if parsed_fields:
+                sg.preserve_fields = parsed_fields
         return self
 
     @staticmethod
@@ -994,16 +1031,18 @@ class Settings(BaseSettings):
                 if key in {"batch_size", "max_retries"}:
                     setattr(cw, key, int(value))
                 elif key in {"batch_timeout_seconds", "retry_base_delay"}:
-                    setattr(cw, key, float(value))
+                    parsed_duration = _parse_duration(value)
+                    if parsed_duration is not None:
+                        setattr(cw, key, parsed_duration)
                 else:
                     setattr(cw, key, value)
             except Exception:
                 continue
 
         for key, value in bool_overrides.items():
-            parsed = self._parse_bool(value)
-            if parsed is not None:
-                setattr(cw, key, parsed)
+            parsed_bool = self._parse_bool(value)
+            if parsed_bool is not None:
+                setattr(cw, key, parsed_bool)
 
         if (
             threshold := os.getenv("FAPILOG_CLOUDWATCH__CIRCUIT_BREAKER_THRESHOLD")
@@ -1047,7 +1086,9 @@ class Settings(BaseSettings):
                     "batch_timeout_seconds",
                     "retry_base_delay",
                 }:
-                    setattr(loki_cfg, key, float(value))
+                    parsed_duration = _parse_duration(value)
+                    if parsed_duration is not None:
+                        setattr(loki_cfg, key, parsed_duration)
                 else:
                     setattr(loki_cfg, key, value)
             except Exception:
@@ -1127,7 +1168,9 @@ class Settings(BaseSettings):
                     "retry_base_delay",
                     "pool_acquire_timeout",
                 }:
-                    setattr(pg, key, float(value))
+                    parsed_duration = _parse_duration(value)
+                    if parsed_duration is not None:
+                        setattr(pg, key, parsed_duration)
                 elif key in {"max_retries", "circuit_breaker_threshold"}:
                     setattr(pg, key, int(value))
                 else:
@@ -1136,9 +1179,9 @@ class Settings(BaseSettings):
                 continue
 
         for key, value in bool_overrides.items():
-            parsed = self._parse_bool(value)
-            if parsed is not None:
-                setattr(pg, key, parsed)
+            parsed_bool = self._parse_bool(value)
+            if parsed_bool is not None:
+                setattr(pg, key, parsed_bool)
 
         if extract_fields_env:
             try:

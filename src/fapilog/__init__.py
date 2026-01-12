@@ -31,6 +31,8 @@ from .core.logger import SyncLoggerFacade as _SyncLoggerFacade
 from .core.presets import list_presets
 from .core.retry import RetryConfig as _RetryConfig
 from .core.settings import Settings as _Settings
+from .core.types import _parse_rotation_duration as _parse_rotation_duration
+from .core.types import _parse_size as _parse_size
 from .metrics.metrics import MetricsCollector as _MetricsCollector
 from .plugins import loader as _loader
 from .plugins.enrichers import BaseEnricher as _BaseEnricher
@@ -345,18 +347,26 @@ def _apply_format(settings: _Settings, fmt: str) -> None:
 
 def _default_env_sink_cfg(name: str) -> dict[str, _Any]:
     if name == "rotating_file":
+        max_bytes_raw = _os.getenv("FAPILOG_FILE__MAX_BYTES", "10485760")
+        interval_raw = _os.getenv("FAPILOG_FILE__INTERVAL_SECONDS", "0")
+        max_total_raw = _os.getenv("FAPILOG_FILE__MAX_TOTAL_BYTES", "0")
+        interval_value = _parse_rotation_duration(interval_raw)
+        max_bytes_value = _parse_size(max_bytes_raw)
+        if max_bytes_value is None:
+            max_bytes_value = 10 * 1024 * 1024
+        max_total_value = _parse_size(max_total_raw)
         return {
             "config": _RotatingFileSinkConfig(
                 directory=_Path(_os.getenv("FAPILOG_FILE__DIRECTORY", ".")),
                 filename_prefix=_os.getenv("FAPILOG_FILE__FILENAME_PREFIX", "fapilog"),
                 mode=_os.getenv("FAPILOG_FILE__MODE", "json"),
-                max_bytes=int(_os.getenv("FAPILOG_FILE__MAX_BYTES", "10485760")),
+                max_bytes=max_bytes_value,
                 interval_seconds=(
-                    int(_os.getenv("FAPILOG_FILE__INTERVAL_SECONDS", "0")) or None
+                    interval_value if interval_value and interval_value > 0 else None
                 ),
                 max_files=(int(_os.getenv("FAPILOG_FILE__MAX_FILES", "0")) or None),
                 max_total_bytes=(
-                    int(_os.getenv("FAPILOG_FILE__MAX_TOTAL_BYTES", "0")) or None
+                    max_total_value if max_total_value and max_total_value > 0 else None
                 ),
                 compress_rotated=_os.getenv(
                     "FAPILOG_FILE__COMPRESS_ROTATED", "false"

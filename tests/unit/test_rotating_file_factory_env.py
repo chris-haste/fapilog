@@ -22,3 +22,15 @@ def test_rotating_file_sink_env_compression_and_limits(
     asyncio.run(logger.stop_and_drain())
     # Ensure directory has at least one file created (compressed or not)
     assert any(p.is_file() for p in tmp_path.iterdir())
+
+
+def test_rotating_file_sink_env_human_readable_values(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("FAPILOG_FILE__DIRECTORY", str(tmp_path))
+    monkeypatch.setenv("FAPILOG_FILE__MAX_BYTES", "10 MB")
+    monkeypatch.setenv("FAPILOG_FILE__INTERVAL_SECONDS", "daily")
+    monkeypatch.setenv("FAPILOG_FILE__MAX_TOTAL_BYTES", "100 MB")
+    logger = get_logger(name="rot-env-readable")
+    logger.info("x", i=1)
+    asyncio.run(logger.stop_and_drain())

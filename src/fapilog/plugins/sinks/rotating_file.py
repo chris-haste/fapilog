@@ -42,7 +42,7 @@ class RotatingFileSinkConfig:
     filename_prefix: str = "fapilog"
     mode: str = "json"  # "json" or "text"
     max_bytes: int = 10 * 1024 * 1024
-    interval_seconds: int | None = None
+    interval_seconds: float | None = None
     max_files: int | None = None
     max_total_bytes: int | None = None
     compress_rotated: bool = False

@@ -29,7 +29,8 @@ export FAPILOG_CORE__ENABLE_METRICS=true
 
 # Enable rotating file sink via env (uses defaults for prefix/size/rotation)
 export FAPILOG_FILE__DIRECTORY=/var/log/myapp
-export FAPILOG_FILE__MAX_BYTES=10485760
+export FAPILOG_FILE__MAX_BYTES="10 MB"
+export FAPILOG_FILE__INTERVAL_SECONDS="daily"
 export FAPILOG_FILE__MAX_FILES=5
 
 # Optional HTTP sink
@@ -57,6 +58,10 @@ export FAPILOG_CORE__INTEGRITY_CONFIG='{"key_id":"audit-key-2025Q1"}'
 ## HTTP sink (optional)
 
 Set `http.endpoint` (or `FAPILOG_HTTP__ENDPOINT`) to route logs to an HTTP endpoint. Optional retry/backoff and headers are available through the `http` settings group.
+
+## Human-readable sizes and durations
+
+Size and duration fields accept human-readable strings (e.g., `"10 MB"`, `"5s"`) in addition to numeric values. Rotation intervals also accept `"hourly"`, `"daily"`, `"weekly"`. See `docs/api-reference/types.md` for the full format list.
 
 ## Plugin discovery
 

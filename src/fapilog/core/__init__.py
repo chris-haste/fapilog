@@ -97,6 +97,14 @@ from .retry import (
 )
 from .security import SecuritySettings, validate_security
 from .settings import LATEST_CONFIG_SCHEMA_VERSION, CoreSettings, Settings
+from .types import (
+    DurationField,
+    OptionalDurationField,
+    OptionalRotationDurationField,
+    OptionalSizeField,
+    RotationDurationField,
+    SizeField,
+)
 
 __all__ = [
     # Error handling core
@@ -162,6 +170,12 @@ __all__ = [
     "AccessControlSettings",
     "LATEST_CONFIG_SCHEMA_VERSION",
     "load_settings",
+    "SizeField",
+    "DurationField",
+    "OptionalSizeField",
+    "OptionalDurationField",
+    "RotationDurationField",
+    "OptionalRotationDurationField",
     # Compliance configuration validation
     "AuditConfig",
     "DataHandlingSettings",

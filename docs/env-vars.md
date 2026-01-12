@@ -58,14 +58,14 @@
 | `FAPILOG_FILTER_CONFIG__TRACE_SAMPLING` | dict | PydanticUndefined | Configuration for trace_sampling filter |
 | `FAPILOG_HTTP__BATCH_FORMAT` | str | array | Batch format: 'array', 'ndjson', or 'wrapped' |
 | `FAPILOG_HTTP__BATCH_SIZE` | int | 1 | Maximum events per HTTP request (1 = no batching) |
-| `FAPILOG_HTTP__BATCH_TIMEOUT_SECONDS` | float | 5.0 | Max seconds before flushing a partial batch |
+| `FAPILOG_HTTP__BATCH_TIMEOUT_SECONDS` | float | 5.0 | Max seconds before flushing a partial batch. Accepts '5s' or 5.0 |
 | `FAPILOG_HTTP__BATCH_WRAPPER_KEY` | str | logs | Wrapper key when batch_format='wrapped' |
 | `FAPILOG_HTTP__ENDPOINT` | str | None | — | HTTP endpoint to POST log events to |
 | `FAPILOG_HTTP__HEADERS` | dict | PydanticUndefined | Default headers to send with each request |
 | `FAPILOG_HTTP__HEADERS_JSON` | str | None | — | JSON-encoded headers map (e.g. '{"Authorization": "Bearer x"}') |
-| `FAPILOG_HTTP__RETRY_BACKOFF_SECONDS` | float | None | — | Optional base backoff seconds between retries |
+| `FAPILOG_HTTP__RETRY_BACKOFF_SECONDS` | float | None | — | Optional base backoff between retries. Accepts '2s' or 2.0 |
 | `FAPILOG_HTTP__RETRY_MAX_ATTEMPTS` | int | None | — | Optional max attempts for HTTP retries |
-| `FAPILOG_HTTP__TIMEOUT_SECONDS` | float | 5.0 | Request timeout for HTTP sink operations |
+| `FAPILOG_HTTP__TIMEOUT_SECONDS` | float | 5.0 | Request timeout for HTTP sink operations. Accepts '5s' or 5.0 |
 | `FAPILOG_OBSERVABILITY__ALERTING__ENABLED` | bool | False | Enable emitting alerts from the logging pipeline |
 | `FAPILOG_OBSERVABILITY__ALERTING__MIN_SEVERITY` | Literal | ERROR | Minimum alert severity to emit (filter threshold) |
 | `FAPILOG_OBSERVABILITY__LOGGING__FORMAT` | Literal | json | Output format for logs (machine-friendly JSON or text) |
@@ -85,7 +85,7 @@
 | `FAPILOG_PLUGINS__VALIDATION_MODE` | str | disabled | Plugin validation mode: disabled, warn, or strict |
 | `FAPILOG_PROCESSOR_CONFIG__EXTRA` | dict | PydanticUndefined | Configuration for third-party processors by name |
 | `FAPILOG_PROCESSOR_CONFIG__SIZE_GUARD__ACTION` | Literal | truncate | Action to take when payload exceeds max_bytes |
-| `FAPILOG_PROCESSOR_CONFIG__SIZE_GUARD__MAX_BYTES` | int | 256000 | Maximum payload size in bytes (min 100) |
+| `FAPILOG_PROCESSOR_CONFIG__SIZE_GUARD__MAX_BYTES` | int | 256000 | Maximum payload size in bytes (min 100). Accepts '1 MB' or 1048576 |
 | `FAPILOG_PROCESSOR_CONFIG__SIZE_GUARD__PRESERVE_FIELDS` | list | PydanticUndefined | Fields that should never be removed during truncation |
 | `FAPILOG_PROCESSOR_CONFIG__ZERO_COPY` | dict | PydanticUndefined | Configuration for zero_copy processor (reserved for future options) |
 | `FAPILOG_REDACTOR_CONFIG__EXTRA` | dict | PydanticUndefined | Configuration for third-party redactors by name |
@@ -122,7 +122,7 @@
 | `FAPILOG_SINK_CONFIG__AUDIT__RETENTION_DAYS` | int | 365 | Retention window for audit logs (days) |
 | `FAPILOG_SINK_CONFIG__AUDIT__STORAGE_PATH` | str | audit_logs | Directory where audit logs are stored |
 | `FAPILOG_SINK_CONFIG__CLOUDWATCH__BATCH_SIZE` | int | 100 | Events per batch |
-| `FAPILOG_SINK_CONFIG__CLOUDWATCH__BATCH_TIMEOUT_SECONDS` | float | 5.0 | Max seconds before flushing a partial batch |
+| `FAPILOG_SINK_CONFIG__CLOUDWATCH__BATCH_TIMEOUT_SECONDS` | float | 5.0 | Max seconds before flushing a partial batch. Accepts '5s' or 5.0 |
 | `FAPILOG_SINK_CONFIG__CLOUDWATCH__CIRCUIT_BREAKER_ENABLED` | bool | True | Enable internal circuit breaker for CloudWatch sink |
 | `FAPILOG_SINK_CONFIG__CLOUDWATCH__CIRCUIT_BREAKER_THRESHOLD` | int | 5 | Failures before opening circuit |
 | `FAPILOG_SINK_CONFIG__CLOUDWATCH__CREATE_LOG_GROUP` | bool | True | Create log group if missing |
@@ -132,34 +132,34 @@
 | `FAPILOG_SINK_CONFIG__CLOUDWATCH__LOG_STREAM_NAME` | str | None | — | CloudWatch log stream name |
 | `FAPILOG_SINK_CONFIG__CLOUDWATCH__MAX_RETRIES` | int | 3 | Max retries for PutLogEvents |
 | `FAPILOG_SINK_CONFIG__CLOUDWATCH__REGION` | str | None | — | AWS region for CloudWatch Logs API calls |
-| `FAPILOG_SINK_CONFIG__CLOUDWATCH__RETRY_BASE_DELAY` | float | 0.5 | Base delay for exponential backoff |
+| `FAPILOG_SINK_CONFIG__CLOUDWATCH__RETRY_BASE_DELAY` | float | 0.5 | Base delay for exponential backoff. Accepts '1s' or 0.5 |
 | `FAPILOG_SINK_CONFIG__EXTRA` | dict | PydanticUndefined | Configuration for third-party sinks by name |
 | `FAPILOG_SINK_CONFIG__HTTP__BATCH_FORMAT` | str | array | Batch format: 'array', 'ndjson', or 'wrapped' |
 | `FAPILOG_SINK_CONFIG__HTTP__BATCH_SIZE` | int | 1 | Maximum events per HTTP request (1 = no batching) |
-| `FAPILOG_SINK_CONFIG__HTTP__BATCH_TIMEOUT_SECONDS` | float | 5.0 | Max seconds before flushing a partial batch |
+| `FAPILOG_SINK_CONFIG__HTTP__BATCH_TIMEOUT_SECONDS` | float | 5.0 | Max seconds before flushing a partial batch. Accepts '5s' or 5.0 |
 | `FAPILOG_SINK_CONFIG__HTTP__BATCH_WRAPPER_KEY` | str | logs | Wrapper key when batch_format='wrapped' |
 | `FAPILOG_SINK_CONFIG__HTTP__ENDPOINT` | str | None | — | HTTP endpoint to POST log events to |
 | `FAPILOG_SINK_CONFIG__HTTP__HEADERS` | dict | PydanticUndefined | Default headers to send with each request |
 | `FAPILOG_SINK_CONFIG__HTTP__HEADERS_JSON` | str | None | — | JSON-encoded headers map (e.g. '{"Authorization": "Bearer x"}') |
-| `FAPILOG_SINK_CONFIG__HTTP__RETRY_BACKOFF_SECONDS` | float | None | — | Optional base backoff seconds between retries |
+| `FAPILOG_SINK_CONFIG__HTTP__RETRY_BACKOFF_SECONDS` | float | None | — | Optional base backoff between retries. Accepts '2s' or 2.0 |
 | `FAPILOG_SINK_CONFIG__HTTP__RETRY_MAX_ATTEMPTS` | int | None | — | Optional max attempts for HTTP retries |
-| `FAPILOG_SINK_CONFIG__HTTP__TIMEOUT_SECONDS` | float | 5.0 | Request timeout for HTTP sink operations |
+| `FAPILOG_SINK_CONFIG__HTTP__TIMEOUT_SECONDS` | float | 5.0 | Request timeout for HTTP sink operations. Accepts '5s' or 5.0 |
 | `FAPILOG_SINK_CONFIG__LOKI__AUTH_PASSWORD` | str | None | — | Basic auth password |
 | `FAPILOG_SINK_CONFIG__LOKI__AUTH_TOKEN` | str | None | — | Bearer token for Loki |
 | `FAPILOG_SINK_CONFIG__LOKI__AUTH_USERNAME` | str | None | — | Basic auth username |
 | `FAPILOG_SINK_CONFIG__LOKI__BATCH_SIZE` | int | 100 | Events per batch |
-| `FAPILOG_SINK_CONFIG__LOKI__BATCH_TIMEOUT_SECONDS` | float | 5.0 | Max seconds before flushing a partial batch |
+| `FAPILOG_SINK_CONFIG__LOKI__BATCH_TIMEOUT_SECONDS` | float | 5.0 | Max seconds before flushing a partial batch. Accepts '5s' or 5.0 |
 | `FAPILOG_SINK_CONFIG__LOKI__CIRCUIT_BREAKER_ENABLED` | bool | True | Enable circuit breaker for the Loki sink |
 | `FAPILOG_SINK_CONFIG__LOKI__CIRCUIT_BREAKER_THRESHOLD` | int | 5 | Failures before opening circuit |
 | `FAPILOG_SINK_CONFIG__LOKI__LABELS` | dict | PydanticUndefined | Static labels to apply to each log stream |
 | `FAPILOG_SINK_CONFIG__LOKI__LABEL_KEYS` | list | PydanticUndefined | Event keys to promote to labels |
 | `FAPILOG_SINK_CONFIG__LOKI__MAX_RETRIES` | int | 3 | Max retries on push failure |
-| `FAPILOG_SINK_CONFIG__LOKI__RETRY_BASE_DELAY` | float | 0.5 | Base delay for backoff |
+| `FAPILOG_SINK_CONFIG__LOKI__RETRY_BASE_DELAY` | float | 0.5 | Base delay for backoff. Accepts '1s' or 0.5 |
 | `FAPILOG_SINK_CONFIG__LOKI__TENANT_ID` | str | None | — | Optional multi-tenant identifier |
-| `FAPILOG_SINK_CONFIG__LOKI__TIMEOUT_SECONDS` | float | 10.0 | HTTP timeout seconds |
+| `FAPILOG_SINK_CONFIG__LOKI__TIMEOUT_SECONDS` | float | 10.0 | HTTP timeout seconds. Accepts '10s' or 10.0 |
 | `FAPILOG_SINK_CONFIG__LOKI__URL` | str | http://localhost:3100 | Loki push endpoint base URL |
 | `FAPILOG_SINK_CONFIG__POSTGRES__BATCH_SIZE` | int | 100 | Events per batch |
-| `FAPILOG_SINK_CONFIG__POSTGRES__BATCH_TIMEOUT_SECONDS` | float | 5.0 | Max seconds before flushing a partial batch |
+| `FAPILOG_SINK_CONFIG__POSTGRES__BATCH_TIMEOUT_SECONDS` | float | 5.0 | Max seconds before flushing a partial batch. Accepts '5s' or 5.0 |
 | `FAPILOG_SINK_CONFIG__POSTGRES__CIRCUIT_BREAKER_ENABLED` | bool | True | Enable circuit breaker for the PostgreSQL sink |
 | `FAPILOG_SINK_CONFIG__POSTGRES__CIRCUIT_BREAKER_THRESHOLD` | int | 5 | Failures before opening circuit breaker |
 | `FAPILOG_SINK_CONFIG__POSTGRES__CREATE_TABLE` | bool | True | Auto-create table if missing |
@@ -172,9 +172,9 @@
 | `FAPILOG_SINK_CONFIG__POSTGRES__MAX_RETRIES` | int | 3 | Maximum retries for failed inserts |
 | `FAPILOG_SINK_CONFIG__POSTGRES__MIN_POOL_SIZE` | int | 2 | Minimum pool connections |
 | `FAPILOG_SINK_CONFIG__POSTGRES__PASSWORD` | str | None | — | Database password |
-| `FAPILOG_SINK_CONFIG__POSTGRES__POOL_ACQUIRE_TIMEOUT` | float | 10.0 | Timeout when acquiring connections |
+| `FAPILOG_SINK_CONFIG__POSTGRES__POOL_ACQUIRE_TIMEOUT` | float | 10.0 | Timeout when acquiring connections. Accepts '10s' or 10.0 |
 | `FAPILOG_SINK_CONFIG__POSTGRES__PORT` | int | 5432 | PostgreSQL server port number |
-| `FAPILOG_SINK_CONFIG__POSTGRES__RETRY_BASE_DELAY` | float | 0.5 | Base delay for exponential backoff |
+| `FAPILOG_SINK_CONFIG__POSTGRES__RETRY_BASE_DELAY` | float | 0.5 | Base delay for exponential backoff. Accepts '1s' or 0.5 |
 | `FAPILOG_SINK_CONFIG__POSTGRES__SCHEMA_NAME` | str | public | Database schema name |
 | `FAPILOG_SINK_CONFIG__POSTGRES__TABLE_NAME` | str | logs | Target table name |
 | `FAPILOG_SINK_CONFIG__POSTGRES__USER` | str | fapilog | PostgreSQL username for authentication |
@@ -182,10 +182,10 @@
 | `FAPILOG_SINK_CONFIG__ROTATING_FILE__COMPRESS_ROTATED` | bool | False | Compress rotated log files with gzip |
 | `FAPILOG_SINK_CONFIG__ROTATING_FILE__DIRECTORY` | str | None | — | Log directory for rotating file sink |
 | `FAPILOG_SINK_CONFIG__ROTATING_FILE__FILENAME_PREFIX` | str | fapilog | Filename prefix |
-| `FAPILOG_SINK_CONFIG__ROTATING_FILE__INTERVAL_SECONDS` | int | None | — | Rotation interval in seconds (optional) |
-| `FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_BYTES` | int | 10485760 | Max bytes before rotation |
+| `FAPILOG_SINK_CONFIG__ROTATING_FILE__INTERVAL_SECONDS` | float | None | — | Rotation interval. Accepts '1h', 'daily', or 3600 |
+| `FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_BYTES` | int | 10485760 | Max bytes before rotation. Accepts '10 MB' or 10485760 |
 | `FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_FILES` | int | None | — | Max number of rotated files to keep |
-| `FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_TOTAL_BYTES` | int | None | — | Max total bytes across all rotated files |
+| `FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_TOTAL_BYTES` | int | None | — | Max total bytes across all rotated files. Accepts '100 MB' or 104857600 |
 | `FAPILOG_SINK_CONFIG__ROTATING_FILE__MODE` | Literal | json | Output format: json or text |
 | `FAPILOG_SINK_CONFIG__SEALED__CHAIN_STATE_PATH` | str | None | — | Directory to persist chain state |
 | `FAPILOG_SINK_CONFIG__SEALED__COMPRESS_ROTATED` | bool | False | Compress rotated files after sealing |
@@ -201,13 +201,13 @@
 | `FAPILOG_SINK_CONFIG__SEALED__USE_KMS_SIGNING` | bool | False | Sign manifests via external KMS provider |
 | `FAPILOG_SINK_CONFIG__STDOUT_JSON` | dict | PydanticUndefined | Configuration for stdout_json sink |
 | `FAPILOG_SINK_CONFIG__WEBHOOK__BATCH_SIZE` | int | 1 | Maximum events per webhook request (1 = no batching) |
-| `FAPILOG_SINK_CONFIG__WEBHOOK__BATCH_TIMEOUT_SECONDS` | float | 5.0 | Max seconds before flushing a partial webhook batch |
+| `FAPILOG_SINK_CONFIG__WEBHOOK__BATCH_TIMEOUT_SECONDS` | float | 5.0 | Max seconds before flushing a partial webhook batch. Accepts '5s' or 5.0 |
 | `FAPILOG_SINK_CONFIG__WEBHOOK__ENDPOINT` | str | None | — | Webhook destination URL |
 | `FAPILOG_SINK_CONFIG__WEBHOOK__HEADERS` | dict | PydanticUndefined | Additional HTTP headers |
-| `FAPILOG_SINK_CONFIG__WEBHOOK__RETRY_BACKOFF_SECONDS` | float | None | — | Backoff between retries in seconds |
+| `FAPILOG_SINK_CONFIG__WEBHOOK__RETRY_BACKOFF_SECONDS` | float | None | — | Backoff between retries. Accepts '2s' or 2.0 |
 | `FAPILOG_SINK_CONFIG__WEBHOOK__RETRY_MAX_ATTEMPTS` | int | None | — | Maximum retry attempts on failure |
 | `FAPILOG_SINK_CONFIG__WEBHOOK__SECRET` | str | None | — | Shared secret for signing |
-| `FAPILOG_SINK_CONFIG__WEBHOOK__TIMEOUT_SECONDS` | float | 5.0 | Request timeout in seconds |
+| `FAPILOG_SINK_CONFIG__WEBHOOK__TIMEOUT_SECONDS` | float | 5.0 | Request timeout. Accepts '5s' or 5.0 |
 | `FAPILOG_SINK_ROUTING__ENABLED` | bool | False | Enable routing (False = fanout to all sinks) |
 | `FAPILOG_SINK_ROUTING__FALLBACK_SINKS` | list | PydanticUndefined | Sinks used when no rules match |
 | `FAPILOG_SINK_ROUTING__OVERLAP` | bool | True | Allow events to match multiple rules |

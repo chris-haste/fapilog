@@ -48,9 +48,10 @@ class SerializedView:
 Rotating file:
 ```bash
 export FAPILOG_FILE__DIRECTORY=/var/log/myapp
-export FAPILOG_FILE__MAX_BYTES=10485760
+export FAPILOG_FILE__MAX_BYTES="10 MB"
 export FAPILOG_FILE__MAX_FILES=5
 export FAPILOG_FILE__COMPRESS_ROTATED=true
+export FAPILOG_FILE__INTERVAL_SECONDS="daily"
 ```
 
 HTTP sink:

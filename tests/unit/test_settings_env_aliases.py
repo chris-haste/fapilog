@@ -51,6 +51,16 @@ def test_size_guard_env_aliases_apply(monkeypatch: pytest.MonkeyPatch) -> None:
     assert sg.preserve_fields == ["keep"]
 
 
+def test_size_guard_env_aliases_parse_human_readable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("FAPILOG_SIZE_GUARD__MAX_BYTES", "1 MB")
+
+    settings = Settings()
+
+    assert settings.processor_config.size_guard.max_bytes == 1024 * 1024
+
+
 def test_size_guard_env_aliases_ignore_invalid_max_bytes(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -80,6 +90,19 @@ def test_cloudwatch_env_aliases_parse_and_ignore_invalid(
     assert cw.create_log_group is False
     assert cw.circuit_breaker_threshold == 12
     assert cw.batch_timeout_seconds == 5.0
+
+
+def test_cloudwatch_env_aliases_parse_human_readable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("FAPILOG_CLOUDWATCH__BATCH_TIMEOUT_SECONDS", "10s")
+    monkeypatch.setenv("FAPILOG_CLOUDWATCH__RETRY_BASE_DELAY", "2s")
+
+    settings = Settings()
+    cw = settings.sink_config.cloudwatch
+
+    assert cw.batch_timeout_seconds == 10.0
+    assert cw.retry_base_delay == 2.0
 
 
 def test_cloudwatch_env_aliases_ignore_invalid_threshold(
@@ -127,6 +150,21 @@ def test_loki_env_aliases_parse_timeout_and_ignore_invalid_threshold(
     assert loki.circuit_breaker_threshold == 5
 
 
+def test_loki_env_aliases_parse_human_readable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("FAPILOG_LOKI__TIMEOUT_SECONDS", "12s")
+    monkeypatch.setenv("FAPILOG_LOKI__BATCH_TIMEOUT_SECONDS", "9s")
+    monkeypatch.setenv("FAPILOG_LOKI__RETRY_BASE_DELAY", "1s")
+
+    settings = Settings()
+    loki = settings.sink_config.loki
+
+    assert loki.timeout_seconds == 12.0
+    assert loki.batch_timeout_seconds == 9.0
+    assert loki.retry_base_delay == 1.0
+
+
 def test_postgres_env_aliases_parse_and_ignore_invalid(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -144,6 +182,21 @@ def test_postgres_env_aliases_parse_and_ignore_invalid(
     assert pg.max_retries == 3
     assert pg.create_table is False
     assert pg.extract_fields == ["level", "message"]
+
+
+def test_postgres_env_aliases_parse_human_readable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("FAPILOG_POSTGRES__POOL_ACQUIRE_TIMEOUT", "7s")
+    monkeypatch.setenv("FAPILOG_POSTGRES__BATCH_TIMEOUT_SECONDS", "8s")
+    monkeypatch.setenv("FAPILOG_POSTGRES__RETRY_BASE_DELAY", "3s")
+
+    settings = Settings()
+    pg = settings.sink_config.postgres
+
+    assert pg.pool_acquire_timeout == 7.0
+    assert pg.batch_timeout_seconds == 8.0
+    assert pg.retry_base_delay == 3.0
 
 
 def test_sink_routing_env_aliases_ignore_invalid_rules(
