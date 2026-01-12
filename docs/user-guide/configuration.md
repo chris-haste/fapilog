@@ -125,7 +125,8 @@ export FAPILOG_CORE__LOG_LEVEL=INFO
 
 # File sink (optional)
 export FAPILOG_FILE__DIRECTORY=/var/log/myapp
-export FAPILOG_FILE__MAX_BYTES=10485760
+export FAPILOG_FILE__MAX_BYTES="10 MB"
+export FAPILOG_FILE__INTERVAL_SECONDS="daily"
 
 # Performance tuning
 export FAPILOG_CORE__BATCH_MAX_SIZE=128
@@ -146,6 +147,10 @@ settings = Settings(
 logger = get_logger(settings=settings)
 logger.info("configured", queue=settings.core.max_queue_size)
 ```
+
+Size and duration fields accept human-readable strings (e.g., `"10 MB"`, `"5s"`) as well as
+numeric values. Rotation keywords (`"hourly"`, `"daily"`, `"weekly"`) apply to rotation
+interval settings and represent fixed intervals (not wall-clock boundaries).
 
 ## Common patterns
 

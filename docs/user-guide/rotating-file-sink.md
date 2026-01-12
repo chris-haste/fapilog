@@ -7,12 +7,14 @@ Write logs to disk with size/time rotation.
 
 ```bash
 export FAPILOG_FILE__DIRECTORY=/var/log/myapp
-export FAPILOG_FILE__MAX_BYTES=10485760  # 10MB
+export FAPILOG_FILE__MAX_BYTES="10 MB"
 export FAPILOG_FILE__MAX_FILES=5
 export FAPILOG_FILE__COMPRESS_ROTATED=true
-# Optional time-based rotation (seconds)
-export FAPILOG_FILE__INTERVAL_SECONDS=0
+# Optional time-based rotation
+export FAPILOG_FILE__INTERVAL_SECONDS="daily"
 ```
+
+`"daily"`/`"hourly"`/`"weekly"` are fixed intervals (e.g., 24 hours), not wall-clock boundaries.
 
 ## Usage
 
