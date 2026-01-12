@@ -28,6 +28,9 @@ class StdoutPrettySink:
         self._lock = asyncio.Lock()
         self._colors_enabled = bool(colors)
         self._use_colors = self._colors_enabled and self._is_tty()
+        self._last_ts_value: Any | None = None
+        self._last_ts_text: str | None = None
+        self._level_cache: dict[str, str] = {}
 
     async def start(self) -> None:  # lifecycle placeholder
         return None
@@ -82,6 +85,12 @@ class StdoutPrettySink:
         return base
 
     def _format_timestamp(self, value: Any) -> str:
+        if self._last_ts_value is not None:
+            try:
+                if value == self._last_ts_value and self._last_ts_text is not None:
+                    return self._last_ts_text
+            except Exception:
+                pass
         if isinstance(value, datetime):
             dt = value
         elif isinstance(value, (int, float)):
@@ -96,13 +105,22 @@ class StdoutPrettySink:
 
         if dt.tzinfo is not None:
             dt = dt.astimezone()
-        return dt.strftime("%Y-%m-%d %H:%M:%S")
+        text = dt.strftime("%Y-%m-%d %H:%M:%S")
+        self._last_ts_value = value
+        self._last_ts_text = text
+        return text
 
     def _format_level(self, level: str) -> str:
+        cached = self._level_cache.get(level)
+        if cached is not None:
+            return cached
         padded = level.ljust(LEVEL_PADDING)
         if self._use_colors and level in COLORS:
-            return f"{COLORS[level]}{padded}{COLORS['RESET']}"
-        return padded
+            formatted = f"{COLORS[level]}{padded}{COLORS['RESET']}"
+        else:
+            formatted = padded
+        self._level_cache[level] = formatted
+        return formatted
 
     def _format_context(self, entry: dict[str, Any]) -> str:
         context = self._collect_context(entry)
