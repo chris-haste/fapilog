@@ -98,10 +98,14 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             state = None
         if state is not None:
             try:
-                state_logger = state.__dict__.get("fapilog_logger")
+                state_map = getattr(state, "_state", None)
             except Exception:
+                state_map = None
+            if isinstance(state_map, dict):
+                state_logger = state_map.get("fapilog_logger")
+            else:
                 try:
-                    state_logger = getattr(state, "fapilog_logger", None)
+                    state_logger = state.__dict__.get("fapilog_logger")
                 except Exception:
                     state_logger = None
         if state_logger is not None and state_logger is not self._logger:

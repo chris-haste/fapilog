@@ -134,6 +134,19 @@ class TestLoggingMiddleware:
         assert result is logger
 
     @pytest.mark.asyncio
+    async def test_get_logger_prefers_state_map(self) -> None:
+        """Test _get_logger reads the starlette State map."""
+        logger = AsyncMock()
+        app = SimpleNamespace(state=SimpleNamespace(_state={"fapilog_logger": logger}))
+        middleware = LoggingMiddleware(MagicMock())
+        request = MagicMock()
+        request.app = app
+
+        result = await middleware._get_logger(request)
+
+        assert result is logger
+
+    @pytest.mark.asyncio
     async def test_get_logger_falls_back_to_async_logger(self, monkeypatch) -> None:
         """Test _get_logger falls back to get_async_logger when needed."""
         logger = AsyncMock()
