@@ -36,6 +36,13 @@ class TestTimestampFormatting:
         expected = stamp.astimezone().strftime("%Y-%m-%d %H:%M:%S")
         assert sink._format_timestamp(stamp) == expected
 
+    def test_reuses_cached_timestamp(self) -> None:
+        sink = StdoutPrettySink(colors=False)
+        value = 1736605822.0
+        first = sink._format_timestamp(value)
+        second = sink._format_timestamp(value)
+        assert first == second
+
 
 class TestLevelFormatting:
     def test_level_padded_without_colors(self) -> None:
@@ -50,6 +57,11 @@ class TestLevelFormatting:
         assert "\033[" in result
         assert "ERROR" in result
         assert result.endswith("\033[0m")
+
+    def test_level_cache_short_circuits_formatting(self) -> None:
+        sink = StdoutPrettySink(colors=False)
+        sink._level_cache["INFO"] = "CACHED"
+        assert sink._format_level("INFO") == "CACHED"
 
 
 class TestContextFormatting:
