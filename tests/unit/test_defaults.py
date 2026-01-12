@@ -4,6 +4,9 @@ import asyncio
 import os
 from unittest.mock import patch
 
+import pytest
+
+import fapilog
 from fapilog import Settings, get_logger
 from fapilog.core.defaults import (
     get_default_log_level,
@@ -11,6 +14,7 @@ from fapilog.core.defaults import (
     is_tty_environment,
     should_fallback_sink,
 )
+from fapilog.core.settings import CoreSettings
 from fapilog.plugins.filters.level import LEVEL_PRIORITY
 
 
@@ -121,3 +125,34 @@ class TestShouldFallbackSink:
     def test_should_fallback_sink(self) -> None:
         assert should_fallback_sink(True) is True
         assert should_fallback_sink(False) is False
+
+
+class TestApplyDefaultLogLevel:
+    def test_env_log_level_treated_as_explicit(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        settings = Settings()
+        monkeypatch.setenv("FAPILOG_CORE__LOG_LEVEL", "DEBUG")
+        with patch(
+            "fapilog.core.defaults.get_default_log_level",
+            side_effect=AssertionError("should not be called"),
+        ):
+            updated = fapilog._apply_default_log_level(settings, preset=None)
+
+        assert updated is settings
+
+    def test_model_fields_set_exception_falls_back(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        def _raise(_self) -> set[str]:
+            raise RuntimeError("boom")
+
+        monkeypatch.setattr(
+            CoreSettings, "model_fields_set", property(_raise), raising=False
+        )
+        settings = Settings()
+        with patch("fapilog.core.defaults.get_default_log_level", return_value="INFO"):
+            updated = fapilog._apply_default_log_level(settings, preset=None)
+
+        assert updated is not settings
+        assert updated.core.log_level == "INFO"
