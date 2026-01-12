@@ -713,7 +713,10 @@ class SyncLoggerFacade(_LoggerMixin):
                     ),
                     loop,
                 )
-                ok = fut.result(timeout=wait_seconds + 0.05)
+                result_timeout = None
+                if self._drop_on_full:
+                    result_timeout = wait_seconds + 0.05
+                ok = fut.result(timeout=result_timeout)
                 if not ok:
                     self._dropped += 1
                     # Throttled WARN for backpressure drop on cross-thread path
