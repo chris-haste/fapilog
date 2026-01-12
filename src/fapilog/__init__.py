@@ -58,6 +58,9 @@ from .plugins.sinks.rotating_file import (
 from .plugins.sinks.stdout_json import StdoutJsonSink as _StdoutJsonSink
 from .plugins.sinks.webhook import WebhookSinkConfig as _WebhookSinkConfig
 
+# Builder API (Story 10.7)
+from .builder import AsyncLoggerBuilder, LoggerBuilder
+
 # Public exports
 Settings = _Settings
 
@@ -70,6 +73,8 @@ __all__ = [
     "DrainResult",
     "LogEvent",
     "list_presets",
+    "LoggerBuilder",
+    "AsyncLoggerBuilder",
     "sinks",
     "__version__",
     "VERSION",
