@@ -324,6 +324,23 @@
 <li><p>When <code class="docutils literal notranslate"><span class="pre">settings</span></code> is omitted, <code class="docutils literal notranslate"><span class="pre">format</span></code> defaults to <code class="docutils literal notranslate"><span class="pre">auto</span></code>.</p></li>
 </ul>
 </section>
+<section id="default-behaviors">
+<h2>Default behaviors<a class="headerlink" href="#default-behaviors" title="Link to this heading"></a></h2>
+<p>When you call <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> without a preset, settings, or <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__LOG_LEVEL</span></code>,
+fapilog selects a sensible default log level:</p>
+<ul class="simple">
+<li><p>TTY (interactive terminal): <code class="docutils literal notranslate"><span class="pre">DEBUG</span></code></p></li>
+<li><p>Non-TTY (pipes, scripts): <code class="docutils literal notranslate"><span class="pre">INFO</span></code></p></li>
+<li><p>CI: forces <code class="docutils literal notranslate"><span class="pre">INFO</span></code> even if TTY</p></li>
+</ul>
+<p>Explicit <code class="docutils literal notranslate"><span class="pre">core.log_level</span></code> or a preset always overrides these defaults.</p>
+<p>On sink write failures (exceptions raised by a sink), fapilog falls back to stderr.
+If stderr fails too, the entry is dropped. Diagnostics warnings are emitted when
+internal diagnostics are enabled:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__INTERNAL_LOGGING_ENABLED</span><span class="o">=</span><span class="nb">true</span>
+</pre></div>
+</div>
+</section>
 <section id="quick-setup-env">
 <h2>Quick setup (env)<a class="headerlink" href="#quick-setup-env" title="Link to this heading"></a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Log level</span>
