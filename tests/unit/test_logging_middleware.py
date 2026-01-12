@@ -4,6 +4,7 @@ Tests for LoggingMiddleware to improve coverage.
 
 from __future__ import annotations
 
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -101,23 +102,54 @@ class TestLoggingMiddleware:
         assert "X-Request-ID" in response.headers
 
     @pytest.mark.asyncio
-    async def test_get_logger_lazy_init(self) -> None:
+    async def test_get_logger_lazy_init(self, monkeypatch) -> None:
         """Test _get_logger creates logger on first call."""
-        app = MagicMock()
-        middleware = LoggingMiddleware(app)
+        logger = AsyncMock()
 
-        # Initially no logger
-        assert middleware._logger is None
+        async def fake_get_async_logger(name: str | None = None, *, preset=None):
+            return logger
 
-        # Will create one via get_async_logger
-        # This may fail if no event loop, but that's OK for coverage
-        try:
-            await middleware._get_logger()
-            # If it works, logger should be cached
-            assert middleware._logger is not None
-        except Exception:
-            # If it fails due to no event loop setup, that's fine
-            pass
+        monkeypatch.setattr("fapilog.get_async_logger", fake_get_async_logger)
+        middleware = LoggingMiddleware(MagicMock())
+        request = MagicMock()
+        request.app = SimpleNamespace(state=SimpleNamespace())
+
+        result = await middleware._get_logger(request)
+
+        assert result is logger
+        assert middleware._logger is logger
+
+    @pytest.mark.asyncio
+    async def test_get_logger_prefers_app_state(self) -> None:
+        """Test _get_logger uses app state logger when available."""
+        app = SimpleNamespace(state=SimpleNamespace())
+        logger = AsyncMock()
+        app.state.fapilog_logger = logger
+        middleware = LoggingMiddleware(MagicMock())
+        request = MagicMock()
+        request.app = app
+
+        result = await middleware._get_logger(request)
+
+        assert result is logger
+
+    @pytest.mark.asyncio
+    async def test_get_logger_falls_back_to_async_logger(self, monkeypatch) -> None:
+        """Test _get_logger falls back to get_async_logger when needed."""
+        logger = AsyncMock()
+        get_async_logger = AsyncMock(return_value=logger)
+
+        monkeypatch.setattr("fapilog.get_async_logger", get_async_logger)
+        middleware = LoggingMiddleware(MagicMock())
+        request = MagicMock()
+        request.app = SimpleNamespace(state=SimpleNamespace())
+
+        result = await middleware._get_logger(request)
+        second = await middleware._get_logger(request)
+
+        assert result is logger
+        assert second is logger
+        get_async_logger.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_log_completion_with_headers(self) -> None:
@@ -152,7 +184,9 @@ class TestLoggingMiddleware:
         logger.info.assert_called_once()
         call_args = logger.info.call_args
         # Headers should be passed with redaction
-        assert call_args.kwargs.get("headers") is not None
+        headers = call_args.kwargs["headers"]
+        assert headers["authorization"] == "***"
+        assert headers["content-type"] == "application/json"
 
     @pytest.mark.asyncio
     async def test_log_completion_with_sampling(self) -> None:
@@ -176,3 +210,26 @@ class TestLoggingMiddleware:
 
         # Logger should not be called due to sampling
         logger.info.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_log_error_uses_logger(self) -> None:
+        """Test _log_error uses the injected logger."""
+        app = MagicMock()
+        logger = AsyncMock()
+        logger.error = AsyncMock()
+        middleware = LoggingMiddleware(app, logger=logger)
+
+        request = MagicMock()
+        request.app = SimpleNamespace(state=SimpleNamespace())
+        request.method = "GET"
+        request.url.path = "/boom"
+
+        await middleware._log_error(
+            request=request,
+            status_code=500,
+            correlation_id="cid-1",
+            latency_ms=10.0,
+            exc=RuntimeError("boom"),
+        )
+
+        logger.error.assert_called_once()
