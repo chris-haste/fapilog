@@ -132,23 +132,39 @@ See [docs/user-guide/sink-routing.md](docs/user-guide/sink-routing.md) for advan
 ### FastAPI request logging
 
 ```python
-from fastapi import FastAPI
-from fapilog.fastapi.context import RequestContextMiddleware
-from fapilog.fastapi.logging import LoggingMiddleware
+from fastapi import Depends, FastAPI
+from fapilog.fastapi import get_request_logger, setup_logging
 
-app = FastAPI()
-app.add_middleware(RequestContextMiddleware)  # sets correlation IDs
-app.add_middleware(
-    LoggingMiddleware,
-    sample_rate=1.0,                  # sampling for successes; errors always logged
-    include_headers=True,             # optional: emit headers
-    redact_headers=["authorization"], # mask sensitive headers
-    skip_paths=["/healthz"],          # skip noisy paths
-)        # emits request_completed / request_failed
+app = FastAPI(
+    lifespan=setup_logging(
+        preset="production",
+        sample_rate=1.0,                  # sampling for successes; errors always logged
+        redact_headers=["authorization"], # mask sensitive headers
+        skip_paths=["/healthz"],          # skip noisy paths
+    )
+)
+
+@app.get("/")
+async def root(logger=Depends(get_request_logger)):
+    await logger.info("Root endpoint accessed")  # request_id auto-included
+    return {"message": "Hello World"}
 
 # Optional marketplace router (plugin discovery)
 # from fapilog.fastapi import get_router
 # app.include_router(get_router(), prefix=\"/plugins\")
+```
+
+Need manual middleware control? Use the existing primitives:
+
+```python
+from fastapi import FastAPI
+from fapilog.fastapi import setup_logging
+from fapilog.fastapi.context import RequestContextMiddleware
+from fapilog.fastapi.logging import LoggingMiddleware
+
+app = FastAPI(lifespan=setup_logging(auto_middleware=False))
+app.add_middleware(RequestContextMiddleware)  # sets correlation IDs
+app.add_middleware(LoggingMiddleware)        # emits request_completed / request_failed
 ```
 
 ## Early adopters
