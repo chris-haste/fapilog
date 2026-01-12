@@ -46,6 +46,10 @@ Data redaction and masking utilities.
 
 Output destination management.
 
+### fapilog.sinks
+
+Convenience sink factories (e.g., `rotating_file()`).
+
 ### fapilog.plugins.processors
 
 Data processing and transformation.
