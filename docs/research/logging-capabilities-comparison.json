@@ -488,5 +488,343 @@
         "loguru's configure() is simpler but less flexible than structlog's processor chain model."
       ]
     }
-  ]
+  ],
+  "developer_experience": {
+    "description": "Qualitative aspects of using each library that cut across individual capabilities.",
+    "aspects": [
+      {
+        "id": "dx-time-to-first-log",
+        "name": "Time to first log",
+        "description": "How quickly can a developer go from zero to working log output?",
+        "comparison": {
+          "structlog": {
+            "rating": "good",
+            "lines_of_code": "2-3 lines for basic output, 10-20 lines for production-ready config",
+            "notes": "Requires structlog.configure() call for anything beyond defaults. Defaults emit to stdout with key=value format."
+          },
+          "loguru": {
+            "rating": "excellent",
+            "lines_of_code": "1 line (from loguru import logger; logger.info('hi'))",
+            "notes": "Works immediately with attractive colored output to stderr. Zero configuration needed for basic use."
+          }
+        }
+      },
+      {
+        "id": "dx-learning-curve",
+        "name": "Learning curve",
+        "description": "How much must a developer learn before being productive?",
+        "comparison": {
+          "structlog": {
+            "rating": "moderate",
+            "notes": "Core concepts (processors, bound loggers, wrappers) require understanding. Documentation is thorough but can feel overwhelming. The stdlib integration adds another layer of complexity."
+          },
+          "loguru": {
+            "rating": "gentle",
+            "notes": "Single logger object, intuitive API (add/remove/bind). Most features discoverable through IDE autocomplete. Documentation is friendly and example-driven."
+          }
+        }
+      },
+      {
+        "id": "dx-documentation-quality",
+        "name": "Documentation quality",
+        "description": "Clarity, completeness, and navigability of official docs.",
+        "comparison": {
+          "structlog": {
+            "rating": "comprehensive",
+            "url": "https://www.structlog.org/",
+            "notes": "Extensive docs covering all use cases. Strong on 'why' and architectural rationale. Can be dense for newcomers. Good cookbook and recipes section."
+          },
+          "loguru": {
+            "rating": "excellent",
+            "url": "https://loguru.readthedocs.io/",
+            "notes": "Clear, example-heavy documentation. Great 'Overview' page that covers most use cases. Good migration guide from stdlib. Less depth on advanced patterns."
+          }
+        }
+      },
+      {
+        "id": "dx-error-messages",
+        "name": "Error message clarity",
+        "description": "How helpful are error messages when something goes wrong?",
+        "comparison": {
+          "structlog": {
+            "rating": "good",
+            "notes": "Processor chain errors can be cryptic (stack traces through multiple processors). Configuration errors are usually clear. reset_defaults() helps recover from bad state."
+          },
+          "loguru": {
+            "rating": "excellent",
+            "notes": "Clear error messages with suggestions. The diagnose=True option shows local variables in tracebacks. Sink errors are caught and reported cleanly by default."
+          }
+        }
+      },
+      {
+        "id": "dx-ide-experience",
+        "name": "IDE experience (autocomplete, go-to-definition)",
+        "description": "How well does the library work with modern IDEs?",
+        "comparison": {
+          "structlog": {
+            "rating": "good",
+            "notes": "Full type hints since v20.2.0. structlog.get_logger() returns Any (by design), so use structlog.stdlib.get_logger() for proper typing. Processors are well-typed."
+          },
+          "loguru": {
+            "rating": "good",
+            "notes": "Basic type hints present. Single logger instance means good autocomplete. opt() parameters well-documented in IDE tooltips."
+          }
+        }
+      },
+      {
+        "id": "dx-api-consistency",
+        "name": "API consistency and intuitiveness",
+        "description": "Is the API predictable and easy to remember?",
+        "comparison": {
+          "structlog": {
+            "rating": "good",
+            "notes": "Consistent processor-based model throughout. bind/unbind/new pattern is clean. Multiple ways to achieve same goal can confuse (contextvars vs bound loggers). stdlib integration adds API surface."
+          },
+          "loguru": {
+            "rating": "excellent",
+            "notes": "Extremely consistent: one logger, add() for sinks, bind() for context, opt() for per-call options. Method chaining works intuitively. Almost everything returns the logger for chaining."
+          }
+        }
+      },
+      {
+        "id": "dx-migration-from-stdlib",
+        "name": "Migration from stdlib logging",
+        "description": "How easy is it to adopt in an existing codebase using stdlib logging?",
+        "comparison": {
+          "structlog": {
+            "rating": "excellent",
+            "notes": "Designed as a stdlib wrapper. Can incrementally adopt: configure structlog to output through stdlib handlers. ProcessorFormatter allows mixing structlog and stdlib loggers. Existing logging.getLogger() calls can coexist."
+          },
+          "loguru": {
+            "rating": "good",
+            "notes": "Requires InterceptHandler pattern to capture stdlib logs. Can coexist but needs explicit bridging. Migration guide in docs. All-or-nothing feel compared to structlog's gradual adoption."
+          }
+        }
+      },
+      {
+        "id": "dx-debugging-logging-itself",
+        "name": "Debugging the logging system",
+        "description": "When logs aren't appearing, how easy is it to diagnose why?",
+        "comparison": {
+          "structlog": {
+            "rating": "moderate",
+            "notes": "No built-in diagnostic mode. Common issues: processor chain order, missing merge_contextvars, stdlib handler level too high. reset_defaults() helps. Can inspect structlog.get_config()."
+          },
+          "loguru": {
+            "rating": "good",
+            "notes": "diagnose=True helps with exceptions. Can list active handlers. LOGURU_AUTOINIT=false for debugging startup. Common issues: removed default handler without adding new one."
+          }
+        }
+      },
+      {
+        "id": "dx-configuration-file-support",
+        "name": "Configuration file support (YAML/JSON/TOML)",
+        "description": "Can logging be configured via external files without code changes?",
+        "comparison": {
+          "structlog": {
+            "rating": "limited",
+            "notes": "No native support. Configuration is Python code via structlog.configure(). Third-party structlog-config package exists. Can build custom loader that reads files and calls configure()."
+          },
+          "loguru": {
+            "rating": "limited-with-addon",
+            "notes": "No native support. Environment variables (LOGURU_FORMAT, LOGURU_LEVEL, etc.) provide some external control. loguru-config package adds YAML/JSON/TOML support with cfg://, ext://, env:// references."
+          }
+        }
+      },
+      {
+        "id": "dx-environment-variable-config",
+        "name": "Environment variable configuration",
+        "description": "Can behavior be controlled via environment variables?",
+        "comparison": {
+          "structlog": {
+            "rating": "manual",
+            "notes": "No built-in env var support. Must implement: read os.environ, pass to configure(). Common pattern: ENVIRONMENT=production to switch renderers."
+          },
+          "loguru": {
+            "rating": "excellent",
+            "notes": "Extensive built-in support. LOGURU_FORMAT, LOGURU_LEVEL, LOGURU_COLORIZE, LOGURU_SERIALIZE, LOGURU_AUTOINIT, LOGURU_[LEVEL]_COLOR, LOGURU_[LEVEL]_ICON, etc."
+          }
+        }
+      },
+      {
+        "id": "dx-runtime-reconfiguration",
+        "name": "Runtime reconfiguration",
+        "description": "Can logging behavior be changed without restarting the application?",
+        "comparison": {
+          "structlog": {
+            "rating": "limited",
+            "notes": "Can call structlog.configure() again, but doesn't affect already-cached loggers if cache_logger_on_first_use=True. reset_defaults() available. Stdlib handlers can be modified at runtime."
+          },
+          "loguru": {
+            "rating": "good",
+            "notes": "logger.remove()/add() allows dynamic sink management. Can change levels per-sink. logger.disable()/enable() for module-level control. No hot-reload of format strings."
+          }
+        }
+      }
+    ],
+    "framework_integrations": {
+      "description": "Official and community integrations with popular Python frameworks.",
+      "frameworks": [
+        {
+          "name": "FastAPI",
+          "structlog": {
+            "support": "community",
+            "packages": ["fastapi-structlog", "asgi-correlation-id"],
+            "notes": "Requires middleware setup for request context. contextvars work across async/sync boundaries with care. Well-documented patterns available.",
+            "complexity": "moderate"
+          },
+          "loguru": {
+            "support": "community",
+            "packages": ["fastapi-mvc-loguru-demo patterns"],
+            "notes": "Requires InterceptHandler to capture uvicorn logs. contextualize() works for request context. Simpler initial setup but less structured.",
+            "complexity": "low-moderate"
+          }
+        },
+        {
+          "name": "Django",
+          "structlog": {
+            "support": "official",
+            "packages": ["django-structlog"],
+            "notes": "django-structlog provides middleware, celery integration, and request context. Integrates with Django's LOGGING dict config.",
+            "complexity": "low"
+          },
+          "loguru": {
+            "support": "community",
+            "packages": [],
+            "notes": "Manual integration via middleware. Must bridge Django's logging system. No official package.",
+            "complexity": "moderate"
+          }
+        },
+        {
+          "name": "Flask",
+          "structlog": {
+            "support": "documented",
+            "packages": [],
+            "notes": "Official docs show Flask integration patterns. Works with before_request hooks and g object or contextvars.",
+            "complexity": "low"
+          },
+          "loguru": {
+            "support": "community",
+            "packages": [],
+            "notes": "Works with Flask's before_request hooks. Must intercept werkzeug logging separately.",
+            "complexity": "low"
+          }
+        },
+        {
+          "name": "Celery",
+          "structlog": {
+            "support": "official",
+            "packages": ["django-structlog (includes Celery support)"],
+            "notes": "django-structlog provides celery_prerun/postrun signal handlers. Can propagate context to tasks.",
+            "complexity": "low-moderate"
+          },
+          "loguru": {
+            "support": "community",
+            "packages": [],
+            "notes": "Manual signal handler setup. enqueue=True important for multiprocess safety.",
+            "complexity": "moderate"
+          }
+        }
+      ]
+    },
+    "observability_integrations": {
+      "description": "Integration with observability platforms and APM tools.",
+      "platforms": [
+        {
+          "name": "Datadog",
+          "structlog": {
+            "support": "official",
+            "method": "ddtrace auto-instrumentation or manual tracer_injection processor",
+            "notes": "Automatic trace correlation with dd.trace_id, dd.span_id, dd.env, dd.service, dd.version injection. Works with JSONRenderer for log ingestion."
+          },
+          "loguru": {
+            "support": "official",
+            "method": "ddtrace auto-patching with DD_LOGS_INJECTION=true",
+            "notes": "Automatic patching via ddtrace-run. LOGURU_SERIALIZE=true for JSON output. Some quirks with sink ordering."
+          }
+        },
+        {
+          "name": "Sentry",
+          "structlog": {
+            "support": "manual",
+            "method": "Custom processor to capture breadcrumbs or send to Sentry SDK",
+            "notes": "No official integration. Can create processor that calls sentry_sdk.capture_message() or adds breadcrumbs."
+          },
+          "loguru": {
+            "support": "manual",
+            "method": "Custom sink that sends to Sentry SDK",
+            "notes": "logger.add(sentry_sink) pattern. Can use logger.catch() with Sentry integration for exception capture."
+          }
+        },
+        {
+          "name": "OpenTelemetry",
+          "structlog": {
+            "support": "manual",
+            "method": "Processor to inject trace_id/span_id from opentelemetry.trace",
+            "notes": "Can correlate logs with OTel traces. JSONRenderer output works with OTel collectors."
+          },
+          "loguru": {
+            "support": "manual",
+            "method": "patch() function to inject OTel context",
+            "notes": "Similar manual integration. serialize=True output compatible with OTel log ingestion."
+          }
+        },
+        {
+          "name": "ELK Stack (Elasticsearch/Logstash/Kibana)",
+          "structlog": {
+            "support": "native",
+            "method": "JSONRenderer to stdout, collected by Filebeat/Fluentd",
+            "notes": "Structured JSON output is ELK-ready. Field names can be customized via processors."
+          },
+          "loguru": {
+            "support": "native",
+            "method": "serialize=True to stdout, collected by Filebeat/Fluentd",
+            "notes": "JSON output compatible with ELK. Less control over field naming than structlog."
+          }
+        }
+      ]
+    },
+    "ecosystem_and_community": {
+      "structlog": {
+        "github_stars": "~3.5k",
+        "maintenance": "Active, maintained by Hynek Schlawack",
+        "release_cadence": "Regular releases, good changelog",
+        "community_packages": [
+          "django-structlog",
+          "structlog-config",
+          "fastapi-structlog"
+        ],
+        "philosophy": "Explicit is better than implicit. Processor chains give full control. Integrates with stdlib rather than replacing it."
+      },
+      "loguru": {
+        "github_stars": "~20k",
+        "maintenance": "Active, maintained by Delgan",
+        "release_cadence": "Regular releases",
+        "community_packages": [
+          "loguru-config",
+          "pytest-loguru",
+          "loguru-mypy (stubs)"
+        ],
+        "philosophy": "Make logging stupidly simple. Batteries included. One logger to rule them all. Replace stdlib rather than wrap it."
+      }
+    },
+    "summary": {
+      "choose_structlog_when": [
+        "You need fine-grained control over log processing",
+        "You're integrating with existing stdlib logging infrastructure",
+        "You want robust testing utilities (capture_logs)",
+        "You need contextvars with granular bind/unbind control",
+        "You're building a large system where consistency matters more than simplicity",
+        "You want strong typing support"
+      ],
+      "choose_loguru_when": [
+        "You want to get started quickly with minimal configuration",
+        "You prefer a simple, intuitive API over flexibility",
+        "You need built-in file rotation, retention, and compression",
+        "You want rich exception diagnostics out of the box",
+        "Environment variable configuration is important",
+        "You're building smaller services or scripts"
+      ]
+    }
+  }
 }
