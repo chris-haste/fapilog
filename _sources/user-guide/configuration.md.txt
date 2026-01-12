@@ -16,6 +16,42 @@ logger = await get_async_logger(preset="fastapi")  # FastAPI apps
 logger = get_logger(preset="minimal")     # Backwards compatible default
 ```
 
+### FastAPI one-liner
+
+Use the presets with `setup_logging()` for FastAPI apps:
+
+```python
+from fastapi import Depends, FastAPI
+from fapilog.fastapi import get_request_logger, setup_logging
+
+app = FastAPI(lifespan=setup_logging(preset="fastapi"))
+
+@app.get("/users/{user_id}")
+async def get_user(user_id: int, logger=Depends(get_request_logger)):
+    await logger.info("Fetching user", user_id=user_id)
+    return {"user_id": user_id}
+```
+
+Automatic middleware registration is enabled by default. Disable it for manual control:
+
+```python
+from fapilog.fastapi.context import RequestContextMiddleware
+from fapilog.fastapi.logging import LoggingMiddleware
+
+app = FastAPI(lifespan=setup_logging(preset="fastapi", auto_middleware=False))
+app.add_middleware(RequestContextMiddleware)
+app.add_middleware(LoggingMiddleware)
+```
+
+If you need to attach the lifespan after app creation:
+
+```python
+app = FastAPI()
+app.router.lifespan_context = setup_logging(preset="fastapi")
+```
+
+Set the lifespan before the application starts.
+
 ### Preset Comparison
 
 | Preset | Log Level | Sinks | File Rotation | Redaction | Batch Size |

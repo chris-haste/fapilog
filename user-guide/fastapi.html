@@ -176,6 +176,37 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="fastapi-asgi-integration">
 <h1>FastAPI / ASGI Integration<a class="headerlink" href="#fastapi-asgi-integration" title="Link to this heading"></a></h1>
+<section id="one-liner-setup">
+<h2>One-liner setup<a class="headerlink" href="#one-liner-setup" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">FastAPI</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_request_logger</span><span class="p">,</span> <span class="n">setup_logging</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span>
+        <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">,</span>
+        <span class="n">skip_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;/health&quot;</span><span class="p">],</span>
+        <span class="n">sample_rate</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">redact_headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;authorization&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">root</span><span class="p">(</span><span class="n">logger</span><span class="o">=</span><span class="n">Depends</span><span class="p">(</span><span class="n">get_request_logger</span><span class="p">)):</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Request handled&quot;</span><span class="p">)</span>  <span class="c1"># request_id auto-included</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Hello World&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Automatic middleware registration is enabled by default. Disable it for manual control:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi.context</span><span class="w"> </span><span class="kn">import</span> <span class="n">RequestContextMiddleware</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggingMiddleware</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">,</span> <span class="n">auto_middleware</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span><span class="n">RequestContextMiddleware</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span><span class="n">LoggingMiddleware</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 <section id="request-response-logging-middleware">
 <h2>Request/response logging middleware<a class="headerlink" href="#request-response-logging-middleware" title="Link to this heading"></a></h2>
 <p>Add the built-in middleware for automatic request/response logs with latency and status codes:</p>
@@ -212,17 +243,14 @@
 </section>
 <section id="dependency-based-logging">
 <h2>Dependency-based logging<a class="headerlink" href="#dependency-based-logging" title="Link to this heading"></a></h2>
-<p>Prefer the async factory for request-scoped logging with dependency injection:</p>
+<p>Prefer the async dependency helper for request-scoped logging with dependency injection:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">FastAPI</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_async_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_request_logger</span>
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
 
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_logger</span><span class="p">():</span>
-    <span class="k">return</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">(</span><span class="s2">&quot;request&quot;</span><span class="p">)</span>
-
 <span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/users/</span><span class="si">{user_id}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_user</span><span class="p">(</span><span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">logger</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">get_logger</span><span class="p">)):</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_user</span><span class="p">(</span><span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">Depends</span><span class="p">(</span><span class="n">get_request_logger</span><span class="p">)):</span>
     <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User lookup&quot;</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="n">user_id</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">user_id</span><span class="p">}</span>
 </pre></div>

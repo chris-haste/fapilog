@@ -189,6 +189,36 @@
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;minimal&quot;</span><span class="p">)</span>     <span class="c1"># Backwards compatible default</span>
 </pre></div>
 </div>
+<section id="fastapi-one-liner">
+<h3>FastAPI one-liner<a class="headerlink" href="#fastapi-one-liner" title="Link to this heading"></a></h3>
+<p>Use the presets with <code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code> for FastAPI apps:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">FastAPI</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_request_logger</span><span class="p">,</span> <span class="n">setup_logging</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">))</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/users/</span><span class="si">{user_id}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_user</span><span class="p">(</span><span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">Depends</span><span class="p">(</span><span class="n">get_request_logger</span><span class="p">)):</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Fetching user&quot;</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="n">user_id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">user_id</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Automatic middleware registration is enabled by default. Disable it for manual control:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi.context</span><span class="w"> </span><span class="kn">import</span> <span class="n">RequestContextMiddleware</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggingMiddleware</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">,</span> <span class="n">auto_middleware</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span><span class="n">RequestContextMiddleware</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span><span class="n">LoggingMiddleware</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you need to attach the lifespan after app creation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+<span class="n">app</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">lifespan_context</span> <span class="o">=</span> <span class="n">setup_logging</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Set the lifespan before the application starts.</p>
+</section>
 <section id="preset-comparison">
 <h3>Preset Comparison<a class="headerlink" href="#preset-comparison" title="Link to this heading"></a></h3>
 <table class="docutils align-default">
