@@ -7,6 +7,18 @@ description: Commit staged changes, handle precommit iterations, push, and creat
 
 Commit staged changes, iterate through precommit checks, push, and create PR.
 
+## Relationship with tdd-python
+
+tdd-python stages files after passing focused tests + ruff + mypy on changed files.
+
+commit-pr then runs full precommit suite which adds:
+- Full test suite (via coverage-check)
+- Coverage enforcement (90%+)
+- Vulture (dead code)
+- Other project guardrails
+
+If precommit fails here, it's likely a regression or integration issue not caught by focused tests.
+
 ## On Invoke
 
 1. Run `git status` to check staged files
