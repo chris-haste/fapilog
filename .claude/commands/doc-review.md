@@ -18,7 +18,7 @@ Validate that repository documentation is accurate, complete, consistent, and fr
 
 **Exclude:**
 - `/docs/stories/` directory and all contents
-- Markdown files with ALL-CAPS names (e.g., `README.md`, `CONTRIBUTING.md`, `LICENSE.md`, `CHANGELOG.md`)
+- Markdown files with ALL-CAPS names (e.g., `CONTRIBUTING.md`, `LICENSE.md`, `CHANGELOG.md`), except `README.md` which should be included
 
 ## On Invoke
 
@@ -129,7 +129,7 @@ For each issue, report:
 
 2. **No fixes** - This skill produces a report only. Do not modify any files.
 
-3. **Respect scope** - Never report issues in excluded files (`/docs/stories/`, ALL-CAPS markdown files).
+3. **Respect scope** - Never report issues in excluded files (`/docs/stories/`, ALL-CAPS markdown files except `README.md`).
 
 4. **Severity accuracy** - P0 is reserved for issues that could cause real harm (security, data loss, critical errors). Do not inflate severity.
 
@@ -140,7 +140,7 @@ For each issue, report:
 ## What This Skill Does NOT Do
 
 - Modify or fix documentation
-- Review excluded files (stories, ALL-CAPS markdown)
+- Review excluded files (stories, ALL-CAPS markdown except README.md)
 - Report on code quality (only documentation quality)
 - Generate new documentation
 - Make subjective judgments without evidence
