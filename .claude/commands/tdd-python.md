@@ -57,6 +57,7 @@ Do NOT paste large templates from references unless it directly solves the curre
 - Tests are meaningful, isolated, deterministic, and clearly named
 - Refactor step completed while green (no leftover mess)
 - No secrets; inputs validated; errors not swallowed; repo conventions followed
+- If story contains a DoD section: all DoD items verified complete
 
 ## Allowed exceptions (must be explicit + safety net stated)
 
