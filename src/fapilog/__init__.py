@@ -23,6 +23,7 @@ from typing import Literal as _Literal
 from typing import cast as _cast
 
 from . import sinks as sinks
+from .builder import AsyncLoggerBuilder, LoggerBuilder
 from .core.events import LogEvent
 from .core.logger import AsyncLoggerFacade as _AsyncLoggerFacade
 from .core.logger import DrainResult
@@ -57,9 +58,6 @@ from .plugins.sinks.rotating_file import (
 )
 from .plugins.sinks.stdout_json import StdoutJsonSink as _StdoutJsonSink
 from .plugins.sinks.webhook import WebhookSinkConfig as _WebhookSinkConfig
-
-# Builder API (Story 10.7)
-from .builder import AsyncLoggerBuilder, LoggerBuilder
 
 # Public exports
 Settings = _Settings
