@@ -13,11 +13,10 @@ class TestLoggerBuilderBasic:
         builder = LoggerBuilder()
         logger = builder.build()
 
-        assert logger is not None
-        assert hasattr(logger, "info")
-        assert hasattr(logger, "error")
-        assert hasattr(logger, "debug")
-        assert hasattr(logger, "warning")
+        assert callable(logger.info)
+        assert callable(logger.error)
+        assert callable(logger.debug)
+        assert callable(logger.warning)
 
 
 class TestMethodChaining:
@@ -43,14 +42,8 @@ class TestMethodChaining:
         """Multiple chained methods work together."""
         from fapilog import LoggerBuilder
 
-        logger = (
-            LoggerBuilder()
-            .with_name("test")
-            .with_level("DEBUG")
-            .build()
-        )
-        assert logger is not None
-        assert hasattr(logger, "debug")
+        logger = LoggerBuilder().with_name("test").with_level("DEBUG").build()
+        assert callable(logger.debug)
 
 
 class TestPresetSupport:
@@ -69,21 +62,15 @@ class TestPresetSupport:
         from fapilog import LoggerBuilder
 
         logger = LoggerBuilder().with_preset("dev").build()
-        assert logger is not None
-        assert hasattr(logger, "debug")
+        assert callable(logger.debug)
 
     def test_preset_with_override(self):
         """Methods after preset override preset values."""
         from fapilog import LoggerBuilder
 
         # Dev preset sets DEBUG level, but we override to ERROR
-        logger = (
-            LoggerBuilder()
-            .with_preset("dev")
-            .with_level("ERROR")
-            .build()
-        )
-        assert logger is not None
+        logger = LoggerBuilder().with_preset("dev").with_level("ERROR").build()
+        assert callable(logger.error)
 
     def test_multiple_presets_raises_error(self):
         """Applying multiple presets raises ValueError."""
@@ -110,31 +97,23 @@ class TestFileSink:
         from fapilog import LoggerBuilder
 
         logger = LoggerBuilder().add_file("/tmp/logs").build()
-        assert logger is not None
+        assert callable(logger.info)
 
     def test_add_file_with_string_size(self):
         """add_file() supports Story 10.4 string formats for max_bytes."""
         from fapilog import LoggerBuilder
 
         # Should accept "10 MB" string format
-        logger = (
-            LoggerBuilder()
-            .add_file("/tmp/logs", max_bytes="10 MB")
-            .build()
-        )
-        assert logger is not None
+        logger = LoggerBuilder().add_file("/tmp/logs", max_bytes="10 MB").build()
+        assert callable(logger.info)
 
     def test_add_file_with_string_interval(self):
         """add_file() supports Story 10.4 string formats for interval."""
         from fapilog import LoggerBuilder
 
         # Should accept "daily" or "1h" string format
-        logger = (
-            LoggerBuilder()
-            .add_file("/tmp/logs", interval="daily")
-            .build()
-        )
-        assert logger is not None
+        logger = LoggerBuilder().add_file("/tmp/logs", interval="daily").build()
+        assert callable(logger.info)
 
     def test_add_file_requires_directory(self):
         """add_file() validates that directory is required."""
@@ -160,14 +139,14 @@ class TestStdoutSink:
         from fapilog import LoggerBuilder
 
         logger = LoggerBuilder().add_stdout().build()
-        assert logger is not None
+        assert callable(logger.info)
 
     def test_add_stdout_json_format(self):
         """add_stdout() with json format configures stdout_json sink."""
         from fapilog import LoggerBuilder
 
         logger = LoggerBuilder().add_stdout(format="json").build()
-        assert logger is not None
+        assert callable(logger.info)
 
     def test_add_stdout_pretty_convenience(self):
         """add_stdout_pretty() is convenience for pretty format."""
@@ -194,18 +173,16 @@ class TestHttpSink:
         from fapilog import LoggerBuilder
 
         logger = LoggerBuilder().add_http("https://logs.example.com").build()
-        assert logger is not None
+        assert callable(logger.info)
 
     def test_add_http_with_timeout_string(self):
         """add_http() supports Story 10.4 timeout strings."""
         from fapilog import LoggerBuilder
 
         logger = (
-            LoggerBuilder()
-            .add_http("https://logs.example.com", timeout="30s")
-            .build()
+            LoggerBuilder().add_http("https://logs.example.com", timeout="30s").build()
         )
-        assert logger is not None
+        assert callable(logger.info)
 
     def test_add_http_requires_endpoint(self):
         """add_http() validates that endpoint is required."""
@@ -231,7 +208,7 @@ class TestWebhookSink:
         from fapilog import LoggerBuilder
 
         logger = LoggerBuilder().add_webhook("https://webhook.example.com").build()
-        assert logger is not None
+        assert callable(logger.info)
 
     def test_add_webhook_requires_endpoint(self):
         """add_webhook() validates that endpoint is required."""
@@ -248,13 +225,8 @@ class TestMultipleSinks:
         """Multiple sinks can be configured together."""
         from fapilog import LoggerBuilder
 
-        logger = (
-            LoggerBuilder()
-            .add_stdout()
-            .add_file("/tmp/logs")
-            .build()
-        )
-        assert logger is not None
+        logger = LoggerBuilder().add_stdout().add_file("/tmp/logs").build()
+        assert callable(logger.info)
 
 
 class TestAsyncLoggerBuilder:
@@ -266,7 +238,7 @@ class TestAsyncLoggerBuilder:
         from fapilog import AsyncLoggerBuilder
 
         builder = AsyncLoggerBuilder()
-        assert builder is not None
+        assert isinstance(builder, AsyncLoggerBuilder)
 
     @pytest.mark.asyncio
     async def test_build_async_creates_async_logger(self):
@@ -274,8 +246,7 @@ class TestAsyncLoggerBuilder:
         from fapilog import AsyncLoggerBuilder
 
         logger = await AsyncLoggerBuilder().with_level("INFO").build_async()
-        assert logger is not None
-        assert hasattr(logger, "info")
+        assert callable(logger.info)
 
     @pytest.mark.asyncio
     async def test_async_builder_has_same_api(self):
@@ -293,7 +264,7 @@ class TestAsyncLoggerBuilder:
         from fapilog import AsyncLoggerBuilder
 
         logger = await AsyncLoggerBuilder().with_preset("dev").build_async()
-        assert logger is not None
+        assert callable(logger.info)
 
 
 class TestSecurityMethods:
@@ -316,18 +287,16 @@ class TestSecurityMethods:
             .with_redaction(fields=["password", "ssn", "api_key"])
             .build()
         )
-        assert logger is not None
+        assert callable(logger.info)
 
     def test_with_redaction_patterns(self):
         """with_redaction() configures pattern redaction."""
         from fapilog import LoggerBuilder
 
         logger = (
-            LoggerBuilder()
-            .with_redaction(patterns=["secret.*", "token.*"])
-            .build()
+            LoggerBuilder().with_redaction(patterns=["secret.*", "token.*"]).build()
         )
-        assert logger is not None
+        assert callable(logger.info)
 
 
 class TestContextMethods:
@@ -350,7 +319,7 @@ class TestContextMethods:
             .with_context(service="api", env="production", version="1.0.0")
             .build()
         )
-        assert logger is not None
+        assert callable(logger.info)
 
 
 class TestPluginMethods:
@@ -368,12 +337,8 @@ class TestPluginMethods:
         """with_enrichers() configures enricher plugins."""
         from fapilog import LoggerBuilder
 
-        logger = (
-            LoggerBuilder()
-            .with_enrichers("runtime_info", "context_vars")
-            .build()
-        )
-        assert logger is not None
+        logger = LoggerBuilder().with_enrichers("runtime_info", "context_vars").build()
+        assert callable(logger.info)
 
     def test_with_filters_returns_self(self):
         """with_filters() returns self for chaining."""
@@ -387,12 +352,8 @@ class TestPluginMethods:
         """with_filters() configures filter plugins."""
         from fapilog import LoggerBuilder
 
-        logger = (
-            LoggerBuilder()
-            .with_filters("level", "sampling")
-            .build()
-        )
-        assert logger is not None
+        logger = LoggerBuilder().with_filters("level", "sampling").build()
+        assert callable(logger.info)
 
 
 class TestPerformanceMethods:
@@ -433,4 +394,188 @@ class TestPerformanceMethods:
             .with_batch_timeout("2s")
             .build()
         )
-        assert logger is not None
+        assert callable(logger.info)
+
+    def test_with_batch_timeout_numeric(self):
+        """with_batch_timeout() accepts numeric values."""
+        from fapilog import LoggerBuilder
+
+        logger = LoggerBuilder().with_batch_timeout(1.5).build()
+        assert callable(logger.info)
+
+    def test_with_batch_timeout_invalid_format_raises_error(self):
+        """with_batch_timeout() raises ValueError for invalid format."""
+        from fapilog import LoggerBuilder
+
+        with pytest.raises(ValueError, match="Invalid duration format"):
+            LoggerBuilder().with_batch_timeout("invalid").build()
+
+
+class TestOptionalParameters:
+    """Test optional sink parameters for coverage."""
+
+    def test_add_file_with_max_files(self):
+        """add_file() accepts max_files parameter."""
+        from fapilog import LoggerBuilder
+
+        logger = LoggerBuilder().add_file("/tmp/logs", max_files=5).build()
+        assert callable(logger.info)
+
+    def test_add_file_with_compress(self):
+        """add_file() accepts compress parameter."""
+        from fapilog import LoggerBuilder
+
+        logger = LoggerBuilder().add_file("/tmp/logs", compress=True).build()
+        assert callable(logger.info)
+
+    def test_add_file_with_all_options(self):
+        """add_file() accepts all optional parameters together."""
+        from fapilog import LoggerBuilder
+
+        logger = (
+            LoggerBuilder()
+            .add_file(
+                "/tmp/logs",
+                max_bytes="50 MB",
+                interval="daily",
+                max_files=10,
+                compress=True,
+            )
+            .build()
+        )
+        assert callable(logger.info)
+
+    def test_add_http_with_headers(self):
+        """add_http() accepts headers parameter."""
+        from fapilog import LoggerBuilder
+
+        logger = (
+            LoggerBuilder()
+            .add_http(
+                "https://logs.example.com",
+                headers={"Authorization": "Bearer token"},
+            )
+            .build()
+        )
+        assert callable(logger.info)
+
+    def test_add_webhook_with_secret(self):
+        """add_webhook() accepts secret parameter."""
+        from fapilog import LoggerBuilder
+
+        logger = (
+            LoggerBuilder()
+            .add_webhook(
+                "https://webhook.example.com",
+                secret="shared-secret",
+            )
+            .build()
+        )
+        assert callable(logger.info)
+
+    def test_add_webhook_with_headers(self):
+        """add_webhook() accepts headers parameter."""
+        from fapilog import LoggerBuilder
+
+        logger = (
+            LoggerBuilder()
+            .add_webhook(
+                "https://webhook.example.com",
+                headers={"X-Custom": "value"},
+            )
+            .build()
+        )
+        assert callable(logger.info)
+
+    def test_add_webhook_with_all_options(self):
+        """add_webhook() accepts all optional parameters together."""
+        from fapilog import LoggerBuilder
+
+        logger = (
+            LoggerBuilder()
+            .add_webhook(
+                "https://webhook.example.com",
+                secret="shared-secret",
+                timeout="10s",
+                headers={"X-Custom": "value"},
+            )
+            .build()
+        )
+        assert callable(logger.info)
+
+
+class TestValidationErrors:
+    """Test validation error paths."""
+
+    def test_build_invalid_config_raises_error(self):
+        """build() raises ValueError for invalid Settings configuration."""
+        from fapilog import LoggerBuilder
+
+        # Invalid log level should cause Settings validation to fail
+        builder = LoggerBuilder()
+        builder._config["core"] = {"log_level": "INVALID_LEVEL"}
+
+        with pytest.raises(ValueError, match="Invalid builder configuration"):
+            builder.build()
+
+    @pytest.mark.asyncio
+    async def test_build_async_invalid_config_raises_error(self):
+        """build_async() raises ValueError for invalid Settings configuration."""
+        from fapilog import AsyncLoggerBuilder
+
+        # Invalid log level should cause Settings validation to fail
+        builder = AsyncLoggerBuilder()
+        builder._config["core"] = {"log_level": "INVALID_LEVEL"}
+
+        with pytest.raises(ValueError, match="Invalid builder configuration"):
+            await builder.build_async()
+
+    def test_invalid_preset_raises_error(self):
+        """Invalid preset name raises ValueError."""
+        from fapilog import LoggerBuilder
+
+        with pytest.raises(ValueError, match="Invalid preset"):
+            LoggerBuilder().with_preset("nonexistent_preset").build()
+
+
+class TestRedactionBranches:
+    """Test redaction configuration branches."""
+
+    def test_with_redaction_fields_only(self):
+        """with_redaction() with fields only enables field_mask redactor."""
+        from fapilog import LoggerBuilder
+
+        builder = LoggerBuilder().with_redaction(fields=["password"])
+        assert "field_mask" in builder._config.get("core", {}).get("redactors", [])
+
+    def test_with_redaction_patterns_only(self):
+        """with_redaction() with patterns only enables regex_mask redactor."""
+        from fapilog import LoggerBuilder
+
+        builder = LoggerBuilder().with_redaction(patterns=["secret.*"])
+        assert "regex_mask" in builder._config.get("core", {}).get("redactors", [])
+
+    def test_with_redaction_both_fields_and_patterns(self):
+        """with_redaction() with both enables both redactors."""
+        from fapilog import LoggerBuilder
+
+        builder = LoggerBuilder().with_redaction(
+            fields=["password"],
+            patterns=["secret.*"],
+        )
+        redactors = builder._config.get("core", {}).get("redactors", [])
+        assert "field_mask" in redactors
+        assert "regex_mask" in redactors
+
+    def test_with_redaction_called_multiple_times(self):
+        """with_redaction() can be called multiple times without duplicates."""
+        from fapilog import LoggerBuilder
+
+        builder = (
+            LoggerBuilder()
+            .with_redaction(fields=["password"])
+            .with_redaction(fields=["ssn"])  # Add more fields
+        )
+        redactors = builder._config.get("core", {}).get("redactors", [])
+        # Should only have one field_mask entry
+        assert redactors.count("field_mask") == 1
