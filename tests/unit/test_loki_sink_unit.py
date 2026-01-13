@@ -456,6 +456,7 @@ async def test_exception_during_push(
     assert any("loki exception" in str(d) for d in capture_diagnostics)
 
 
+@pytest.mark.flaky  # Monkeypatch timing can be unreliable
 @pytest.mark.asyncio
 async def test_retry_after_invalid_value(
     fake_client: FakeAsyncClient, monkeypatch

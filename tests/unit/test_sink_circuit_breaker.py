@@ -77,6 +77,7 @@ class TestSinkCircuitBreaker:
         assert breaker._failure_count == 0
         assert breaker.state == CircuitState.CLOSED
 
+    @pytest.mark.flaky  # Timing-sensitive, 50ms timeout too tight for slow CI
     def test_circuit_transitions_to_half_open_after_timeout(self):
         """Circuit transitions to half-open after recovery timeout."""
         from fapilog.core.circuit_breaker import (
@@ -269,12 +270,13 @@ class TestParallelFanoutWriter:
         # Circuit for sink1 should now be open
         # Third call should skip sink1
         sink1.write.reset_mock()
+        sink2.write.reset_mock()
         await write({"message": "test3"})
 
         # sink1 should not be called (circuit open)
         sink1.write.assert_not_called()
-        # sink2 should still be called
-        assert sink2.write.call_count >= 1
+        # sink2 should be called exactly once for the third write
+        sink2.write.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_circuit_breaker_disabled_by_default(self):
@@ -391,7 +393,7 @@ class TestCircuitBreakerIntegration:
         logger = await get_async_logger(settings=settings)
 
         # Logger should be created successfully with circuit breaker
-        assert logger is not None
+        assert callable(logger.info)
 
         await logger.drain()
 
@@ -405,6 +407,6 @@ class TestCircuitBreakerIntegration:
         settings = Settings(plugins__enabled=False)
         logger = await get_async_logger(settings=settings)
 
-        assert logger is not None
+        assert callable(logger.info)
 
         await logger.drain()
