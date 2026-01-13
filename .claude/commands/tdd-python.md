@@ -19,6 +19,7 @@ description: Enforced TDD for Python changes (red-green-refactor). Tests-first w
 3. GREEN: minimal code to pass
 4. Run focused tests => must PASS
 5. REFACTOR: small cleanup only while GREEN
+   - Run `ruff check --fix <changed-files>` and `ruff format <changed-files>`
 6. Run focused tests again => must PASS
 
 ## What "tests-first" means in practice
@@ -50,13 +51,23 @@ Cover the meaningful boundaries for the changed behavior:
 
 Do NOT paste large templates from references unless it directly solves the current task.
 
-## "Done" gate (before final response / before staging completion)
+## "Done" gate (before staging)
 
+Quality checks on changed files:
+- Focused tests pass
+- `ruff check` + `ruff format --check` pass
+- `mypy <changed-files>` passes
+
+Verify:
 - Tests exist for new/changed behavior (or explicit exception below)
-- Focused tests pass (and full suite if DoD/risk requires)
 - Tests are meaningful, isolated, deterministic, and clearly named
-- Refactor step completed while green (no leftover mess)
-- No secrets; inputs validated; errors not swallowed; repo conventions followed
+- No secrets; inputs validated; errors not swallowed
+
+Then stage: `git add <changed-files>`
+
+Do NOT commit or push — handoff to commit-pr for that.
+
+Deferred to commit-pr/CI: full test suite, coverage, vulture
 
 ## Allowed exceptions (must be explicit + safety net stated)
 
