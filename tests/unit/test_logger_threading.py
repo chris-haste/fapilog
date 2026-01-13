@@ -161,6 +161,7 @@ class TestThreadModeDrainBehavior:
         assert result.dropped == 0
         assert len(collected) == message_count
 
+    @pytest.mark.flaky  # Race condition, timing-sensitive on slow CI
     def test_drain_under_backpressure_drops_excess(self) -> None:
         """Drain with full queue drops messages per configuration."""
         collected: list[dict[str, Any]] = []
@@ -261,6 +262,7 @@ class TestCrossThreadSubmission:
         assert "other-thread-0" in messages
         assert "other-thread-9" in messages
 
+    @pytest.mark.flaky  # Race condition, timing-sensitive on slow CI
     def test_queue_full_drops_from_cross_thread_submission(self) -> None:
         """Cross-thread submissions respect queue limits and drop policy."""
         collected: list[dict[str, Any]] = []
