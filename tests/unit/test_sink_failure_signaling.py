@@ -526,3 +526,145 @@ class TestRoutingWriterSerializedPath:
             )
             mock_fallback.assert_called_once()
 
+    @pytest.mark.asyncio
+    async def test_routing_writer_contains_fallback_exception(self):
+        """Routing writer should contain exceptions from fallback handler."""
+        from fapilog.core.routing import RoutingSinkWriter
+
+        mock_sink = MagicMock()
+        mock_sink.name = "failing_sink"
+
+        async def failing_write(entry):
+            return False
+
+        mock_sink.write = failing_write
+        mock_sink.write_serialized = AsyncMock(return_value=None)
+
+        writer = RoutingSinkWriter(
+            sinks=[mock_sink],
+            rules=[({"INFO"}, ["failing_sink"])],
+            fallback_sink_names=[],
+        )
+
+        with patch(
+            "fapilog.plugins.sinks.fallback.handle_sink_write_failure",
+            side_effect=RuntimeError("fallback failed"),
+        ):
+            # Should not raise - fallback exception should be contained
+            await writer.write({"level": "INFO", "message": "test"})
+
+
+class TestFallbackExceptionContainment:
+    """Test that exceptions from fallback handler are contained."""
+
+    @pytest.mark.asyncio
+    async def test_fanout_writer_contains_fallback_exception_on_false(self):
+        """Fanout writer should contain fallback exceptions when sink returns False."""
+        from fapilog import _fanout_writer
+
+        mock_sink = MagicMock()
+        mock_sink.name = "failing_sink"
+
+        async def failing_write(entry):
+            return False
+
+        mock_sink.write = failing_write
+        mock_sink.write_serialized = AsyncMock(return_value=None)
+
+        write_fn, _ = _fanout_writer([mock_sink])
+
+        with patch(
+            "fapilog.plugins.sinks.fallback.handle_sink_write_failure",
+            side_effect=RuntimeError("fallback failed"),
+        ):
+            # Should not raise - exception should be contained
+            await write_fn({"message": "test"})
+
+    @pytest.mark.asyncio
+    async def test_fanout_writer_serialized_contains_fallback_exception(self):
+        """Fanout writer write_serialized should contain fallback exceptions."""
+        from fapilog import _fanout_writer
+
+        mock_sink = MagicMock()
+        mock_sink.name = "failing_sink"
+        mock_sink.write = AsyncMock(return_value=None)
+
+        async def failing_write_serialized(view):
+            return False
+
+        mock_sink.write_serialized = failing_write_serialized
+
+        _, write_serialized_fn = _fanout_writer([mock_sink])
+
+        with patch(
+            "fapilog.plugins.sinks.fallback.handle_sink_write_failure",
+            side_effect=RuntimeError("fallback failed"),
+        ):
+            # Should not raise
+            await write_serialized_fn(b'{"message": "test"}')
+
+    @pytest.mark.asyncio
+    async def test_fanout_writer_serialized_circuit_breaker_on_false(self):
+        """Fanout writer write_serialized should record circuit breaker failure on False."""
+        from fapilog import _fanout_writer
+        from fapilog.core.circuit_breaker import SinkCircuitBreakerConfig
+
+        mock_sink = MagicMock()
+        mock_sink.name = "failing_sink"
+        mock_sink.write = AsyncMock(return_value=None)
+
+        async def failing_write_serialized(view):
+            return False
+
+        mock_sink.write_serialized = failing_write_serialized
+
+        config = SinkCircuitBreakerConfig(enabled=True, failure_threshold=2)
+        _, write_serialized_fn = _fanout_writer([mock_sink], circuit_config=config)
+
+        with patch(
+            "fapilog.plugins.sinks.fallback.handle_sink_write_failure"
+        ) as mock_fallback:
+            mock_fallback.return_value = None
+            # Two failures should open the circuit
+            await write_serialized_fn(b'{"message": "test"}')
+            await write_serialized_fn(b'{"message": "test"}')
+            assert mock_fallback.call_count == 2
+
+            # Third call should be skipped (circuit open)
+            mock_fallback.reset_mock()
+            await write_serialized_fn(b'{"message": "test"}')
+            mock_fallback.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_fanout_writer_serialized_circuit_breaker_on_exception(self):
+        """Fanout writer write_serialized should record circuit breaker failure on exception."""
+        from fapilog import _fanout_writer
+        from fapilog.core.circuit_breaker import SinkCircuitBreakerConfig
+
+        mock_sink = MagicMock()
+        mock_sink.name = "failing_sink"
+        mock_sink.write = AsyncMock(return_value=None)
+
+        async def failing_write_serialized(view):
+            raise SinkWriteError("write failed", sink_name="failing_sink")
+
+        mock_sink.write_serialized = failing_write_serialized
+
+        config = SinkCircuitBreakerConfig(enabled=True, failure_threshold=2)
+        _, write_serialized_fn = _fanout_writer([mock_sink], circuit_config=config)
+
+        with patch(
+            "fapilog.plugins.sinks.fallback.handle_sink_write_failure"
+        ) as mock_fallback:
+            mock_fallback.return_value = None
+            # Two failures should open the circuit
+            await write_serialized_fn(b'{"message": "test"}')
+            await write_serialized_fn(b'{"message": "test"}')
+            assert mock_fallback.call_count == 2
+
+            # Third call should be skipped (circuit open)
+            mock_fallback.reset_mock()
+            await write_serialized_fn(b'{"message": "test"}')
+            mock_fallback.assert_not_called()
+
+
