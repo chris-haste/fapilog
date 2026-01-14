@@ -1,9 +1,15 @@
 ---
 name: tdd-python
 description: Use when implementing features, fixing bugs, writing new code, or making changes to Python files. Enforces red-green-refactor TDD workflow with tests-first approach.
+version: 1.0.0
+license: Apache-2.0
 ---
 
 # TDD Python (Lean + Enforced)
+
+**Author:** Chris H
+**GitHub:** https://github.com/chris-haste
+**LinkedIn:** https://www.linkedin.com/in/chaste/
 
 ## When to Apply
 
