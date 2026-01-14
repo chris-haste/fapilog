@@ -25,11 +25,11 @@ jobs:
       - name: Generate SBOM (cyclonedx)
         run: |
           pip install cyclonedx-bom
-          cyclonedx-py -o sbom.json || true
+          cyclonedx-py environment -o sbom.json
       - name: Vulnerability Scan (pip-audit)
         run: |
           pip install pip-audit
-          pip-audit -f json -o audit.json || true
+          pip-audit -f json -o audit.json
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -37,4 +37,3 @@ jobs:
           path: |
             sbom.json
             audit.json
-
