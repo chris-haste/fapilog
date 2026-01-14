@@ -44,14 +44,26 @@ jobs:
     - name: Check for potential secrets
       run: |
         echo "🔍 Checking for potential secrets in workflows..."
-        if grep -r -i "password\|secret\|key\|token" .github/workflows/ --exclude="*.md"; then
-          echo "⚠️  Warning: Potential secrets found in workflow files"
-          echo "Please review the following files:"
-          grep -r -i "password\|secret\|key\|token" .github/workflows/ --exclude="*.md" || true
-          echo "This is just a warning - please ensure no actual secrets are committed"
-        else
-          echo "✅ No potential secrets found in workflow files"
-        fi
+        python - <<'PY'
+import pathlib
+import re
+
+repo_path = pathlib.Path(".github/workflows")
+pattern = re.compile(r"\b(password|secret|key|token)\b", re.I)
+hits = []
+
+for workflow in repo_path.glob("*.yml"):
+    for lineno, line in enumerate(workflow.read_text().splitlines(), start=1):
+        if pattern.search(line) and "secrets." not in line:
+            hits.append(f"{workflow}:{lineno}:{line.strip()}")
+
+if hits:
+    print("⚠️  Potential secrets found:")
+    print("\n".join(hits))
+    raise SystemExit(1)
+else:
+    print("✅ No potential secrets found in workflow files")
+PY
     
     - name: Validate required jobs exist
       run: |
