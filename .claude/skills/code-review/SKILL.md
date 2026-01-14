@@ -83,8 +83,8 @@ This gives the user immediate visibility that the skill is active.
     - Tests written and passing?
     - `ruff check` and `ruff format --check` pass?
     - **Run `mypy <changed-files>`** - must pass with no errors
-    - **Run `diff-cover coverage.xml --fail-under=80`** - changed lines must have coverage
-    - Tests have strong assertions (no weak assertion patterns)?
+    - **Run `python scripts/check_coverage.py`** - 90% minimum, no regressions
+    - **Run `python scripts/lint_test_assertions.py tests/`** - no weak assertions
   - **Documentation**: Docstrings where needed? README/CHANGELOG updated if required?
 - Flag any unmet DoD items as P1 issues
 
@@ -138,8 +138,8 @@ If user mentions precommit modified files:
 ruff check <changed-files>
 ruff format --check <changed-files>
 mypy <changed-files>
-pytest --cov=src --cov-report=xml <relevant-test-files> -v
-diff-cover coverage.xml --fail-under=80
+python scripts/check_coverage.py  # 90% minimum
+python scripts/lint_test_assertions.py tests/  # no weak assertions
 ```
 
 ### Next Steps
@@ -170,8 +170,8 @@ All Definition of Done items verified.
 # Final checks before PR:
 ruff check <changed-files>
 mypy <changed-files>
-pytest --cov=src --cov-report=xml <relevant-test-files> -v
-diff-cover coverage.xml --fail-under=80
+python scripts/check_coverage.py  # 90% minimum
+python scripts/lint_test_assertions.py tests/  # no weak assertions
 ```
 ```
 
