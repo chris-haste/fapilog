@@ -105,10 +105,10 @@ Quality checks on changed files:
   - All new functions/methods must have type annotations (parameters and return types)
   - Fix any type errors before staging (don't ignore with `# type: ignore` unless unavoidable)
   - If mypy reports errors, resolve them before proceeding
-- **Coverage (90% minimum, no regressions)**: `python scripts/check_coverage.py`
-  - Overall coverage must remain at or above 90%
-  - New code must have tests - coverage cannot drop
-  - If coverage check fails, add tests for uncovered lines before proceeding
+- **Coverage on changed lines**: `pytest --cov=src/fapilog --cov-report=xml && diff-cover coverage.xml --fail-under=90`
+  - Changed/new lines must have test coverage
+  - If diff-cover fails, add tests for uncovered lines before proceeding
+  - Full 90% minimum enforced by CI pipeline
 
 Verify:
 - Tests exist for new/changed behavior (or explicit exception below)
