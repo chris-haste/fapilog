@@ -7,7 +7,7 @@ license: Apache-2.0
 
 # Story Creation
 
-**Author:** Chris H
+**Author:** Chris Haste
 **GitHub:** https://github.com/chris-haste
 **LinkedIn:** https://www.linkedin.com/in/chaste/
 
