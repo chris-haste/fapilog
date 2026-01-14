@@ -13,6 +13,22 @@ description: Use when implementing features, fixing bugs, writing new code, or m
 - User asks to write or change Python code
 - Any request that will result in production code changes
 
+## Status Indicator (Required)
+
+Always output a status line at the start of your response:
+
+- If TDD applies: **"🧪 Starting TDD workflow..."**
+- If TDD does not apply: **"ℹ️ TDD not applicable for this request"**
+
+This gives the user immediate visibility into whether the skill is active.
+
+## Story Readiness Gate
+
+**If implementing a story:** Before starting, check the story's `**Status:**` field.
+
+- If status is `Ready` → proceed with implementation
+- If status is NOT `Ready` → **ABORT** and inform the user: "Story status is '{status}', expected 'Ready'. Please ensure the story has been reviewed before implementation."
+
 ## Non-negotiable Gates
 
 - No production code without a failing test that demands it (RED first).
@@ -71,6 +87,8 @@ Verify:
 - No secrets; inputs validated; errors not swallowed
 
 Then stage: `git add <changed-files>`
+
+**If implementing a story:** Update the story's `**Status:**` field to `Ready for Code Review`.
 
 Do NOT commit or push - user must explicitly request /commit-pr for that.
 

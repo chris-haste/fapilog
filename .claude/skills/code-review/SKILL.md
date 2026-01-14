@@ -15,6 +15,21 @@ Tech Lead review of changes against story acceptance criteria.
 - User mentions they're done implementing and want feedback
 - User asks if changes are ready for PR
 
+## Status Indicator (Required)
+
+Always output a status line at the start of your response:
+
+**"📋 Starting code review..."**
+
+This gives the user immediate visibility that the skill is active.
+
+## Story Status Gate
+
+**If reviewing against a story:** After loading the story, check the `**Status:**` field.
+
+- If status is `Ready for Code Review` → proceed with review
+- If status is NOT `Ready for Code Review` → **ABORT** and inform the user: "Story status is '{status}', expected 'Ready for Code Review'. Please ensure implementation is complete before code review."
+
 ## On Activation
 
 1. Ask: "Which story should I review against?" (expect path like `docs/stories/story-10-5.md` or story number)
@@ -121,7 +136,7 @@ All acceptance criteria met.
 ```
 
 Then:
-1. Update story Status to "Complete"
+1. Update the story's `**Status:**` field to `Complete`
 2. Check off DoD items that are verified
 3. Tell user: "Updated story status to Complete. Ready for /commit-pr"
 

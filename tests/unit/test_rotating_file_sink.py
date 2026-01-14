@@ -168,30 +168,34 @@ async def test_text_mode_and_collision_suffix(
 
 
 @pytest.mark.asyncio
-@pytest.mark.flaky  # Monkeypatch timing can be unreliable across Python versions
 async def test_timestamp_collision_suffix_with_datetime_monkeypatch(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # Force datetime.now(UTC) to return the same second twice to trigger suffix -1
+    """Test collision suffix when files are created in the same second.
+
+    This test patches datetime to always return the same timestamp,
+    forcing the collision suffix (-1, -2, etc.) to be used when
+    multiple files are created.
+    """
     from datetime import UTC as _REAL_UTC
     from datetime import datetime as _REAL_DT
 
+    # Always return the same timestamp to force collision
+    fixed_time = _REAL_DT(2025, 1, 1, 12, 0, 0, tzinfo=_REAL_UTC)
+
     class _FakeDT:
+        """Fake datetime that always returns the same timestamp."""
+
         UTC = _REAL_UTC
 
-        def __init__(self) -> None:
-            self.calls = 0
+        @staticmethod
+        def now(tz=None):  # type: ignore[no-untyped-def]
+            # Always return the same second to force collision suffix
+            return fixed_time.replace(tzinfo=tz)
 
-        def now(self, tz):  # type: ignore[no-untyped-def]
-            # Return same second for first two calls, then +2s
-            self.calls += 1
-            if self.calls <= 2:
-                return _REAL_DT(2025, 1, 1, 12, 0, 0, tzinfo=tz)
-            return _REAL_DT(2025, 1, 1, 12, 0, 2, tzinfo=tz)
-
-    fake_dt = _FakeDT()
+    # Apply monkeypatch before creating sink
     monkeypatch.setattr(
-        "fapilog.plugins.sinks.rotating_file.datetime", fake_dt, raising=True
+        "fapilog.plugins.sinks.rotating_file.datetime", _FakeDT, raising=True
     )
 
     cfg = RotatingFileSinkConfig(
@@ -212,9 +216,12 @@ async def test_timestamp_collision_suffix_with_datetime_monkeypatch(
         await sink.stop()
 
     names = sorted(p.name for p in tmp_path.iterdir() if p.is_file())
-    # Expect two files in same timestamp, second with -1 suffix
-    assert any(n.endswith(".jsonl") for n in names)
-    assert any("-1.jsonl" in n for n in names)
+    # Expect files - at least one should end with .jsonl
+    assert any(n.endswith(".jsonl") for n in names), f"No .jsonl files found: {names}"
+    # When timestamps collide, suffix should be added
+    assert any("-1.jsonl" in n for n in names), (
+        f"Expected collision suffix (-1) in filenames: {names}"
+    )
 
 
 @pytest.mark.asyncio
@@ -752,8 +759,11 @@ async def test_rotate_active_file_no_active_file(tmp_path: Path) -> None:
 
     # Should handle gracefully and open new file
     await sink._rotate_active_file()
-    assert sink._active_file is not None
+    assert sink._active_file is not None  # noqa: WA003
+    assert hasattr(sink._active_file, "write")  # Verify it's a writable file object
     assert sink._active_path is not None  # noqa: WA003
+    # Verify the file was actually created on disk
+    assert sink._active_path.exists()
 
 
 @pytest.mark.asyncio
