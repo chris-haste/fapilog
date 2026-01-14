@@ -229,14 +229,16 @@ class TestSinkWrite:
         assert output.endswith("\n")
 
     @pytest.mark.asyncio
-    async def test_write_swallows_errors(self) -> None:
+    async def test_write_raises_sink_write_error_on_failure(self) -> None:
+        from fapilog.core.errors import SinkWriteError
+
         sink = StdoutPrettySink(colors=False)
         entry = {"level": "INFO", "message": "test"}
-        with patch.object(
-            sink, "_format_pretty", side_effect=RuntimeError("boom")
-        ), patch("fapilog.plugins.sinks.stdout_pretty.diagnostics.warn") as warn:
-            await sink.write(entry)
-        warn.assert_called_once()
+        with patch.object(sink, "_format_pretty", side_effect=RuntimeError("boom")):
+            with pytest.raises(SinkWriteError) as exc_info:
+                await sink.write(entry)
+        assert exc_info.value.context.plugin_name == "stdout_pretty"
+        assert exc_info.value.__cause__ is not None
 
 
 class TestTtyDetection:
