@@ -429,29 +429,37 @@
 </section>
 <section id="monitoring">
 <h2>Monitoring<a class="headerlink" href="#monitoring" title="Link to this heading"></a></h2>
-<section id="pipeline-metrics">
-<h3>Pipeline Metrics<a class="headerlink" href="#pipeline-metrics" title="Link to this heading"></a></h3>
-<p>Monitor pipeline performance:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_pipeline_metrics</span>
+<section id="enabling-metrics">
+<h3>Enabling Metrics<a class="headerlink" href="#enabling-metrics" title="Link to this heading"></a></h3>
+<p>Enable internal metrics collection via settings:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span><span class="p">,</span> <span class="n">Settings</span>
 
-<span class="n">metrics</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_pipeline_metrics</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Queue utilization: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">queue_utilization</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing rate: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">messages_per_second</span><span class="si">}</span><span class="s2">/s&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Batch efficiency: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">batch_efficiency</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span><span class="n">core__enable_metrics</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>Or via environment variable:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__ENABLE_METRICS</span><span class="o">=</span><span class="nb">true</span>
+</pre></div>
+</div>
+<p>When enabled, fapilog records:</p>
+<ul class="simple">
+<li><p>Queue high-watermark</p></li>
+<li><p>Events submitted, processed, and dropped</p></li>
+<li><p>Flush latency</p></li>
+<li><p>Sink errors</p></li>
+<li><p>Plugin timing</p></li>
+</ul>
+<p>Metrics can be exported to Prometheus when <code class="docutils literal notranslate"><span class="pre">fapilog[metrics]</span></code> is installed. See <a class="reference internal" href="metrics.html"><span class="std std-doc">Metrics</span></a> for details.</p>
 </section>
 <section id="health-checks">
 <h3>Health Checks<a class="headerlink" href="#health-checks" title="Link to this heading"></a></h3>
-<p>Check pipeline health:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_pipeline_health</span>
-
-<span class="n">health</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_pipeline_health</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Pipeline status: </span><span class="si">{</span><span class="n">health</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Active workers: </span><span class="si">{</span><span class="n">health</span><span class="o">.</span><span class="n">active_workers</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Queue health: </span><span class="si">{</span><span class="n">health</span><span class="o">.</span><span class="n">queue_health</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<p>Sinks and plugins implement optional <code class="docutils literal notranslate"><span class="pre">health_check()</span></code> methods:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check sink health directly</span>
+<span class="n">is_healthy</span> <span class="o">=</span> <span class="k">await</span> <span class="n">my_sink</span><span class="o">.</span><span class="n">health_check</span><span class="p">()</span>
 </pre></div>
 </div>
+<p>For FastAPI applications, consider exposing health via a dedicated endpoint that checks your logging infrastructure.</p>
 </section>
 </section>
 <section id="next-steps">

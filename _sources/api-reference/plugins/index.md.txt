@@ -10,6 +10,7 @@ sinks
 enrichers
 redactors
 processors
+filters
 ```
 
 ## Overview
@@ -28,26 +29,52 @@ fapilog includes several built-in plugins that ship with the library:
 
 ### Sinks
 
-| Sink | Description |
-|------|-------------|
-| `StdoutJsonSink` | Outputs JSON to stdout |
-| `RotatingFileSink` | Writes to rotating log files |
-| `HttpSink` | Sends logs to HTTP endpoints |
+| Sink | Name | Description |
+|------|------|-------------|
+| `StdoutJsonSink` | `stdout_json` | JSON lines to stdout |
+| `StdoutPrettySink` | `stdout_pretty` | Human-readable console output (TTY) |
+| `RotatingFileSink` | `rotating_file` | Size/time-based rotation with compression |
+| `HttpSink` | `http` | POST to HTTP endpoints with retry |
+| `WebhookSink` | `webhook` | Webhook delivery with HMAC signing |
+| `CloudWatchSink` | `cloudwatch` | AWS CloudWatch Logs (requires `boto3`) |
+| `LokiSink` | `loki` | Grafana Loki log aggregation |
+| `PostgresSink` | `postgres` | PostgreSQL database (requires `asyncpg`) |
+| `AuditSink` | `audit` | Compliance audit logging |
+| `RoutingSink` | `routing` | Level-based routing to multiple sinks |
 
 ### Enrichers
 
-| Enricher | Description |
-|----------|-------------|
-| `RuntimeInfoEnricher` | Adds Python version, PID, hostname |
-| `ContextVarsEnricher` | Adds context variables |
+| Enricher | Name | Description |
+|----------|------|-------------|
+| `RuntimeInfoEnricher` | `runtime_info` | Adds service, env, version, host, pid, python |
+| `ContextVarsEnricher` | `context_vars` | Adds request_id, user_id from ContextVar |
+| `KubernetesEnricher` | `kubernetes` / `k8s` | Adds pod, namespace, node from K8s downward API |
 
 ### Redactors
 
-| Redactor | Description |
-|----------|-------------|
-| `FieldMaskRedactor` | Masks specific field names |
-| `RegexMaskRedactor` | Masks values matching regex patterns |
-| `UrlCredentialsRedactor` | Strips credentials from URLs |
+| Redactor | Name | Description |
+|----------|------|-------------|
+| `FieldMaskRedactor` | `field_mask` | Masks specific field names |
+| `RegexMaskRedactor` | `regex_mask` | Masks values matching regex patterns |
+| `UrlCredentialsRedactor` | `url_credentials` | Strips credentials from URLs |
+
+### Filters
+
+| Filter | Name | Description |
+|--------|------|-------------|
+| `LevelFilter` | `level` | Drop events below threshold |
+| `SamplingFilter` | `sampling` | Keep a random percentage of events |
+| `RateLimitFilter` | `rate_limit` | Token bucket rate limiter |
+| `AdaptiveSamplingFilter` | `adaptive_sampling` | Dynamic volume-based sampling |
+| `TraceSamplingFilter` | `trace_sampling` | Trace context-based sampling |
+| `FirstOccurrenceFilter` | `first_occurrence` | Track unique message patterns |
+
+### Processors
+
+| Processor | Name | Description |
+|-----------|------|-------------|
+| `ZeroCopyProcessor` | `zero_copy` | Zero-copy optimization for throughput |
+| `SizeGuardProcessor` | `size_guard` | Truncate or drop oversized events |
 
 ## Plugin Configuration
 
