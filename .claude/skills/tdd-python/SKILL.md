@@ -22,6 +22,13 @@ Always output a status line at the start of your response:
 
 This gives the user immediate visibility into whether the skill is active.
 
+## Story Readiness Gate
+
+**If implementing a story:** Before starting, check the story's `**Status:**` field.
+
+- If status is `Ready` → proceed with implementation
+- If status is NOT `Ready` → **ABORT** and inform the user: "Story status is '{status}', expected 'Ready'. Please ensure the story has been reviewed before implementation."
+
 ## Non-negotiable Gates
 
 - No production code without a failing test that demands it (RED first).
