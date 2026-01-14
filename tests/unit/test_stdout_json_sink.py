@@ -101,6 +101,7 @@ async def test_stdout_json_sink_raises_sink_write_error_on_failure() -> None:
         with pytest.raises(SinkWriteError) as exc_info:
             await sink.write({"x": 1})
         assert exc_info.value.context.plugin_name == "stdout_json"
-        assert exc_info.value.__cause__ is not None
+        assert isinstance(exc_info.value.__cause__, Exception)
+        assert "BrokenBuffer" in str(exc_info.value.__cause__)
     finally:
         sys.stdout = orig  # type: ignore[assignment]

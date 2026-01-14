@@ -238,7 +238,7 @@ class TestSinkWrite:
             with pytest.raises(SinkWriteError) as exc_info:
                 await sink.write(entry)
         assert exc_info.value.context.plugin_name == "stdout_pretty"
-        assert exc_info.value.__cause__ is not None
+        assert isinstance(exc_info.value.__cause__, RuntimeError)
 
 
 class TestTtyDetection:
