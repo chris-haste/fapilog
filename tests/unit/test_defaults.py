@@ -74,10 +74,13 @@ class TestIsTtyEnvironment:
 
 
 class TestDefaultLogLevelIntegration:
+    """Test Story 10.6 defaults (with auto_detect=False to isolate behavior)."""
+
     def test_default_log_level_uses_tty(self) -> None:
         with patch("fapilog.core.defaults.is_ci_environment", return_value=False):
             with patch("fapilog.core.defaults.is_tty_environment", return_value=True):
-                logger = get_logger()
+                # Use auto_detect=False to test Story 10.6 defaults in isolation
+                logger = get_logger(auto_detect=False)
                 try:
                     assert logger._level_gate is None  # noqa: SLF001
                 finally:
@@ -86,7 +89,7 @@ class TestDefaultLogLevelIntegration:
     def test_default_log_level_non_tty(self) -> None:
         with patch("fapilog.core.defaults.is_ci_environment", return_value=False):
             with patch("fapilog.core.defaults.is_tty_environment", return_value=False):
-                logger = get_logger()
+                logger = get_logger(auto_detect=False)
                 try:
                     assert logger._level_gate == LEVEL_PRIORITY["INFO"]  # noqa: SLF001
                 finally:
@@ -95,7 +98,7 @@ class TestDefaultLogLevelIntegration:
     def test_ci_overrides_tty_default(self) -> None:
         with patch("fapilog.core.defaults.is_ci_environment", return_value=True):
             with patch("fapilog.core.defaults.is_tty_environment", return_value=True):
-                logger = get_logger()
+                logger = get_logger(auto_detect=False)
                 try:
                     assert logger._level_gate == LEVEL_PRIORITY["INFO"]  # noqa: SLF001
                 finally:
