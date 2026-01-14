@@ -109,6 +109,9 @@ Quality checks on changed files:
   - Changed/new lines must have test coverage
   - If diff-cover fails, add tests for uncovered lines before proceeding
   - Full 90% minimum enforced by CI pipeline
+- **Dead code**: `vulture src/ tests/` - no unused code
+- **Pydantic v2 only**: `python scripts/check_pydantic_v1.py` - no deprecated v1 syntax
+- **Settings descriptions**: `python scripts/check_settings_descriptions.py --min-length 15` (if touching Settings classes)
 
 Verify:
 - Tests exist for new/changed behavior (or explicit exception below)

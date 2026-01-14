@@ -85,6 +85,9 @@ This gives the user immediate visibility that the skill is active.
     - **Run `mypy <changed-files>`** - must pass with no errors
     - **Run `diff-cover coverage.xml --fail-under=90`** - changed lines must have coverage
     - **Run `python scripts/lint_test_assertions.py tests/`** - no weak assertions
+    - **Run `vulture src/ tests/`** - no dead code
+    - **Run `python scripts/check_pydantic_v1.py`** - no deprecated Pydantic v1 syntax
+    - **Run `python scripts/check_settings_descriptions.py --min-length 15`** (if Settings touched)
   - **Documentation**: Docstrings where needed? README/CHANGELOG updated if required?
 - Flag any unmet DoD items as P1 issues
 
@@ -140,6 +143,9 @@ ruff format --check <changed-files>
 mypy <changed-files>
 pytest --cov=src/fapilog --cov-report=xml && diff-cover coverage.xml --fail-under=90
 python scripts/lint_test_assertions.py tests/
+vulture src/ tests/
+python scripts/check_pydantic_v1.py
+python scripts/check_settings_descriptions.py --min-length 15
 ```
 
 ### Next Steps
@@ -172,6 +178,9 @@ ruff check <changed-files>
 mypy <changed-files>
 pytest --cov=src/fapilog --cov-report=xml && diff-cover coverage.xml --fail-under=90
 python scripts/lint_test_assertions.py tests/
+vulture src/ tests/
+python scripts/check_pydantic_v1.py
+python scripts/check_settings_descriptions.py --min-length 15
 ```
 ```
 
