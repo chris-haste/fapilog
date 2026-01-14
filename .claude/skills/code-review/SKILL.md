@@ -55,7 +55,13 @@ This gives the user immediate visibility that the skill is active.
 ### 2. Review Dimensions
 - **Correctness**: edge cases, error handling, invariants
 - **Maintainability**: readability, scope drift, unnecessary abstraction
-- **Tests**: meaningful coverage vs padding, missing critical paths
+- **Tests**: meaningful coverage vs padding, missing critical paths, **no weak assertions**
+  - Flag as P1: `assert True`, `assert result`, `assert result is not None`, `assert len(x) > 0`
+  - Flag as P1: tests with no assertions, `assert isinstance()` alone, catching exceptions without asserting content
+  - Require: `assert result == expected`, specific attribute checks, `pytest.raises(Error, match="pattern")`
+- **Type Safety**: type annotations present, mypy passes
+  - Flag as P1: missing type annotations on new functions/methods
+  - Flag as P1: unresolved mypy errors or excessive `# type: ignore` usage
 - **Security**: secrets, injection, unsafe subprocess
 - **Performance**: obvious hotspots, unnecessary IO
 
@@ -73,7 +79,15 @@ This gives the user immediate visibility that the skill is active.
 - Read the story's Definition of Done checklist
 - Verify each item against the staged changes:
   - **Code Complete**: All AC implemented? Follows project patterns? No new linting errors?
-  - **Quality Assurance**: Tests written and passing? ruff/mypy pass?
+  - **Quality Assurance**:
+    - Tests written and passing?
+    - `ruff check` and `ruff format --check` pass?
+    - **Run `mypy <changed-files>`** - must pass with no errors
+    - **Run `diff-cover coverage.xml --fail-under=90`** - changed lines must have coverage
+    - **Run `python scripts/lint_test_assertions.py tests/`** - no weak assertions
+    - **Run `vulture src/ tests/`** - no dead code
+    - **Run `python scripts/check_pydantic_v1.py`** - no deprecated Pydantic v1 syntax
+    - **Run `python scripts/check_settings_descriptions.py --min-length 15`** (if Settings touched)
   - **Documentation**: Docstrings where needed? README/CHANGELOG updated if required?
 - Flag any unmet DoD items as P1 issues
 
@@ -122,7 +136,17 @@ If user mentions precommit modified files:
 - [Missing test scenarios]
 
 ### Verification Commands
-[copy-paste commands to run]
+```bash
+# Run these before PR:
+ruff check <changed-files>
+ruff format --check <changed-files>
+mypy <changed-files>
+pytest --cov=src/fapilog --cov-report=xml && diff-cover coverage.xml --fail-under=90
+python scripts/lint_test_assertions.py tests/
+vulture src/ tests/
+python scripts/check_pydantic_v1.py
+python scripts/check_settings_descriptions.py --min-length 15
+```
 
 ### Next Steps
 1. [Ordered, actionable items]
@@ -148,7 +172,16 @@ All acceptance criteria met.
 All Definition of Done items verified.
 
 ### Verification Commands
-[Final test commands to run before PR]
+```bash
+# Final checks before PR:
+ruff check <changed-files>
+mypy <changed-files>
+pytest --cov=src/fapilog --cov-report=xml && diff-cover coverage.xml --fail-under=90
+python scripts/lint_test_assertions.py tests/
+vulture src/ tests/
+python scripts/check_pydantic_v1.py
+python scripts/check_settings_descriptions.py --min-length 15
+```
 ```
 
 Then:

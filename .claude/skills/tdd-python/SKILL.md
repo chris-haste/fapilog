@@ -57,6 +57,28 @@ This gives the user immediate visibility into whether the skill is active.
 Mock only I/O boundaries (network, filesystem, time, external services, DB unless deliberately integration-testing the DB layer).
 Avoid over-mocking internal collaborators.
 
+## Test Assertion Quality (No Weak Assertions)
+
+Every test must have meaningful assertions that verify specific behavior. Avoid weak assertions that pass trivially or don't validate actual outcomes.
+
+**Prohibited patterns (weak assertions):**
+- `assert True` / `assert False` - no actual verification
+- `assert result` / `assert result is not None` - only checks existence, not correctness
+- `assert len(x) > 0` - doesn't verify content
+- `assert isinstance(x, SomeType)` alone - type checks aren't behavior tests
+- Tests with no assertions at all
+- `assert x == x` or other tautologies
+- Catching exceptions without asserting on their content
+
+**Required patterns (strong assertions):**
+- `assert result == expected_value` - verify exact outcomes
+- `assert result.field == "specific_value"` - verify specific attributes
+- `assert len(items) == 3` - verify exact counts when count matters
+- `assert "expected_substring" in error.message` - verify error details
+- `pytest.raises(SpecificError, match="pattern")` - verify exception type AND message
+
+**During RED phase:** Write assertions that will meaningfully fail. If a test can't fail for the right reason, the assertion is too weak.
+
 ## Edge Cases (Only When Relevant)
 
 Cover the meaningful boundaries for the changed behavior:
@@ -79,11 +101,24 @@ Do NOT paste large templates from references unless it directly solves the curre
 Quality checks on changed files:
 - Focused tests pass
 - `ruff check` + `ruff format --check` pass
-- `mypy <changed-files>` passes
+- **Type checking**: `mypy <changed-files>` passes with no errors
+  - All new functions/methods must have type annotations (parameters and return types)
+  - Fix any type errors before staging (don't ignore with `# type: ignore` unless unavoidable)
+  - If mypy reports errors, resolve them before proceeding
+- **Coverage on changed lines**: `pytest --cov=src/fapilog --cov-report=xml && diff-cover coverage.xml --fail-under=90`
+  - Changed/new lines must have test coverage
+  - If diff-cover fails: identify *what behavior* is untested, then write tests for that behavior (not just to hit lines)
+  - Never write tests solely to satisfy coverage - if code can't be meaningfully tested, question whether it's needed
+  - Full 90% minimum enforced by CI pipeline
+- **Dead code**: `vulture src/ tests/` - no unused code
+- **Pydantic v2 only**: `python scripts/check_pydantic_v1.py` - no deprecated v1 syntax
+- **Settings descriptions**: `python scripts/check_settings_descriptions.py --min-length 15` (if touching Settings classes)
 
 Verify:
 - Tests exist for new/changed behavior (or explicit exception below)
 - Tests are meaningful, isolated, deterministic, and clearly named
+- **No weak assertions**: `python scripts/lint_test_assertions.py tests/` must pass
+  - See "Test Assertion Quality" section for prohibited/required patterns
 - No secrets; inputs validated; errors not swallowed
 
 Then stage: `git add <changed-files>`
