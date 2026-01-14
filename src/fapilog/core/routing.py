@@ -22,7 +22,7 @@ def _make_sink_entry(
     sink: Any,
     circuit_config: Any | None,
 ) -> _SinkEntry:
-    async def _write(entry: dict[str, Any]) -> None:
+    async def _write(entry: dict[str, Any]) -> bool | None:
         if hasattr(sink, "start") and not getattr(sink, "_started", False):
             try:
                 await sink.start()
@@ -36,11 +36,11 @@ def _make_sink_entry(
                     )
                 except Exception:
                     pass
-        await sink.write(entry)
+        return await sink.write(entry)
 
-    async def _write_serialized(view: Any) -> None:
+    async def _write_serialized(view: Any) -> bool | None:
         try:
-            await sink.write_serialized(view)
+            return await sink.write_serialized(view)
         except AttributeError:
             return None
 
@@ -181,10 +181,25 @@ class RoutingSinkWriter:
 
         try:
             if serialized:
-                await target.write_serialized(payload)
+                result = await target.write_serialized(payload)
             else:
-                await target.write(payload)
-            if breaker:
+                result = await target.write(payload)
+            # False return signals failure (Story 4.41)
+            if result is False:
+                if breaker:
+                    breaker.record_failure()
+                try:
+                    from ..plugins.sinks.fallback import handle_sink_write_failure
+
+                    await handle_sink_write_failure(
+                        payload,
+                        sink=target.sink,
+                        error=RuntimeError("Sink returned False"),
+                        serialized=serialized,
+                    )
+                except Exception:
+                    pass
+            elif breaker:
                 breaker.record_success()
         except Exception as exc:
             if breaker:

@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from ...core import diagnostics
+from ...core.errors import SinkWriteError
 from ...core.serialization import (
     SerializedView,
     convert_json_bytes_to_jsonl,
@@ -60,7 +61,7 @@ class RotatingFileSink:
       appended
     - Cross-platform paths via `pathlib.Path`
     - All filesystem work happens in threads to avoid event loop stalls
-    - Never raises upstream; errors are contained
+    - Signals failures via SinkWriteError; core catches and triggers fallback
     """
 
     name = "rotating_file"
@@ -220,9 +221,12 @@ class RotatingFileSink:
 
                     await asyncio.to_thread(_write_segments)
                     self._active_size += payload_size
-        except Exception:
-            # Contain sink errors
-            return None
+        except Exception as e:
+            raise SinkWriteError(
+                f"Failed to write to {self.name}",
+                sink_name=self.name,
+                cause=e,
+            ) from e
 
     async def write_serialized(self, view: SerializedView) -> None:
         try:
@@ -284,8 +288,12 @@ class RotatingFileSink:
 
                     await asyncio.to_thread(_write_segments)
                     self._active_size += payload_size
-        except Exception:
-            return None
+        except Exception as e:
+            raise SinkWriteError(
+                f"Failed to write to {self.name}",
+                sink_name=self.name,
+                cause=e,
+            ) from e
 
     # Internal helpers
     async def _open_new_file(self) -> None:

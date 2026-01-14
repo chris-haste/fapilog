@@ -312,6 +312,31 @@ class PluginExecutionError(PluginError):
         )
 
 
+class SinkWriteError(PluginError):
+    """Raised when a sink fails to write a log entry.
+
+    This error signals to the core that a sink write operation failed,
+    triggering fallback behavior and circuit breaker increments.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        sink_name: Optional[str] = None,
+        cause: Optional[Exception] = None,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(
+            message,
+            plugin_name=sink_name,
+            category=ErrorCategory.IO,
+            severity=ErrorSeverity.HIGH,
+            recovery_strategy=ErrorRecoveryStrategy.FALLBACK,
+            cause=cause,
+            **kwargs,
+        )
+
+
 class NetworkError(FapilogError):
     """Network connectivity and communication errors."""
 
