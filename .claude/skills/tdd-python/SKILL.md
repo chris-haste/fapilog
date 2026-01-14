@@ -13,6 +13,15 @@ description: Use when implementing features, fixing bugs, writing new code, or m
 - User asks to write or change Python code
 - Any request that will result in production code changes
 
+## Status Indicator (Required)
+
+Always output a status line at the start of your response:
+
+- If TDD applies: **"🧪 Starting TDD workflow..."**
+- If TDD does not apply: **"ℹ️ TDD not applicable for this request"**
+
+This gives the user immediate visibility into whether the skill is active.
+
 ## Non-negotiable Gates
 
 - No production code without a failing test that demands it (RED first).
