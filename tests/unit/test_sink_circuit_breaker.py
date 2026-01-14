@@ -77,9 +77,12 @@ class TestSinkCircuitBreaker:
         assert breaker._failure_count == 0
         assert breaker.state == CircuitState.CLOSED
 
-    @pytest.mark.flaky  # Timing-sensitive, 50ms timeout too tight for slow CI
     def test_circuit_transitions_to_half_open_after_timeout(self):
-        """Circuit transitions to half-open after recovery timeout."""
+        """Circuit transitions to half-open after recovery timeout.
+
+        Uses 200ms timeout with 250ms sleep to provide adequate margin
+        on slow CI runners.
+        """
         from fapilog.core.circuit_breaker import (
             SinkCircuitBreaker,
             SinkCircuitBreakerConfig,
@@ -87,7 +90,7 @@ class TestSinkCircuitBreaker:
 
         config = SinkCircuitBreakerConfig(
             failure_threshold=1,
-            recovery_timeout_seconds=0.05,  # 50ms for fast test
+            recovery_timeout_seconds=0.2,  # 200ms - adequate margin for CI
         )
         breaker = SinkCircuitBreaker("test_sink", config)
 
@@ -96,8 +99,8 @@ class TestSinkCircuitBreaker:
         assert breaker.state == CircuitState.OPEN
         assert not breaker.should_allow()
 
-        # Wait for recovery timeout
-        time.sleep(0.06)
+        # Wait for recovery timeout with adequate margin (50ms buffer)
+        time.sleep(0.25)
 
         # should_allow() should transition to half-open
         assert breaker.should_allow()

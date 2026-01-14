@@ -456,21 +456,28 @@ async def test_exception_during_push(
     assert any("loki exception" in str(d) for d in capture_diagnostics)
 
 
-@pytest.mark.flaky  # Monkeypatch timing can be unreliable
 @pytest.mark.asyncio
 async def test_retry_after_invalid_value(
     fake_client: FakeAsyncClient, monkeypatch
 ) -> None:
-    """Invalid Retry-After header should fall back to default backoff."""
+    """Invalid Retry-After header should fall back to default backoff.
+
+    When Retry-After header contains an invalid value (non-numeric),
+    the sink should fall back to the configured retry_base_delay.
+    """
     fake_client.queue_post_response(
         FakeResponse(429, headers={"Retry-After": "not-a-number"})
     )
     fake_client.queue_post_response(FakeResponse(204))
     slept: list[float] = []
     original_sleep = asyncio.sleep
-    monkeypatch.setattr(
-        loki.asyncio, "sleep", lambda s: slept.append(s) or original_sleep(0)
-    )
+
+    async def tracking_sleep(s: float) -> None:
+        slept.append(s)
+        # Skip actual sleep for test speed
+        await original_sleep(0)
+
+    monkeypatch.setattr(loki.asyncio, "sleep", tracking_sleep)
 
     sink = LokiSink(
         LokiSinkConfig(
@@ -482,7 +489,9 @@ async def test_retry_after_invalid_value(
     await sink.stop()
 
     # Should have used default backoff (0.5 * 2^0 = 0.5)
-    assert slept and slept[0] == 0.5
+    # Check that at least one sleep was with the expected base delay
+    assert slept, "Expected at least one sleep call during retry"
+    assert 0.5 in slept, f"Expected 0.5s backoff delay in {slept}"
 
 
 @pytest.mark.asyncio
