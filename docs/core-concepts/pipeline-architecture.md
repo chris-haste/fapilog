@@ -254,31 +254,43 @@ export FAPILOG_CORE__BACKPRESSURE_WAIT_MS=100
 
 ## Monitoring
 
-### Pipeline Metrics
+### Enabling Metrics
 
-Monitor pipeline performance:
+Enable internal metrics collection via settings:
 
 ```python
-from fapilog import get_pipeline_metrics
+from fapilog import get_logger, Settings
 
-metrics = await get_pipeline_metrics()
-print(f"Queue utilization: {metrics.queue_utilization}%")
-print(f"Processing rate: {metrics.messages_per_second}/s")
-print(f"Batch efficiency: {metrics.batch_efficiency}%")
+settings = Settings(core__enable_metrics=True)
+logger = get_logger(settings=settings)
 ```
+
+Or via environment variable:
+
+```bash
+export FAPILOG_CORE__ENABLE_METRICS=true
+```
+
+When enabled, fapilog records:
+
+- Queue high-watermark
+- Events submitted, processed, and dropped
+- Flush latency
+- Sink errors
+- Plugin timing
+
+Metrics can be exported to Prometheus when `fapilog[metrics]` is installed. See [Metrics](metrics.md) for details.
 
 ### Health Checks
 
-Check pipeline health:
+Sinks and plugins implement optional `health_check()` methods:
 
 ```python
-from fapilog import get_pipeline_health
-
-health = await get_pipeline_health()
-print(f"Pipeline status: {health.status}")
-print(f"Active workers: {health.active_workers}")
-print(f"Queue health: {health.queue_health}")
+# Check sink health directly
+is_healthy = await my_sink.health_check()
 ```
+
+For FastAPI applications, consider exposing health via a dedicated endpoint that checks your logging infrastructure.
 
 ## Next Steps
 
