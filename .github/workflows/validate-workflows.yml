@@ -45,32 +45,32 @@ jobs:
       run: |
         echo "🔍 Checking for potential secrets in workflows..."
         python - <<'PY'
-import pathlib
-import re
+        import pathlib
+        import re
 
-repo_path = pathlib.Path(".github/workflows")
-assignment = re.compile(r"^\s*(password|secret|key|token)\s*[:=]\s*(.+)$", re.I)
-hits = []
+        repo_path = pathlib.Path(".github/workflows")
+        assignment = re.compile(r"^\s*(password|secret|key|token)\s*[:=]\s*(.+)$", re.I)
+        hits = []
 
-for workflow in repo_path.glob("*.yml"):
-    for lineno, line in enumerate(workflow.read_text().splitlines(), start=1):
-        match = assignment.search(line)
-        if not match:
-            continue
+        for workflow in repo_path.glob("*.yml"):
+            for lineno, line in enumerate(workflow.read_text().splitlines(), start=1):
+                match = assignment.search(line)
+                if not match:
+                    continue
 
-        value = match.group(2).strip()
-        if not value or "secrets." in value:
-            continue
+                value = match.group(2).strip()
+                if not value or "secrets." in value:
+                    continue
 
-        hits.append(f"{workflow}:{lineno}:{line.strip()}")
+                hits.append(f"{workflow}:{lineno}:{line.strip()}")
 
-if hits:
-    print("⚠️  Potential secrets found:")
-    print("\n".join(hits))
-    raise SystemExit(1)
-else:
-    print("✅ No potential secrets found in workflow files")
-PY
+        if hits:
+            print("⚠️  Potential secrets found:")
+            print("\n".join(hits))
+            raise SystemExit(1)
+        else:
+            print("✅ No potential secrets found in workflow files")
+        PY
     
     - name: Validate required jobs exist
       run: |
