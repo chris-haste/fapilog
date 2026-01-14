@@ -25,7 +25,7 @@ jobs:
       - name: Generate SBOM (cyclonedx)
         run: |
           pip install cyclonedx-bom
-          cyclonedx-py -o sbom.json
+          cyclonedx-py environment -o sbom.json
       - name: Vulnerability Scan (pip-audit)
         run: |
           pip install pip-audit
