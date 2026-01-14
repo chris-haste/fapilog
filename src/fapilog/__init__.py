@@ -23,6 +23,7 @@ from typing import Literal as _Literal
 from typing import cast as _cast
 
 from . import sinks as sinks
+from .builder import AsyncLoggerBuilder, LoggerBuilder
 from .core.events import LogEvent
 from .core.logger import AsyncLoggerFacade as _AsyncLoggerFacade
 from .core.logger import DrainResult
@@ -70,6 +71,8 @@ __all__ = [
     "DrainResult",
     "LogEvent",
     "list_presets",
+    "LoggerBuilder",
+    "AsyncLoggerBuilder",
     "sinks",
     "__version__",
     "VERSION",

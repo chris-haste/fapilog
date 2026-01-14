@@ -8,6 +8,7 @@ LRU eviction behavior, and edge cases.
 
 import asyncio
 import time
+from datetime import datetime
 
 import pytest
 
@@ -277,6 +278,7 @@ class TestHighPerformanceLRUCache:
         assert cache["test_key"] == "test_value"
         assert "test_key" in cache
 
+    @pytest.mark.flaky  # Timing-sensitive, fails on slow CI runners
     def test_performance_characteristics(self):
         """Test that operations maintain O(1) performance
         characteristics."""
@@ -524,6 +526,7 @@ class TestEventLoopIsolation:
 
         await pool.cleanup()
 
+    @pytest.mark.flaky  # Timing-sensitive, fails on slow CI runners
     @pytest.mark.asyncio
     async def test_event_loop_validation_performance(self):
         """Test that event loop validation doesn't impact performance."""
@@ -734,18 +737,18 @@ class TestCacheCleanup:
             acquire_timeout_seconds=0.1,
         )
 
-        # Acquire and use some caches
+        # Acquire two caches simultaneously to force creation of 2 instances
         async with pool.acquire() as cache1:
             await cache1.aset("key1", "value1")
             assert await cache1.aget("key1") == "value1"
 
-        async with pool.acquire() as cache2:
-            await cache2.aset("key2", "value2")
-            assert await cache2.aget("key2") == "value2"
+            async with pool.acquire() as cache2:
+                await cache2.aset("key2", "value2")
+                assert await cache2.aget("key2") == "value2"
 
-        # Verify caches have data
+        # Verify caches were created (2 instances, both now idle)
         stats = await pool.stats()
-        assert stats.created >= 1  # Pool may reuse instances
+        assert stats.created == 2
 
         # Cleanup pool
         await pool.cleanup()
@@ -1019,10 +1022,10 @@ class TestCacheErrorHandling:
         try:
             await cache.aget("nonexistent_key")
         except CacheMissError as e:
-            # Verify error context is captured
-            assert e.context is not None
-            assert e.context.error_id is not None
-            assert e.context.timestamp is not None
+            # Verify error context is captured with correct types
+            assert isinstance(e.context.error_id, str)
+            assert len(e.context.error_id) == 36  # UUID format
+            assert isinstance(e.context.timestamp, datetime)
             assert e.context.category.value == "system"
             assert e.context.severity.value == "low"
             assert e.context.recovery_strategy.value == "fallback"
@@ -1046,9 +1049,8 @@ class TestCacheErrorHandling:
         try:
             await cache.aset("test_key", "test_value")
         except CacheOperationError as e:
-            # Verify cause is preserved
-            assert e.__cause__ is not None
-            assert "TypeError" in str(type(e.__cause__))
+            # Verify cause is preserved as TypeError
+            assert isinstance(e.__cause__, TypeError)
 
             # Verify operation details
             assert e.operation == "set"
@@ -1161,12 +1163,12 @@ class TestCacheErrorHandling:
         try:
             await cache.aget("nonexistent_key")
         except CacheMissError as e:
-            # Verify metadata is captured
-            assert e.context.metadata is not None
+            # Verify metadata is captured (dict with cache info)
+            assert isinstance(e.context.metadata, dict)
 
-            # Verify error context has required fields
-            assert e.context.error_id is not None
-            assert e.context.timestamp is not None
+            # Verify error context has required fields with correct types
+            assert isinstance(e.context.error_id, str) and len(e.context.error_id) == 36
+            assert isinstance(e.context.timestamp, datetime)
             assert e.context.category.value == "system"
             assert e.context.severity.value == "low"
             assert e.context.recovery_strategy.value == "fallback"

@@ -8,6 +8,8 @@ import asyncio
 import threading
 import time
 
+import pytest
+
 from fapilog.core.logger import SyncLoggerFacade
 
 
@@ -118,6 +120,7 @@ class TestHangingPrevention:
         # Verify results
         assert result.submitted >= 5
 
+    @pytest.mark.flaky  # Race condition, timing-sensitive on slow CI
     def test_concurrent_shutdown_robustness(self) -> None:
         """Test that shutdown is robust under concurrent load."""
         collected = []

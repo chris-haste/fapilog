@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- Added fluent builder API (`LoggerBuilder`, `AsyncLoggerBuilder`) for chainable logger configuration with IDE autocomplete support.
 - Added pretty console output (`stdout_pretty`) and `format` selection for stdout logging.
 - Added one-liner FastAPI setup helpers (`setup_logging`, `get_request_logger`) with lifespan support.
 - Added default log-level selection based on TTY/CI when no preset or explicit log level is set.
