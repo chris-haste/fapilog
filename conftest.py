@@ -2,7 +2,35 @@
 Root pytest configuration.
 """
 
+import os
+
 import pytest
+
+
+def get_test_timeout(base: float, max_multiplier: float = 5.0) -> float:
+    """Apply CI timeout multiplier to a base timeout value.
+
+    Args:
+        base: Base timeout in seconds
+        max_multiplier: Maximum allowed multiplier (default 5x)
+
+    Returns:
+        Scaled timeout value
+
+    Environment:
+        CI_TIMEOUT_MULTIPLIER: Multiplier for CI environments (default: 1.0)
+
+    Note:
+        Reads env var on each call to support per-test monkeypatching.
+    """
+    raw = os.getenv("CI_TIMEOUT_MULTIPLIER", "1.0")
+    try:
+        multiplier = float(raw) if raw else 1.0
+        multiplier = min(multiplier, max_multiplier)
+    except ValueError:
+        multiplier = 1.0
+    return base * multiplier
+
 
 # Register fapilog testing fixtures for all tests
 pytest_plugins = ("fapilog.testing.fixtures",)
