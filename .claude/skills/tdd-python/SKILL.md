@@ -107,7 +107,8 @@ Quality checks on changed files:
   - If mypy reports errors, resolve them before proceeding
 - **Coverage on changed lines**: `pytest --cov=src/fapilog --cov-report=xml && diff-cover coverage.xml --fail-under=90`
   - Changed/new lines must have test coverage
-  - If diff-cover fails, add tests for uncovered lines before proceeding
+  - If diff-cover fails: identify *what behavior* is untested, then write tests for that behavior (not just to hit lines)
+  - Never write tests solely to satisfy coverage - if code can't be meaningfully tested, question whether it's needed
   - Full 90% minimum enforced by CI pipeline
 - **Dead code**: `vulture src/ tests/` - no unused code
 - **Pydantic v2 only**: `python scripts/check_pydantic_v1.py` - no deprecated v1 syntax
