@@ -105,6 +105,9 @@ Quality checks on changed files:
   - All new functions/methods must have type annotations (parameters and return types)
   - Fix any type errors before staging (don't ignore with `# type: ignore` unless unavoidable)
   - If mypy reports errors, resolve them before proceeding
+- **Coverage on changed lines**: `pytest --cov=src --cov-report=xml && diff-cover coverage.xml --fail-under=80`
+  - New/changed code must have test coverage
+  - If diff-cover fails, add tests for uncovered lines before proceeding
 
 Verify:
 - Tests exist for new/changed behavior (or explicit exception below)
