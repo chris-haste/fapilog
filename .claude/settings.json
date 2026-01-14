@@ -3,8 +3,8 @@
     "SessionStart": [
       {
         "type": "command",
-        "command": "pip install -e '.[dev]' && pre-commit install",
-        "description": "Install dev dependencies and pre-commit hooks (per CONTRIBUTING.md)"
+        "command": "pre-commit install",
+        "description": "Install pre-commit hooks (per CONTRIBUTING.md)"
       }
     ]
   }
