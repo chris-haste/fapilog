@@ -552,11 +552,13 @@ def _make_sink_writer(sink: _Any) -> tuple[_Any, _Any]:
                     )
                 except Exception:
                     pass
-        return await sink.write(entry)
+        result: bool | None = await sink.write(entry)
+        return result
 
     async def _sink_write_serialized(view: object) -> bool | None:
         try:
-            return await sink.write_serialized(view)
+            result: bool | None = await sink.write_serialized(view)
+            return result
         except AttributeError:
             return None
 

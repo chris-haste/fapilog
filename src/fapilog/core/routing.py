@@ -36,11 +36,13 @@ def _make_sink_entry(
                     )
                 except Exception:
                     pass
-        return await sink.write(entry)
+        result: bool | None = await sink.write(entry)
+        return result
 
     async def _write_serialized(view: Any) -> bool | None:
         try:
-            return await sink.write_serialized(view)
+            result: bool | None = await sink.write_serialized(view)
+            return result
         except AttributeError:
             return None
 
