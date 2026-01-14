@@ -7,6 +7,7 @@ LRU eviction behavior, and edge cases.
 """
 
 import asyncio
+import os
 import time
 from datetime import datetime
 
@@ -278,7 +279,10 @@ class TestHighPerformanceLRUCache:
         assert cache["test_key"] == "test_value"
         assert "test_key" in cache
 
-    @pytest.mark.flaky  # Timing-sensitive, fails on slow CI runners
+    @pytest.mark.skipif(
+        os.getenv("CI") == "true",
+        reason="Performance test with absolute timing thresholds; skip in CI",
+    )
     def test_performance_characteristics(self):
         """Test that operations maintain O(1) performance
         characteristics."""
@@ -526,7 +530,10 @@ class TestEventLoopIsolation:
 
         await pool.cleanup()
 
-    @pytest.mark.flaky  # Timing-sensitive, fails on slow CI runners
+    @pytest.mark.skipif(
+        os.getenv("CI") == "true",
+        reason="Performance test with absolute timing thresholds; skip in CI",
+    )
     @pytest.mark.asyncio
     async def test_event_loop_validation_performance(self):
         """Test that event loop validation doesn't impact performance."""

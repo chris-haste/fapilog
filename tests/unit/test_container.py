@@ -7,6 +7,7 @@ dependency injection.
 """
 
 import asyncio
+import os
 
 import pytest
 
@@ -543,7 +544,10 @@ class TestPerformance:
         # Should complete in reasonable time (adjust as needed)
         assert (end - start) < 0.1
 
-    @pytest.mark.flaky  # Timing-sensitive, fails on slow CI runners
+    @pytest.mark.skipif(
+        os.getenv("CI") == "true",
+        reason="Performance test with absolute timing thresholds; skip in CI",
+    )
     async def test_component_retrieval_performance(self):
         """Test component retrieval performance."""
         container = AsyncLoggingContainer()
