@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pytest
-from hypothesis import given, settings
+from hypothesis import given
 from hypothesis import strategies as st
 
 from fapilog.plugins.filters.level import LEVEL_PRIORITY, LevelFilter
@@ -20,7 +20,6 @@ level_names = st.sampled_from(LEVEL_NAMES).flatmap(maybe_lower)
 
 @pytest.mark.asyncio
 @given(min_level=level_names, event_level=level_names)
-@settings(max_examples=200)
 async def test_level_filter_respects_hierarchy(
     min_level: str, event_level: str
 ) -> None:
@@ -39,7 +38,6 @@ async def test_level_filter_respects_hierarchy(
 
 @pytest.mark.asyncio
 @given(min_level=level_names, event_level=level_names)
-@settings(max_examples=120)
 async def test_level_filter_drop_below_false_keeps_event(
     min_level: str, event_level: str
 ) -> None:

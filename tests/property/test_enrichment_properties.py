@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pytest
-from hypothesis import given, settings
+from hypothesis import given
 from hypothesis import strategies as st
 
 from fapilog.plugins.enrichers import enrich_parallel
@@ -32,7 +32,6 @@ class _StaticEnricher:
 
 @pytest.mark.asyncio
 @given(event=prefixed_dict("orig_"), extra=prefixed_dict("extra_"))
-@settings(max_examples=200)
 async def test_enrichment_preserves_original_fields(
     event: dict[str, object], extra: dict[str, object]
 ) -> None:

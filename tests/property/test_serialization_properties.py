@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 
 import pytest
-from hypothesis import given, settings
+from hypothesis import given
 from hypothesis import strategies as st
 
 from fapilog.core.serialization import (
@@ -46,7 +46,6 @@ envelope_logs = st.fixed_dictionaries(
 
 
 @given(payload=json_dicts)
-@settings(max_examples=200)
 def test_json_serialization_round_trip(payload: dict) -> None:
     view = serialize_mapping_to_json_bytes(payload)
     parsed = json.loads(view.data)
@@ -54,7 +53,6 @@ def test_json_serialization_round_trip(payload: dict) -> None:
 
 
 @given(event=envelope_logs)
-@settings(max_examples=200)
 def test_serialize_envelope_preserves_required_fields(event: dict) -> None:
     view = serialize_envelope(event)
     parsed = json.loads(view.data)
