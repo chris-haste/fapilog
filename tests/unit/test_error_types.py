@@ -40,8 +40,8 @@ class TestErrorTypes:
         assert error.message == "Test error message"
         assert error.context.category == ErrorCategory.SYSTEM
         assert error.context.severity == ErrorSeverity.HIGH
-        assert error.context.error_id is not None
-        assert error.context.timestamp is not None
+        assert isinstance(error.context.error_id, str) and len(error.context.error_id) == 36
+        assert error.context.timestamp is not None and hasattr(error.context.timestamp, "isoformat")
 
     @pytest.mark.asyncio
     async def test_error_context_preservation(self):
@@ -122,12 +122,12 @@ class TestContextManagement:
             assert ctx.user_id == "user-456"
             assert ctx.operation_name == "test_operation"
             assert ctx.metadata["custom_field"] == "custom_value"
-            assert ctx.execution_id is not None
+            assert isinstance(ctx.execution_id, str) and len(ctx.execution_id) == 36
             assert not ctx.is_completed
 
         # Context should be completed after exiting
         assert ctx.is_completed
-        assert ctx.duration is not None
+        assert isinstance(ctx.duration, float) and ctx.duration >= 0
 
     @pytest.mark.asyncio
     async def test_nested_context_hierarchy(self):
@@ -183,7 +183,7 @@ class TestContextManagement:
             operation_name="test-operation",
         )
 
-        assert ctx.execution_id is not None
+        assert isinstance(ctx.execution_id, str) and len(ctx.execution_id) == 36
         assert ctx.request_id == "test-req"
         assert ctx.user_id == "test-user"
         assert ctx.session_id == "test-session"
@@ -196,8 +196,7 @@ class TestContextManagement:
         # Test completion
         ctx.complete()
         assert ctx.is_completed
-        assert ctx.duration is not None
-        assert ctx.duration >= 0
+        assert isinstance(ctx.duration, float) and ctx.duration >= 0
 
     @pytest.mark.asyncio
     async def test_execution_context_error_handling(self):
@@ -254,7 +253,7 @@ class TestContextManagement:
         assert error_context.session_id == "test-session"
         assert error_context.container_id == "test-container"
         assert error_context.component_name == "test-component"
-        assert error_context.operation_duration is not None
+        assert isinstance(error_context.operation_duration, float)
         assert error_context.metadata["custom"] == "value"
         assert error_context.metadata["execution_id"] == ctx.execution_id
         assert error_context.metadata["retry_count"] == 2
@@ -286,8 +285,8 @@ class TestContextManagement:
 
         # Test statistics
         stats = await manager1.get_statistics()
-        assert stats["active_contexts"] >= 1
-        assert stats["context_hierarchy_size"] >= 0
+        assert isinstance(stats["active_contexts"], int) and stats["active_contexts"] >= 1
+        assert isinstance(stats["context_hierarchy_size"], int)
 
         # Test context completion
         await manager1.complete_context(context.execution_id)
@@ -480,13 +479,15 @@ class TestContextManagement:
         execution_id = context.execution_id
 
         # Verify context exists
-        assert await manager.get_context(execution_id) is not None
+        retrieved = await manager.get_context(execution_id)
+        assert retrieved is context
 
         # Complete context
         await manager.complete_context(execution_id)
 
         # Context should still exist immediately after completion
-        assert await manager.get_context(execution_id) is not None
+        retrieved_after = await manager.get_context(execution_id)
+        assert retrieved_after is context
 
         # Test that cleanup would eventually happen (we can't wait 300s in tests)
         # So we'll test the cleanup method directly with a short delay

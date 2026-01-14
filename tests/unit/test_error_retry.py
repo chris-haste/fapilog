@@ -75,7 +75,7 @@ class TestRetryMechanism:
 
         assert retrier.stats.attempt_count == 2
         assert "All 2 retry attempts exhausted" in str(exc_info.value)
-        assert exc_info.value.retry_stats is not None
+        assert hasattr(exc_info.value, "retry_stats") and exc_info.value.retry_stats.attempt_count == 2
 
     @pytest.mark.asyncio
     async def test_non_retryable_exception_bubbles(self):
@@ -104,8 +104,7 @@ class TestRetryMechanism:
             await retrier.retry(slow_operation)
 
         stats = exc_info.value.retry_stats
-        assert stats is not None
-        assert stats.attempt_count == 2
+        assert hasattr(stats, "attempt_count") and stats.attempt_count == 2
         assert isinstance(stats.last_exception, asyncio.TimeoutError)
 
     @pytest.mark.asyncio
@@ -194,8 +193,7 @@ class TestIntegration:
 
         # After context exit
         assert ctx.is_completed
-        assert ctx.duration is not None
-        assert ctx.duration > 0.01
+        assert isinstance(ctx.duration, float) and ctx.duration > 0.01
 
     @pytest.mark.asyncio
     async def test_concurrent_error_handling(self):

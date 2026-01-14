@@ -365,11 +365,9 @@ async def test_rotate_active_file_no_active_file(tmp_path: Path) -> None:
 
     # Should handle gracefully and open new file
     await sink._rotate_active_file()
-    assert sink._active_file is not None
     assert hasattr(sink._active_file, "write")  # Verify it's a writable file object
-    assert sink._active_path is not None
     # Verify the file was actually created on disk
-    assert sink._active_path.exists()
+    assert hasattr(sink._active_path, "exists") and sink._active_path.exists()
 
 
 @pytest.mark.asyncio

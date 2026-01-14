@@ -51,7 +51,7 @@ class TestAuditTrailsBasic:
                 user_id="test-user",
             )
 
-            assert event_id is not None
+            assert isinstance(event_id, str) and len(event_id) == 36
             assert audit_trail._event_count == 1
 
             await audit_trail.stop()
@@ -71,7 +71,7 @@ class TestAuditTrailsBasic:
             # Audit the error
             event_id = await audit_trail.log_error(error, operation="test_operation")
 
-            assert event_id is not None
+            assert isinstance(event_id, str) and len(event_id) == 36
             assert audit_trail._error_count == 1
 
             await audit_trail.stop()
@@ -93,7 +93,7 @@ class TestAuditTrailsBasic:
                 client_ip="192.168.1.100",
             )
 
-            assert event_id is not None
+            assert isinstance(event_id, str) and len(event_id) == 36
             assert audit_trail._security_event_count == 1
 
             await audit_trail.stop()
@@ -116,7 +116,7 @@ class TestAuditTrailsBasic:
                 data_classification="confidential",
             )
 
-            assert event_id is not None
+            assert isinstance(event_id, str) and len(event_id) == 36
 
             await audit_trail.stop()
 
@@ -245,8 +245,8 @@ class TestAuditTrailsBasic:
         assert event.event_type == AuditEventType.ERROR_OCCURRED
         assert event.message == "Test error message"
         assert event.component == "test-component"
-        assert event.event_id is not None
-        assert event.timestamp is not None
+        assert isinstance(event.event_id, str) and len(event.event_id) == 36
+        assert event.timestamp is not None and hasattr(event.timestamp, "isoformat")
         assert event.log_level == AuditLogLevel.INFO  # Default log level
 
         # Test event with full metadata
@@ -322,7 +322,7 @@ class TestAuditTrailsBasic:
             event_id_1 = await audit_trail.log_event(
                 AuditEventType.SYSTEM_STARTUP, "System initialized"
             )
-            assert event_id_1 is not None
+            assert isinstance(event_id_1, str) and len(event_id_1) == 36
 
             # Test event with all optional parameters
             event_id_2 = await audit_trail.log_event(
@@ -337,7 +337,7 @@ class TestAuditTrailsBasic:
                 data_classification="personal",
                 metadata={"field": "email", "old_value": "old@example.com"},
             )
-            assert event_id_2 is not None
+            assert isinstance(event_id_2, str) and len(event_id_2) == 36
             assert event_id_1 != event_id_2
 
             # Test event with custom metadata only
@@ -346,7 +346,7 @@ class TestAuditTrailsBasic:
                 "Component recovered successfully",
                 component="recovery-service",
             )
-            assert event_id_3 is not None
+            assert isinstance(event_id_3, str) and len(event_id_3) == 36
 
             await audit_trail.stop()
 
@@ -363,7 +363,7 @@ class TestAuditTrailsBasic:
             event_id_1 = await audit_trail.log_error(
                 validation_error, operation="user_registration"
             )
-            assert event_id_1 is not None
+            assert isinstance(event_id_1, str) and len(event_id_1) == 36
 
             auth_error = AuthenticationError(
                 "Invalid credentials", user_id="failed-user"
@@ -371,7 +371,7 @@ class TestAuditTrailsBasic:
             event_id_2 = await audit_trail.log_error(
                 auth_error, operation="login_attempt"
             )
-            assert event_id_2 is not None
+            assert isinstance(event_id_2, str) and len(event_id_2) == 36
 
             network_error = NetworkError(
                 "Connection timeout", service_name="external-api"
@@ -379,7 +379,7 @@ class TestAuditTrailsBasic:
             event_id_3 = await audit_trail.log_error(
                 network_error, operation="api_call"
             )
-            assert event_id_3 is not None
+            assert isinstance(event_id_3, str) and len(event_id_3) == 36
 
             # Check error count
             assert audit_trail._error_count == 3
@@ -402,7 +402,7 @@ class TestAuditTrailsBasic:
                 client_ip="192.168.1.100",
                 additional_context={"attempt_count": 5, "time_window": "5_minutes"},
             )
-            assert auth_event_id is not None
+            assert isinstance(auth_event_id, str) and len(auth_event_id) == 36
 
             # Test authorization failure
             authz_event_id = await audit_trail.log_security_event(
@@ -415,7 +415,7 @@ class TestAuditTrailsBasic:
                     "required_role": "admin",
                 },
             )
-            assert authz_event_id is not None
+            assert isinstance(authz_event_id, str) and len(authz_event_id) == 36
 
             # Test security violation
             violation_event_id = await audit_trail.log_security_event(
@@ -428,7 +428,7 @@ class TestAuditTrailsBasic:
                     "blocked": True,
                 },
             )
-            assert violation_event_id is not None
+            assert isinstance(violation_event_id, str) and len(violation_event_id) == 36
 
             # Check security event count
             assert audit_trail._security_event_count == 3
@@ -456,7 +456,7 @@ class TestAuditTrailsBasic:
                     "query": "SELECT * FROM customers WHERE region='EU'"
                 },
             )
-            assert pii_event_id is not None
+            assert isinstance(pii_event_id, str) and len(pii_event_id) == 36
 
             # Test PHI data access
             phi_event_id = await audit_trail.log_data_access(
@@ -472,7 +472,7 @@ class TestAuditTrailsBasic:
                     "diagnosis_code": "ICD-10",
                 },
             )
-            assert phi_event_id is not None
+            assert isinstance(phi_event_id, str) and len(phi_event_id) == 36
 
             # Test data modification
             modify_event_id = await audit_trail.log_data_access(
@@ -487,7 +487,7 @@ class TestAuditTrailsBasic:
                     "reason": "user_request",
                 },
             )
-            assert modify_event_id is not None
+            assert isinstance(modify_event_id, str) and len(modify_event_id) == 36
 
             await audit_trail.stop()
 

@@ -120,7 +120,7 @@ class TestAuditTrailsAdvanced:
             event_id = await audit_error(
                 error, operation="network_call", audit_trail=trail
             )
-            assert event_id is not None
+            assert isinstance(event_id, str) and len(event_id) == 36
             assert trail._error_count == 1
 
             # Test audit_security_event convenience function
@@ -130,7 +130,7 @@ class TestAuditTrailsAdvanced:
                 user_id="unauthorized-user",
                 audit_trail=trail,
             )
-            assert security_event_id is not None
+            assert isinstance(security_event_id, str) and len(security_event_id) == 36
             assert trail._security_event_count == 1
 
             await trail.stop()
@@ -145,7 +145,7 @@ class TestAuditTrailsAdvanced:
         event_id = await audit_trail.log_event(
             AuditEventType.ERROR_OCCURRED, "Error before start"
         )
-        assert event_id is not None  # Should still generate ID
+        assert isinstance(event_id, str) and len(event_id) == 36  # Should still generate ID
 
         # Test with non-existent (but valid) storage path that gets created automatically
         with TemporaryDirectory() as temp_dir:
