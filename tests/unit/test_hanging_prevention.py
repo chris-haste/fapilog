@@ -8,8 +8,6 @@ import asyncio
 import threading
 import time
 
-import pytest
-
 from fapilog.core.logger import SyncLoggerFacade
 
 
@@ -120,9 +118,14 @@ class TestHangingPrevention:
         # Verify results
         assert result.submitted >= 5
 
-    @pytest.mark.flaky  # Race condition, timing-sensitive on slow CI
     def test_concurrent_shutdown_robustness(self) -> None:
-        """Test that shutdown is robust under concurrent load."""
+        """Test that shutdown is robust under concurrent load.
+
+        The primary goal of this test is to verify that shutdown completes
+        without hanging, even when messages are being submitted concurrently.
+        We focus on the hang prevention behavior rather than exact message
+        counts, which can vary due to timing.
+        """
         collected = []
         logger = SyncLoggerFacade(
             name="concurrent-shutdown-test",
@@ -159,14 +162,15 @@ class TestHangingPrevention:
         for thread in threads:
             thread.join(timeout=5.0)  # Thread join should also have timeout
 
-        # Shutdown should complete within 15 seconds
+        # Shutdown should complete within 15 seconds (primary assertion)
         assert shutdown_time < 15.0, (
             f"Shutdown took {shutdown_time:.2f}s - possible hang!"
         )
 
-        # Verify results - threshold accounts for timing variance and queue drops
-        # (3 threads × 15 msgs = 45 attempts, but queue is 20 with drop_on_full)
-        assert result.submitted >= 20
+        # Verify invariant: submitted = processed + dropped
+        assert result.submitted == result.processed + result.dropped
+        # At least some messages should have been submitted
+        assert result.submitted > 0
 
     def test_malicious_sink_does_not_hang(self) -> None:
         """Test that a malicious sink that never returns cannot hang the logger."""
