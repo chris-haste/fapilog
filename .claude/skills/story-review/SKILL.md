@@ -59,7 +59,29 @@ Wait for response before proceeding.
 ### Codebase Verification
 List what was checked and findings.
 
+## Status Updates
+
+After completing the review:
+
+1. **If Recommendation is "Approve"** and the story is valid:
+   - Update the story's status to `## Status: Ready`
+   - This indicates the story is ready for implementation
+   - Only update if the story was previously in `Planned`, `Draft`, or `Hold` status
+
+2. **If issues were found and corrected** during the review:
+   - After corrections are made and the story is validated, update status to `## Status: Ready`
+   - Confirm the story is still valid before updating
+
+3. **If Recommendation is "Reject"**:
+   - Do NOT update to Ready
+   - Consider updating to `## Status: Cancelled` if appropriate
+
+4. **Status format**: Always use `## Status: Ready` (with colon, capitalized)
+
+**Note**: The "Ready" status means the story has been reviewed, is accurate, complete, and ready to start implementation. Dependencies should be met and design should be complete.
+
 ## Style
 - Direct, specific, actionable
 - Reference sections/lines when citing issues
 - Show correct vs incorrect code when relevant
+- Update story status when appropriate (see Status Updates section)
