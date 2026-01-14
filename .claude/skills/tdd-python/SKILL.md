@@ -57,6 +57,28 @@ This gives the user immediate visibility into whether the skill is active.
 Mock only I/O boundaries (network, filesystem, time, external services, DB unless deliberately integration-testing the DB layer).
 Avoid over-mocking internal collaborators.
 
+## Test Assertion Quality (No Weak Assertions)
+
+Every test must have meaningful assertions that verify specific behavior. Avoid weak assertions that pass trivially or don't validate actual outcomes.
+
+**Prohibited patterns (weak assertions):**
+- `assert True` / `assert False` - no actual verification
+- `assert result` / `assert result is not None` - only checks existence, not correctness
+- `assert len(x) > 0` - doesn't verify content
+- `assert isinstance(x, SomeType)` alone - type checks aren't behavior tests
+- Tests with no assertions at all
+- `assert x == x` or other tautologies
+- Catching exceptions without asserting on their content
+
+**Required patterns (strong assertions):**
+- `assert result == expected_value` - verify exact outcomes
+- `assert result.field == "specific_value"` - verify specific attributes
+- `assert len(items) == 3` - verify exact counts when count matters
+- `assert "expected_substring" in error.message` - verify error details
+- `pytest.raises(SpecificError, match="pattern")` - verify exception type AND message
+
+**During RED phase:** Write assertions that will meaningfully fail. If a test can't fail for the right reason, the assertion is too weak.
+
 ## Edge Cases (Only When Relevant)
 
 Cover the meaningful boundaries for the changed behavior:
@@ -79,11 +101,15 @@ Do NOT paste large templates from references unless it directly solves the curre
 Quality checks on changed files:
 - Focused tests pass
 - `ruff check` + `ruff format --check` pass
-- `mypy <changed-files>` passes
+- **Type checking**: `mypy <changed-files>` passes with no errors
+  - All new functions/methods must have type annotations (parameters and return types)
+  - Fix any type errors before staging (don't ignore with `# type: ignore` unless unavoidable)
+  - If mypy reports errors, resolve them before proceeding
 
 Verify:
 - Tests exist for new/changed behavior (or explicit exception below)
 - Tests are meaningful, isolated, deterministic, and clearly named
+- **No weak assertions** - all tests have specific, meaningful assertions (see "Test Assertion Quality" section)
 - No secrets; inputs validated; errors not swallowed
 
 Then stage: `git add <changed-files>`
