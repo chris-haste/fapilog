@@ -19,4 +19,4 @@ Implement `BaseRedactor.redact(entry: dict) -> dict` (async). Return the updated
 - Guardrails: `FAPILOG_CORE__REDACTION_MAX_DEPTH`, `FAPILOG_CORE__REDACTION_MAX_KEYS_SCANNED`
 - Sensitive fields: `FAPILOG_CORE__SENSITIVE_FIELDS_POLICY`
 
-Redactors run after enrichers and before sinks.*** End Patch
+Redactors run after enrichers and before sinks.

@@ -237,36 +237,48 @@ Apps will not crash; these logs are for development visibility.
 
 ## 🔌 Plugin Ecosystem
 
-Fapilog features a universal plugin ecosystem:
+Fapilog features an extensible plugin ecosystem:
 
 ### **Sink Plugins**
 
-- File rotation, compression, encryption
-- Database sinks (PostgreSQL, MongoDB)
-- Cloud services (AWS CloudWatch, Azure Monitor)
-- SIEM integration (Splunk, ELK, QRadar)
+- **Console**: `stdout_json` (JSON lines) and `stdout_pretty` (human-readable)
+- **File**: `rotating_file` with size/time rotation, compression, retention
+- **HTTP**: `http` and `webhook` sinks with retry, batching, and HMAC signing
+- **Cloud**: `cloudwatch` (AWS, requires `boto3`), `loki` (Grafana)
+- **Database**: `postgres` (requires `asyncpg`)
+- **Compliance**: `audit` sink with integrity checks, `routing` for level-based fan-out
 
 ### **Processor Plugins**
 
-- Log filtering, transformation, aggregation
-- Performance monitoring, metrics collection
-- Compliance validation, data redaction
-- Custom business logic processors
+- Size guarding and truncation
+- Zero-copy optimization for high throughput
+- Custom transformation pipelines
 
 ### **Enricher Plugins**
 
-- Request context, user information
-- System metrics, resource monitoring
-- Trace correlation, distributed tracing
-- Custom data enrichment
+- `runtime_info`: service, env, version, host, pid, python version
+- `context_vars`: request_id, user_id from ContextVar
+- `kubernetes`: pod, namespace, node from K8s downward API
 
-## 🧩 Extensions (roadmap / optional packages)
+### **Filter Plugins**
 
-- Enterprise sinks: Splunk/Elasticsearch/Loki/Datadog/Kafka/webhooks
-- Advanced processors: sampling, compression, encryption, sharding, adaptive batching
-- Deep observability: metrics for queue/drops/flush latency, tracing hooks
-- Compliance modules: policy packs and attestations
-- Operational tooling: plugin marketplace and versioned contracts
+- `level`: drop events below threshold
+- `sampling`, `adaptive_sampling`, `trace_sampling`: probabilistic filtering
+- `rate_limit`: token bucket limiter (per-key optional)
+- `first_occurrence`: track unique message patterns
+
+## 🧩 Extensions & Roadmap
+
+**Available now:**
+- Enterprise audit logging with `fapilog-tamper` add-on
+- Grafana Loki integration
+- AWS CloudWatch integration
+- PostgreSQL sink for structured log storage
+
+**Roadmap (not yet implemented):**
+- Additional cloud providers (Azure Monitor, GCP Logging)
+- SIEM integrations (Splunk, Elasticsearch)
+- Message queue sinks (Kafka, Redis Streams)
 
 ## 📈 Enterprise performance characteristics
 
