@@ -286,6 +286,78 @@ explicit markers.</p>
 </pre></div>
 </div>
 </section>
+<section id="ci-timeout-multipliers">
+<h2>CI Timeout Multipliers<a class="headerlink" href="#ci-timeout-multipliers" title="Link to this heading"></a></h2>
+<p>Tests with timing-sensitive operations (sleep-based waits, recovery timeouts) can fail on slow CI runners. Use the <code class="docutils literal notranslate"><span class="pre">get_test_timeout()</span></code> helper to scale timeouts appropriately:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">conftest</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_test_timeout</span>
+
+<span class="c1"># Timeout configuration</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">SinkCircuitBreakerConfig</span><span class="p">(</span>
+    <span class="n">failure_threshold</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">recovery_timeout_seconds</span><span class="o">=</span><span class="n">get_test_timeout</span><span class="p">(</span><span class="mf">0.05</span><span class="p">),</span>  <span class="c1"># 50ms locally, 150ms in CI</span>
+<span class="p">)</span>
+
+<span class="c1"># Sleep-based waits</span>
+<span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">get_test_timeout</span><span class="p">(</span><span class="mf">0.06</span><span class="p">))</span>  <span class="c1"># 60ms locally, 180ms in CI</span>
+</pre></div>
+</div>
+<section id="how-it-works">
+<h3>How It Works<a class="headerlink" href="#how-it-works" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">CI_TIMEOUT_MULTIPLIER</span></code> environment variable scales all timeouts:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Environment</p></th>
+<th class="head"><p>Multiplier</p></th>
+<th class="head"><p>Effect</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Local (default)</p></td>
+<td><p>1.0</p></td>
+<td><p>No scaling</p></td>
+</tr>
+<tr class="row-odd"><td><p>CI</p></td>
+<td><p>3.0</p></td>
+<td><p>3x longer timeouts</p></td>
+</tr>
+<tr class="row-even"><td><p>Max allowed</p></td>
+<td><p>5.0</p></td>
+<td><p>Capped to prevent hangs</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="when-to-use">
+<h3>When to Use<a class="headerlink" href="#when-to-use" title="Link to this heading"></a></h3>
+<p>Use <code class="docutils literal notranslate"><span class="pre">get_test_timeout()</span></code> for:</p>
+<ul class="simple">
+<li><p>Recovery timeout configurations</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time.sleep()</span></code> calls waiting for timeouts</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">asyncio.wait_for()</span></code> timeout values</p></li>
+<li><p>Any timing where CI slowness could cause flakiness</p></li>
+</ul>
+<p>Don’t use for:</p>
+<ul class="simple">
+<li><p>Performance assertions (use <code class="docutils literal notranslate"><span class="pre">&#64;pytest.mark.skipif(CI)</span></code> instead)</p></li>
+<li><p>Fixed delays that don’t depend on system speed</p></li>
+<li><p>Production code (test-only helper)</p></li>
+</ul>
+</section>
+<section id="configuration">
+<h3>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h3>
+<p>CI sets the multiplier automatically via environment variable:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># .github/workflows/ci.yml</span>
+<span class="nt">env</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">CI_TIMEOUT_MULTIPLIER</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3&quot;</span>
+</pre></div>
+</div>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="c1"># tox.ini</span>
+<span class="na">setenv</span><span class="w"> </span><span class="o">=</span>
+<span class="w">    </span><span class="na">CI_TIMEOUT_MULTIPLIER</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">3</span>
+</pre></div>
+</div>
+</section>
+</section>
 </section>
 
 

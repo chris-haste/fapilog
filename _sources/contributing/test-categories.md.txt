@@ -81,3 +81,59 @@ Function-level example:
 async def test_redaction_reaches_sink():
     ...
 ```
+
+## CI Timeout Multipliers
+
+Tests with timing-sensitive operations (sleep-based waits, recovery timeouts) can fail on slow CI runners. Use the `get_test_timeout()` helper to scale timeouts appropriately:
+
+```python
+from conftest import get_test_timeout
+
+# Timeout configuration
+config = SinkCircuitBreakerConfig(
+    failure_threshold=1,
+    recovery_timeout_seconds=get_test_timeout(0.05),  # 50ms locally, 150ms in CI
+)
+
+# Sleep-based waits
+time.sleep(get_test_timeout(0.06))  # 60ms locally, 180ms in CI
+```
+
+### How It Works
+
+The `CI_TIMEOUT_MULTIPLIER` environment variable scales all timeouts:
+
+| Environment | Multiplier | Effect |
+| --- | --- | --- |
+| Local (default) | 1.0 | No scaling |
+| CI | 3.0 | 3x longer timeouts |
+| Max allowed | 5.0 | Capped to prevent hangs |
+
+### When to Use
+
+Use `get_test_timeout()` for:
+- Recovery timeout configurations
+- `time.sleep()` calls waiting for timeouts
+- `asyncio.wait_for()` timeout values
+- Any timing where CI slowness could cause flakiness
+
+Don't use for:
+- Performance assertions (use `@pytest.mark.skipif(CI)` instead)
+- Fixed delays that don't depend on system speed
+- Production code (test-only helper)
+
+### Configuration
+
+CI sets the multiplier automatically via environment variable:
+
+```yaml
+# .github/workflows/ci.yml
+env:
+  CI_TIMEOUT_MULTIPLIER: "3"
+```
+
+```ini
+# tox.ini
+setenv =
+    CI_TIMEOUT_MULTIPLIER = 3
+```
