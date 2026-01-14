@@ -81,6 +81,8 @@ Verify:
 
 Then stage: `git add <changed-files>`
 
+**If implementing a story:** Update the story's `**Status:**` field to `Ready for Code Review`.
+
 Do NOT commit or push - user must explicitly request /commit-pr for that.
 
 Deferred to commit-pr/CI: full test suite, coverage, vulture
