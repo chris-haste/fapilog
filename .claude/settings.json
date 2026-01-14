@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "pre-commit install",
+        "description": "Install pre-commit git hooks (per CONTRIBUTING.md)"
+      }
+    ]
+  }
+}
