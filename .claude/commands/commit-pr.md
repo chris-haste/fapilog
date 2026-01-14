@@ -7,11 +7,11 @@ description: Commit staged changes, handle precommit iterations, push, and creat
 
 Commit staged changes, iterate through precommit checks, push, and create PR.
 
-## Relationship with tdd-python
+## Prerequisites
 
-tdd-python stages files after passing focused tests + ruff + mypy on changed files.
+Files should be staged after passing focused tests + ruff + mypy (handled by tdd-python skill).
 
-commit-pr then runs full precommit suite which adds:
+This command runs the full precommit suite which adds:
 - Full test suite (via coverage-check)
 - Coverage enforcement (90%+)
 - Vulture (dead code)
