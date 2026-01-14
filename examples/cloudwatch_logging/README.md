@@ -4,9 +4,10 @@ This example shows how to send logs to AWS CloudWatch Logs using LocalStack.
 
 ## Prereqs
 
-- Python 3.11+
+- Python 3.8+
 - Docker
 - LocalStack image
+- `boto3` (`pip install fapilog[cloudwatch]` or `pip install boto3`)
 
 ## Quick start
 
