@@ -1,9 +1,15 @@
 ---
 name: story-creation
 description: Use when creating new stories, writing requirements, or drafting feature specifications. Triggers on requests to create stories, write specs, or plan new features.
+version: 1.0.0
+license: Apache-2.0
 ---
 
 # Story Creation
+
+**Author:** Chris Haste
+**GitHub:** https://github.com/chris-haste
+**LinkedIn:** https://www.linkedin.com/in/chaste/
 
 Stories live in `/docs/stories/`.
 

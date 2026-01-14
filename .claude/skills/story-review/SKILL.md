@@ -1,9 +1,15 @@
 ---
 name: story-review
 description: Use when reviewing, validating, or checking story documents. Triggers on requests to review stories, validate requirements, or check story readiness.
+version: 1.0.0
+license: Apache-2.0
 ---
 
 # Story Review
+
+**Author:** Chris Haste
+**GitHub:** https://github.com/chris-haste
+**LinkedIn:** https://www.linkedin.com/in/chaste/
 
 Stories live in `/docs/stories/`.
 

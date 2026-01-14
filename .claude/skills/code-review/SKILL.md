@@ -1,9 +1,15 @@
 ---
 name: code-review
 description: Use when reviewing code changes, checking staged files, or validating work against acceptance criteria. Triggers on requests to review changes, check work, or validate implementation.
+version: 1.0.0
+license: Apache-2.0
 ---
 
 # Code Review
+
+**Author:** Chris Haste
+**GitHub:** https://github.com/chris-haste
+**LinkedIn:** https://www.linkedin.com/in/chaste/
 
 Tech Lead review of changes against story acceptance criteria.
 
