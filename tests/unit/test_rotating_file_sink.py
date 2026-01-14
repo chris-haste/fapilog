@@ -173,27 +173,25 @@ async def test_timestamp_collision_suffix_with_datetime_monkeypatch(
 ) -> None:
     """Test collision suffix when files are created in the same second.
 
-    This test patches datetime to return the same timestamp for multiple
-    calls, forcing the collision suffix (-1, -2, etc.) to be used.
+    This test patches datetime to always return the same timestamp,
+    forcing the collision suffix (-1, -2, etc.) to be used when
+    multiple files are created.
     """
     from datetime import UTC as _REAL_UTC
     from datetime import datetime as _REAL_DT
 
-    call_count = 0
+    # Always return the same timestamp to force collision
+    fixed_time = _REAL_DT(2025, 1, 1, 12, 0, 0, tzinfo=_REAL_UTC)
 
     class _FakeDT:
-        """Fake datetime that returns controlled timestamps."""
+        """Fake datetime that always returns the same timestamp."""
 
         UTC = _REAL_UTC
 
         @staticmethod
         def now(tz=None):  # type: ignore[no-untyped-def]
-            nonlocal call_count
-            call_count += 1
-            # Return same second for first two calls, then +2s
-            if call_count <= 2:
-                return _REAL_DT(2025, 1, 1, 12, 0, 0, tzinfo=tz)
-            return _REAL_DT(2025, 1, 1, 12, 0, 2, tzinfo=tz)
+            # Always return the same second to force collision suffix
+            return fixed_time.replace(tzinfo=tz)
 
     # Apply monkeypatch before creating sink
     monkeypatch.setattr(
