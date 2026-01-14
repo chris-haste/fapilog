@@ -70,6 +70,8 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+# Guard against .rst files being committed (we use .md for documentation)
+*.rst
 
 # PyBuilder
 .pybuilder/
