@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from ...core import diagnostics
 from ...core.audit import (
     AuditEventType,
     AuditLogLevel,
@@ -12,6 +11,7 @@ from ...core.audit import (
     ComplianceLevel,
     CompliancePolicy,
 )
+from ...core.errors import SinkWriteError
 
 
 @dataclass
@@ -140,15 +140,12 @@ class AuditSink:
                     }
                 },
             )
-        except Exception as exc:  # pragma: no cover - contain sink failures
-            try:
-                diagnostics.warn(
-                    "audit-sink",
-                    "audit sink write failed",
-                    error=str(exc),
-                )
-            except Exception:
-                pass
+        except Exception as e:
+            raise SinkWriteError(
+                f"Failed to write to {self.name}",
+                sink_name=self.name,
+                cause=e,
+            ) from e
 
 
 PLUGIN_METADATA = {

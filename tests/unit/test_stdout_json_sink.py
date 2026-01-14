@@ -78,7 +78,7 @@ async def test_stdout_json_sink_concurrent_writes_are_line_delimited() -> None:
 
 
 @pytest.mark.asyncio
-async def test_stdout_json_sink_swallows_errors() -> None:
+async def test_stdout_json_sink_raises_sink_write_error_on_failure() -> None:
     class BrokenBuffer:
         # behavior check
         def write(self, _data: bytes) -> int:  # pragma: no cover
@@ -91,11 +91,17 @@ async def test_stdout_json_sink_swallows_errors() -> None:
         def __init__(self) -> None:
             self.buffer = BrokenBuffer()
 
+    from fapilog.core.errors import SinkWriteError
+
     orig = sys.stdout
     sys.stdout = BrokenStdout()  # type: ignore[assignment]
     try:
         sink = StdoutJsonSink()
-        # Should not raise even if stdout errors
-        await sink.write({"x": 1})
+        # Should raise SinkWriteError when stdout errors
+        with pytest.raises(SinkWriteError) as exc_info:
+            await sink.write({"x": 1})
+        assert exc_info.value.context.plugin_name == "stdout_json"
+        assert isinstance(exc_info.value.__cause__, Exception)
+        assert "BrokenBuffer" in str(exc_info.value.__cause__)
     finally:
         sys.stdout = orig  # type: ignore[assignment]
