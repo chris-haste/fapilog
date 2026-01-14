@@ -69,6 +69,14 @@ This gives the user immediate visibility that the skill is active.
 - Suggest minimal focused test command
 - Use existing test output if available; never fabricate results
 
+### 5. DoD Verification
+- Read the story's Definition of Done checklist
+- Verify each item against the staged changes:
+  - **Code Complete**: All AC implemented? Follows project patterns? No new linting errors?
+  - **Quality Assurance**: Tests written and passing? ruff/mypy pass?
+  - **Documentation**: Docstrings where needed? README/CHANGELOG updated if required?
+- Flag any unmet DoD items as P1 issues
+
 ## Handling Precommit Changes
 
 If user mentions precommit modified files:
@@ -105,6 +113,11 @@ If user mentions precommit modified files:
 |-----------|--------|-------|
 | [AC item] | Pass/Fail/partial | [details] |
 
+### DoD Status
+| Item | Status | Notes |
+|------|--------|-------|
+| [DoD item] | Pass/Fail | [details] |
+
 ### Test Gaps
 - [Missing test scenarios]
 
@@ -130,6 +143,9 @@ If user mentions precommit modified files:
 
 ### AC Coverage
 All acceptance criteria met.
+
+### DoD Status
+All Definition of Done items verified.
 
 ### Verification Commands
 [Final test commands to run before PR]
