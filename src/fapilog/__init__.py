@@ -141,6 +141,35 @@ def _apply_default_log_level(
     return updated
 
 
+def _apply_environment_config(
+    settings: _Settings,
+    env_config: dict[str, _Any],
+) -> _Settings:
+    """Apply environment-specific configuration to settings.
+
+    Merges environment config with existing settings. Environment config
+    takes precedence for explicitly set values.
+    """
+    updated = settings.model_copy(deep=True)
+
+    # Apply core settings
+    core_config = env_config.get("core", {})
+    for key, value in core_config.items():
+        if hasattr(updated.core, key):
+            setattr(updated.core, key, value)
+
+    # Apply enrichers (merge with existing)
+    env_enrichers = env_config.get("enrichers", [])
+    if env_enrichers:
+        existing = list(updated.core.enrichers or [])
+        for enricher in env_enrichers:
+            if enricher not in existing:
+                existing.append(enricher)
+        updated.core.enrichers = existing
+
+    return updated
+
+
 def _sink_configs(settings: _Settings) -> dict[str, dict[str, _Any]]:
     scfg = settings.sink_config
     configs: dict[str, dict[str, _Any]] = {
@@ -891,6 +920,8 @@ def get_logger(
     format: _Literal["json", "pretty", "auto"] | None = None,
     settings: _Settings | None = None,
     sinks: list[object] | None = None,
+    auto_detect: bool = True,
+    environment: str | None = None,
 ) -> _SyncLoggerFacade:
     """Return a sync logger with optional preset or output format controls.
 
@@ -901,6 +932,18 @@ def get_logger(
             no settings are provided.
         settings: Explicit Settings object (mutually exclusive with preset/format).
         sinks: Custom sink instances (overrides configured sinks).
+        auto_detect: Enable automatic environment detection (default True).
+            When True, detects Lambda/Kubernetes/Docker/CI environments and
+            applies appropriate configurations.
+        environment: Explicit environment type override ("local", "docker",
+            "kubernetes", "lambda", "ci"). Mutually exclusive with preset/settings.
+
+    Priority order (highest to lowest):
+        1. Explicit settings parameter
+        2. Explicit preset parameter
+        3. Explicit environment parameter
+        4. Auto-detection (if auto_detect=True)
+        5. Story 10.6 defaults
     """
     # Validate mutual exclusivity
     if format is not None and settings is not None:
@@ -913,8 +956,18 @@ def get_logger(
             "Cannot specify both 'preset' and 'settings'. "
             "Use preset for quick setup or settings for full control."
         )
+    if environment is not None and settings is not None:
+        raise ValueError(
+            "Cannot specify both 'environment' and 'settings'. "
+            "Use environment for quick setup or settings for full control."
+        )
+    if environment is not None and preset is not None:
+        raise ValueError(
+            "Cannot specify both 'environment' and 'preset'. "
+            "Use one or the other for configuration."
+        )
 
-    implicit_settings = settings is None and preset is None
+    implicit_settings = settings is None and preset is None and environment is None
 
     # Apply preset if provided
     if preset is not None:
@@ -924,6 +977,20 @@ def get_logger(
         settings = _Settings(**preset_config)
 
     cfg_source = settings or _Settings()
+
+    # Apply environment configuration (explicit or auto-detected)
+    if environment is not None:
+        from .core.environment import get_environment_config
+
+        env_config = get_environment_config(environment)  # type: ignore[arg-type]
+        cfg_source = _apply_environment_config(cfg_source, env_config)
+    elif auto_detect and settings is None and preset is None:
+        from .core.environment import detect_environment, get_environment_config
+
+        detected_env = detect_environment()
+        env_config = get_environment_config(detected_env)
+        cfg_source = _apply_environment_config(cfg_source, env_config)
+
     cfg_source = _apply_default_log_level(cfg_source, preset=preset)
     fmt_input = format
     if fmt_input is None and implicit_settings:
@@ -987,6 +1054,8 @@ async def get_async_logger(
     format: _Literal["json", "pretty", "auto"] | None = None,
     settings: _Settings | None = None,
     sinks: list[object] | None = None,
+    auto_detect: bool = True,
+    environment: str | None = None,
 ) -> _AsyncLoggerFacade:
     """Return an async logger with optional preset or output format controls.
 
@@ -997,6 +1066,18 @@ async def get_async_logger(
             no settings are provided.
         settings: Explicit Settings object (mutually exclusive with preset/format).
         sinks: Custom sink instances (overrides configured sinks).
+        auto_detect: Enable automatic environment detection (default True).
+            When True, detects Lambda/Kubernetes/Docker/CI environments and
+            applies appropriate configurations.
+        environment: Explicit environment type override ("local", "docker",
+            "kubernetes", "lambda", "ci"). Mutually exclusive with preset/settings.
+
+    Priority order (highest to lowest):
+        1. Explicit settings parameter
+        2. Explicit preset parameter
+        3. Explicit environment parameter
+        4. Auto-detection (if auto_detect=True)
+        5. Story 10.6 defaults
     """
     # Validate mutual exclusivity
     if format is not None and settings is not None:
@@ -1009,8 +1090,18 @@ async def get_async_logger(
             "Cannot specify both 'preset' and 'settings'. "
             "Use preset for quick setup or settings for full control."
         )
+    if environment is not None and settings is not None:
+        raise ValueError(
+            "Cannot specify both 'environment' and 'settings'. "
+            "Use environment for quick setup or settings for full control."
+        )
+    if environment is not None and preset is not None:
+        raise ValueError(
+            "Cannot specify both 'environment' and 'preset'. "
+            "Use one or the other for configuration."
+        )
 
-    implicit_settings = settings is None and preset is None
+    implicit_settings = settings is None and preset is None and environment is None
 
     # Apply preset if provided
     if preset is not None:
@@ -1020,6 +1111,20 @@ async def get_async_logger(
         settings = _Settings(**preset_config)
 
     cfg_source = settings or _Settings()
+
+    # Apply environment configuration (explicit or auto-detected)
+    if environment is not None:
+        from .core.environment import get_environment_config
+
+        env_config = get_environment_config(environment)  # type: ignore[arg-type]
+        cfg_source = _apply_environment_config(cfg_source, env_config)
+    elif auto_detect and settings is None and preset is None:
+        from .core.environment import detect_environment, get_environment_config
+
+        detected_env = detect_environment()
+        env_config = get_environment_config(detected_env)
+        cfg_source = _apply_environment_config(cfg_source, env_config)
+
     cfg_source = _apply_default_log_level(cfg_source, preset=preset)
     fmt_input = format
     if fmt_input is None and implicit_settings:

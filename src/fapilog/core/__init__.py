@@ -52,6 +52,11 @@ from .defaults import (
     should_fallback_sink,
 )
 from .encryption import EncryptionSettings, validate_encryption_async
+from .environment import (
+    EnvironmentType,
+    detect_environment,
+    get_environment_config,
+)
 from .errors import (
     AsyncErrorContext,
     AuthenticationError,
@@ -186,6 +191,10 @@ __all__ = [
     "is_ci_environment",
     "is_tty_environment",
     "should_fallback_sink",
+    # Environment detection (Story 10.8)
+    "EnvironmentType",
+    "detect_environment",
+    "get_environment_config",
     # Compliance configuration validation
     "AuditConfig",
     "DataHandlingSettings",
