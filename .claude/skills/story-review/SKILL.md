@@ -1,13 +1,20 @@
 ---
 name: story-review
-description: Review story documents for need, accuracy, completeness, and implementation readiness. Validates against codebase.
+description: Use when reviewing, validating, or checking story documents. Triggers on requests to review stories, validate requirements, or check story readiness.
 ---
 
 # Story Review
 
 Stories live in `/docs/stories/`.
 
-## On Invoke
+## When to Apply
+
+- User asks to review a story
+- User asks to validate requirements
+- User asks if a story is ready for implementation
+- User mentions checking story completeness or accuracy
+
+## On Activation
 
 Ask: "Which story would you like me to review?"
 

@@ -1,18 +1,26 @@
 ---
 name: tdd-python
-description: Enforced TDD for Python changes (red-green-refactor). Tests-first with mandatory run gates, boundary-only mocking, and explicit legacy/spike exceptions.
+description: Use when implementing features, fixing bugs, writing new code, or making changes to Python files. Enforces red-green-refactor TDD workflow with tests-first approach.
 ---
 
 # TDD Python (Lean + Enforced)
 
-## Non-negotiable gates
+## When to Apply
+
+- User asks to implement a story or feature
+- User asks to fix a bug
+- User asks to add functionality
+- User asks to write or change Python code
+- Any request that will result in production code changes
+
+## Non-negotiable Gates
 
 - No production code without a failing test that demands it (RED first).
 - After each step: run focused tests and keep GREEN before continuing.
 - Behavior change without relevant tests updated/added => STOP and add tests.
 - No skipped/disabled tests unless an explicit exception applies.
 
-## Default loop (repeat per smallest behavior)
+## Default Loop (repeat per smallest behavior)
 
 1. RED: write/adjust the next smallest test
 2. Run focused tests => must FAIL for the right reason
@@ -22,18 +30,18 @@ description: Enforced TDD for Python changes (red-green-refactor). Tests-first w
    - Run `ruff check --fix <changed-files>` and `ruff format <changed-files>`
 6. Run focused tests again => must PASS
 
-## What "tests-first" means in practice
+## What "Tests-First" Means in Practice
 
 - Start from story intent / AC (if provided) and derive the next smallest observable behavior.
-- Tests must assert behavior (inputs→outputs / side-effects), not private internals.
+- Tests must assert behavior (inputs->outputs / side-effects), not private internals.
 - Bug fix => add a regression test that would fail pre-fix.
 
-## Mocking rule (boundary-only)
+## Mocking Rule (Boundary-Only)
 
 Mock only I/O boundaries (network, filesystem, time, external services, DB unless deliberately integration-testing the DB layer).
 Avoid over-mocking internal collaborators.
 
-## Edge cases (only when relevant)
+## Edge Cases (Only When Relevant)
 
 Cover the meaningful boundaries for the changed behavior:
 
@@ -42,16 +50,15 @@ Cover the meaningful boundaries for the changed behavior:
 - boundary values
 - timezones/idempotency/concurrency only if the story touches them
 
-## Reference files (use only when needed)
+## Reference Files
 
-- For common test patterns (parametrize, async, tmp_path, caplog, monkeypatch, hypothesis):
-  - references/patterns.md
-- For legacy rescue / characterization / golden master / seams:
-  - references/legacy-code.md
+For common test patterns and legacy code techniques, see:
+- `references/patterns.md` - parametrize, async, tmp_path, caplog, monkeypatch, hypothesis
+- `references/legacy-code.md` - characterization, golden master, seams
 
 Do NOT paste large templates from references unless it directly solves the current task.
 
-## "Done" gate (before staging)
+## "Done" Gate (Before Staging)
 
 Quality checks on changed files:
 - Focused tests pass
@@ -65,11 +72,11 @@ Verify:
 
 Then stage: `git add <changed-files>`
 
-Do NOT commit or push — handoff to commit-pr for that.
+Do NOT commit or push - user must explicitly request /commit-pr for that.
 
 Deferred to commit-pr/CI: full test suite, coverage, vulture
 
-## Allowed exceptions (must be explicit + safety net stated)
+## Allowed Exceptions (Must Be Explicit + Safety Net Stated)
 
 If invoking an exception, you MUST name it and state the safety net.
 
@@ -77,7 +84,7 @@ If invoking an exception, you MUST name it and state the safety net.
 - Legacy rescue: characterization / golden master tests first (see references/legacy-code.md)
 - UI/visual-only: manual verification allowed, but business logic still tested
 
-## Output style
+## Output Style
 
 - Keep updates terse and action-oriented.
 - Prefer bullets.

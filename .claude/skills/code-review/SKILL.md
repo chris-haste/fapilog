@@ -1,25 +1,33 @@
 ---
-name: review-work
-description: Review staged files against story AC. Reports P0/P1/P2 issues. Updates story status when complete.
+name: code-review
+description: Use when reviewing code changes, checking staged files, or validating work against acceptance criteria. Triggers on requests to review changes, check work, or validate implementation.
 ---
 
-# Review Work
+# Code Review
 
-Tech Lead review of staged changes against story acceptance criteria.
+Tech Lead review of changes against story acceptance criteria.
 
-## On Invoke
+## When to Apply
+
+- User asks to review their changes
+- User asks to check staged files
+- User asks to validate work against a story
+- User mentions they're done implementing and want feedback
+- User asks if changes are ready for PR
+
+## On Activation
 
 1. Ask: "Which story should I review against?" (expect path like `docs/stories/story-10-5.md` or story number)
 2. Check `git diff --cached --stat`
-   - If no staged files: Ask "No files staged. Want me to run `git add -p` or stage specific files?"
-   - If files staged: Confirm "I see these staged files: [list]. Ready to review?"
+   - If no staged files: Check `git diff --stat` for unstaged changes
+   - If files found: Confirm "I see these files: [list]. Ready to review?"
 3. Wait for confirmation before proceeding.
 
 ## Hard Rules
 
-- Review staged files only (`git diff --cached`)
+- Review staged files only (`git diff --cached`) unless user specifies otherwise
 - Read-only except: update story Status/checklists when no P0/P1/P2 issues
-- Evidence-based: use diffs, file reads, test output—never fabricate
+- Evidence-based: use diffs, file reads, test output - never fabricate
 - Specific suggestions: file path + what to change conceptually (no patches)
 
 ## Review Steps
@@ -80,7 +88,7 @@ If user mentions precommit modified files:
 ### AC Coverage
 | Criterion | Status | Notes |
 |-----------|--------|-------|
-| [AC item] | ✓/✗/partial | [details] |
+| [AC item] | Pass/Fail/partial | [details] |
 
 ### Test Gaps
 - [Missing test scenarios]
@@ -115,7 +123,7 @@ All acceptance criteria met.
 Then:
 1. Update story Status to "Complete"
 2. Check off DoD items that are verified
-3. Tell user: "Updated story status to Complete. Ready to commit and PR."
+3. Tell user: "Updated story status to Complete. Ready for /commit-pr"
 
 ## Style
 - Concise, high-signal
