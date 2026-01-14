@@ -536,7 +536,7 @@ def _build_pipeline(
 
 
 def _make_sink_writer(sink: _Any) -> tuple[_Any, _Any]:
-    async def _sink_write(entry: dict) -> None:
+    async def _sink_write(entry: dict) -> bool | None:
         if hasattr(sink, "start") and not getattr(sink, "_started", False):
             try:
                 await sink.start()
@@ -552,11 +552,13 @@ def _make_sink_writer(sink: _Any) -> tuple[_Any, _Any]:
                     )
                 except Exception:
                     pass
-        await sink.write(entry)
+        result: bool | None = await sink.write(entry)
+        return result
 
-    async def _sink_write_serialized(view: object) -> None:
+    async def _sink_write_serialized(view: object) -> bool | None:
         try:
-            await sink.write_serialized(view)
+            result: bool | None = await sink.write_serialized(view)
+            return result
         except AttributeError:
             return None
 
@@ -599,8 +601,23 @@ def _fanout_writer(
             return  # Skip - circuit is open
 
         try:
-            await write_fn(entry)
-            if breaker:
+            result = await write_fn(entry)
+            # False return signals failure (Story 4.41)
+            if result is False:
+                if breaker:
+                    breaker.record_failure()
+                try:
+                    from .plugins.sinks.fallback import handle_sink_write_failure
+
+                    await handle_sink_write_failure(
+                        entry,
+                        sink=sink,
+                        error=RuntimeError("Sink returned False"),
+                        serialized=False,
+                    )
+                except Exception:
+                    pass
+            elif breaker:
                 breaker.record_success()
         except Exception as exc:
             if breaker:
@@ -650,15 +667,40 @@ def _fanout_writer(
 
     async def _write_serialized(view: object) -> None:
         for i, (_, write_s) in enumerate(writers):
+            sink = sinks[i]
+            breaker = breakers.get(id(sink))
+
+            if breaker and not breaker.should_allow():
+                continue  # Skip - circuit is open
+
             try:
-                await write_s(view)
+                result = await write_s(view)
+                # False return signals failure (Story 4.41)
+                if result is False:
+                    if breaker:
+                        breaker.record_failure()
+                    try:
+                        from .plugins.sinks.fallback import handle_sink_write_failure
+
+                        await handle_sink_write_failure(
+                            view,
+                            sink=sink,
+                            error=RuntimeError("Sink returned False"),
+                            serialized=True,
+                        )
+                    except Exception:
+                        pass
+                elif breaker:
+                    breaker.record_success()
             except Exception as exc:
+                if breaker:
+                    breaker.record_failure()
                 try:
                     from .plugins.sinks.fallback import handle_sink_write_failure
 
                     await handle_sink_write_failure(
                         view,
-                        sink=sinks[i],
+                        sink=sink,
                         error=exc,
                         serialized=True,
                     )

@@ -6,6 +6,7 @@ import sys
 from typing import Any
 
 from ...core import diagnostics
+from ...core.errors import SinkWriteError
 from ...core.serialization import (
     SerializedView,
     convert_json_bytes_to_jsonl,
@@ -18,7 +19,7 @@ class StdoutJsonSink:
 
     - Accepts dict-like finalized entries and emits one JSON per line to stdout
     - Uses zero-copy serialization helpers
-    - Never raises upstream; errors are contained
+    - Signals failures via SinkWriteError; core catches and triggers fallback
     """
 
     name = "stdout_json"
@@ -87,9 +88,12 @@ class StdoutJsonSink:
                             pass
 
                 await asyncio.to_thread(_write_segments)
-        except Exception:
-            # Contain sink errors; do not propagate
-            return None
+        except Exception as e:
+            raise SinkWriteError(
+                f"Failed to write to {self.name}",
+                sink_name=self.name,
+                cause=e,
+            ) from e
 
     async def write_serialized(self, view: SerializedView) -> None:
         try:
@@ -120,8 +124,12 @@ class StdoutJsonSink:
                             pass
 
                 await asyncio.to_thread(_write_segments)
-        except Exception:
-            return None
+        except Exception as e:
+            raise SinkWriteError(
+                f"Failed to write to {self.name}",
+                sink_name=self.name,
+                cause=e,
+            ) from e
 
     async def health_check(self) -> bool:
         try:

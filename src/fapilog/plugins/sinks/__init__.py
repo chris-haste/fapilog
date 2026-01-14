@@ -23,10 +23,12 @@ class BaseSink(Protocol):
     Expectations:
     - Async-first: methods are `async def` and must not block the event loop for
       long operations (perform I/O via threads or native async libraries).
-    - Resilient: exceptions MUST be contained; never allow sink errors to crash
-      the core pipeline. If an error occurs, swallow it or emit diagnostics.
+    - Error signaling: On write failures, raise ``SinkWriteError`` or return
+      ``False`` to trigger fallback behavior and circuit breaker integration.
+      The core catches these signals, calls the fallback handler, and continues
+      without crashing.
     - Deterministic output: each invocation of ``write`` produces one record in
-      the configured destination.
+      the configured destination (on success).
     - Optional fast path: sinks may expose ``write_serialized(view)`` to accept
       pre-serialized payloads when serialize_in_flush=True; if absent, fapilog
       automatically calls ``write`` instead.
@@ -35,7 +37,8 @@ class BaseSink(Protocol):
 
     Lifecycle:
     - ``start`` and ``stop`` are optional hooks. If implemented, they should be
-      idempotent and tolerate repeated calls.
+      idempotent and tolerate repeated calls. These lifecycle methods should
+      still contain errors (not propagate them).
 
     Attributes:
         name: Unique identifier for this sink type (e.g., "stdout_json").
@@ -58,16 +61,24 @@ class BaseSink(Protocol):
         call multiple times.
         """
 
-    async def write(self, _entry: dict) -> None:  # noqa: ARG002, D401
+    async def write(self, _entry: dict) -> bool | None:  # noqa: ARG002, D401
         """Emit a single structured JSON-serializable mapping.
 
         Args:
             _entry: Finalized event mapping. Implementations may serialize to
                 bytes/JSONL or transform to destination-native format.
 
+        Returns:
+            None or True on success, False on failure (triggers fallback).
+
+        Raises:
+            SinkWriteError: On write failure. The core catches this, triggers
+                fallback, and increments the circuit breaker.
+
         Notes:
-        - Must never raise upstream; contain errors internally.
+        - On failure, raise ``SinkWriteError`` (preferred) or return ``False``.
         - Keep per-call critical sections short; avoid event loop stalls.
+        - The core pipeline contains errors, so sinks don't crash the logger.
         """
         ...
 

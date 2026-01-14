@@ -5,7 +5,7 @@ import sys
 from datetime import datetime
 from typing import Any, Mapping
 
-from ...core import diagnostics
+from ...core.errors import SinkWriteError
 
 COLORS = {
     "DEBUG": "\033[90m",
@@ -48,14 +48,12 @@ class StdoutPrettySink:
                     sys.stdout.flush()
 
                 await asyncio.to_thread(_write_line)
-        except Exception as exc:
-            diagnostics.warn(
-                "sink",
-                "pretty sink error",
-                reason=type(exc).__name__,
-                detail=str(exc),
-            )
-            return None
+        except Exception as e:
+            raise SinkWriteError(
+                f"Failed to write to {self.name}",
+                sink_name=self.name,
+                cause=e,
+            ) from e
 
     async def health_check(self) -> bool:
         try:
