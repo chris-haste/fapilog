@@ -12,6 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from conftest import get_test_timeout
 from fapilog.core.circuit_breaker import CircuitState
 
 # -----------------------------------------------------------------------------
@@ -80,8 +81,7 @@ class TestSinkCircuitBreaker:
     def test_circuit_transitions_to_half_open_after_timeout(self):
         """Circuit transitions to half-open after recovery timeout.
 
-        Uses 200ms timeout with 250ms sleep to provide adequate margin
-        on slow CI runners.
+        Uses CI timeout multiplier for adequate margin on slow CI runners.
         """
         from fapilog.core.circuit_breaker import (
             SinkCircuitBreaker,
@@ -90,7 +90,7 @@ class TestSinkCircuitBreaker:
 
         config = SinkCircuitBreakerConfig(
             failure_threshold=1,
-            recovery_timeout_seconds=0.2,  # 200ms - adequate margin for CI
+            recovery_timeout_seconds=get_test_timeout(0.05),
         )
         breaker = SinkCircuitBreaker("test_sink", config)
 
@@ -99,8 +99,8 @@ class TestSinkCircuitBreaker:
         assert breaker.state == CircuitState.OPEN
         assert not breaker.should_allow()
 
-        # Wait for recovery timeout with adequate margin (50ms buffer)
-        time.sleep(0.25)
+        # Wait for recovery timeout with adequate margin
+        time.sleep(get_test_timeout(0.06))
 
         # should_allow() should transition to half-open
         assert breaker.should_allow()
@@ -115,7 +115,7 @@ class TestSinkCircuitBreaker:
 
         config = SinkCircuitBreakerConfig(
             failure_threshold=1,
-            recovery_timeout_seconds=0.01,
+            recovery_timeout_seconds=get_test_timeout(0.01),
         )
         breaker = SinkCircuitBreaker("test_sink", config)
 
@@ -124,7 +124,7 @@ class TestSinkCircuitBreaker:
         assert breaker.state == CircuitState.OPEN
 
         # Wait and transition to half-open
-        time.sleep(0.02)
+        time.sleep(get_test_timeout(0.02))
         breaker.should_allow()
         assert breaker.state == CircuitState.HALF_OPEN
 
@@ -142,7 +142,7 @@ class TestSinkCircuitBreaker:
 
         config = SinkCircuitBreakerConfig(
             failure_threshold=1,
-            recovery_timeout_seconds=0.01,
+            recovery_timeout_seconds=get_test_timeout(0.01),
         )
         breaker = SinkCircuitBreaker("test_sink", config)
 
@@ -151,7 +151,7 @@ class TestSinkCircuitBreaker:
         assert breaker.state == CircuitState.OPEN
 
         # Wait and transition to half-open
-        time.sleep(0.02)
+        time.sleep(get_test_timeout(0.02))
         breaker.should_allow()
         assert breaker.state == CircuitState.HALF_OPEN
 
@@ -171,14 +171,14 @@ class TestSinkCircuitBreaker:
 
         config = SinkCircuitBreakerConfig(
             failure_threshold=1,
-            recovery_timeout_seconds=0.01,
+            recovery_timeout_seconds=get_test_timeout(0.01),
             half_open_max_calls=2,
         )
         breaker = SinkCircuitBreaker("test_sink", config)
 
         # Open and transition to half-open (counts as call 1)
         breaker.record_failure()
-        time.sleep(0.02)
+        time.sleep(get_test_timeout(0.02))
         assert breaker.should_allow()  # Transitions to HALF_OPEN, call 1
         assert breaker.state == CircuitState.HALF_OPEN
 

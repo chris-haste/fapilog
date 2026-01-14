@@ -121,17 +121,23 @@ jobs:
 
       - name: Run quick tests with coverage (PR)
         if: github.event_name == 'pull_request'
+        env:
+          CI_TIMEOUT_MULTIPLIER: "3"
         run: >
           hatch run test:test-cov --
           -m "((critical or security) and not flaky) or (not slow and not integration and not flaky)"
 
       - name: Run flaky tests (PR)
         if: github.event_name == 'pull_request'
+        env:
+          CI_TIMEOUT_MULTIPLIER: "3"
         run: hatch run test:test -- -m flaky
         continue-on-error: true
 
       - name: Run full tests with coverage
         if: github.event_name != 'pull_request'
+        env:
+          CI_TIMEOUT_MULTIPLIER: "3"
         run: hatch run test:test-cov
 
       - name: Upload coverage to Codecov
