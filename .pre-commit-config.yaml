@@ -57,12 +57,22 @@ repos:
         always_run: true
         stages: [pre-commit, manual]
 
-      - id: coverage-check
-        name: Code Coverage (90%+ required)
-        entry: python scripts/check_coverage.py
+      - id: diff-coverage-check
+        name: Diff Coverage (90%+ on changed lines)
+        entry: python scripts/check_diff_coverage.py
         language: system
         stages: [pre-commit]
-        description: "Ensure minimum 90% code coverage"
+        description: "Ensure 90% coverage on changed lines only"
+        always_run: true
+        pass_filenames: false
+        verbose: true
+
+      - id: full-coverage-check
+        name: Full Coverage (90%+ required)
+        entry: python scripts/check_coverage.py
+        language: system
+        stages: [pre-push]
+        description: "Ensure minimum 90% total code coverage"
         always_run: true
         pass_filenames: false
         verbose: true
