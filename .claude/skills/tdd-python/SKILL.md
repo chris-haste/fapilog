@@ -39,20 +39,11 @@ This gives the user immediate visibility into whether the skill is active.
 
 **If implementing a story:** Create a feature branch before writing any code.
 
-**Branch format:** `<type>/story-<id>-<title-slug>`
-
-- `type`: Derived from story (feat, fix, refactor, chore, etc.)
-- `id`: Story number (e.g., 5.25)
-- `title-slug`: Kebab-case from story title, max ~30 chars
-
-**Examples:**
-- `feat/story-5.26-add-sink-routing`
-- `fix/story-5.27-handle-null-logger`
-- `refactor/story-5.25-extract-config-builders`
+See `CLAUDE.md` for branch naming format: `<type>/story-<id>-<title-slug>`
 
 **Steps:**
 1. Parse story file for type (from title prefix or content) and title
-2. Generate branch name
+2. Generate branch name per CLAUDE.md conventions
 3. `git checkout -b <branch-name>`
 4. Inform user: "Created branch: `<branch-name>`"
 
@@ -160,16 +151,7 @@ After all quality checks pass and files are staged, prompt for commit:
 
 **If user confirms:**
 
-1. Generate commit message following format:
-   ```
-   <type>(<scope>): <message title>
-
-   - <bullet summarizing change>
-   - <bullet summarizing change>
-   ```
-   - Types: feat | fix | chore | docs | refactor | test | style | perf
-   - Imperative mood, lowercase, no period, max 50 chars
-   - Body bullets explain *why*, not just *what*
+1. Generate commit message following format in `CLAUDE.md`
 
 2. Show message and ask for approval/edits
 

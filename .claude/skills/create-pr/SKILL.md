@@ -22,14 +22,14 @@ Generate a GitHub Pull Request URL with pre-filled title and body, derived from 
 
 - Implementation committed and pushed (via `tdd-python`)
 - Code review passed (via `code-review`)
-- On a feature branch with format: `<type>/story-<id>-<title-slug>`
+- On a feature branch (see `CLAUDE.md` for branch naming format)
 
 ## Workflow
 
 ### 1. Gather Context
 
 **From branch name:**
-- Parse type, story ID from branch: `<type>/story-<id>-<slug>`
+- Parse type, story ID from branch per `CLAUDE.md` format
 - Example: `refactor/story-5.25-extract-config-builders` → type=refactor, id=5.25
 
 **From story file:**
@@ -43,42 +43,20 @@ Generate a GitHub Pull Request URL with pre-filled title and body, derived from 
 
 ### 2. Generate PR Title
 
-Format: `<type>(<scope>): <story title>`
+Use format from `CLAUDE.md`: `<type>(<scope>): <story title>`
 
-- `type`: From branch name (feat, fix, refactor, etc.)
-- `scope`: Infer from primary directory of changes (e.g., `core`, `sinks`, `api`)
+- `type`: From branch name
+- `scope`: Infer per `CLAUDE.md` scope rules
 - `title`: From story document, lowercase, imperative mood
-
-Example: `refactor(core): extract config builders from __init__.py`
 
 ### 3. Generate PR Body
 
-Use this template:
-
-```markdown
-## Summary
-<First paragraph or description from story>
-
-## Changes
-<List of files changed, grouped and annotated>
-- `src/fapilog/core/config_builders.py` (new)
-- `src/fapilog/__init__.py` (modified)
-- `tests/unit/core/test_config_builders.py` (new)
-
-## Acceptance Criteria
-<From story, as checked items since code-review passed>
-- [x] <AC 1>
-- [x] <AC 2>
-- [x] <AC 3>
-
-## Test Plan
-- [x] Unit tests pass
-- [x] Coverage >= 90%
-<Additional items from story test plan if any>
-
-## Story
-[<id> - <title>](docs/stories/<story-file>.md)
-```
+Use PR body template from `CLAUDE.md`, populated with:
+- Summary from story description
+- Changed files list with annotations
+- Acceptance criteria (checked, since code-review passed)
+- Test plan items
+- Link to story document
 
 ### 4. Generate GitHub URL
 
@@ -115,15 +93,6 @@ When listing changed files, annotate them:
 - `(modified)` - Changed files (M in git status)
 - `(deleted)` - Removed files (D in git status)
 - `(renamed)` - Renamed files (R in git status)
-
-## Scope Inference
-
-Infer scope from the primary directory of production code changes:
-- `src/fapilog/core/*` → `core`
-- `src/fapilog/sinks/*` → `sinks`
-- `src/fapilog/enrichers/*` → `enrichers`
-- `src/fapilog/*.py` → `fapilog`
-- Multiple directories → use most significant or omit scope
 
 ## Error Handling
 
