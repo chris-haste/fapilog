@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+from enum import Enum
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -35,6 +36,128 @@ from .types import (
     _parse_size,
 )
 from .validation import ensure_path_exists
+
+
+class EnvFieldType(Enum):
+    """Type hints for environment variable value conversion."""
+
+    STRING = "string"
+    INT = "int"
+    BOOL = "bool"
+    FLOAT = "float"
+    DURATION = "duration"
+    LIST = "list"
+    SIZE = "size"
+    DICT = "dict"
+    ENUM = "enum"
+    ROUTING_RULES = "routing_rules"
+
+
+def _convert_env_value(
+    value: str,
+    field_type: EnvFieldType,
+    allowed_values: set[str] | None = None,
+) -> Any:
+    """Convert a string environment variable value to the target type.
+
+    Args:
+        value: The raw string value from the environment.
+        field_type: The target type to convert to.
+        allowed_values: For ENUM type, the set of allowed values.
+
+    Returns:
+        The converted value, or None if conversion fails.
+    """
+    try:
+        if field_type == EnvFieldType.STRING:
+            return value
+
+        if field_type == EnvFieldType.INT:
+            return int(value)
+
+        if field_type == EnvFieldType.FLOAT:
+            return float(value)
+
+        if field_type == EnvFieldType.BOOL:
+            normalized = value.strip().lower()
+            if normalized in {"1", "true", "yes", "on"}:
+                return True
+            if normalized in {"0", "false", "no", "off"}:
+                return False
+            return None
+
+        if field_type == EnvFieldType.DURATION:
+            return _parse_duration(value)
+
+        if field_type == EnvFieldType.SIZE:
+            return _parse_size(value)
+
+        if field_type == EnvFieldType.LIST:
+            # Try JSON first
+            try:
+                parsed = json.loads(value)
+                if isinstance(parsed, list):
+                    return [str(v) for v in parsed]
+            except Exception:
+                pass
+            # Fall back to CSV parsing
+            stripped = value.strip()
+            if not stripped:
+                return []
+            return [v for v in (item.strip() for item in stripped.split(",")) if v]
+
+        if field_type == EnvFieldType.DICT:
+            parsed = json.loads(value)
+            if isinstance(parsed, dict):
+                return {str(k): str(v) for k, v in parsed.items()}
+            return None
+
+        if field_type == EnvFieldType.ENUM:
+            if allowed_values is None:
+                return None
+            normalized = value.strip().lower()
+            if normalized in allowed_values:
+                return normalized
+            return None
+
+        if field_type == EnvFieldType.ROUTING_RULES:
+            # Import here to avoid circular dependency
+            parsed = json.loads(value)
+            if isinstance(parsed, list):
+                return [
+                    RoutingRule.model_validate(item)
+                    for item in parsed
+                    if isinstance(item, dict)
+                ]
+            return None
+
+    except Exception:
+        return None
+
+
+def _apply_env_aliases(
+    target: BaseModel,
+    field_map: dict[str, tuple[str, EnvFieldType] | tuple[str, EnvFieldType, set[str]]],
+) -> None:
+    """Apply environment variable overrides to a Pydantic model.
+
+    Args:
+        target: The Pydantic model instance to modify.
+        field_map: A mapping of field names to (env_var_name, field_type) tuples.
+            For ENUM types, a third element contains the allowed values.
+    """
+    for field_name, field_spec in field_map.items():
+        env_var = field_spec[0]
+        field_type = field_spec[1]
+        allowed_values = field_spec[2] if len(field_spec) > 2 else None  # type: ignore[misc]
+
+        value = os.getenv(env_var)
+        if value is None:
+            continue
+
+        converted = _convert_env_value(value, field_type, allowed_values)  # type: ignore[arg-type]
+        if converted is not None:
+            setattr(target, field_name, converted)
 
 
 class RotatingFileSettings(BaseModel):
@@ -970,261 +1093,178 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def _apply_size_guard_env_aliases(self) -> Settings:
         """Support short env aliases like FAPILOG_SIZE_GUARD__MAX_BYTES."""
-        sg = self.processor_config.size_guard
-        action = os.getenv("FAPILOG_SIZE_GUARD__ACTION")
-        max_bytes = os.getenv("FAPILOG_SIZE_GUARD__MAX_BYTES")
-        preserve = os.getenv("FAPILOG_SIZE_GUARD__PRESERVE_FIELDS")
-
-        if action:
-            normalized = action.strip().lower()
-            if normalized in {"truncate", "drop", "warn"}:
-                sg.action = normalized  # type: ignore[assignment]
-
-        if max_bytes:
-            try:
-                parsed_size = _parse_size(max_bytes)
-                if parsed_size is not None:
-                    sg.max_bytes = parsed_size
-            except Exception:
-                pass
-
-        if preserve:
-            parsed_fields = self._parse_env_list(preserve)
-            if parsed_fields:
-                sg.preserve_fields = parsed_fields
+        _apply_env_aliases(
+            self.processor_config.size_guard,
+            {
+                "action": (
+                    "FAPILOG_SIZE_GUARD__ACTION",
+                    EnvFieldType.ENUM,
+                    {"truncate", "drop", "warn"},
+                ),
+                "max_bytes": ("FAPILOG_SIZE_GUARD__MAX_BYTES", EnvFieldType.SIZE),
+                "preserve_fields": (
+                    "FAPILOG_SIZE_GUARD__PRESERVE_FIELDS",
+                    EnvFieldType.LIST,
+                ),
+            },
+        )
         return self
-
-    @staticmethod
-    def _parse_bool(value: str | None) -> bool | None:
-        if value is None:
-            return None
-        return value.strip().lower() in {"1", "true", "yes", "on"}
 
     @model_validator(mode="after")
     def _apply_cloudwatch_env_aliases(self) -> Settings:
         """Support short env aliases like FAPILOG_CLOUDWATCH__LOG_GROUP_NAME."""
-        cw = self.sink_config.cloudwatch
-        env_map = {
-            "log_group_name": os.getenv("FAPILOG_CLOUDWATCH__LOG_GROUP_NAME"),
-            "log_stream_name": os.getenv("FAPILOG_CLOUDWATCH__LOG_STREAM_NAME"),
-            "region": os.getenv("FAPILOG_CLOUDWATCH__REGION"),
-            "endpoint_url": os.getenv("FAPILOG_CLOUDWATCH__ENDPOINT_URL"),
-            "batch_size": os.getenv("FAPILOG_CLOUDWATCH__BATCH_SIZE"),
-            "batch_timeout_seconds": os.getenv(
-                "FAPILOG_CLOUDWATCH__BATCH_TIMEOUT_SECONDS"
-            ),
-            "max_retries": os.getenv("FAPILOG_CLOUDWATCH__MAX_RETRIES"),
-            "retry_base_delay": os.getenv("FAPILOG_CLOUDWATCH__RETRY_BASE_DELAY"),
-        }
-        bool_overrides = {
-            "create_log_group": os.getenv("FAPILOG_CLOUDWATCH__CREATE_LOG_GROUP"),
-            "create_log_stream": os.getenv("FAPILOG_CLOUDWATCH__CREATE_LOG_STREAM"),
-            "circuit_breaker_enabled": os.getenv(
-                "FAPILOG_CLOUDWATCH__CIRCUIT_BREAKER_ENABLED"
-            ),
-        }
-
-        for key, value in env_map.items():
-            if value is None:
-                continue
-            try:
-                if key in {"batch_size", "max_retries"}:
-                    setattr(cw, key, int(value))
-                elif key in {"batch_timeout_seconds", "retry_base_delay"}:
-                    parsed_duration = _parse_duration(value)
-                    if parsed_duration is not None:
-                        setattr(cw, key, parsed_duration)
-                else:
-                    setattr(cw, key, value)
-            except Exception:
-                continue
-
-        for key, value in bool_overrides.items():
-            parsed_bool = self._parse_bool(value)
-            if parsed_bool is not None:
-                setattr(cw, key, parsed_bool)
-
-        if (
-            threshold := os.getenv("FAPILOG_CLOUDWATCH__CIRCUIT_BREAKER_THRESHOLD")
-        ) is not None:
-            try:
-                cw.circuit_breaker_threshold = int(threshold)
-            except Exception:
-                pass
-
+        _apply_env_aliases(
+            self.sink_config.cloudwatch,
+            {
+                "log_group_name": (
+                    "FAPILOG_CLOUDWATCH__LOG_GROUP_NAME",
+                    EnvFieldType.STRING,
+                ),
+                "log_stream_name": (
+                    "FAPILOG_CLOUDWATCH__LOG_STREAM_NAME",
+                    EnvFieldType.STRING,
+                ),
+                "region": ("FAPILOG_CLOUDWATCH__REGION", EnvFieldType.STRING),
+                "endpoint_url": (
+                    "FAPILOG_CLOUDWATCH__ENDPOINT_URL",
+                    EnvFieldType.STRING,
+                ),
+                "batch_size": ("FAPILOG_CLOUDWATCH__BATCH_SIZE", EnvFieldType.INT),
+                "batch_timeout_seconds": (
+                    "FAPILOG_CLOUDWATCH__BATCH_TIMEOUT_SECONDS",
+                    EnvFieldType.DURATION,
+                ),
+                "max_retries": ("FAPILOG_CLOUDWATCH__MAX_RETRIES", EnvFieldType.INT),
+                "retry_base_delay": (
+                    "FAPILOG_CLOUDWATCH__RETRY_BASE_DELAY",
+                    EnvFieldType.DURATION,
+                ),
+                "create_log_group": (
+                    "FAPILOG_CLOUDWATCH__CREATE_LOG_GROUP",
+                    EnvFieldType.BOOL,
+                ),
+                "create_log_stream": (
+                    "FAPILOG_CLOUDWATCH__CREATE_LOG_STREAM",
+                    EnvFieldType.BOOL,
+                ),
+                "circuit_breaker_enabled": (
+                    "FAPILOG_CLOUDWATCH__CIRCUIT_BREAKER_ENABLED",
+                    EnvFieldType.BOOL,
+                ),
+                "circuit_breaker_threshold": (
+                    "FAPILOG_CLOUDWATCH__CIRCUIT_BREAKER_THRESHOLD",
+                    EnvFieldType.INT,
+                ),
+            },
+        )
         return self
 
     @model_validator(mode="after")
     def _apply_loki_env_aliases(self) -> Settings:
         """Support short env aliases like FAPILOG_LOKI__URL."""
-        loki_cfg = self.sink_config.loki
-        env_map = {
-            "url": os.getenv("FAPILOG_LOKI__URL"),
-            "tenant_id": os.getenv("FAPILOG_LOKI__TENANT_ID"),
-            "auth_username": os.getenv("FAPILOG_LOKI__AUTH_USERNAME"),
-            "auth_password": os.getenv("FAPILOG_LOKI__AUTH_PASSWORD"),
-            "auth_token": os.getenv("FAPILOG_LOKI__AUTH_TOKEN"),
-            "timeout_seconds": os.getenv("FAPILOG_LOKI__TIMEOUT_SECONDS"),
-            "batch_size": os.getenv("FAPILOG_LOKI__BATCH_SIZE"),
-            "batch_timeout_seconds": os.getenv("FAPILOG_LOKI__BATCH_TIMEOUT_SECONDS"),
-            "max_retries": os.getenv("FAPILOG_LOKI__MAX_RETRIES"),
-            "retry_base_delay": os.getenv("FAPILOG_LOKI__RETRY_BASE_DELAY"),
-        }
-        label_keys = os.getenv("FAPILOG_LOKI__LABEL_KEYS")
-        labels_json = os.getenv("FAPILOG_LOKI__LABELS")
-        cb_enabled = os.getenv("FAPILOG_LOKI__CIRCUIT_BREAKER_ENABLED")
-        cb_threshold = os.getenv("FAPILOG_LOKI__CIRCUIT_BREAKER_THRESHOLD")
-
-        for key, value in env_map.items():
-            if value is None:
-                continue
-            try:
-                if key in {"batch_size", "max_retries"}:
-                    setattr(loki_cfg, key, int(value))
-                elif key in {
-                    "timeout_seconds",
-                    "batch_timeout_seconds",
-                    "retry_base_delay",
-                }:
-                    parsed_duration = _parse_duration(value)
-                    if parsed_duration is not None:
-                        setattr(loki_cfg, key, parsed_duration)
-                else:
-                    setattr(loki_cfg, key, value)
-            except Exception:
-                continue
-
-        parsed_cb = self._parse_bool(cb_enabled)
-        if parsed_cb is not None:
-            loki_cfg.circuit_breaker_enabled = parsed_cb
-        if cb_threshold:
-            try:
-                loki_cfg.circuit_breaker_threshold = int(cb_threshold)
-            except Exception:
-                pass
-
-        if labels_json:
-            try:
-                parsed = json.loads(labels_json)
-                if isinstance(parsed, dict):
-                    loki_cfg.labels = {str(k): str(v) for k, v in parsed.items()}
-            except Exception:
-                pass
-
-        if label_keys:
-            try:
-                parsed = json.loads(label_keys)
-                if isinstance(parsed, list):
-                    loki_cfg.label_keys = [str(v) for v in parsed]
-            except Exception:
-                pass
-
+        _apply_env_aliases(
+            self.sink_config.loki,
+            {
+                "url": ("FAPILOG_LOKI__URL", EnvFieldType.STRING),
+                "tenant_id": ("FAPILOG_LOKI__TENANT_ID", EnvFieldType.STRING),
+                "auth_username": ("FAPILOG_LOKI__AUTH_USERNAME", EnvFieldType.STRING),
+                "auth_password": ("FAPILOG_LOKI__AUTH_PASSWORD", EnvFieldType.STRING),
+                "auth_token": ("FAPILOG_LOKI__AUTH_TOKEN", EnvFieldType.STRING),
+                "timeout_seconds": (
+                    "FAPILOG_LOKI__TIMEOUT_SECONDS",
+                    EnvFieldType.DURATION,
+                ),
+                "batch_size": ("FAPILOG_LOKI__BATCH_SIZE", EnvFieldType.INT),
+                "batch_timeout_seconds": (
+                    "FAPILOG_LOKI__BATCH_TIMEOUT_SECONDS",
+                    EnvFieldType.DURATION,
+                ),
+                "max_retries": ("FAPILOG_LOKI__MAX_RETRIES", EnvFieldType.INT),
+                "retry_base_delay": (
+                    "FAPILOG_LOKI__RETRY_BASE_DELAY",
+                    EnvFieldType.DURATION,
+                ),
+                "circuit_breaker_enabled": (
+                    "FAPILOG_LOKI__CIRCUIT_BREAKER_ENABLED",
+                    EnvFieldType.BOOL,
+                ),
+                "circuit_breaker_threshold": (
+                    "FAPILOG_LOKI__CIRCUIT_BREAKER_THRESHOLD",
+                    EnvFieldType.INT,
+                ),
+                "labels": ("FAPILOG_LOKI__LABELS", EnvFieldType.DICT),
+                "label_keys": ("FAPILOG_LOKI__LABEL_KEYS", EnvFieldType.LIST),
+            },
+        )
         return self
 
     @model_validator(mode="after")
     def _apply_postgres_env_aliases(self) -> Settings:
         """Support short env aliases like FAPILOG_POSTGRES__HOST."""
-        pg = self.sink_config.postgres
-        env_map = {
-            "dsn": os.getenv("FAPILOG_POSTGRES__DSN"),
-            "host": os.getenv("FAPILOG_POSTGRES__HOST"),
-            "port": os.getenv("FAPILOG_POSTGRES__PORT"),
-            "database": os.getenv("FAPILOG_POSTGRES__DATABASE"),
-            "user": os.getenv("FAPILOG_POSTGRES__USER"),
-            "password": os.getenv("FAPILOG_POSTGRES__PASSWORD"),
-            "table_name": os.getenv("FAPILOG_POSTGRES__TABLE_NAME"),
-            "schema_name": os.getenv("FAPILOG_POSTGRES__SCHEMA_NAME"),
-            "min_pool_size": os.getenv("FAPILOG_POSTGRES__MIN_POOL_SIZE"),
-            "max_pool_size": os.getenv("FAPILOG_POSTGRES__MAX_POOL_SIZE"),
-            "pool_acquire_timeout": os.getenv("FAPILOG_POSTGRES__POOL_ACQUIRE_TIMEOUT"),
-            "batch_size": os.getenv("FAPILOG_POSTGRES__BATCH_SIZE"),
-            "batch_timeout_seconds": os.getenv(
-                "FAPILOG_POSTGRES__BATCH_TIMEOUT_SECONDS"
-            ),
-            "max_retries": os.getenv("FAPILOG_POSTGRES__MAX_RETRIES"),
-            "retry_base_delay": os.getenv("FAPILOG_POSTGRES__RETRY_BASE_DELAY"),
-            "circuit_breaker_threshold": os.getenv(
-                "FAPILOG_POSTGRES__CIRCUIT_BREAKER_THRESHOLD"
-            ),
-        }
-        bool_overrides = {
-            "create_table": os.getenv("FAPILOG_POSTGRES__CREATE_TABLE"),
-            "use_jsonb": os.getenv("FAPILOG_POSTGRES__USE_JSONB"),
-            "include_raw_json": os.getenv("FAPILOG_POSTGRES__INCLUDE_RAW_JSON"),
-            "circuit_breaker_enabled": os.getenv(
-                "FAPILOG_POSTGRES__CIRCUIT_BREAKER_ENABLED"
-            ),
-        }
-        extract_fields_env = os.getenv("FAPILOG_POSTGRES__EXTRACT_FIELDS")
-
-        for key, value in env_map.items():
-            if value is None:
-                continue
-            try:
-                if key in {"port", "min_pool_size", "max_pool_size", "batch_size"}:
-                    setattr(pg, key, int(value))
-                elif key in {
-                    "batch_timeout_seconds",
-                    "retry_base_delay",
-                    "pool_acquire_timeout",
-                }:
-                    parsed_duration = _parse_duration(value)
-                    if parsed_duration is not None:
-                        setattr(pg, key, parsed_duration)
-                elif key in {"max_retries", "circuit_breaker_threshold"}:
-                    setattr(pg, key, int(value))
-                else:
-                    setattr(pg, key, value)
-            except Exception:
-                continue
-
-        for key, value in bool_overrides.items():
-            parsed_bool = self._parse_bool(value)
-            if parsed_bool is not None:
-                setattr(pg, key, parsed_bool)
-
-        if extract_fields_env:
-            try:
-                parsed = json.loads(extract_fields_env)
-                if isinstance(parsed, list):
-                    pg.extract_fields = [str(v) for v in parsed]
-            except Exception:
-                pass
-
+        _apply_env_aliases(
+            self.sink_config.postgres,
+            {
+                "dsn": ("FAPILOG_POSTGRES__DSN", EnvFieldType.STRING),
+                "host": ("FAPILOG_POSTGRES__HOST", EnvFieldType.STRING),
+                "port": ("FAPILOG_POSTGRES__PORT", EnvFieldType.INT),
+                "database": ("FAPILOG_POSTGRES__DATABASE", EnvFieldType.STRING),
+                "user": ("FAPILOG_POSTGRES__USER", EnvFieldType.STRING),
+                "password": ("FAPILOG_POSTGRES__PASSWORD", EnvFieldType.STRING),
+                "table_name": ("FAPILOG_POSTGRES__TABLE_NAME", EnvFieldType.STRING),
+                "schema_name": ("FAPILOG_POSTGRES__SCHEMA_NAME", EnvFieldType.STRING),
+                "min_pool_size": ("FAPILOG_POSTGRES__MIN_POOL_SIZE", EnvFieldType.INT),
+                "max_pool_size": ("FAPILOG_POSTGRES__MAX_POOL_SIZE", EnvFieldType.INT),
+                "pool_acquire_timeout": (
+                    "FAPILOG_POSTGRES__POOL_ACQUIRE_TIMEOUT",
+                    EnvFieldType.DURATION,
+                ),
+                "batch_size": ("FAPILOG_POSTGRES__BATCH_SIZE", EnvFieldType.INT),
+                "batch_timeout_seconds": (
+                    "FAPILOG_POSTGRES__BATCH_TIMEOUT_SECONDS",
+                    EnvFieldType.DURATION,
+                ),
+                "max_retries": ("FAPILOG_POSTGRES__MAX_RETRIES", EnvFieldType.INT),
+                "retry_base_delay": (
+                    "FAPILOG_POSTGRES__RETRY_BASE_DELAY",
+                    EnvFieldType.DURATION,
+                ),
+                "circuit_breaker_threshold": (
+                    "FAPILOG_POSTGRES__CIRCUIT_BREAKER_THRESHOLD",
+                    EnvFieldType.INT,
+                ),
+                "create_table": ("FAPILOG_POSTGRES__CREATE_TABLE", EnvFieldType.BOOL),
+                "use_jsonb": ("FAPILOG_POSTGRES__USE_JSONB", EnvFieldType.BOOL),
+                "include_raw_json": (
+                    "FAPILOG_POSTGRES__INCLUDE_RAW_JSON",
+                    EnvFieldType.BOOL,
+                ),
+                "circuit_breaker_enabled": (
+                    "FAPILOG_POSTGRES__CIRCUIT_BREAKER_ENABLED",
+                    EnvFieldType.BOOL,
+                ),
+                "extract_fields": (
+                    "FAPILOG_POSTGRES__EXTRACT_FIELDS",
+                    EnvFieldType.LIST,
+                ),
+            },
+        )
         return self
 
     @model_validator(mode="after")
     def _apply_sink_routing_env_aliases(self) -> Settings:
         """Support env aliases for sink routing."""
-        routing = self.sink_routing
-        enabled = os.getenv("FAPILOG_SINK_ROUTING__ENABLED")
-        overlap = os.getenv("FAPILOG_SINK_ROUTING__OVERLAP")
-        rules = os.getenv("FAPILOG_SINK_ROUTING__RULES")
-        fallback = os.getenv("FAPILOG_SINK_ROUTING__FALLBACK_SINKS")
-
-        parsed_enabled = self._parse_bool(enabled)
-        if parsed_enabled is not None:
-            routing.enabled = parsed_enabled
-
-        parsed_overlap = self._parse_bool(overlap)
-        if parsed_overlap is not None:
-            routing.overlap = parsed_overlap
-
-        if rules:
-            try:
-                parsed = json.loads(rules)
-                if isinstance(parsed, list):
-                    routing.rules = [
-                        RoutingRule.model_validate(item)
-                        for item in parsed
-                        if isinstance(item, dict)
-                    ]
-            except Exception:
-                pass
-
-        if fallback:
-            routing.fallback_sinks = self._parse_env_list(fallback)
-
+        _apply_env_aliases(
+            self.sink_routing,
+            {
+                "enabled": ("FAPILOG_SINK_ROUTING__ENABLED", EnvFieldType.BOOL),
+                "overlap": ("FAPILOG_SINK_ROUTING__OVERLAP", EnvFieldType.BOOL),
+                "rules": ("FAPILOG_SINK_ROUTING__RULES", EnvFieldType.ROUTING_RULES),
+                "fallback_sinks": (
+                    "FAPILOG_SINK_ROUTING__FALLBACK_SINKS",
+                    EnvFieldType.LIST,
+                ),
+            },
+        )
         return self
 
     # Async validation entrypoint, called by loader after instantiation
