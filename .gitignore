@@ -259,7 +259,6 @@ htmlcov/
 
 # Claude local settings (commands are committed)
 .claude/settings.local.json
-CLAUDE.md
 
 # Codex commands
 .codex/
