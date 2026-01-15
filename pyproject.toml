@@ -96,6 +96,7 @@ dev = [
     "black>=23.0.0",
     "isort>=5.12.0",
     "vulture>=2.9.0",
+    "diff-cover>=9.0.0",
 ]
 
 # Documentation (Sphinx-based)
@@ -155,6 +156,7 @@ dependencies = [
     "ruff>=0.12.0",
     "mypy>=1.17.1",
     "pre-commit>=3.3.0",
+    "diff-cover>=9.0.0",
 ]
 
 [tool.hatch.envs.default.scripts]
@@ -389,6 +391,7 @@ exclude = [
     "src/fapilog/core/worker.py",  # Shared internal functions used across facades
     "src/fapilog/core/settings.py",  # Enum values and validator methods
     "src/fapilog/core/routing.py",  # Routing API methods (build_routing_writer, update_rules)
+    "src/fapilog/core/config_builders.py",  # _build_pipeline used via import in __init__.py
   "src/fapilog/plugins/marketplace.py",  # API methods
   "src/fapilog/fastapi/integration.py",  # FastAPI router functions are public API
     "src/fapilog/plugins/registry.py",  # API methods

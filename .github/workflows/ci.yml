@@ -157,7 +157,7 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           python -m pip install diff-cover
-          diff-cover coverage.xml --compare-branch=origin/${{ github.base_ref }} --fail-under=85
+          diff-cover coverage.xml --compare-branch=origin/${{ github.base_ref }} --fail-under=90
 
   tox:
     name: Tox (Compatibility)

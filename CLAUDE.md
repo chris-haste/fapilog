@@ -27,13 +27,14 @@ Draft → Ready → Ready for Code Review → Complete
 
 **Format:** `<type>/story-<id>-<title-slug>`
 
-| Component | Description |
-|-----------|-------------|
-| `type` | feat, fix, refactor, chore, docs, test, perf |
-| `id` | Story number (e.g., 5.25) |
-| `title-slug` | Kebab-case from story title, max ~30 chars |
+| Component    | Description                                  |
+| ------------ | -------------------------------------------- |
+| `type`       | feat, fix, refactor, chore, docs, test, perf |
+| `id`         | Story number (e.g., 5.25)                    |
+| `title-slug` | Kebab-case from story title, max ~30 chars   |
 
 **Examples:**
+
 - `feat/story-5.26-add-sink-routing`
 - `fix/story-5.27-handle-null-logger`
 - `refactor/story-5.25-extract-config-builders`
@@ -50,12 +51,14 @@ Draft → Ready → Ready for Code Review → Complete
 **Types:** feat | fix | chore | docs | refactor | test | style | perf
 
 **Rules:**
+
 - Imperative mood, lowercase, no period
 - Title max 50 chars
 - Scope is optional but recommended
-- Body bullets explain *why*, not just *what*
+- Body bullets explain _why_, not just _what_
 
 **Example:**
+
 ```
 refactor(core): extract config builders from __init__.py
 
@@ -67,22 +70,32 @@ refactor(core): extract config builders from __init__.py
 
 **Title:** `<type>(<scope>): <story title>`
 
+**Rules:**
+
+- No promotional banners or "Generated with" footers
+
 **Body template:**
+
 ```markdown
 ## Summary
+
 <First paragraph or description from story>
 
 ## Changes
+
 - `path/to/file.py` (new|modified|deleted)
 
 ## Acceptance Criteria
+
 - [x] <AC from story>
 
 ## Test Plan
+
 - [x] Unit tests pass
 - [x] Coverage >= 90%
 
 ## Story
+
 [<id> - <title>](docs/stories/<story-file>.md)
 ```
 
@@ -90,15 +103,15 @@ refactor(core): extract config builders from __init__.py
 
 Derive scope from primary directory of production code changes:
 
-| Path | Scope |
-|------|-------|
-| `src/fapilog/core/*` | `core` |
-| `src/fapilog/sinks/*` | `sinks` |
-| `src/fapilog/enrichers/*` | `enrichers` |
-| `src/fapilog/redactors/*` | `redactors` |
-| `src/fapilog/filters/*` | `filters` |
-| `src/fapilog/*.py` | `fapilog` |
-| Multiple directories | most significant or omit |
+| Path                      | Scope                    |
+| ------------------------- | ------------------------ |
+| `src/fapilog/core/*`      | `core`                   |
+| `src/fapilog/sinks/*`     | `sinks`                  |
+| `src/fapilog/enrichers/*` | `enrichers`              |
+| `src/fapilog/redactors/*` | `redactors`              |
+| `src/fapilog/filters/*`   | `filters`                |
+| `src/fapilog/*.py`        | `fapilog`                |
+| Multiple directories      | most significant or omit |
 
 ## Quality Gates
 
