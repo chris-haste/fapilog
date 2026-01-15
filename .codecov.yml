@@ -6,17 +6,17 @@ codecov:
 coverage:
   precision: 2
   round: down
-  range: "80...100"
+  range: "90...100"
   status:
     project:
       default:
-        target: 85%
-        threshold: 5%
+        target: 90%
+        threshold: 1%
         base: auto
     patch:
       default:
-        target: 85%
-        threshold: 5%
+        target: 90%
+        threshold: 1%
         base: auto
 
 parsers:
