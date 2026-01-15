@@ -1,11 +1,11 @@
 ---
-name: tdd-python
-description: Use when implementing features, fixing bugs, writing new code, or making changes to Python files. Enforces red-green-refactor TDD workflow with tests-first approach.
+name: implement
+description: Use when implementing features, fixing bugs, writing new code, or making changes to Python files. Manages branch creation, TDD workflow, quality gates, and commit/push.
 version: 1.0.0
 license: Apache-2.0
 ---
 
-# TDD Python (Lean + Enforced)
+# Implement (Python)
 
 **Author:** Chris Haste
 **GitHub:** https://github.com/chris-haste
