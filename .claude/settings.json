@@ -2,9 +2,12 @@
   "hooks": {
     "SessionStart": [
       {
-        "type": "command",
-        "command": "pre-commit install",
-        "description": "Install pre-commit hooks (per CONTRIBUTING.md)"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pre-commit install"
+          }
+        ]
       }
     ]
   }
