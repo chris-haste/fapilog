@@ -67,6 +67,9 @@ refactor(core): extract config builders from __init__.py
 
 **Title:** `<type>(<scope>): <story title>`
 
+**Rules:**
+- No promotional banners or "Generated with" footers
+
 **Body template:**
 ```markdown
 ## Summary
