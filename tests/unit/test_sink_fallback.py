@@ -275,7 +275,7 @@ class TestSinkFallbackIntegration:
                 raise RuntimeError("boom")
 
         with patch(
-            "fapilog.plugins.sinks.fallback.handle_sink_write_failure",
+            "fapilog.core.sink_writers.handle_sink_write_failure",
             side_effect=RuntimeError("handler failure"),
         ) as handler:
             logger = get_logger(sinks=[FailingSink()])
@@ -299,7 +299,7 @@ class TestSinkFallbackIntegration:
         settings = Settings(core={"serialize_in_flush": True})
 
         with patch(
-            "fapilog.plugins.sinks.fallback.handle_sink_write_failure",
+            "fapilog.core.sink_writers.handle_sink_write_failure",
             side_effect=RuntimeError("handler failure"),
         ) as handler:
             logger = get_logger(settings=settings, sinks=[FailingSink()])

@@ -83,7 +83,7 @@ class TestFanoutWriterFailureHandling:
         write_fn, _ = _fanout_writer([mock_sink])
 
         with patch(
-            "fapilog.plugins.sinks.fallback.handle_sink_write_failure"
+            "fapilog.core.sink_writers.handle_sink_write_failure"
         ) as mock_fallback:
             mock_fallback.return_value = None
             # Should not raise - error should be contained
@@ -112,7 +112,7 @@ class TestFanoutWriterFailureHandling:
         write_fn, _ = _fanout_writer([mock_sink])
 
         with patch(
-            "fapilog.plugins.sinks.fallback.handle_sink_write_failure"
+            "fapilog.core.sink_writers.handle_sink_write_failure"
         ) as mock_fallback:
             mock_fallback.return_value = None
             await write_fn({"message": "test"})
@@ -138,7 +138,7 @@ class TestFanoutWriterFailureHandling:
         write_fn, _ = _fanout_writer([mock_sink], circuit_config=config)
 
         with patch(
-            "fapilog.plugins.sinks.fallback.handle_sink_write_failure"
+            "fapilog.core.sink_writers.handle_sink_write_failure"
         ) as mock_fallback:
             mock_fallback.return_value = None
             # Write multiple times
@@ -169,7 +169,7 @@ class TestFanoutWriterFailureHandling:
         write_fn, _ = _fanout_writer([mock_sink])
 
         with patch(
-            "fapilog.plugins.sinks.fallback.handle_sink_write_failure"
+            "fapilog.core.sink_writers.handle_sink_write_failure"
         ) as mock_fallback:
             await write_fn({"message": "test"})
             # No fallback for success
@@ -192,7 +192,7 @@ class TestFanoutWriterFailureHandling:
         write_fn, _ = _fanout_writer([mock_sink])
 
         with patch(
-            "fapilog.plugins.sinks.fallback.handle_sink_write_failure"
+            "fapilog.core.sink_writers.handle_sink_write_failure"
         ) as mock_fallback:
             await write_fn({"message": "test"})
             mock_fallback.assert_not_called()
@@ -406,7 +406,7 @@ class TestFanoutWriterSerializedPath:
         _, write_serialized_fn = _fanout_writer([mock_sink])
 
         with patch(
-            "fapilog.plugins.sinks.fallback.handle_sink_write_failure"
+            "fapilog.core.sink_writers.handle_sink_write_failure"
         ) as mock_fallback:
             mock_fallback.return_value = None
             await write_serialized_fn(b'{"message": "test"}')
@@ -431,7 +431,7 @@ class TestFanoutWriterSerializedPath:
         _, write_serialized_fn = _fanout_writer([mock_sink])
 
         with patch(
-            "fapilog.plugins.sinks.fallback.handle_sink_write_failure"
+            "fapilog.core.sink_writers.handle_sink_write_failure"
         ) as mock_fallback:
             mock_fallback.return_value = None
             await write_serialized_fn(b'{"message": "test"}')
@@ -453,10 +453,12 @@ class TestFanoutWriterSerializedPath:
         mock_sink.write_serialized = failing_write_serialized
 
         config = SinkCircuitBreakerConfig(enabled=True, failure_threshold=2)
-        write_fn, write_serialized_fn = _fanout_writer([mock_sink], circuit_config=config)
+        write_fn, write_serialized_fn = _fanout_writer(
+            [mock_sink], circuit_config=config
+        )
 
         with patch(
-            "fapilog.plugins.sinks.fallback.handle_sink_write_failure"
+            "fapilog.core.sink_writers.handle_sink_write_failure"
         ) as mock_fallback:
             mock_fallback.return_value = None
             # Open the circuit via write() failures
@@ -488,7 +490,7 @@ class TestFanoutWriterSerializedPath:
         _, write_serialized_fn = _fanout_writer([mock_sink], circuit_config=config)
 
         with patch(
-            "fapilog.plugins.sinks.fallback.handle_sink_write_failure"
+            "fapilog.core.sink_writers.handle_sink_write_failure"
         ) as mock_fallback:
             await write_serialized_fn(b'{"message": "test"}')
             mock_fallback.assert_not_called()
@@ -574,7 +576,7 @@ class TestFallbackExceptionContainment:
         write_fn, _ = _fanout_writer([mock_sink])
 
         with patch(
-            "fapilog.plugins.sinks.fallback.handle_sink_write_failure",
+            "fapilog.core.sink_writers.handle_sink_write_failure",
             side_effect=RuntimeError("fallback failed"),
         ):
             # Should not raise - exception should be contained
@@ -597,7 +599,7 @@ class TestFallbackExceptionContainment:
         _, write_serialized_fn = _fanout_writer([mock_sink])
 
         with patch(
-            "fapilog.plugins.sinks.fallback.handle_sink_write_failure",
+            "fapilog.core.sink_writers.handle_sink_write_failure",
             side_effect=RuntimeError("fallback failed"),
         ):
             # Should not raise
@@ -622,7 +624,7 @@ class TestFallbackExceptionContainment:
         _, write_serialized_fn = _fanout_writer([mock_sink], circuit_config=config)
 
         with patch(
-            "fapilog.plugins.sinks.fallback.handle_sink_write_failure"
+            "fapilog.core.sink_writers.handle_sink_write_failure"
         ) as mock_fallback:
             mock_fallback.return_value = None
             # Two failures should open the circuit
@@ -654,7 +656,7 @@ class TestFallbackExceptionContainment:
         _, write_serialized_fn = _fanout_writer([mock_sink], circuit_config=config)
 
         with patch(
-            "fapilog.plugins.sinks.fallback.handle_sink_write_failure"
+            "fapilog.core.sink_writers.handle_sink_write_failure"
         ) as mock_fallback:
             mock_fallback.return_value = None
             # Two failures should open the circuit
@@ -666,5 +668,3 @@ class TestFallbackExceptionContainment:
             mock_fallback.reset_mock()
             await write_serialized_fn(b'{"message": "test"}')
             mock_fallback.assert_not_called()
-
-

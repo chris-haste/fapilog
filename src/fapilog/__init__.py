@@ -244,36 +244,6 @@ def _build_pipeline(
     return _build_pipeline_impl(settings, _load_plugins)
 
 
-def _make_sink_writer(sink: _Any) -> tuple[_Any, _Any]:
-    async def _sink_write(entry: dict) -> bool | None:
-        if hasattr(sink, "start") and not getattr(sink, "_started", False):
-            try:
-                await sink.start()
-                sink._started = True
-            except Exception:
-                try:
-                    from .core import diagnostics as _diag
-
-                    _diag.warn(
-                        "sink",
-                        "sink start failed",
-                        sink_type=type(sink).__name__,
-                    )
-                except Exception:
-                    pass
-        result: bool | None = await sink.write(entry)
-        return result
-
-    async def _sink_write_serialized(view: object) -> bool | None:
-        try:
-            result: bool | None = await sink.write_serialized(view)
-            return result
-        except AttributeError:
-            return None
-
-    return _sink_write, _sink_write_serialized
-
-
 def _fanout_writer(
     sinks: list[object],
     *,
@@ -282,141 +252,17 @@ def _fanout_writer(
 ) -> tuple[_Any, _Any]:
     """Create fanout writer with optional parallelization and circuit breakers.
 
+    Delegates to SinkWriterGroup for cleaner, class-based implementation.
+
     Args:
         sinks: List of sink instances
         parallel: If True, write to sinks in parallel
         circuit_config: Optional SinkCircuitBreakerConfig for fault isolation
     """
-    from .core.circuit_breaker import SinkCircuitBreaker
+    from .core.sink_writers import SinkWriterGroup
 
-    writers = [_make_sink_writer(s) for s in sinks]
-
-    # Create circuit breakers for each sink if enabled
-    breakers: dict[int, SinkCircuitBreaker] = {}
-    if circuit_config is not None and getattr(circuit_config, "enabled", False):
-        for sink in sinks:
-            name = getattr(sink, "name", type(sink).__name__)
-            breakers[id(sink)] = SinkCircuitBreaker(name, circuit_config)
-
-    async def _write_one(
-        sink: object,
-        write_fn: _Any,
-        entry: dict,
-    ) -> None:
-        """Write to a single sink with circuit breaker protection."""
-        breaker = breakers.get(id(sink))
-
-        if breaker and not breaker.should_allow():
-            return  # Skip - circuit is open
-
-        try:
-            result = await write_fn(entry)
-            # False return signals failure (Story 4.41)
-            if result is False:
-                if breaker:
-                    breaker.record_failure()
-                try:
-                    from .plugins.sinks.fallback import handle_sink_write_failure
-
-                    await handle_sink_write_failure(
-                        entry,
-                        sink=sink,
-                        error=RuntimeError("Sink returned False"),
-                        serialized=False,
-                    )
-                except Exception:
-                    pass
-            elif breaker:
-                breaker.record_success()
-        except Exception as exc:
-            if breaker:
-                breaker.record_failure()
-            try:
-                from .plugins.sinks.fallback import handle_sink_write_failure
-
-                await handle_sink_write_failure(
-                    entry,
-                    sink=sink,
-                    error=exc,
-                    serialized=False,
-                )
-            except Exception:
-                pass
-            # Contain error - don't propagate
-
-    async def _write_sequential(entry: dict) -> None:
-        for i, (write, _) in enumerate(writers):
-            await _write_one(sinks[i], write, entry)
-
-    async def _write_parallel(entry: dict) -> None:
-        if len(writers) <= 1:
-            # Single sink, no need for gather
-            if writers:
-                await _write_one(sinks[0], writers[0][0], entry)
-            return
-
-        tasks = []
-        for i, (write, _) in enumerate(writers):
-            sink = sinks[i]
-            breaker = breakers.get(id(sink))
-
-            if breaker and not breaker.should_allow():
-                continue  # Skip - circuit is open
-
-            tasks.append(_write_one(sink, write, entry))
-
-        if tasks:
-            await _asyncio.gather(*tasks, return_exceptions=True)
-
-    async def _write(entry: dict) -> None:
-        if parallel and len(writers) > 1:
-            await _write_parallel(entry)
-        else:
-            await _write_sequential(entry)
-
-    async def _write_serialized(view: object) -> None:
-        for i, (_, write_s) in enumerate(writers):
-            sink = sinks[i]
-            breaker = breakers.get(id(sink))
-
-            if breaker and not breaker.should_allow():
-                continue  # Skip - circuit is open
-
-            try:
-                result = await write_s(view)
-                # False return signals failure (Story 4.41)
-                if result is False:
-                    if breaker:
-                        breaker.record_failure()
-                    try:
-                        from .plugins.sinks.fallback import handle_sink_write_failure
-
-                        await handle_sink_write_failure(
-                            view,
-                            sink=sink,
-                            error=RuntimeError("Sink returned False"),
-                            serialized=True,
-                        )
-                    except Exception:
-                        pass
-                elif breaker:
-                    breaker.record_success()
-            except Exception as exc:
-                if breaker:
-                    breaker.record_failure()
-                try:
-                    from .plugins.sinks.fallback import handle_sink_write_failure
-
-                    await handle_sink_write_failure(
-                        view,
-                        sink=sink,
-                        error=exc,
-                        serialized=True,
-                    )
-                except Exception:
-                    pass  # Contain errors
-
-    return _write, _write_serialized
+    group = SinkWriterGroup(sinks, parallel=parallel, circuit_config=circuit_config)
+    return group.write, group.write_serialized
 
 
 def _routing_or_fanout_writer(
