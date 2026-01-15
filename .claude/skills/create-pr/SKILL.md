@@ -15,12 +15,12 @@ Generate a GitHub Pull Request URL with pre-filled title and body, derived from 
 ## When to Apply
 
 - User explicitly requests `/create-pr`
-- After `tdd-python` implementation is complete
+- After `implement` workflow is complete
 - After `code-review` has passed
 
 ## Prerequisites
 
-- Implementation committed and pushed (via `tdd-python`)
+- Implementation committed and pushed (via `implement`)
 - Code review passed (via `code-review`)
 - On a feature branch (see `CLAUDE.md` for branch naming format)
 

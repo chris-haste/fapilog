@@ -3,10 +3,10 @@
 ## Development Workflow
 
 ```
-tdd-python → code-review → create-pr
+implement → code-review → create-pr
 ```
 
-1. **tdd-python**: Implement with TDD (RED/GREEN/REFACTOR), commit, push
+1. **implement**: Implement with TDD (RED/GREEN/REFACTOR), commit, push
 2. **code-review**: Review against story acceptance criteria
 3. **create-pr**: Generate PR with pre-filled content from story
 

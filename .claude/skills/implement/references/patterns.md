@@ -1,4 +1,4 @@
-# Common Testing Patterns (ref: tdd-python)
+# Common Testing Patterns (ref: implement)
 
 ## Parametrized Tests
 
