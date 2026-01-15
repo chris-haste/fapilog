@@ -664,37 +664,35 @@ def _apply_logger_extras(
     logger._sinks = setup.sinks  # noqa: SLF001
 
 
-def get_logger(
-    name: str | None = None,
+def _prepare_logger(
+    name: str | None,
     *,
-    preset: str | None = None,
-    format: _Literal["json", "pretty", "auto"] | None = None,
-    settings: _Settings | None = None,
-    sinks: list[object] | None = None,
-    auto_detect: bool = True,
-    environment: str | None = None,
-) -> _SyncLoggerFacade:
-    """Return a sync logger with optional preset or output format controls.
+    preset: str | None,
+    format: _Literal["json", "pretty", "auto"] | None,
+    settings: _Settings | None,
+    sinks: list[object] | None,
+    auto_detect: bool,
+    environment: str | None,
+) -> tuple[_LoggerSetup, _Settings]:
+    """Prepare logger configuration without starting plugins.
+
+    This function handles all shared validation, preset handling, environment
+    configuration, and format resolution for both sync and async logger creation.
 
     Args:
-        name: Optional logger name.
+        name: Optional logger name (currently unused, passed for future use).
         preset: Built-in preset name (dev, production, fastapi, minimal).
-        format: Output format ("json", "pretty", "auto"); defaults to auto when
-            no settings are provided.
+        format: Output format ("json", "pretty", "auto").
         settings: Explicit Settings object (mutually exclusive with preset/format).
         sinks: Custom sink instances (overrides configured sinks).
-        auto_detect: Enable automatic environment detection (default True).
-            When True, detects Lambda/Kubernetes/Docker/CI environments and
-            applies appropriate configurations.
-        environment: Explicit environment type override ("local", "docker",
-            "kubernetes", "lambda", "ci"). Mutually exclusive with preset/settings.
+        auto_detect: Enable automatic environment detection.
+        environment: Explicit environment type override.
 
-    Priority order (highest to lowest):
-        1. Explicit settings parameter
-        2. Explicit preset parameter
-        3. Explicit environment parameter
-        4. Auto-detection (if auto_detect=True)
-        5. Story 10.6 defaults
+    Returns:
+        Tuple of (_LoggerSetup, Settings) ready for plugin startup.
+
+    Raises:
+        ValueError: If mutually exclusive parameters are provided together.
     """
     # Validate mutual exclusivity
     if format is not None and settings is not None:
@@ -751,21 +749,21 @@ def get_logger(
         _apply_format(cfg_source, fmt)
 
     setup = _configure_logger_common(cfg_source, sinks)
+    return setup, cfg_source
 
-    (
-        enrichers,
-        redactors,
-        processors,
-        filters,
-    ) = _start_plugins_sync(
-        setup.enrichers,
-        setup.redactors,
-        setup.processors,
-        setup.filters,
-    )
 
+def _create_and_start_facade(
+    facade_cls: type,
+    name: str | None,
+    setup: _LoggerSetup,
+    enrichers: list[object],
+    redactors: list[object],
+    processors: list[object],
+    filters: list[object],
+) -> object:
+    """Create a logger facade, apply extras, and start it."""
     cfg = setup.settings
-    logger = _SyncLoggerFacade(
+    logger = facade_cls(
         name=name,
         queue_capacity=cfg.core.max_queue_size,
         batch_max_size=cfg.core.batch_max_size,
@@ -796,6 +794,63 @@ def get_logger(
     )
     logger.start()
     return logger
+
+
+def get_logger(
+    name: str | None = None,
+    *,
+    preset: str | None = None,
+    format: _Literal["json", "pretty", "auto"] | None = None,
+    settings: _Settings | None = None,
+    sinks: list[object] | None = None,
+    auto_detect: bool = True,
+    environment: str | None = None,
+) -> _SyncLoggerFacade:
+    """Return a sync logger with optional preset or output format controls.
+
+    Args:
+        name: Optional logger name.
+        preset: Built-in preset name (dev, production, fastapi, minimal).
+        format: Output format ("json", "pretty", "auto"); defaults to auto when
+            no settings are provided.
+        settings: Explicit Settings object (mutually exclusive with preset/format).
+        sinks: Custom sink instances (overrides configured sinks).
+        auto_detect: Enable automatic environment detection (default True).
+            When True, detects Lambda/Kubernetes/Docker/CI environments and
+            applies appropriate configurations.
+        environment: Explicit environment type override ("local", "docker",
+            "kubernetes", "lambda", "ci"). Mutually exclusive with preset/settings.
+
+    Priority order (highest to lowest):
+        1. Explicit settings parameter
+        2. Explicit preset parameter
+        3. Explicit environment parameter
+        4. Auto-detection (if auto_detect=True)
+        5. Story 10.6 defaults
+    """
+    setup, _ = _prepare_logger(
+        name,
+        preset=preset,
+        format=format,
+        settings=settings,
+        sinks=sinks,
+        auto_detect=auto_detect,
+        environment=environment,
+    )
+
+    enrichers, redactors, processors, filters = _start_plugins_sync(
+        setup.enrichers,
+        setup.redactors,
+        setup.processors,
+        setup.filters,
+    )
+
+    return _cast(
+        _SyncLoggerFacade,
+        _create_and_start_facade(
+            _SyncLoggerFacade, name, setup, enrichers, redactors, processors, filters
+        ),
+    )
 
 
 async def get_async_logger(
@@ -830,99 +885,27 @@ async def get_async_logger(
         4. Auto-detection (if auto_detect=True)
         5. Story 10.6 defaults
     """
-    # Validate mutual exclusivity
-    if format is not None and settings is not None:
-        raise ValueError(
-            "Cannot specify both 'format' and 'settings'. "
-            "Use format for simple output control or settings for full control."
-        )
-    if preset is not None and settings is not None:
-        raise ValueError(
-            "Cannot specify both 'preset' and 'settings'. "
-            "Use preset for quick setup or settings for full control."
-        )
-    if environment is not None and settings is not None:
-        raise ValueError(
-            "Cannot specify both 'environment' and 'settings'. "
-            "Use environment for quick setup or settings for full control."
-        )
-    if environment is not None and preset is not None:
-        raise ValueError(
-            "Cannot specify both 'environment' and 'preset'. "
-            "Use one or the other for configuration."
-        )
-
-    implicit_settings = settings is None and preset is None and environment is None
-
-    # Apply preset if provided
-    if preset is not None:
-        from .core.presets import get_preset
-
-        preset_config = get_preset(preset)
-        settings = _Settings(**preset_config)
-
-    cfg_source = settings or _Settings()
-
-    # Apply environment configuration (explicit or auto-detected)
-    if environment is not None:
-        from .core.environment import get_environment_config
-
-        env_config = get_environment_config(environment)  # type: ignore[arg-type]
-        cfg_source = _apply_environment_config(cfg_source, env_config)
-    elif auto_detect and settings is None and preset is None:
-        from .core.environment import detect_environment, get_environment_config
-
-        detected_env = detect_environment()
-        env_config = get_environment_config(detected_env)
-        cfg_source = _apply_environment_config(cfg_source, env_config)
-
-    cfg_source = _apply_default_log_level(cfg_source, preset=preset)
-    fmt_input = format
-    if fmt_input is None and implicit_settings:
-        fmt_input = "auto"
-    fmt = _resolve_format(fmt_input, cfg_source)
-    if fmt:
-        _apply_format(cfg_source, fmt)
-
-    setup = _configure_logger_common(cfg_source, sinks)
+    setup, _ = _prepare_logger(
+        name,
+        preset=preset,
+        format=format,
+        settings=settings,
+        sinks=sinks,
+        auto_detect=auto_detect,
+        environment=environment,
+    )
 
     enrichers = await _start_plugins(setup.enrichers, "enricher")
     redactors = await _start_plugins(setup.redactors, "redactor")
     processors = await _start_plugins(setup.processors, "processor")
     filters = await _start_plugins(setup.filters, "filter")
 
-    cfg = setup.settings
-    logger = _AsyncLoggerFacade(
-        name=name,
-        queue_capacity=cfg.core.max_queue_size,
-        batch_max_size=cfg.core.batch_max_size,
-        batch_timeout_seconds=cfg.core.batch_timeout_seconds,
-        backpressure_wait_ms=cfg.core.backpressure_wait_ms,
-        drop_on_full=cfg.core.drop_on_full,
-        sink_write=setup.sink_write,
-        sink_write_serialized=setup.sink_write_serialized,
-        enrichers=_cast(list[_BaseEnricher], enrichers),
-        processors=_cast(list[_BaseProcessor], processors),
-        filters=filters,
-        metrics=setup.metrics,
-        exceptions_enabled=cfg.core.exceptions_enabled,
-        exceptions_max_frames=cfg.core.exceptions_max_frames,
-        exceptions_max_stack_chars=cfg.core.exceptions_max_stack_chars,
-        serialize_in_flush=cfg.core.serialize_in_flush,
-        num_workers=cfg.core.worker_count,
-        level_gate=setup.level_gate,
+    return _cast(
+        _AsyncLoggerFacade,
+        _create_and_start_facade(
+            _AsyncLoggerFacade, name, setup, enrichers, redactors, processors, filters
+        ),
     )
-
-    _apply_logger_extras(
-        logger,
-        setup,
-        started_enrichers=enrichers,
-        started_redactors=redactors,
-        started_processors=processors,
-        started_filters=filters,
-    )
-    logger.start()
-    return logger
 
 
 @_asynccontextmanager
