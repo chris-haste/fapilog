@@ -233,29 +233,59 @@ class LoggerWorker:
         await self._flush_batch(batch)
 
     async def _flush_batch(self, batch: list[dict[str, Any]]) -> None:
+        """Flush a batch of log events through the processing pipeline.
+
+        Pipeline Stage Order (with rationale):
+
+        1. FILTERS: Applied first to drop unwanted events before any
+           processing cost is incurred. Filters see raw events from queue.
+
+        2. ENRICHERS: Applied second to add contextual data. Run after
+           filters so dropped events don't waste enrichment cycles.
+
+        3. REDACTORS: Applied third to mask sensitive data. Run after
+           enrichers so they can redact both original AND enriched fields.
+
+        4. PROCESSORS: Applied fourth to transform final payload. Run on
+           serialized bytes when serialize_in_flush is enabled.
+
+        5. SINK: Final stage writes to destination.
+
+        Error Handling:
+        - Stages 1-4: Errors contained; original event passed through
+        - Stage 5: Errors logged via diagnostics; event dropped
+
+        See: docs/architecture/pipeline-stages.md
+        """
         if not batch:
             return
         start = time.perf_counter()
         try:
             for entry in batch:
+                # Stage 1: FILTERS - drop unwanted events early
                 filtered = await self._apply_filters(entry)
                 if filtered is None:
                     continue
+                # Stage 2: ENRICHERS - add contextual data
                 entry = await self._apply_enrichers(filtered)
+                # Stage 3: REDACTORS - mask sensitive data (including enriched fields)
                 entry = await self._apply_redactors(entry)
                 if self._serialize_in_flush and self._sink_write_serialized is not None:
                     view, drop_entry = await self._try_serialize(entry)
                     if drop_entry:
                         continue
                     if view is not None:
+                        # Stage 4: PROCESSORS - transform serialized bytes
                         view = await self._apply_processors(view)
                         try:
+                            # Stage 5: SINK - write to destination
                             await self._sink_write_serialized(view)
                             self._counters["processed"] += 1
                             continue
                         except Exception:
                             # Fall back to default path on serialized sink errors
                             pass
+                # Stage 5: SINK - write to destination (fallback or non-serialized path)
                 await self._sink_write(entry)
                 self._counters["processed"] += 1
         except Exception as exc:
@@ -275,6 +305,14 @@ class LoggerWorker:
             batch.append(item)
 
     async def _apply_enrichers(self, entry: dict[str, Any]) -> dict[str, Any]:
+        """Apply enrichers to add contextual data to log event.
+
+        Pipeline Stage 2: Runs after filters to avoid wasting cycles on
+        dropped events. Enrichers add metadata like runtime info, request
+        context, and custom business data.
+
+        On error: Returns original entry unchanged (fail-safe).
+        """
         enrichers = self._enrichers_getter()
         if not enrichers:
             return entry
@@ -289,6 +327,15 @@ class LoggerWorker:
             return entry
 
     async def _apply_filters(self, entry: dict[str, Any]) -> dict[str, Any] | None:
+        """Apply filters to drop unwanted events early in the pipeline.
+
+        Pipeline Stage 1: Runs first to minimize processing cost for
+        events that will be discarded. Filters see raw events before
+        any enrichment or redaction.
+
+        Returns: Entry dict if kept, None if dropped.
+        On error: Returns original entry unchanged (fail-safe).
+        """
         filters = self._filters_getter()
         if not filters:
             return entry
@@ -303,6 +350,14 @@ class LoggerWorker:
             return entry
 
     async def _apply_redactors(self, entry: dict[str, Any]) -> dict[str, Any]:
+        """Apply redactors to mask sensitive data in log event.
+
+        Pipeline Stage 3: Runs after enrichers so redactors can mask
+        both original fields AND enriched fields (e.g., request context
+        that may contain PII).
+
+        On error: Returns original entry unchanged (fail-safe).
+        """
         redactors = self._redactors_getter()
         if not redactors:
             return entry
@@ -317,6 +372,14 @@ class LoggerWorker:
             return entry
 
     async def _apply_processors(self, view: SerializedView) -> SerializedView:
+        """Apply processors to transform serialized log payload.
+
+        Pipeline Stage 4: Runs on serialized bytes when serialize_in_flush
+        is enabled. Processors can compress, encrypt, or transform the
+        final payload before sink write.
+
+        On error: Preserves original view unchanged (fail-safe).
+        """
         processors = self._processors_getter()
         if not processors:
             return view

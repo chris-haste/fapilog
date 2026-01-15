@@ -132,7 +132,7 @@ def _apply_environment_config(
     Merges environment config with existing settings. Environment config
     takes precedence for explicitly set values.
     """
-    updated = settings.model_copy(deep=True)
+    updated: _Settings = settings.model_copy(deep=True)
 
     # Apply core settings
     core_config = env_config.get("core", {})

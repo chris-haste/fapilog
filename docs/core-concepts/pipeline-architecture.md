@@ -11,9 +11,9 @@ fapilog uses a pipeline architecture that processes log messages through several
 │ Application │───▶│   Context   │───▶│   Filters   │───▶│ Enrichers   │
 └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
                                                                   │
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐            │
-│    Sinks    │◀───│    Queue    │◀───│ Processors  │◀──────────┘
-└─────────────┘    └─────────────┘    └─────────────┘
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│    Sinks    │◀───│    Queue    │◀───│ Processors  │◀───│  Redactors  │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
 ```
 
 ## Pipeline Stages
