@@ -35,6 +35,27 @@ This gives the user immediate visibility into whether the skill is active.
 - If status is `Ready` → proceed with implementation
 - If status is NOT `Ready` → **ABORT** and inform the user: "Story status is '{status}', expected 'Ready'. Please ensure the story has been reviewed before implementation."
 
+## Branch Creation (Story Implementation)
+
+**If implementing a story:** Create a feature branch before writing any code.
+
+**Branch format:** `<type>/story-<id>-<title-slug>`
+
+- `type`: Derived from story (feat, fix, refactor, chore, etc.)
+- `id`: Story number (e.g., 5.25)
+- `title-slug`: Kebab-case from story title, max ~30 chars
+
+**Examples:**
+- `feat/story-5.26-add-sink-routing`
+- `fix/story-5.27-handle-null-logger`
+- `refactor/story-5.25-extract-config-builders`
+
+**Steps:**
+1. Parse story file for type (from title prefix or content) and title
+2. Generate branch name
+3. `git checkout -b <branch-name>`
+4. Inform user: "Created branch: `<branch-name>`"
+
 ## Non-negotiable Gates
 
 - No production code without a failing test that demands it (RED first).
@@ -131,9 +152,44 @@ Then stage: `git add <changed-files>`
 
 **If implementing a story:** Update the story's `**Status:**` field to `Ready for Code Review`.
 
-Do NOT commit or push - user must explicitly request /commit-pr for that.
+## Commit and Push (After Done Gate)
 
-Deferred to commit-pr/CI: full test suite, coverage, vulture
+After all quality checks pass and files are staged, prompt for commit:
+
+**Ask:** "Implementation complete. OK to commit?"
+
+**If user confirms:**
+
+1. Generate commit message following format:
+   ```
+   <type>(<scope>): <message title>
+
+   - <bullet summarizing change>
+   - <bullet summarizing change>
+   ```
+   - Types: feat | fix | chore | docs | refactor | test | style | perf
+   - Imperative mood, lowercase, no period, max 50 chars
+   - Body bullets explain *why*, not just *what*
+
+2. Show message and ask for approval/edits
+
+3. Attempt commit: `git commit -m "<message>"`
+
+4. **Handle precommit results:**
+   - If precommit modifies files: restage modified files (only those originally staged), retry commit (max 3 iterations)
+   - If precommit fails: show error, ask to fix, retry
+   - If tests/coverage fail: show output, ask before adding tests
+
+5. Push: `git push -u origin <branch>`
+   - If push fails (network): retry up to 4x with exponential backoff (2s, 4s, 8s, 16s)
+
+**Output on success:**
+```
+Committed: <hash> <message>
+Pushed to: origin/<branch>
+```
+
+**Next step:** User runs `/code-review`, then `/create-pr` after review passes.
 
 ## Allowed Exceptions (Must Be Explicit + Safety Net Stated)
 
