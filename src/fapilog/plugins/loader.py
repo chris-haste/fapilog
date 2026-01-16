@@ -19,7 +19,23 @@ T = TypeVar("T")
 
 
 def _normalize_plugin_name(name: str) -> str:
-    """Normalize plugin names to a canonical underscore/lower format."""
+    """Normalize plugin names to a canonical underscore/lowercase format.
+
+    Normalization Rules:
+        - Hyphens (-) are replaced with underscores (_)
+        - All characters are lowercased
+
+    Examples:
+        >>> _normalize_plugin_name("http-sink")
+        'http_sink'
+        >>> _normalize_plugin_name("CloudWatch")
+        'cloudwatch'
+        >>> _normalize_plugin_name("My_Custom_Plugin")
+        'my_custom_plugin'
+
+    This ensures consistent lookup regardless of how users specify names.
+    Both 'http-sink' and 'http_sink' will find the same plugin.
+    """
     return name.replace("-", "_").lower()
 
 
@@ -95,7 +111,18 @@ _validation_mode: ValidationMode = ValidationMode.DISABLED
 
 
 def set_validation_mode(mode: ValidationMode) -> None:
-    """Set the default plugin validation mode for subsequent loads."""
+    """Set the default plugin validation mode for subsequent loads.
+
+    This sets a module-level default that applies when load_plugin() is called
+    without an explicit validation_mode parameter. For fine-grained control,
+    prefer passing validation_mode directly to load_plugin().
+
+    Args:
+        mode: The validation mode to use as default.
+            - DISABLED: No validation (default)
+            - WARN: Validate and emit diagnostics for failures
+            - STRICT: Validate and raise PluginLoadError on failure
+    """
     global _validation_mode
     _validation_mode = mode
 
@@ -103,12 +130,35 @@ def set_validation_mode(mode: ValidationMode) -> None:
 def register_builtin(
     group: str, name: str, cls: type, *, aliases: Iterable[str] | None = None
 ) -> None:
-    """Register a built-in plugin class and optional aliases."""
+    """Register a built-in plugin class and optional aliases.
 
+    Args:
+        group: Plugin group (e.g., 'fapilog.sinks')
+        name: Plugin name (should be lowercase with underscores)
+        cls: Plugin class
+        aliases: Optional alternative names for the plugin
+
+    Note:
+        Names are normalized internally. For consistency, use canonical
+        names (lowercase, underscores) when registering. A diagnostic warning
+        is emitted if a non-canonical name is provided.
+    """
     registry = _registry_for_group(group)
     if registry is None:
         return
     canonical = _normalize_plugin_name(name)
+
+    if name != canonical:
+        try:
+            diagnostics.warn(
+                "plugins",
+                "non-canonical plugin name",
+                registered=name,
+                canonical=canonical,
+            )
+        except Exception:
+            pass
+
     registry[canonical] = cls
 
     if aliases:
@@ -181,8 +231,28 @@ def load_plugin(
     *,
     validation_mode: ValidationMode | None = None,
 ) -> Any:
-    """Load a plugin by group and name from built-ins or entry points."""
+    """Load a plugin by group and name from built-ins or entry points.
 
+    Plugin names are normalized before lookup: hyphens become underscores
+    and characters are lowercased. This means 'http-sink', 'HTTP_Sink',
+    and 'http_sink' all resolve to the same plugin.
+
+    Args:
+        group: Plugin group (e.g., 'fapilog.sinks')
+        name: Plugin name (will be normalized for lookup)
+        config: Configuration dict passed to plugin constructor
+        validation_mode: Override the default validation mode for this call.
+            If None, uses the module-level default set by set_validation_mode().
+            Pass explicitly to avoid relying on global state.
+
+    Returns:
+        Instantiated plugin instance
+
+    Raises:
+        PluginNotFoundError: Plugin not found in built-ins or entry points.
+            Error message includes normalized name if different from input.
+        PluginLoadError: Plugin found but failed to load/instantiate.
+    """
     config = config or {}
     canonical = _normalize_plugin_name(name)
     registry = _registry_for_group(group) or {}
@@ -218,7 +288,16 @@ def load_plugin(
             f"Failed to load plugin '{name}' from {group}: {exc}"
         ) from exc
 
-    raise PluginNotFoundError(f"Plugin '{name}' not found in group '{group}'")
+    available = list_available_plugins(group)
+    available_str = ", ".join(available) if available else "(none)"
+    if canonical != name:
+        raise PluginNotFoundError(
+            f"Plugin '{name}' (normalized to '{canonical}') not found in group '{group}'. "
+            f"Available: {available_str}"
+        )
+    raise PluginNotFoundError(
+        f"Plugin '{name}' not found in group '{group}'. Available: {available_str}"
+    )
 
 
 def list_available_plugins(group: str) -> list[str]:
