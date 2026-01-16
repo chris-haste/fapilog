@@ -58,6 +58,119 @@ def test_load_plugin_not_found(monkeypatch: pytest.MonkeyPatch) -> None:
         loader.load_plugin("fapilog.sinks", "missing")
 
 
+def test_error_message_shows_normalized_name_when_different(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """AC2: Error message includes both original and normalized names."""
+    monkeypatch.setattr(loader, "BUILTIN_SINKS", {}, raising=False)
+    monkeypatch.setattr(loader, "BUILTIN_ALIASES", {}, raising=False)
+
+    with pytest.raises(loader.PluginNotFoundError) as exc_info:
+        loader.load_plugin("fapilog.sinks", "HTTP-Sink")
+
+    error_msg = str(exc_info.value)
+    assert "HTTP-Sink" in error_msg
+    assert "http_sink" in error_msg
+    assert "normalized" in error_msg.lower()
+
+
+def test_error_message_lists_available_plugins(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """AC2: Error message lists available plugins."""
+    monkeypatch.setattr(
+        loader, "BUILTIN_SINKS", {"console": _DummyPlugin, "file": _DummyPlugin}
+    )
+    monkeypatch.setattr(loader, "BUILTIN_ALIASES", {}, raising=False)
+
+    with pytest.raises(loader.PluginNotFoundError) as exc_info:
+        loader.load_plugin("fapilog.sinks", "missing")
+
+    error_msg = str(exc_info.value)
+    assert "console" in error_msg
+    assert "file" in error_msg
+
+
+def test_error_message_unchanged_when_name_already_normalized(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """AC2: Error message does not show normalized form when name is already canonical."""
+    monkeypatch.setattr(loader, "BUILTIN_SINKS", {}, raising=False)
+    monkeypatch.setattr(loader, "BUILTIN_ALIASES", {}, raising=False)
+
+    with pytest.raises(loader.PluginNotFoundError) as exc_info:
+        loader.load_plugin("fapilog.sinks", "missing_plugin")
+
+    error_msg = str(exc_info.value)
+    assert "missing_plugin" in error_msg
+    assert "normalized" not in error_msg.lower()
+
+
+def test_register_builtin_warns_for_non_canonical_name(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """AC3: Warn when registering plugins with non-normalized names."""
+    monkeypatch.setattr(loader, "BUILTIN_SINKS", {}, raising=False)
+    monkeypatch.setattr(loader, "BUILTIN_ALIASES", {"fapilog.sinks": {}}, raising=False)
+
+    warnings_emitted: list[dict[str, Any]] = []
+
+    def capture_warn(component: str, message: str, **fields: Any) -> None:
+        warnings_emitted.append({"component": component, "message": message, **fields})
+
+    monkeypatch.setattr(loader.diagnostics, "warn", capture_warn)
+
+    loader.register_builtin("fapilog.sinks", "HTTP-Sink", _DummyPlugin)
+
+    assert len(warnings_emitted) == 1
+    warning = warnings_emitted[0]
+    assert warning["component"] == "plugins"
+    assert "non-canonical" in warning["message"]
+    assert warning["registered"] == "HTTP-Sink"
+    assert warning["canonical"] == "http_sink"
+
+
+def test_register_builtin_no_warning_for_canonical_name(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """AC3: No warning when registering plugins with normalized names."""
+    monkeypatch.setattr(loader, "BUILTIN_SINKS", {}, raising=False)
+    monkeypatch.setattr(loader, "BUILTIN_ALIASES", {"fapilog.sinks": {}}, raising=False)
+
+    warnings_emitted: list[dict[str, Any]] = []
+
+    def capture_warn(component: str, message: str, **fields: Any) -> None:
+        warnings_emitted.append({"component": component, "message": message, **fields})
+
+    monkeypatch.setattr(loader.diagnostics, "warn", capture_warn)
+
+    loader.register_builtin("fapilog.sinks", "http_sink", _DummyPlugin)
+
+    # No warnings should be emitted for canonical names
+    assert len(warnings_emitted) == 0
+
+
+def test_register_builtin_continues_when_diagnostics_fail(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Registration succeeds even when diagnostics.warn raises."""
+    registry: dict[str, type] = {}
+    monkeypatch.setattr(loader, "BUILTIN_SINKS", registry, raising=False)
+    monkeypatch.setattr(loader, "BUILTIN_ALIASES", {"fapilog.sinks": {}}, raising=False)
+
+    def failing_warn(component: str, message: str, **fields: Any) -> None:
+        raise RuntimeError("diagnostics failed")
+
+    monkeypatch.setattr(loader.diagnostics, "warn", failing_warn)
+
+    # Should not raise despite diagnostics failure
+    loader.register_builtin("fapilog.sinks", "HTTP-Sink", _DummyPlugin)
+
+    # Plugin should still be registered under canonical name
+    assert "http_sink" in registry
+    assert registry["http_sink"] is _DummyPlugin
+
+
 def test_entry_point_discovery(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(loader, "BUILTIN_SINKS", {}, raising=False)
     monkeypatch.setattr(loader, "BUILTIN_ALIASES", {}, raising=False)
