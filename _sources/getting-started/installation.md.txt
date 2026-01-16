@@ -49,11 +49,12 @@ pip install -e .
 
 ## Python Version Support
 
-| Python Version | Status             | Notes                      |
-| -------------- | ------------------ | -------------------------- |
-| 3.9+           | ✅ Full Support    | Recommended minimum        |
-| 3.8            | ⚠️ Limited Support | Some features may not work |
-| 3.7            | ❌ Not Supported   | End of life                |
+| Python Version | Status           | Notes                                |
+| -------------- | ---------------- | ------------------------------------ |
+| 3.12           | ✅ Full Support  | Latest stable                        |
+| 3.11           | ✅ Full Support  | Recommended                          |
+| 3.10           | ✅ Full Support  | Minimum supported                    |
+| 3.9 and below  | ❌ Not Supported | See [ADR-001](../architecture/decisions/001-drop-python-3.9-support.md) |
 
 ## Dependencies
 
