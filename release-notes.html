@@ -178,6 +178,14 @@
 <section id="unreleased">
 <h2>[Unreleased]<a class="headerlink" href="#unreleased" title="Link to this heading"></a></h2>
 <ul class="simple">
+<li><p><strong>Security</strong>: Bumped orjson minimum version to 3.9.15 (CVE-2024-27454 fix).</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">SECURITY.md</span></code> with vulnerability reporting guidance.</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">CODE_OF_CONDUCT.md</span></code> (Contributor Covenant).</p></li>
+<li><p>Fixed Python version badge in README (3.8+ → 3.10+).</p></li>
+<li><p>Added production tip callout in README for <code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code> guidance.</p></li>
+<li><p>Updated plugin group documentation in architecture docs.</p></li>
+<li><p>Added CloudWatch sink size limit documentation comment.</p></li>
+<li><p>Updated <code class="docutils literal notranslate"><span class="pre">CONTRIBUTING.md</span></code> with correct Python version, repo name, and governance file references.</p></li>
 <li><p>Added <code class="docutils literal notranslate"><span class="pre">SinkWriteError</span></code> for sinks to signal write failures to the core pipeline; core now catches these errors (and <code class="docutils literal notranslate"><span class="pre">False</span></code> returns) to trigger fallback and circuit breaker behavior (Story 4.41).</p></li>
 <li><p>Updated built-in sinks (<code class="docutils literal notranslate"><span class="pre">stdout_json</span></code>, <code class="docutils literal notranslate"><span class="pre">stdout_pretty</span></code>, <code class="docutils literal notranslate"><span class="pre">rotating_file</span></code>, <code class="docutils literal notranslate"><span class="pre">audit</span></code>) to raise <code class="docutils literal notranslate"><span class="pre">SinkWriteError</span></code> instead of swallowing errors, enabling proper fallback handling.</p></li>
 <li><p>Updated <code class="docutils literal notranslate"><span class="pre">BaseSink</span></code> protocol documentation to reflect the new error signaling contract.</p></li>
