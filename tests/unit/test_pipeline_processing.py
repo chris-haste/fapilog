@@ -524,7 +524,51 @@ class TestFlushPaths:
         await logger._flush_batch(batch)
 
         assert logger._processed == 0
-        assert logger._dropped == 0
+        assert logger._dropped == 1  # Strict mode drop must be counted
+
+    @pytest.mark.asyncio
+    async def test_strict_mode_drop_records_metric(self, monkeypatch) -> None:
+        """Strict mode drop triggers metrics recording."""
+        from unittest.mock import AsyncMock
+
+        from fapilog.metrics.metrics import MetricsCollector
+
+        monkeypatch.setenv("FAPILOG_CORE__STRICT_ENVELOPE_MODE", "true")
+
+        async def sink_write(entry: dict) -> None:  # pragma: no cover
+            raise AssertionError("should not be called in strict drop path")
+
+        async def sink_write_serialized(view: object) -> None:  # pragma: no cover
+            raise AssertionError("should not be called in strict drop path")
+
+        monkeypatch.setattr(
+            worker_mod,
+            "serialize_envelope",
+            lambda entry: (_ for _ in ()).throw(ValueError("boom")),
+        )
+
+        metrics = MetricsCollector(enabled=True)
+        metrics.record_events_dropped = AsyncMock()  # type: ignore[method-assign]
+        logger = AsyncLoggerFacade(
+            name="test",
+            queue_capacity=4,
+            batch_max_size=2,
+            batch_timeout_seconds=0.1,
+            backpressure_wait_ms=1,
+            drop_on_full=True,
+            sink_write=sink_write,
+            sink_write_serialized=sink_write_serialized,
+            serialize_in_flush=True,
+            metrics=metrics,
+        )
+
+        batch = [{"id": 1}, {"id": 2}]
+        await logger._flush_batch(batch)
+
+        assert logger._dropped == 2
+        # Metrics must record each drop individually
+        assert metrics.record_events_dropped.call_count == 2
+        metrics.record_events_dropped.assert_any_call(1)
 
     @pytest.mark.asyncio
     async def test_flush_serialization_best_effort_uses_fallback(
