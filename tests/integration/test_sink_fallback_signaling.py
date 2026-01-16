@@ -85,7 +85,7 @@ class TestSinkFallbackIntegration:
 
         try:
             with patch(
-                "fapilog.plugins.sinks.fallback.handle_sink_write_failure"
+                "fapilog.core.sink_writers.handle_sink_write_failure"
             ) as mock_fallback:
                 mock_fallback.return_value = None
                 logger.info("test message")
@@ -108,7 +108,7 @@ class TestSinkFallbackIntegration:
 
         try:
             with patch(
-                "fapilog.plugins.sinks.fallback.handle_sink_write_failure"
+                "fapilog.core.sink_writers.handle_sink_write_failure"
             ) as mock_fallback:
                 mock_fallback.return_value = None
                 logger.info("test message from false")
@@ -131,7 +131,7 @@ class TestSinkFallbackIntegration:
 
         try:
             with patch(
-                "fapilog.plugins.sinks.fallback.handle_sink_write_failure"
+                "fapilog.core.sink_writers.handle_sink_write_failure"
             ) as mock_fallback:
                 logger.info("success message")
                 _drain_logger(logger)
@@ -158,7 +158,7 @@ class TestSinkFallbackIntegration:
 
         try:
             with patch(
-                "fapilog.plugins.sinks.fallback.handle_sink_write_failure"
+                "fapilog.core.sink_writers.handle_sink_write_failure"
             ) as mock_fallback:
                 mock_fallback.return_value = None
                 logger.info("mixed test")
@@ -185,7 +185,7 @@ class TestSinkFallbackIntegration:
 
         try:
             with patch(
-                "fapilog.plugins.sinks.fallback.handle_sink_write_failure"
+                "fapilog.core.sink_writers.handle_sink_write_failure"
             ) as mock_fallback:
                 mock_fallback.return_value = None
 
