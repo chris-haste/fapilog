@@ -156,7 +156,7 @@ When `FAPILOG_FILE__DIRECTORY` is set, the rotating file sink is auto-enabled wi
 | `FAPILOG_SINK_CONFIG__AUDIT__COMPLIANCE_LEVEL` | string | `basic` | Compliance level (`basic`, `sox`, `hipaa`, etc.) |
 | `FAPILOG_SINK_CONFIG__AUDIT__STORAGE_PATH` | string | `audit_logs` | Directory for audit JSONL files |
 | `FAPILOG_SINK_CONFIG__AUDIT__RETENTION_DAYS` | int | `365` | Retention window |
-| `FAPILOG_SINK_CONFIG__AUDIT__ENCRYPT_LOGS` | bool | `true` | Enable encryption when supported |
+| `FAPILOG_SINK_CONFIG__AUDIT__ENCRYPT_LOGS` | bool | `false` | Encrypt audit logs (not yet implemented) |
 | `FAPILOG_SINK_CONFIG__AUDIT__REQUIRE_INTEGRITY` | bool | `true` | Hash-chain integrity |
 | `FAPILOG_SINK_CONFIG__AUDIT__REAL_TIME_ALERTS` | bool | `false` | Compliance alerts |
 

@@ -116,7 +116,7 @@
 | `FAPILOG_SECURITY__ENCRYPTION__MIN_TLS_VERSION` | Literal | 1.2 | Minimum TLS version for transport |
 | `FAPILOG_SECURITY__ENCRYPTION__ROTATE_INTERVAL_DAYS` | int | 90 | Recommended key rotation interval |
 | `FAPILOG_SINK_CONFIG__AUDIT__COMPLIANCE_LEVEL` | str | basic | Compliance level for audit trail |
-| `FAPILOG_SINK_CONFIG__AUDIT__ENCRYPT_LOGS` | bool | True | Encrypt audit log files when supported |
+| `FAPILOG_SINK_CONFIG__AUDIT__ENCRYPT_LOGS` | bool | False | Encrypt audit log files (not yet implemented) |
 | `FAPILOG_SINK_CONFIG__AUDIT__REAL_TIME_ALERTS` | bool | False | Emit real-time compliance alerts |
 | `FAPILOG_SINK_CONFIG__AUDIT__REQUIRE_INTEGRITY` | bool | True | Enable hash chain integrity checks |
 | `FAPILOG_SINK_CONFIG__AUDIT__RETENTION_DAYS` | int | 365 | Retention window for audit logs (days) |
