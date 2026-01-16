@@ -321,7 +321,7 @@ class AuditSinkSettings(BaseModel):
         default=365, ge=1, description="Retention window for audit logs (days)"
     )
     encrypt_logs: bool = Field(
-        default=True, description="Encrypt audit log files when supported"
+        default=False, description="Encrypt audit log files (not yet implemented)"
     )
     require_integrity: bool = Field(
         default=True, description="Enable hash chain integrity checks"

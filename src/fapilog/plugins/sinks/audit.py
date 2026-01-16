@@ -21,7 +21,7 @@ class AuditSinkConfig:
     compliance_level: str = "basic"
     storage_path: str = "audit_logs"
     retention_days: int = 365
-    encrypt_logs: bool = True
+    encrypt_logs: bool = False
     require_integrity: bool = True
     real_time_alerts: bool = False
 
