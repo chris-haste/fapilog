@@ -1,8 +1,7 @@
 """
 FastAPI integration router.
 
-Note: The plugin marketplace endpoints have been removed.
-A simpler plugin configuration system is planned for a future release.
+Provides plugin-related endpoints for the FastAPI integration.
 """
 
 from __future__ import annotations
@@ -13,9 +12,5 @@ router = APIRouter(tags=["plugins"])
 
 
 def get_router() -> APIRouter:
-    """Return the FastAPI router for plugin-related endpoints.
-
-    Currently returns an empty router. Plugin marketplace endpoints
-    have been removed in preparation for a simpler plugin system.
-    """
+    """Return the FastAPI router for plugin-related endpoints."""
     return router

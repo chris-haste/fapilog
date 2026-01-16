@@ -81,19 +81,6 @@ Based on the architectural patterns, tech stack, and data models defined above, 
 **Dependencies:** Prometheus client, AsyncPipeline performance data  
 **Technology Stack:** Prometheus client async support, zero-copy metric aggregation
 
-## PluginMarketplace
-
-**Responsibility:** Community-driven plugin ecosystem with discovery, installation, and validation capabilities
-
-**Key Interfaces:**
-
-- `async def search_plugins(query: str) -> List[PluginMetadata]` - Plugin discovery
-- `async def install_plugin(name: str, version: str) -> bool` - Plugin installation
-- `async def validate_plugin_security(plugin: PluginMetadata) -> bool` - Security scanning
-
-**Dependencies:** PluginRegistry, HTTP client for marketplace API, security scanner  
-**Technology Stack:** FastAPI for marketplace API, async HTTP client, security validation
-
 ## AsyncQueue
 
 **Responsibility:** High-performance async buffering and batching with overflow handling for zero-copy operations
@@ -142,7 +129,6 @@ graph TB
 
     subgraph "Plugin Ecosystem"
         REGISTRY["PluginRegistry"]
-        MARKETPLACE["PluginMarketplace"]
         ENRICHER["EnricherPlugins"]
         PROCESSOR["ProcessorPlugins"]
         SINK["SinkPlugins"]
@@ -168,7 +154,6 @@ graph TB
     PIPELINE --> PROCESSOR
     PIPELINE --> SINK
 
-    REGISTRY --> MARKETPLACE
     REGISTRY --> METADATA
 
     PIPELINE --> COMPLIANCE

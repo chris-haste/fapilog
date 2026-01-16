@@ -224,7 +224,6 @@ class TestPluginMetadata:
         assert metadata.repository is None
         assert metadata.config_schema is None
         assert metadata.default_config is None
-        assert metadata.marketplace_id is None
 
 
 class TestPluginInfo:

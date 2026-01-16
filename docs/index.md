@@ -2,7 +2,7 @@
 
 **fapilog** is a high-performance logging pipeline that eliminates the bottlenecks of traditional Python logging. By replacing blocking I/O with a lock-free, async-native architecture, it ensures your application never stalls to write a log. While it’s an excellent choice for FastAPI and microservices, its lightweight footprint and pluggable sinks make it equally powerful for on-prem, desktop, or embedded projects.
 
-**Stability:** Core logger and FastAPI middleware are beta/stable under semver; the plugin marketplace remains experimental and may change.
+**Stability:** Core logger and FastAPI middleware are beta/stable under semver.
 
 ## Why Fapilog?
 

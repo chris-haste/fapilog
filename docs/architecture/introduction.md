@@ -10,7 +10,6 @@
 - Current structure suggests you're building from scratch
 - Focus is on async-first architecture patterns
 - CLI components for tooling
-- Plugin marketplace infrastructure planned
 
 ## Change Log
 

@@ -14,7 +14,6 @@ This page lists planned features that are **not implemented yet**. Today, fapilo
 ## Tooling (planned)
 
 - Expanded CLI commands (filters, tailing, profiles)
-- Marketplace providers: ratings, benchmarks, security/compliance signals
 
 ## Compliance & Observability (planned)
 

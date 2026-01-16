@@ -2,8 +2,8 @@
 
 This document outlines the overall project architecture for **Fapilog v3**, including backend systems, shared services, and non-UI specific concerns. Its primary goal is to serve as the guiding architectural blueprint for AI-driven development, ensuring consistency and adherence to chosen patterns and technologies.
 
-**Relationship to Frontend Architecture:**  
-Since Fapilog v3 is primarily a Python library with CLI components and a future plugin marketplace, any web-based interfaces (plugin marketplace, monitoring dashboards) will require a separate Frontend Architecture Document that MUST be used in conjunction with this document. Core technology stack choices documented herein are definitive for the entire project.
+**Relationship to Frontend Architecture:**
+Since Fapilog v3 is primarily a Python library with CLI components, any web-based interfaces (monitoring dashboards) will require a separate Frontend Architecture Document that MUST be used in conjunction with this document. Core technology stack choices documented herein are definitive for the entire project.
 
 ## Introduction
 
@@ -17,7 +17,6 @@ Since Fapilog v3 is primarily a Python library with CLI components and a future 
 - Current structure suggests you're building from scratch
 - Focus is on async-first architecture patterns
 - CLI components for tooling
-- Plugin marketplace infrastructure planned
 
 ### Change Log
 
@@ -69,7 +68,6 @@ graph TB
     subgraph "Enterprise Features"
         COMPLIANCE["Compliance Engine<br/>PCI-DSS, HIPAA, SOX"]
         METRICS["Metrics Collection<br/>Performance, Health"]
-        MARKETPLACE["Plugin Marketplace<br/>Discovery, Install"]
     end
 
     subgraph "External Systems"
@@ -89,7 +87,6 @@ graph TB
 
     CONTAINER --> COMPLIANCE
     CONTAINER --> METRICS
-            MARKETPLACE --> CONTAINER
 
         SINKS --> SIEM
         SINKS --> CLOUD
@@ -140,7 +137,7 @@ Based on your async-first requirements, performance targets, and enterprise comp
 | Category                | Technology         | Version  | Purpose                              | Rationale                                                        |
 | ----------------------- | ------------------ | -------- | ------------------------------------ | ---------------------------------------------------------------- |
 | **Language**            | Python             | 3.8+     | Core development language            | Async/await native support, typing, wide enterprise adoption     |
-| **Framework**           | FastAPI            | 0.100+   | API framework for plugin marketplace | Async-first, Pydantic v2 integration, excellent performance      |
+| **Framework**           | FastAPI            | 0.100+   | API framework for integrations       | Async-first, Pydantic v2 integration, excellent performance      |
 | **Type System**         | Pydantic           | v2       | Data validation and serialization    | Zero-copy serialization, async validation, enterprise compliance |
 | **Async Runtime**       | asyncio            | Built-in | Core async operations                | Native Python async, optimal for pipeline architecture           |
 | **Plugin Architecture** | importlib.metadata | Built-in | Plugin discovery and loading         | Standard Python approach, no external dependencies               |
@@ -154,9 +151,9 @@ Based on your async-first requirements, performance targets, and enterprise comp
 | **CLI Framework**       | Typer              | 0.9+     | Command line interface               | FastAPI ecosystem, excellent async support                       |
 | **Metrics Collection**  | Prometheus Client  | 0.17+    | Performance metrics                  | Industry standard, enterprise SIEM integration                   |
 | **Structured Logging**  | fapilog core       | N/A      | Native structured logging pipeline    | Async-first, zero-copy operations without external frameworks    |
-| **Plugin Packaging**    | setuptools         | 68.0+    | Plugin distribution                  | Standard Python packaging for marketplace                        |
+| **Plugin Packaging**    | setuptools         | 68.0+    | Plugin distribution                  | Standard Python packaging via PyPI                               |
 | **Container Platform**  | Docker             | 24.0+    | Containerization                     | Enterprise deployment requirements                               |
-| **CI/CD**               | GitHub Actions     | Latest   | Continuous integration               | Plugin marketplace automation                                    |
+| **CI/CD**               | GitHub Actions     | Latest   | Continuous integration               | Plugin ecosystem automation                                      |
 | **Code Coverage**       | coverage.py        | 7.3+     | Test coverage measurement            | 90%+ coverage requirement                                        |
 | **Security Scanning**   | bandit             | 1.7+     | Security vulnerability detection     | Enterprise compliance validation                                 |
 
@@ -237,7 +234,7 @@ Based on my analysis of your existing codebase and PRD requirements, here are th
 
 ### PluginMetadata
 
-**Purpose:** Metadata model for plugin discovery, loading, and marketplace integration
+**Purpose:** Metadata model for plugin discovery, loading, and ecosystem integration
 
 **Key Attributes:**
 
@@ -253,7 +250,7 @@ Based on my analysis of your existing codebase and PRD requirements, here are th
 **Relationships:**
 
 - **With Plugin Registry:** Enables dynamic plugin discovery and loading
-- **With Plugin Marketplace:** Supports community-driven ecosystem growth
+- **With Plugin Ecosystem:** Supports community-driven ecosystem growth via PyPI
 - **With Compliance Engine:** Validates enterprise compliance requirements
 
 ### AsyncLoggingContainer
@@ -328,7 +325,7 @@ Based on the architectural patterns, tech stack, and data models defined above, 
 - `async def load_plugin(metadata: PluginMetadata) -> Plugin` - Safe plugin loading
 - `async def validate_plugin_compliance(plugin: Plugin) -> bool` - Enterprise validation
 
-**Dependencies:** PluginMetadata, ComplianceEngine, PluginMarketplace  
+**Dependencies:** PluginMetadata, ComplianceEngine
 **Technology Stack:** importlib.metadata, setuptools entry points, async validation
 
 ### ComplianceEngine
@@ -356,19 +353,6 @@ Based on the architectural patterns, tech stack, and data models defined above, 
 
 **Dependencies:** Prometheus client, AsyncPipeline performance data  
 **Technology Stack:** Prometheus client async support, zero-copy metric aggregation
-
-### PluginMarketplace
-
-**Responsibility:** Community-driven plugin ecosystem with discovery, installation, and validation capabilities
-
-**Key Interfaces:**
-
-- `async def search_plugins(query: str) -> List[PluginMetadata]` - Plugin discovery
-- `async def install_plugin(name: str, version: str) -> bool` - Plugin installation
-- `async def validate_plugin_security(plugin: PluginMetadata) -> bool` - Security scanning
-
-**Dependencies:** PluginRegistry, HTTP client for marketplace API, security scanner  
-**Technology Stack:** FastAPI for marketplace API, async HTTP client, security validation
 
 ### AsyncQueue
 
@@ -418,7 +402,6 @@ graph TB
 
     subgraph "Plugin Ecosystem"
         REGISTRY["PluginRegistry"]
-        MARKETPLACE["PluginMarketplace"]
         ENRICHER["EnricherPlugins"]
         PROCESSOR["ProcessorPlugins"]
         SINK["SinkPlugins"]
@@ -444,7 +427,6 @@ graph TB
     PIPELINE --> PROCESSOR
     PIPELINE --> SINK
 
-    REGISTRY --> MARKETPLACE
     REGISTRY --> METADATA
 
     PIPELINE --> COMPLIANCE
@@ -828,7 +810,6 @@ sequenceDiagram
 sequenceDiagram
     participant Container as AsyncLoggingContainer
     participant Registry as PluginRegistry
-    participant Marketplace as PluginMarketplace
     participant Compliance as ComplianceEngine
     participant Plugin as PluginInstance
     participant Pipeline as AsyncPipeline
@@ -836,12 +817,10 @@ sequenceDiagram
     Note over Container, Pipeline: Plugin Discovery and Loading Workflow
 
     Container->>Registry: discover_plugins()
-    Registry->>Marketplace: search_plugins(criteria)
-    Marketplace-->>Registry: available_plugins[]
+    Registry->>Registry: scan_entry_points()
 
     loop For Each Plugin
-        Registry->>Marketplace: get_plugin_metadata(name)
-        Marketplace-->>Registry: plugin_metadata
+        Registry->>Registry: get_plugin_metadata(name)
 
         alt Enterprise Deployment
             Registry->>Compliance: validate_plugin_compliance(metadata)
@@ -984,14 +963,13 @@ sequenceDiagram
 
 The core fapilog library is a **Python library only** - no web server, no REST API, no complexity.
 
-### Optional Plugin Marketplace API
+### Plugin Discovery
 
-If the community grows large enough, a **simple GitHub Pages site** could provide:
+Plugins are discovered via standard Python mechanisms:
 
-- Plugin discovery and search
-- Installation instructions
-- Plugin ratings and reviews
-- **No database required** - all data sourced from GitHub API and PyPI API
+- **PyPI**: Search for packages with `fapilog-*` naming convention
+- **GitHub Topics**: Browse repositories with `fapilog-plugin` topic
+- **Entry Points**: Automatic discovery via `fapilog.sinks`, `fapilog.processors`, etc.
 
 ## Database Schema
 
@@ -1881,7 +1859,7 @@ class UniversalSettings(BaseModel):
 - **Required Patterns:**
   - Core library has no authentication (it's a library, not a service)
   - Enterprise plugins implement their own auth as needed
-  - Plugin marketplace uses PyPI's existing authentication
+  - Plugin ecosystem uses PyPI's existing authentication
   - No user management in core library
 
 ### Secrets Management
@@ -2007,7 +1985,7 @@ Reference: docs/architecture.md for complete implementation guidance
 
 ### Community Ecosystem Development
 
-1. **Plugin Marketplace Strategy**
+1. **Plugin Discovery Strategy**
 
    - Create awesome-fapilog repository for plugin discovery
    - Establish plugin development standards and templates
