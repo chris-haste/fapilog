@@ -7,7 +7,7 @@ name = "fapilog-sample-plugin"
 version = "0.1.0"
 description = "Sample plugin skeleton for fapilog CI smoke tests"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 authors = [{name = "Fapilog", email = "dev@fapilog.dev"}]
 license = {text = "Apache-2.0"}
 dependencies = [

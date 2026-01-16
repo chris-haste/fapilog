@@ -45,7 +45,7 @@ We welcome all types of contributions:
 
 ### **Prerequisites**
 
-- **Python 3.8+** (project supports 3.8, 3.9, 3.10, 3.11, 3.12)
+- **Python 3.10+** (project supports 3.10, 3.11, 3.12)
 - **Git** - Version control
 - **pip** - Package management
 - **hatch** - Project management (installed automatically)
