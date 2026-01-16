@@ -49,7 +49,7 @@
 
 | Location | Claim | Issue |
 |----------|-------|-------|
-| installation.md:52-56 | "Python 3.9+ recommended, 3.8 limited" | Conflicts with README "3.8+" |
+| ~~installation.md:52-56~~ | ~~"Python 3.9+ recommended, 3.8 limited"~~ | ✅ **RESOLVED** - See [ADR-001](architecture/decisions/001-drop-python-3.9-support.md) |
 | api-reference/plugins/index.md | Sinks table | Lists 3 of 10 actual sinks |
 | api-reference/plugins/enrichers.md | Enrichers list | Missing KubernetesEnricher |
 
@@ -91,7 +91,7 @@
 
 ### P1 (Confusing/Incomplete)
 
-1. Python version messaging inconsistent between README and installation docs
+1. ~~Python version messaging inconsistent between README and installation docs~~ ✅ **RESOLVED**
 2. Sinks documentation scattered across multiple locations
 3. No clear distinction between stable and experimental features
 
@@ -115,7 +115,7 @@
 
 ### Next Sprint (P1)
 
-1. Align Python version messaging
+1. ~~Align Python version messaging~~ ✅ **RESOLVED**
 2. Add CloudWatch/Loki/Postgres to sinks API reference
 3. Create builder API reference
 4. Add troubleshooting section
@@ -124,7 +124,7 @@
 
 1. Consolidate sink routing docs
 2. Add migration guide from stdlib logging
-3. Add architectural decision records
+3. ~~Add architectural decision records~~ ✅ **RESOLVED** - See `docs/architecture/decisions/`
 
 ---
 
@@ -159,7 +159,7 @@
 | `docs/api-reference/plugins/index.md` | Update tables | P0 |
 | `docs/api-reference/plugins/enrichers.md` | Add k8s enricher | P0 |
 | `docs/api-reference/plugins/sinks.md` | Add all sinks | P1 |
-| `docs/getting-started/installation.md` | Align Python version | P1 |
+| ~~`docs/getting-started/installation.md`~~ | ~~Align Python version~~ | ✅ **RESOLVED** |
 
 ---
 

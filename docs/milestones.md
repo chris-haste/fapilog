@@ -96,7 +96,7 @@ Ensure correctness, concurrency safety, and multi-version support.
 - [ ] Concurrency stress tests (e.g., `asyncio.gather`)
 - [ ] Pre-commit hooks: `ruff`, `black`, `mypy`, `pytest`
 - [ ] GitHub Actions workflow for CI
-- [ ] Python version matrix (3.8 to 3.12+)
+- [ ] Python version matrix (3.10 to 3.12+)
 - [ ] GitHub badge for test coverage
 
 **Estimated Duration:** 1 week
