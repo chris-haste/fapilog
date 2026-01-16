@@ -401,11 +401,29 @@ def _start_plugins_sync(
     processors: list[_Any],
     filters: list[_Any],
 ) -> tuple[list[_Any], list[_Any], list[_Any], list[_Any]]:
-    """
-    Start plugins in sync context, falling back safely on failure.
+    """Start plugins synchronously, handling event loop edge cases.
 
-    If an event loop is running, startup is offloaded to a thread to avoid
-    blocking the loop. On failure, returns the original unstarted plugins.
+    This function must work in three scenarios:
+
+    1. Called from sync code with no event loop:
+       - asyncio.get_running_loop() raises RuntimeError
+       - Safe to use asyncio.run() directly
+
+    2. Called from within a running event loop (e.g., Jupyter, async framework):
+       - asyncio.get_running_loop() succeeds
+       - Cannot use asyncio.run() (raises "loop already running")
+       - Must offload to a separate thread with no loop
+
+    3. Startup fails for any reason:
+       - Return original unstarted plugins
+       - Fail-open: logging should never crash the application
+
+    Threading Safety:
+        ThreadPoolExecutor is used with max_workers=1 to serialize startup.
+        5-second timeout prevents hangs if plugins are slow.
+
+    See Also:
+        docs/architecture/async-sync-boundary.md for detailed explanation.
     """
 
     async def _do_start() -> tuple[list[_Any], list[_Any], list[_Any], list[_Any]]:
@@ -426,18 +444,24 @@ def _start_plugins_sync(
             raise
 
     try:
+        # Check if we're inside a running event loop
         _asyncio.get_running_loop()
+        # Case 2: Loop is running - cannot use asyncio.run() here.
+        # Offload to a thread that has no event loop.
         import concurrent.futures
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
             future = executor.submit(_run_sync)
             return future.result(timeout=5.0)
     except RuntimeError:
+        # Case 1: No running loop - safe to use asyncio.run() directly
         try:
             return _run_sync()
         except Exception:
+            # Case 3: Startup failed - return originals (fail-open for logging)
             return enrichers, redactors, processors, filters
     except Exception:
+        # Case 3: Any other failure - return originals (fail-open for logging)
         return enrichers, redactors, processors, filters
 
 
