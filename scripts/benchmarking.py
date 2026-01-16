@@ -346,9 +346,10 @@ def derive_verdicts(results: dict[str, object]) -> None:
     latency = results["latency_us"]  # type: ignore[assignment]
     memory = results["memory_peak_bytes"]  # type: ignore[assignment]
 
-    speedup = float(throughput["speedup_factor"])  # type: ignore[index]
-    lat_red = float(latency["reduction_pct_avg"])  # type: ignore[index]
-    mem_red = float(memory["reduction_pct"])  # type: ignore[index]
+    # Use _on variant (optimized path with serialize_in_flush=True)
+    speedup = float(throughput["speedup_factor_on"])  # type: ignore[index]
+    lat_red = float(latency["reduction_pct_avg_on"])  # type: ignore[index]
+    mem_red = float(memory["reduction_pct_on"])  # type: ignore[index]
 
     # Claims to evaluate
     claims = [
@@ -359,7 +360,7 @@ def derive_verdicts(results: dict[str, object]) -> None:
             "High",
             "Remove unsubstantiated performance claims",
             speedup >= 50.0,
-            f"fapilog {throughput['fapilog_logs_per_sec']:.1f} logs/s vs stdlib {throughput['stdlib_logs_per_sec']:.1f} logs/s; speedup {speedup:.2f}x",
+            f"fapilog {throughput['fapilog_on_logs_per_sec']:.1f} logs/s vs stdlib {throughput['stdlib_logs_per_sec']:.1f} logs/s; speedup {speedup:.2f}x",
         ),
         (
             "D002",
@@ -368,7 +369,7 @@ def derive_verdicts(results: dict[str, object]) -> None:
             "High",
             "Remove unsubstantiated performance claims",
             lat_red >= 90.0,
-            f"avg latency reduction {latency['reduction_pct_avg']:.2f}% (median {latency['reduction_pct_median']:.2f}%, p95 {latency['reduction_pct_p95']:.2f}%)",
+            f"avg latency reduction {latency['reduction_pct_avg_on']:.2f}% (median {latency['reduction_pct_median_on']:.2f}%, p95 {latency['reduction_pct_p95_on']:.2f}%)",
         ),
         (
             "D003",
@@ -377,7 +378,7 @@ def derive_verdicts(results: dict[str, object]) -> None:
             "High",
             "Remove unsubstantiated performance claims",
             mem_red >= 80.0,
-            f"peak memory reduction {memory['reduction_pct']:.2f}% (stdlib {memory['stdlib']} B → fapilog {memory['fapilog']} B)",
+            f"peak memory reduction {memory['reduction_pct_on']:.2f}% (stdlib {memory['stdlib']} B → fapilog {memory['fapilog_on']} B)",
         ),
     ]
 

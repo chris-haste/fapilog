@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- **Fixed**: Benchmark script key alignment in `derive_verdicts()` to match actual output keys from `benchmark()` (Story 10.11).
+- Added CI smoke test for benchmark script to catch future regressions.
 - **Fixed**: Strict mode serialization drops now correctly increment the `dropped` counter and record metrics; previously these drops were silently unaccounted (Story 1.24).
 - Fixed extras documentation accuracy: removed non-existent extras (enterprise, loki, cloud, siem), documented all real extras with descriptions.
 - **Security**: Bumped orjson minimum version to 3.9.15 (CVE-2024-27454 fix).
