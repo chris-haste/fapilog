@@ -200,7 +200,49 @@
 </ul>
 </section>
 <section id="id1">
-<h2>[0.3.3] - 2025-12-22<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<h2>[0.3.5] - 2026-01-01<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<section id="added">
+<h3>Added<a class="headerlink" href="#added" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Hash-chain integrity for AuditTrail.</p></li>
+</ul>
+</section>
+<section id="changed">
+<h3>Changed<a class="headerlink" href="#changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">unbind()</span></code> now returns self for method chaining.</p></li>
+</ul>
+</section>
+<section id="fixed">
+<h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>GitHub release workflow now handles existing releases.</p></li>
+</ul>
+</section>
+</section>
+<section id="id2">
+<h2>[0.3.4] - 2025-12-30<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
+<section id="id3">
+<h3>Added<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Enterprise key management for tamper-evident plugin (Story 4.18).</p></li>
+<li><p>Verification API and CLI for tamper-evident plugin (Story 4.17).</p></li>
+<li><p>Enterprise tamper-evident plugin stories and package scaffold.</p></li>
+<li><p>Configurable worker count for logging pipeline.</p></li>
+</ul>
+</section>
+<section id="id4">
+<h3>Fixed<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>PYTHONPATH passing to subprocess in CLI test.</p></li>
+<li><p>fapilog-tamper tests now skip gracefully if package not available.</p></li>
+<li><p>Loop stall tolerance increased for CI runners.</p></li>
+<li><p>Prometheus fallback typing for mypy.</p></li>
+</ul>
+</section>
+</section>
+<section id="id5">
+<h2>[0.3.3] - 2025-12-22<a class="headerlink" href="#id5" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Project status upgraded from Alpha to Beta classification.</p></li>
 <li><p>Fixed plugin catalog generation to exclude failed plugin entries.</p></li>
@@ -209,8 +251,8 @@
 <li><p>Removed placeholder Discord and Plugin Marketplace links from PyPI metadata.</p></li>
 </ul>
 </section>
-<section id="id2">
-<h2>[0.3.2] - 2025-12-22<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
+<section id="id6">
+<h2>[0.3.2] - 2025-12-22<a class="headerlink" href="#id6" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Backpressure configuration now honored: <code class="docutils literal notranslate"><span class="pre">drop_on_full</span></code> waits instead of dropping when set to false; sink/enricher/redactor failures emit diagnostics.</p></li>
 <li><p>FastAPI request/response logging middleware added (sampling, header redaction, skip paths) and exported alongside context middleware.</p></li>
