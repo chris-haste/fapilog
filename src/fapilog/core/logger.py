@@ -134,11 +134,35 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._error_dedupe: dict[str, tuple[float, int]] = {}
 
     def start(self) -> None:
-        """Start worker group bound to an event loop."""
+        """Start the background worker, choosing the appropriate mode.
+
+        Determines the appropriate mode based on event loop state:
+
+        BOUND LOOP MODE (loop already running):
+            - Detected via asyncio.get_running_loop() succeeding
+            - Worker task runs in the existing loop
+            - Used when: running inside an async framework, Jupyter, etc.
+            - Shutdown: must happen while loop is still running
+
+        THREAD LOOP MODE (no running loop):
+            - Detected via asyncio.get_running_loop() raising RuntimeError
+            - Creates a dedicated background thread with its own event loop
+            - Used when: sync scripts, CLI tools, non-async web frameworks
+            - Shutdown: thread is signaled to stop, then joined
+
+        Why not always use thread mode?
+            - Existing event loops expect tasks to run in them
+            - Thread mode would prevent proper integration with async frameworks
+            - Bound mode allows drain() to work correctly with the caller's loop
+
+        See Also:
+            docs/architecture/async-sync-boundary.md for detailed explanation.
+        """
         if self._worker_loop is not None:
             return
         self._stop_flag = False
         try:
+            # BOUND LOOP MODE: Use the caller's existing event loop
             loop = asyncio.get_running_loop()
             self._worker_loop = loop
             self._loop_thread_ident = threading.get_ident()
@@ -149,10 +173,11 @@ class _LoggerMixin(_WorkerCountersMixin):
                 task = loop.create_task(self._worker_main())
                 self._worker_tasks.append(task)
         except RuntimeError:
-            # No running loop: start dedicated loop in a thread
+            # THREAD LOOP MODE: No running loop, create dedicated thread
             self._thread_ready.clear()
 
             def _run() -> None:  # pragma: no cover - thread-loop fallback
+                # Create a fresh event loop owned by this thread
                 loop_local = asyncio.new_event_loop()
                 self._worker_loop = loop_local
                 self._loop_thread_ident = threading.get_ident()
@@ -164,10 +189,13 @@ class _LoggerMixin(_WorkerCountersMixin):
                     self._worker_tasks.append(
                         loop_local.create_task(self._worker_main())
                     )
+                # Signal the main thread that we're ready to accept work
                 self._thread_ready.set()
                 try:
+                    # Run until stop_and_drain() calls loop.call_soon_threadsafe(stop)
                     loop_local.run_forever()
                 finally:
+                    # Cleanup: cancel pending tasks and close the loop
                     try:
                         pending = asyncio.all_tasks(loop_local)
                         for t in pending:
@@ -187,8 +215,10 @@ class _LoggerMixin(_WorkerCountersMixin):
                         except Exception:
                             pass
 
+            # Start the worker thread (daemon=True so it won't block process exit)
             self._worker_thread = threading.Thread(target=_run, daemon=True)
             self._worker_thread.start()
+            # Wait for the thread to initialize before returning
             self._thread_ready.wait(timeout=2.0)
 
     async def _stop_enrichers_and_redactors(self) -> None:
