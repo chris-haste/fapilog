@@ -11,6 +11,8 @@ Generate a GitHub Pull Request URL with pre-filled title and body, derived from 
 
 **Author:** Chris Haste
 **GitHub:** https://github.com/chris-haste
+**LinkedIn:** https://www.linkedin.com/in/chaste/
+**Email:** chris@fapilog.dev
 
 ## When to Apply
 
@@ -29,14 +31,17 @@ Generate a GitHub Pull Request URL with pre-filled title and body, derived from 
 ### 1. Gather Context
 
 **From branch name:**
+
 - Parse type, story ID from branch per `CLAUDE.md` format
 - Example: `refactor/story-5.25-extract-config-builders` → type=refactor, id=5.25
 
 **From story file:**
+
 - Locate story: `docs/stories/<id>.*.md`
 - Extract: title, description/summary, acceptance criteria, test plan (if any)
 
 **From git:**
+
 - Get list of changed files vs base branch: `git diff --name-status main...HEAD`
 - Get remote URL: `git remote get-url origin`
 - Parse owner/repo from remote URL
@@ -52,6 +57,7 @@ Use format from `CLAUDE.md`: `<type>(<scope>): <story title>`
 ### 3. Generate PR Body
 
 Use PR body template from `CLAUDE.md`, populated with:
+
 - Summary from story description
 - Changed files list with annotations
 - Acceptance criteria (checked, since code-review passed)
@@ -89,6 +95,7 @@ URL (click to open with pre-filled content):
 ## File Change Annotations
 
 When listing changed files, annotate them:
+
 - `(new)` - Added files (A in git status)
 - `(modified)` - Changed files (M in git status)
 - `(deleted)` - Removed files (D in git status)
@@ -97,14 +104,17 @@ When listing changed files, annotate them:
 ## Error Handling
 
 **If branch doesn't match expected format:**
+
 - Warn user but attempt to continue
 - Ask for story ID if not parseable
 
 **If story file not found:**
+
 - List available stories in `docs/stories/`
 - Ask user to specify
 
 **If not on a feature branch:**
+
 - Abort: "Not on a feature branch. Please run from your implementation branch."
 
 ## What NOT To Do
