@@ -204,7 +204,7 @@ class TestAuditTrailsBasic:
         assert policy.enabled is True
         assert policy.retention_days == 365
         assert policy.archive_after_days == 90
-        assert policy.encrypt_audit_logs is True
+        assert policy.encrypt_audit_logs is False  # Not yet implemented
         assert policy.require_integrity_check is True
         assert policy.real_time_alerts is True
         assert policy.alert_on_critical_errors is True

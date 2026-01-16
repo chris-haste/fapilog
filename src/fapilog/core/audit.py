@@ -99,7 +99,7 @@ class CompliancePolicy:
     archive_after_days: int = 90  # When to archive logs
 
     # Security settings
-    encrypt_audit_logs: bool = True  # Encrypt audit log files
+    encrypt_audit_logs: bool = False  # Encryption not yet implemented
     require_integrity_check: bool = True  # Verify log integrity
 
     # Access control
@@ -207,6 +207,18 @@ class AuditTrail:
         """
         self.policy = policy or CompliancePolicy()
         self.storage_path = storage_path or Path("audit_logs")
+
+        # Warn if encryption requested but not implemented
+        if self.policy.encrypt_audit_logs:
+            import warnings
+
+            warnings.warn(
+                "encrypt_audit_logs=True requested but encryption is not yet "
+                "implemented. Audit logs will be written as plaintext JSONL with "
+                "hash-chain integrity. See docs for encryption roadmap.",
+                UserWarning,
+                stacklevel=2,
+            )
 
         # Event queue for async processing
         self._event_queue: asyncio.Queue[AuditEvent] = asyncio.Queue()
