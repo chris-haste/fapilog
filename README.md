@@ -22,7 +22,7 @@
 - **Security & compliance guardrails**: Redaction stages (field/regex/url), error de-duplication, and safe failure behavior.
 - **FastAPI integration**: Simple request context propagation and consistent logs across web handlers and background tasks.
 - **Operational visibility**: Optional metrics for queue depth, drops, and flush latency.
-- **Beta stability**: Core logger and FastAPI middleware are semver-stable; plugin marketplace remains experimental.
+- **Pre-1.0 stability**: Core logger and FastAPI middleware APIs are stable within minor versions; see [Stability](#stability) for details.
 
 ## When to use / when stdlib is enough
 
@@ -171,11 +171,38 @@ app.add_middleware(RequestContextMiddleware)  # sets correlation IDs
 app.add_middleware(LoggingMiddleware)        # emits request_completed / request_failed
 ```
 
+## Stability
+
+Fapilog follows [Semantic Versioning](https://semver.org/). As a 0.x project:
+
+- **Core APIs** (logger, FastAPI middleware): Stable within minor versions.
+  Breaking changes only in minor version bumps (0.3 → 0.4) with deprecation warnings.
+- **Plugins**: Stable unless marked experimental.
+- **Experimental**: Marketplace, CLI, mmap_persistence sink. May change without notice.
+
+We aim for 1.0 when core APIs have been production-tested across multiple releases.
+
+### Component Stability
+
+| Component | Stability | Notes |
+|-----------|-----------|-------|
+| Core logger | Stable | Breaking changes with deprecation |
+| FastAPI middleware | Stable | Breaking changes with deprecation |
+| Built-in sinks | Stable | file, stdout, webhook |
+| Built-in enrichers | Stable | |
+| Plugin system | Stable | Contract may evolve |
+| Marketplace | Experimental | Config only, not functional |
+| CLI | Placeholder | Not implemented |
+| mmap_persistence | Experimental | Performance testing |
+
 ## Early adopters
 
-- Core APIs (logger, FastAPI middleware) are treated as stable; breaking changes follow semver with deprecations.
-- Experimental: plugin marketplace surface; expect changes.
-- Feedback: open GitHub issues or join the [community Discord](https://discord.gg/gHaNsczWte) for pilots and feature requests.
+Fapilog is pre-1.0 but actively used in production. What this means:
+
+- **Core APIs are stable** - We avoid breaking changes; when necessary, we deprecate first
+- **0.x → 0.y upgrades** may require minor code changes (documented in CHANGELOG)
+- **Experimental components** (marketplace, CLI) are not ready for production
+- **Feedback welcome** - Open issues or join [Discord](https://discord.gg/gHaNsczWte)
 
 ## 🏗️ Architecture
 
