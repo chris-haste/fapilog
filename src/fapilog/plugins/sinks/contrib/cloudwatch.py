@@ -44,7 +44,10 @@ except Exception:  # pragma: no cover - optional import fallback
             self.operation_name = operation_name
 
 
-MAX_EVENT_SIZE_BYTES = 256 * 1024  # 256 KB
+# CloudWatch historically had a 256 KB per-event limit. AWS increased this to
+# 1 MB in late 2024, but we keep the conservative limit for broad compatibility.
+# Users needing larger events can implement a custom sink with higher limits.
+MAX_EVENT_SIZE_BYTES = 256 * 1024  # 256 KB (conservative)
 MAX_BATCH_SIZE = 10_000
 MAX_BATCH_BYTES = 1_048_576  # 1 MB
 

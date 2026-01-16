@@ -17,7 +17,7 @@ Thank you for your interest in contributing to fapilog! This document provides g
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- Python 3.10 or higher
 - Git
 - pip (Python package installer)
 
@@ -26,8 +26,8 @@ Thank you for your interest in contributing to fapilog! This document provides g
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/chris-haste/fastapi-logger.git
-   cd fastapi-logger
+   git clone https://github.com/chris-haste/fapilog.git
+   cd fapilog
    ```
 
 2. **Create and activate a virtual environment**
@@ -263,6 +263,12 @@ When reporting bugs, please include:
 4. **Code example** - Minimal code that reproduces the issue
 5. **Error messages** - Full error traceback if applicable
 
+### Reporting Security Issues
+
+**Do not report security vulnerabilities through public GitHub issues.**
+
+Please see our [Security Policy](SECURITY.md) for instructions on responsibly reporting security concerns.
+
 ### Suggesting Features
 
 When suggesting new features:
@@ -274,7 +280,7 @@ When suggesting new features:
 
 ### Contributing Guidelines
 
-- **Be respectful** - Treat all contributors with respect
+- **Be respectful** - Follow our [Code of Conduct](CODE_OF_CONDUCT.md)
 - **Follow the process** - Use the established workflow and tools
 - **Test thoroughly** - Ensure your changes work correctly
 - **Document changes** - Update documentation as needed

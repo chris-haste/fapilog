@@ -39,7 +39,7 @@ dependencies = [
     "httpx>=0.24.0",
     
     # JSON and serialization
-    "orjson>=3.9.0",
+    "orjson>=3.9.15",  # CVE-2024-27454 fixed in 3.9.15
     
     # Version parsing for plugin compatibility
     "packaging>=23.0",
@@ -205,7 +205,7 @@ dependencies = [
     "pydantic>=2.11.0",
     "pydantic-settings>=2.0.0",
     "httpx>=0.24.0",
-    "orjson>=3.9.0",
+    "orjson>=3.9.15",
     "packaging>=23.0",
     "prometheus-client>=0.17.0",
     "psutil>=5.9.0; sys_platform != 'win32'",
@@ -232,7 +232,7 @@ dependencies = [
     "pydantic>=2.11.0",
     "pydantic-settings>=2.0.0",
     "httpx>=0.24.0",
-    "orjson>=3.9.0",
+    "orjson>=3.9.15",
     "prometheus-client>=0.17.0",
     "psutil>=5.9.0; sys_platform != 'win32'",
 ]
