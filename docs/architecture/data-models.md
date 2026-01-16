@@ -67,7 +67,7 @@ Based on my analysis of your existing codebase and PRD requirements, here are th
 
 ## PluginMetadata
 
-**Purpose:** Metadata model for plugin discovery, loading, and marketplace integration
+**Purpose:** Metadata model for plugin discovery, loading, and ecosystem integration
 
 **Key Attributes:**
 
@@ -83,7 +83,7 @@ Based on my analysis of your existing codebase and PRD requirements, here are th
 **Relationships:**
 
 - **With Plugin Registry:** Enables dynamic plugin discovery and loading
-- **With Plugin Marketplace:** Supports community-driven ecosystem growth
+- **With Plugin Ecosystem:** Supports community-driven ecosystem growth via PyPI
 - **With Compliance Engine:** Validates enterprise compliance requirements
 
 ## AsyncLoggingContainer

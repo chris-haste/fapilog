@@ -118,7 +118,6 @@ Homepage = "https://github.com/chris-haste/fapilog"
 Documentation = "https://fapilog.readthedocs.io/"
 Repository = "https://github.com/chris-haste/fapilog"
 "Bug Tracker" = "https://github.com/chris-haste/fapilog/issues"
-# "Plugin Marketplace" = "https://plugins.fapilog.dev/"  # Coming soon
 Discord = "https://discord.gg/gHaNsczWte"
 
 # [project.scripts]
@@ -391,8 +390,7 @@ exclude = [
     "src/fapilog/core/settings.py",  # Enum values and validator methods
     "src/fapilog/core/routing.py",  # Routing API methods (build_routing_writer, update_rules)
     "src/fapilog/core/config_builders.py",  # _build_pipeline used via import in __init__.py
-  "src/fapilog/plugins/marketplace.py",  # API methods
-  "src/fapilog/fastapi/integration.py",  # FastAPI router functions are public API
+    "src/fapilog/fastapi/integration.py",  # FastAPI router functions are public API
     "src/fapilog/plugins/registry.py",  # API methods
     "src/fapilog/plugins/discovery.py",  # Plugin discovery API methods
     "src/fapilog/plugins/lifecycle.py",  # Component lifecycle API methods
@@ -511,10 +509,6 @@ ignore_names = [
     "exc_tb",
     # Config validation helper used dynamically
     "ensure_path_exists",
-    # Marketplace settings fields referenced via Pydantic
-    "index_url",
-    "timeout_seconds",
-    "verify_tls",
     # Validation API used across modules
     "raise_if_error",
     # Compliance configuration fields validated via Pydantic

@@ -4,7 +4,6 @@
 
 ![Async-first](https://img.shields.io/badge/async-first-008080?style=flat-square&logo=python&logoColor=white)
 ![JSON Ready](https://img.shields.io/badge/json-ready-008080?style=flat-square&logo=json&logoColor=white)
-![Plugin Marketplace](https://img.shields.io/badge/plugin-marketplace-008080?style=flat-square&logo=puzzle&logoColor=white)
 ![Enterprise Ready](https://img.shields.io/badge/enterprise-ready-008080?style=flat-square&logo=shield&logoColor=white)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-008080?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Coverage](https://img.shields.io/badge/coverage-90%25-008080?style=flat-square)](docs/quality-signals.md)
@@ -153,9 +152,6 @@ async def root(logger=Depends(get_request_logger)):
     await logger.info("Root endpoint accessed")  # request_id auto-included
     return {"message": "Hello World"}
 
-# Optional marketplace router (plugin discovery)
-# from fapilog.fastapi import get_router
-# app.include_router(get_router(), prefix=\"/plugins\")
 ```
 
 Need manual middleware control? Use the existing primitives:
@@ -178,7 +174,7 @@ Fapilog follows [Semantic Versioning](https://semver.org/). As a 0.x project:
 - **Core APIs** (logger, FastAPI middleware): Stable within minor versions.
   Breaking changes only in minor version bumps (0.3 → 0.4) with deprecation warnings.
 - **Plugins**: Stable unless marked experimental.
-- **Experimental**: Marketplace, CLI, mmap_persistence sink. May change without notice.
+- **Experimental**: CLI, mmap_persistence sink. May change without notice.
 
 We aim for 1.0 when core APIs have been production-tested across multiple releases.
 
@@ -191,7 +187,6 @@ We aim for 1.0 when core APIs have been production-tested across multiple releas
 | Built-in sinks | Stable | file, stdout, webhook |
 | Built-in enrichers | Stable | |
 | Plugin system | Stable | Contract may evolve |
-| Marketplace | Experimental | Config only, not functional |
 | CLI | Placeholder | Not implemented |
 | mmap_persistence | Experimental | Performance testing |
 
@@ -201,7 +196,7 @@ Fapilog is pre-1.0 but actively used in production. What this means:
 
 - **Core APIs are stable** - We avoid breaking changes; when necessary, we deprecate first
 - **0.x → 0.y upgrades** may require minor code changes (documented in CHANGELOG)
-- **Experimental components** (marketplace, CLI) are not ready for production
+- **Experimental components** (CLI, mmap_persistence) are not ready for production
 - **Feedback welcome** - Open issues or join [Discord](https://discord.gg/gHaNsczWte)
 
 ## 🏗️ Architecture

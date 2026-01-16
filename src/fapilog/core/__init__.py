@@ -91,7 +91,6 @@ from .errors import (
 )
 from .events import LogEvent
 from .logger import DrainResult
-from .marketplace import MarketplaceSettings
 from .observability import ObservabilitySettings, validate_observability
 from .plugin_config import (
     ValidationIssue,
@@ -214,8 +213,6 @@ __all__ = [
     "validate_observability",
     "validate_encryption_async",
     "validate_access_control",
-    # Marketplace configuration
-    "MarketplaceSettings",
     # Concurrency utilities
     "BackpressurePolicy",
     "NonBlockingRingQueue",

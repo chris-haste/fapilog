@@ -4,11 +4,10 @@
 
 The core fapilog library is a **Python library only** - no web server, no REST API, no complexity.
 
-## Optional Plugin Marketplace API
+## Plugin Discovery
 
-If the community grows large enough, a **simple GitHub Pages site** could provide:
+Plugins are discovered via standard Python mechanisms:
 
-- Plugin discovery and search
-- Installation instructions
-- Plugin ratings and reviews
-- **No database required** - all data sourced from GitHub API and PyPI API
+- **PyPI**: Search for packages with `fapilog-*` naming convention
+- **GitHub Topics**: Browse repositories with `fapilog-plugin` topic
+- **Entry Points**: Automatic discovery via `fapilog.sinks`, `fapilog.processors`, etc.

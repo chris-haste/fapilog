@@ -9,7 +9,7 @@ Based on your async-first requirements, performance targets, and enterprise comp
 | Category                | Technology         | Version  | Purpose                              | Rationale                                                        |
 | ----------------------- | ------------------ | -------- | ------------------------------------ | ---------------------------------------------------------------- |
 | **Language**            | Python             | 3.8+     | Core development language            | Async/await native support, typing, wide enterprise adoption     |
-| **Framework**           | FastAPI            | 0.100+   | API framework for plugin marketplace | Async-first, Pydantic v2 integration, excellent performance      |
+| **Framework**           | FastAPI            | 0.100+   | API framework for integrations       | Async-first, Pydantic v2 integration, excellent performance      |
 | **Type System**         | Pydantic           | v2       | Data validation and serialization    | Zero-copy serialization, async validation, enterprise compliance |
 | **Async Runtime**       | asyncio            | Built-in | Core async operations                | Native Python async, optimal for pipeline architecture           |
 | **Plugin Architecture** | importlib.metadata | Built-in | Plugin discovery and loading         | Standard Python approach, no external dependencies               |
@@ -23,9 +23,9 @@ Based on your async-first requirements, performance targets, and enterprise comp
 | **CLI Framework**       | Typer              | 0.9+     | Command line interface               | FastAPI ecosystem, excellent async support                       |
 | **Metrics Collection**  | Prometheus Client  | 0.17+    | Performance metrics                  | Industry standard, enterprise SIEM integration                   |
 | **Structured Logging**  | fapilog core       | N/A      | Native structured logging pipeline    | Async-first, zero-copy operations without external frameworks    |
-| **Plugin Packaging**    | setuptools         | 68.0+    | Plugin distribution                  | Standard Python packaging for marketplace                        |
+| **Plugin Packaging**    | setuptools         | 68.0+    | Plugin distribution                  | Standard Python packaging via PyPI                               |
 | **Container Platform**  | Docker             | 24.0+    | Containerization                     | Enterprise deployment requirements                               |
-| **CI/CD**               | GitHub Actions     | Latest   | Continuous integration               | Plugin marketplace automation                                    |
+| **CI/CD**               | GitHub Actions     | Latest   | Continuous integration               | Plugin ecosystem automation                                      |
 | **Code Coverage**       | coverage.py        | 7.3+     | Test coverage measurement            | 90%+ coverage requirement                                        |
 | **Security Scanning**   | bandit             | 1.7+     | Security vulnerability detection     | Enterprise compliance validation                                 |
 

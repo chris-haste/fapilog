@@ -56,7 +56,6 @@ sequenceDiagram
 sequenceDiagram
     participant Container as AsyncLoggingContainer
     participant Registry as PluginRegistry
-    participant Marketplace as PluginMarketplace
     participant Compliance as ComplianceEngine
     participant Plugin as PluginInstance
     participant Pipeline as AsyncPipeline
@@ -64,12 +63,10 @@ sequenceDiagram
     Note over Container, Pipeline: Plugin Discovery and Loading Workflow
 
     Container->>Registry: discover_plugins()
-    Registry->>Marketplace: search_plugins(criteria)
-    Marketplace-->>Registry: available_plugins[]
+    Registry->>Registry: scan_entry_points()
 
     loop For Each Plugin
-        Registry->>Marketplace: get_plugin_metadata(name)
-        Marketplace-->>Registry: plugin_metadata
+        Registry->>Registry: get_plugin_metadata(name)
 
         alt Enterprise Deployment
             Registry->>Compliance: validate_plugin_compliance(metadata)

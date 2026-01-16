@@ -77,12 +77,9 @@ class PluginMetadata(BaseModel):
         default=None, description="Default configuration values"
     )
 
-    # Marketplace information
+    # Discovery tags
     tags: List[str] = Field(
         default_factory=list, description="Plugin tags for discovery"
-    )
-    marketplace_id: Optional[str] = Field(
-        default=None, description="Unique marketplace identifier"
     )
 
     @field_validator("plugin_type")
@@ -122,7 +119,7 @@ class PluginInfo(BaseModel):
     loaded: bool = Field(default=False, description="Whether plugin is loaded")
     instance: Optional[Any] = Field(default=None, description="Plugin instance")
     load_error: Optional[str] = Field(default=None, description="Load error message")
-    source: str = Field(description=("Plugin source (local, marketplace, etc.)"))
+    source: str = Field(description="Plugin source (local, pypi, etc.)")
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 

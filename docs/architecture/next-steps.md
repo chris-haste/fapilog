@@ -72,7 +72,7 @@ Reference: docs/architecture.md for complete implementation guidance
 
 ## Community Ecosystem Development
 
-1. **Plugin Marketplace Strategy**
+1. **Plugin Discovery Strategy**
 
    - Create awesome-fapilog repository for plugin discovery
    - Establish plugin development standards and templates
