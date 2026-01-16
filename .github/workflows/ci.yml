@@ -195,3 +195,24 @@ jobs:
       - name: Run tox
         if: steps.should-run.outputs.run == 'true'
         run: tox -q
+
+  benchmark-smoke:
+    name: Benchmark Smoke Test
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || needs.detect-docs-only.outputs.docs-only != 'true'
+    needs: [detect-docs-only]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install Hatch
+        run: |
+          python -m pip install --upgrade pip
+          pip install hatch
+
+      - name: Run benchmark smoke test
+        run: hatch run python scripts/benchmarking.py --iterations 100 --latency-iterations 50
