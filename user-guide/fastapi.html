@@ -222,7 +222,6 @@
 </div>
 <p>Key fields emitted: <code class="docutils literal notranslate"><span class="pre">method</span></code>, <code class="docutils literal notranslate"><span class="pre">path</span></code>, <code class="docutils literal notranslate"><span class="pre">status_code</span></code>, <code class="docutils literal notranslate"><span class="pre">latency_ms</span></code>, <code class="docutils literal notranslate"><span class="pre">correlation_id</span></code>, <code class="docutils literal notranslate"><span class="pre">client_ip</span></code>, <code class="docutils literal notranslate"><span class="pre">user_agent</span></code>. Uncaught exceptions log <code class="docutils literal notranslate"><span class="pre">request_failed</span></code> and re-raise so FastAPI can render the error.</p>
 <p>Skip specific paths via <code class="docutils literal notranslate"><span class="pre">skip_paths=[&quot;/health&quot;]</span></code>, or inject your own logger instance: <code class="docutils literal notranslate"><span class="pre">LoggingMiddleware(logger=my_async_logger)</span></code>.</p>
-<p>Marketplace router (plugin discovery) remains available via <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">fapilog.fastapi</span> <span class="pre">import</span> <span class="pre">get_router</span></code>, but it is optional and separate from request logging.</p>
 <section id="middleware-options">
 <h3>Middleware options<a class="headerlink" href="#middleware-options" title="Link to this heading"></a></h3>
 <ul class="simple">

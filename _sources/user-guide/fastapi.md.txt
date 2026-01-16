@@ -51,8 +51,6 @@ Key fields emitted: `method`, `path`, `status_code`, `latency_ms`, `correlation_
 
 Skip specific paths via `skip_paths=["/health"]`, or inject your own logger instance: `LoggingMiddleware(logger=my_async_logger)`.
 
-Marketplace router (plugin discovery) remains available via `from fapilog.fastapi import get_router`, but it is optional and separate from request logging.
-
 ### Middleware options
 
 - `sample_rate` (default 1.0): apply probabilistic sampling to successful `request_completed` logs; errors are always logged.
