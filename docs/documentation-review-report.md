@@ -72,9 +72,9 @@
 
 | Feature | Issue |
 |---------|-------|
-| CloudWatchSink | Only env vars documented, no API reference |
-| LokiSink | Only env vars documented, no API reference |
-| PostgresSink | Only env vars documented, no API reference |
+| ~~CloudWatchSink~~ | ~~Only env vars documented, no API reference~~ | ✅ **RESOLVED** |
+| ~~LokiSink~~ | ~~Only env vars documented, no API reference~~ | ✅ **RESOLVED** |
+| ~~PostgresSink~~ | ~~Only env vars documented, no API reference~~ | ✅ **RESOLVED** |
 | AuditSink | Only in enterprise docs, not in main API reference |
 | RoutingSink | Only in user guide, not in API reference |
 | WebhookSink | Mentioned briefly, lacks configuration details |
@@ -116,7 +116,7 @@
 ### Next Sprint (P1)
 
 1. ~~Align Python version messaging~~ ✅ **RESOLVED**
-2. Add CloudWatch/Loki/Postgres to sinks API reference
+2. ~~Add CloudWatch/Loki/Postgres to sinks API reference~~ ✅ **RESOLVED**
 3. Create builder API reference
 4. Add troubleshooting section
 
@@ -158,7 +158,7 @@
 | `docs/api-reference/plugins/filters.md` | CREATE NEW FILE | P0 |
 | `docs/api-reference/plugins/index.md` | Update tables | P0 |
 | `docs/api-reference/plugins/enrichers.md` | Add k8s enricher | P0 |
-| `docs/api-reference/plugins/sinks.md` | Add all sinks | P1 |
+| ~~`docs/api-reference/plugins/sinks.md`~~ | ~~Add CloudWatch/Loki/Postgres~~ | ✅ **RESOLVED** |
 | ~~`docs/getting-started/installation.md`~~ | ~~Align Python version~~ | ✅ **RESOLVED** |
 
 ---
