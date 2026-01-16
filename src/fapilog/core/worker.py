@@ -273,6 +273,9 @@ class LoggerWorker:
                 if self._serialize_in_flush and self._sink_write_serialized is not None:
                     view, drop_entry = await self._try_serialize(entry)
                     if drop_entry:
+                        self._counters["dropped"] += 1
+                        if self._metrics is not None:
+                            await self._metrics.record_events_dropped(1)
                         continue
                     if view is not None:
                         # Stage 4: PROCESSORS - transform serialized bytes
