@@ -10,7 +10,7 @@
 [![Coverage](https://img.shields.io/badge/coverage-90%25-008080?style=flat-square)](docs/quality-signals.md)
 ![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-008080?style=flat-square&logo=pydantic&logoColor=white)
 
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-008080?style=flat-square&logo=python&logoColor=white)](https://pypi.org/project/fapilog/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-008080?style=flat-square&logo=python&logoColor=white)](https://pypi.org/project/fapilog/)
 [![PyPI Version](https://img.shields.io/pypi/v/fapilog.svg?style=flat-square&color=008080&logo=pypi&logoColor=white)](https://pypi.org/project/fapilog/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-008080?style=flat-square&logo=apache&logoColor=white)](https://opensource.org/licenses/Apache-2.0)
 
@@ -74,6 +74,10 @@ Example output (TTY):
 ```
 2025-01-11 14:30:22 | INFO     | Application started environment=production
 ```
+
+> **Production Tip:** Use `preset="production"` for log durability - it sets
+> `drop_on_full=False` to prevent silent log drops under load. See
+> [reliability defaults](docs/user-guide/reliability-defaults.md) for details.
 
 ### Configuration Presets
 

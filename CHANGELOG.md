@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- **Security**: Bumped orjson minimum version to 3.9.15 (CVE-2024-27454 fix).
+- Added `SECURITY.md` with vulnerability reporting guidance.
+- Added `CODE_OF_CONDUCT.md` (Contributor Covenant).
+- Fixed Python version badge in README (3.8+ → 3.10+).
+- Added production tip callout in README for `preset="production"` guidance.
+- Updated plugin group documentation in architecture docs.
+- Added CloudWatch sink size limit documentation comment.
+- Updated `CONTRIBUTING.md` with correct Python version, repo name, and governance file references.
 - Added `SinkWriteError` for sinks to signal write failures to the core pipeline; core now catches these errors (and `False` returns) to trigger fallback and circuit breaker behavior (Story 4.41).
 - Updated built-in sinks (`stdout_json`, `stdout_pretty`, `rotating_file`, `audit`) to raise `SinkWriteError` instead of swallowing errors, enabling proper fallback handling.
 - Updated `BaseSink` protocol documentation to reflect the new error signaling contract.

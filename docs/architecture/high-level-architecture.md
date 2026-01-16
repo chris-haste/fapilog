@@ -140,7 +140,13 @@ sequenceDiagram
 
 ### 4.3 PluginLoader
 
-- Discovers plugins via **entry points** (`group="fapilog.plugins"`).
+- Discovers plugins via **entry points** using type-specific groups:
+  - `fapilog.sinks` - Output destinations (file, HTTP, cloud)
+  - `fapilog.enrichers` - Context and metadata enrichment
+  - `fapilog.redactors` - PII and sensitive data masking
+  - `fapilog.processors` - Transform and routing logic
+  - `fapilog.filters` - Event filtering and sampling
+- Legacy group `fapilog.plugins` is deprecated but still supported for backward compatibility.
 - Imports and instantiates plugin classes with isolation and diagnostics.
 - Registers components with `AsyncLogger` if compatible.
 
