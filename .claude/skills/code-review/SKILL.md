@@ -10,6 +10,7 @@ license: Apache-2.0
 **Author:** Chris Haste
 **GitHub:** https://github.com/chris-haste
 **LinkedIn:** https://www.linkedin.com/in/chaste/
+**Email:** chris@fapilog.dev
 
 Tech Lead review of changes against story acceptance criteria.
 
@@ -54,11 +55,13 @@ This gives the user immediate visibility that the skill is active.
 ## Review Steps
 
 ### 1. Load Context
+
 - Read story file, extract: Status, Goals, Acceptance Criteria, DoD checklist
 - `git branch --show-current`
 - `git diff --cached --stat` then `git diff --cached`
 
 ### 2. Review Dimensions
+
 - **Correctness**: edge cases, error handling, invariants
 - **Maintainability**: readability, scope drift, unnecessary abstraction
 - **Tests**: meaningful coverage vs padding, missing critical paths, **no weak assertions**
@@ -72,16 +75,19 @@ This gives the user immediate visibility that the skill is active.
 - **Performance**: obvious hotspots, unnecessary IO
 
 ### 3. Classify Issues
+
 - **P0**: Blocks merge (bugs, security holes, missing critical functionality)
 - **P1**: Should fix before merge (test gaps, error handling, maintainability)
 - **P2**: Consider fixing (style, minor improvements)
 
 ### 4. Test Check
+
 - Detect test runner from repo (pytest, tox, etc.)
 - Suggest minimal focused test command
 - Use existing test output if available; never fabricate results
 
 ### 5. DoD Verification
+
 - Read the story's Definition of Done checklist
 - Verify each item against the staged changes:
   - **Code Complete**: All AC implemented? Follows project patterns? No new linting errors?
@@ -100,6 +106,7 @@ This gives the user immediate visibility that the skill is active.
 ## Handling Precommit Changes
 
 If user mentions precommit modified files:
+
 1. Run `git diff` to see unstaged changes from hooks
 2. Ask: "Precommit modified these files: [list]. Stage them for re-review?"
 3. If yes: `git add [files]` and restart review
@@ -108,7 +115,7 @@ If user mentions precommit modified files:
 
 ### If P0/P1/P2 Issues Exist
 
-```
+````
 ## Review: [Story Number]
 
 ### Summary
@@ -152,32 +159,40 @@ python scripts/lint_test_assertions.py tests/
 vulture src/ tests/
 python scripts/check_pydantic_v1.py
 python scripts/check_settings_descriptions.py --min-length 15
-```
+````
 
 ### Next Steps
+
 1. [Ordered, actionable items]
+
 ```
 
 ### If No P0/P1/P2 Issues
 
 ```
+
 ## Review: [Story Number]
 
 **OK to PR**
 
 ### Summary
+
 [What was implemented]
 
 ### What's Good
+
 - [Key positives]
 
 ### AC Coverage
+
 All acceptance criteria met.
 
 ### DoD Status
+
 All Definition of Done items verified.
 
 ### Verification Commands
+
 ```bash
 # Final checks before PR:
 ruff check <changed-files>
@@ -188,6 +203,7 @@ vulture src/ tests/
 python scripts/check_pydantic_v1.py
 python scripts/check_settings_descriptions.py --min-length 15
 ```
+
 ```
 
 Then:
@@ -200,3 +216,4 @@ Then:
 - No fluff or pleasantries
 - Link findings to specific files/lines
 - Actionable recommendations only
+```

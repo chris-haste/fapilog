@@ -10,6 +10,7 @@ license: Apache-2.0
 **Author:** Chris Haste
 **GitHub:** https://github.com/chris-haste
 **LinkedIn:** https://www.linkedin.com/in/chaste/
+**Email:** chris@fapilog.dev
 
 ## When to Apply
 
@@ -42,6 +43,7 @@ This gives the user immediate visibility into whether the skill is active.
 See `CLAUDE.md` for branch naming format: `<type>/story-<id>-<title-slug>`
 
 **Steps:**
+
 1. Parse story file for type (from title prefix or content) and title
 2. Generate branch name per CLAUDE.md conventions
 3. `git checkout -b <branch-name>`
@@ -80,6 +82,7 @@ Avoid over-mocking internal collaborators.
 Every test must have meaningful assertions that verify specific behavior. Avoid weak assertions that pass trivially or don't validate actual outcomes.
 
 **Prohibited patterns (weak assertions):**
+
 - `assert True` / `assert False` - no actual verification
 - `assert result` / `assert result is not None` - only checks existence, not correctness
 - `assert len(x) > 0` - doesn't verify content
@@ -89,6 +92,7 @@ Every test must have meaningful assertions that verify specific behavior. Avoid 
 - Catching exceptions without asserting on their content
 
 **Required patterns (strong assertions):**
+
 - `assert result == expected_value` - verify exact outcomes
 - `assert result.field == "specific_value"` - verify specific attributes
 - `assert len(items) == 3` - verify exact counts when count matters
@@ -109,6 +113,7 @@ Cover the meaningful boundaries for the changed behavior:
 ## Reference Files
 
 For common test patterns and legacy code techniques, see:
+
 - `references/patterns.md` - parametrize, async, tmp_path, caplog, monkeypatch, hypothesis
 - `references/legacy-code.md` - characterization, golden master, seams
 
@@ -117,6 +122,7 @@ Do NOT paste large templates from references unless it directly solves the curre
 ## "Done" Gate (Before Staging)
 
 Quality checks on changed files:
+
 - Focused tests pass
 - `ruff check` + `ruff format --check` pass
 - **Type checking**: `mypy <changed-files>` passes with no errors
@@ -125,7 +131,7 @@ Quality checks on changed files:
   - If mypy reports errors, resolve them before proceeding
 - **Coverage on changed lines**: `pytest --cov=src/fapilog --cov-report=xml && diff-cover coverage.xml --fail-under=90`
   - Changed/new lines must have test coverage
-  - If diff-cover fails: identify *what behavior* is untested, then write tests for that behavior (not just to hit lines)
+  - If diff-cover fails: identify _what behavior_ is untested, then write tests for that behavior (not just to hit lines)
   - Never write tests solely to satisfy coverage - if code can't be meaningfully tested, question whether it's needed
   - Full 90% minimum enforced by CI pipeline
 - **Dead code**: `vulture src/ tests/` - no unused code
@@ -133,6 +139,7 @@ Quality checks on changed files:
 - **Settings descriptions**: `python scripts/check_settings_descriptions.py --min-length 15` (if touching Settings classes)
 
 Verify:
+
 - Tests exist for new/changed behavior (or explicit exception below)
 - Tests are meaningful, isolated, deterministic, and clearly named
 - **No weak assertions**: `python scripts/lint_test_assertions.py tests/` must pass
@@ -158,6 +165,7 @@ After all quality checks pass and files are staged, prompt for commit:
 3. Attempt commit: `git commit -m "<message>"`
 
 4. **Handle precommit results:**
+
    - If precommit modifies files: restage modified files (only those originally staged), retry commit (max 3 iterations)
    - If precommit fails: show error, ask to fix, retry
    - If tests/coverage fail: show output, ask before adding tests
@@ -166,6 +174,7 @@ After all quality checks pass and files are staged, prompt for commit:
    - If push fails (network): retry up to 4x with exponential backoff (2s, 4s, 8s, 16s)
 
 **Output on success:**
+
 ```
 Committed: <hash> <message>
 Pushed to: origin/<branch>
