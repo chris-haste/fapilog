@@ -20,36 +20,29 @@ uv add "fapilog>=3,<4"
 
 The project publishes optional integrations via extras. Choose only what you need:
 
-- Pip:
+| Extra | Description | Install |
+|-------|-------------|---------|
+| `fastapi` | FastAPI middleware integration | `pip install "fapilog[fastapi]"` |
+| `http` | Remote HTTP sink via httpx | `pip install "fapilog[http]"` |
+| `aws` | AWS CloudWatch sink via boto3 | `pip install "fapilog[aws]"` |
+| `metrics` | Prometheus metrics export | `pip install "fapilog[metrics]"` |
+| `system` | System metrics enricher (psutil) | `pip install "fapilog[system]"` |
+| `mqtt` | MQTT sink for IoT logging | `pip install "fapilog[mqtt]"` |
+| `postgres` | PostgreSQL sink via asyncpg | `pip install "fapilog[postgres]"` |
+| `dev` | Development tools | `pip install "fapilog[dev]"` |
+| `docs` | Documentation build tools | `pip install "fapilog[docs]"` |
+| `all` | All optional dependencies | `pip install "fapilog[all]"` |
+
+Combine extras as needed:
 
 ```bash
-pip install "fapilog[enterprise]"
-pip install "fapilog[fastapi]"
-pip install "fapilog[loki]"
-pip install "fapilog[cloud]"
-pip install "fapilog[siem]"
-pip install "fapilog[dev]"
-pip install "fapilog[docs]"
-pip install "fapilog[all]"
-```
-
-- uv:
-
-```bash
-uv add "fapilog[enterprise]"
-uv add "fapilog[fastapi]"
-uv add "fapilog[loki]"
-uv add "fapilog[cloud]"
-uv add "fapilog[siem]"
-uv add "fapilog[dev]"
-uv add "fapilog[docs]"
-uv add "fapilog[all]"
+pip install "fapilog[fastapi,http,metrics]"
 ```
 
 Notes:
 
 - Extras install optional dependencies only. Core logging works without extras.
-- Use a single command to combine extras, e.g. `pip install "fapilog[cloud,siem]"`.
+- For uv, use `uv add "fapilog[extra]"` instead of pip install.
 - The FastAPI integration is import-guarded. If the extra is not installed, `fapilog.fastapi.AVAILABLE` will be `False` and the integration will remain inactive.
 
 ### Enabling internal diagnostics (development)
@@ -100,7 +93,7 @@ pip install -r requirements.txt -c constraints.txt
 Example `requirements.txt`:
 
 ```text
-fapilog[enterprise]
+fapilog[fastapi]
 fapilog-sample-plugin
 ```
 
@@ -108,7 +101,7 @@ fapilog-sample-plugin
 
 ```bash
 # Add dependencies and produce uv.lock
-uv add "fapilog[enterprise]" fapilog-sample-plugin
+uv add "fapilog[fastapi]" fapilog-sample-plugin
 
 # Recreate lock on upgrades
 uv lock --upgrade-package fapilog
@@ -119,7 +112,7 @@ uv lock --upgrade-package fapilog
 - Pip (one-off):
 
 ```bash
-pip install --index-url "https://<host>/simple" --extra-index-url "https://pypi.org/simple" "fapilog[enterprise]"
+pip install --index-url "https://<host>/simple" --extra-index-url "https://pypi.org/simple" "fapilog[fastapi]"
 ```
 
 - Pip (environment):
@@ -127,7 +120,7 @@ pip install --index-url "https://<host>/simple" --extra-index-url "https://pypi.
 ```bash
 export PIP_INDEX_URL="https://<host>/simple"
 export PIP_EXTRA_INDEX_URL="https://pypi.org/simple"
-pip install "fapilog[enterprise]"
+pip install "fapilog[fastapi]"
 ```
 
 - uv (project configuration in `pyproject.toml`):
@@ -143,7 +136,7 @@ Or environment variables:
 ```bash
 export UV_INDEX_URL="https://<host>/simple"
 export UV_EXTRA_INDEX_URL="https://pypi.org/simple"
-uv add "fapilog[enterprise]"
+uv add "fapilog[fastapi]"
 ```
 
 ### Upgrade and Compatibility Guidance

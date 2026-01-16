@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- Fixed extras documentation accuracy: removed non-existent extras (enterprise, loki, cloud, siem), documented all real extras with descriptions.
 - **Security**: Bumped orjson minimum version to 3.9.15 (CVE-2024-27454 fix).
 - Added `SECURITY.md` with vulnerability reporting guidance.
 - Added `CODE_OF_CONDUCT.md` (Contributor Covenant).
