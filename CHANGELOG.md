@@ -24,6 +24,36 @@ All notable changes to this project will be documented in this file. This change
 - Added default log-level selection based on TTY/CI when no preset or explicit log level is set.
 - Added stderr fallback for sink write failures with optional diagnostics warnings.
 
+## [0.3.5] - 2026-01-01
+
+### Added
+
+- Hash-chain integrity for AuditTrail.
+
+### Changed
+
+- `unbind()` now returns self for method chaining.
+
+### Fixed
+
+- GitHub release workflow now handles existing releases.
+
+## [0.3.4] - 2025-12-30
+
+### Added
+
+- Enterprise key management for tamper-evident plugin (Story 4.18).
+- Verification API and CLI for tamper-evident plugin (Story 4.17).
+- Enterprise tamper-evident plugin stories and package scaffold.
+- Configurable worker count for logging pipeline.
+
+### Fixed
+
+- PYTHONPATH passing to subprocess in CLI test.
+- fapilog-tamper tests now skip gracefully if package not available.
+- Loop stall tolerance increased for CI runners.
+- Prometheus fallback typing for mypy.
+
 ## [0.3.3] - 2025-12-22
 
 - Project status upgraded from Alpha to Beta classification.
