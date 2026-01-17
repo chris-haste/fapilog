@@ -60,6 +60,6 @@ PLUGIN_METADATA = {
     "entry_point": "fapilog.plugins.filters.level:LevelFilter",
     "description": "Filter events by minimum level threshold.",
     "author": "Fapilog Core",
-    "compatibility": {"min_fapilog_version": "0.4.0"},
+    "compatibility": {"min_fapilog_version": "0.3.0"},
     "api_version": "1.0",
 }

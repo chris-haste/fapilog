@@ -85,6 +85,6 @@ PLUGIN_METADATA = {
     "entry_point": "fapilog.plugins.filters.first_occurrence:FirstOccurrenceFilter",
     "description": "Pass first occurrences of unique messages with optional sampling.",
     "author": "Fapilog Core",
-    "compatibility": {"min_fapilog_version": "0.4.0"},
+    "compatibility": {"min_fapilog_version": "0.3.0"},
     "api_version": "1.0",
 }

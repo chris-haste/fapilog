@@ -65,6 +65,36 @@ On mismatch or parse failure, loading is rejected with `PluginRegistryError` and
 
 - `plugin`, `declared_api_version`, `expected_api_version`, `reason`
 
+## Plugin `min_fapilog_version` Policy
+
+The `compatibility.min_fapilog_version` field declares the minimum fapilog version required for the plugin to function correctly.
+
+### Best Practice
+
+**Use the earliest version where your plugin works.**
+
+- If your plugin uses features introduced in 0.3.0, set `min_fapilog_version: "0.3.0"`
+- Do not claim compatibility with unreleased versions (e.g., 0.4.0 when current is 0.3.x)
+- Update this field when you start using new fapilog APIs
+
+### Validation
+
+A pre-commit hook (`check-plugin-versions`) validates that no plugin claims a version higher than the current release. This prevents:
+
+- Confusion about compatibility expectations
+- Failed version checks when enforcement is enabled
+- Migration hazards when new versions are released
+
+### Example
+
+```python
+PLUGIN_METADATA = {
+    "name": "my_plugin",
+    "compatibility": {"min_fapilog_version": "0.3.0"},  # Earliest compatible version
+    # ...
+}
+```
+
 ## Backward Compatibility
 
 For the v1.x contract series, method signatures of the public Protocols will not change in a breaking way. Minor increments relax compatibility (e.g., adding optional methods) but do not break existing plugins.

@@ -75,6 +75,15 @@ repos:
         stages: [pre-commit]
         description: "Detect weak assertion patterns (>= 0, >= 1, is not None)"
 
+      - id: check-plugin-versions
+        name: Check plugin min_fapilog_version
+        entry: python scripts/check_plugin_versions.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+        description: "Ensure plugins don't claim compatibility with unreleased versions"
+
       - id: release-guardrails
         name: Release Guardrails Check
         entry: python scripts/check_release_guardrails.py

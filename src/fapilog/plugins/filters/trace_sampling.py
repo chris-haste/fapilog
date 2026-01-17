@@ -70,6 +70,6 @@ PLUGIN_METADATA = {
     "entry_point": "fapilog.plugins.filters.trace_sampling:TraceSamplingFilter",
     "description": "Deterministic sampling keyed by trace_id.",
     "author": "Fapilog Core",
-    "compatibility": {"min_fapilog_version": "0.4.0"},
+    "compatibility": {"min_fapilog_version": "0.3.0"},
     "api_version": "1.0",
 }

@@ -118,7 +118,7 @@ PLUGIN_METADATA = {
     "entry_point": "fapilog.plugins.filters.adaptive_sampling:AdaptiveSamplingFilter",
     "description": "Dynamically adjusts sample rate based on throughput.",
     "author": "Fapilog Core",
-    "compatibility": {"min_fapilog_version": "0.4.0"},
+    "compatibility": {"min_fapilog_version": "0.3.0"},
     "api_version": "1.0",
 }
 

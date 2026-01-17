@@ -390,7 +390,7 @@ PLUGIN_METADATA = {
     "entry_point": "fapilog.plugins.sinks.contrib.postgres:PostgresSink",
     "description": "PostgreSQL sink with async batching and connection pooling.",
     "author": "Fapilog Core",
-    "compatibility": {"min_fapilog_version": "0.4.0"},
+    "compatibility": {"min_fapilog_version": "0.3.0"},
     "api_version": "1.0",
     "dependencies": ["asyncpg>=0.28.0"],
 }
