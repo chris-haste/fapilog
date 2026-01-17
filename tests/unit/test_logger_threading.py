@@ -22,6 +22,7 @@ import os
 import threading
 import time
 from typing import Any
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -136,24 +137,32 @@ class TestThreadModeDrainBehavior:
         """Drain waits for all queued messages to be processed."""
         collected: list[dict[str, Any]] = []
 
-        logger = SyncLoggerFacade(
-            name="drain-test",
-            queue_capacity=100,
-            batch_max_size=10,
-            batch_timeout_seconds=0.1,
-            backpressure_wait_ms=1,
-            drop_on_full=True,
-            sink_write=_create_collecting_sink(collected),
-        )
+        # Patch Settings before logger creation (settings are cached at init)
+        with patch("fapilog.core.settings.Settings") as mock_settings:
+            mock_instance = MagicMock()
+            mock_instance.observability.logging.sampling_rate = 1.0
+            mock_instance.core.filters = []
+            mock_instance.core.error_dedupe_window_seconds = 0.0
+            mock_settings.return_value = mock_instance
 
-        logger.start()
+            logger = SyncLoggerFacade(
+                name="drain-test",
+                queue_capacity=100,
+                batch_max_size=10,
+                batch_timeout_seconds=0.1,
+                backpressure_wait_ms=1,
+                drop_on_full=True,
+                sink_write=_create_collecting_sink(collected),
+            )
 
-        # Submit messages
-        message_count = 50
-        for i in range(message_count):
-            logger.info(f"message {i}")
+            logger.start()
 
-        result = asyncio.run(logger.stop_and_drain())
+            # Submit messages
+            message_count = 50
+            for i in range(message_count):
+                logger.info(f"message {i}")
+
+            result = asyncio.run(logger.stop_and_drain())
 
         # All messages submitted and processed (none dropped with large queue)
         assert result.submitted == message_count
@@ -308,7 +317,9 @@ class TestCrossThreadSubmission:
         assert result.submitted == 150
         # Verify messages were processed (exact split between processed/dropped
         # varies due to timing, but total should be close to submitted)
-        assert result.processed + result.dropped <= result.submitted + 10  # small margin
+        assert (
+            result.processed + result.dropped <= result.submitted + 10
+        )  # small margin
         # Some messages should have been processed
         assert result.processed > 0 or result.dropped > 0
 
