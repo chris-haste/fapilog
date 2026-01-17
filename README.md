@@ -250,7 +250,13 @@ Enable structured WARN diagnostics for internal, non-fatal errors (worker/sink):
 
 ```bash
 export FAPILOG_CORE__INTERNAL_LOGGING_ENABLED=true
-````
+```
+
+Diagnostics write to **stderr** by default (Unix convention), keeping them separate from application logs on stdout. For backward compatibility:
+
+```bash
+export FAPILOG_CORE__DIAGNOSTICS_OUTPUT=stdout
+```
 
 When enabled, you may see messages like:
 
