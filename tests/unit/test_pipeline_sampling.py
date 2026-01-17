@@ -93,16 +93,19 @@ class TestLoggingLevelsAndSampling:
         import random as random_module
 
         out: list[dict[str, Any]] = []
-        logger = _create_test_logger(
-            "sampling-test", out, queue_capacity=32, backpressure_wait_ms=0
-        )
-        logger.start()
 
+        # Patch Settings BEFORE logger creation (settings are cached at init)
         with patch("fapilog.core.settings.Settings") as mock_settings:
             settings_instance = Mock()
             settings_instance.observability.logging.sampling_rate = 0.5
             settings_instance.core.filters = []
+            settings_instance.core.error_dedupe_window_seconds = 0.0
             mock_settings.return_value = settings_instance
+
+            logger = _create_test_logger(
+                "sampling-test", out, queue_capacity=32, backpressure_wait_ms=0
+            )
+            logger.start()
 
             original_random = random_module.random
             call_count = [0]
@@ -125,7 +128,7 @@ class TestLoggingLevelsAndSampling:
                     logger.debug("debug3")
                     logger.info("info3")
 
-        asyncio.run(logger.stop_and_drain())
+            asyncio.run(logger.stop_and_drain())
 
         info_msgs = [e for e in out if e.get("level") == "INFO"]
         debug_msgs = [e for e in out if e.get("level") == "DEBUG"]
@@ -222,45 +225,55 @@ class TestErrorDeduplication:
     def test_error_deduplication_disabled(self) -> None:
         """Test that deduplication is disabled when window is 0."""
         out: list[dict[str, Any]] = []
-        logger = _create_test_logger(
-            "dedup-test", out, queue_capacity=16, backpressure_wait_ms=0
-        )
-        logger.start()
 
+        # Patch Settings BEFORE logger creation (settings are cached at init)
         with patch("fapilog.core.settings.Settings") as mock_settings:
             settings_instance = Mock()
+            settings_instance.observability.logging.sampling_rate = 1.0
+            settings_instance.core.filters = []
             settings_instance.core.error_dedupe_window_seconds = 0.0
             mock_settings.return_value = settings_instance
+
+            logger = _create_test_logger(
+                "dedup-test", out, queue_capacity=16, backpressure_wait_ms=0
+            )
+            logger.start()
 
             for _ in range(5):
                 logger.error("Repeated error")
 
-        asyncio.run(logger.stop_and_drain())
+            asyncio.run(logger.stop_and_drain())
 
         error_msgs = [e for e in out if e.get("level") == "ERROR"]
         assert len(error_msgs) == 5
 
     def test_error_deduplication_exception_handling(self) -> None:
-        """Test error deduplication with settings exceptions."""
-        out: list[dict[str, Any]] = []
-        logger = SyncLoggerFacade(
-            name="dedup-test",
-            queue_capacity=8,
-            batch_max_size=4,
-            batch_timeout_seconds=0.01,
-            backpressure_wait_ms=0,
-            drop_on_full=False,
-            sink_write=lambda e: _collect_events(out, e),
-        )
-        logger.start()
+        """Test error deduplication with settings exceptions.
 
+        When Settings() fails at init, defaults are used (no deduplication).
+        """
+        out: list[dict[str, Any]] = []
+
+        # Patch Settings BEFORE logger creation (settings are cached at init)
+        # When Settings raises, defaults are used: no sampling, no dedupe
         with patch(
             "fapilog.core.settings.Settings", side_effect=Exception("Settings error")
         ):
+            logger = SyncLoggerFacade(
+                name="dedup-test",
+                queue_capacity=8,
+                batch_max_size=4,
+                batch_timeout_seconds=0.01,
+                backpressure_wait_ms=0,
+                drop_on_full=False,
+                sink_write=lambda e: _collect_events(out, e),
+            )
+            logger.start()
+
             logger.error("Error with settings exception")
             logger.error("Error with settings exception")
 
-        asyncio.run(logger.stop_and_drain())
+            asyncio.run(logger.stop_and_drain())
 
         error_msgs = [e for e in out if e.get("level") == "ERROR"]
         assert len(error_msgs) == 2
