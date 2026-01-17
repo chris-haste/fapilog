@@ -626,6 +626,13 @@ class CoreSettings(BaseModel):
         default=False,
         description=("Emit DEBUG/WARN diagnostics for internal errors"),
     )
+    diagnostics_output: Literal["stderr", "stdout"] = Field(
+        default="stderr",
+        description=(
+            "Output stream for internal diagnostics: stderr (default, Unix convention)"
+            " or stdout (backward compat)"
+        ),
+    )
     # Error deduplication window
     error_dedupe_window_seconds: float = Field(
         default=5.0,

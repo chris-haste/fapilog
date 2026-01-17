@@ -11,6 +11,7 @@ Design goals:
 from __future__ import annotations
 
 import json
+import sys
 import time
 from dataclasses import dataclass
 from typing import Any, Callable
@@ -19,7 +20,7 @@ from typing import Any, Callable
 def _default_writer(
     payload: dict[str, Any],
 ) -> None:  # pragma: no cover - used via emit
-    print(json.dumps(payload, separators=(",", ":")), flush=True)
+    print(json.dumps(payload, separators=(",", ":")), file=sys.stderr, flush=True)
 
 
 _writer: Callable[[dict[str, Any]], None] = _default_writer

@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- **Changed**: Internal diagnostics now write to stderr by default (Unix convention); add `core.diagnostics_output="stdout"` for backward compatibility (Story 6.11).
 - **Security**: WebhookSink now supports HMAC-SHA256 signatures (`signature_mode="hmac"`) instead of sending secrets in headers; legacy header mode emits deprecation warning (Story 4.42).
 - **Security**: External plugins now blocked by default; use `plugins.allow_external=true` or `plugins.allowlist` for explicit opt-in (Story 3.5). This is a **breaking change** for users of external entry point plugins.
 - **Fixed**: Benchmark script key alignment in `derive_verdicts()` to match actual output keys from `benchmark()` (Story 10.11).
