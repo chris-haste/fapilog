@@ -247,6 +247,38 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">plugin</span></code>, <code class="docutils literal notranslate"><span class="pre">declared_api_version</span></code>, <code class="docutils literal notranslate"><span class="pre">expected_api_version</span></code>, <code class="docutils literal notranslate"><span class="pre">reason</span></code></p></li>
 </ul>
 </section>
+<section id="plugin-min-fapilog-version-policy">
+<h2>Plugin <code class="docutils literal notranslate"><span class="pre">min_fapilog_version</span></code> Policy<a class="headerlink" href="#plugin-min-fapilog-version-policy" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">compatibility.min_fapilog_version</span></code> field declares the minimum fapilog version required for the plugin to function correctly.</p>
+<section id="best-practice">
+<h3>Best Practice<a class="headerlink" href="#best-practice" title="Link to this heading"></a></h3>
+<p><strong>Use the earliest version where your plugin works.</strong></p>
+<ul class="simple">
+<li><p>If your plugin uses features introduced in 0.3.0, set <code class="docutils literal notranslate"><span class="pre">min_fapilog_version:</span> <span class="pre">&quot;0.3.0&quot;</span></code></p></li>
+<li><p>Do not claim compatibility with unreleased versions (e.g., 0.4.0 when current is 0.3.x)</p></li>
+<li><p>Update this field when you start using new fapilog APIs</p></li>
+</ul>
+</section>
+<section id="validation">
+<h3>Validation<a class="headerlink" href="#validation" title="Link to this heading"></a></h3>
+<p>A pre-commit hook (<code class="docutils literal notranslate"><span class="pre">check-plugin-versions</span></code>) validates that no plugin claims a version higher than the current release. This prevents:</p>
+<ul class="simple">
+<li><p>Confusion about compatibility expectations</p></li>
+<li><p>Failed version checks when enforcement is enabled</p></li>
+<li><p>Migration hazards when new versions are released</p></li>
+</ul>
+</section>
+<section id="example">
+<h3>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PLUGIN_METADATA</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;my_plugin&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;compatibility&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;min_fapilog_version&quot;</span><span class="p">:</span> <span class="s2">&quot;0.3.0&quot;</span><span class="p">},</span>  <span class="c1"># Earliest compatible version</span>
+    <span class="c1"># ...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
 <section id="backward-compatibility">
 <h2>Backward Compatibility<a class="headerlink" href="#backward-compatibility" title="Link to this heading"></a></h2>
 <p>For the v1.x contract series, method signatures of the public Protocols will not change in a breaking way. Minor increments relax compatibility (e.g., adding optional methods) but do not break existing plugins.</p>
