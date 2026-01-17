@@ -210,7 +210,7 @@ well as numeric values. Rotation intervals also accept <code class="docutils lit
 <td><p>Dedicated handlers map short forms to nested paths</p></td>
 </tr>
 <tr class="row-even"><td><p><strong>Full paths</strong></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__*</span></code>, <code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__AUDIT__*</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__*</span></code></p></td>
 <td><p>Require the complete nested path</p></td>
 </tr>
 </tbody>
@@ -738,50 +738,6 @@ well as numeric values. Rotation intervals also accept <code class="docutils lit
 </tbody>
 </table>
 </section>
-<section id="audit-sink-full-path">
-<h3>Audit Sink (full path)<a class="headerlink" href="#audit-sink-full-path" title="Link to this heading"></a></h3>
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Variable</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Default</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__AUDIT__COMPLIANCE_LEVEL</span></code></p></td>
-<td><p>string</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">basic</span></code></p></td>
-<td><p>Compliance level (<code class="docutils literal notranslate"><span class="pre">basic</span></code>, <code class="docutils literal notranslate"><span class="pre">sox</span></code>, <code class="docutils literal notranslate"><span class="pre">hipaa</span></code>, etc.)</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__AUDIT__STORAGE_PATH</span></code></p></td>
-<td><p>string</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">audit_logs</span></code></p></td>
-<td><p>Directory for audit JSONL files</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__AUDIT__RETENTION_DAYS</span></code></p></td>
-<td><p>int</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">365</span></code></p></td>
-<td><p>Retention window</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__AUDIT__ENCRYPT_LOGS</span></code></p></td>
-<td><p>bool</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
-<td><p>Encrypt audit logs (not yet implemented)</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__AUDIT__REQUIRE_INTEGRITY</span></code></p></td>
-<td><p>bool</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
-<td><p>Hash-chain integrity</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__AUDIT__REAL_TIME_ALERTS</span></code></p></td>
-<td><p>bool</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
-<td><p>Compliance alerts</p></td>
-</tr>
-</tbody>
-</table>
-</section>
 <section id="sink-routing-short-aliases">
 <h3>Sink Routing (short aliases)<a class="headerlink" href="#sink-routing-short-aliases" title="Link to this heading"></a></h3>
 <table class="docutils align-default">
@@ -885,10 +841,9 @@ well as numeric values. Rotation intervals also accept <code class="docutils lit
 <span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fapilog-config</span>
 <span class="nt">data</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">FAPILOG_CORE__LOG_LEVEL</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;INFO&quot;</span>
-<span class="w">  </span><span class="nt">FAPILOG_CORE__SINKS</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;[&quot;cloudwatch&quot;,&quot;audit&quot;]&#39;</span>
+<span class="w">  </span><span class="nt">FAPILOG_CORE__SINKS</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;[&quot;cloudwatch&quot;]&#39;</span>
 <span class="w">  </span><span class="nt">FAPILOG_CLOUDWATCH__LOG_GROUP_NAME</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/myapp/prod&quot;</span>
 <span class="w">  </span><span class="nt">FAPILOG_CLOUDWATCH__REGION</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;us-east-1&quot;</span>
-<span class="w">  </span><span class="nt">FAPILOG_SINK_CONFIG__AUDIT__STORAGE_PATH</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/data/audit&quot;</span>
 </pre></div>
 </div>
 </section>
@@ -939,7 +894,7 @@ heroku<span class="w"> </span>config:set<span class="w"> </span><span class="nv"
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on January 16, 2026.
+      <span class="lastupdated">Last updated on January 17, 2026.
       </span></p>
   </div>
 

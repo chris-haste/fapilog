@@ -1,0 +1,1461 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Open Source Library Assessment Report — fapilog (local checkout /Users/chris/Development/fapilog) &mdash; fapilog latest documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=30646c52"></script>
+      <script src="../_static/custom.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            fapilog
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/quickstart.html">Quickstart Tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/hello-world.html">Hello World Walkthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../core-concepts/index.html">Core Concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/pipeline-architecture.html">Pipeline Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/envelope.html">Envelope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/batching-backpressure.html">Batching &amp; Backpressure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/redaction.html">Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/metrics.html">Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html">Diagnostics Resilience</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html#id1">Diagnostics &amp; Resilience</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide/index.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/environment-variables.html">Environment Variable Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/using-logger.html">Using the Logger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/context-enrichment.html">Context Enrichment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/sink-routing.html">Sink routing by level</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/performance-tuning.html">Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/integration-guide.html">Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/fastapi.html">FastAPI / ASGI Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/comparisons.html">Comparisons: fapilog vs stdlib, structlog, loguru</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/testing-plugins.html">Testing Plugins</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api-reference/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/top-level-functions.html">Top-Level Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/logger-methods.html">Logger Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/audit-trail.html">Audit Trail</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/types.html">Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/plugins/index.html">Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/modules.html">API Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples &amp; Recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/fastapi-logging.html">FastAPI Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cli-tools.html">Logging in Scripts/CLIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/redacting-secrets.html">Redacting Secrets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/structured-error-logging.html">Structured Error Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/kubernetes-file-sink.html">Kubernetes File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/prometheus-metrics.html">Prometheus Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloudwatch_logging/index.html">CloudWatch Logging (LocalStack)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloud-sinks/index.html">Cloud Sink Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugin Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/authoring.html">Authoring Fapilog Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/enrichers.html">Enrichers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/filters.html">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/processors.html">Processors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/testing.html">Plugin Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/configuration.html">Plugin Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/health-checks.html">Plugin Health Checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/error-handling.html">Plugin Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../patterns.html">Integration Patterns</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting/index.html">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/logs-dropped-under-load.html">Logs Dropped Under Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/destination-size-limits.html">Logs Rejected by Destination Size Limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/context-values-missing.html">Context Values Missing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/file-sink-not-rotating.html">File Sink Not Rotating</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/serialization-errors.html">Serialization Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/cloudwatch-sink.html">CloudWatch Sink Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/loki-sink.html">Loki Sink Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing to fapilog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices.html">Appendices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../env-vars.html">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../settings-guide.html">Settings Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-guide.html">Schema Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugin-guide.html">Plugin Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction-guarantees.html">Redaction Guarantees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quality-signals.html">Quality Signals</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">fapilog</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Open Source Library Assessment Report — <code class="docutils literal notranslate"><span class="pre">fapilog</span></code> (local checkout <code class="docutils literal notranslate"><span class="pre">/Users/chris/Development/fapilog</span></code>)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/audits/fapilog-assessment-2026-01-16 (GPT-5.2).md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="open-source-library-assessment-report-fapilog-local-checkout-users-chris-development-fapilog">
+<h1>Open Source Library Assessment Report — <code class="docutils literal notranslate"><span class="pre">fapilog</span></code> (local checkout <code class="docutils literal notranslate"><span class="pre">/Users/chris/Development/fapilog</span></code>)<a class="headerlink" href="#open-source-library-assessment-report-fapilog-local-checkout-users-chris-development-fapilog" title="Link to this heading"></a></h1>
+<section id="phase-0-context-scope">
+<h2>Phase 0 — Context &amp; Scope<a class="headerlink" href="#phase-0-context-scope" title="Link to this heading"></a></h2>
+<section id="a-library-identity-name-version-language-domain">
+<h3>A) Library identity (name/version/language/domain)<a class="headerlink" href="#a-library-identity-name-version-language-domain" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Library</strong>: <code class="docutils literal notranslate"><span class="pre">fapilog</span></code> — “Production-ready logging for the modern Python stack” (<code class="docutils literal notranslate"><span class="pre">README.md</span></code>)</p></li>
+<li><p><strong>Language/runtime</strong>: Python <strong>&gt;=3.10</strong> (<code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> <code class="docutils literal notranslate"><span class="pre">project.requires-python</span></code>; <code class="docutils literal notranslate"><span class="pre">docs/getting-started/installation.md</span></code>)</p></li>
+<li><p><strong>Packaging</strong>: PyPI package <code class="docutils literal notranslate"><span class="pre">fapilog</span></code>, built via Hatch/Hatch-VCS (<code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> <code class="docutils literal notranslate"><span class="pre">build-system</span></code>, <code class="docutils literal notranslate"><span class="pre">tool.hatch.version</span></code>)</p></li>
+<li><p><strong>Version signals</strong>:</p>
+<ul>
+<li><p>Local git tags: <code class="docutils literal notranslate"><span class="pre">v0.3.0</span></code> … <code class="docutils literal notranslate"><span class="pre">v0.3.5</span></code> (<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">tag</span> <span class="pre">--sort=-creatordate</span></code>, repo local shell output)</p></li>
+<li><p>GitHub latest release: <code class="docutils literal notranslate"><span class="pre">v0.3.5</span></code> published <code class="docutils literal notranslate"><span class="pre">2026-01-01</span></code> (<code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">repo</span> <span class="pre">view</span> <span class="pre">chris-haste/fapilog</span> <span class="pre">--json</span> <span class="pre">latestRelease</span></code>)</p></li>
+<li><p><strong>Changelog mismatch</strong>: <code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</span></code> only contains releases up to <strong><code class="docutils literal notranslate"><span class="pre">0.3.3</span></code></strong> and has no <code class="docutils literal notranslate"><span class="pre">0.3.4/0.3.5</span></code> sections (<code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</span></code> lines 27–50), despite tags/releases existing (<code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">release</span> <span class="pre">list</span></code>, local tags).</p></li>
+</ul>
+</li>
+<li><p><strong>Intended domain</strong>: async-first, structured logging pipeline for services; explicit FastAPI integration; pluggable sinks/enrichers/redactors/filters (<code class="docutils literal notranslate"><span class="pre">README.md</span></code> sections “Why”, “FastAPI request logging”, “Plugin Ecosystem”; <code class="docutils literal notranslate"><span class="pre">src/fapilog/core/worker.py</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/*</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/*</span></code>).</p></li>
+</ul>
+</section>
+<section id="b-primary-user-personas">
+<h3>B) Primary user personas<a class="headerlink" href="#b-primary-user-personas" title="Link to this heading"></a></h3>
+<p>Based on docs/code/examples:</p>
+<ul class="simple">
+<li><p><strong>App developers</strong>: want “one-liner” logging + JSON/pretty output, minimal setup (<code class="docutils literal notranslate"><span class="pre">README.md</span></code> quick start; <code class="docutils literal notranslate"><span class="pre">docs/user-guide/configuration.md</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/setup.py</span></code>)</p></li>
+<li><p><strong>Platform/SRE</strong>: care about latency under slow sinks, backpressure, metrics, sink routing, circuit breakers (<code class="docutils literal notranslate"><span class="pre">README.md</span></code> “Non-blocking under slow sinks”, “Predictable under bursts”; <code class="docutils literal notranslate"><span class="pre">docs/user-guide/reliability-defaults.md</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/core/worker.py</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/core/sink_writers.py</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/contrib/*</span></code>)</p></li>
+<li><p><strong>Security/compliance teams</strong>: redaction guarantees, audit trail and integrity, “tamper-evident” addon (<code class="docutils literal notranslate"><span class="pre">docs/redaction-guarantees.md</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/audit.py</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/core/audit.py</span></code>; <code class="docutils literal notranslate"><span class="pre">docs/addons/tamper-evident-logging.md</span></code>; <code class="docutils literal notranslate"><span class="pre">packages/fapilog-tamper/*</span></code>)</p></li>
+<li><p><strong>Library/plugin authors</strong>: author custom sinks/enrichers/etc via protocols + entry points (<code class="docutils literal notranslate"><span class="pre">docs/plugins/redactors.md</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/loader.py</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/*/__init__.py</span></code>; <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> optional deps and typing)</p></li>
+</ul>
+</section>
+<section id="c-intended-runtime-contexts">
+<h3>C) Intended runtime contexts<a class="headerlink" href="#c-intended-runtime-contexts" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Async services</strong> (FastAPI/Starlette): explicit middlewares and lifespan integration (<code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/setup.py</span></code>, <code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/logging.py</span></code>, <code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/context.py</span></code>)</p></li>
+<li><p><strong>Sync scripts / CLIs</strong>: sync facade that spawns its own loop thread if no loop exists (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/logger.py</span></code> <code class="docutils literal notranslate"><span class="pre">SyncLoggerFacade.start()</span></code>; <code class="docutils literal notranslate"><span class="pre">docs/architecture/async-sync-boundary.md</span></code>)</p></li>
+<li><p><strong>Containers / cloud</strong>: env-var driven configuration, stdout JSON default, cloud sinks (CloudWatch, Loki) (<code class="docutils literal notranslate"><span class="pre">docs/user-guide/environment-variables.md</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/contrib/cloudwatch.py</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/contrib/loki.py</span></code>)</p></li>
+<li><p><strong>“CLI”</strong>: present but <strong>placeholder</strong> and not wired as an installable script in main package (<code class="docutils literal notranslate"><span class="pre">src/fapilog/cli/main.py</span></code>; <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> has commented out <code class="docutils literal notranslate"><span class="pre">project.scripts</span></code>).</p></li>
+</ul>
+</section>
+<section id="d-evaluation-constraints">
+<h3>D) Evaluation constraints<a class="headerlink" href="#d-evaluation-constraints" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>None provided by user</strong>. This review assumes general-purpose production service logging, with special attention to latency, safety, and operability (because the project claims those explicitly in <code class="docutils literal notranslate"><span class="pre">README.md</span></code>).</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="phase-1-repo-inventory-health">
+<h2>Phase 1 — Repo Inventory &amp; Health<a class="headerlink" href="#phase-1-repo-inventory-health" title="Link to this heading"></a></h2>
+<section id="repo-snapshot-structure">
+<h3>Repo snapshot (structure)<a class="headerlink" href="#repo-snapshot-structure" title="Link to this heading"></a></h3>
+<p>Key directories (from repo tree + <code class="docutils literal notranslate"><span class="pre">src</span></code> listing):</p>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">src/fapilog/</span></code></strong>: main library implementation</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">core/</span></code>: pipeline, settings, worker, routing, serialization, diagnostics, audit/compliance/security “enterprise” modules (e.g., <code class="docutils literal notranslate"><span class="pre">src/fapilog/core/worker.py</span></code>, <code class="docutils literal notranslate"><span class="pre">settings.py</span></code>, <code class="docutils literal notranslate"><span class="pre">logger.py</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plugins/</span></code>: plugin loader + built-in plugin registrations, sinks/enrichers/filters/redactors/processors (<code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/loader.py</span></code>, <code class="docutils literal notranslate"><span class="pre">plugins/sinks/*</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fastapi/</span></code>: FastAPI middleware + setup helpers (<code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/setup.py</span></code>, <code class="docutils literal notranslate"><span class="pre">logging.py</span></code>, <code class="docutils literal notranslate"><span class="pre">context.py</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">metrics/</span></code>: internal metrics plumbing (<code class="docutils literal notranslate"><span class="pre">src/fapilog/metrics/metrics.py</span></code>, referenced by core)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cli/</span></code>: placeholder CLI (<code class="docutils literal notranslate"><span class="pre">src/fapilog/cli/main.py</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">testing/</span></code>: validators and utilities used by plugin loader validation (<code class="docutils literal notranslate"><span class="pre">src/fapilog/testing/validators.py</span></code> referenced by <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/loader.py</span></code>)</p></li>
+</ul>
+</li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">tests/</span></code></strong>: extensive unit/integration/property/benchmark tests</p>
+<ul>
+<li><p>Integration tests specifically cover worker lifecycle, serialization fallback, sink fallback signaling, FastAPI setup and middleware (<code class="docutils literal notranslate"><span class="pre">tests/integration/test_worker_lifecycle.py</span></code>, <code class="docutils literal notranslate"><span class="pre">test_serialization_recovery.py</span></code>, <code class="docutils literal notranslate"><span class="pre">test_sink_fallback_signaling.py</span></code>, <code class="docutils literal notranslate"><span class="pre">test_fastapi_setup.py</span></code>, <code class="docutils literal notranslate"><span class="pre">test_fastapi_logging_middleware.py</span></code>)</p></li>
+</ul>
+</li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">docs/</span></code></strong>: large Sphinx/Myst-based documentation set</p>
+<ul>
+<li><p>Core concepts, architecture, user guide, stories, troubleshooting, plugins, addons (<code class="docutils literal notranslate"><span class="pre">docs/core-concepts/pipeline-architecture.md</span></code>, <code class="docutils literal notranslate"><span class="pre">docs/architecture/pipeline-stages.md</span></code>, <code class="docutils literal notranslate"><span class="pre">docs/user-guide/*.md</span></code>, <code class="docutils literal notranslate"><span class="pre">docs/addons/tamper-evident-logging.md</span></code>)</p></li>
+</ul>
+</li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">packages/fapilog-tamper/</span></code></strong>: separate add-on distribution for tamper-evident logging (<code class="docutils literal notranslate"><span class="pre">packages/fapilog-tamper/pyproject.toml</span></code>, <code class="docutils literal notranslate"><span class="pre">packages/fapilog-tamper/src/*</span></code>)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">scripts/</span></code></strong>: benchmarking and project automation (<code class="docutils literal notranslate"><span class="pre">scripts/benchmarking.py</span></code>, <code class="docutils literal notranslate"><span class="pre">scripts/check_*</span></code>, etc.)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">.github/workflows/</span></code></strong>: CI/release/security workflows (<code class="docutils literal notranslate"><span class="pre">ci.yml</span></code>, <code class="docutils literal notranslate"><span class="pre">release.yml</span></code>, <code class="docutils literal notranslate"><span class="pre">security-sbom.yml</span></code>)</p></li>
+</ul>
+</section>
+<section id="packaging-distribution-supported-versions">
+<h3>Packaging / distribution / supported versions<a class="headerlink" href="#packaging-distribution-supported-versions" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Build system</strong>: Hatch + hatch-vcs, version derived from git tags into <code class="docutils literal notranslate"><span class="pre">src/fapilog/_version.py</span></code> (<code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> <code class="docutils literal notranslate"><span class="pre">tool.hatch.version</span></code>, <code class="docutils literal notranslate"><span class="pre">tool.hatch.build.hooks.vcs</span></code>)</p></li>
+<li><p><strong>Typed package</strong>: includes <code class="docutils literal notranslate"><span class="pre">py.typed</span></code> (<code class="docutils literal notranslate"><span class="pre">src/fapilog/py.typed</span></code>)</p></li>
+<li><p><strong>Python versions</strong>: <code class="docutils literal notranslate"><span class="pre">&gt;=3.10</span></code> declared (<code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>), docs explicitly drop 3.9 and below (<code class="docutils literal notranslate"><span class="pre">docs/getting-started/installation.md</span></code>)</p></li>
+<li><p><strong>Dependencies</strong>:</p>
+<ul>
+<li><p>Core deps include <code class="docutils literal notranslate"><span class="pre">pydantic&gt;=2.11.0</span></code>, <code class="docutils literal notranslate"><span class="pre">pydantic-settings</span></code>, <code class="docutils literal notranslate"><span class="pre">httpx</span></code>, <code class="docutils literal notranslate"><span class="pre">orjson&gt;=3.9.15</span></code> with explicit CVE note, <code class="docutils literal notranslate"><span class="pre">packaging</span></code> (<code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>).</p></li>
+<li><p>Extras for FastAPI, metrics, aws/cloudwatch, postgres, etc. (<code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> <code class="docutils literal notranslate"><span class="pre">[project.optional-dependencies]</span></code>).</p></li>
+</ul>
+</li>
+<li><p><strong>Add-on package</strong>: <code class="docutils literal notranslate"><span class="pre">fapilog-tamper</span></code> is separately versioned (<code class="docutils literal notranslate"><span class="pre">0.1.0</span></code>) and ships its own CLI <code class="docutils literal notranslate"><span class="pre">fapilog-tamper</span></code> (<code class="docutils literal notranslate"><span class="pre">packages/fapilog-tamper/pyproject.toml</span></code>).</p></li>
+</ul>
+</section>
+<section id="maintenance-signals">
+<h3>Maintenance signals<a class="headerlink" href="#maintenance-signals" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Recency</strong>: repo pushed <code class="docutils literal notranslate"><span class="pre">2026-01-16</span></code> (<code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">repo</span> <span class="pre">view</span> <span class="pre">...</span> <span class="pre">pushedAt</span></code>), latest release <code class="docutils literal notranslate"><span class="pre">v0.3.5</span></code> published <code class="docutils literal notranslate"><span class="pre">2026-01-01</span></code> (<code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">repo</span> <span class="pre">view</span> <span class="pre">...</span> <span class="pre">latestRelease</span></code>).</p></li>
+<li><p><strong>Activity</strong>:</p>
+<ul>
+<li><p>Git history shows many merges on <code class="docutils literal notranslate"><span class="pre">2026-01-15/16</span></code> (<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">log</span> <span class="pre">-n</span> <span class="pre">20</span></code> local output).</p></li>
+<li><p>GitHub issues exist; latest open issue <code class="docutils literal notranslate"><span class="pre">#208</span></code> “v0.2.* missing” (created <code class="docutils literal notranslate"><span class="pre">2026-01-11</span></code>) (<code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">issue</span> <span class="pre">list</span> <span class="pre">-R</span> <span class="pre">chris-haste/fapilog</span></code>).</p></li>
+</ul>
+</li>
+<li><p><strong>Bus factor</strong>: effectively <strong>single-maintainer</strong> (maintainer in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> is one person; issues/PRs appear authored/merged by same owner; no evidence of multi-maintainer governance in repo files).</p></li>
+</ul>
+</section>
+<section id="governance">
+<h3>Governance<a class="headerlink" href="#governance" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Code of Conduct</strong>: present (<code class="docutils literal notranslate"><span class="pre">CODE_OF_CONDUCT.md</span></code>)</p></li>
+<li><p><strong>Security policy</strong>: present with response timelines (<code class="docutils literal notranslate"><span class="pre">SECURITY.md</span></code>)</p></li>
+<li><p><strong>Contributing guide</strong>: present (<code class="docutils literal notranslate"><span class="pre">CONTRIBUTING.md</span></code>) but contains a potentially outdated statement that the project is developed in a <code class="docutils literal notranslate"><span class="pre">fastapi-logger</span></code> repository (<code class="docutils literal notranslate"><span class="pre">CONTRIBUTING.md</span></code> line 5) while this repo is <code class="docutils literal notranslate"><span class="pre">chris-haste/fapilog</span></code> (README link; GitHub metadata).</p></li>
+<li><p><strong>License</strong>: Apache-2.0 (<code class="docutils literal notranslate"><span class="pre">LICENSE</span></code>; <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> license)</p></li>
+</ul>
+</section>
+<section id="ci-cd-quality-gates">
+<h3>CI/CD &amp; quality gates<a class="headerlink" href="#ci-cd-quality-gates" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>CI pipeline</strong>:</p>
+<ul>
+<li><p>Lint via Ruff (<code class="docutils literal notranslate"><span class="pre">.github/workflows/ci.yml</span></code> <code class="docutils literal notranslate"><span class="pre">lint</span></code> job; <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> <code class="docutils literal notranslate"><span class="pre">tool.ruff</span></code>)</p></li>
+<li><p>Typecheck via MyPy with pydantic plugin (<code class="docutils literal notranslate"><span class="pre">ci.yml</span></code> <code class="docutils literal notranslate"><span class="pre">typecheck</span></code>; <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> <code class="docutils literal notranslate"><span class="pre">tool.mypy</span></code>)</p></li>
+<li><p>Tests with coverage; PRs run a filtered subset plus diff coverage threshold 90% (<code class="docutils literal notranslate"><span class="pre">ci.yml</span></code> <code class="docutils literal notranslate"><span class="pre">test</span></code> job uses <code class="docutils literal notranslate"><span class="pre">diff-cover</span> <span class="pre">...</span> <span class="pre">--fail-under=90</span></code>)</p></li>
+<li><p>Docs-only PR detection to skip expensive jobs (<code class="docutils literal notranslate"><span class="pre">ci.yml</span></code> <code class="docutils literal notranslate"><span class="pre">detect-docs-only</span></code>)</p></li>
+</ul>
+</li>
+<li><p><strong>Release pipeline</strong> (tag-driven):</p>
+<ul>
+<li><p>Validates changelog extraction (<code class="docutils literal notranslate"><span class="pre">.github/workflows/release.yml</span></code>)</p></li>
+<li><p>Builds sdist/wheel and verifies tag version matches wheel filename (<code class="docutils literal notranslate"><span class="pre">release.yml</span></code>)</p></li>
+<li><p>Builds docs and publishes to PyPI and GitHub Releases (<code class="docutils literal notranslate"><span class="pre">release.yml</span></code>)</p></li>
+<li><p><strong>But</strong> the repo’s <code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</span></code> does not contain sections for the published <code class="docutils literal notranslate"><span class="pre">v0.3.4</span></code> and <code class="docutils literal notranslate"><span class="pre">v0.3.5</span></code> tags (<code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</span></code>; <code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">release</span> <span class="pre">list</span></code>), which is a release discipline/traceability red flag.</p></li>
+</ul>
+</li>
+<li><p><strong>Security scanning</strong>:</p>
+<ul>
+<li><p>Generates SBOM via CycloneDX and runs <code class="docutils literal notranslate"><span class="pre">pip-audit</span></code> (<code class="docutils literal notranslate"><span class="pre">.github/workflows/security-sbom.yml</span></code>)</p></li>
+</ul>
+</li>
+<li><p><strong>Local quality</strong>:</p>
+<ul>
+<li><p>Pre-commit hooks enforce Ruff, MyPy, Vulture, test assertion linting, Pydantic-v1 syntax checks, settings description checks, and forbid <code class="docutils literal notranslate"><span class="pre">.rst</span></code> in docs (<code class="docutils literal notranslate"><span class="pre">.pre-commit-config.yaml</span></code>)</p></li>
+<li><p>Coverage gate: fail under 90% (<code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> <code class="docutils literal notranslate"><span class="pre">tool.coverage.report.fail_under=90</span></code>; <code class="docutils literal notranslate"><span class="pre">tox.ini</span></code> <code class="docutils literal notranslate"><span class="pre">--cov-fail-under=90</span></code>)</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="licensing-compliance-basics">
+<h3>Licensing &amp; compliance basics<a class="headerlink" href="#licensing-compliance-basics" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>License</strong>: Apache 2.0 (permissive) (<code class="docutils literal notranslate"><span class="pre">LICENSE</span></code>)</p></li>
+<li><p><strong>Dependency pinning</strong>:</p>
+<ul>
+<li><p>Runtime deps are <strong>range-based</strong> (e.g. <code class="docutils literal notranslate"><span class="pre">httpx&gt;=0.24.0</span></code>) in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>, which is typical but increases supply-chain variability.</p></li>
+<li><p>Lockfile exists (<code class="docutils literal notranslate"><span class="pre">uv.lock</span></code>), but CI installs with <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code> (<code class="docutils literal notranslate"><span class="pre">security-sbom.yml</span></code>) and <code class="docutils literal notranslate"><span class="pre">hatch</span></code> (CI), so lockfile may not be enforcing reproducibility in CI by default.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="phase-2-capabilities-discovery-advertised-vs-non-advertised">
+<h2>Phase 2 — Capabilities Discovery (Advertised vs Non-Advertised)<a class="headerlink" href="#phase-2-capabilities-discovery-advertised-vs-non-advertised" title="Link to this heading"></a></h2>
+<section id="capability-catalog">
+<h3>Capability Catalog<a class="headerlink" href="#capability-catalog" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Capability</p></th>
+<th class="head text-right"><p>Advertised?</p></th>
+<th class="head"><p>Evidence (docs/code)</p></th>
+<th class="head"><p>Maturity</p></th>
+<th class="head"><p>Notes / constraints</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Async-first logging with background worker &amp; queue</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code> (“background worker, queue, batching”); <code class="docutils literal notranslate"><span class="pre">src/fapilog/core/logger.py</span></code>, <code class="docutils literal notranslate"><span class="pre">src/fapilog/core/worker.py</span></code></p></td>
+<td><p>Stable/Beta</p></td>
+<td><p>Sync facade may spawn a dedicated thread+loop when no running loop (<code class="docutils literal notranslate"><span class="pre">core/logger.py</span></code>; <code class="docutils literal notranslate"><span class="pre">docs/architecture/async-sync-boundary.md</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p>Batching (size/time)</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code> (“batching”); defaults in <code class="docutils literal notranslate"><span class="pre">docs/user-guide/reliability-defaults.md</span></code>; implementation <code class="docutils literal notranslate"><span class="pre">core/worker.py</span></code></p></td>
+<td><p>Stable/Beta</p></td>
+<td><p>Worker flush uses polling sleep <code class="docutils literal notranslate"><span class="pre">await</span> <span class="pre">asyncio.sleep(0.001)</span></code> when idle (<code class="docutils literal notranslate"><span class="pre">core/worker.py</span></code>), which can introduce ~1ms latency floor and CPU overhead.</p></td>
+</tr>
+<tr class="row-even"><td><p>Backpressure with drop/wait behavior</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code>; <code class="docutils literal notranslate"><span class="pre">docs/user-guide/reliability-defaults.md</span></code>; <code class="docutils literal notranslate"><span class="pre">core/worker.py</span></code> <code class="docutils literal notranslate"><span class="pre">enqueue_with_backpressure()</span></code></p></td>
+<td><p>Stable/Beta</p></td>
+<td><p><strong>Gotcha</strong>: sync facade “same-thread path” drops immediately when full, regardless of <code class="docutils literal notranslate"><span class="pre">drop_on_full=False</span></code> semantics (<code class="docutils literal notranslate"><span class="pre">core/logger.py</span></code> in same-thread branch; reinforced by <code class="docutils literal notranslate"><span class="pre">tests/integration/test_worker_lifecycle.py</span></code> AC5).</p></td>
+</tr>
+<tr class="row-odd"><td><p>Structured JSON output &amp; envelope serialization</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code>; <code class="docutils literal notranslate"><span class="pre">docs/core-concepts/pipeline-architecture.md</span></code>; serializer hooks in <code class="docutils literal notranslate"><span class="pre">core/worker.py</span></code> and sink implementations</p></td>
+<td><p>Beta</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">serialize_envelope()</span></code> appears to require additional fields; tests note that bare <code class="docutils literal notranslate"><span class="pre">LogEvent</span></code> payloads fail envelope serialization and fall back (<code class="docutils literal notranslate"><span class="pre">tests/integration/test_worker_lifecycle.py</span></code> AC4; <code class="docutils literal notranslate"><span class="pre">tests/integration/test_serialization_recovery.py</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p>Pretty console output (TTY)</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code>; <code class="docutils literal notranslate"><span class="pre">docs/user-guide/configuration.md</span></code>; sinks <code class="docutils literal notranslate"><span class="pre">stdout_pretty</span></code></p></td>
+<td><p>Beta</p></td>
+<td><p>Auto format selection exists (<code class="docutils literal notranslate"><span class="pre">src/fapilog/__init__.py</span></code> <code class="docutils literal notranslate"><span class="pre">_apply_default_log_level</span></code> + <code class="docutils literal notranslate"><span class="pre">_stdout_is_tty</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p>FastAPI one-liner setup (lifespan)</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code> examples; <code class="docutils literal notranslate"><span class="pre">docs/user-guide/configuration.md</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/setup.py</span></code></p></td>
+<td><p>Beta</p></td>
+<td><p>Middleware auto-insertion order is carefully managed (<code class="docutils literal notranslate"><span class="pre">fastapi/setup.py</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p>FastAPI request context propagation (ContextVar)</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/context.py</span></code></p></td>
+<td><p>Beta</p></td>
+<td><p>Supports <code class="docutils literal notranslate"><span class="pre">X-Request-ID</span></code>, <code class="docutils literal notranslate"><span class="pre">X-User-ID</span></code>, <code class="docutils literal notranslate"><span class="pre">X-Tenant-ID</span></code>, <code class="docutils literal notranslate"><span class="pre">traceparent</span></code> parsing (<code class="docutils literal notranslate"><span class="pre">fastapi/context.py</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p>FastAPI request/response logging middleware</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/logging.py</span></code></p></td>
+<td><p>Beta</p></td>
+<td><p>Samples only success logs; errors are always logged (<code class="docutils literal notranslate"><span class="pre">fastapi/logging.py</span></code> + tests). Header redaction is supported when <code class="docutils literal notranslate"><span class="pre">include_headers=True</span></code> (<code class="docutils literal notranslate"><span class="pre">fastapi/logging.py</span></code>; <code class="docutils literal notranslate"><span class="pre">tests/integration/test_fastapi_logging_middleware.py</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p>Context binding API (<code class="docutils literal notranslate"><span class="pre">bind</span></code>, <code class="docutils literal notranslate"><span class="pre">unbind</span></code>)</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code> mentions context binding; <code class="docutils literal notranslate"><span class="pre">src/fapilog/core/logger.py</span></code></p></td>
+<td><p>Beta</p></td>
+<td><p>Context is stored in a <code class="docutils literal notranslate"><span class="pre">ContextVar</span></code> per task/thread; merged into each log call (<code class="docutils literal notranslate"><span class="pre">core/logger.py</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p>Plugin system (sinks/enrichers/redactors/filters/processors)</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code>; plugin docs; <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/loader.py</span></code>; registrations in <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/*/__init__.py</span></code></p></td>
+<td><p>Beta</p></td>
+<td><p>Entry-point based loading can execute arbitrary code at import/instantiate time; allow/deny list exists (<code class="docutils literal notranslate"><span class="pre">src/fapilog/__init__.py</span></code> <code class="docutils literal notranslate"><span class="pre">_plugin_allowed</span></code>; <code class="docutils literal notranslate"><span class="pre">core/settings.py</span></code> <code class="docutils literal notranslate"><span class="pre">PluginsSettings</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p>Plugin validation modes (disabled/warn/strict)</p></td>
+<td class="text-right"><p>N (mostly)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/loader.py</span></code> (<code class="docutils literal notranslate"><span class="pre">ValidationMode</span></code>, validators from <code class="docutils literal notranslate"><span class="pre">src/fapilog/testing/validators.py</span></code>)</p></td>
+<td><p>Beta</p></td>
+<td><p>Global module-level validation mode (<code class="docutils literal notranslate"><span class="pre">set_validation_mode</span></code>) is mutable process-wide; multiple differently-configured loggers can race/override each other.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Redaction pipeline with guardrails &amp; guarantees</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">docs/redaction-guarantees.md</span></code>; <code class="docutils literal notranslate"><span class="pre">docs/user-guide/reliability-defaults.md</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/redactors/*</span></code></p></td>
+<td><p>Beta</p></td>
+<td><p>Redactors are fail-safe and won’t drop events on redaction errors (<code class="docutils literal notranslate"><span class="pre">core/worker.py</span></code>; <code class="docutils literal notranslate"><span class="pre">plugins/redactors/__init__.py</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p>Regex/field/url-credential redactors</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code>; <code class="docutils literal notranslate"><span class="pre">docs/plugins/redactors.md</span></code>; <code class="docutils literal notranslate"><span class="pre">plugins/redactors/*</span></code></p></td>
+<td><p>Beta</p></td>
+<td><p>Depth/key-scan guardrails exist (<code class="docutils literal notranslate"><span class="pre">core/settings.py</span></code> <code class="docutils literal notranslate"><span class="pre">core.redaction_max_*</span></code>; docs).</p></td>
+</tr>
+<tr class="row-odd"><td><p>Error deduplication</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">docs/user-guide/reliability-defaults.md</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/core/logger.py</span></code> <code class="docutils literal notranslate"><span class="pre">_error_dedupe</span></code></p></td>
+<td><p>Beta</p></td>
+<td><p>Dedupes by exact message for ERROR/CRITICAL within window; may suppress distinct events sharing same message text.</p></td>
+</tr>
+<tr class="row-even"><td><p>Metrics (internal counters; optional Prometheus exporter)</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code>; <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> extra <code class="docutils literal notranslate"><span class="pre">metrics</span></code>; worker uses <code class="docutils literal notranslate"><span class="pre">MetricsCollector</span></code> (<code class="docutils literal notranslate"><span class="pre">core/worker.py</span></code>)</p></td>
+<td><p>Beta</p></td>
+<td><p>Metrics collector is optional; some sinks also record drop metrics (e.g. HTTP sink) (<code class="docutils literal notranslate"><span class="pre">plugins/sinks/http_client.py</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p>Health checks for plugins/sinks</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code> mentions health/ops; <code class="docutils literal notranslate"><span class="pre">core/logger.py</span></code> <code class="docutils literal notranslate"><span class="pre">check_health</span></code>; sinks implement <code class="docutils literal notranslate"><span class="pre">health_check()</span></code></p></td>
+<td><p>Beta</p></td>
+<td><p>Coverage exists for sink health patterns (e.g., <code class="docutils literal notranslate"><span class="pre">loki</span></code> readiness endpoint; <code class="docutils literal notranslate"><span class="pre">postgres</span></code> <code class="docutils literal notranslate"><span class="pre">SELECT</span> <span class="pre">1</span></code>) (<code class="docutils literal notranslate"><span class="pre">plugins/sinks/contrib/*</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p>Sink fallback to stderr on failures</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code>; <code class="docutils literal notranslate"><span class="pre">docs/user-guide/configuration.md</span></code>; <code class="docutils literal notranslate"><span class="pre">plugins/sinks/fallback.py</span></code>; <code class="docutils literal notranslate"><span class="pre">core/sink_writers.py</span></code></p></td>
+<td><p>Beta</p></td>
+<td><p>Verified by integration tests for both exception and <code class="docutils literal notranslate"><span class="pre">False</span></code> return signaling (<code class="docutils literal notranslate"><span class="pre">tests/integration/test_sink_fallback_signaling.py</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p>Sink routing by level</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code>; <code class="docutils literal notranslate"><span class="pre">docs/user-guide/sink-routing.md</span></code>; implemented both as global routing writer and routing sink</p></td>
+<td><p>Beta</p></td>
+<td><p>Two parallel mechanisms: (1) global routing writer (<code class="docutils literal notranslate"><span class="pre">plugins/sinks/routing.py</span></code> + <code class="docutils literal notranslate"><span class="pre">core/__init__.py</span></code> route selection), (2) <code class="docutils literal notranslate"><span class="pre">RoutingSink</span></code> plugin as a sink-of-sinks (<code class="docutils literal notranslate"><span class="pre">plugins/sinks/routing.py</span></code>). This duality increases configuration complexity.</p></td>
+</tr>
+<tr class="row-even"><td><p>Circuit breaker for sinks</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code> mentions; <code class="docutils literal notranslate"><span class="pre">core/sink_writers.py</span></code>; sink-specific CB in CloudWatch/Loki/Postgres sinks</p></td>
+<td><p>Beta</p></td>
+<td><p>Global sink CB is off by default (<code class="docutils literal notranslate"><span class="pre">core/settings.py</span></code>); some sinks enable their own CB by default (<code class="docutils literal notranslate"><span class="pre">plugins/sinks/contrib/*.py</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p>Built-in sinks: stdout/file/http/webhook/loki/cloudwatch/postgres/audit</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code> “Plugin Ecosystem”; registrations in <code class="docutils literal notranslate"><span class="pre">plugins/sinks/__init__.py</span></code> and implementations</p></td>
+<td><p>Beta</p></td>
+<td><p>Some plugin metadata claims incompatible minimum versions (<code class="docutils literal notranslate"><span class="pre">plugins/sinks/routing.py</span></code>, <code class="docutils literal notranslate"><span class="pre">plugins/sinks/audit.py</span></code>, <code class="docutils literal notranslate"><span class="pre">plugins/sinks/contrib/postgres.py</span></code> set <code class="docutils literal notranslate"><span class="pre">min_fapilog_version:</span> <span class="pre">0.4.0</span></code> while project is 0.3.x).</p></td>
+</tr>
+<tr class="row-even"><td><p>Rotating file sink with retention + compression + writev optimization</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code>; <code class="docutils literal notranslate"><span class="pre">docs/user-guide/configuration.md</span></code>; <code class="docutils literal notranslate"><span class="pre">plugins/sinks/rotating_file.py</span></code></p></td>
+<td><p>Beta</p></td>
+<td><p>Uses <code class="docutils literal notranslate"><span class="pre">os.writev</span></code> when available and offloads filesystem I/O to threads (<code class="docutils literal notranslate"><span class="pre">plugins/sinks/rotating_file.py</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p>CloudWatch sink</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code>; <code class="docutils literal notranslate"><span class="pre">plugins/sinks/contrib/cloudwatch.py</span></code></p></td>
+<td><p>Beta</p></td>
+<td><p>Uses boto3 in <code class="docutils literal notranslate"><span class="pre">asyncio.to_thread()</span></code>, implements size constraints and token handling; conservative 256KB event limit (<code class="docutils literal notranslate"><span class="pre">cloudwatch.py</span></code> comments and constants).</p></td>
+</tr>
+<tr class="row-even"><td><p>Loki sink</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code>; <code class="docutils literal notranslate"><span class="pre">plugins/sinks/contrib/loki.py</span></code></p></td>
+<td><p>Beta</p></td>
+<td><p>Uses <code class="docutils literal notranslate"><span class="pre">httpx.AsyncClient</span></code>, implements retry, 429 handling, label sanitization (<code class="docutils literal notranslate"><span class="pre">loki.py</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p>PostgreSQL sink</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code>; <code class="docutils literal notranslate"><span class="pre">plugins/sinks/contrib/postgres.py</span></code></p></td>
+<td><p>Beta</p></td>
+<td><p>Uses asyncpg, creates schema/table/indexes best-effort; JSONB storage; circuit breaker enabled by default (<code class="docutils literal notranslate"><span class="pre">postgres.py</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p>Audit sink + “integrity checks”</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code> (audit sink); <code class="docutils literal notranslate"><span class="pre">plugins/sinks/audit.py</span></code>; <code class="docutils literal notranslate"><span class="pre">core/audit.py</span></code></p></td>
+<td><p>Experimental/Beta</p></td>
+<td><p><strong>Critical caveat</strong>: <code class="docutils literal notranslate"><span class="pre">core/audit.py</span></code> writes plaintext JSONL with hash-chain checksums but does <strong>not</strong> implement encryption even though policy fields exist (<code class="docutils literal notranslate"><span class="pre">core/audit.py</span></code> <code class="docutils literal notranslate"><span class="pre">encrypt_audit_logs</span></code> is tracked but not used; file write is plain <code class="docutils literal notranslate"><span class="pre">open(...).write(...)</span></code>). It also performs synchronous file I/O inside async task (<code class="docutils literal notranslate"><span class="pre">core/audit.py</span></code> <code class="docutils literal notranslate"><span class="pre">_store_event</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p>Stdlib logging bridge</p></td>
+<td class="text-right"><p>N (not prominent)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">src/fapilog/core/stdlib_bridge.py</span></code></p></td>
+<td><p>Beta</p></td>
+<td><p>Exists and can forward stdlib <code class="docutils literal notranslate"><span class="pre">LogRecord</span></code> into fapilog; uses background loop manager for scheduling when no running loop.</p></td>
+</tr>
+<tr class="row-even"><td><p>Plugin marketplace / router</p></td>
+<td class="text-right"><p>Y (partly)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code> references optional “marketplace router”; <code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/integration.py</span></code> says endpoints removed; <code class="docutils literal notranslate"><span class="pre">core/marketplace.py</span></code> exists</p></td>
+<td><p>Experimental/Removed</p></td>
+<td><p>Presently returns an empty router (<code class="docutils literal notranslate"><span class="pre">fastapi/integration.py</span></code>), and marketplace settings exist but are not clearly wired into runtime.</p></td>
+</tr>
+<tr class="row-odd"><td><p>CLI</p></td>
+<td class="text-right"><p>N (not shipped)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">src/fapilog/cli/main.py</span></code> placeholder; <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> scripts commented</p></td>
+<td><p>Experimental/Not implemented</p></td>
+<td><p>In main package, CLI is explicitly “Coming soon”. Add-on <code class="docutils literal notranslate"><span class="pre">fapilog-tamper</span></code> <em>does</em> ship a CLI (<code class="docutils literal notranslate"><span class="pre">packages/fapilog-tamper/pyproject.toml</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p>Tamper-evident logging add-on</p></td>
+<td class="text-right"><p>Y</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code> “fapilog-tamper”; <code class="docutils literal notranslate"><span class="pre">docs/addons/tamper-evident-logging.md</span></code>; <code class="docutils literal notranslate"><span class="pre">packages/fapilog-tamper/*</span></code></p></td>
+<td><p>Experimental</p></td>
+<td><p>Separate dependency footprint (cryptography, KMS clients). README for add-on claims “placeholder components” (it may lag the design doc).</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="boundaries-non-goals-explicit-implicit">
+<h3>Boundaries &amp; non-goals (explicit/implicit)<a class="headerlink" href="#boundaries-non-goals-explicit-implicit" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Not a logging backend / collector</strong>: focuses on client-side emission to sinks; no server/collector implementation in repo (<code class="docutils literal notranslate"><span class="pre">src/fapilog/*</span></code> has only client libs).</p></li>
+<li><p><strong>Plugin marketplace is not currently implemented</strong>: router is empty and explicitly says endpoints removed (<code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/integration.py</span></code>); marketplace settings exist but are “for future” (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/marketplace.py</span></code>).</p></li>
+<li><p><strong>Not a full auth/access-control system</strong>: access control settings are “validation envelope” and explicitly says integration out of scope (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/access_control.py</span></code>).</p></li>
+<li><p><strong>“Encryption” is largely configuration/validation-only in core</strong>: encryption settings exist, but core logging paths shown do not encrypt payloads at rest or in transit by default (evidence: audit trail file writes in <code class="docutils literal notranslate"><span class="pre">src/fapilog/core/audit.py</span></code>; HTTP/webhook sinks send JSON without encryption beyond TLS; <code class="docutils literal notranslate"><span class="pre">src/fapilog/core/encryption.py</span></code> is validation, not encryption).</p></li>
+</ul>
+</section>
+<section id="gotchas-high-impact-surprises">
+<h3>“Gotchas” (high-impact surprises)<a class="headerlink" href="#gotchas-high-impact-surprises" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>Changelog/release traceability is broken for 0.3.4/0.3.5</strong>: tags and GitHub releases exist, but <code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</span></code> lacks entries beyond 0.3.3 (<code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</span></code>; <code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">release</span> <span class="pre">list</span></code>; <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">tag</span></code>).</p></li>
+<li><p><strong>Backpressure semantics differ by call context</strong>: sync facade “same-thread path” drops immediately on full queue (ignoring “wait” semantics) (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/logger.py</span></code> same-thread branch; validated by <code class="docutils literal notranslate"><span class="pre">tests/integration/test_worker_lifecycle.py</span></code> AC5).</p></li>
+<li><p><strong>Async audit logging does blocking file I/O</strong>: <code class="docutils literal notranslate"><span class="pre">core/audit.py</span></code> performs <code class="docutils literal notranslate"><span class="pre">open(...).write(...)</span></code> inside an async processing task (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/audit.py</span></code> <code class="docutils literal notranslate"><span class="pre">_store_event</span></code>), potentially stalling the event loop in high-volume audit scenarios.</p></li>
+<li><p><strong>Audit “encryption” is implied but not implemented</strong>: policy includes <code class="docutils literal notranslate"><span class="pre">encrypt_audit_logs</span></code>, but storage is plaintext JSONL (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/audit.py</span></code>).</p></li>
+<li><p><strong>Benchmark reproducibility risk</strong>: <code class="docutils literal notranslate"><span class="pre">scripts/benchmarking.py</span></code> contains references that appear inconsistent with its own result keys (e.g., it builds <code class="docutils literal notranslate"><span class="pre">speedup_factor_off/on</span></code> but later references <code class="docutils literal notranslate"><span class="pre">throughput[&quot;speedup_factor&quot;]</span></code>) (<code class="docutils literal notranslate"><span class="pre">scripts/benchmarking.py</span></code>), which may make README performance claims hard to reproduce reliably without fixing the script.</p></li>
+<li><p><strong>Plugin metadata versioning inconsistencies</strong>: several sinks claim <code class="docutils literal notranslate"><span class="pre">compatibility.min_fapilog_version</span> <span class="pre">=</span> <span class="pre">0.4.0</span></code> while current releases are 0.3.x (<code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/routing.py</span></code>, <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/audit.py</span></code>, <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/contrib/postgres.py</span></code>). Even if metadata isn’t enforced today, it’s a future migration hazard.</p></li>
+</ol>
+</section>
+</section>
+<hr class="docutils" />
+<section id="phase-3-technical-assessment-architecture-code-quality">
+<h2>Phase 3 — Technical Assessment (Architecture &amp; Code Quality)<a class="headerlink" href="#phase-3-technical-assessment-architecture-code-quality" title="Link to this heading"></a></h2>
+<section id="architecture-overview-major-components-responsibilities">
+<h3>Architecture overview (major components/responsibilities)<a class="headerlink" href="#architecture-overview-major-components-responsibilities" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Public API layer</strong>: <code class="docutils literal notranslate"><span class="pre">src/fapilog/__init__.py</span></code></p>
+<ul>
+<li><p>Exposes <code class="docutils literal notranslate"><span class="pre">get_logger</span></code>, <code class="docutils literal notranslate"><span class="pre">get_async_logger</span></code>, <code class="docutils literal notranslate"><span class="pre">runtime</span></code>, <code class="docutils literal notranslate"><span class="pre">runtime_async</span></code>, presets, builders (<code class="docutils literal notranslate"><span class="pre">__all__</span></code>).</p></li>
+<li><p>Handles config/preset/environment selection and plugin loading wrappers (<code class="docutils literal notranslate"><span class="pre">_prepare_logger</span></code>, <code class="docutils literal notranslate"><span class="pre">_configure_logger_common</span></code>, <code class="docutils literal notranslate"><span class="pre">_load_plugins</span></code>).</p></li>
+</ul>
+</li>
+<li><p><strong>Core pipeline runtime</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/fapilog/core/logger.py</span></code>: Sync and Async facades; enqueue logic; worker lifecycle (thread-loop vs bound-loop); context binding; error dedupe.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/fapilog/core/worker.py</span></code>: worker loop and pipeline stage ordering; per-stage error containment; serialization fast path (<code class="docutils literal notranslate"><span class="pre">serialize_in_flush</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/fapilog/core/concurrency.py</span></code>: bounded ring queue abstraction.</p></li>
+</ul>
+</li>
+<li><p><strong>Plugins and extension</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/loader.py</span></code>: built-in registry + entry point discovery, name normalization, optional protocol validation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/*/__init__.py</span></code>: register built-in sinks/enrichers/redactors/filters/processors.</p></li>
+</ul>
+</li>
+<li><p><strong>Sinks</strong>:</p>
+<ul>
+<li><p>Stdout/file/http/webhook: <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/*</span></code></p></li>
+<li><p>Cloud/Loki/Postgres: <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/contrib/*</span></code></p></li>
+<li><p>Routing: both as sink writer and sink plugin (<code class="docutils literal notranslate"><span class="pre">core/routing</span></code> path uses <code class="docutils literal notranslate"><span class="pre">plugins/sinks/routing.py</span></code>; global routing writer is in <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/routing.py</span></code> and invoked from <code class="docutils literal notranslate"><span class="pre">src/fapilog/__init__.py</span></code>)</p></li>
+</ul>
+</li>
+<li><p><strong>FastAPI integration</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/setup.py</span></code>: lifespan wrapper and auto middleware insertion</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/context.py</span></code>: request context vars population</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/logging.py</span></code>: request logging middleware</p></li>
+</ul>
+</li>
+<li><p><strong>“Enterprise” modules</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/fapilog/core/audit.py</span></code>, <code class="docutils literal notranslate"><span class="pre">compliance.py</span></code>, <code class="docutils literal notranslate"><span class="pre">security.py</span></code>, <code class="docutils literal notranslate"><span class="pre">encryption.py</span></code>, <code class="docutils literal notranslate"><span class="pre">access_control.py</span></code>: rich models and validation, but not always wired into the hot path.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="data-control-flow-text-mermaid">
+<h3>Data/control flow (text + Mermaid)<a class="headerlink" href="#data-control-flow-text-mermaid" title="Link to this heading"></a></h3>
+<div class="highlight-mermaid notranslate"><div class="highlight"><pre><span></span>flowchart LR
+  A[App code: logger.info()/await logger.info()] --&gt; B[Facade: core/logger.py _prepare_payload + enqueue]
+  B --&gt; C[NonBlockingRingQueue]
+  C --&gt; D[LoggerWorker.run loop]
+  D --&gt; E[Filters: plugins/filters/filter_in_order]
+  E --&gt; F[Enrichers: plugins/enrichers/enrich_parallel]
+  F --&gt; G[Redactors: plugins/redactors/redact_in_order]
+  G --&gt; H{serialize_in_flush?}
+  H -- yes --&gt; I[serialize_envelope or fallback serialize_mapping_to_json_bytes]
+  I --&gt; J[Processors: plugins/processors (memoryview)]
+  J --&gt; K[Sink write_serialized]
+  H -- no --&gt; L[Sink write(dict)]
+  K --&gt; M[(Sinks)]
+  L --&gt; M
+  M --&gt; N[Fallback on sink failure -&gt; stderr]:::fallback
+
+classDef fallback fill:#fff3cd,stroke:#856404,color:#856404;
+</pre></div>
+</div>
+<p>Evidence: pipeline ordering is explicitly documented and implemented (<code class="docutils literal notranslate"><span class="pre">docs/architecture/pipeline-stages.md</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/core/worker.py</span></code> <code class="docutils literal notranslate"><span class="pre">_flush_batch()</span></code>).</p>
+</section>
+<section id="extensibility-points">
+<h3>Extensibility points<a class="headerlink" href="#extensibility-points" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Entry point-based plugins</strong>: <code class="docutils literal notranslate"><span class="pre">fapilog.sinks</span></code>, <code class="docutils literal notranslate"><span class="pre">fapilog.enrichers</span></code>, etc. (<code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/loader.py</span></code> <code class="docutils literal notranslate"><span class="pre">load_plugin()</span></code>; example add-on uses entry points in <code class="docutils literal notranslate"><span class="pre">packages/fapilog-tamper/pyproject.toml</span></code>).</p></li>
+<li><p><strong>Built-in registry + aliases</strong>: names normalized (hyphen/underscore) to avoid config breakage (<code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/loader.py</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/__init__.py</span></code> alias registrations).</p></li>
+<li><p><strong>Protocol “contracts”</strong>: sinks/enrichers/redactors/filters/processors define Protocols and expectations (<code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/__init__.py</span></code>, <code class="docutils literal notranslate"><span class="pre">plugins/enrichers/__init__.py</span></code>, <code class="docutils literal notranslate"><span class="pre">plugins/redactors/__init__.py</span></code>, etc.).</p></li>
+<li><p><strong>Plugin validation</strong>: optional runtime validation using internal validators (<code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/loader.py</span></code> <code class="docutils literal notranslate"><span class="pre">_validate_plugin()</span></code>).</p></li>
+</ul>
+</section>
+<section id="code-quality-review-organization-clarity-complexity-hotspots">
+<h3>Code quality review (organization/clarity/complexity hotspots)<a class="headerlink" href="#code-quality-review-organization-clarity-complexity-hotspots" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Strengths</strong></p>
+<ul>
+<li><p>Strong modular decomposition: core pipeline vs plugins vs FastAPI integration (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/*</span></code>, <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/*</span></code>, <code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/*</span></code>).</p></li>
+<li><p>Extensive docstrings and architecture docs explaining tricky async/sync boundary (<code class="docutils literal notranslate"><span class="pre">docs/architecture/async-sync-boundary.md</span></code>; <code class="docutils literal notranslate"><span class="pre">core/logger.py</span></code> docstrings).</p></li>
+<li><p>Many defensive “contain errors” patterns in plugin start/stop and pipeline stages (<code class="docutils literal notranslate"><span class="pre">src/fapilog/__init__.py</span></code> <code class="docutils literal notranslate"><span class="pre">_start_plugins_sync</span></code>; <code class="docutils literal notranslate"><span class="pre">core/worker.py</span></code> and <code class="docutils literal notranslate"><span class="pre">core/sink_writers.py</span></code>).</p></li>
+</ul>
+</li>
+<li><p><strong>Complexity hotspots</strong></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/fapilog/core/logger.py</span></code> is very large and combines: event construction, sampling deprecation behavior, error dedupe, thread/loop orchestration, enqueue semantics, and drain logic.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/fapilog/core/settings.py</span></code> is large and contains many nested models and env aliasing logic; it’s powerful but increases surface area and potential config drift.</p></li>
+<li><p>“Enterprise” modules (audit/security/compliance) appear more aspirational than integrated, increasing maintenance burden without clear runtime value unless fully wired (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/audit.py</span></code>, <code class="docutils literal notranslate"><span class="pre">security.py</span></code>, <code class="docutils literal notranslate"><span class="pre">compliance.py</span></code>).</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="error-handling-logging-strategy-diagnostics">
+<h3>Error handling, logging strategy, diagnostics<a class="headerlink" href="#error-handling-logging-strategy-diagnostics" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Design intent</strong>: fail-open for logging — logging should not crash the application (<code class="docutils literal notranslate"><span class="pre">docs/architecture/async-sync-boundary.md</span></code>; <code class="docutils literal notranslate"><span class="pre">_start_plugins_sync()</span></code> docstring in <code class="docutils literal notranslate"><span class="pre">src/fapilog/__init__.py</span></code>; broad try/except usage across pipeline).</p></li>
+<li><p><strong>Diagnostics</strong>:</p>
+<ul>
+<li><p>Internal diagnostics are <strong>off by default</strong> and can be enabled by env var (<code class="docutils literal notranslate"><span class="pre">docs/user-guide/reliability-defaults.md</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/core/diagnostics.py</span></code> reads <code class="docutils literal notranslate"><span class="pre">Settings().core.internal_logging_enabled</span></code>).</p></li>
+<li><p>Diagnostics are structured JSON printed via <code class="docutils literal notranslate"><span class="pre">print(...)</span></code> to stdout (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/diagnostics.py</span></code> <code class="docutils literal notranslate"><span class="pre">_default_writer</span></code>), which can interleave with stdout logs in container setups (risk: noisy/misrouted internal logs).</p></li>
+</ul>
+</li>
+<li><p><strong>Sink failure behavior</strong>:</p>
+<ul>
+<li><p>Sink failures are expected to raise <code class="docutils literal notranslate"><span class="pre">SinkWriteError</span></code> or return <code class="docutils literal notranslate"><span class="pre">False</span></code> to trigger fallback and circuit breaker (<code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/__init__.py</span></code> <code class="docutils literal notranslate"><span class="pre">BaseSink</span></code> contract).</p></li>
+<li><p>Fallback writes the payload to stderr and emits a diagnostic warning (<code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/fallback.py</span></code>).</p></li>
+<li><p>Verified by integration tests (<code class="docutils literal notranslate"><span class="pre">tests/integration/test_sink_fallback_signaling.py</span></code>).</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="testing-strategy">
+<h3>Testing strategy<a class="headerlink" href="#testing-strategy" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Breadth</strong>: unit + integration + property-based + benchmark tests (<code class="docutils literal notranslate"><span class="pre">tests/unit</span></code>, <code class="docutils literal notranslate"><span class="pre">tests/integration</span></code>, <code class="docutils literal notranslate"><span class="pre">tests/property</span></code>, <code class="docutils literal notranslate"><span class="pre">tests/benchmark</span></code>).</p></li>
+<li><p><strong>High-value integration coverage</strong>:</p>
+<ul>
+<li><p>Worker lifecycle, cancellation, serialization strict/best-effort, backpressure edge cases (<code class="docutils literal notranslate"><span class="pre">tests/integration/test_worker_lifecycle.py</span></code>).</p></li>
+<li><p>Serialization recovery across batches (<code class="docutils literal notranslate"><span class="pre">tests/integration/test_serialization_recovery.py</span></code>).</p></li>
+<li><p>FastAPI setup and middleware behavior (<code class="docutils literal notranslate"><span class="pre">tests/integration/test_fastapi_setup.py</span></code>, <code class="docutils literal notranslate"><span class="pre">test_fastapi_logging_middleware.py</span></code>).</p></li>
+<li><p>Redactor pipeline ordering + error containment (<code class="docutils literal notranslate"><span class="pre">tests/integration/test_redactors_stage.py</span></code>).</p></li>
+</ul>
+</li>
+<li><p><strong>Quality gates</strong>: weak assertion linter and strict markers in pytest config (<code class="docutils literal notranslate"><span class="pre">.pre-commit-config.yaml</span></code> <code class="docutils literal notranslate"><span class="pre">lint-test-assertions</span></code>; <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> <code class="docutils literal notranslate"><span class="pre">pytest.ini_options</span></code>).</p></li>
+</ul>
+</section>
+<section id="type-safety-and-public-api-stability">
+<h3>Type safety and public API stability<a class="headerlink" href="#type-safety-and-public-api-stability" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Typed</strong>: <code class="docutils literal notranslate"><span class="pre">py.typed</span></code> present; MyPy is strict for src (<code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> <code class="docutils literal notranslate"><span class="pre">tool.mypy.disallow_untyped_defs=true</span></code>) with some targeted overrides.</p></li>
+<li><p><strong>Public API policy</strong>: defined by <code class="docutils literal notranslate"><span class="pre">__all__</span></code> lists (documented in <code class="docutils literal notranslate"><span class="pre">CONTRIBUTING.md</span></code>), and top-level <code class="docutils literal notranslate"><span class="pre">__all__</span></code> in <code class="docutils literal notranslate"><span class="pre">src/fapilog/__init__.py</span></code>.</p></li>
+<li><p><strong>API stability signals</strong>:</p>
+<ul>
+<li><p>Project classifier is “Beta” (<code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> <code class="docutils literal notranslate"><span class="pre">Development</span> <span class="pre">Status</span> <span class="pre">::</span> <span class="pre">4</span> <span class="pre">-</span> <span class="pre">Beta</span></code>).</p></li>
+<li><p>README claims “core logger and FastAPI middleware are semver-stable” (<code class="docutils literal notranslate"><span class="pre">README.md</span></code> “Beta stability”), but repository is still pre-1.0 and has many experimental/placeholder components (e.g., marketplace, CLI).</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="performance-considerations">
+<h3>Performance considerations<a class="headerlink" href="#performance-considerations" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Where performance is addressed</strong></p>
+<ul>
+<li><p>Rotating file sink uses vectored writes via <code class="docutils literal notranslate"><span class="pre">os.writev</span></code> where available and offloads I/O to threads (<code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/rotating_file.py</span></code>).</p></li>
+<li><p>Enrichers can run in parallel with concurrency limits (<code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/enrichers/__init__.py</span></code> <code class="docutils literal notranslate"><span class="pre">enrich_parallel()</span></code> uses <code class="docutils literal notranslate"><span class="pre">process_in_parallel</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">serialize_in_flush</span></code> attempts to serialize once and pass bytes downstream for sinks supporting <code class="docutils literal notranslate"><span class="pre">write_serialized</span></code> (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/worker.py</span></code>).</p></li>
+</ul>
+</li>
+<li><p><strong>Likely bottlenecks</strong></p>
+<ul>
+<li><p>Worker loop uses polling sleeps and per-entry sequential processing within a batch; for high rates, CPU overhead can rise (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/worker.py</span></code> run loop + <code class="docutils literal notranslate"><span class="pre">_flush_batch</span></code> per-entry).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NonBlockingRingQueue.await_enqueue/await_dequeue</span></code> spin/yield approach may waste CPU under contention (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/concurrency.py</span></code>).</p></li>
+<li><p>Sync facade sometimes instantiates <code class="docutils literal notranslate"><span class="pre">Settings()</span></code> inside log-call path to handle sampling deprecation and error dedupe settings (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/logger.py</span></code> <code class="docutils literal notranslate"><span class="pre">_prepare_payload</span></code> reads <code class="docutils literal notranslate"><span class="pre">Settings()</span></code>), which can be expensive under high throughput.</p></li>
+</ul>
+</li>
+<li><p><strong>Benchmarks</strong></p>
+<ul>
+<li><p>Benchmark script exists and aims to validate performance claims (<code class="docutils literal notranslate"><span class="pre">scripts/benchmarking.py</span></code>).</p></li>
+<li><p>However, the script appears internally inconsistent in its “verdict derivation” section (references keys that don’t exist in the result dict it just produced), which undermines reproducibility without manual fixes (<code class="docutils literal notranslate"><span class="pre">scripts/benchmarking.py</span></code>).</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="security-posture-red-flags-required">
+<h3>Security posture (RED FLAGS REQUIRED)<a class="headerlink" href="#security-posture-red-flags-required" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Positive signals</strong></p>
+<ul>
+<li><p>Security policy with reporting guidance and timelines (<code class="docutils literal notranslate"><span class="pre">SECURITY.md</span></code>).</p></li>
+<li><p>CI runs <code class="docutils literal notranslate"><span class="pre">pip-audit</span></code> and generates SBOM (<code class="docutils literal notranslate"><span class="pre">.github/workflows/security-sbom.yml</span></code>).</p></li>
+<li><p>Avoids obvious dangerous patterns in source: no <code class="docutils literal notranslate"><span class="pre">eval</span></code>, no <code class="docutils literal notranslate"><span class="pre">pickle</span></code>, no <code class="docutils literal notranslate"><span class="pre">subprocess</span></code>, no unsafe YAML loads in <code class="docutils literal notranslate"><span class="pre">src/</span></code> (repo scan via code search; no matches).</p></li>
+<li><p>Redaction guarantees and guardrails are documented and implemented (<code class="docutils literal notranslate"><span class="pre">docs/redaction-guarantees.md</span></code>; redactors in <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/redactors/*</span></code>; defaults in <code class="docutils literal notranslate"><span class="pre">docs/user-guide/reliability-defaults.md</span></code>).</p></li>
+</ul>
+</li>
+<li><p><strong>Red flags</strong></p>
+<ol class="arabic simple">
+<li><p><strong>“Encrypted audit logs” appears non-functional in core</strong>: <code class="docutils literal notranslate"><span class="pre">CompliancePolicy.encrypt_audit_logs</span></code> exists (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/audit.py</span></code>) and <code class="docutils literal notranslate"><span class="pre">AuditSinkConfig.encrypt_logs</span></code> defaults True (<code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/audit.py</span></code>), but the audit trail writes plaintext JSONL (<code class="docutils literal notranslate"><span class="pre">core/audit.py</span></code> <code class="docutils literal notranslate"><span class="pre">_store_event</span></code> uses <code class="docutils literal notranslate"><span class="pre">open(...).write(...)</span></code> with no encryption step). If users rely on this for compliance, it is a serious mismatch between configuration surface and behavior.</p></li>
+<li><p><strong>Plugin supply-chain risk</strong>: plugin loader can load arbitrary code from entry points (<code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/loader.py</span></code>), and README encourages a “plugin ecosystem”. Allow/deny list exists (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/settings.py</span></code> <code class="docutils literal notranslate"><span class="pre">PluginsSettings</span></code> and <code class="docutils literal notranslate"><span class="pre">_plugin_allowed</span></code> in <code class="docutils literal notranslate"><span class="pre">src/fapilog/__init__.py</span></code>), but default is “enabled” with no allowlist.</p></li>
+<li><p><strong>Webhook “secret” is sent as a header value</strong>: <code class="docutils literal notranslate"><span class="pre">WebhookSink</span></code> sets <code class="docutils literal notranslate"><span class="pre">X-Webhook-Secret</span></code> header directly (<code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/webhook.py</span></code>), which is not inherently unsafe but increases risk of secret exposure via intermediary logs/proxies if misconfigured.</p></li>
+</ol>
+</li>
+</ul>
+</section>
+<section id="reliability-and-operability">
+<h3>Reliability and operability<a class="headerlink" href="#reliability-and-operability" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Strong baseline features</strong></p>
+<ul>
+<li><p>Backpressure and drop policy documented, configurable (<code class="docutils literal notranslate"><span class="pre">docs/user-guide/reliability-defaults.md</span></code>; <code class="docutils literal notranslate"><span class="pre">core/worker.py</span></code> <code class="docutils literal notranslate"><span class="pre">enqueue_with_backpressure</span></code>).</p></li>
+<li><p>Sink circuit breaker support exists at both global writer level and per-sink implementations (<code class="docutils literal notranslate"><span class="pre">core/sink_writers.py</span></code>; <code class="docutils literal notranslate"><span class="pre">plugins/sinks/contrib/*</span></code>).</p></li>
+<li><p>Fallback to stderr on sink failure is explicit and tested (<code class="docutils literal notranslate"><span class="pre">plugins/sinks/fallback.py</span></code>; <code class="docutils literal notranslate"><span class="pre">tests/integration/test_sink_fallback_signaling.py</span></code>).</p></li>
+<li><p>FastAPI middleware adds <code class="docutils literal notranslate"><span class="pre">X-Request-ID</span></code> response header for correlation (<code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/logging.py</span></code>, <code class="docutils literal notranslate"><span class="pre">context.py</span></code>).</p></li>
+</ul>
+</li>
+<li><p><strong>Operability gaps / risks</strong></p>
+<ul>
+<li><p>Internal diagnostics write to stdout and may mix with application stdout logs (<code class="docutils literal notranslate"><span class="pre">core/diagnostics.py</span></code>), complicating log pipelines.</p></li>
+<li><p>Audit trail uses a global singleton <code class="docutils literal notranslate"><span class="pre">_audit_trail</span></code> (<code class="docutils literal notranslate"><span class="pre">core/audit.py</span></code>), which can cause cross-test/app interference and makes multi-tenant usage harder.</p></li>
+<li><p>Some sinks treat certain failure modes as “drop” rather than “retry”, and drop accounting may not reflect actual losses (e.g., strict serialization drop paths don’t obviously increment dropped counters in worker loop; see <code class="docutils literal notranslate"><span class="pre">core/worker.py</span></code> <code class="docutils literal notranslate"><span class="pre">_try_serialize</span></code> + <code class="docutils literal notranslate"><span class="pre">_flush_batch</span></code>, and tests that don’t assert dropped counts in strict mode).</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="upgrade-migration-stability">
+<h3>Upgrade/migration stability<a class="headerlink" href="#upgrade-migration-stability" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Positive</strong>: SemVer intent + Keep-a-Changelog stated (<code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</span></code> header; <code class="docutils literal notranslate"><span class="pre">CONTRIBUTING.md</span></code>).</p></li>
+<li><p><strong>Negative</strong>: release/changelog mismatch for recent releases limits practical migration guidance (<code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</span></code>).</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="phase-4-documentation-quality-and-accuracy">
+<h2>Phase 4 — Documentation Quality (and Accuracy)<a class="headerlink" href="#phase-4-documentation-quality-and-accuracy" title="Link to this heading"></a></h2>
+<section id="docs-inventory-what-exists">
+<h3>Docs inventory (what exists)<a class="headerlink" href="#docs-inventory-what-exists" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Top-level README</strong>: feature overview, quick start, presets, FastAPI integration, plugin ecosystem, benchmarking pointers (<code class="docutils literal notranslate"><span class="pre">README.md</span></code>)</p></li>
+<li><p><strong>User guide</strong>: configuration, reliability defaults, env vars, sink routing (<code class="docutils literal notranslate"><span class="pre">docs/user-guide/configuration.md</span></code>, <code class="docutils literal notranslate"><span class="pre">reliability-defaults.md</span></code>, <code class="docutils literal notranslate"><span class="pre">environment-variables.md</span></code>, <code class="docutils literal notranslate"><span class="pre">sink-routing.md</span></code>)</p></li>
+<li><p><strong>Architecture docs</strong>: async/sync boundary, pipeline ordering (<code class="docutils literal notranslate"><span class="pre">docs/architecture/async-sync-boundary.md</span></code>, <code class="docutils literal notranslate"><span class="pre">pipeline-stages.md</span></code>)</p></li>
+<li><p><strong>Security and redaction</strong>: <code class="docutils literal notranslate"><span class="pre">SECURITY.md</span></code>, <code class="docutils literal notranslate"><span class="pre">docs/redaction-guarantees.md</span></code>, redactor docs (<code class="docutils literal notranslate"><span class="pre">docs/plugins/redactors.md</span></code>)</p></li>
+<li><p><strong>Add-ons</strong>: tamper-evident logging design and packaging (<code class="docutils literal notranslate"><span class="pre">docs/addons/tamper-evident-logging.md</span></code>, <code class="docutils literal notranslate"><span class="pre">packages/fapilog-tamper/*</span></code>)</p></li>
+<li><p><strong>Process docs</strong>: contributing, releasing, extensive “stories” (many Markdown files in <code class="docutils literal notranslate"><span class="pre">docs/stories/</span></code>)</p></li>
+</ul>
+</section>
+<section id="onboarding-time-to-first-success">
+<h3>Onboarding / time to first success<a class="headerlink" href="#onboarding-time-to-first-success" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Strong</strong>: README quick start and presets are straightforward (<code class="docutils literal notranslate"><span class="pre">README.md</span></code> quick start + presets; <code class="docutils literal notranslate"><span class="pre">docs/user-guide/configuration.md</span></code>).</p></li>
+<li><p><strong>FastAPI onboarding</strong>: clear examples for both one-liner lifespan and manual middleware control (<code class="docutils literal notranslate"><span class="pre">README.md</span></code> “FastAPI request logging”; <code class="docutils literal notranslate"><span class="pre">docs/user-guide/configuration.md</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/setup.py</span></code>).</p></li>
+</ul>
+</section>
+<section id="accuracy-completeness-spot-checks">
+<h3>Accuracy &amp; completeness (spot checks)<a class="headerlink" href="#accuracy-completeness-spot-checks" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Accurate / consistent</strong></p>
+<ul>
+<li><p>Pipeline ordering is consistent across docs and code (<code class="docutils literal notranslate"><span class="pre">docs/architecture/pipeline-stages.md</span></code> vs <code class="docutils literal notranslate"><span class="pre">src/fapilog/core/worker.py</span></code>).</p></li>
+<li><p>FastAPI middleware behavior is validated by tests (<code class="docutils literal notranslate"><span class="pre">tests/integration/test_fastapi_setup.py</span></code>, <code class="docutils literal notranslate"><span class="pre">test_fastapi_logging_middleware.py</span></code>).</p></li>
+</ul>
+</li>
+<li><p><strong>Inaccurate / misleading / outdated</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Changelog is not aligned with releases</strong> (missing 0.3.4/0.3.5 sections) (<code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</span></code> vs <code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">release</span> <span class="pre">list</span></code> and local tags).</p></li>
+<li><p><strong>Compliance/audit encryption implication</strong>: docs and settings include encryption knobs (e.g., <code class="docutils literal notranslate"><span class="pre">AuditSinkSettings.encrypt_logs</span></code> in <code class="docutils literal notranslate"><span class="pre">src/fapilog/core/settings.py</span></code>, <code class="docutils literal notranslate"><span class="pre">CompliancePolicy.encrypt_audit_logs</span></code> in <code class="docutils literal notranslate"><span class="pre">core/audit.py</span></code>), but implementation writes plaintext JSONL with checksums (<code class="docutils literal notranslate"><span class="pre">core/audit.py</span></code>).</p></li>
+<li><p><strong>Contributing guide repo naming mismatch</strong>: refers to “fastapi-logger repository” (<code class="docutils literal notranslate"><span class="pre">CONTRIBUTING.md</span></code> line 5) while current repo is <code class="docutils literal notranslate"><span class="pre">chris-haste/fapilog</span></code> (README links and GitHub metadata).</p></li>
+</ol>
+</li>
+</ul>
+</section>
+<section id="examples-quality">
+<h3>Examples quality<a class="headerlink" href="#examples-quality" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Repo examples</strong>: <code class="docutils literal notranslate"><span class="pre">examples/</span></code> folder exists and includes FastAPI examples and sink examples (repo layout), but this review did not execute them; correctness is inferred from code/test coverage.</p></li>
+<li><p><strong>Tested examples</strong>: FastAPI setup and key behaviors are explicitly tested (see Phase 3 testing).</p></li>
+</ul>
+</section>
+<section id="api-reference-quality">
+<h3>API reference quality<a class="headerlink" href="#api-reference-quality" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Public API is centered on <code class="docutils literal notranslate"><span class="pre">get_logger</span></code>, <code class="docutils literal notranslate"><span class="pre">get_async_logger</span></code>, <code class="docutils literal notranslate"><span class="pre">runtime</span></code>, <code class="docutils literal notranslate"><span class="pre">runtime_async</span></code>, <code class="docutils literal notranslate"><span class="pre">Settings</span></code>, middleware/setup helpers (<code class="docutils literal notranslate"><span class="pre">src/fapilog/__init__.py</span></code>, <code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/__init__.py</span></code>).</p></li>
+<li><p>Plugin protocols are documented both in docs and code (e.g., <code class="docutils literal notranslate"><span class="pre">docs/plugins/redactors.md</span></code>, <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/*/__init__.py</span></code>).</p></li>
+<li><p>However, the presence of large “enterprise” configuration surfaces without corresponding functional behavior (notably encryption) makes “API reference” potentially misleading unless carefully scoped.</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="phase-5-developer-experience-dx-review">
+<h2>Phase 5 — Developer Experience (DX) Review<a class="headerlink" href="#phase-5-developer-experience-dx-review" title="Link to this heading"></a></h2>
+<section id="installation-friction">
+<h3>Installation friction<a class="headerlink" href="#installation-friction" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Low for core</strong>: pure-Python dependencies; optional extras for integrations (<code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>).</p></li>
+<li><p><strong>Some complexity</strong>: multiple extras, plus a separate add-on package for tamper-evident logging (<code class="docutils literal notranslate"><span class="pre">packages/fapilog-tamper/pyproject.toml</span></code>).</p></li>
+</ul>
+</section>
+<section id="happy-path-ergonomics">
+<h3>Happy path ergonomics<a class="headerlink" href="#happy-path-ergonomics" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Strong</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> zero-config default with format auto-selection (<code class="docutils literal notranslate"><span class="pre">src/fapilog/__init__.py</span></code> <code class="docutils literal notranslate"><span class="pre">_apply_default_log_level</span></code>, <code class="docutils literal notranslate"><span class="pre">_resolve_format</span></code>)</p></li>
+<li><p>Presets for dev/production/fastapi (<code class="docutils literal notranslate"><span class="pre">docs/user-guide/configuration.md</span></code>, <code class="docutils literal notranslate"><span class="pre">src/fapilog/core/presets.py</span></code>)</p></li>
+<li><p>FastAPI <code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code> lifecycle helper (<code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/setup.py</span></code>)</p></li>
+<li><p>Fluent builder API for IDE-friendly configuration (<code class="docutils literal notranslate"><span class="pre">src/fapilog/builder.py</span></code>)</p></li>
+</ul>
+</li>
+<li><p><strong>DX footguns</strong></p>
+<ul>
+<li><p>Multiple ways to configure routing (global sink routing settings vs routing sink plugin) (<code class="docutils literal notranslate"><span class="pre">docs/user-guide/sink-routing.md</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/routing.py</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/__init__.py</span></code> routing writer selection).</p></li>
+<li><p>Subtle differences in behavior depending on sync/async context (bound loop vs thread loop) and same-thread enqueue path (<code class="docutils literal notranslate"><span class="pre">docs/architecture/async-sync-boundary.md</span></code>; <code class="docutils literal notranslate"><span class="pre">core/logger.py</span></code>).</p></li>
+<li><p>Plugin version metadata inconsistencies (min version 0.4.0 on 0.3.x releases) can confuse plugin authors/users (<code class="docutils literal notranslate"><span class="pre">plugins/sinks/*</span></code>).</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="error-messages-and-debuggability">
+<h3>Error messages and debuggability<a class="headerlink" href="#error-messages-and-debuggability" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Diagnostics exist but are opt-in; many failures are contained and may be silent if diagnostics off (<code class="docutils literal notranslate"><span class="pre">core/diagnostics.py</span></code>; defensive try/except across pipeline).</p></li>
+<li><p>FastAPI middleware logs “failed to log request completion/error” via diagnostics if logging fails (<code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/logging.py</span></code>).</p></li>
+</ul>
+</section>
+<section id="configuration-experience">
+<h3>Configuration experience<a class="headerlink" href="#configuration-experience" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Pydantic v2 settings with nested env vars and many short aliases (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/settings.py</span></code>; <code class="docutils literal notranslate"><span class="pre">docs/user-guide/environment-variables.md</span></code>).</p></li>
+<li><p>This is powerful but high surface area (200+ env vars per docs), increasing cognitive load.</p></li>
+</ul>
+</section>
+<section id="ide-friendliness">
+<h3>IDE friendliness<a class="headerlink" href="#ide-friendliness" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Typed package and builder API help (<code class="docutils literal notranslate"><span class="pre">py.typed</span></code>; <code class="docutils literal notranslate"><span class="pre">builder.py</span></code>; MyPy strict config).</p></li>
+</ul>
+</section>
+<section id="migration-experience">
+<h3>Migration experience<a class="headerlink" href="#migration-experience" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>There is evidence of deprecations (sampling config warning) (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/logger.py</span></code> warns <code class="docutils literal notranslate"><span class="pre">observability.logging.sampling_rate</span></code> is deprecated; <code class="docutils literal notranslate"><span class="pre">docs/user-guide/configuration.md</span></code> mentions it).</p></li>
+<li><p>But missing changelog entries for recent releases limits practical migration guidance (<code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</span></code>).</p></li>
+</ul>
+</section>
+<section id="dx-score-010">
+<h3>DX score (0–10)<a class="headerlink" href="#dx-score-010" title="Link to this heading"></a></h3>
+<p><strong>DX Score: 7/10</strong></p>
+<ul class="simple">
+<li><p>Evidence for strong DX: presets and FastAPI helpers (<code class="docutils literal notranslate"><span class="pre">docs/user-guide/configuration.md</span></code>, <code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/setup.py</span></code>), typed + builder (<code class="docutils literal notranslate"><span class="pre">py.typed</span></code>, <code class="docutils literal notranslate"><span class="pre">src/fapilog/builder.py</span></code>), extensive env var docs (<code class="docutils literal notranslate"><span class="pre">docs/user-guide/environment-variables.md</span></code>).</p></li>
+<li><p>Evidence for DX drag: release/changelog mismatch (<code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</span></code> vs <code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">release</span> <span class="pre">list</span></code>), plugin metadata inconsistency (<code class="docutils literal notranslate"><span class="pre">plugins/sinks/*</span></code>), and some “enterprise” settings that don’t correspond to real behavior (audit encryption; <code class="docutils literal notranslate"><span class="pre">core/audit.py</span></code>).</p></li>
+</ul>
+</section>
+<section id="top-10-dx-improvements-actionable">
+<h3>Top 10 DX improvements (actionable)<a class="headerlink" href="#top-10-dx-improvements-actionable" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>Fix changelog discipline</strong>: add proper <code class="docutils literal notranslate"><span class="pre">0.3.4</span></code> and <code class="docutils literal notranslate"><span class="pre">0.3.5</span></code> sections and ensure <code class="docutils literal notranslate"><span class="pre">release.yml</span></code> extracts the correct release notes (<code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</span></code>; <code class="docutils literal notranslate"><span class="pre">.github/workflows/release.yml</span></code>).</p></li>
+<li><p><strong>Clarify compliance feature truth</strong>: explicitly document that audit logs are integrity-checked but not encrypted (or implement encryption) (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/audit.py</span></code>; <code class="docutils literal notranslate"><span class="pre">docs/*</span></code>).</p></li>
+<li><p><strong>Unify routing story</strong>: choose one recommended routing mechanism (global routing vs routing sink) and de-emphasize the other (<code class="docutils literal notranslate"><span class="pre">docs/user-guide/sink-routing.md</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/routing.py</span></code>).</p></li>
+<li><p><strong>Make backpressure semantics consistent</strong>: document and/or reconcile same-thread drop behavior (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/logger.py</span></code>; <code class="docutils literal notranslate"><span class="pre">tests/integration/test_worker_lifecycle.py</span></code> AC5).</p></li>
+<li><p><strong>Improve benchmark reliability</strong>: ensure <code class="docutils literal notranslate"><span class="pre">scripts/benchmarking.py</span></code> runs cleanly and matches output keys; link to a stable benchmark procedure (<code class="docutils literal notranslate"><span class="pre">scripts/benchmarking.py</span></code>; <code class="docutils literal notranslate"><span class="pre">README.md</span></code> benchmarking references).</p></li>
+<li><p><strong>Reduce “Settings() in hot path”</strong>: avoid reading env-based settings in per-log-call logic when possible (sampling deprecation, dedupe window) (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/logger.py</span></code> <code class="docutils literal notranslate"><span class="pre">_prepare_payload</span></code>).</p></li>
+<li><p><strong>Fix plugin metadata min-version inconsistencies</strong> or remove misleading fields until enforced (<code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/routing.py</span></code>, <code class="docutils literal notranslate"><span class="pre">audit.py</span></code>, <code class="docutils literal notranslate"><span class="pre">contrib/postgres.py</span></code>).</p></li>
+<li><p><strong>Diagnostics destination control</strong>: allow diagnostics to go to stderr or a separate logger by default; stdout printing is surprising in production (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/diagnostics.py</span></code>).</p></li>
+<li><p><strong>Ship or remove placeholder CLI</strong>: either wire <code class="docutils literal notranslate"><span class="pre">fapilog</span></code> CLI in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> or remove the module to avoid confusion (<code class="docutils literal notranslate"><span class="pre">src/fapilog/cli/main.py</span></code>; <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> commented scripts).</p></li>
+<li><p><strong>Document plugin security stance</strong>: provide a clear “safe plugin loading” guide (allowlist defaults, pinning, auditing) (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/settings.py</span></code> <code class="docutils literal notranslate"><span class="pre">PluginsSettings</span></code>; <code class="docutils literal notranslate"><span class="pre">SECURITY.md</span></code> mentions plugin security only briefly).</p></li>
+</ol>
+</section>
+</section>
+<hr class="docutils" />
+<section id="phase-6-competitor-landscape-comparative-analysis">
+<h2>Phase 6 — Competitor Landscape &amp; Comparative Analysis<a class="headerlink" href="#phase-6-competitor-landscape-comparative-analysis" title="Link to this heading"></a></h2>
+<section id="competitors-why-theyre-relevant">
+<h3>Competitors (why they’re relevant)<a class="headerlink" href="#competitors-why-theyre-relevant" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>Python stdlib <code class="docutils literal notranslate"><span class="pre">logging</span></code> + <code class="docutils literal notranslate"><span class="pre">QueueHandler/QueueListener</span></code></strong></p>
+<ul class="simple">
+<li><p>Comparable because it’s the baseline for Python production logging; can be made async-ish via background thread listener.</p></li>
+<li><p>Tradeoff: structured logging and context propagation require extra glue.</p></li>
+</ul>
+</li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">structlog</span></code></strong></p>
+<ul class="simple">
+<li><p>Comparable because it’s a popular structured logging library with processors and contextvars support; can output JSON and integrate with stdlib handlers.</p></li>
+</ul>
+</li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">loguru</span></code></strong></p>
+<ul class="simple">
+<li><p>Comparable because it offers ergonomic logging with sinks and async-ish “enqueue” behavior; strong DX for many apps.</p></li>
+</ul>
+</li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">aiologger</span></code></strong></p>
+<ul class="simple">
+<li><p>Comparable because it targets asyncio-friendly logging with async handlers.</p></li>
+</ul>
+</li>
+<li><p><strong>OpenTelemetry logging (Python OTel SDK)</strong></p>
+<ul class="simple">
+<li><p>Comparable for teams standardizing on telemetry pipelines; logs are increasingly part of OTLP flows even if not “logging library” per se.</p></li>
+</ul>
+</li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">python-json-logger</span></code></strong></p>
+<ul class="simple">
+<li><p>Comparable as a lightweight JSON formatter for stdlib logging; minimal overhead and adoption cost.</p></li>
+</ul>
+</li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">picologging</span></code></strong></p>
+<ul class="simple">
+<li><p>Comparable if performance is the main objective; drop-in replacement for stdlib logging with speed focus.</p></li>
+</ul>
+</li>
+</ol>
+<p><em>(Competitor references are based on ecosystem knowledge; web search results were consulted but appeared partially outdated for <code class="docutils literal notranslate"><span class="pre">fapilog</span></code> versions, so competitor selection here is primarily domain-based. GitHub and repo evidence for <code class="docutils literal notranslate"><span class="pre">fapilog</span></code> comes from this checkout and GitHub metadata via <code class="docutils literal notranslate"><span class="pre">gh</span></code>.)</em></p>
+</section>
+<section id="capability-comparison-matrix-high-level">
+<h3>Capability comparison matrix (high-level)<a class="headerlink" href="#capability-comparison-matrix-high-level" title="Link to this heading"></a></h3>
+<p>Legend: <strong>Full / Partial / None</strong></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Capability</p></th>
+<th class="head"><p>fapilog</p></th>
+<th class="head"><p>stdlib+Queue</p></th>
+<th class="head"><p>structlog</p></th>
+<th class="head"><p>loguru</p></th>
+<th class="head"><p>aiologger</p></th>
+<th class="head"><p>OTel logs</p></th>
+<th class="head"><p>python-json-logger</p></th>
+<th class="head"><p>picologging</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Async-first design (async APIs, loop-aware)</p></td>
+<td><p><strong>Full</strong> (<code class="docutils literal notranslate"><span class="pre">core/logger.py</span></code>, <code class="docutils literal notranslate"><span class="pre">core/worker.py</span></code>)</p></td>
+<td><p>Partial (thread-based)</p></td>
+<td><p>Partial (needs glue)</p></td>
+<td><p>Partial (thread enqueue)</p></td>
+<td><p><strong>Full</strong></p></td>
+<td><p>Partial (pipeline focus)</p></td>
+<td><p>None</p></td>
+<td><p>None</p></td>
+</tr>
+<tr class="row-odd"><td><p>Backpressure policy + queue metrics</p></td>
+<td><p><strong>Partial/Full</strong> (drop/wait + metrics; gotchas)</p></td>
+<td><p>Partial</p></td>
+<td><p>Partial</p></td>
+<td><p>Partial</p></td>
+<td><p>Partial</p></td>
+<td><p>Partial</p></td>
+<td><p>None</p></td>
+<td><p>None</p></td>
+</tr>
+<tr class="row-even"><td><p>Built-in sinks (file/http/webhook/cloud/loki/db)</p></td>
+<td><p><strong>Full</strong> (<code class="docutils literal notranslate"><span class="pre">plugins/sinks/*</span></code>)</p></td>
+<td><p>Partial (handlers exist)</p></td>
+<td><p>Partial (via handlers)</p></td>
+<td><p>Partial (custom sinks)</p></td>
+<td><p>Partial</p></td>
+<td><p>Partial (exporters)</p></td>
+<td><p>None</p></td>
+<td><p>None</p></td>
+</tr>
+<tr class="row-odd"><td><p>FastAPI middleware + request context propagation</p></td>
+<td><p><strong>Full</strong> (<code class="docutils literal notranslate"><span class="pre">fastapi/*</span></code>)</p></td>
+<td><p>Partial (manual)</p></td>
+<td><p>Partial (manual)</p></td>
+<td><p>Partial (manual)</p></td>
+<td><p>Partial</p></td>
+<td><p>Partial</p></td>
+<td><p>Partial</p></td>
+<td><p>Partial</p></td>
+</tr>
+<tr class="row-even"><td><p>Redaction pipeline with guarantees/guardrails</p></td>
+<td><p><strong>Full</strong> (<code class="docutils literal notranslate"><span class="pre">plugins/redactors/*</span></code>, docs)</p></td>
+<td><p>Partial (manual filters)</p></td>
+<td><p>Partial (processors)</p></td>
+<td><p>Partial</p></td>
+<td><p>Partial</p></td>
+<td><p>Partial</p></td>
+<td><p>None</p></td>
+<td><p>None</p></td>
+</tr>
+<tr class="row-odd"><td><p>Tamper-evident/audit integrity features</p></td>
+<td><p><strong>Partial</strong> (audit hash chain; tamper add-on)</p></td>
+<td><p>None</p></td>
+<td><p>None</p></td>
+<td><p>None</p></td>
+<td><p>None</p></td>
+<td><p>None</p></td>
+<td><p>None</p></td>
+<td><p>None</p></td>
+</tr>
+<tr class="row-even"><td><p>Typed, structured config (Pydantic schema + env aliasing)</p></td>
+<td><p><strong>Full</strong> (<code class="docutils literal notranslate"><span class="pre">core/settings.py</span></code>)</p></td>
+<td><p>None</p></td>
+<td><p>Partial</p></td>
+<td><p>None</p></td>
+<td><p>None</p></td>
+<td><p>Partial</p></td>
+<td><p>None</p></td>
+<td><p>None</p></td>
+</tr>
+<tr class="row-odd"><td><p>Operational resilience (fallback, circuit breakers)</p></td>
+<td><p><strong>Partial/Full</strong> (<code class="docutils literal notranslate"><span class="pre">sink_writers.py</span></code>, sinks)</p></td>
+<td><p>Partial</p></td>
+<td><p>Partial</p></td>
+<td><p>Partial</p></td>
+<td><p>Partial</p></td>
+<td><p>Partial</p></td>
+<td><p>None</p></td>
+<td><p>None</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="differentiation-narrative">
+<h3>Differentiation narrative<a class="headerlink" href="#differentiation-narrative" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Where fapilog is clearly better</strong></p>
+<ul>
+<li><p>Integrated <strong>end-to-end pipeline</strong>: filters → enrichers → redactors → processors → sinks, with explicit stage ordering and resilience (<code class="docutils literal notranslate"><span class="pre">docs/architecture/pipeline-stages.md</span></code>; <code class="docutils literal notranslate"><span class="pre">core/worker.py</span></code>).</p></li>
+<li><p>First-class FastAPI integration with request context and middleware (<code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/*</span></code>) plus tests validating behavior (<code class="docutils literal notranslate"><span class="pre">tests/integration/test_fastapi_setup.py</span></code>).</p></li>
+<li><p>Built-in sinks for modern ops targets (CloudWatch, Loki, Postgres) (<code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/contrib/*</span></code>) and sink failure fallback (<code class="docutils literal notranslate"><span class="pre">plugins/sinks/fallback.py</span></code>).</p></li>
+</ul>
+</li>
+<li><p><strong>Where it is behind / riskier</strong></p>
+<ul>
+<li><p>Some “enterprise” surfaces look <strong>overbuilt and under-implemented</strong>, especially around encryption/compliance (<code class="docutils literal notranslate"><span class="pre">core/audit.py</span></code>, <code class="docutils literal notranslate"><span class="pre">core/encryption.py</span></code>).</p></li>
+<li><p>Release hygiene (changelog vs tags) is weaker than mature competitors (<code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</span></code> vs <code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">release</span> <span class="pre">list</span></code>).</p></li>
+<li><p>Complexity: more moving parts than <code class="docutils literal notranslate"><span class="pre">structlog</span></code>/stdlib; more configuration to get right.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="switching-costs">
+<h3>Switching costs<a class="headerlink" href="#switching-costs" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>From stdlib/structlog/loguru to fapilog:</p>
+<ul>
+<li><p>Need to adopt fapilog’s event schema/envelope conventions and plugin pipeline (public API differs).</p></li>
+<li><p>Operational tuning: queue sizing, batch sizing, drop/wait policy, sink configurations, routing.</p></li>
+</ul>
+</li>
+<li><p>From fapilog back to simpler libs:</p>
+<ul>
+<li><p>Losing built-in sinks and pipeline semantics (routing, fallback, circuit breakers) likely requires custom glue.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="recommendations-when-to-pick-which">
+<h3>Recommendations (when to pick which)<a class="headerlink" href="#recommendations-when-to-pick-which" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Pick fapilog when</strong>:</p>
+<ul>
+<li><p>You need <em>built-in</em> async pipeline behavior, backpressure controls, redaction, and modern sinks, and you can invest in validation/POC (<code class="docutils literal notranslate"><span class="pre">README.md</span></code>; <code class="docutils literal notranslate"><span class="pre">docs/user-guide/reliability-defaults.md</span></code>; sinks in <code class="docutils literal notranslate"><span class="pre">plugins/sinks/*</span></code>).</p></li>
+</ul>
+</li>
+<li><p><strong>Pick stdlib+QueueHandler when</strong>:</p>
+<ul>
+<li><p>You want minimal dependencies and can tolerate DIY for JSON formatting/context/backpressure.</p></li>
+</ul>
+</li>
+<li><p><strong>Pick structlog when</strong>:</p>
+<ul>
+<li><p>You want flexible structured event shaping and can integrate with existing handler ecosystems.</p></li>
+</ul>
+</li>
+<li><p><strong>Pick loguru when</strong>:</p>
+<ul>
+<li><p>You want fast onboarding and ergonomic sinks for moderate-scale apps, less emphasis on strict pipeline semantics.</p></li>
+</ul>
+</li>
+<li><p><strong>Pick aiologger when</strong>:</p>
+<ul>
+<li><p>You need an asyncio-friendly logger but don’t need fapilog’s sink ecosystem and config schema.</p></li>
+</ul>
+</li>
+<li><p><strong>Pick OTel logs when</strong>:</p>
+<ul>
+<li><p>Your primary goal is consistent telemetry export to collectors, and you can accept logging as part of an observability stack rather than a logging-first library.</p></li>
+</ul>
+</li>
+<li><p><strong>Pick python-json-logger / picologging when</strong>:</p>
+<ul>
+<li><p>You’re optimizing for minimal adoption cost (json-logger) or raw performance with stdlib compatibility (picologging).</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="competitive-position-rating-rank-among-this-set-1-best">
+<h3>Competitive position rating (rank among this set; 1 = best)<a class="headerlink" href="#competitive-position-rating-rank-among-this-set-1-best" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Capability breadth</strong>: <strong>1/7</strong> — fapilog has the broadest built-in “pipeline + sinks + FastAPI” feature set in this comparison (evidence: <code class="docutils literal notranslate"><span class="pre">README.md</span></code> + <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/*</span></code> + <code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/*</span></code>).</p></li>
+<li><p><strong>DX</strong>: <strong>3/7</strong> — strong onboarding and helpers, but more complexity and some inconsistencies (evidence: <code class="docutils literal notranslate"><span class="pre">docs/user-guide/configuration.md</span></code> vs <code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</span></code> mismatch and placeholders).</p></li>
+<li><p><strong>Security</strong>: <strong>4/7</strong> — strong redaction + scanning, but compliance/encryption mismatch and plugin supply-chain risk reduce confidence (evidence: <code class="docutils literal notranslate"><span class="pre">SECURITY.md</span></code>, <code class="docutils literal notranslate"><span class="pre">security-sbom.yml</span></code>, <code class="docutils literal notranslate"><span class="pre">core/audit.py</span></code>).</p></li>
+<li><p><strong>Maintenance health</strong>: <strong>3/7</strong> — active maintenance and CI, but small community and single maintainer (evidence: <code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">repo</span> <span class="pre">view</span></code> stargazers=2; <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> maintainer; issue list).</p></li>
+<li><p><strong>Performance</strong>: <strong>3/7</strong> — real optimizations exist (writev, async sinks), but polling/spin patterns and questionable benchmark script quality prevent top rank (evidence: <code class="docutils literal notranslate"><span class="pre">plugins/sinks/rotating_file.py</span></code>, <code class="docutils literal notranslate"><span class="pre">core/worker.py</span></code>, <code class="docutils literal notranslate"><span class="pre">scripts/benchmarking.py</span></code>).</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="phase-7-red-flags-risk-register-be-harsh">
+<h2>Phase 7 — Red Flags &amp; Risk Register (Be Harsh)<a class="headerlink" href="#phase-7-red-flags-risk-register-be-harsh" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Risk</p></th>
+<th class="head"><p>Severity (P0–P3)</p></th>
+<th class="head"><p>Likelihood</p></th>
+<th class="head"><p>Evidence</p></th>
+<th class="head"><p>Impact</p></th>
+<th class="head"><p>Mitigation / workaround</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Changelog does not match released tags</p></td>
+<td><p>P2</p></td>
+<td><p>High</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</span></code> lacks 0.3.4/0.3.5; tags and releases exist (<code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">release</span> <span class="pre">list</span></code>, local tags)</p></td>
+<td><p>Harder upgrades, unclear breaking changes, compliance/traceability issues</p></td>
+<td><p>Enforce changelog updates in release process; verify <code class="docutils literal notranslate"><span class="pre">release.yml</span></code> extraction logic and add missing sections.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Audit “encryption” not implemented (compliance mismatch)</p></td>
+<td><p>P1</p></td>
+<td><p>Medium</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CompliancePolicy.encrypt_audit_logs</span></code> exists but <code class="docutils literal notranslate"><span class="pre">_store_event</span></code> writes plaintext JSONL (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/audit.py</span></code>); <code class="docutils literal notranslate"><span class="pre">AuditSinkConfig.encrypt_logs=True</span></code> default (<code class="docutils literal notranslate"><span class="pre">plugins/sinks/audit.py</span></code>)</p></td>
+<td><p>Users may assume encrypted-at-rest audit logs; compliance failure</p></td>
+<td><p>Treat audit sink as integrity-only unless proven; use <code class="docutils literal notranslate"><span class="pre">fapilog-tamper</span></code> or external encryption; document clearly.</p></td>
+</tr>
+<tr class="row-even"><td><p>Audit trail blocks event loop with sync file I/O</p></td>
+<td><p>P1</p></td>
+<td><p>Medium</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">core/audit.py</span></code> opens/writes files inside async processing loop (<code class="docutils literal notranslate"><span class="pre">_store_event</span></code>)</p></td>
+<td><p>Latency spikes or throughput collapse in async apps when audit logging heavy</p></td>
+<td><p>Offload file I/O to <code class="docutils literal notranslate"><span class="pre">asyncio.to_thread</span></code> or use async file library; isolate audit processing onto dedicated thread/loop.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Backpressure semantics inconsistent in same-thread path</p></td>
+<td><p>P2</p></td>
+<td><p>Medium</p></td>
+<td><p>Sync facade drops immediately when on worker loop thread (<code class="docutils literal notranslate"><span class="pre">core/logger.py</span></code> same-thread branch); tests cover drop diagnostics (<code class="docutils literal notranslate"><span class="pre">tests/integration/test_worker_lifecycle.py</span></code> AC5)</p></td>
+<td><p>Unexpected data loss under load; hard-to-debug behavior</p></td>
+<td><p>Document clearly; avoid calling sync logger from same loop; prefer <code class="docutils literal notranslate"><span class="pre">AsyncLoggerFacade</span></code> in async contexts.</p></td>
+</tr>
+<tr class="row-even"><td><p>Plugin supply-chain execution risk</p></td>
+<td><p>P2</p></td>
+<td><p>Medium</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">plugins/loader.py</span></code> loads entry points and instantiates classes; plugins enabled by default (<code class="docutils literal notranslate"><span class="pre">core/settings.py</span></code> <code class="docutils literal notranslate"><span class="pre">PluginsSettings.enabled=True</span></code>)</p></td>
+<td><p>Malicious plugin can execute code at import/instantiate time</p></td>
+<td><p>Use allowlist/denylist; pin dependencies; run in constrained environments; audit plugins.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Plugin metadata version inconsistencies</p></td>
+<td><p>P3</p></td>
+<td><p>High</p></td>
+<td><p>Several sinks set <code class="docutils literal notranslate"><span class="pre">min_fapilog_version:</span> <span class="pre">0.4.0</span></code> (<code class="docutils literal notranslate"><span class="pre">plugins/sinks/routing.py</span></code>, <code class="docutils literal notranslate"><span class="pre">audit.py</span></code>, <code class="docutils literal notranslate"><span class="pre">contrib/postgres.py</span></code>)</p></td>
+<td><p>Confuses plugin authors; future compatibility checks may break</p></td>
+<td><p>Fix metadata or remove until enforced; add tests validating metadata against project version.</p></td>
+</tr>
+<tr class="row-even"><td><p>Benchmark script may be unreliable/out-of-date</p></td>
+<td><p>P2</p></td>
+<td><p>Medium</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scripts/benchmarking.py</span></code> appears to reference non-existent keys in its own output</p></td>
+<td><p>Performance claims may be unverified; users cannot reproduce</p></td>
+<td><p>Add CI job to run benchmark smoke; align output schema; publish baseline results.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Single maintainer / small community</p></td>
+<td><p>P2</p></td>
+<td><p>High</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> single maintainer; repo has 2 stars and 1 open issue (<code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">repo</span> <span class="pre">view</span></code>)</p></td>
+<td><p>Maintenance bus factor, slower security response under load</p></td>
+<td><p>Add more maintainers; document governance; encourage community contribution.</p></td>
+</tr>
+<tr class="row-even"><td><p>Internal diagnostics to stdout can pollute logs</p></td>
+<td><p>P3</p></td>
+<td><p>Medium</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">core/diagnostics.py</span></code> uses <code class="docutils literal notranslate"><span class="pre">print(...)</span></code> to stdout</p></td>
+<td><p>Mixed log streams, confusing ingestion in production</p></td>
+<td><p>Default diagnostics to stderr or separate logger; document.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<hr class="docutils" />
+<section id="phase-8-verdict-decision-guidance">
+<h2>Phase 8 — Verdict &amp; Decision Guidance<a class="headerlink" href="#phase-8-verdict-decision-guidance" title="Link to this heading"></a></h2>
+<section id="executive-summary-510-bullets">
+<h3>Executive summary (5–10 bullets)<a class="headerlink" href="#executive-summary-510-bullets" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>fapilog is a feature-rich async logging pipeline</strong> with built-in sinks (stdout/file/http/webhook/Loki/CloudWatch/Postgres/audit), FastAPI integration, and a plugin architecture (<code class="docutils literal notranslate"><span class="pre">README.md</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/*</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/*</span></code>).</p></li>
+<li><p><strong>Core pipeline stage ordering is explicit and tested</strong> (filters→enrichers→redactors→processors→sinks) (<code class="docutils literal notranslate"><span class="pre">docs/architecture/pipeline-stages.md</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/core/worker.py</span></code>; <code class="docutils literal notranslate"><span class="pre">tests/integration/test_worker_lifecycle.py</span></code>).</p></li>
+<li><p><strong>Backpressure + fallback behavior is a real focus</strong>, with dedicated tests validating sink failure signaling and stderr fallback (<code class="docutils literal notranslate"><span class="pre">plugins/sinks/fallback.py</span></code>; <code class="docutils literal notranslate"><span class="pre">tests/integration/test_sink_fallback_signaling.py</span></code>).</p></li>
+<li><p><strong>Docs are extensive</strong>, but there are <strong>accuracy/traceability gaps</strong>: changelog doesn’t match latest releases (<code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</span></code> vs <code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">release</span> <span class="pre">list</span></code>).</p></li>
+<li><p><strong>Security posture is decent but not best-in-class</strong>: good scanning and redaction, but compliance/encryption claims are not convincingly implemented in core (<code class="docutils literal notranslate"><span class="pre">SECURITY.md</span></code>; <code class="docutils literal notranslate"><span class="pre">security-sbom.yml</span></code>; <code class="docutils literal notranslate"><span class="pre">core/audit.py</span></code>).</p></li>
+<li><p><strong>Complexity is high</strong>: large settings surface and multiple overlapping mechanisms (e.g., routing) raise operational risk without careful validation (<code class="docutils literal notranslate"><span class="pre">core/settings.py</span></code>; <code class="docutils literal notranslate"><span class="pre">docs/user-guide/sink-routing.md</span></code>).</p></li>
+<li><p><strong>Maintenance is active but small-community</strong> (single maintainer; low stars) (<code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>; <code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">repo</span> <span class="pre">view</span></code>).</p></li>
+</ul>
+</section>
+<section id="recommendation-trial-poc">
+<h3>Recommendation: <strong>Trial (POC)</strong><a class="headerlink" href="#recommendation-trial-poc" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Why not “Adopt” yet</strong>: release hygiene and compliance feature ambiguity (especially audit encryption) create avoidable risk; there are also subtle behavioral gotchas around backpressure and async/sync boundaries.</p></li>
+<li><p><strong>Why not “Avoid”</strong>: core capabilities (non-blocking, routing, sinks, FastAPI integration, redaction, fallback) are substantial and backed by tests; the project is actively maintained.</p></li>
+</ul>
+</section>
+<section id="fit-by-scenario-guidance">
+<h3>Fit-by-scenario guidance<a class="headerlink" href="#fit-by-scenario-guidance" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Best fit scenarios</strong></p>
+<ul>
+<li><p>Async services (FastAPI) needing standardized JSON logs + correlation IDs, with optional cloud sinks and backpressure behavior (<code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/*</span></code>; <code class="docutils literal notranslate"><span class="pre">plugins/sinks/contrib/*</span></code>; <code class="docutils literal notranslate"><span class="pre">docs/user-guide/reliability-defaults.md</span></code>).</p></li>
+<li><p>Teams willing to invest in validating configuration and operational semantics, and possibly contributing fixes upstream.</p></li>
+</ul>
+</li>
+<li><p><strong>Poor fit scenarios</strong></p>
+<ul>
+<li><p>Strict compliance regimes requiring demonstrable encrypted-at-rest audit logs unless independently verified/implemented (<code class="docutils literal notranslate"><span class="pre">core/audit.py</span></code>).</p></li>
+<li><p>Environments that require low-complexity, minimal configuration, or extremely stable APIs with strong community governance (bus factor risk).</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="adoption-checklist">
+<h3>Adoption checklist<a class="headerlink" href="#adoption-checklist" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>POC validation</strong></p>
+<ul>
+<li><p>Confirm latency under slow sink and burst behavior matches your SLOs (pipeline + backpressure behavior; see <code class="docutils literal notranslate"><span class="pre">core/worker.py</span></code>, <code class="docutils literal notranslate"><span class="pre">core/logger.py</span></code>, <code class="docutils literal notranslate"><span class="pre">docs/user-guide/reliability-defaults.md</span></code>).</p></li>
+<li><p>Validate sink failure fallback behavior is acceptable for your incident posture (<code class="docutils literal notranslate"><span class="pre">plugins/sinks/fallback.py</span></code>; tests).</p></li>
+<li><p>Confirm log redaction meets your policy (field/regex/url) and doesn’t miss your sensitive fields (<code class="docutils literal notranslate"><span class="pre">docs/redaction-guarantees.md</span></code>; <code class="docutils literal notranslate"><span class="pre">plugins/redactors/*</span></code>).</p></li>
+<li><p>If using audit/tamper-evident features, verify actual encryption/integrity properties end-to-end (<code class="docutils literal notranslate"><span class="pre">core/audit.py</span></code>; <code class="docutils literal notranslate"><span class="pre">docs/addons/tamper-evident-logging.md</span></code>; <code class="docutils literal notranslate"><span class="pre">packages/fapilog-tamper/*</span></code>).</p></li>
+</ul>
+</li>
+<li><p><strong>Production monitoring</strong></p>
+<ul>
+<li><p>Enable metrics and watch queue watermark, drops, sink errors, and flush latency (<code class="docutils literal notranslate"><span class="pre">docs/user-guide/reliability-defaults.md</span></code>; metrics hooks in <code class="docutils literal notranslate"><span class="pre">core/worker.py</span></code>).</p></li>
+<li><p>Add explicit health endpoints for sinks if you rely on remote sinks (<code class="docutils literal notranslate"><span class="pre">plugins/sinks/contrib/*</span></code> health checks).</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="if-avoiding-top-3-alternatives">
+<h3>If avoiding: top 3 alternatives<a class="headerlink" href="#if-avoiding-top-3-alternatives" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>stdlib logging + QueueHandler/QueueListener</strong>: minimal dependencies, strong stability; you add JSON formatting and context propagation yourself.</p></li>
+<li><p><strong>structlog</strong>: strong structured logging and ecosystem; flexible integration with stdlib handlers.</p></li>
+<li><p><strong>loguru</strong>: best-in-class onboarding and ergonomics for many teams; less pipeline/backpressure specificity.</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="open-questions-unknowns">
+<h2>Open Questions / Unknowns<a class="headerlink" href="#open-questions-unknowns" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Actual encryption behavior</strong>: core “encryption” settings appear validation-only, and audit logs appear plaintext. I did not find encryption applied in the audit write path (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/audit.py</span></code>). If there is encryption elsewhere, it wasn’t evident from the inspected hot paths.</p></li>
+<li><p><strong>Benchmark correctness</strong>: <code class="docutils literal notranslate"><span class="pre">scripts/benchmarking.py</span></code> appears inconsistent; I did not execute it, so performance claims are not validated here.</p></li>
+<li><p><strong>Plugin marketplace</strong>: marketplace settings exist (<code class="docutils literal notranslate"><span class="pre">core/marketplace.py</span></code>), but FastAPI router is empty and says endpoints removed (<code class="docutils literal notranslate"><span class="pre">fastapi/integration.py</span></code>); unclear near-term plan.</p></li>
+</ul>
+<hr class="docutils" />
+</section>
+</section>
+<section id="appendix-scoring-rubric-mandatory">
+<h1>Appendix — Scoring Rubric (Mandatory)<a class="headerlink" href="#appendix-scoring-rubric-mandatory" title="Link to this heading"></a></h1>
+<section id="score-summary-table">
+<h2>Score Summary Table<a class="headerlink" href="#score-summary-table" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Category</p></th>
+<th class="head text-right"><p>Weight</p></th>
+<th class="head text-right"><p>Score (0–10)</p></th>
+<th class="head text-right"><p>Weighted Points (weight * score)</p></th>
+<th class="head"><p>Confidence</p></th>
+<th class="head"><p>Evidence pointers</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Capability Coverage &amp; Maturity</p></td>
+<td class="text-right"><p>20</p></td>
+<td class="text-right"><p>7</p></td>
+<td class="text-right"><p>140</p></td>
+<td><p>Med</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/plugins/sinks/*</span></code>; <code class="docutils literal notranslate"><span class="pre">src/fapilog/fastapi/*</span></code>; <code class="docutils literal notranslate"><span class="pre">tests/integration/*</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Technical Architecture &amp; Code Quality</p></td>
+<td class="text-right"><p>18</p></td>
+<td class="text-right"><p>6</p></td>
+<td class="text-right"><p>108</p></td>
+<td><p>Med</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">src/fapilog/core/logger.py</span></code>; <code class="docutils literal notranslate"><span class="pre">core/worker.py</span></code>; <code class="docutils literal notranslate"><span class="pre">plugins/loader.py</span></code>; architecture docs</p></td>
+</tr>
+<tr class="row-even"><td><p>Documentation Quality &amp; Accuracy</p></td>
+<td class="text-right"><p>14</p></td>
+<td class="text-right"><p>6</p></td>
+<td class="text-right"><p>84</p></td>
+<td><p>Med</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">docs/user-guide/*</span></code>; <code class="docutils literal notranslate"><span class="pre">docs/architecture/*</span></code>; <strong>changelog mismatch</strong> (<code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</span></code> vs <code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">release</span> <span class="pre">list</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Developer Experience (DX)</p></td>
+<td class="text-right"><p>16</p></td>
+<td class="text-right"><p>7</p></td>
+<td class="text-right"><p>112</p></td>
+<td><p>Med</p></td>
+<td><p>Presets/docs (<code class="docutils literal notranslate"><span class="pre">docs/user-guide/configuration.md</span></code>); builder (<code class="docutils literal notranslate"><span class="pre">src/fapilog/builder.py</span></code>); FastAPI helper (<code class="docutils literal notranslate"><span class="pre">fastapi/setup.py</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Security Posture</p></td>
+<td class="text-right"><p>12</p></td>
+<td class="text-right"><p>5</p></td>
+<td class="text-right"><p>60</p></td>
+<td><p>Med</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SECURITY.md</span></code>; <code class="docutils literal notranslate"><span class="pre">security-sbom.yml</span></code>; redaction docs+code; <strong>audit encryption mismatch</strong> (<code class="docutils literal notranslate"><span class="pre">core/audit.py</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Performance &amp; Efficiency</p></td>
+<td class="text-right"><p>8</p></td>
+<td class="text-right"><p>6</p></td>
+<td class="text-right"><p>48</p></td>
+<td><p>Low/Med</p></td>
+<td><p>file sink optimizations (<code class="docutils literal notranslate"><span class="pre">plugins/sinks/rotating_file.py</span></code>); polling/spin patterns (<code class="docutils literal notranslate"><span class="pre">core/worker.py</span></code>, <code class="docutils literal notranslate"><span class="pre">core/concurrency.py</span></code>); benchmark script concerns (<code class="docutils literal notranslate"><span class="pre">scripts/benchmarking.py</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Reliability &amp; Operability</p></td>
+<td class="text-right"><p>6</p></td>
+<td class="text-right"><p>6</p></td>
+<td class="text-right"><p>36</p></td>
+<td><p>Med</p></td>
+<td><p>backpressure/fallback/tests (<code class="docutils literal notranslate"><span class="pre">docs/user-guide/reliability-defaults.md</span></code>; <code class="docutils literal notranslate"><span class="pre">fallback.py</span></code>; <code class="docutils literal notranslate"><span class="pre">tests/integration/*</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Maintenance &amp; Project Health</p></td>
+<td class="text-right"><p>6</p></td>
+<td class="text-right"><p>5</p></td>
+<td class="text-right"><p>30</p></td>
+<td><p>Med</p></td>
+<td><p>active pushes/releases (<code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">repo</span> <span class="pre">view</span></code>); small community/bus factor (<code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>; <code class="docutils literal notranslate"><span class="pre">gh</span> <span class="pre">repo</span> <span class="pre">view</span></code>)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="final-score">
+<h2>Final Score<a class="headerlink" href="#final-score" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Weighted Score</strong>: (\frac{618}{10} = 61.8) → <strong>62 / 100</strong></p></li>
+<li><p><strong>Overall confidence</strong>: <strong>Medium</strong></p>
+<ul>
+<li><p>Medium because there is strong repo/test evidence for many behaviors, but some key claims (encryption, benchmarks, release notes) have mismatches that reduce certainty without runtime validation.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="gate-check">
+<h2>Gate Check<a class="headerlink" href="#gate-check" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>P0 Avoid gates</strong>: <strong>No confirmed triggers</strong> (no critical exploitable vuln evidenced; project is active; Apache-2.0 license).</p></li>
+<li><p><strong>P1 Trial-only gates</strong>: <strong>Triggered for compliance-heavy usage</strong></p>
+<ul>
+<li><p><strong>Gate</strong>: “Major missing capability required for common real-world usage in the domain”</p></li>
+<li><p><strong>Why</strong>: If you interpret “encrypted audit logs” as a required compliance feature, current implementation appears to write plaintext (<code class="docutils literal notranslate"><span class="pre">src/fapilog/core/audit.py</span></code>).</p></li>
+<li><p><strong>Verdict impact</strong>: <strong>Trial-only</strong> for compliance/audit encryption requirements; for general structured logging and FastAPI logging, <strong>Trial</strong> remains appropriate.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="if-i-had-2-hours-validation-plan-poc-checklist">
+<h2>“If I had 2 hours” Validation Plan (POC checklist)<a class="headerlink" href="#if-i-had-2-hours-validation-plan-poc-checklist" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>What to test</p></th>
+<th class="head"><p>How to test it</p></th>
+<th class="head"><p>Pass / Fail criteria</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Backpressure semantics under load</p></td>
+<td><p>Run a small FastAPI app; set tiny <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__MAX_QUEUE_SIZE</span></code>, simulate slow sink (e.g., webhook sink to a delayed endpoint), generate bursts; observe drops and latency (<code class="docutils literal notranslate"><span class="pre">docs/user-guide/reliability-defaults.md</span></code>; <code class="docutils literal notranslate"><span class="pre">core/worker.py</span></code>)</p></td>
+<td><p><strong>Pass</strong>: latency stays within SLO; drops match configured policy; no deadlocks. <strong>Fail</strong>: unexpected drops/hangs or inconsistent behavior vs docs.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Same-thread vs cross-thread enqueue behavior</p></td>
+<td><p>In an async context, call sync logger from within the same loop; compare to async logger usage (<code class="docutils literal notranslate"><span class="pre">core/logger.py</span></code>; <code class="docutils literal notranslate"><span class="pre">tests/integration/test_worker_lifecycle.py</span></code> AC5)</p></td>
+<td><p><strong>Pass</strong>: behavior is documented and acceptable. <strong>Fail</strong>: silent/unexpected drops that violate expectations.</p></td>
+</tr>
+<tr class="row-even"><td><p>Sink failure fallback and observability</p></td>
+<td><p>Force sinks to raise <code class="docutils literal notranslate"><span class="pre">SinkWriteError</span></code> / return <code class="docutils literal notranslate"><span class="pre">False</span></code>; verify stderr fallback and diagnostics behavior (<code class="docutils literal notranslate"><span class="pre">plugins/sinks/fallback.py</span></code>; <code class="docutils literal notranslate"><span class="pre">tests/integration/test_sink_fallback_signaling.py</span></code>)</p></td>
+<td><p><strong>Pass</strong>: failures do not crash app; fallback emits; diagnostics rate-limited. <strong>Fail</strong>: crashes, unbounded log storms, or silent losses.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Redaction correctness</p></td>
+<td><p>Feed structured events with nested secrets and URL credentials; verify output matches <code class="docutils literal notranslate"><span class="pre">docs/redaction-guarantees.md</span></code></p></td>
+<td><p><strong>Pass</strong>: sensitive fields are masked; guardrails prevent runaway scans. <strong>Fail</strong>: secrets leak or redaction breaks events.</p></td>
+</tr>
+<tr class="row-even"><td><p>Audit sink reality check (integrity + encryption)</p></td>
+<td><p>Enable audit sink; inspect written files; attempt chain verification; check for encryption-at-rest (<code class="docutils literal notranslate"><span class="pre">core/audit.py</span></code>; <code class="docutils literal notranslate"><span class="pre">plugins/sinks/audit.py</span></code>)</p></td>
+<td><p><strong>Pass</strong>: integrity checks work; encryption behavior matches documented claims. <strong>Fail</strong>: plaintext logs when encryption expected, or integrity chain breaks.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Benchmark reproducibility</p></td>
+<td><p>Run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">scripts/benchmarking.py</span> <span class="pre">--help</span></code> and a small run; verify outputs and claim evaluation table is coherent (<code class="docutils literal notranslate"><span class="pre">scripts/benchmarking.py</span></code>; <code class="docutils literal notranslate"><span class="pre">README.md</span></code> benchmark reference)</p></td>
+<td><p><strong>Pass</strong>: script runs cleanly and produces consistent metrics. <strong>Fail</strong>: runtime errors or inconsistent key usage.</p></td>
+</tr>
+<tr class="row-even"><td><p>Dependency/security scan fidelity</p></td>
+<td><p>Run <code class="docutils literal notranslate"><span class="pre">pip-audit</span></code> and confirm SBOM generation matches CI (<code class="docutils literal notranslate"><span class="pre">.github/workflows/security-sbom.yml</span></code>)</p></td>
+<td><p><strong>Pass</strong>: no critical vulns; SBOM is generated. <strong>Fail</strong>: critical findings or inability to reproduce.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Chris Haste.
+      <span class="lastupdated">Last updated on January 17, 2026.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

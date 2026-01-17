@@ -115,12 +115,6 @@
 | `FAPILOG_SECURITY__ENCRYPTION__KEY_SOURCE` | Optional | — | Source for key material |
 | `FAPILOG_SECURITY__ENCRYPTION__MIN_TLS_VERSION` | Literal | 1.2 | Minimum TLS version for transport |
 | `FAPILOG_SECURITY__ENCRYPTION__ROTATE_INTERVAL_DAYS` | int | 90 | Recommended key rotation interval |
-| `FAPILOG_SINK_CONFIG__AUDIT__COMPLIANCE_LEVEL` | str | basic | Compliance level for audit trail |
-| `FAPILOG_SINK_CONFIG__AUDIT__ENCRYPT_LOGS` | bool | False | Encrypt audit log files (not yet implemented) |
-| `FAPILOG_SINK_CONFIG__AUDIT__REAL_TIME_ALERTS` | bool | False | Emit real-time compliance alerts |
-| `FAPILOG_SINK_CONFIG__AUDIT__REQUIRE_INTEGRITY` | bool | True | Enable hash chain integrity checks |
-| `FAPILOG_SINK_CONFIG__AUDIT__RETENTION_DAYS` | int | 365 | Retention window for audit logs (days) |
-| `FAPILOG_SINK_CONFIG__AUDIT__STORAGE_PATH` | str | audit_logs | Directory where audit logs are stored |
 | `FAPILOG_SINK_CONFIG__CLOUDWATCH__BATCH_SIZE` | int | 100 | Events per batch |
 | `FAPILOG_SINK_CONFIG__CLOUDWATCH__BATCH_TIMEOUT_SECONDS` | float | 5.0 | Max seconds before flushing a partial batch. Accepts '5s' or 5.0 |
 | `FAPILOG_SINK_CONFIG__CLOUDWATCH__CIRCUIT_BREAKER_ENABLED` | bool | True | Enable internal circuit breaker for CloudWatch sink |

@@ -22,7 +22,7 @@ Fapilog env vars fall into three categories:
 | --- | --- | --- |
 | **Top-level** | `FAPILOG_CORE__*`, `FAPILOG_HTTP__*` | Standard Pydantic parsing—these are top-level settings |
 | **Short aliases** | `FAPILOG_CLOUDWATCH__*`, `FAPILOG_LOKI__*`, `FAPILOG_POSTGRES__*`, `FAPILOG_SIZE_GUARD__*`, `FAPILOG_SINK_ROUTING__*` | Dedicated handlers map short forms to nested paths |
-| **Full paths** | `FAPILOG_SINK_CONFIG__WEBHOOK__*`, `FAPILOG_SINK_CONFIG__AUDIT__*` | Require the complete nested path |
+| **Full paths** | `FAPILOG_SINK_CONFIG__WEBHOOK__*` | Require the complete nested path |
 
 Short aliases like `FAPILOG_CLOUDWATCH__REGION` are convenience mappings—they're equivalent to the full path `FAPILOG_SINK_CONFIG__CLOUDWATCH__REGION` but easier to type.
 
@@ -149,17 +149,6 @@ When `FAPILOG_FILE__DIRECTORY` is set, the rotating file sink is auto-enabled wi
 | `FAPILOG_SINK_CONFIG__WEBHOOK__BATCH_SIZE` | int | `1` | Events per webhook call |
 | `FAPILOG_SINK_CONFIG__WEBHOOK__BATCH_TIMEOUT_SECONDS` | float | `5.0` | Max seconds before flush |
 
-### Audit Sink (full path)
-
-| Variable | Type | Default | Description |
-| --- | --- | --- | --- |
-| `FAPILOG_SINK_CONFIG__AUDIT__COMPLIANCE_LEVEL` | string | `basic` | Compliance level (`basic`, `sox`, `hipaa`, etc.) |
-| `FAPILOG_SINK_CONFIG__AUDIT__STORAGE_PATH` | string | `audit_logs` | Directory for audit JSONL files |
-| `FAPILOG_SINK_CONFIG__AUDIT__RETENTION_DAYS` | int | `365` | Retention window |
-| `FAPILOG_SINK_CONFIG__AUDIT__ENCRYPT_LOGS` | bool | `false` | Encrypt audit logs (not yet implemented) |
-| `FAPILOG_SINK_CONFIG__AUDIT__REQUIRE_INTEGRITY` | bool | `true` | Hash-chain integrity |
-| `FAPILOG_SINK_CONFIG__AUDIT__REAL_TIME_ALERTS` | bool | `false` | Compliance alerts |
-
 ### Sink Routing (short aliases)
 
 | Variable | Type | Default | Description |
@@ -196,10 +185,9 @@ metadata:
   name: fapilog-config
 data:
   FAPILOG_CORE__LOG_LEVEL: "INFO"
-  FAPILOG_CORE__SINKS: '["cloudwatch","audit"]'
+  FAPILOG_CORE__SINKS: '["cloudwatch"]'
   FAPILOG_CLOUDWATCH__LOG_GROUP_NAME: "/myapp/prod"
   FAPILOG_CLOUDWATCH__REGION: "us-east-1"
-  FAPILOG_SINK_CONFIG__AUDIT__STORAGE_PATH: "/data/audit"
 ```
 
 ### Docker Compose
