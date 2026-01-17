@@ -566,4 +566,6 @@ ignore_names = [
   "_size_guard_dropped",
   "_truncated_count",
   "_dropped_count",
+  # Pydantic v2 model configuration - used by framework
+  "model_config",
 ]
