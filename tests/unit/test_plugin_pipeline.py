@@ -22,7 +22,13 @@ class _DummySink:
 
 def _make_loader(monkeypatch: pytest.MonkeyPatch, instances: list[_DummySink]) -> None:
     def _fake_load(
-        group: str, name: str, config: dict[str, Any] | None = None
+        group: str,
+        name: str,
+        config: dict[str, Any] | None = None,
+        *,
+        validation_mode: Any = None,
+        allow_external: bool | None = None,
+        allowlist: list[str] | None = None,
     ) -> _DummySink:
         inst = _DummySink(**(config or {}))
         inst.group = group  # type: ignore[attr-defined]

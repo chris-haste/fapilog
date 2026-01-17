@@ -208,7 +208,13 @@ def _load_plugins(
             continue
         cfg = cfgs.get(_normalize(name), {})
         try:
-            plugin = _loader.load_plugin(group, name, cfg)
+            plugin = _loader.load_plugin(
+                group,
+                name,
+                cfg,
+                allow_external=settings.plugins.allow_external,
+                allowlist=settings.plugins.allowlist,
+            )
             plugins.append(plugin)
         except (_loader.PluginNotFoundError, _loader.PluginLoadError) as exc:
             try:

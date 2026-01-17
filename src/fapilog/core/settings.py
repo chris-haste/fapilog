@@ -1001,6 +1001,10 @@ class Settings(BaseSettings):
         """Settings controlling plugin behavior."""
 
         enabled: bool = Field(default=True, description="Enable plugin loading")
+        allow_external: bool = Field(
+            default=False,
+            description="Allow loading plugins from entry points (security risk)",
+        )
         allowlist: list[str] = Field(
             default_factory=list,
             description="If non-empty, only these plugin names are allowed",

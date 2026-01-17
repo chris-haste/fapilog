@@ -643,6 +643,12 @@
 {
   "description": "Settings controlling plugin behavior.",
   "properties": {
+    "allow_external": {
+      "default": false,
+      "description": "Allow loading plugins from entry points (security risk)",
+      "title": "Allow External",
+      "type": "boolean"
+    },
     "allowlist": {
       "description": "If non-empty, only these plugin names are allowed",
       "items": {
