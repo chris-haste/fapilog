@@ -396,6 +396,55 @@ interval settings and represent fixed intervals (not wall-clock boundaries).</p>
 </pre></div>
 </div>
 </section>
+<section id="plugin-security">
+<h2>Plugin Security<a class="headerlink" href="#plugin-security" title="Link to this heading"></a></h2>
+<p>By default, fapilog only loads <strong>built-in plugins</strong>. External plugins (registered via Python entry points) are blocked to prevent arbitrary code execution from untrusted packages.</p>
+<section id="enabling-external-plugins">
+<h3>Enabling External Plugins<a class="headerlink" href="#enabling-external-plugins" title="Link to this heading"></a></h3>
+<p>To use external plugins, explicitly opt-in using one of these approaches:</p>
+<p><strong>Recommended: Allowlist specific plugins</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span><span class="p">,</span> <span class="n">get_logger</span>
+
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span><span class="n">plugins</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;allowlist&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;my-trusted-sink&quot;</span><span class="p">,</span> <span class="s2">&quot;approved-enricher&quot;</span><span class="p">]})</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Via environment variable</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_PLUGINS__ALLOWLIST</span><span class="o">=</span><span class="s1">&#39;[&quot;my-trusted-sink&quot;, &quot;approved-enricher&quot;]&#39;</span>
+</pre></div>
+</div>
+<p><strong>Less secure: Allow all external plugins</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span><span class="n">plugins</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;allow_external&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_PLUGINS__ALLOW_EXTERNAL</span><span class="o">=</span><span class="nb">true</span>
+</pre></div>
+</div>
+</section>
+<section id="security-implications">
+<h3>Security Implications<a class="headerlink" href="#security-implications" title="Link to this heading"></a></h3>
+<p>External plugins can execute arbitrary code during loading. Only enable plugins you trust:</p>
+<ul class="simple">
+<li><p><strong>Allowlist approach</strong>: Limits exposure to specific, known plugins</p></li>
+<li><p><strong>allow_external=True</strong>: Permits any entry point plugin (use with caution)</p></li>
+</ul>
+<p>When external plugins are loaded, a diagnostic warning is emitted to help track plugin sources.</p>
+</section>
+<section id="migration-from-previous-versions">
+<h3>Migration from Previous Versions<a class="headerlink" href="#migration-from-previous-versions" title="Link to this heading"></a></h3>
+<p>If you were using external plugins that now fail to load, add them to the allowlist:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Before (external plugins loaded automatically)</span>
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span><span class="n">core</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;sinks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;external-sink&quot;</span><span class="p">]})</span>
+
+<span class="c1"># After (explicit opt-in required)</span>
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span>
+    <span class="n">core</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;sinks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;external-sink&quot;</span><span class="p">]},</span>
+    <span class="n">plugins</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;allowlist&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;external-sink&quot;</span><span class="p">]},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
 <section id="full-reference">
 <h2>Full reference<a class="headerlink" href="#full-reference" title="Link to this heading"></a></h2>
 <p>See <a class="reference internal" href="environment-variables.html"><span class="std std-doc">Environment Variables</span></a> for the full matrix of env names and aliases (including short forms like <code class="docutils literal notranslate"><span class="pre">FAPILOG_CLOUDWATCH__REGION</span></code>).</p>

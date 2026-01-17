@@ -191,6 +191,62 @@ filter_config:
       sample_rate: 0.25
 ```
 
+## Plugin Security
+
+By default, fapilog only loads **built-in plugins**. External plugins (registered via Python entry points) are blocked to prevent arbitrary code execution from untrusted packages.
+
+### Enabling External Plugins
+
+To use external plugins, explicitly opt-in using one of these approaches:
+
+**Recommended: Allowlist specific plugins**
+
+```python
+from fapilog import Settings, get_logger
+
+settings = Settings(plugins={"allowlist": ["my-trusted-sink", "approved-enricher"]})
+logger = get_logger(settings=settings)
+```
+
+```bash
+# Via environment variable
+export FAPILOG_PLUGINS__ALLOWLIST='["my-trusted-sink", "approved-enricher"]'
+```
+
+**Less secure: Allow all external plugins**
+
+```python
+settings = Settings(plugins={"allow_external": True})
+```
+
+```bash
+export FAPILOG_PLUGINS__ALLOW_EXTERNAL=true
+```
+
+### Security Implications
+
+External plugins can execute arbitrary code during loading. Only enable plugins you trust:
+
+- **Allowlist approach**: Limits exposure to specific, known plugins
+- **allow_external=True**: Permits any entry point plugin (use with caution)
+
+When external plugins are loaded, a diagnostic warning is emitted to help track plugin sources.
+
+### Migration from Previous Versions
+
+If you were using external plugins that now fail to load, add them to the allowlist:
+
+```python
+# Before (external plugins loaded automatically)
+settings = Settings(core={"sinks": ["external-sink"]})
+
+# After (explicit opt-in required)
+settings = Settings(
+    core={"sinks": ["external-sink"]},
+    plugins={"allowlist": ["external-sink"]},
+)
+```
+
 ## Full reference
 
 See [Environment Variables](environment-variables.md) for the full matrix of env names and aliases (including short forms like `FAPILOG_CLOUDWATCH__REGION`).

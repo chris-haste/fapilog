@@ -178,6 +178,7 @@
 <section id="unreleased">
 <h2>[Unreleased]<a class="headerlink" href="#unreleased" title="Link to this heading"></a></h2>
 <ul class="simple">
+<li><p><strong>Security</strong>: External plugins now blocked by default; use <code class="docutils literal notranslate"><span class="pre">plugins.allow_external=true</span></code> or <code class="docutils literal notranslate"><span class="pre">plugins.allowlist</span></code> for explicit opt-in (Story 3.5). This is a <strong>breaking change</strong> for users of external entry point plugins.</p></li>
 <li><p><strong>Fixed</strong>: Benchmark script key alignment in <code class="docutils literal notranslate"><span class="pre">derive_verdicts()</span></code> to match actual output keys from <code class="docutils literal notranslate"><span class="pre">benchmark()</span></code> (Story 10.11).</p></li>
 <li><p>Added CI smoke test for benchmark script to catch future regressions.</p></li>
 <li><p><strong>Fixed</strong>: Strict mode serialization drops now correctly increment the <code class="docutils literal notranslate"><span class="pre">dropped</span></code> counter and record metrics; previously these drops were silently unaccounted (Story 1.24).</p></li>

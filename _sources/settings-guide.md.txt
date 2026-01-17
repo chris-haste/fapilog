@@ -122,6 +122,7 @@ This guide documents Settings groups and fields.
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `plugins.enabled` | bool | True | Enable plugin loading |
+| `plugins.allow_external` | bool | False | Allow loading plugins from entry points (security risk) |
 | `plugins.allowlist` | list | PydanticUndefined | If non-empty, only these plugin names are allowed |
 | `plugins.denylist` | list | PydanticUndefined | Plugin names to block from loading |
 | `plugins.validation_mode` | str | disabled | Plugin validation mode: disabled, warn, or strict |

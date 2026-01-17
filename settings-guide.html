@@ -651,17 +651,22 @@
 <td><p>True</p></td>
 <td><p>Enable plugin loading</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plugins.allowlist</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plugins.allow_external</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><p>Allow loading plugins from entry points (security risk)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plugins.allowlist</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>If non-empty, only these plugin names are allowed</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plugins.denylist</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plugins.denylist</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Plugin names to block from loading</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plugins.validation_mode</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plugins.validation_mode</span></code></p></td>
 <td><p>str</p></td>
 <td><p>disabled</p></td>
 <td><p>Plugin validation mode: disabled, warn, or strict</p></td>

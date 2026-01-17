@@ -80,6 +80,7 @@
 | `FAPILOG_OBSERVABILITY__TRACING__PROVIDER` | Literal | otel | Tracing backend provider ('otel' or 'none') |
 | `FAPILOG_OBSERVABILITY__TRACING__SAMPLING_RATE` | float | 0.1 | Trace sampling probability in range 0.0–1.0 |
 | `FAPILOG_PLUGINS__ALLOWLIST` | list | PydanticUndefined | If non-empty, only these plugin names are allowed |
+| `FAPILOG_PLUGINS__ALLOW_EXTERNAL` | bool | False | Allow loading plugins from entry points (security risk) |
 | `FAPILOG_PLUGINS__DENYLIST` | list | PydanticUndefined | Plugin names to block from loading |
 | `FAPILOG_PLUGINS__ENABLED` | bool | True | Enable plugin loading |
 | `FAPILOG_PLUGINS__VALIDATION_MODE` | str | disabled | Plugin validation mode: disabled, warn, or strict |
