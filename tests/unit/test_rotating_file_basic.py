@@ -130,16 +130,16 @@ async def test_timestamp_collision_suffix_with_datetime_monkeypatch(
     forcing the collision suffix (-1, -2, etc.) to be used when
     multiple files are created.
     """
-    from datetime import UTC as _REAL_UTC
     from datetime import datetime as _REAL_DT
+    from datetime import timezone
 
     # Always return the same timestamp to force collision
-    fixed_time = _REAL_DT(2025, 1, 1, 12, 0, 0, tzinfo=_REAL_UTC)
+    fixed_time = _REAL_DT(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
 
     class _FakeDT:
         """Fake datetime that always returns the same timestamp."""
 
-        UTC = _REAL_UTC
+        UTC = timezone.utc
 
         @staticmethod
         def now(tz=None):  # type: ignore[no-untyped-def]

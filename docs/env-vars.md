@@ -11,6 +11,7 @@
 | `FAPILOG_CORE__CAPTURE_UNHANDLED_ENABLED` | bool | False | Automatically install unhandled exception hooks (sys/asyncio) |
 | `FAPILOG_CORE__CONTEXT_BINDING_ENABLED` | bool | True | Enable per-task bound context via logger.bind/unbind/clear |
 | `FAPILOG_CORE__DEFAULT_BOUND_CONTEXT` | dict | PydanticUndefined | Default bound context applied at logger creation when enabled |
+| `FAPILOG_CORE__DIAGNOSTICS_OUTPUT` | Literal | stderr | Output stream for internal diagnostics: stderr (default, Unix convention) or stdout (backward compat) |
 | `FAPILOG_CORE__DROP_ON_FULL` | bool | True | If True, drop events after backpressure_wait_ms elapses when queue is full |
 | `FAPILOG_CORE__ENABLE_METRICS` | bool | False | Enable Prometheus-compatible metrics |
 | `FAPILOG_CORE__ENABLE_REDACTORS` | bool | True | Enable redactors stage between enrichers and sink emission |

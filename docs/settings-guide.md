@@ -18,6 +18,7 @@ This guide documents Settings groups and fields.
 | `core.context_binding_enabled` | bool | True | Enable per-task bound context via logger.bind/unbind/clear |
 | `core.default_bound_context` | dict | PydanticUndefined | Default bound context applied at logger creation when enabled |
 | `core.internal_logging_enabled` | bool | False | Emit DEBUG/WARN diagnostics for internal errors |
+| `core.diagnostics_output` | Literal | stderr | Output stream for internal diagnostics: stderr (default, Unix convention) or stdout (backward compat) |
 | `core.error_dedupe_window_seconds` | float | 5.0 | Seconds to suppress duplicate ERROR logs with the same message; 0 disables deduplication |
 | `core.shutdown_timeout_seconds` | float | 3.0 | Maximum time to flush on shutdown signals |
 | `core.worker_count` | int | 1 | Number of worker tasks for flush processing |
