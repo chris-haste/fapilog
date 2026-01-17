@@ -26,7 +26,7 @@ import pytest
 from fapilog import get_logger
 from fapilog.core import diagnostics as _diag_mod
 from fapilog.core.context import request_id_var
-from fapilog.core.diagnostics import set_writer_for_tests
+from fapilog.core.diagnostics import _reset_for_tests, set_writer_for_tests
 from fapilog.core.logger import SyncLoggerFacade
 
 
@@ -280,6 +280,53 @@ class TestBackpressure:
             (d.get("level") == "WARN") and (d.get("component") == "backpressure")
             for d in diag
         )
+
+    @pytest.mark.critical
+    @pytest.mark.asyncio
+    async def test_same_thread_drop_with_drop_on_full_false_notes_mismatch(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Same-thread drop with drop_on_full=False emits diagnostic noting the mismatch."""
+        # Reset rate limiter to avoid suppression from previous tests
+        _reset_for_tests()
+
+        collected: list[dict[str, Any]] = []
+        diag: list[dict[str, Any]] = []
+
+        def _writer(payload: dict[str, Any]) -> None:
+            diag.append(payload)
+
+        set_writer_for_tests(_writer)
+        monkeypatch.setattr(_diag_mod, "_is_enabled", lambda: True)
+
+        logger = SyncLoggerFacade(
+            name="t",
+            queue_capacity=1,
+            batch_max_size=1024,
+            batch_timeout_seconds=0.5,
+            backpressure_wait_ms=1000,  # User expects to wait
+            drop_on_full=False,  # User expects blocking behavior
+            sink_write=lambda e: _collecting_sink(collected, e),
+        )
+        logger.start()
+
+        # Overrun queue from the loop thread to trigger same-thread drop path
+        for _ in range(100):
+            logger.info("x")
+
+        res = await logger.stop_and_drain()
+        assert res.dropped > 0
+
+        # Expect diagnostic noting that drop_on_full=False cannot be honored
+        bp_diags = [
+            d
+            for d in diag
+            if d.get("component") == "backpressure" and d.get("level") == "WARN"
+        ]
+        assert len(bp_diags) >= 1  # noqa: WA002 - rate limiting makes exact count unpredictable
+        # Verify message includes the mismatch note
+        assert any("drop_on_full=False" in d.get("message", "") for d in bp_diags)
 
 
 class TestSelfTest:
