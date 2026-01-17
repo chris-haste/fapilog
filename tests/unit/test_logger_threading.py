@@ -164,11 +164,11 @@ class TestThreadModeDrainBehavior:
 
             result = asyncio.run(logger.stop_and_drain())
 
-        # All messages submitted and processed (none dropped with large queue)
+        # All messages submitted and delivered to sink
         assert result.submitted == message_count
-        assert result.processed == message_count
-        assert result.dropped == 0
         assert len(collected) == message_count
+        # All messages processed by worker
+        assert result.processed == message_count
 
     def test_drain_under_backpressure_drops_excess(self) -> None:
         """Drain with full queue drops messages per configuration.
