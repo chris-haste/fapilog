@@ -229,7 +229,10 @@ class TestSinkFallbackIntegration:
 
         assert writes
         assert warn_calls
-        assert warn_calls[0]["sink"] == "failing"
+        # Filter to sink-related warn calls (other diagnostics may also fire)
+        sink_warns = [w for w in warn_calls if "sink" in w]
+        assert sink_warns, f"Expected sink warn calls, got: {warn_calls}"
+        assert sink_warns[0]["sink"] == "failing"
 
     def test_routing_path_falls_back(self) -> None:
         class FailingSink:
@@ -265,7 +268,10 @@ class TestSinkFallbackIntegration:
 
         assert writes
         assert warn_calls
-        assert warn_calls[0]["sink"] == "failing"
+        # Filter to sink-related warn calls (other diagnostics may also fire)
+        sink_warns = [w for w in warn_calls if "sink" in w]
+        assert sink_warns, f"Expected sink warn calls, got: {warn_calls}"
+        assert sink_warns[0]["sink"] == "failing"
 
     def test_fanout_handler_failure_is_contained(self) -> None:
         class FailingSink:
