@@ -12,13 +12,17 @@ from __future__ import annotations
 
 import pytest
 
-from fapilog.plugins import loader
-
 
 def test_audit_sink_not_in_built_in_registry() -> None:
-    """Audit sink should not be registered as a built-in plugin."""
-    names = loader.list_available_plugins("fapilog.sinks")
-    assert "audit" not in names
+    """Audit sink should not be registered as a built-in plugin.
+
+    Note: If fapilog-audit is installed, it will be discoverable via entry point,
+    but should NOT be in the built-in registry itself.
+    """
+    # Access the internal built-in registry directly
+    from fapilog.plugins.loader import BUILTIN_SINKS
+
+    assert "audit" not in BUILTIN_SINKS
 
 
 def test_core_import_does_not_include_audit() -> None:

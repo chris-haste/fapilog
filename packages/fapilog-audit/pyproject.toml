@@ -26,7 +26,7 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "fapilog>=0.4.0",
+    "fapilog>=0.3.6",
 ]
 
 [project.optional-dependencies]
@@ -63,6 +63,9 @@ python_files = ["test_*.py"]
 addopts = [
     "--strict-markers",
     "--asyncio-mode=auto",
+]
+markers = [
+    "security: marks tests as security-related",
 ]
 
 [tool.ruff]
