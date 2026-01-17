@@ -51,6 +51,7 @@ This gives the user immediate visibility that the skill is active.
 - Read-only except: update story Status/checklists when no P0/P1/P2 issues
 - Evidence-based: use diffs, file reads, test output - never fabricate
 - Specific suggestions: file path + what to change conceptually (no patches)
+- **Fresh perspective**: Review as if seeing the code for the first time. Never rely on memory of what was "intended" during implementation. For each AC, cite specific `file:line` evidence from the actual diff.
 
 ## Review Steps
 
@@ -74,19 +75,36 @@ This gives the user immediate visibility that the skill is active.
 - **Security**: secrets, injection, unsafe subprocess
 - **Performance**: obvious hotspots, unnecessary IO
 
-### 3. Classify Issues
+### 3. AC Verification (Evidence-Required)
+
+For EACH acceptance criterion from the story:
+
+1. Identify which files/functions should implement it
+2. Read the actual code in `git diff --cached` for those sections
+3. Verify the code behavior matches the AC requirement
+4. Document: `file:line` + brief explanation of how code satisfies AC
+5. If no clear evidence in diff → mark as Fail or Partial
+
+**Do NOT mark an AC as Pass based on:**
+
+- Memory of what you implemented earlier in the conversation
+- Assumption that it "should work" based on intent
+- Test names alone (must verify test assertions actually validate the AC)
+- Code that was written but not staged
+
+### 4. Classify Issues
 
 - **P0**: Blocks merge (bugs, security holes, missing critical functionality)
 - **P1**: Should fix before merge (test gaps, error handling, maintainability)
 - **P2**: Consider fixing (style, minor improvements)
 
-### 4. Test Check
+### 5. Test Check
 
 - Detect test runner from repo (pytest, tox, etc.)
 - Suggest minimal focused test command
 - Use existing test output if available; never fabricate results
 
-### 5. DoD Verification
+### 6. DoD Verification
 
 - Read the story's Definition of Done checklist
 - Verify each item against the staged changes:
@@ -136,9 +154,9 @@ If user mentions precommit modified files:
 - [issue]: [file:line] - [suggestion]
 
 ### AC Coverage
-| Criterion | Status | Notes |
-|-----------|--------|-------|
-| [AC item] | Pass/Fail/partial | [details] |
+| Criterion | Status | Evidence |
+|-----------|--------|----------|
+| [AC item] | Pass/Fail/Partial | `file:line` - [how code satisfies AC, or why it fails] |
 
 ### DoD Status
 | Item | Status | Notes |
@@ -184,8 +202,9 @@ python scripts/check_settings_descriptions.py --min-length 15
 - [Key positives]
 
 ### AC Coverage
-
-All acceptance criteria met.
+| Criterion | Status | Evidence |
+|-----------|--------|----------|
+| [AC item] | Pass | `file:line` - [how code satisfies AC] |
 
 ### DoD Status
 
@@ -209,11 +228,53 @@ python scripts/check_settings_descriptions.py --min-length 15
 Then:
 1. Update the story's `**Status:**` field to `Complete`
 2. Check off DoD items that are verified
-3. Tell user: "Updated story status to Complete. Ready for /commit-pr"
+3. Append a **Code Review** section to the story (see format below)
+4. Tell user: "Updated story status to Complete. Ready for /create-pr"
+
+## Story Update: Code Review Section
+
+After a successful review (no P0/P1/P2 issues), append this section to the story file before the Change Log:
+
+```markdown
+---
+
+## Code Review
+
+**Date:** YYYY-MM-DD
+**Reviewer:** Claude
+**Verdict:** OK to PR
+
+### Summary
+
+[1-2 sentences describing what was reviewed]
+
+### AC Verification
+
+| Criterion | Evidence |
+|-----------|----------|
+| [AC item] | `file:line` - [how code satisfies AC] |
+
+### Quality Gates
+
+- [x] ruff check passed
+- [x] ruff format passed
+- [x] mypy passed
+- [x] diff-cover >= 90%
+- [x] No weak assertions
+- [x] No dead code
+```
+
+If issues were found and fixed, include a subsection noting them:
+
+```markdown
+### Issues Addressed
+
+- [P1/P2] [Brief description] - Fixed in [file:line]
+```
 
 ## Style
+
 - Concise, high-signal
 - No fluff or pleasantries
 - Link findings to specific files/lines
 - Actionable recommendations only
-```

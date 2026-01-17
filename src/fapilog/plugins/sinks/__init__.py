@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Protocol, runtime_checkable
 
 from ..loader import register_builtin
-from .audit import AuditSink
 from .contrib.cloudwatch import CloudWatchSink
 from .contrib.loki import LokiSink
 from .contrib.postgres import PostgresSink
@@ -94,7 +93,6 @@ __all__ = [
     "CloudWatchSink",
     "LokiSink",
     "PostgresSink",
-    "AuditSink",
     "RoutingSink",
 ]
 
@@ -145,11 +143,6 @@ register_builtin(
     "postgres",
     PostgresSink,
     aliases=["postgresql"],
-)
-register_builtin(
-    "fapilog.sinks",
-    "audit",
-    AuditSink,
 )
 register_builtin(
     "fapilog.sinks",

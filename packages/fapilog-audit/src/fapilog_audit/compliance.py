@@ -7,11 +7,12 @@ baseline enterprise expectations. Uses lightweight rules (not legal guidance).
 
 from __future__ import annotations
 
+from fapilog.core.plugin_config import ValidationIssue, ValidationResult
+
 # Note: No Optional imports currently needed
 from pydantic import BaseModel, Field
 
 from .audit import ComplianceLevel, CompliancePolicy
-from .plugin_config import ValidationIssue, ValidationResult
 
 
 class DataHandlingSettings(BaseModel):

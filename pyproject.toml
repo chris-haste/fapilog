@@ -401,56 +401,6 @@ exclude = [
 
 # Whitelist for false positives - legitimate API components
 ignore_names = [
-    # Audit enum values - part of public API
-    "ERROR_RECOVERED",
-    "ERROR_ESCALATED", 
-    "SYSTEM_STARTUP",
-    "SYSTEM_SHUTDOWN",
-    "COMPONENT_FAILURE",
-    "COMPONENT_RECOVERY",
-    "CONFIG_CHANGED",
-    "PLUGIN_LOADED", 
-    "PLUGIN_UNLOADED",
-    "COMPLIANCE_CHECK",
-    "AUDIT_LOG_ACCESS",
-    "RETENTION_POLICY_APPLIED",
-    "SOX",
-    "PCI_DSS",
-    "SOC2",
-    "ISO27001",
-    "DEBUG",
-    
-    # Audit model fields - used via Pydantic serialization
-    "archive_after_days",
-    "require_integrity_check",
-    "audit_access_roles",
-    "gdpr_data_subject_rights",
-    "hipaa_minimum_necessary",
-    "sox_change_control",
-    "hostname",
-    "process_id",
-    "error_category", 
-    "error_severity",
-    "compliance_level",
-    "retention_category",
-    "checksum",
-    "signature",
-    "model_config",
-    
-    # Audit chain verification result fields
-    "valid",
-    "events_checked",
-    "first_invalid_sequence",
-    "error_message",
-    
-    # Audit public API methods
-    "log_data_access",
-    "get_events",
-    "get_statistics", 
-    "cleanup",
-    "verify_chain_from_storage",
-    "drain",
-    
     # Circuit breaker public API
     "call",
     "_can_execute",
@@ -611,11 +561,11 @@ ignore_names = [
   "load_integrity_plugin",
   "get_enricher",
   "wrap_sink",
-  # Audit compliance API - public helper function
-  "emit_compliance_alert",
   # Size guard processor metrics - used for observability via MetricsCollector
   "_size_guard_truncated",
   "_size_guard_dropped",
   "_truncated_count",
   "_dropped_count",
+  # Pydantic v2 model configuration - used by framework
+  "model_config",
 ]

@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from fapilog.core.audit import (
+from fapilog_audit import (
     AuditEvent,
     AuditEventType,
     AuditTrail,

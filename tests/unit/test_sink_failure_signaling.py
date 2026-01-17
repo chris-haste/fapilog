@@ -366,25 +366,6 @@ class TestSinkErrorSignaling:
             await sink.write({"message": "test"})
         assert exc_info.value.context.plugin_name == "rotating_file"
 
-    @pytest.mark.asyncio
-    async def test_audit_sink_raises_sink_write_error_on_failure(self, tmp_path):
-        """AuditSink should raise SinkWriteError on write failure."""
-        from fapilog.plugins.sinks.audit import AuditSink, AuditSinkConfig
-
-        config = AuditSinkConfig(storage_path=str(tmp_path))
-        sink = AuditSink(config)
-        await sink.start()
-
-        # Force a write failure by mocking the internal trail.log_event
-        async def failing_log_event(*args, **kwargs):
-            raise OSError("cannot write audit log")
-
-        sink._trail.log_event = failing_log_event
-
-        with pytest.raises(SinkWriteError) as exc_info:
-            await sink.write({"message": "audit event", "level": "INFO"})
-        assert exc_info.value.context.plugin_name == "audit"
-
 
 class TestFanoutWriterSerializedPath:
     """Test _fanout_writer write_serialized handles failure signals."""

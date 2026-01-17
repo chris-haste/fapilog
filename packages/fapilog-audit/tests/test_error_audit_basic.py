@@ -16,18 +16,21 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import pytest
-
 from fapilog.core import (
-    AuditEventType,
-    AuditLogLevel,
-    AuditTrail,
     AuthenticationError,
-    ComplianceLevel,
-    CompliancePolicy,
     ComponentError,
     NetworkError,
     ValidationError,
 )
+
+from fapilog_audit import (
+    AuditEventType,
+    AuditLogLevel,
+    AuditTrail,
+    ComplianceLevel,
+    CompliancePolicy,
+)
+from fapilog_audit.audit import AuditEvent
 
 
 class TestAuditTrailsBasic:
@@ -235,8 +238,6 @@ class TestAuditTrailsBasic:
     async def test_audit_event_creation(self):
         """Test AuditEvent model creation and validation."""
         # Test basic event
-        from fapilog.core.audit import AuditEvent
-
         event = AuditEvent(
             event_type=AuditEventType.ERROR_OCCURRED,
             message="Test error message",

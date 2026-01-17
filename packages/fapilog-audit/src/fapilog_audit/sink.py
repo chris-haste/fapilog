@@ -4,14 +4,15 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from ...core.audit import (
+from fapilog.core.errors import SinkWriteError
+
+from .audit import (
     AuditEventType,
     AuditLogLevel,
     AuditTrail,
     ComplianceLevel,
     CompliancePolicy,
 )
-from ...core.errors import SinkWriteError
 
 
 @dataclass
@@ -152,8 +153,8 @@ PLUGIN_METADATA = {
     "name": "audit",
     "version": "1.0.0",
     "plugin_type": "sink",
-    "entry_point": "fapilog.plugins.sinks.audit:AuditSink",
-    "description": "Writes log entries to compliance audit trail with hash-chain integrity.",
+    "entry_point": "fapilog_audit:AuditSink",
+    "description": "Writes log entries to compliance audit trail.",
     "author": "Fapilog Core",
     "compatibility": {"min_fapilog_version": "0.4.0"},
     "api_version": "1.0",

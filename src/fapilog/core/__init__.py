@@ -2,30 +2,12 @@
 Fapilog v3 Core Module.
 
 This module provides the core async error handling hierarchy with comprehensive
-features including sink circuit breakers, retry mechanisms, audit trails, and
-context preservation for enterprise-grade logging systems.
+features including sink circuit breakers, retry mechanisms, and context
+preservation for enterprise-grade logging systems.
 """
 
 from .access_control import AccessControlSettings, validate_access_control
-from .audit import (
-    AuditEvent,
-    AuditEventType,
-    AuditLogLevel,
-    AuditTrail,
-    ComplianceLevel,
-    CompliancePolicy,
-    audit_error,
-    audit_security_event,
-    get_audit_trail,
-)
 from .circuit_breaker import CircuitState, SinkCircuitBreaker, SinkCircuitBreakerConfig
-from .compliance import (
-    AuditConfig,
-    DataHandlingSettings,
-    validate_audit_config,
-    validate_compliance_policy,
-    validate_data_handling,
-)
 from .concurrency import BackpressurePolicy, NonBlockingRingQueue
 from .config import load_settings
 from .context import (
@@ -196,12 +178,6 @@ __all__ = [
     "EnvironmentType",
     "detect_environment",
     "get_environment_config",
-    # Compliance configuration validation
-    "AuditConfig",
-    "DataHandlingSettings",
-    "validate_compliance_policy",
-    "validate_data_handling",
-    "validate_audit_config",
     # Plugin configuration validation
     "ValidationIssue",
     "ValidationResult",
@@ -219,14 +195,4 @@ __all__ = [
     # Event model and drain result
     "LogEvent",
     "DrainResult",
-    # Audit trails
-    "AuditEvent",
-    "AuditEventType",
-    "AuditLogLevel",
-    "AuditTrail",
-    "ComplianceLevel",
-    "CompliancePolicy",
-    "audit_error",
-    "audit_security_event",
-    "get_audit_trail",
 ]
