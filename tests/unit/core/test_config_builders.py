@@ -81,7 +81,6 @@ class TestSinkConfigs:
             "loki",
             "cloudwatch",
             "postgres",
-            "audit",
             "sealed",
         }
         assert expected_keys.issubset(result.keys())

@@ -7,8 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from fapilog.core.audit import AuditTrail, CompliancePolicy
-from fapilog.plugins.sinks.audit import AuditSink, AuditSinkConfig
+from fapilog_audit import AuditSink, AuditSinkConfig, AuditTrail, CompliancePolicy
 
 
 class TestCompliancePolicyDefault:

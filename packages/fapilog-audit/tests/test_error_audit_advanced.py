@@ -20,18 +20,19 @@ from tempfile import TemporaryDirectory
 from unittest.mock import AsyncMock, mock_open, patch
 
 import pytest
+from fapilog.core import NetworkError
 
-from fapilog.core import (
+from fapilog_audit import (
     AuditEventType,
     AuditLogLevel,
     AuditTrail,
     ComplianceLevel,
     CompliancePolicy,
-    NetworkError,
     audit_error,
     audit_security_event,
     get_audit_trail,
 )
+from fapilog_audit.audit import AuditEvent
 
 
 class TestAuditTrailsAdvanced:
@@ -145,9 +146,11 @@ class TestAuditTrailsAdvanced:
         event_id = await audit_trail.log_event(
             AuditEventType.ERROR_OCCURRED, "Error before start"
         )
-        assert isinstance(event_id, str) and len(event_id) == 36  # Should still generate ID
+        assert (
+            isinstance(event_id, str) and len(event_id) == 36
+        )  # Should still generate ID
 
-        # Test with non-existent (but valid) storage path that gets created automatically
+        # Test with non-existent storage path that gets created automatically
         with TemporaryDirectory() as temp_dir:
             invalid_path = Path(temp_dir) / "nonexistent" / "path"
             trail_with_new_path = AuditTrail(storage_path=invalid_path)
@@ -222,8 +225,6 @@ class TestAuditTrailsAdvanced:
     async def test_audit_quick_coverage(self):
         """Test quick coverage improvements for audit module."""
         # Test direct AuditEvent creation with different log levels
-        from fapilog.core.audit import AuditEvent
-
         event1 = AuditEvent(
             event_type=AuditEventType.SYSTEM_STARTUP,
             message="System started",
@@ -521,7 +522,7 @@ class TestAuditTrailsAdvanced:
             # Test cleanup
             await audit_trail.cleanup()
 
-            # Audit trail should be stopped after cleanup (processing task should be done)
+            # Audit trail should be stopped after cleanup
             assert (
                 audit_trail._processing_task is None
                 or audit_trail._processing_task.done()

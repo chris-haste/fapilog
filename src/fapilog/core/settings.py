@@ -308,29 +308,6 @@ class CloudWatchSinkSettings(BaseModel):
     )
 
 
-class AuditSinkSettings(BaseModel):
-    """Configuration for the audit compliance sink."""
-
-    compliance_level: str = Field(
-        default="basic", description="Compliance level for audit trail"
-    )
-    storage_path: str = Field(
-        default="audit_logs", description="Directory where audit logs are stored"
-    )
-    retention_days: int = Field(
-        default=365, ge=1, description="Retention window for audit logs (days)"
-    )
-    encrypt_logs: bool = Field(
-        default=False, description="Encrypt audit log files (not yet implemented)"
-    )
-    require_integrity: bool = Field(
-        default=True, description="Enable hash chain integrity checks"
-    )
-    real_time_alerts: bool = Field(
-        default=False, description="Emit real-time compliance alerts"
-    )
-
-
 class LokiSinkSettings(BaseModel):
     """Configuration for Grafana Loki sink."""
 
@@ -945,10 +922,6 @@ class Settings(BaseSettings):
         postgres: PostgresSinkSettings = Field(
             default_factory=PostgresSinkSettings,
             description="Configuration for PostgreSQL sink",
-        )
-        audit: AuditSinkSettings = Field(
-            default_factory=AuditSinkSettings,
-            description="Configuration for audit sink",
         )
         # Third-party sinks use dicts
         extra: dict[str, dict[str, Any]] = Field(

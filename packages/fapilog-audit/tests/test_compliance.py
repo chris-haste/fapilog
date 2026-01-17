@@ -1,6 +1,7 @@
-from fapilog.core.audit import ComplianceLevel, CompliancePolicy
-from fapilog.core.compliance import (
+from fapilog_audit import (
     AuditConfig,
+    ComplianceLevel,
+    CompliancePolicy,
     DataHandlingSettings,
     validate_audit_config,
     validate_compliance_policy,

@@ -9,21 +9,21 @@ event monitoring for async operations.
 import asyncio
 import hashlib
 import json
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any
 from uuid import uuid4
 
-from pydantic import BaseModel, Field, ValidationError
-
-from .errors import (
+from fapilog.core.errors import (
     AsyncErrorContext,
     ErrorCategory,
     ErrorSeverity,
     FapilogError,
 )
+from pydantic import BaseModel, Field, ValidationError
 
 
 class AuditEventType(str, Enum):
@@ -103,7 +103,7 @@ class CompliancePolicy:
     require_integrity_check: bool = True  # Verify log integrity
 
     # Access control
-    audit_access_roles: List[str] = field(default_factory=lambda: ["admin", "auditor"])
+    audit_access_roles: list[str] = field(default_factory=lambda: ["admin", "auditor"])
 
     # Compliance-specific settings
     gdpr_data_subject_rights: bool = False  # Support GDPR data subject rights
@@ -124,34 +124,34 @@ class AuditEvent(BaseModel):
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     event_type: AuditEventType
     log_level: AuditLogLevel = AuditLogLevel.INFO
-    sequence_number: Optional[int] = None
-    previous_hash: Optional[str] = None
+    sequence_number: int | None = None
+    previous_hash: str | None = None
 
     # Event details
     message: str
-    component: Optional[str] = None
-    operation: Optional[str] = None
+    component: str | None = None
+    operation: str | None = None
 
     # User and session context
-    user_id: Optional[str] = None
-    session_id: Optional[str] = None
-    request_id: Optional[str] = None
-    client_ip: Optional[str] = None
-    user_agent: Optional[str] = None
+    user_id: str | None = None
+    session_id: str | None = None
+    request_id: str | None = None
+    client_ip: str | None = None
+    user_agent: str | None = None
 
     # System context
-    container_id: Optional[str] = None
-    plugin_name: Optional[str] = None
-    hostname: Optional[str] = None
-    process_id: Optional[int] = None
+    container_id: str | None = None
+    plugin_name: str | None = None
+    hostname: str | None = None
+    process_id: int | None = None
 
     # Error context (if applicable)
-    error_context: Optional[AsyncErrorContext] = None
-    error_category: Optional[ErrorCategory] = None
-    error_severity: Optional[ErrorSeverity] = None
+    error_context: AsyncErrorContext | None = None
+    error_category: ErrorCategory | None = None
+    error_severity: ErrorSeverity | None = None
 
     # Data classification
-    data_classification: Optional[str] = (
+    data_classification: str | None = (
         None  # e.g., "public", "internal", "confidential", "restricted"
     )
     contains_pii: bool = False  # Contains personally identifiable information
@@ -159,15 +159,15 @@ class AuditEvent(BaseModel):
 
     # Compliance metadata
     compliance_level: ComplianceLevel = ComplianceLevel.BASIC
-    regulatory_tags: List[str] = Field(default_factory=list)
-    retention_category: Optional[str] = None
+    regulatory_tags: list[str] = Field(default_factory=list)
+    retention_category: str | None = None
 
     # Additional context
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
     # Integrity and security
-    checksum: Optional[str] = None  # For log integrity verification
-    signature: Optional[str] = None  # Digital signature for tamper detection
+    checksum: str | None = None  # For log integrity verification
+    signature: str | None = None  # Digital signature for tamper detection
 
     model_config = {"extra": "allow"}
 
@@ -176,8 +176,8 @@ class AuditEvent(BaseModel):
 class AuditChainVerificationResult:
     valid: bool
     events_checked: int
-    first_invalid_sequence: Optional[int] = None
-    error_message: Optional[str] = None
+    first_invalid_sequence: int | None = None
+    error_message: str | None = None
 
 
 class AuditTrail:
@@ -195,8 +195,8 @@ class AuditTrail:
 
     def __init__(
         self,
-        policy: Optional[CompliancePolicy] = None,
-        storage_path: Optional[Path] = None,
+        policy: CompliancePolicy | None = None,
+        storage_path: Path | None = None,
     ) -> None:
         """
         Initialize audit trail system.
@@ -222,7 +222,7 @@ class AuditTrail:
 
         # Event queue for async processing
         self._event_queue: asyncio.Queue[AuditEvent] = asyncio.Queue()
-        self._processing_task: Optional[asyncio.Task] = None
+        self._processing_task: asyncio.Task | None = None
 
         # Statistics and monitoring
         self._event_count = 0
@@ -235,7 +235,7 @@ class AuditTrail:
 
         # Integrity chain
         self._seq_counter: int = 0
-        self._last_hash: Optional[str] = None
+        self._last_hash: str | None = None
 
         # Initialize storage
         self._init_storage()
@@ -285,16 +285,16 @@ class AuditTrail:
         message: str,
         *,
         log_level: AuditLogLevel = AuditLogLevel.INFO,
-        component: Optional[str] = None,
-        operation: Optional[str] = None,
-        error: Optional[FapilogError] = None,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        request_id: Optional[str] = None,
+        component: str | None = None,
+        operation: str | None = None,
+        error: FapilogError | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        request_id: str | None = None,
         contains_pii: bool = False,
         contains_phi: bool = False,
-        data_classification: Optional[str] = None,
-        regulatory_tags: Optional[List[str]] = None,
+        data_classification: str | None = None,
+        regulatory_tags: list[str] | None = None,
         **metadata: Any,
     ) -> str:
         """
@@ -379,8 +379,8 @@ class AuditTrail:
         self,
         error: FapilogError,
         *,
-        operation: Optional[str] = None,
-        component: Optional[str] = None,
+        operation: str | None = None,
+        component: str | None = None,
         **metadata: Any,
     ) -> str:
         """
@@ -413,9 +413,9 @@ class AuditTrail:
         event_type: AuditEventType,
         message: str,
         *,
-        user_id: Optional[str] = None,
-        client_ip: Optional[str] = None,
-        user_agent: Optional[str] = None,
+        user_id: str | None = None,
+        client_ip: str | None = None,
+        user_agent: str | None = None,
         **metadata: Any,
     ) -> str:
         """
@@ -447,8 +447,8 @@ class AuditTrail:
         resource: str,
         operation: str,
         *,
-        user_id: Optional[str] = None,
-        data_classification: Optional[str] = None,
+        user_id: str | None = None,
+        data_classification: str | None = None,
         contains_pii: bool = False,
         contains_phi: bool = False,
         **metadata: Any,
@@ -592,7 +592,7 @@ class AuditTrail:
     @classmethod
     def verify_chain(cls, events: Iterable[AuditEvent]) -> AuditChainVerificationResult:
         """Verify integrity chain across provided events."""
-        last_hash: Optional[str] = None
+        last_hash: str | None = None
         expected_seq = 1
         checked = 0
 
@@ -656,11 +656,11 @@ class AuditTrail:
         return self.verify_chain(events)
 
     @staticmethod
-    def _canonical_json(payload: Dict[str, Any]) -> str:
+    def _canonical_json(payload: dict[str, Any]) -> str:
         return json.dumps(payload, sort_keys=True, separators=(",", ":"))
 
     @staticmethod
-    def _compute_checksum(payload: Dict[str, Any]) -> str:
+    def _compute_checksum(payload: dict[str, Any]) -> str:
         # Do not include checksum itself in hash computation
         stripped = dict(payload)
         stripped.pop("checksum", None)
@@ -670,14 +670,14 @@ class AuditTrail:
     async def get_events(
         self,
         *,
-        start_time: Optional[datetime] = None,
-        end_time: Optional[datetime] = None,
-        event_type: Optional[AuditEventType] = None,
-        log_level: Optional[AuditLogLevel] = None,
-        user_id: Optional[str] = None,
-        component: Optional[str] = None,
+        start_time: datetime | None = None,
+        end_time: datetime | None = None,
+        event_type: AuditEventType | None = None,
+        log_level: AuditLogLevel | None = None,
+        user_id: str | None = None,
+        component: str | None = None,
         limit: int = 100,
-    ) -> List[AuditEvent]:
+    ) -> list[AuditEvent]:
         """
         Retrieve audit events with filtering.
 
@@ -735,7 +735,7 @@ class AuditTrail:
         events.sort(key=lambda e: e.timestamp, reverse=True)
         return events[:limit]
 
-    async def get_statistics(self) -> Dict[str, Any]:
+    async def get_statistics(self) -> dict[str, Any]:
         """Get audit trail statistics."""
         return {
             "total_events": self._event_count,
@@ -756,11 +756,11 @@ class AuditTrail:
 
 
 # Global audit trail instance
-_audit_trail: Optional[AuditTrail] = None
+_audit_trail: AuditTrail | None = None
 
 
 async def get_audit_trail(
-    policy: Optional[CompliancePolicy] = None, storage_path: Optional[Path] = None
+    policy: CompliancePolicy | None = None, storage_path: Path | None = None
 ) -> AuditTrail:
     """
     Get global audit trail instance.
@@ -782,8 +782,8 @@ async def get_audit_trail(
 async def audit_error(
     error: FapilogError,
     *,
-    operation: Optional[str] = None,
-    component: Optional[str] = None,
+    operation: str | None = None,
+    component: str | None = None,
     **metadata: Any,
 ) -> str:
     """
@@ -808,8 +808,8 @@ async def audit_security_event(
     event_type: AuditEventType,
     message: str,
     *,
-    user_id: Optional[str] = None,
-    client_ip: Optional[str] = None,
+    user_id: str | None = None,
+    client_ip: str | None = None,
     **metadata: Any,
 ) -> str:
     """

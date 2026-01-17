@@ -5,17 +5,9 @@ from pathlib import Path
 
 import pytest
 
-from fapilog.core.audit import AuditEventType
-from fapilog.plugins import loader
-from fapilog.plugins.sinks.audit import AuditSink, AuditSinkConfig
+from fapilog_audit import AuditEventType, AuditSink, AuditSinkConfig
 
 pytestmark = pytest.mark.security
-
-
-def test_audit_sink_is_registered() -> None:
-    names = loader.list_available_plugins("fapilog.sinks")
-    assert "audit" in names
-    assert "audit" in {n.replace("-", "_") for n in names}
 
 
 @pytest.mark.asyncio

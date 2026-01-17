@@ -1,0 +1,87 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fapilog-audit"
+version = "0.1.0"
+description = "Audit trail and compliance add-on for fapilog"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Chris Haste", email = "chris@haste.dev"}
+]
+keywords = ["logging", "audit", "compliance", "tamper-evident", "enterprise"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Logging",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "fapilog>=0.4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.4.0",
+    "pytest-asyncio>=1.1.0",
+    "pytest-cov>=6.2.0",
+    "ruff>=0.12.0",
+    "mypy>=1.17.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/chris-haste/fapilog"
+Documentation = "https://fapilog.readthedocs.io/"
+Repository = "https://github.com/chris-haste/fapilog"
+
+[project.entry-points."fapilog.sinks"]
+audit = "fapilog_audit:AuditSink"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fapilog_audit"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/tests",
+    "README.md",
+    "pyproject.toml",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = [
+    "--strict-markers",
+    "--asyncio-mode=auto",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "C4", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+disallow_untyped_defs = true
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 90
