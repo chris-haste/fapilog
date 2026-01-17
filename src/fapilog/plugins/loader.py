@@ -224,12 +224,39 @@ def _validate_plugin(instance: Any, group: str, mode: ValidationMode) -> bool:
     return True
 
 
+def _is_external_allowed(
+    canonical: str,
+    *,
+    allow_external: bool | None,
+    allowlist: list[str] | None,
+) -> bool:
+    """Check if an external (entry point) plugin is allowed to load.
+
+    Args:
+        canonical: Normalized plugin name.
+        allow_external: If True, all external plugins are allowed.
+        allowlist: If name is in this list, the plugin is allowed (implicit opt-in).
+
+    Returns:
+        True if the external plugin should be allowed to load.
+    """
+    if allow_external is True:
+        return True
+    if allowlist:
+        normalized_allowlist = {_normalize_plugin_name(n) for n in allowlist}
+        if canonical in normalized_allowlist:
+            return True
+    return False
+
+
 def load_plugin(
     group: str,
     name: str,
     config: dict[str, Any] | None = None,
     *,
     validation_mode: ValidationMode | None = None,
+    allow_external: bool | None = None,
+    allowlist: list[str] | None = None,
 ) -> Any:
     """Load a plugin by group and name from built-ins or entry points.
 
@@ -244,12 +271,19 @@ def load_plugin(
         validation_mode: Override the default validation mode for this call.
             If None, uses the module-level default set by set_validation_mode().
             Pass explicitly to avoid relying on global state.
+        allow_external: If True, allow loading plugins from entry points.
+            If False, only built-in plugins are allowed unless the plugin
+            is in the allowlist. If None, behaves as True for backward
+            compatibility (no restriction on entry points).
+        allowlist: List of plugin names that are allowed even when
+            allow_external is False. Names are normalized for matching.
 
     Returns:
         Instantiated plugin instance
 
     Raises:
-        PluginNotFoundError: Plugin not found in built-ins or entry points.
+        PluginNotFoundError: Plugin not found in built-ins or entry points,
+            or external plugins are disabled and the plugin is not allowed.
             Error message includes normalized name if different from input.
         PluginLoadError: Plugin found but failed to load/instantiate.
     """
@@ -275,12 +309,32 @@ def load_plugin(
             pass
         return _instantiate(cls, config, group=group, validation_mode=mode)
 
-    # Entry point discovery
+    # Entry point discovery - check if external plugins are allowed
+    # None means no restriction (backward compatibility)
+    if allow_external is not None and not _is_external_allowed(
+        canonical, allow_external=allow_external, allowlist=allowlist
+    ):
+        raise PluginNotFoundError(
+            f"Plugin '{name}' not found in built-ins. "
+            f"External plugins disabled. Set plugins.allow_external=true "
+            f"or add '{name}' to plugins.allowlist."
+        )
+
     try:
         eps = importlib.metadata.entry_points()
         candidates = _select_entry_points(eps, group)
         for ep in candidates:
             if _normalize_plugin_name(ep.name) == canonical:
+                # Warn when loading external plugin from entry point
+                try:
+                    diagnostics.warn(
+                        "plugins",
+                        "loading external plugin",
+                        name=name,
+                        group=group,
+                    )
+                except Exception:
+                    pass  # Never fail due to diagnostics
                 cls = ep.load()
                 return _instantiate(cls, config, group=group, validation_mode=mode)
     except Exception as exc:  # pragma: no cover - defensive

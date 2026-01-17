@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- **Security**: External plugins now blocked by default; use `plugins.allow_external=true` or `plugins.allowlist` for explicit opt-in (Story 3.5). This is a **breaking change** for users of external entry point plugins.
 - **Fixed**: Benchmark script key alignment in `derive_verdicts()` to match actual output keys from `benchmark()` (Story 10.11).
 - Added CI smoke test for benchmark script to catch future regressions.
 - **Fixed**: Strict mode serialization drops now correctly increment the `dropped` counter and record metrics; previously these drops were silently unaccounted (Story 1.24).

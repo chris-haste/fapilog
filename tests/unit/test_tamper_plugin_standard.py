@@ -133,7 +133,15 @@ async def test_standard_tamper_configs_flow_into_pipeline(
         async def enrich(self, entry: dict[str, Any]) -> dict[str, Any]:
             return entry
 
-    def _fake_load(group: str, name: str, config: dict[str, Any] | None = None) -> Any:
+    def _fake_load(
+        group: str,
+        name: str,
+        config: dict[str, Any] | None = None,
+        *,
+        validation_mode: Any = None,
+        allow_external: bool | None = None,
+        allowlist: list[str] | None = None,
+    ) -> Any:
         calls.append((group, name, config))
         if group == "fapilog.sinks":
             return _DummySink(**(config or {}))
@@ -164,12 +172,12 @@ async def test_standard_tamper_configs_flow_into_pipeline(
     enricher_call = next(c for c in calls if c[0] == "fapilog.enrichers")
 
     assert sink_call[1] == "sealed"
-    assert sink_call[2] is not None
+    assert sink_call[2] is not None  # noqa: WA003
     assert sink_call[2]["inner_sink"] == "stdout_json"
     assert sink_call[2]["manifest_path"] == str(tmp_path / "manifests")
     assert sink_call[2]["inner_config"] == {"directory": str(tmp_path)}
 
     assert enricher_call[1] == "integrity"
-    assert enricher_call[2] is not None
+    assert enricher_call[2] is not None  # noqa: WA003
     assert enricher_call[2]["algorithm"] == "sha256"
     assert enricher_call[2]["key_id"] == "kid-123"
