@@ -59,17 +59,23 @@ class TestLoggingLevelsAndSampling:
     def test_sampling_disabled_for_warnings_and_errors(self) -> None:
         """Test that sampling doesn't affect WARNING/ERROR/CRITICAL levels."""
         out: list[dict[str, Any]] = []
-        logger = _create_test_logger("sampling-test", out, backpressure_wait_ms=0)
-        logger.start()
 
+        # Patch Settings BEFORE logger creation (settings are cached at init)
         with patch("fapilog.core.settings.Settings") as mock_settings:
             settings_instance = Mock()
             settings_instance.observability.logging.sampling_rate = 0.001
+            settings_instance.core.filters = []
+            settings_instance.core.error_dedupe_window_seconds = 0.0
             mock_settings.return_value = settings_instance
 
-            for i in range(10):
-                logger.debug(f"debug message {i}")
-                logger.info(f"info message {i}")
+            logger = _create_test_logger("sampling-test", out, backpressure_wait_ms=0)
+            logger.start()
+
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", DeprecationWarning)
+                for i in range(10):
+                    logger.debug(f"debug message {i}")
+                    logger.info(f"info message {i}")
 
             logger.warning("warning message")
             logger.error("error message")
@@ -78,7 +84,7 @@ class TestLoggingLevelsAndSampling:
             except RuntimeError:
                 logger.exception("exception message")
 
-        asyncio.run(logger.stop_and_drain())
+            asyncio.run(logger.stop_and_drain())
 
         warning_msgs = [e for e in out if e.get("level") == "WARNING"]
         error_msgs = [e for e in out if e.get("level") == "ERROR"]
@@ -137,20 +143,26 @@ class TestLoggingLevelsAndSampling:
         assert len(debug_msgs) == 0, f"Expected 0 DEBUG messages, got {len(debug_msgs)}"
 
     def test_sampling_exception_handling(self) -> None:
-        """Test sampling with settings exceptions."""
-        out: list[dict[str, Any]] = []
-        logger = _create_test_logger(
-            "sampling-test", out, queue_capacity=8, backpressure_wait_ms=0
-        )
-        logger.start()
+        """Test sampling with settings exceptions.
 
+        When Settings() fails at init, defaults are used (no sampling).
+        """
+        out: list[dict[str, Any]] = []
+
+        # Patch Settings BEFORE logger creation (settings are cached at init)
+        # When Settings raises, defaults are used: no sampling, no dedupe
         with patch(
             "fapilog.core.settings.Settings", side_effect=Exception("Settings error")
         ):
+            logger = _create_test_logger(
+                "sampling-test", out, queue_capacity=8, backpressure_wait_ms=0
+            )
+            logger.start()
+
             logger.debug("debug with settings error")
             logger.info("info with settings error")
 
-        asyncio.run(logger.stop_and_drain())
+            asyncio.run(logger.stop_and_drain())
 
         assert len(out) == 2
 
