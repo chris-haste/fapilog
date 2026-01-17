@@ -162,6 +162,18 @@ Sync Caller (no loop)           Async Caller (has loop)
 
 **Solution:** This is handled automatically by fapilog. If you see this error, it's likely in user code - use `await` instead of `asyncio.run()`.
 
+### "Events dropped despite drop_on_full=False"
+
+**Cause:** When `SyncLoggerFacade._enqueue()` is called from the same thread as the worker loop (bound loop mode), events are dropped immediately if the queue is full—regardless of the `drop_on_full` setting.
+
+**Why:** Blocking on the same thread would cause a deadlock. The thread cannot wait on its own event loop to drain the queue.
+
+**Diagnostic:** A warning is emitted with `drop_on_full=False cannot be honored in same-thread context`.
+
+**Solution:** Use `AsyncLoggerFacade` in async contexts. The async facade avoids the same-thread issue entirely by integrating directly with the event loop via `await`.
+
+See also: [Reliability Defaults - Same-thread context behavior](../user-guide/reliability-defaults.md#same-thread-context-behavior)
+
 ## Design Principles
 
 1. **Fail-open for logging:** If plugin startup fails, continue with unstarted plugins. Logging should never crash the application.
