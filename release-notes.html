@@ -178,6 +178,7 @@
 <section id="unreleased">
 <h2>[Unreleased]<a class="headerlink" href="#unreleased" title="Link to this heading"></a></h2>
 <ul class="simple">
+<li><p><strong>Performance</strong>: Cache sampling rate, filter config, and error dedupe window at logger initialization to avoid <code class="docutils literal notranslate"><span class="pre">Settings()</span></code> instantiation on every log call (Story 1.23).</p></li>
 <li><p><strong>Changed</strong>: Internal diagnostics now write to stderr by default (Unix convention); add <code class="docutils literal notranslate"><span class="pre">core.diagnostics_output=&quot;stdout&quot;</span></code> for backward compatibility (Story 6.11).</p></li>
 <li><p><strong>Security</strong>: WebhookSink now supports HMAC-SHA256 signatures (<code class="docutils literal notranslate"><span class="pre">signature_mode=&quot;hmac&quot;</span></code>) instead of sending secrets in headers; legacy header mode emits deprecation warning (Story 4.42).</p></li>
 <li><p><strong>Security</strong>: External plugins now blocked by default; use <code class="docutils literal notranslate"><span class="pre">plugins.allow_external=true</span></code> or <code class="docutils literal notranslate"><span class="pre">plugins.allowlist</span></code> for explicit opt-in (Story 3.5). This is a <strong>breaking change</strong> for users of external entry point plugins.</p></li>
