@@ -186,6 +186,8 @@
 <ul class="simple">
 <li><p>Enable with <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__INTERNAL_LOGGING_ENABLED=true</span></code>.</p></li>
 <li><p>Emits WARN/DEBUG lines for worker errors, sink errors, backpressure drops, and serialization issues.</p></li>
+<li><p>Output goes to <strong>stderr</strong> by default (Unix convention), keeping diagnostics separate from application logs on stdout.</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">core.diagnostics_output=&quot;stdout&quot;</span></code> for backward compatibility with older log pipelines.</p></li>
 </ul>
 </section>
 <section id="error-containment">
