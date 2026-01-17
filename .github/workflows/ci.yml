@@ -172,10 +172,14 @@ jobs:
       - name: Check if should run tox
         id: should-run
         run: |
-          if [ "${{ github.event_name }}" == "pull_request" ] && [ "${{ needs.detect-docs-only.outputs.docs-only }}" == "true" ]; then
+          # Skip tox on PRs - other jobs (lint, typecheck, test) cover the same checks
+          # This avoids running the full test suite twice
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
             echo "run=false" >> $GITHUB_OUTPUT
-            echo "✅ Skipping tox for documentation-only PR"
-            echo "This PR only contains documentation changes, so compatibility tests are not needed."
+            echo "✅ Skipping tox on PR - covered by lint, typecheck, and test jobs"
+          elif [ "${{ needs.detect-docs-only.outputs.docs-only }}" == "true" ]; then
+            echo "run=false" >> $GITHUB_OUTPUT
+            echo "✅ Skipping tox for documentation-only changes"
           else
             echo "run=true" >> $GITHUB_OUTPUT
           fi
