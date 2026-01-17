@@ -133,6 +133,30 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._level_gate: int | None = level_gate
         self._error_dedupe: dict[str, tuple[float, int]] = {}
 
+        # Cache settings values at init to avoid per-call overhead (Story 1.23)
+        self._cached_sampling_rate: float = 1.0
+        self._cached_sampling_filters: set[str] = set()
+        self._cached_sampling_configured: bool = False
+        self._cached_error_dedupe_window: float = 0.0
+        try:
+            from .settings import Settings
+
+            s = Settings()
+            self._cached_sampling_rate = float(s.observability.logging.sampling_rate)
+            filters = getattr(getattr(s, "core", None), "filters", []) or []
+            self._cached_sampling_filters = {
+                name.replace("-", "_").lower()
+                for name in filters
+                if isinstance(name, str)
+            }
+            self._cached_sampling_configured = bool(
+                self._cached_sampling_filters
+                & {"sampling", "adaptive_sampling", "trace_sampling"}
+            )
+            self._cached_error_dedupe_window = float(s.core.error_dedupe_window_seconds)
+        except Exception:
+            pass
+
     def start(self) -> None:
         """Start the background worker, choosing the appropriate mode.
 
@@ -242,7 +266,6 @@ class _LoggerMixin(_WorkerCountersMixin):
         from uuid import uuid4
 
         from .context import request_id_var
-        from .settings import Settings
 
         try:
             current_corr = request_id_var.get()
@@ -251,37 +274,27 @@ class _LoggerMixin(_WorkerCountersMixin):
         if current_corr is None:
             current_corr = str(uuid4())
 
-        try:
-            s = Settings()
-            rate = float(s.observability.logging.sampling_rate)
-            filters = getattr(getattr(s, "core", None), "filters", []) or []
-            sampling_filters = {
-                name.replace("-", "_").lower()
-                for name in filters
-                if isinstance(name, str)
-            }
-            sampling_configured = bool(
-                sampling_filters & {"sampling", "adaptive_sampling", "trace_sampling"}
-            )
-            if rate < 1.0 and level in {"DEBUG", "INFO"} and not sampling_configured:
-                import random
+        # Use cached settings values (Story 1.23 - avoid Settings() on hot path)
+        rate = self._cached_sampling_rate
+        if (
+            rate < 1.0
+            and level in {"DEBUG", "INFO"}
+            and not self._cached_sampling_configured
+        ):
+            import random
 
-                warnings.warn(
-                    "observability.logging.sampling_rate is deprecated. "
-                    "Use core.filters=['sampling'] with filter_config.sampling instead.",
-                    DeprecationWarning,
-                    stacklevel=3,
-                )
-                if random.random() > rate:
-                    return None
-        except Exception:
-            pass
+            warnings.warn(
+                "observability.logging.sampling_rate is deprecated. "
+                "Use core.filters=['sampling'] with filter_config.sampling instead.",
+                DeprecationWarning,
+                stacklevel=3,
+            )
+            if random.random() > rate:
+                return None
 
         try:
             if level in {"ERROR", "CRITICAL"}:
-                from .settings import Settings as _S
-
-                window = float(_S().core.error_dedupe_window_seconds)
+                window = self._cached_error_dedupe_window
                 if window > 0.0:
                     import time as _t
 
