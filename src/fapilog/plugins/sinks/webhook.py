@@ -7,6 +7,11 @@ health checks, and optional signing header.
 
 from __future__ import annotations
 
+import hashlib
+import hmac as _hmac
+import json
+import warnings
+from enum import Enum
 from typing import Any, Mapping
 
 import httpx
@@ -19,7 +24,14 @@ from ...metrics.metrics import MetricsCollector
 from ..utils import parse_plugin_config
 from ._batching import BatchingMixin
 
-__all__ = ["WebhookSink", "WebhookSinkConfig"]
+__all__ = ["SignatureMode", "WebhookSink", "WebhookSinkConfig"]
+
+
+class SignatureMode(str, Enum):
+    """Authentication mode for webhook signing."""
+
+    HEADER = "header"  # Legacy: X-Webhook-Secret (deprecated)
+    HMAC = "hmac"  # Recommended: X-Fapilog-Signature-256
 
 
 class WebhookSinkConfig(BaseModel):
@@ -27,6 +39,10 @@ class WebhookSinkConfig(BaseModel):
 
     endpoint: str
     secret: str | None = None
+    signature_mode: SignatureMode = Field(
+        default=SignatureMode.HEADER,
+        description="Authentication mode: 'header' (deprecated) or 'hmac' (recommended)",
+    )
     headers: dict[str, str] = Field(default_factory=dict)
     retry: RetryCallable | RetryConfig | None = None
     timeout_seconds: float = Field(default=5.0, gt=0.0)
@@ -84,7 +100,24 @@ class WebhookSink(BatchingMixin):
     async def _post(self, payload: Any) -> httpx.Response:
         headers = dict(self._config.headers)
         if self._config.secret:
-            headers.setdefault("X-Webhook-Secret", self._config.secret)
+            if self._config.signature_mode == SignatureMode.HMAC:
+                # Compute HMAC-SHA256 of JSON payload
+                body = json.dumps(payload, separators=(",", ":")).encode()
+                signature = _hmac.new(
+                    self._config.secret.encode(),
+                    body,
+                    hashlib.sha256,
+                ).hexdigest()
+                headers["X-Fapilog-Signature-256"] = f"sha256={signature}"
+            else:
+                # Legacy mode - deprecation warning
+                warnings.warn(
+                    "X-Webhook-Secret header mode is deprecated. "
+                    "Use signature_mode='hmac' for HMAC-SHA256 signatures.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+                headers.setdefault("X-Webhook-Secret", self._config.secret)
         async with self._pool.acquire() as client:
 
             async def _do_post() -> httpx.Response:
