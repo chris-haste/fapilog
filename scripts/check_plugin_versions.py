@@ -85,17 +85,23 @@ def main() -> int:
     Returns:
         0 if no violations, 1 if violations found
     """
-    plugins_dir = Path("src/fapilog/plugins")
+    # Directories containing plugins
+    plugin_dirs = [
+        Path("src/fapilog/plugins"),
+        Path("packages"),  # Extracted packages like fapilog-audit
+    ]
 
-    if not plugins_dir.exists():
-        print(f"Warning: {plugins_dir} does not exist", file=sys.stderr)
-        return 0
+    all_errors: List[str] = []
 
-    errors = check_plugins_directory(plugins_dir, CURRENT_VERSION)
+    for plugins_dir in plugin_dirs:
+        if not plugins_dir.exists():
+            continue
+        errors = check_plugins_directory(plugins_dir, CURRENT_VERSION)
+        all_errors.extend(errors)
 
-    if errors:
+    if all_errors:
         print("❌ Plugin version errors:")
-        for error in errors:
+        for error in all_errors:
             print(f"  {error}")
         print()
         print(f"Plugins cannot claim min_fapilog_version > {CURRENT_VERSION}")

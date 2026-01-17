@@ -216,18 +216,18 @@ PLUGIN_METADATA = {"compatibility": {"min_fapilog_version": "0.4.0"}}
         result = main()
         assert result == 1
 
-    def test_returns_zero_when_plugins_dir_missing(
+    def test_returns_zero_when_plugins_dirs_missing(
         self,
         tmp_path: Path,
         monkeypatch: pytest.MonkeyPatch,
         capsys: pytest.CaptureFixture[str],
     ) -> None:
-        """Should return 0 with warning when plugins directory doesn't exist."""
+        """Should return 0 when plugin directories don't exist."""
         from scripts.check_plugin_versions import main
 
-        # tmp_path has no src/fapilog/plugins
+        # tmp_path has no src/fapilog/plugins or packages/
         monkeypatch.chdir(tmp_path)
         result = main()
         assert result == 0
         captured = capsys.readouterr()
-        assert "does not exist" in captured.err
+        assert "All plugins claim valid versions" in captured.out
