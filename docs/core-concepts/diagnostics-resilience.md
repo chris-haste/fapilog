@@ -9,6 +9,8 @@ Fapilog is designed to contain errors and surface diagnostics without crashing a
 
 - Enable with `FAPILOG_CORE__INTERNAL_LOGGING_ENABLED=true`.
 - Emits WARN/DEBUG lines for worker errors, sink errors, backpressure drops, and serialization issues.
+- Output goes to **stderr** by default (Unix convention), keeping diagnostics separate from application logs on stdout.
+- Use `core.diagnostics_output="stdout"` for backward compatibility with older log pipelines.
 
 ## Error containment
 

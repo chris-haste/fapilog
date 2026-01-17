@@ -67,6 +67,16 @@
       "title": "Default Bound Context",
       "type": "object"
     },
+    "diagnostics_output": {
+      "default": "stderr",
+      "description": "Output stream for internal diagnostics: stderr (default, Unix convention) or stdout (backward compat)",
+      "enum": [
+        "stderr",
+        "stdout"
+      ],
+      "title": "Diagnostics Output",
+      "type": "string"
+    },
     "drop_on_full": {
       "default": true,
       "description": "If True, drop events after backpressure_wait_ms elapses when queue is full",
