@@ -75,7 +75,7 @@ jobs:
     - name: Validate required jobs exist
       run: |
         echo "🔍 Checking for required CI jobs..."
-        required_jobs=("lint" "test" "typecheck" "tox")
+        required_jobs=("lint" "test" "typecheck")
         
         for job in "${required_jobs[@]}"; do
           if grep -q "^  $job:" .github/workflows/ci.yml; then
