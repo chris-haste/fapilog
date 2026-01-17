@@ -122,7 +122,7 @@ PLUGIN_METADATA = {
     "entry_point": "fapilog.plugins.filters.rate_limit:RateLimitFilter",
     "description": "Token bucket rate limiter filter.",
     "author": "Fapilog Core",
-    "compatibility": {"min_fapilog_version": "0.4.0"},
+    "compatibility": {"min_fapilog_version": "0.3.0"},
     "api_version": "1.0",
 }
 

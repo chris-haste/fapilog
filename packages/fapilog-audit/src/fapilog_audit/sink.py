@@ -156,7 +156,7 @@ PLUGIN_METADATA = {
     "entry_point": "fapilog_audit:AuditSink",
     "description": "Writes log entries to compliance audit trail.",
     "author": "Fapilog Core",
-    "compatibility": {"min_fapilog_version": "0.4.0"},
+    "compatibility": {"min_fapilog_version": "0.3.0"},
     "api_version": "1.0",
     "dependencies": [],
 }

@@ -124,7 +124,7 @@ PLUGIN_METADATA = {
     "entry_point": "fapilog.plugins.sinks.routing:RoutingSink",
     "description": "Routes log events to different sinks based on log level.",
     "author": "Fapilog Core",
-    "compatibility": {"min_fapilog_version": "0.4.0"},
+    "compatibility": {"min_fapilog_version": "0.3.0"},
     "api_version": "1.0",
     "dependencies": [],
 }
