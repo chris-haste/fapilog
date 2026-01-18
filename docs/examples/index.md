@@ -16,7 +16,6 @@ prometheus-metrics
 sampling-debug-logs
 size-limited-destinations
 cloudwatch_logging/index
-loki_logging/index
 cloud-sinks/index
 ```
 
@@ -33,7 +32,6 @@ These examples show fapilog in action across different use cases and environment
 - **Sampling Debug Logs** - Development vs production logging
 - **Size-Limited Destinations** - Guardrails for CloudWatch, Loki, and Kafka limits
 - **CloudWatch Logging** - LocalStack-backed example for AWS CloudWatch Logs
-- **Loki Logging** - Docker-based example for Grafana Loki
 
 ## Quick Examples
 
@@ -81,10 +79,10 @@ logger.clear_context()
 import os
 from fapilog import get_logger
 
-# Configure file logging
-os.environ["FAPILOG_FILE__DIRECTORY"] = "./logs"
-os.environ["FAPILOG_FILE__MAX_BYTES"] = "1048576"  # 1MB
-os.environ["FAPILOG_FILE__MAX_FILES"] = "5"
+# Configure rotating file logging
+os.environ["FAPILOG_SINK_CONFIG__ROTATING_FILE__DIRECTORY"] = "./logs"
+os.environ["FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_BYTES"] = "1048576"  # 1MB
+os.environ["FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_FILES"] = "5"
 
 logger = get_logger()
 
@@ -234,12 +232,12 @@ export FAPILOG_CORE__LOG_LEVEL=DEBUG
 
 ### Production
 
-```python
+```bash
 # Production logging - structured and efficient
 export FAPILOG_CORE__LOG_LEVEL=INFO
-export FAPILOG_FILE__DIRECTORY=/var/log/myapp
-export FAPILOG_FILE__MAX_BYTES=10485760
-export FAPILOG_FILE__COMPRESS_ROTATED=true
+export FAPILOG_SINK_CONFIG__ROTATING_FILE__DIRECTORY=/var/log/myapp
+export FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_BYTES=10485760
+export FAPILOG_SINK_CONFIG__ROTATING_FILE__COMPRESS_ROTATED=true
 ```
 
 ### Testing

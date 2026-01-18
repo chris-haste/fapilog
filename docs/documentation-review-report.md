@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # Fapilog Documentation Review Report
 
 **Review Date:** January 2026
@@ -49,7 +53,7 @@
 
 | Location | Claim | Issue |
 |----------|-------|-------|
-| ~~installation.md:52-56~~ | ~~"Python 3.9+ recommended, 3.8 limited"~~ | ✅ **RESOLVED** - See [ADR-001](architecture/decisions/001-drop-python-3.9-support.md) |
+| ~~installation.md:52-56~~ | ~~"Python 3.9+ recommended, 3.8 limited"~~ | ✅ **RESOLVED** - See ADR-001 in `architecture/decisions/001-drop-python-3.9-support.md` |
 | api-reference/plugins/index.md | Sinks table | Lists 3 of 10 actual sinks |
 | api-reference/plugins/enrichers.md | Enrichers list | Missing KubernetesEnricher |
 

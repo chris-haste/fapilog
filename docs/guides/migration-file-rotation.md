@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # Migration Guide: Simplified Rotating File Setup
 
 This guide shows how to migrate from the verbose `RotatingFileSinkConfig` pattern

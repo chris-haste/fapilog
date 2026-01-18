@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # Fapilog Assessment Report (2026-01-16)
 
 ## Phase 0 — Context & Scope

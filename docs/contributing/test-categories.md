@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # Test Categories
 
 Tests are categorized by risk level and type for selective execution.

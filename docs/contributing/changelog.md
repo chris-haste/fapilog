@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # Changelog Workflow
 
 This document describes how changelog entries are generated and maintained in fapilog.

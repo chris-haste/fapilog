@@ -42,6 +42,7 @@ class MySink(BaseSink):
 
 sinks/cloudwatch
 sinks/loki
+sinks/postgres
 ```
 
 ### HTTP sink batching

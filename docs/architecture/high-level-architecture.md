@@ -16,7 +16,7 @@ This document describes the runtime, extensibility, and packaging architecture f
 
 ## 2) High-Level Overview
 
-At a high level, applications use `AsyncLogger` to produce structured records. Records flow through an optional chain of **enrichers**, then **redactors**, then **processors**, then into one or more **sinks**. Plugins provide additional processors/enrichers/redactors/sinks and optional framework integrations. The **PluginLoader** discovers these via Python entry points, while **CompatibilityManager** enforces version constraints. **ExtrasResolver** produces actionable diagnostics when optional integrations aren’t installed.
+At a high level, applications use `AsyncLogger` to produce structured records. Records flow through an optional chain of **enrichers**, then **redactors**, then **processors**, then into one or more **sinks**. Plugins provide additional processors/enrichers/redactors/sinks and optional framework integrations. The **PluginLoader** discovers these via Python entry points and enforces version constraints, producing actionable diagnostics when plugins are incompatible or optional integrations aren't installed.
 
 ```mermaid
 flowchart LR
@@ -149,18 +149,9 @@ sequenceDiagram
 - Legacy group `fapilog.plugins` is deprecated but still supported for backward compatibility.
 - Imports and instantiates plugin classes with isolation and diagnostics.
 - Registers components with `AsyncLogger` if compatible.
-
-### 4.4 CompatibilityManager
-
-- Enforces plugin `Requires-Dist` constraints for `fapilog` (e.g., `>=3,<4`).
-- Optionally validates Python version constraints.
-- Emits structured diagnostics on mismatch; skips incompatible plugins safely.
-
-### 4.5 ExtrasResolver
-
-- Detects missing optional dependencies for first-party integrations.
-- Produces actionable hints (e.g., “Install with: `pip install fapilog[fastapi]`”).
-- Ensures the core remains operational without optional deps.
+- Normalizes plugin names (hyphens/underscores) for consistent lookup.
+- Prefers built-in plugins over entry points when names collide.
+- Emits structured diagnostics on plugin load failures or version mismatches.
 
 ---
 
@@ -290,28 +281,33 @@ If `AVAILABLE` is false, the loader emits a diagnostic suggesting:
 src/
 ├── fapilog/
 │   ├── __init__.py
-│   ├── logger.py                  # AsyncLogger and core orchestration
-│   ├── plugin_api.py              # Protocols: Sink, Processor, Enricher
-│   ├── plugins/                   # Built-in minimal examples (optional)
-│   ├── integrations/              # First-party integrations (optional, import-guarded)
-│   │   └── fastapi/
-│   │       ├── __init__.py        # sets AVAILABLE; message if deps missing
-│   │       ├── middleware.py      # request context middleware
-│   │       ├── lifecycle.py       # app startup/shutdown hooks
-│   │       ├── exceptions.py      # exception logging integration
-│   │       ├── di.py              # dependency injection helpers
-│   │       └── testing.py         # fixtures/utilities
-│   └── runtime/
-│       ├── loader.py              # PluginLoader (entry points)
-│       ├── compatibility.py       # CompatibilityManager
-│       └── extras.py              # ExtrasResolver
-└── plugins/                        # Example external plugins (separate wheels on PyPI)
-    ├── fapilog-splunk/
-    └── fapilog-compliance-pci/
+│   ├── core/                      # Core logger, settings, and orchestration
+│   │   ├── logger.py              # AsyncLogger implementation
+│   │   ├── settings.py            # Configuration and validation
+│   │   ├── presets.py             # Built-in configuration presets
+│   │   └── ...
+│   ├── plugins/                   # Plugin system and built-in plugins
+│   │   ├── loader.py              # PluginLoader (entry points + built-ins)
+│   │   ├── sinks/                 # Built-in sink plugins
+│   │   ├── enrichers/             # Built-in enricher plugins
+│   │   ├── redactors/             # Built-in redactor plugins
+│   │   ├── processors/            # Built-in processor plugins
+│   │   └── filters/               # Built-in filter plugins
+│   ├── fastapi/                   # FastAPI integration (import-guarded)
+│   │   ├── __init__.py            # sets AVAILABLE; message if deps missing
+│   │   ├── context.py             # request context middleware
+│   │   ├── logging.py             # logging middleware
+│   │   ├── setup.py               # app startup/shutdown hooks
+│   │   └── dependencies.py        # dependency injection helpers
+│   ├── cli/                       # Command-line interface
+│   ├── metrics/                   # Internal metrics collection
+│   └── testing/                   # Test utilities and fixtures
+└── packages/                      # Companion packages (separate wheels)
+    └── fapilog-audit/             # Security audit tooling
 
 Notes:
 - The FastAPI integration is **not** active unless installed via **extras**: `[project.optional-dependencies].fastapi`.
-- External plugins are **separate distributions** (`fapilog-*`) and are discovered via `entry_points(group="fapilog.plugins")`.
+- External plugins are **separate distributions** (`fapilog-*`) and are discovered via `entry_points(group="fapilog.sinks|enrichers|...")`.
 ```
 
 ---

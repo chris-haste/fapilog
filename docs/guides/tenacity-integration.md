@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # Tenacity Integration Guide
 
 Fapilog's retry infrastructure is intentionally lightweight to avoid pulling in extra dependencies at import time. For teams that already standardize on [Tenacity](https://tenacity.readthedocs.io), the sinks expose a `RetryCallable` protocol so you can plug in your own retry implementation without adding Tenacity as a core dependency.
