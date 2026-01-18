@@ -178,6 +178,7 @@
 <section id="unreleased">
 <h2>[Unreleased]<a class="headerlink" href="#unreleased" title="Link to this heading"></a></h2>
 <ul class="simple">
+<li><p><strong>Tooling</strong>: Added automated changelog generation with git-cliff and conventional commit linting via pre-commit hooks; release workflow now validates changelog entries match tagged version (Story 10.12).</p></li>
 <li><p><strong>Docs</strong>: Documented same-thread backpressure behavior where <code class="docutils literal notranslate"><span class="pre">drop_on_full=False</span></code> cannot be honored; enhanced diagnostic warning with <code class="docutils literal notranslate"><span class="pre">drop_on_full_setting</span></code> field (Story 1.19).</p></li>
 <li><p><strong>Performance</strong>: Cache sampling rate, filter config, and error dedupe window at logger initialization to avoid <code class="docutils literal notranslate"><span class="pre">Settings()</span></code> instantiation on every log call (Story 1.23).</p></li>
 <li><p><strong>Changed</strong>: Internal diagnostics now write to stderr by default (Unix convention); add <code class="docutils literal notranslate"><span class="pre">core.diagnostics_output=&quot;stdout&quot;</span></code> for backward compatibility (Story 6.11).</p></li>
