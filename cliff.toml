@@ -1,0 +1,102 @@
+# git-cliff configuration for changelog generation
+# See: https://git-cliff.org/docs/configuration
+
+[changelog]
+# Changelog header
+header = """
+# Changelog
+
+All notable changes to this project will be documented in this file. This changelog follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+"""
+
+# Template for the changelog body
+# Uses Tera templating: https://tera.netlify.app/docs/
+body = """
+{%- macro remote_url() -%}
+  https://github.com/chris-haste/fapilog
+{%- endmacro -%}
+
+{% if version -%}
+## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else -%}
+## [Unreleased]
+{% endif -%}
+
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | striptags | trim | upper_first }}
+{% for commit in commits %}
+{%- if commit.scope -%}
+- **{{ commit.scope | upper_first }}**: {{ commit.message | upper_first | trim }}
+{% else -%}
+- {{ commit.message | upper_first | trim }}
+{% endif -%}
+{% endfor %}
+{% endfor %}
+"""
+
+# Changelog footer
+footer = ""
+
+# Remove leading and trailing whitespace
+trim = true
+
+# Postprocessors for cleanup
+postprocessors = [
+  { pattern = '</?[^>]+>', replace = "" },  # Remove HTML tags from group names
+]
+
+[git]
+# Parse conventional commits
+conventional_commits = true
+
+# Filter out unconventional commits
+filter_unconventional = true
+
+# Process merge commits
+split_commits = false
+
+# Protect breaking changes from being skipped
+protect_breaking_commits = false
+
+# Filter commits by pattern
+filter_commits = false
+
+# Tag pattern for version extraction
+tag_pattern = "^v[0-9]"
+
+# Sort commits chronologically
+sort_commits = "newest"
+
+# Limit number of commits per release (0 = unlimited)
+limit_commits = 0
+
+# Map commit types to changelog categories (Keep-a-Changelog format)
+commit_parsers = [
+  # Features -> Added
+  { message = "^feat", group = "Added" },
+  # Bug fixes -> Fixed
+  { message = "^fix", group = "Fixed" },
+  # Documentation -> Documentation
+  { message = "^docs?", group = "Documentation" },
+  # Performance -> Changed
+  { message = "^perf", group = "Changed" },
+  # Refactoring -> Changed
+  { message = "^refactor", group = "Changed" },
+  # Style changes -> Changed
+  { message = "^style", group = "Changed" },
+  # Breaking changes (marked with !)
+  { message = "^.*!", group = "Breaking Changes" },
+  # Skip test commits
+  { message = "^test", skip = true },
+  # Skip chore commits
+  { message = "^chore", skip = true },
+  # Skip CI commits
+  { message = "^ci", skip = true },
+  # Skip build commits
+  { message = "^build", skip = true },
+  # Skip revert commits (they usually undo something)
+  { message = "^revert", skip = true },
+  # Catch-all for other commits (skip by default)
+  { message = ".*", skip = true },
+]
