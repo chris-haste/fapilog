@@ -626,6 +626,58 @@ async def test_same_thread_enqueue_drops_with_diagnostic_when_full() -> None:
 
 
 @pytest.mark.asyncio
+async def test_same_thread_drop_with_drop_on_full_false_includes_mismatch_note() -> (
+    None
+):
+    """Same-thread drop with drop_on_full=False emits diagnostic noting the mismatch."""
+    diagnostics: list[dict[str, Any]] = []
+
+    def capture_warn(component: str, message: str, **fields: Any) -> None:
+        diagnostics.append({"component": component, "message": message, **fields})
+
+    collected: list[dict[str, Any]] = []
+
+    # Create logger with drop_on_full=False (user expects blocking/waiting)
+    logger = SyncLoggerFacade(
+        name="test-same-thread-mismatch",
+        queue_capacity=2,
+        batch_max_size=100,
+        batch_timeout_seconds=10.0,
+        backpressure_wait_ms=1000,  # User configured to wait 1 second
+        drop_on_full=False,  # User expects blocking behavior
+        sink_write=_create_collecting_sink(collected),
+    )
+
+    logger.start()
+
+    # Simulate being on the same thread as the worker loop
+    logger._loop_thread_ident = threading.get_ident()
+
+    with patch("fapilog.core.diagnostics.warn", side_effect=capture_warn):
+        # Fill the queue
+        logger._queue.try_enqueue({"message": "fill-1"})
+        logger._queue.try_enqueue({"message": "fill-2"})
+
+        # Same-thread enqueue when full - should drop despite drop_on_full=False
+        logger._enqueue("INFO", "overflow-event")
+
+    # Should have backpressure diagnostic with mismatch note
+    bp_diagnostics = [d for d in diagnostics if d["component"] == "backpressure"]
+    assert len(bp_diagnostics) == 1
+    diag = bp_diagnostics[0]
+
+    # Verify diagnostic includes drop_on_full_setting field
+    assert "drop_on_full_setting" in diag
+    assert diag["drop_on_full_setting"] is False
+
+    # Verify message includes note about drop_on_full=False not being honored
+    assert "drop_on_full=False" in diag["message"]
+
+    # Verify the event was dropped
+    assert logger._dropped == 1
+
+
+@pytest.mark.asyncio
 async def test_cross_thread_enqueue_timeout_path() -> None:
     """Cross-thread enqueue should timeout and drop when queue full."""
     collected: list[dict[str, Any]] = []

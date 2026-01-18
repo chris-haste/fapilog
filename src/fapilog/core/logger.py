@@ -700,6 +700,26 @@ class SyncLoggerFacade(_LoggerMixin):
         exc_info: Any | None = None,
         **metadata: Any,
     ) -> None:
+        """Enqueue a log event for async processing.
+
+        Prepares the payload and submits it to the worker queue. Handles both
+        same-thread and cross-thread submission contexts appropriately.
+
+        Note:
+            When called from the worker loop thread (same-thread context), events
+            are dropped immediately if the queue is full, regardless of the
+            ``drop_on_full`` setting. This prevents deadlock since the thread
+            cannot wait on its own event loop. A diagnostic warning is emitted
+            when this occurs with ``drop_on_full=False`` to alert users that their
+            backpressure configuration cannot be honored in this context.
+
+        Args:
+            level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL).
+            message: Log message string.
+            exc: Exception instance to include in the log event.
+            exc_info: Exception info tuple for traceback extraction.
+            **metadata: Additional fields to include in the log event.
+        """
         gate = self._level_gate
         if gate is not None:
             priority = LEVEL_PRIORITY.get(level.upper(), 0)
@@ -736,10 +756,16 @@ class SyncLoggerFacade(_LoggerMixin):
                 try:
                     from .diagnostics import warn
 
+                    # Note mismatch when drop_on_full=False (user expects blocking)
+                    message = "drop on full (same-thread)"
+                    if not self._drop_on_full:
+                        message += " - drop_on_full=False cannot be honored in same-thread context"
+
                     warn(
                         "backpressure",
-                        "drop on full (same-thread)",
+                        message,
                         drop_total=self._dropped,
+                        drop_on_full_setting=self._drop_on_full,
                         queue_hwm=self._queue_high_watermark,
                         capacity=self._queue.capacity,
                     )
