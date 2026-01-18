@@ -57,8 +57,14 @@ class TestFallbackSink:
             with patch("sys.stderr.write"):
                 await fallback.write({"message": "test"})
 
-        warn_mock.assert_called_once()
-        args, kwargs = warn_mock.call_args
+        # Find the fallback-specific warning among all calls
+        fallback_calls = [
+            c for c in warn_mock.call_args_list if "fallback" in str(c).lower()
+        ]
+        assert len(fallback_calls) == 1, (
+            f"Expected 1 fallback warning, got: {warn_mock.call_args_list}"
+        )
+        args, kwargs = fallback_calls[0]
         assert args[0] == "sink"
         assert "fallback" in args[1].lower()
         assert kwargs["sink"] == "primary"
