@@ -82,6 +82,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/comparisons.html">Comparisons: fapilog vs stdlib, structlog, loguru</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/testing-plugins.html">Testing Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/webhook-security.html">Webhook Security</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
@@ -214,7 +215,6 @@
 <li><p><strong>Sampling Debug Logs</strong> - Development vs production logging</p></li>
 <li><p><strong>Size-Limited Destinations</strong> - Guardrails for CloudWatch, Loki, and Kafka limits</p></li>
 <li><p><strong>CloudWatch Logging</strong> - LocalStack-backed example for AWS CloudWatch Logs</p></li>
-<li><p><strong>Loki Logging</strong> - Docker-based example for Grafana Loki</p></li>
 </ul>
 </section>
 <section id="quick-examples">
@@ -262,10 +262,10 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
 
-<span class="c1"># Configure file logging</span>
-<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;FAPILOG_FILE__DIRECTORY&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;./logs&quot;</span>
-<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;FAPILOG_FILE__MAX_BYTES&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1048576&quot;</span>  <span class="c1"># 1MB</span>
-<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;FAPILOG_FILE__MAX_FILES&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;5&quot;</span>
+<span class="c1"># Configure rotating file logging</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;FAPILOG_SINK_CONFIG__ROTATING_FILE__DIRECTORY&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;./logs&quot;</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_BYTES&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1048576&quot;</span>  <span class="c1"># 1MB</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_FILES&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;5&quot;</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
 
@@ -420,11 +420,11 @@
 </section>
 <section id="production">
 <h3>Production<a class="headerlink" href="#production" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Production logging - structured and efficient</span>
-<span class="n">export</span> <span class="n">FAPILOG_CORE__LOG_LEVEL</span><span class="o">=</span><span class="n">INFO</span>
-<span class="n">export</span> <span class="n">FAPILOG_FILE__DIRECTORY</span><span class="o">=/</span><span class="n">var</span><span class="o">/</span><span class="n">log</span><span class="o">/</span><span class="n">myapp</span>
-<span class="n">export</span> <span class="n">FAPILOG_FILE__MAX_BYTES</span><span class="o">=</span><span class="mi">10485760</span>
-<span class="n">export</span> <span class="n">FAPILOG_FILE__COMPRESS_ROTATED</span><span class="o">=</span><span class="n">true</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Production logging - structured and efficient</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__LOG_LEVEL</span><span class="o">=</span>INFO
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_SINK_CONFIG__ROTATING_FILE__DIRECTORY</span><span class="o">=</span>/var/log/myapp
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_BYTES</span><span class="o">=</span><span class="m">10485760</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_SINK_CONFIG__ROTATING_FILE__COMPRESS_ROTATED</span><span class="o">=</span><span class="nb">true</span>
 </pre></div>
 </div>
 </section>

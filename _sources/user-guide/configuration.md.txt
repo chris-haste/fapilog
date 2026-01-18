@@ -142,10 +142,10 @@ export FAPILOG_CORE__INTERNAL_LOGGING_ENABLED=true
 # Log level
 export FAPILOG_CORE__LOG_LEVEL=INFO
 
-# File sink (optional)
-export FAPILOG_FILE__DIRECTORY=/var/log/myapp
-export FAPILOG_FILE__MAX_BYTES="10 MB"
-export FAPILOG_FILE__INTERVAL_SECONDS="daily"
+# Rotating file sink (optional)
+export FAPILOG_SINK_CONFIG__ROTATING_FILE__DIRECTORY=/var/log/myapp
+export FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_BYTES="10 MB"
+export FAPILOG_SINK_CONFIG__ROTATING_FILE__INTERVAL_SECONDS="daily"
 
 # Performance tuning
 export FAPILOG_CORE__BATCH_MAX_SIZE=128
@@ -174,7 +174,7 @@ interval settings and represent fixed intervals (not wall-clock boundaries).
 ## Common patterns
 
 - **Stdout auto (default)**: pretty in TTY, JSON when piped.
-- **File sink**: set `FAPILOG_FILE__DIRECTORY`; tune rotation via `FAPILOG_FILE__MAX_BYTES`, `FAPILOG_FILE__MAX_FILES`.
+- **Rotating file sink**: set `FAPILOG_SINK_CONFIG__ROTATING_FILE__DIRECTORY`; tune rotation via `FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_BYTES`, `FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_FILES`.
 - **HTTP sink**: set `FAPILOG_HTTP__ENDPOINT` and optional timeout/retry envs.
 - **Metrics**: set `FAPILOG_CORE__ENABLE_METRICS=true` to record internal metrics.
 

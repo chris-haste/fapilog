@@ -80,6 +80,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/comparisons.html">Comparisons: fapilog vs stdlib, structlog, loguru</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/testing-plugins.html">Testing Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/webhook-security.html">Webhook Security</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
@@ -176,7 +177,7 @@
 <h1>Tamper-Evident Logging Add-on (Optional)<a class="headerlink" href="#tamper-evident-logging-add-on-optional" title="Link to this heading"></a></h1>
 <blockquote>
 <div><p><strong>Implementation Stories</strong>: This design is implemented across Stories 4.14–4.18.
-See <a class="reference internal" href="#../stories/"><span class="xref myst">docs/stories/</span></a> for detailed acceptance criteria and technical design.</p>
+See the fapilog-audit stories for detailed acceptance criteria and technical design.</p>
 </div></blockquote>
 <p>This design keeps the core light while offering an opt-in, first-class tamper-evident capability delivered as a separate plugin/package.</p>
 <section id="story-breakdown">
@@ -189,23 +190,23 @@ See <a class="reference internal" href="#../stories/"><span class="xref myst">do
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><a class="reference internal" href="#../stories/4.14.fapilog-tamper-package-bootstrap.md"><span class="xref myst">4.14</span></a></p></td>
+<tr class="row-even"><td><p>4.14</p></td>
 <td><p>Package Bootstrap</p></td>
 <td><p>Done</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#../stories/4.15.integrity-enricher-chain-state.md"><span class="xref myst">4.15</span></a></p></td>
+<tr class="row-odd"><td><p>4.15</p></td>
 <td><p>IntegrityEnricher &amp; ChainState</p></td>
 <td><p>Done</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#../stories/4.16.sealed-sink-manifests.md"><span class="xref myst">4.16</span></a></p></td>
+<tr class="row-even"><td><p>4.16</p></td>
 <td><p>SealedSink &amp; Manifests</p></td>
 <td><p>Done</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#../stories/4.17.verification-api-cli.md"><span class="xref myst">4.17</span></a></p></td>
+<tr class="row-odd"><td><p>4.17</p></td>
 <td><p>Verification API &amp; CLI</p></td>
 <td><p>Done</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#../stories/4.18.enterprise-key-management.md"><span class="xref myst">4.18</span></a></p></td>
+<tr class="row-even"><td><p>4.18</p></td>
 <td><p>Enterprise Key Management</p></td>
 <td><p>Done</p></td>
 </tr>

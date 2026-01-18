@@ -86,7 +86,7 @@ class MsgPackProcessor:
         data = json.loads(bytes(view))
         packed = msgpack.packb(data)
         return memoryview(packed)
-
+```
 
 ### Batch processing
 
@@ -94,7 +94,6 @@ Implement `process_many(self, views: Iterable[memoryview]) -> list[memoryview]`
 when batching improves performance (shared compression dictionary, reused crypto
 context, etc.). The default implementation simply calls `process()` for each
 view and returns the processed results in order.
-```
 
 ## SizeGuardProcessor
 

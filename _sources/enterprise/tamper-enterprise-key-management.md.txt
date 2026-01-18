@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # Tamper-Evident Logging: Enterprise Key Management
 
 Tamper-evident logging in fapilog is delivered as the `fapilog-tamper` add-on. This guide focuses on enterprise key management—how to integrate cloud KMS and Vault, keep keys out of the app process, and operate with rotation and attestation requirements.
@@ -81,5 +85,5 @@ sink = plugin.wrap_sink(rotating_sink, cfg.model_dump())
 
 ## See also
 
-- Story detail: [4.18 Enterprise Key Management](../stories/4.18.enterprise-key-management.md)
+- Story detail: Story 4.18 (Enterprise Key Management) in `docs/stories/fapilog-audit/`
 - Add-on overview: [Tamper-Evident Logging](../addons/tamper-evident-logging.md)

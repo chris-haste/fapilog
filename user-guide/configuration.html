@@ -82,6 +82,7 @@
 <li class="toctree-l2"><a class="reference internal" href="comparisons.html">Comparisons: fapilog vs stdlib, structlog, loguru</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
 <li class="toctree-l2"><a class="reference internal" href="testing-plugins.html">Testing Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webhook-security.html">Webhook Security</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
@@ -346,10 +347,10 @@ internal diagnostics are enabled:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Log level</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__LOG_LEVEL</span><span class="o">=</span>INFO
 
-<span class="c1"># File sink (optional)</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__DIRECTORY</span><span class="o">=</span>/var/log/myapp
-<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__MAX_BYTES</span><span class="o">=</span><span class="s2">&quot;10 MB&quot;</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILE__INTERVAL_SECONDS</span><span class="o">=</span><span class="s2">&quot;daily&quot;</span>
+<span class="c1"># Rotating file sink (optional)</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_SINK_CONFIG__ROTATING_FILE__DIRECTORY</span><span class="o">=</span>/var/log/myapp
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_BYTES</span><span class="o">=</span><span class="s2">&quot;10 MB&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_SINK_CONFIG__ROTATING_FILE__INTERVAL_SECONDS</span><span class="o">=</span><span class="s2">&quot;daily&quot;</span>
 
 <span class="c1"># Performance tuning</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__BATCH_MAX_SIZE</span><span class="o">=</span><span class="m">128</span>
@@ -379,7 +380,7 @@ interval settings and represent fixed intervals (not wall-clock boundaries).</p>
 <h2>Common patterns<a class="headerlink" href="#common-patterns" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p><strong>Stdout auto (default)</strong>: pretty in TTY, JSON when piped.</p></li>
-<li><p><strong>File sink</strong>: set <code class="docutils literal notranslate"><span class="pre">FAPILOG_FILE__DIRECTORY</span></code>; tune rotation via <code class="docutils literal notranslate"><span class="pre">FAPILOG_FILE__MAX_BYTES</span></code>, <code class="docutils literal notranslate"><span class="pre">FAPILOG_FILE__MAX_FILES</span></code>.</p></li>
+<li><p><strong>Rotating file sink</strong>: set <code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__DIRECTORY</span></code>; tune rotation via <code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_BYTES</span></code>, <code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_FILES</span></code>.</p></li>
 <li><p><strong>HTTP sink</strong>: set <code class="docutils literal notranslate"><span class="pre">FAPILOG_HTTP__ENDPOINT</span></code> and optional timeout/retry envs.</p></li>
 <li><p><strong>Metrics</strong>: set <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__ENABLE_METRICS=true</span></code> to record internal metrics.</p></li>
 </ul>
