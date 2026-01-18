@@ -377,6 +377,11 @@ extend-exclude = '''
 )/
 '''
 
+[tool.uv]
+# Only resolve for supported Python versions to avoid false-positive security alerts
+# for dependencies with markers for unsupported versions (e.g., Python < 3.10)
+environments = ["python_version >= '3.10'"]
+
 [tool.vulture]
 exclude = [
     "src/fapilog/__init__.py",  # VERSION is used for compatibility
