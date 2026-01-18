@@ -237,12 +237,12 @@ By default, the logger enriches each event before serialization:
 
 You can toggle enrichers at runtime:
 
-````python
+```python
 from fapilog.plugins.enrichers.runtime_info import RuntimeInfoEnricher
 
 logger.disable_enricher("context_vars")
 logger.enable_enricher(RuntimeInfoEnricher())
-```text
+```
 
 ### Internal diagnostics (optional)
 
