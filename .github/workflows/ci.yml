@@ -185,41 +185,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
 
-      - name: Install packaging
-        run: pip install packaging
+      - name: Install dependencies
+        run: pip install hatch packaging
 
       - name: Validate fapilog-audit constraints
         run: |
-          python -c "
-          import re
-          from packaging.version import Version
-
-          # Get core version from _version.py (base version without dev suffix)
-          with open('src/fapilog/_version.py') as f:
-              content = f.read()
-          match = re.search(r\"version_tuple\s*=\s*\((\d+),\s*(\d+),\s*(\d+)\", content)
-          if not match:
-              raise ValueError('Could not parse version from _version.py')
-          core_version = f'{match.group(1)}.{match.group(2)}.{match.group(3)}'
+          # Get core version from hatch (extracts base version without dev suffix)
+          FULL_VERSION=$(hatch version)
+          CORE_VERSION=$(echo "$FULL_VERSION" | grep -oE '^[0-9]+\.[0-9]+\.[0-9]+')
 
           # Get minimum version from fapilog-audit pyproject.toml
-          with open('packages/fapilog-audit/pyproject.toml') as f:
-              content = f.read()
-          match = re.search(r'fapilog>=(\d+\.\d+\.\d+)', content)
-          if not match:
-              raise ValueError('Could not parse fapilog constraint from fapilog-audit')
-          audit_min = match.group(1)
+          AUDIT_MIN=$(grep 'fapilog>=' packages/fapilog-audit/pyproject.toml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
 
-          print(f'Core version: {core_version}')
-          print(f'Audit minimum: {audit_min}')
+          echo "Core version: $CORE_VERSION"
+          echo "Audit minimum: $AUDIT_MIN"
 
-          assert Version(core_version) >= Version(audit_min), \
-              f'Core {core_version} < audit min {audit_min}'
+          python -c "
+          from packaging.version import Version
+          core = '$CORE_VERSION'
+          audit_min = '$AUDIT_MIN'
+          assert Version(core) >= Version(audit_min), f'Core {core} < audit min {audit_min}'
           print('Validation passed')
           "
