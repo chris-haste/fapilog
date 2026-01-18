@@ -246,7 +246,26 @@ class AuditTrail:
             self.storage_path.mkdir(parents=True, exist_ok=True)
 
     async def start(self) -> None:
-        """Start audit trail processing."""
+        """Start audit trail processing with optional policy validation.
+
+        If the compliance policy is enabled, validates the policy against
+        baseline enterprise rules and emits warnings for any issues found.
+        """
+        # Validate compliance policy if enabled
+        if self.policy.enabled:
+            from .compliance import validate_compliance_policy
+
+            result = validate_compliance_policy(self.policy)
+            if not result.ok:
+                import warnings
+
+                for issue in result.issues:
+                    warnings.warn(
+                        f"Compliance: {issue.field} - {issue.message}",
+                        UserWarning,
+                        stacklevel=2,
+                    )
+
         if self._processing_task is None or self._processing_task.done():
             self._processing_task = asyncio.create_task(self._process_events())
 
