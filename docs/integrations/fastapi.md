@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # FastAPI One-Liner Integration
 
 This guide shows the one-liner FastAPI integration and how to customize it

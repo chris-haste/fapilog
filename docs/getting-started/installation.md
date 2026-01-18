@@ -54,7 +54,7 @@ pip install -e .
 | 3.12           | ✅ Full Support  | Latest stable                        |
 | 3.11           | ✅ Full Support  | Recommended                          |
 | 3.10           | ✅ Full Support  | Minimum supported                    |
-| 3.9 and below  | ❌ Not Supported | See [ADR-001](../architecture/decisions/001-drop-python-3.9-support.md) |
+| 3.9 and below  | ❌ Not Supported | Dropped in v0.4.0 |
 
 ## Dependencies
 

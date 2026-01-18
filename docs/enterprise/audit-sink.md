@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # Audit Sink (Compliance Trail)
 
 The audit sink exposes the existing `AuditTrail` system as a standard plugin so you can turn on compliance logging with configuration instead of custom wiring.

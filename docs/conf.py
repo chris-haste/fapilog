@@ -89,6 +89,18 @@ myst_enable_extensions = [
     "tasklist",
 ]
 
+# Suppress known benign warnings
+suppress_warnings = [
+    # Mermaid diagrams: directive not recognized when sphinxcontrib-mermaid isn't installed
+    "myst.directive_unknown",
+    # Audit reports may start with H2 due to frontmatter
+    "myst.header",
+    # Mermaid code blocks don't have syntax highlighting
+    "misc.highlighting_failure",
+    # Autodoc directives registered by multiple extensions (Sphinx 9.x)
+    "app.add_directive",
+]
+
 # Napoleon settings for Google/NumPy style docstrings
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True

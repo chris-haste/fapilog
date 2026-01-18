@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # Code Coverage Report
 
 **Date:** 2026-01-16  

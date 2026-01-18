@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # Fapilog Open Source Library Assessment
 
 ## PHASE 0 — CONTEXT & SCOPE

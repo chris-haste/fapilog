@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # Fapilog Open Source Library Assessment
 
 **Assessed by:** Claude Opus 4.5  

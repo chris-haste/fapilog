@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 ## Open Source Library Assessment Report — `fapilog` (local checkout `/Users/chris/Development/fapilog`)
 
 ### Phase 0 — Context & Scope
