@@ -23,7 +23,8 @@ def test_validate_compliance_policy_requires_baselines() -> None:
     assert result.ok is False
     assert any(i.field == "retention_days" for i in result.issues)
     assert any(i.field == "archive_after_days" for i in result.issues)
-    assert any(i.field == "encrypt_audit_logs" for i in result.issues)
+    # encrypt_audit_logs is not validated - encryption not yet implemented
+    assert not any(i.field == "encrypt_audit_logs" for i in result.issues)
     assert any(i.field == "require_integrity_check" for i in result.issues)
 
 
@@ -76,28 +77,31 @@ def test_validate_audit_config_delegates() -> None:
 
 
 def test_validate_compliance_policy_framework_specific_requirements() -> None:
-    """Test framework-specific baseline checks for PCI_DSS, SOC2, ISO27001."""
-    # Test PCI_DSS
+    """Test framework-specific baseline checks for PCI_DSS, SOC2, ISO27001.
+
+    Note: encrypt_audit_logs is not validated because encryption is not yet
+    implemented. Once encryption is available (Story 4.29), this validation
+    will be re-enabled.
+    """
+    # Test PCI_DSS - integrity check required
     policy = CompliancePolicy(
         level=ComplianceLevel.PCI_DSS,
         enabled=True,
         retention_days=365,
         archive_after_days=7,
-        encrypt_audit_logs=False,  # Should be required
+        encrypt_audit_logs=False,
         require_integrity_check=False,  # Should be required
     )
     result = validate_compliance_policy(policy)
     assert result.ok is False
-    assert any(
-        i.field == "encrypt_audit_logs" and "required for level" in i.message
-        for i in result.issues
-    )
+    # encrypt_audit_logs not validated - encryption not implemented
+    assert not any(i.field == "encrypt_audit_logs" for i in result.issues)
     assert any(
         i.field == "integrity" and "required for level" in i.message
         for i in result.issues
     )
 
-    # Test SOC2
+    # Test SOC2 - integrity check required
     policy = CompliancePolicy(
         level=ComplianceLevel.SOC2,
         enabled=True,
@@ -108,12 +112,14 @@ def test_validate_compliance_policy_framework_specific_requirements() -> None:
     )
     result = validate_compliance_policy(policy)
     assert result.ok is False
+    # encrypt_audit_logs not validated - encryption not implemented
+    assert not any(i.field == "encrypt_audit_logs" for i in result.issues)
     assert any(
-        i.field == "encrypt_audit_logs" and "required for level" in i.message
+        i.field == "integrity" and "required for level" in i.message
         for i in result.issues
     )
 
-    # Test ISO27001
+    # Test ISO27001 - integrity check required
     policy = CompliancePolicy(
         level=ComplianceLevel.ISO27001,
         enabled=True,
@@ -124,7 +130,9 @@ def test_validate_compliance_policy_framework_specific_requirements() -> None:
     )
     result = validate_compliance_policy(policy)
     assert result.ok is False
+    # encrypt_audit_logs not validated - encryption not implemented
+    assert not any(i.field == "encrypt_audit_logs" for i in result.issues)
     assert any(
-        i.field == "encrypt_audit_logs" and "required for level" in i.message
+        i.field == "integrity" and "required for level" in i.message
         for i in result.issues
     )

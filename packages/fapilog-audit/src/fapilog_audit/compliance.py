@@ -49,7 +49,43 @@ def _require(
 
 
 def validate_compliance_policy(policy: CompliancePolicy) -> ValidationResult:
-    """Validate a CompliancePolicy against baseline enterprise rules."""
+    """Validate a CompliancePolicy against baseline enterprise rules.
+
+    This function is automatically called during AuditTrail.start() when the
+    policy is enabled. Validation issues are emitted as warnings rather than
+    errors, allowing the audit trail to start while alerting users to
+    potential compliance gaps.
+
+    You can also call this function directly for pre-flight checks or testing:
+
+        from fapilog_audit import (
+            validate_compliance_policy,
+            CompliancePolicy,
+            ComplianceLevel,
+        )
+
+        policy = CompliancePolicy(level=ComplianceLevel.HIPAA, ...)
+        result = validate_compliance_policy(policy)
+        if not result.ok:
+            for issue in result.issues:
+                print(f"{issue.field}: {issue.message}")
+
+    Validated rules:
+        - retention_days >= 30
+        - archive_after_days >= 7
+        - require_integrity_check must be True
+        - Framework-specific requirements (HIPAA, GDPR, etc.)
+
+    Note:
+        encrypt_audit_logs is not currently validated because encryption
+        is not yet implemented. See Story 4.29 for encryption roadmap.
+
+    Args:
+        policy: The CompliancePolicy to validate.
+
+    Returns:
+        ValidationResult with ok=True if valid, or ok=False with issues list.
+    """
     result = ValidationResult(ok=True)
 
     # General rules when enabled
@@ -67,19 +103,15 @@ def validate_compliance_policy(policy: CompliancePolicy) -> ValidationResult:
             result,
         )
 
-        # Encryption and integrity generally recommended
-        _require(
-            policy.encrypt_audit_logs,
-            "encrypt_audit_logs",
-            "must be enabled",
-            result,
-        )
+        # Integrity check recommended
         _require(
             policy.require_integrity_check,
             "require_integrity_check",
             "must be enabled",
             result,
         )
+        # Note: encrypt_audit_logs validation is skipped because encryption
+        # is not yet implemented. See Story 4.29 for encryption roadmap.
 
     # Framework-specific baseline checks
     if policy.level in {
@@ -87,12 +119,8 @@ def validate_compliance_policy(policy: CompliancePolicy) -> ValidationResult:
         ComplianceLevel.SOC2,
         ComplianceLevel.ISO27001,
     }:
-        _require(
-            policy.encrypt_audit_logs,
-            "encrypt_audit_logs",
-            "required for level",
-            result,
-        )
+        # Note: encrypt_audit_logs validation is skipped because encryption
+        # is not yet implemented. See Story 4.29 for encryption roadmap.
         _require(
             policy.require_integrity_check,
             "integrity",
@@ -124,7 +152,42 @@ def validate_data_handling(
     level: ComplianceLevel,
     settings: DataHandlingSettings,
 ) -> ValidationResult:
-    """Validate data handling settings against a compliance level."""
+    """Validate data handling settings against a compliance level.
+
+    This is an opt-in utility function for validating DataHandlingSettings
+    against enterprise security baselines. It is NOT automatically called
+    during startup - call it explicitly when needed.
+
+    Example:
+        from fapilog_audit import (
+            validate_data_handling,
+            ComplianceLevel,
+            DataHandlingSettings,
+        )
+
+        settings = DataHandlingSettings(pii_redaction_enabled=True)
+        result = validate_data_handling(
+            level=ComplianceLevel.GDPR,
+            settings=settings,
+        )
+        if not result.ok:
+            for issue in result.issues:
+                print(f"{issue.field}: {issue.message}")
+
+    Validated rules:
+        - encryption_in_transit must be True
+        - encryption_at_rest must be True
+        - allow_default_credentials must be False
+        - min_password_length >= 12
+        - Framework-specific requirements (HIPAA requires PHI redaction, etc.)
+
+    Args:
+        level: The compliance level to validate against.
+        settings: The DataHandlingSettings to validate.
+
+    Returns:
+        ValidationResult with ok=True if valid, or ok=False with issues list.
+    """
     result = ValidationResult(ok=True)
 
     # Baseline security controls
