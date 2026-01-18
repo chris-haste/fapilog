@@ -2,8 +2,6 @@
 
 Thank you for your interest in contributing to fapilog! This document provides guidelines and instructions for contributors to help ensure a smooth development process.
 
-> **Project Naming**: This project is developed in the `fastapi-logger` repository but published to PyPI as `fapilog`. The repository name is descriptive of the project's purpose, while the package name is concise and memorable.
-
 ## Table of Contents
 
 - [Project Setup](#project-setup)
