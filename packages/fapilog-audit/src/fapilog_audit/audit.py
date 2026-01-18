@@ -531,16 +531,19 @@ class AuditTrail:
 
                 json_line = self._canonical_json(payload)
 
-            # Store to file (default implementation)
+            # Store to file - offload to thread pool to avoid blocking event loop
             date_str = event.timestamp.strftime("%Y-%m-%d")
             log_file = self.storage_path / f"audit_{date_str}.jsonl"
-
-            with open(log_file, "a", encoding="utf-8") as f:
-                f.write(json_line + "\n")
+            await asyncio.to_thread(self._write_to_file, log_file, json_line)
 
         except Exception:
             # Storage failure - critical for compliance
             pass
+
+    def _write_to_file(self, path: Path, content: str) -> None:
+        """Synchronous file write, called via to_thread."""
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(content + "\n")
 
     async def _check_compliance_alerts(self, event: AuditEvent) -> None:
         """Check if event should trigger compliance alerts."""
@@ -653,6 +656,8 @@ class AuditTrail:
                 events_checked=len(events),
                 error_message=str(exc),
             )
+        # Sort by sequence number to handle async writes completing out of order
+        events.sort(key=lambda e: e.sequence_number or 0)
         return self.verify_chain(events)
 
     @staticmethod
