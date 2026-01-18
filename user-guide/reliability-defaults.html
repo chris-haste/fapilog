@@ -186,6 +186,16 @@
 <li><p>Drop policy: <code class="docutils literal notranslate"><span class="pre">core.drop_on_full=True</span></code> (wait up to 50 ms, then drop). <strong>Set <code class="docutils literal notranslate"><span class="pre">core.drop_on_full=false</span></code> for production if you prefer waiting over dropping.</strong></p></li>
 <li><p>Batch flush: <code class="docutils literal notranslate"><span class="pre">core.batch_max_size=256</span></code>, <code class="docutils literal notranslate"><span class="pre">core.batch_timeout_seconds=0.25</span></code></p></li>
 </ul>
+<section id="same-thread-context-behavior">
+<h3>Same-thread context behavior<a class="headerlink" href="#same-thread-context-behavior" title="Link to this heading"></a></h3>
+<p>When <code class="docutils literal notranslate"><span class="pre">SyncLoggerFacade</span></code> is called from the same thread as its internal worker loop, backpressure behavior differs from cross-thread calls:</p>
+<ul class="simple">
+<li><p><strong>Same-thread</strong>: Events are dropped immediately if the queue is full, regardless of the <code class="docutils literal notranslate"><span class="pre">drop_on_full</span></code> setting</p></li>
+<li><p><strong>Cross-thread</strong>: Events wait up to <code class="docutils literal notranslate"><span class="pre">backpressure_wait_ms</span></code> before dropping (respecting <code class="docutils literal notranslate"><span class="pre">drop_on_full</span></code>)</p></li>
+</ul>
+<p>This is intentional—blocking on the same thread would cause a deadlock since the thread cannot wait on its own event loop. When a same-thread drop occurs with <code class="docutils literal notranslate"><span class="pre">drop_on_full=False</span></code>, a diagnostic warning is emitted to alert you that your backpressure configuration cannot be honored in that context.</p>
+<p><strong>Recommendation</strong>: In async contexts (FastAPI routes, asyncio code), use <code class="docutils literal notranslate"><span class="pre">AsyncLoggerFacade</span></code> to avoid same-thread semantics entirely. The async facade integrates with the event loop without blocking.</p>
+</section>
 </section>
 <section id="redaction-defaults">
 <h2>Redaction defaults<a class="headerlink" href="#redaction-defaults" title="Link to this heading"></a></h2>
@@ -226,7 +236,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on January 17, 2026.
+      <span class="lastupdated">Last updated on January 18, 2026.
       </span></p>
   </div>
 
