@@ -18,6 +18,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF##*/}"
+          VERSION="${TAG#v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Validating changelog for version: $VERSION"
+
+      - name: Validate changelog has version entry
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          # Check if changelog has entry for this exact version
+          if ! grep -qE "^\#\# \[${VERSION}\]" CHANGELOG.md; then
+            echo "ERROR: CHANGELOG.md missing entry for version ${VERSION}"
+            echo ""
+            echo "Expected to find a line matching: ## [${VERSION}]"
+            echo ""
+            echo "Available version entries in CHANGELOG.md:"
+            grep -E "^\#\# \[" CHANGELOG.md | head -10
+            exit 1
+          fi
+          echo "Found changelog entry for version ${VERSION}"
+
       - name: Extract latest changelog section
         run: |
           python scripts/extract_latest_changelog.py CHANGELOG.md /tmp/release_notes.md

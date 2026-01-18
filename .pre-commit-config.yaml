@@ -38,6 +38,23 @@ repos:
         name: Vulture (Dead code detection)
         args: [src/, tests/]
 
+  # Conventional commit linting
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.0.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args:
+          - feat
+          - fix
+          - docs
+          - style
+          - refactor
+          - test
+          - chore
+          - perf
+          - ci
+
   # Local hooks (project automation)
   - repo: local
     hooks:

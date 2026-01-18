@@ -75,7 +75,10 @@ class TestRetryMechanism:
 
         assert retrier.stats.attempt_count == 2
         assert "All 2 retry attempts exhausted" in str(exc_info.value)
-        assert hasattr(exc_info.value, "retry_stats") and exc_info.value.retry_stats.attempt_count == 2
+        assert (
+            hasattr(exc_info.value, "retry_stats")
+            and exc_info.value.retry_stats.attempt_count == 2
+        )
 
     @pytest.mark.asyncio
     async def test_non_retryable_exception_bubbles(self):

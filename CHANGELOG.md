@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- **Tooling**: Added automated changelog generation with git-cliff and conventional commit linting via pre-commit hooks; release workflow now validates changelog entries match tagged version (Story 10.12).
 - **Docs**: Documented same-thread backpressure behavior where `drop_on_full=False` cannot be honored; enhanced diagnostic warning with `drop_on_full_setting` field (Story 1.19).
 - **Performance**: Cache sampling rate, filter config, and error dedupe window at logger initialization to avoid `Settings()` instantiation on every log call (Story 1.23).
 - **Changed**: Internal diagnostics now write to stderr by default (Unix convention); add `core.diagnostics_output="stdout"` for backward compatibility (Story 6.11).

@@ -8,7 +8,6 @@ Scope:
 - Context variable lookup and management
 """
 
-
 import pytest
 
 from fapilog.core import (
@@ -40,8 +39,13 @@ class TestErrorTypes:
         assert error.message == "Test error message"
         assert error.context.category == ErrorCategory.SYSTEM
         assert error.context.severity == ErrorSeverity.HIGH
-        assert isinstance(error.context.error_id, str) and len(error.context.error_id) == 36
-        assert error.context.timestamp is not None and hasattr(error.context.timestamp, "isoformat")
+        assert (
+            isinstance(error.context.error_id, str)
+            and len(error.context.error_id) == 36
+        )
+        assert error.context.timestamp is not None and hasattr(
+            error.context.timestamp, "isoformat"
+        )
 
     @pytest.mark.asyncio
     async def test_error_context_preservation(self):
@@ -285,7 +289,9 @@ class TestContextManagement:
 
         # Test statistics
         stats = await manager1.get_statistics()
-        assert isinstance(stats["active_contexts"], int) and stats["active_contexts"] >= 1
+        assert (
+            isinstance(stats["active_contexts"], int) and stats["active_contexts"] >= 1
+        )
         assert isinstance(stats["context_hierarchy_size"], int)
 
         # Test context completion

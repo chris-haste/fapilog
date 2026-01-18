@@ -1,0 +1,38 @@
+# Commitlint configuration for conventional commits
+# Used by conventional-pre-commit hook
+
+# Allowed commit types (must match CLAUDE.md conventions)
+types:
+  - feat      # New feature
+  - fix       # Bug fix
+  - docs      # Documentation changes
+  - style     # Code style changes (formatting, etc.)
+  - refactor  # Code refactoring
+  - test      # Adding or updating tests
+  - chore     # Maintenance tasks
+  - perf      # Performance improvements
+  - ci        # CI/CD changes
+
+# Optional: Allowed scopes (empty = any scope allowed)
+# Derived from CLAUDE.md scope inference rules
+scopes:
+  - core
+  - sinks
+  - enrichers
+  - redactors
+  - filters
+  - fapilog
+  - plugins
+  - fastapi
+  - metrics
+  - testing
+  - docs
+  - ci
+  - deps
+
+# Require scope in commit messages
+require_scope: false
+
+# Max lengths
+max_header_length: 72
+max_body_line_length: 100
