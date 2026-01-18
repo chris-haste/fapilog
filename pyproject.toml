@@ -383,6 +383,7 @@ exclude = [
     "src/fapilog/builder.py",  # Fluent builder API methods used via chaining
     "src/fapilog/containers/container.py",  # API methods intentionally unused
     "src/fapilog/containers/lifecycle.py",  # API methods for container lifecycle
+    "src/fapilog/core/envelope.py",  # Internal module used by logger.py
     "src/fapilog/core/events.py",  # Enum values and API methods
     "src/fapilog/core/logger.py",  # API methods and context manager params
     "src/fapilog/core/presets.py",  # Public API functions for preset discovery

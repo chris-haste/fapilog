@@ -21,6 +21,7 @@ from ..plugins.filters.level import LEVEL_PRIORITY
 from ..plugins.processors import BaseProcessor
 from ..plugins.redactors import BaseRedactor
 from .concurrency import NonBlockingRingQueue
+from .envelope import build_envelope
 from .events import LogEvent
 from .worker import (
     LoggerWorker,
@@ -330,47 +331,20 @@ class _LoggerMixin(_WorkerCountersMixin):
         except Exception:
             bound_context = {}
 
-        merged_metadata: dict[str, Any] = {}
-        merged_metadata.update(bound_context)
-        merged_metadata.update(metadata)
-
-        if self._exceptions_enabled:
-            try:
-                norm_exc_info = None
-                if exc is not None:
-                    norm_exc_info = (
-                        type(exc),
-                        exc,
-                        getattr(exc, "__traceback__", None),
-                    )
-                elif exc_info is True:
-                    import sys as _sys
-
-                    norm_exc_info = _sys.exc_info()  # type: ignore[assignment]
-                elif isinstance(exc_info, tuple):
-                    norm_exc_info = exc_info
-                if norm_exc_info:
-                    from .errors import serialize_exception as _ser_exc
-
-                    exc_map = _ser_exc(
-                        norm_exc_info,
-                        max_frames=self._exceptions_max_frames,
-                        max_stack_chars=self._exceptions_max_stack_chars,
-                    )
-                    if exc_map:
-                        merged_metadata.update(exc_map)
-            except Exception:
-                pass
-
-        event = LogEvent(
+        # Delegate envelope construction to envelope module (Story 1.21)
+        payload = build_envelope(
             level=level,
             message=message,
-            logger=self._name,
-            metadata=merged_metadata,
+            extra=metadata if metadata else None,
+            bound_context=bound_context if bound_context else None,
+            exc=exc,
+            exc_info=exc_info,
+            exceptions_enabled=self._exceptions_enabled,
+            exceptions_max_frames=self._exceptions_max_frames,
+            exceptions_max_stack_chars=self._exceptions_max_stack_chars,
+            logger_name=self._name,
             correlation_id=current_corr,
         )
-        # Convert Mapping to dict to satisfy return type
-        payload = dict(event.to_mapping())
         self._submitted += 1
         return payload
 
