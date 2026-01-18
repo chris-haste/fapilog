@@ -8,18 +8,63 @@ Enterprise compliance audit trail add-on for fapilog.
 pip install fapilog-audit
 ```
 
-## Usage
+## Configuration
+
+**Important:** fapilog-audit is an external plugin. External plugins are disabled by default for security. You must explicitly allow it.
+
+### Option 1: Plugin Allowlist (Recommended)
 
 ```python
-from fapilog_audit import AuditSink, AuditTrail, CompliancePolicy, ComplianceLevel
+from fapilog import Settings, get_logger
 
-# Use with fapilog pipeline (auto-discovered via entry point)
-# Just install fapilog-audit and configure in settings
+settings = Settings(
+    plugins={"allowlist": ["audit"]},
+    core={"sinks": ["audit"]},
+)
+logger = get_logger(settings=settings)
+```
 
-# Or use AuditTrail directly
+### Option 2: Environment Variables
+
+```bash
+export FAPILOG_PLUGINS__ALLOWLIST='["audit"]'
+export FAPILOG_CORE__SINKS='["audit"]'
+```
+
+### Option 3: Allow All External Plugins (Less Secure)
+
+```python
+settings = Settings(
+    plugins={"allow_external": True},
+    core={"sinks": ["audit"]},
+)
+```
+
+## Complete Working Example
+
+```python
+from fapilog import Settings, get_logger
+from fapilog_audit import AuditTrail, CompliancePolicy, ComplianceLevel
+
+settings = Settings(
+    plugins={"allowlist": ["audit"]},
+    core={"sinks": ["audit"]},
+)
+logger = get_logger(settings=settings)
+logger.info("Audit logging configured")
+```
+
+## Direct Usage
+
+You can also use AuditTrail directly without the plugin system:
+
+```python
+from fapilog_audit import AuditTrail, CompliancePolicy, ComplianceLevel
+
 trail = AuditTrail(policy=CompliancePolicy(level=ComplianceLevel.HIPAA))
 await trail.start()
 await trail.log_security_event(...)
+await trail.stop()
 ```
 
 ## Migration from fapilog.core
