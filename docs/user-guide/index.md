@@ -14,6 +14,7 @@ context-enrichment
 rotating-file-sink
 sink-routing
 redactors
+redaction-guarantee
 graceful-shutdown
 performance-tuning
 integration-guide
