@@ -33,6 +33,8 @@ from .audit import (
     audit_security_event,
     emit_compliance_alert,
     get_audit_trail,
+    reset_all_audit_trails,
+    reset_audit_trail,
 )
 from .compliance import (
     AuditConfig,
@@ -63,6 +65,9 @@ __all__ = [
     "audit_error",
     "audit_security_event",
     "emit_compliance_alert",
+    # Instance management
+    "reset_audit_trail",
+    "reset_all_audit_trails",
     # Validation functions
     "validate_compliance_policy",
     "validate_data_handling",

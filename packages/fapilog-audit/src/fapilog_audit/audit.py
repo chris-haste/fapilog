@@ -760,28 +760,80 @@ class AuditTrail:
         await self.stop()
 
 
-# Global audit trail instance
+# Global audit trail instances
 _audit_trail: AuditTrail | None = None
+_audit_trails: dict[str, AuditTrail] = {}
 
 
 async def get_audit_trail(
-    policy: CompliancePolicy | None = None, storage_path: Path | None = None
+    policy: CompliancePolicy | None = None,
+    storage_path: Path | None = None,
+    *,
+    name: str | None = None,
 ) -> AuditTrail:
     """
-    Get global audit trail instance.
+    Get audit trail instance, optionally by name.
 
     Args:
         policy: Compliance policy (for initialization)
         storage_path: Storage path (for initialization)
+        name: Optional name for a scoped instance. If None, returns
+              the default global instance.
 
     Returns:
         Audit trail instance
     """
     global _audit_trail
-    if _audit_trail is None:
-        _audit_trail = AuditTrail(policy, storage_path)
-        await _audit_trail.start()
-    return _audit_trail
+
+    if name is None:
+        # Default global instance (backward compat)
+        if _audit_trail is None:
+            _audit_trail = AuditTrail(policy, storage_path)
+            await _audit_trail.start()
+        return _audit_trail
+
+    # Named instance
+    if name not in _audit_trails:
+        trail = AuditTrail(policy, storage_path)
+        await trail.start()
+        _audit_trails[name] = trail
+    return _audit_trails[name]
+
+
+async def reset_audit_trail(name: str | None = None) -> None:
+    """
+    Reset audit trail instance(s) for testing.
+
+    Args:
+        name: If provided, reset only the named instance.
+              If None, reset the default global instance.
+    """
+    global _audit_trail
+
+    if name is None:
+        if _audit_trail is not None:
+            await _audit_trail.stop()
+            _audit_trail = None
+    elif name in _audit_trails:
+        await _audit_trails[name].stop()
+        del _audit_trails[name]
+
+
+async def reset_all_audit_trails() -> None:
+    """
+    Reset all audit trail instances.
+
+    Use in test teardown to ensure complete cleanup.
+    """
+    global _audit_trail, _audit_trails
+
+    if _audit_trail is not None:
+        await _audit_trail.stop()
+        _audit_trail = None
+
+    for trail in _audit_trails.values():
+        await trail.stop()
+    _audit_trails.clear()
 
 
 async def audit_error(

@@ -1,15 +1,17 @@
 """Pytest configuration for fapilog-audit tests."""
 
+from collections.abc import AsyncIterator
+
 import pytest
+
+from fapilog_audit import audit
 
 
 @pytest.fixture(autouse=True)
-def _reset_global_audit_trail():
-    """Reset global audit trail between tests."""
-    from fapilog_audit import audit
-
+async def _reset_global_audit_trail() -> AsyncIterator[None]:
+    """Reset all audit trail instances between tests."""
     # Reset global state before each test
-    audit._audit_trail = None
+    await audit.reset_all_audit_trails()
     yield
     # Cleanup after test
-    audit._audit_trail = None
+    await audit.reset_all_audit_trails()
