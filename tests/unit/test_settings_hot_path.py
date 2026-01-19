@@ -275,18 +275,18 @@ class TestSinkConfigInjection:
         await sink.start()
 
         # Mock the serialization to force fallback path
-        with (
-            patch("fapilog.plugins.sinks.rotating_file.serialize_envelope") as mock_ser,
-            patch("fapilog.core.settings.Settings") as mock_settings_cls,
-        ):
-            # Make serialization fail to trigger strict mode check
-            mock_ser.side_effect = ValueError("serialization error")
+        with patch(
+            "fapilog.plugins.sinks.rotating_file.serialize_envelope"
+        ) as mock_ser:
+            with patch("fapilog.core.settings.Settings") as mock_settings_cls:
+                # Make serialization fail to trigger strict mode check
+                mock_ser.side_effect = ValueError("serialization error")
 
-            # Write should use config.strict_envelope_mode, not Settings()
-            await sink.write({"level": "INFO", "message": "test"})
+                # Write should use config.strict_envelope_mode, not Settings()
+                await sink.write({"level": "INFO", "message": "test"})
 
-            # Settings should NOT have been called
-            assert mock_settings_cls.call_count == 0
+                # Settings should NOT have been called
+                assert mock_settings_cls.call_count == 0
 
         await sink.stop()
 
@@ -312,15 +312,13 @@ class TestSinkConfigInjection:
 
         sink = StdoutJsonSink(strict_envelope_mode=True)
 
-        with (
-            patch("fapilog.plugins.sinks.stdout_json.serialize_envelope") as mock_ser,
-            patch("fapilog.core.settings.Settings") as mock_settings_cls,
-        ):
-            # Make serialization fail to trigger strict mode check
-            mock_ser.side_effect = ValueError("serialization error")
+        with patch("fapilog.plugins.sinks.stdout_json.serialize_envelope") as mock_ser:
+            with patch("fapilog.core.settings.Settings") as mock_settings_cls:
+                # Make serialization fail to trigger strict mode check
+                mock_ser.side_effect = ValueError("serialization error")
 
-            # Write should use _strict_envelope_mode, not Settings()
-            await sink.write({"level": "INFO", "message": "test"})
+                # Write should use _strict_envelope_mode, not Settings()
+                await sink.write({"level": "INFO", "message": "test"})
 
-            # Settings should NOT have been called
-            assert mock_settings_cls.call_count == 0
+                # Settings should NOT have been called
+                assert mock_settings_cls.call_count == 0

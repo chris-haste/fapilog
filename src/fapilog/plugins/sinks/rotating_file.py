@@ -368,15 +368,13 @@ class RotatingFileSink:
             gz_path = path.with_suffix(path.suffix + ".gz")
 
             def _compress() -> None:
-                with (
-                    open(path, "rb") as src,
-                    gzip.open(gz_path, "wb", compresslevel=5) as dst,
-                ):
-                    while True:
-                        chunk = src.read(1024 * 1024)
-                        if not chunk:
-                            break
-                        dst.write(chunk)
+                with open(path, "rb") as src:
+                    with gzip.open(gz_path, "wb", compresslevel=5) as dst:
+                        while True:
+                            chunk = src.read(1024 * 1024)
+                            if not chunk:
+                                break
+                            dst.write(chunk)
 
             await asyncio.to_thread(_compress)
             # Remove original after successful compression
