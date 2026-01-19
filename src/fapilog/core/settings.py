@@ -773,6 +773,16 @@ class CoreSettings(BaseModel):
         default=False,
         description=("Write to multiple sinks in parallel instead of sequentially"),
     )
+    # Fallback PII protection (Story 4.46)
+    fallback_redact_mode: Literal["inherit", "minimal", "none"] = Field(
+        default="minimal",
+        description=(
+            "Redaction mode for fallback stderr output: "
+            "'inherit' uses pipeline redactors, "
+            "'minimal' applies built-in sensitive field masking, "
+            "'none' writes unredacted (opt-in to legacy behavior)"
+        ),
+    )
 
     # Example of a field requiring async validation
     benchmark_file_path: str | None = Field(

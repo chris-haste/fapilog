@@ -9,6 +9,7 @@ import pytest
 import fapilog
 from fapilog import Settings, get_logger
 from fapilog.core.defaults import (
+    FALLBACK_SENSITIVE_FIELDS,
     get_default_log_level,
     is_ci_environment,
     is_tty_environment,
@@ -159,3 +160,55 @@ class TestApplyDefaultLogLevel:
 
         assert updated is not settings
         assert updated.core.log_level == "INFO"
+
+
+class TestFallbackSensitiveFields:
+    """Test FALLBACK_SENSITIVE_FIELDS constant (Story 4.46)."""
+
+    def test_is_frozenset(self) -> None:
+        assert isinstance(FALLBACK_SENSITIVE_FIELDS, frozenset)
+
+    def test_contains_common_sensitive_fields(self) -> None:
+        expected = {
+            "password",
+            "passwd",
+            "secret",
+            "token",
+            "api_key",
+            "apikey",
+            "api_secret",
+            "apisecret",
+            "authorization",
+            "auth",
+            "credential",
+            "credentials",
+            "private_key",
+            "privatekey",
+            "access_token",
+            "refresh_token",
+        }
+        assert expected.issubset(FALLBACK_SENSITIVE_FIELDS)
+
+    def test_values_are_lowercase(self) -> None:
+        for field in FALLBACK_SENSITIVE_FIELDS:
+            assert field == field.lower(), f"Field '{field}' is not lowercase"
+
+
+class TestFallbackRedactModeDefault:
+    """Test fallback_redact_mode default value (Story 4.46 AC5)."""
+
+    def test_default_is_minimal(self) -> None:
+        settings = Settings()
+        assert settings.core.fallback_redact_mode == "minimal"
+
+    def test_accepts_inherit_mode(self) -> None:
+        settings = Settings(core={"fallback_redact_mode": "inherit"})
+        assert settings.core.fallback_redact_mode == "inherit"
+
+    def test_accepts_none_mode(self) -> None:
+        settings = Settings(core={"fallback_redact_mode": "none"})
+        assert settings.core.fallback_redact_mode == "none"
+
+    def test_rejects_invalid_mode(self) -> None:
+        with pytest.raises(ValueError, match="Input should be"):
+            Settings(core={"fallback_redact_mode": "invalid"})

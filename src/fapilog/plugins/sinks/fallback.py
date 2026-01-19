@@ -2,10 +2,36 @@ from __future__ import annotations
 
 import json
 import sys
-from typing import Any
+from typing import Any, Literal
 
 from ...core import diagnostics
-from ...core.defaults import should_fallback_sink
+from ...core.defaults import FALLBACK_SENSITIVE_FIELDS, should_fallback_sink
+
+# Type alias for redact mode
+RedactMode = Literal["inherit", "minimal", "none"]
+
+
+def minimal_redact(payload: dict[str, Any]) -> dict[str, Any]:
+    """Apply minimal redaction for fallback safety.
+
+    Masks values of keys that match FALLBACK_SENSITIVE_FIELDS (case-insensitive).
+    Recursively processes nested dictionaries but not lists.
+
+    Args:
+        payload: The dictionary to redact.
+
+    Returns:
+        A new dictionary with sensitive fields masked as "***".
+    """
+    result: dict[str, Any] = {}
+    for key, value in payload.items():
+        if key.lower() in FALLBACK_SENSITIVE_FIELDS:
+            result[key] = "***"
+        elif isinstance(value, dict):
+            result[key] = minimal_redact(value)
+        else:
+            result[key] = value
+    return result
 
 
 def _sink_name(sink: Any) -> str:
@@ -39,7 +65,26 @@ def _format_payload(payload: Any, *, serialized: bool) -> str:
     return _serialize_entry({"message": str(payload)})
 
 
-def _write_to_stderr(payload: Any, *, serialized: bool) -> None:
+def _write_to_stderr(
+    payload: Any,
+    *,
+    serialized: bool,
+    redact_mode: RedactMode = "minimal",
+) -> None:
+    """Write payload to stderr with optional redaction.
+
+    Args:
+        payload: The payload to write.
+        serialized: Whether the payload is already serialized.
+        redact_mode: Redaction mode - "minimal" (default), "inherit", or "none".
+    """
+    # Apply redaction for dict payloads when not serialized
+    if not serialized and isinstance(payload, dict):
+        if redact_mode == "minimal":
+            payload = minimal_redact(payload)
+        # "inherit" mode is handled at a higher level (requires pipeline context)
+        # "none" mode passes through without redaction
+
     text = _format_payload(payload, serialized=serialized)
     if not text.endswith("\n"):
         text += "\n"
@@ -53,14 +98,26 @@ async def handle_sink_write_failure(
     sink: Any,
     error: BaseException,
     serialized: bool = False,
+    redact_mode: RedactMode = "minimal",
 ) -> None:
     if not should_fallback_sink(True):
         return
 
     sink_label = _sink_name(sink)
     error_type = type(error).__name__
+
+    # Emit warning for unredacted fallback (AC1)
+    if redact_mode == "none":
+        try:
+            diagnostics.warn(
+                "sink",
+                "fallback triggered without redaction configured",
+            )
+        except Exception:
+            pass
+
     try:
-        _write_to_stderr(payload, serialized=serialized)
+        _write_to_stderr(payload, serialized=serialized, redact_mode=redact_mode)
     except Exception:
         try:
             diagnostics.warn(
@@ -104,7 +161,12 @@ class FallbackSink:
         if hasattr(self._primary, "stop"):
             await self._primary.stop()
 
-    async def write(self, entry: dict[str, Any]) -> None:
+    async def write(
+        self,
+        entry: dict[str, Any],
+        *,
+        redact_mode: RedactMode = "minimal",
+    ) -> None:
         try:
             await self._primary.write(entry)
         except Exception as exc:
@@ -113,9 +175,15 @@ class FallbackSink:
                 sink=self._primary,
                 error=exc,
                 serialized=False,
+                redact_mode=redact_mode,
             )
 
-    async def write_serialized(self, view: Any) -> None:
+    async def write_serialized(
+        self,
+        view: Any,
+        *,
+        redact_mode: RedactMode = "minimal",
+    ) -> None:
         try:
             await self._primary.write_serialized(view)
         except AttributeError:
@@ -126,6 +194,7 @@ class FallbackSink:
                 sink=self._primary,
                 error=exc,
                 serialized=True,
+                redact_mode=redact_mode,
             )
 
 

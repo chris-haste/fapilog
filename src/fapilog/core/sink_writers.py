@@ -15,12 +15,15 @@ Key improvements over closure-based approach:
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 from ..plugins.sinks.fallback import handle_sink_write_failure
 
 if TYPE_CHECKING:
     from .circuit_breaker import SinkCircuitBreaker, SinkCircuitBreakerConfig
+
+# Type alias for redact mode
+RedactMode = Literal["inherit", "minimal", "none"]
 
 
 def make_sink_writer(sink: Any) -> tuple[Any, Any]:
@@ -76,6 +79,7 @@ class SinkWriterGroup:
         _writers: List of (write, write_serialized) tuples from make_sink_writer.
         _breakers: Mapping from sink id to SinkCircuitBreaker instance.
         _parallel: Whether to write to sinks in parallel.
+        _redact_mode: Redaction mode for fallback output.
 
     Example:
         >>> group = SinkWriterGroup(
@@ -86,7 +90,7 @@ class SinkWriterGroup:
         >>> await group.write({"message": "test", "level": "INFO"})
     """
 
-    __slots__ = ("_sinks", "_writers", "_breakers", "_parallel")
+    __slots__ = ("_sinks", "_writers", "_breakers", "_parallel", "_redact_mode")
 
     def __init__(
         self,
@@ -94,6 +98,7 @@ class SinkWriterGroup:
         *,
         parallel: bool = False,
         circuit_config: SinkCircuitBreakerConfig | None = None,
+        redact_mode: RedactMode = "minimal",
     ) -> None:
         """Initialize SinkWriterGroup with sinks and configuration.
 
@@ -101,12 +106,14 @@ class SinkWriterGroup:
             sinks: List of sink instances to write to.
             parallel: If True, write to sinks in parallel when >1 sink.
             circuit_config: Optional circuit breaker config for fault isolation.
+            redact_mode: Redaction mode for fallback output (Story 4.46).
         """
         from .circuit_breaker import SinkCircuitBreaker
 
         self._sinks = sinks
         self._writers = [make_sink_writer(s) for s in sinks]
         self._parallel = parallel
+        self._redact_mode = redact_mode
 
         # Create circuit breakers for each sink if enabled
         self._breakers: dict[int, SinkCircuitBreaker] = {}
@@ -192,6 +199,7 @@ class SinkWriterGroup:
                         sink=sink,
                         error=RuntimeError("Sink returned False"),
                         serialized=False,
+                        redact_mode=self._redact_mode,
                     )
                 except Exception:
                     pass
@@ -206,6 +214,7 @@ class SinkWriterGroup:
                     sink=sink,
                     error=exc,
                     serialized=False,
+                    redact_mode=self._redact_mode,
                 )
             except Exception:
                 pass
@@ -242,6 +251,7 @@ class SinkWriterGroup:
                         sink=sink,
                         error=RuntimeError("Sink returned False"),
                         serialized=True,
+                        redact_mode=self._redact_mode,
                     )
                 except Exception:
                     pass
@@ -256,6 +266,7 @@ class SinkWriterGroup:
                     sink=sink,
                     error=exc,
                     serialized=True,
+                    redact_mode=self._redact_mode,
                 )
             except Exception:
                 pass
