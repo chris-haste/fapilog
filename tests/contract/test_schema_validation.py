@@ -13,9 +13,9 @@ from pathlib import Path
 
 import pytest
 
-import jsonschema
 from fapilog.core.envelope import build_envelope
 from fapilog.core.serialization import serialize_envelope
+from jsonschema import validate as jsonschema_validate
 
 pytestmark = pytest.mark.contract
 
@@ -41,7 +41,7 @@ class TestSchemaValidation:
         parsed = json.loads(view.data)
 
         # Should not raise ValidationError
-        jsonschema.validate(parsed, envelope_schema)
+        jsonschema_validate(parsed, envelope_schema)
 
     def test_all_log_levels_validate_against_schema(
         self, envelope_schema: dict
@@ -55,7 +55,7 @@ class TestSchemaValidation:
             parsed = json.loads(view.data)
 
             # Should not raise ValidationError
-            jsonschema.validate(parsed, envelope_schema)
+            jsonschema_validate(parsed, envelope_schema)
 
     def test_envelope_with_extra_data_validates(self, envelope_schema: dict) -> None:
         """Envelope with user data must conform to schema."""
@@ -67,7 +67,7 @@ class TestSchemaValidation:
         view = serialize_envelope(envelope)
         parsed = json.loads(view.data)
 
-        jsonschema.validate(parsed, envelope_schema)
+        jsonschema_validate(parsed, envelope_schema)
 
     def test_envelope_with_context_validates(self, envelope_schema: dict) -> None:
         """Envelope with context fields must conform to schema."""
@@ -83,7 +83,7 @@ class TestSchemaValidation:
         view = serialize_envelope(envelope)
         parsed = json.loads(view.data)
 
-        jsonschema.validate(parsed, envelope_schema)
+        jsonschema_validate(parsed, envelope_schema)
         # Also verify context fields are in the right place
         log = parsed["log"]
         assert log["context"]["request_id"] == "req-123"
@@ -103,7 +103,7 @@ class TestSchemaValidation:
         view = serialize_envelope(envelope)
         parsed = json.loads(view.data)
 
-        jsonschema.validate(parsed, envelope_schema)
+        jsonschema_validate(parsed, envelope_schema)
         # Verify exception is in diagnostics
         log = parsed["log"]
         assert "exception" in log["diagnostics"]
@@ -115,7 +115,7 @@ class TestSchemaValidation:
         parsed = json.loads(view.data)
 
         assert parsed["schema_version"] == "1.1"
-        jsonschema.validate(parsed, envelope_schema)
+        jsonschema_validate(parsed, envelope_schema)
 
     def test_timestamp_format_is_rfc3339(self, envelope_schema: dict) -> None:
         """Timestamp must be RFC3339 UTC with Z suffix."""
@@ -127,7 +127,7 @@ class TestSchemaValidation:
         # RFC3339 UTC format: YYYY-MM-DDTHH:MM:SS.mmmZ
         assert timestamp.endswith("Z")
         assert "T" in timestamp
-        jsonschema.validate(parsed, envelope_schema)
+        jsonschema_validate(parsed, envelope_schema)
 
     def test_required_fields_present(self, envelope_schema: dict) -> None:
         """All required fields must be present in output."""
@@ -148,4 +148,4 @@ class TestSchemaValidation:
         assert "diagnostics" in log
         assert "data" in log
 
-        jsonschema.validate(parsed, envelope_schema)
+        jsonschema_validate(parsed, envelope_schema)
