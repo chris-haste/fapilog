@@ -15,6 +15,9 @@ redaction-guarantees
 security-operator-workflows
 quality-signals
 adr/0003-canonical-log-schema-v1.1
+audits/fapilog-assessment-2026-01-19 (Claude-Opus-4.5)
+audits/fapilog-assessment-2026-01-19 (GPT-5.2)
+audits/fapilog-assessment-2026-01-19 (Gemini-3-Flash)
 ```
 
 ## Overview
