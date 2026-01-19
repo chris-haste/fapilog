@@ -80,6 +80,33 @@ Use the template in `references/template.md` as the starting point.
 - Include code snippets where helpful
 - Number them (AC1, AC2...) for reference
 
+### Contract Test Consideration
+
+For stories that change function signatures, data schemas, or interfaces:
+
+1. **Identify producer/consumer pairs** - What functions produce output that other functions consume?
+2. **Add contract test AC** - Include an acceptance criterion that tests `consumer(producer(...))` works
+3. **Check for manual test data** - If existing tests hand-craft data instead of using real function output, flag for update
+
+**Example AC for schema changes:**
+```markdown
+### AC: Contract Test for Schema Compatibility
+
+**Description:** Producer output is valid consumer input.
+
+**Validation:**
+```python
+# Must not raise - if it does, schemas have drifted
+output = producer_function(...)
+consumer_function(output)
+```
+```
+
+**Warning signs to look for in existing code:**
+- Tests with hand-crafted dicts that add fields to satisfy validation
+- Comments like "will fail because missing X"
+- Try/except patterns treating validation errors as expected
+
 ### Scope Boundaries
 
 - "In Scope" - What this story WILL do
@@ -106,6 +133,8 @@ Before creating the story file:
 2. Verify dependencies reference real stories
 3. Ensure acceptance criteria are testable
 4. Confirm scope boundaries are clear
+5. **For schema/interface changes:** Verify contract test AC is included (see "Contract Test Consideration")
+6. **Check for test debt:** Search for existing tests that hand-craft data for the affected interfaces
 
 ## Output
 
