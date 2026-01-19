@@ -2,11 +2,13 @@
 
 This document defines the guarantees, guardrails, and configuration for data redaction in Fapilog.
 
+> **Important:** Redaction is disabled by default. Features below only apply when enabled via `preset="production"` or explicit redactor configuration. See [Reliability Defaults](user-guide/reliability-defaults.md) for details.
+
 ## Guarantees
 
-- URL credentials are always scrubbed from string values resembling `scheme://user:pass@host...` across all fields.
-- Explicitly configured dotted field paths are masked, including nested objects and lists. Arrays support `*`/`[*]` wildcard and numeric indices.
-- Regex-based masks are applied to dotted field paths that match configured regular expressions.
+- URL credentials are scrubbed from string values resembling `scheme://user:pass@host...` across all fields **when the `url_credentials` redactor is enabled**.
+- Explicitly configured dotted field paths are masked, including nested objects and lists, **when the `field_mask` redactor is enabled**. Arrays support `*`/`[*]` wildcard and numeric indices.
+- Regex-based masks are applied to dotted field paths that match configured regular expressions **when the `regex_mask` redactor is enabled**.
 - Redactors never raise upstream; failures are recorded via diagnostics with a `{ redactor, reason }` payload.
 
 ## Deterministic Order
