@@ -4,10 +4,11 @@ import asyncio
 import gzip
 import os
 import time
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 from ...core import diagnostics
 from ...core.errors import SinkWriteError
@@ -37,6 +38,8 @@ class RotatingFileSinkConfig:
         max_total_bytes: Optional retention cap on cumulative bytes for
             rotated files. The active file is not counted.
         compress_rotated: If True, compress closed (rotated) files to .gz.
+        strict_envelope_mode: If True, drop entries that fail envelope
+            serialization. If False, fall back to best-effort JSON.
     """
 
     directory: Path
@@ -47,6 +50,7 @@ class RotatingFileSinkConfig:
     max_files: int | None = None
     max_total_bytes: int | None = None
     compress_rotated: bool = False
+    strict_envelope_mode: bool = False
 
 
 class RotatingFileSink:
@@ -136,13 +140,8 @@ class RotatingFileSink:
                 try:
                     view: SerializedView = serialize_envelope(entry)
                 except Exception as e:
-                    strict = False
-                    try:
-                        from ...core import settings as _settings
-
-                        strict = bool(_settings.Settings().core.strict_envelope_mode)
-                    except Exception:
-                        strict = False
+                    # Use config value instead of Settings() (Story 1.25)
+                    strict = self._cfg.strict_envelope_mode
                     diagnostics.warn(
                         "sink",
                         "envelope serialization error",
@@ -369,14 +368,13 @@ class RotatingFileSink:
             gz_path = path.with_suffix(path.suffix + ".gz")
 
             def _compress() -> None:
-                with open(path, "rb") as src, gzip.open(
-                    gz_path, "wb", compresslevel=5
-                ) as dst:
-                    while True:
-                        chunk = src.read(1024 * 1024)
-                        if not chunk:
-                            break
-                        dst.write(chunk)
+                with open(path, "rb") as src:
+                    with gzip.open(gz_path, "wb", compresslevel=5) as dst:
+                        while True:
+                            chunk = src.read(1024 * 1024)
+                            if not chunk:
+                                break
+                            dst.write(chunk)
 
             await asyncio.to_thread(_compress)
             # Remove original after successful compression
@@ -460,7 +458,7 @@ class RotatingFileSink:
 
     def _stringify(self, value: Any) -> str:
         try:
-            if isinstance(value, (str, int, float, bool)) or value is None:
+            if isinstance(value, str | int | float | bool) or value is None:
                 return str(value)
             return str(value)
         except Exception:

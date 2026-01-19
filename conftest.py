@@ -2,7 +2,10 @@
 Root pytest configuration.
 """
 
+from __future__ import annotations
+
 import os
+from collections.abc import Generator
 
 import pytest
 
@@ -82,3 +85,21 @@ def pytest_configure(config: pytest.Config) -> None:
         "markers",
         "enterprise: Enterprise feature tests",
     )
+
+
+@pytest.fixture(autouse=True)
+def reset_diagnostics_cache() -> Generator[None, None, None]:
+    """Reset the diagnostics module cache before each test.
+
+    The diagnostics module caches the `internal_logging_enabled` setting
+    at first access (Story 1.25). This fixture ensures test isolation by
+    resetting the cache to None before each test, so tests don't inherit
+    cached state from previous tests.
+    """
+    import fapilog.core.diagnostics as diag
+
+    # Reset the cache to None so each test can set it as needed
+    diag._internal_logging_enabled = None
+    yield
+    # Also reset after test to clean up
+    diag._internal_logging_enabled = None

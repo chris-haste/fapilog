@@ -13,8 +13,9 @@ from __future__ import annotations
 import json
 import sys
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 
 def _default_writer(
@@ -65,14 +66,44 @@ class _RateLimiter:
 
 _limiter = _RateLimiter()
 
+# Module-level cache for internal_logging_enabled setting (Story 1.25)
+# Set once at first use or via configure_diagnostics() to avoid Settings() on hot path
+_internal_logging_enabled: bool | None = None
+
 
 def _is_enabled() -> bool:
+    """Check if internal diagnostics logging is enabled.
+
+    Uses module-level caching to avoid Settings() instantiation on every call.
+    The value is read once from Settings() on first access and cached.
+    Use configure_diagnostics() to override the cached value explicitly.
+    """
+    global _internal_logging_enabled
+    if _internal_logging_enabled is not None:
+        return _internal_logging_enabled
     try:
         from .settings import Settings
 
-        return bool(Settings().core.internal_logging_enabled)
+        _internal_logging_enabled = bool(Settings().core.internal_logging_enabled)
     except Exception:
-        return False
+        _internal_logging_enabled = False
+    return _internal_logging_enabled
+
+
+def configure_diagnostics(enabled: bool) -> None:
+    """Explicitly configure diagnostics enablement.
+
+    This function allows explicit control over whether internal diagnostics
+    are emitted, bypassing the Settings() lookup entirely. Useful for:
+    - Testing scenarios where Settings may not be available
+    - Performance-critical applications that want to avoid any Settings overhead
+    - Explicit runtime configuration of diagnostics behavior
+
+    Args:
+        enabled: Whether internal diagnostic messages should be emitted.
+    """
+    global _internal_logging_enabled
+    _internal_logging_enabled = enabled
 
 
 def emit(
@@ -141,4 +172,5 @@ _VULTURE_USED: tuple[object, ...] = (
     debug,
     warn,
     _reset_for_tests,
+    configure_diagnostics,
 )
