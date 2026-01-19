@@ -156,7 +156,9 @@ def _scan_local_plugin_metadata(paths: list[Path]) -> list[dict[str, Any]]:
                             for t in node.targets
                         ) and isinstance(node.value, ast.Dict):
                             md = {}
-                            for k, v in zip(node.value.keys, node.value.values):
+                            for k, v in zip(
+                                node.value.keys, node.value.values, strict=False
+                            ):
                                 key = None
                                 if isinstance(k, ast.Constant) and isinstance(
                                     k.value, str
@@ -357,7 +359,7 @@ def main() -> None:
     parser.add_argument(
         "--envelope-schema",
         type=Path,
-        default=Path("jsonschema/log_envelope_v1.json"),
+        default=Path("schemas/log_envelope_v1.json"),
         help="Path to LogEnvelope JSON Schema file (optional).",
     )
     parser.add_argument(

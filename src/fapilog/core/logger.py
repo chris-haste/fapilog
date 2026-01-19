@@ -14,7 +14,7 @@ import time
 import warnings
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from ..metrics.metrics import MetricsCollector
 from ..plugins.enrichers import BaseEnricher
@@ -334,18 +334,23 @@ class _LoggerMixin(_WorkerCountersMixin):
             bound_context = {}
 
         # Delegate envelope construction to envelope module (Story 1.21)
-        payload = build_envelope(
-            level=level,
-            message=message,
-            extra=metadata if metadata else None,
-            bound_context=bound_context if bound_context else None,
-            exc=exc,
-            exc_info=exc_info,
-            exceptions_enabled=self._exceptions_enabled,
-            exceptions_max_frames=self._exceptions_max_frames,
-            exceptions_max_stack_chars=self._exceptions_max_stack_chars,
-            logger_name=self._name,
-            correlation_id=current_corr,
+        # build_envelope returns LogEnvelopeV1 (TypedDict) which is structurally
+        # compatible with dict[str, Any] - cast for downstream queue compatibility
+        payload = cast(
+            dict[str, Any],
+            build_envelope(
+                level=level,
+                message=message,
+                extra=metadata if metadata else None,
+                bound_context=bound_context if bound_context else None,
+                exc=exc,
+                exc_info=exc_info,
+                exceptions_enabled=self._exceptions_enabled,
+                exceptions_max_frames=self._exceptions_max_frames,
+                exceptions_max_stack_chars=self._exceptions_max_stack_chars,
+                logger_name=self._name,
+                correlation_id=current_corr,
+            ),
         )
         self._submitted += 1
         return payload

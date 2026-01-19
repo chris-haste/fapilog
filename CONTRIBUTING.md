@@ -347,6 +347,23 @@ pytest -k "test_name_pattern"
 
 **Note**: Some tests are marked as "slow" because they perform intensive performance testing (60+ second stress tests). For faster development cycles, use `hatch run test:pytest -m "not slow"` which excludes these tests and runs ~53% faster.
 
+### Contract Tests
+
+Contract tests verify schema compatibility between producers and consumers in the logging pipeline. They catch schema drift before it causes runtime failures.
+
+```bash
+# Run contract tests
+pytest tests/contract/ -v
+```
+
+Key concepts:
+
+- **Roundtrip tests**: Verify `build_envelope()` output works with `serialize_envelope()`
+- **Schema validation**: Validate output against the JSON schema
+- **strict_serialization fixture**: Fail if fallback serialization is triggered
+
+For detailed guidance, see [Contract Testing](docs/contributing/contract-tests.md).
+
 ## Code Style Guidelines
 
 ### Python Code

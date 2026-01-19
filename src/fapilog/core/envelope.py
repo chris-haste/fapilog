@@ -10,8 +10,10 @@ from __future__ import annotations
 import sys
 from datetime import datetime, timezone
 from types import TracebackType
-from typing import Any
+from typing import Any, cast
 from uuid import uuid4
+
+from .schema import LogContext, LogDiagnostics, LogEnvelopeV1
 
 _CONTEXT_FIELDS = frozenset(
     {"request_id", "user_id", "tenant_id", "trace_id", "span_id"}
@@ -37,7 +39,7 @@ def build_envelope(
     exceptions_max_stack_chars: int = 20000,
     logger_name: str = "root",
     correlation_id: str | None = None,
-) -> dict[str, Any]:
+) -> LogEnvelopeV1:
     """Construct a log envelope following the canonical v1.1 schema.
 
     The v1.1 schema organizes fields into semantic groupings:
@@ -130,13 +132,13 @@ def build_envelope(
     )
 
     # Build v1.1 envelope
-    envelope: dict[str, Any] = {
+    envelope: LogEnvelopeV1 = {
         "timestamp": ts,
         "level": level,
         "message": message,
         "logger": logger_name,
-        "context": context,
-        "diagnostics": diagnostics,
+        "context": cast(LogContext, context),
+        "diagnostics": cast(LogDiagnostics, diagnostics),
         "data": data,
     }
 

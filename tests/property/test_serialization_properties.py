@@ -6,6 +6,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
+from fapilog.core.envelope import build_envelope
 from fapilog.core.serialization import (
     serialize_envelope,
     serialize_mapping_to_json_bytes,
@@ -65,3 +66,60 @@ def test_serialize_envelope_preserves_required_fields(event: dict) -> None:
     assert log["diagnostics"] == event["diagnostics"]
     assert log["data"] == event["data"]
     assert log["timestamp"].endswith("Z")
+
+
+# Contract property test: uses real build_envelope() output
+@given(
+    level=st.sampled_from(["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]),
+    message=st.text(min_size=1, max_size=200),
+    extra=st.dictionaries(
+        st.text(min_size=1, max_size=20).filter(lambda x: x.isidentifier()),
+        st.text(max_size=50),
+        max_size=5,
+    ),
+)
+def test_build_then_serialize_never_raises(
+    level: str, message: str, extra: dict[str, str]
+) -> None:
+    """Property: serialize_envelope(build_envelope(...)) never raises.
+
+    This contract property test verifies that the producer/consumer contract
+    holds for any valid input combination. Unlike synthetic envelope_logs
+    strategy, this uses actual build_envelope() output.
+
+    If this test fails, schemas have drifted between build_envelope() and
+    serialize_envelope(). See Story 10.17 for context.
+    """
+    envelope = build_envelope(level=level, message=message, extra=extra)
+
+    # Must not raise for any valid input combination
+    view = serialize_envelope(envelope)
+    parsed = json.loads(view.data)
+    assert parsed["schema_version"] == "1.1"
+    assert parsed["log"]["level"] == level
+
+
+@given(
+    level=st.sampled_from(["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]),
+    message=st.text(min_size=1, max_size=200),
+    correlation_id=st.text(min_size=1, max_size=36).filter(lambda x: x.strip()),
+    logger_name=st.text(min_size=1, max_size=50).filter(lambda x: x.isidentifier()),
+)
+def test_build_with_options_then_serialize_never_raises(
+    level: str, message: str, correlation_id: str, logger_name: str
+) -> None:
+    """Property: build_envelope() with all options produces valid output.
+
+    Tests the roundtrip with correlation_id and logger_name options.
+    """
+    envelope = build_envelope(
+        level=level,
+        message=message,
+        correlation_id=correlation_id,
+        logger_name=logger_name,
+    )
+
+    view = serialize_envelope(envelope)
+    parsed = json.loads(view.data)
+    assert parsed["schema_version"] == "1.1"
+    assert parsed["log"]["logger"] == logger_name

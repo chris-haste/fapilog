@@ -89,6 +89,7 @@ dev = [
     "pytest-cov>=6.2.0",
     "pytest-benchmark>=4.0.0",
     "hypothesis>=6.100.0",
+    "jsonschema>=4.0.0",
     "ruff>=0.12.0",
     "mypy>=1.17.1",
     "pre-commit>=3.3.0",
@@ -151,6 +152,8 @@ dependencies = [
     "pytest-asyncio>=1.1.0",
     "pytest-cov>=6.2.0",
     "pytest-benchmark>=4.0.0",
+    "hypothesis>=6.100.0",
+    "jsonschema>=4.0.0",
     "ruff>=0.12.0",
     "mypy>=1.17.1",
     "pre-commit>=3.3.0",
@@ -222,10 +225,11 @@ typecheck = "mypy --config-file pyproject.toml --explicit-package-bases src"
 [tool.hatch.envs.test]
 dependencies = [
     "pytest>=8.4.0",
-    "pytest-asyncio>=1.1.0", 
+    "pytest-asyncio>=1.1.0",
     "pytest-cov>=6.2.0",
     "pytest-benchmark>=4.0.0",
     "hypothesis>=6.100.0",
+    "jsonschema>=4.0.0",
     # Core runtime dependencies needed for tests
     "fastapi>=0.115.0",
     "pydantic>=2.11.0",
@@ -402,6 +406,7 @@ exclude = [
     "src/fapilog/core/settings.py",  # Enum values and validator methods
     "src/fapilog/core/routing.py",  # Routing API methods (build_routing_writer, update_rules)
     "src/fapilog/core/config_builders.py",  # _build_pipeline used via import in __init__.py
+    "src/fapilog/core/schema.py",  # TypedDict definitions for schema contracts
     "src/fapilog/fastapi/integration.py",  # FastAPI router functions are public API
     "src/fapilog/plugins/registry.py",  # API methods
     "src/fapilog/plugins/discovery.py",  # Plugin discovery API methods

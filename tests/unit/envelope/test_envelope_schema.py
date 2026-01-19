@@ -7,7 +7,7 @@ from fapilog.core.serialization import ensure_rfc3339_utc, serialize_envelope
 
 
 def test_envelope_schema_validation(tmp_path: Path) -> None:
-    schema_path = Path(__file__).parents[3] / "jsonschema" / "log_envelope_v1.json"
+    schema_path = Path(__file__).parents[3] / "schemas" / "log_envelope_v1.json"
     _ = schema_path.read_text()
 
     log = {
