@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import hmac as _hmac
 import json
+import time
 import warnings
 from enum import Enum
 from typing import Any, Mapping
@@ -40,8 +41,13 @@ class WebhookSinkConfig(BaseModel):
     endpoint: str
     secret: str | None = None
     signature_mode: SignatureMode = Field(
-        default=SignatureMode.HEADER,
-        description="Authentication mode: 'header' (deprecated) or 'hmac' (recommended)",
+        default=SignatureMode.HMAC,
+        description="Authentication mode: 'hmac' (recommended) or 'header' (deprecated)",
+    )
+    replay_tolerance_seconds: int = Field(
+        default=300,
+        ge=0,
+        description="Recommended replay tolerance for receivers (5 minutes). Receivers should reject requests with timestamps outside this window.",
     )
     headers: dict[str, str] = Field(default_factory=dict)
     retry: RetryCallable | RetryConfig | None = None
@@ -101,13 +107,16 @@ class WebhookSink(BatchingMixin):
         headers = dict(self._config.headers)
         if self._config.secret:
             if self._config.signature_mode == SignatureMode.HMAC:
-                # Compute HMAC-SHA256 of JSON payload
-                body = json.dumps(payload, separators=(",", ":")).encode()
+                # Compute HMAC-SHA256 of timestamp + JSON payload for replay protection
+                timestamp = int(time.time())
+                json_body = json.dumps(payload, separators=(",", ":"))
+                message = f"{timestamp}.{json_body}".encode()
                 signature = _hmac.new(
                     self._config.secret.encode(),
-                    body,
+                    message,
                     hashlib.sha256,
                 ).hexdigest()
+                headers["X-Fapilog-Timestamp"] = str(timestamp)
                 headers["X-Fapilog-Signature-256"] = f"sha256={signature}"
             else:
                 # Legacy mode - deprecation warning
@@ -217,4 +226,7 @@ PLUGIN_METADATA = {
 }
 
 # Mark Pydantic validators as used for vulture
-_VULTURE_USED: tuple[object, ...] = (WebhookSinkConfig._coerce_headers,)
+_VULTURE_USED: tuple[object, ...] = (
+    WebhookSinkConfig._coerce_headers,
+    SignatureMode.HEADER,  # Used for backward compatibility
+)

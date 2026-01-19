@@ -70,7 +70,10 @@ async def test_webhook_sink_success_and_headers() -> None:
     assert metrics._state.events_processed == 1  # type: ignore[attr-defined]
     assert pool.calls
     _, _, headers = pool.calls[0]
-    assert headers.get("X-Webhook-Secret") == "abc123"
+    # Default is now HMAC mode with signature and timestamp headers
+    assert "X-Fapilog-Signature-256" in headers
+    assert headers["X-Fapilog-Signature-256"].startswith("sha256=")
+    assert "X-Fapilog-Timestamp" in headers
     assert headers.get("X-Test") == "1"
 
 
@@ -156,8 +159,9 @@ async def test_webhook_sink_batches_and_flushes() -> None:
     assert len(pool.calls) == 2
     assert pool.calls[0][1] == [{"n": 1}, {"n": 2}]
     assert pool.calls[1][1] == [{"n": 3}]
-    # Secret header should be applied to batch requests
-    assert pool.calls[0][2].get("X-Webhook-Secret") == "abc123"
+    # Default HMAC signature headers should be applied to batch requests
+    assert "X-Fapilog-Signature-256" in pool.calls[0][2]
+    assert "X-Fapilog-Timestamp" in pool.calls[0][2]
 
 
 @pytest.mark.asyncio
