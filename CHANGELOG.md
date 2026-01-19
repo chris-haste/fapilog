@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file. This change
 ## [Unreleased]
 
 - **Breaking**: Log schema v1.1 with semantic field groupings (`context`, `diagnostics`, `data`); `metadata` renamed to `data`, `correlation_id` moved to `context.correlation_id`, timestamp now RFC3339 string (Story 1.26). See `docs/schema-migration-v1.0-to-v1.1.md`.
+- **Breaking**: Enrichers now return nested dicts targeting semantic groups (`{"diagnostics": {...}}`) instead of flat dicts; `enrich_parallel()` uses deep-merge; `LogEvent` model updated to v1.1 schema with `context`, `diagnostics`, `data` fields replacing `metadata`, `correlation_id`, `component` (Story 1.27).
 - **Tooling**: Aligned ruff, black, and mypy target versions with `requires-python = ">=3.10"`; added pre-commit hook to enforce Python 3.10+ (Story 10.16).
 - **Breaking**: Production preset now includes `regex_mask` redactor for broader secret protection; users may see additional fields masked (Story 4.47).
 - **Docs**: Added `redaction-guarantee.md` documenting exact redaction behavior per preset; fixed inaccurate claims in `reliability-defaults.md` (Story 4.47).

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable, Protocol, runtime_checkable
+from typing import Any, Iterable, Protocol, runtime_checkable
 
 from ...core.processing import process_in_parallel
 from ...metrics.metrics import MetricsCollector, plugin_timer
@@ -10,14 +10,49 @@ from .kubernetes import KubernetesEnricher
 from .runtime_info import RuntimeInfoEnricher
 
 
+def _deep_merge(base: dict[str, Any], updates: dict[str, Any]) -> dict[str, Any]:
+    """Deep-merge updates into base dict.
+
+    For nested dicts (context, diagnostics, data), merge contents.
+    For other keys, updates overwrite base.
+
+    Returns a new dict; does not mutate base.
+    """
+    result: dict[str, Any] = dict(base)
+    for key, value in updates.items():
+        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            result[key] = _deep_merge(result[key], value)
+        else:
+            result[key] = value
+    return result
+
+
 @runtime_checkable
 class BaseEnricher(Protocol):
-    """Authoring contract for enrichers that augment events.
+    """Authoring contract for enrichers that augment events (v1.1 schema).
 
-    Enrichers receive an event mapping and return a mapping of additional fields
-    to be shallow-merged into the event. Implementations must be async and must
-    not block the event loop. Failures should be contained; returning an empty
-    mapping is acceptable on error.
+    Enrichers receive an event mapping and return a mapping targeting semantic
+    groups. Results are deep-merged into the event, supporting nested structures.
+
+    **Return Format (v1.1):**
+    Enrichers should return dicts targeting semantic groups:
+    - `{"context": {...}}` - for request/trace identifiers
+    - `{"diagnostics": {...}}` - for runtime/operational data
+    - `{"data": {...}}` - for user-provided structured data
+
+    Example:
+        ```python
+        async def enrich(self, event: dict) -> dict:
+            return {"diagnostics": {"host": "server1", "pid": 12345}}
+        ```
+
+    Deep-merge behavior:
+    - Nested dicts (context, diagnostics, data) have their contents merged
+    - Non-dict values are overwritten by updates
+    - Original event data is preserved unless explicitly overwritten
+
+    Implementations must be async and must not block the event loop.
+    Failures should be contained; returning an empty mapping is acceptable on error.
 
     Attributes:
         name: Unique identifier for this enricher type (e.g., "runtime_info").
@@ -32,10 +67,12 @@ class BaseEnricher(Protocol):
         """Release resources for the enricher (optional)."""
 
     async def enrich(self, event: dict) -> dict:
-        """Return additional fields computed from the input event.
+        """Return fields targeting semantic groups to be deep-merged into the event.
 
-        Implementations should avoid mutating the input mapping and return only
-        the new fields to add. Must not raise upstream.
+        Implementations should return dicts targeting semantic groups (context,
+        diagnostics, or data). The result is deep-merged into the event.
+
+        Implementations should avoid mutating the input mapping. Must not raise.
         """
 
     async def health_check(self) -> bool:  # pragma: no cover - optional
@@ -50,12 +87,20 @@ async def enrich_parallel(
     concurrency: int = 5,
     metrics: MetricsCollector | None = None,
 ) -> dict:
-    """
-    Run multiple enrichers in parallel on the same event with controlled
-    concurrency.
+    """Run multiple enrichers in parallel on the same event with controlled concurrency.
 
-    Each enricher receives and returns a mapping. Results are merged
-    shallowly in order.
+    Each enricher receives and returns a mapping targeting semantic groups.
+    Results are deep-merged in order, supporting nested dict structures like
+    context, diagnostics, and data.
+
+    Args:
+        event: The event dict to enrich (not mutated).
+        enrichers: Iterable of enrichers to run in parallel.
+        concurrency: Maximum concurrent enrichers (default 5).
+        metrics: Optional metrics collector for instrumentation.
+
+    Returns:
+        A new dict with all enricher results deep-merged into the event.
     """
     enricher_list: list[BaseEnricher] = list(enrichers)
 
@@ -68,8 +113,8 @@ async def enrich_parallel(
     results = await process_in_parallel(
         enricher_list, run_enricher, limit=concurrency, return_exceptions=True
     )
-    # Shallow merge results into a new dict
-    merged: dict = dict(event)
+    # Deep-merge results into a new dict to support nested semantic groups
+    merged: dict[str, Any] = dict(event)
     for res in results:
         if isinstance(res, BaseException):
             # Skip failed enricher to preserve pipeline resilience
@@ -89,7 +134,7 @@ async def enrich_parallel(
             except Exception:
                 pass
             continue
-        merged.update(res)
+        merged = _deep_merge(merged, res)
         if metrics is not None:
             await metrics.record_event_processed()
     return merged
@@ -117,6 +162,7 @@ register_builtin(
 
 __all__ = [
     "BaseEnricher",
+    "_deep_merge",
     "enrich_parallel",
     "RuntimeInfoEnricher",
     "ContextVarsEnricher",

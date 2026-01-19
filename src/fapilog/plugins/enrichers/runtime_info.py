@@ -16,6 +16,11 @@ class RuntimeInfoEnricher:
         return None
 
     async def enrich(self, event: dict[str, Any]) -> dict[str, Any]:
+        """Return runtime info targeting the diagnostics semantic group.
+
+        Returns:
+            Dict with structure: {"diagnostics": {"host": ..., "pid": ..., ...}}
+        """
         info = {
             "service": os.getenv("FAPILOG_SERVICE", "fapilog"),
             "env": os.getenv("FAPILOG_ENV", os.getenv("ENV", "dev")),
@@ -26,7 +31,7 @@ class RuntimeInfoEnricher:
         }
         # Compact: drop Nones
         compact = {k: v for k, v in info.items() if v is not None}
-        return compact
+        return {"diagnostics": compact}
 
     async def health_check(self) -> bool:
         """Verify runtime info can be collected.
@@ -46,11 +51,11 @@ __all__ = ["RuntimeInfoEnricher"]
 # Minimal PLUGIN_METADATA for discovery
 PLUGIN_METADATA = {
     "name": "runtime_info",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "plugin_type": "enricher",
     "entry_point": "fapilog.plugins.enrichers.runtime_info:RuntimeInfoEnricher",
-    "description": "Adds runtime/system information such as host, pid, and python version.",
+    "description": "Adds runtime/system info (host, pid, python) to diagnostics group.",
     "author": "Fapilog Core",
     "compatibility": {"min_fapilog_version": "0.3.0"},
-    "api_version": "1.0",
+    "api_version": "1.1",
 }

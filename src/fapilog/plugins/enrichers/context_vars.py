@@ -15,6 +15,11 @@ class ContextVarsEnricher:
         return None
 
     async def enrich(self, event: dict[str, Any]) -> dict[str, Any]:
+        """Return context variables targeting the context semantic group.
+
+        Returns:
+            Dict with structure: {"context": {"request_id": ..., "user_id": ..., ...}}
+        """
         data: dict[str, Any] = {}
 
         # request_id
@@ -53,7 +58,7 @@ class ContextVarsEnricher:
         if "tenant_id" in event and "tenant_id" not in data:
             data["tenant_id"] = event.get("tenant_id")
 
-        return data
+        return {"context": data}
 
     async def health_check(self) -> bool:
         """Verify context variables are accessible.
@@ -75,11 +80,11 @@ __all__ = ["ContextVarsEnricher"]
 # Minimal PLUGIN_METADATA for discovery
 PLUGIN_METADATA = {
     "name": "context_vars",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "plugin_type": "enricher",
     "entry_point": "fapilog.plugins.enrichers.context_vars:ContextVarsEnricher",
-    "description": "Adds context variables like request_id and user_id when available.",
+    "description": "Adds request/trace identifiers (request_id, user_id, trace_id) to context group.",
     "author": "Fapilog Core",
     "compatibility": {"min_fapilog_version": "0.3.0"},
-    "api_version": "1.0",
+    "api_version": "1.1",
 }

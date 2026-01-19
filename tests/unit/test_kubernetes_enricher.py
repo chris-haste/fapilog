@@ -93,17 +93,32 @@ def k8s_env() -> dict[str, str]:
 
 
 @pytest.mark.asyncio
-async def test_enricher_adds_metadata(k8s_env: dict[str, str]) -> None:
+async def test_returns_diagnostics_structure(k8s_env: dict[str, str]) -> None:
+    """KubernetesEnricher returns nested structure targeting diagnostics group."""
     enricher = KubernetesEnricher()
     await enricher.start()
     result = await enricher.enrich({})
 
-    assert result["k8s_pod"] == k8s_env["POD_NAME"]
-    assert result["k8s_namespace"] == k8s_env["POD_NAMESPACE"]
-    assert result["k8s_node"] == k8s_env["NODE_NAME"]
-    assert result["k8s_container"] == k8s_env["CONTAINER_NAME"]
-    assert result["k8s_cluster"] == k8s_env["CLUSTER_NAME"]
-    assert result["k8s_deployment"] == "my-app"
+    assert "diagnostics" in result
+    assert isinstance(result["diagnostics"], dict)
+    # Should not have flat top-level k8s fields
+    assert "k8s_pod" not in result
+
+
+@pytest.mark.asyncio
+async def test_diagnostics_contains_k8s_fields(k8s_env: dict[str, str]) -> None:
+    """Diagnostics group contains all K8s metadata."""
+    enricher = KubernetesEnricher()
+    await enricher.start()
+    result = await enricher.enrich({})
+
+    diag = result["diagnostics"]
+    assert diag["k8s_pod"] == k8s_env["POD_NAME"]
+    assert diag["k8s_namespace"] == k8s_env["POD_NAMESPACE"]
+    assert diag["k8s_node"] == k8s_env["NODE_NAME"]
+    assert diag["k8s_container"] == k8s_env["CONTAINER_NAME"]
+    assert diag["k8s_cluster"] == k8s_env["CLUSTER_NAME"]
+    assert diag["k8s_deployment"] == "my-app"
 
 
 @pytest.mark.asyncio
@@ -113,17 +128,21 @@ async def test_enricher_respects_custom_prefix() -> None:
         await enricher.start()
         result = await enricher.enrich({})
 
-    assert "kube_pod" in result
-    assert "k8s_pod" not in result
+    diag = result["diagnostics"]
+    assert "kube_pod" in diag
+    assert "k8s_pod" not in diag
 
 
 @pytest.mark.asyncio
 async def test_enricher_noop_when_not_in_k8s() -> None:
+    """Returns empty diagnostics when not in K8s environment."""
     with patch.dict(os.environ, {}, clear=True):
         enricher = KubernetesEnricher()
         await enricher.start()
         result = await enricher.enrich({})
-    assert result == {}
+
+    assert "diagnostics" in result
+    assert result["diagnostics"] == {}
 
 
 @pytest.mark.asyncio
@@ -132,7 +151,9 @@ async def test_enricher_can_force_fields_when_not_in_k8s() -> None:
         enricher = KubernetesEnricher(skip_if_not_k8s=False)
         await enricher.start()
         result = await enricher.enrich({})
-    assert result.get("k8s_namespace") == "default"
+
+    diag = result["diagnostics"]
+    assert diag.get("k8s_namespace") == "default"
 
 
 @pytest.mark.asyncio
@@ -149,9 +170,11 @@ async def test_enricher_uses_custom_env_names() -> None:
         )
         await enricher.start()
         result = await enricher.enrich({})
-    assert result["k8s_pod"] == "api-0"
-    assert result["k8s_namespace"] == "staging"
-    assert result["k8s_deployment"] == "api"
+
+    diag = result["diagnostics"]
+    assert diag["k8s_pod"] == "api-0"
+    assert diag["k8s_namespace"] == "staging"
+    assert diag["k8s_deployment"] == "api"
 
 
 @pytest.mark.asyncio
@@ -161,8 +184,11 @@ async def test_enricher_cached_results_are_copies() -> None:
         await enricher.start()
         first = await enricher.enrich({})
         second = await enricher.enrich({})
+
     assert first == second
     assert first is not second
+    # Verify diagnostics dict is also a copy
+    assert first["diagnostics"] is not second["diagnostics"]
 
 
 def test_config_validation_forbids_extra_fields() -> None:

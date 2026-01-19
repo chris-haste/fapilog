@@ -8,36 +8,67 @@ from fapilog.plugins.enrichers.context_vars import ContextVarsEnricher
 
 
 @pytest.mark.asyncio
-async def test_enrich_includes_request_user_and_tenant() -> None:
-    # Set context vars
+async def test_returns_context_structure() -> None:
+    """ContextVarsEnricher returns nested structure targeting context group."""
+    set_error_context(request_id="req-123", user_id="u-456")
+    enricher = ContextVarsEnricher()
+    result = await enricher.enrich({})
+
+    assert "context" in result
+    assert isinstance(result["context"], dict)
+    # Should not have flat top-level context fields
+    assert "request_id" not in result
+    assert "user_id" not in result
+
+
+@pytest.mark.asyncio
+async def test_context_contains_request_id_user_id() -> None:
+    """Context group contains request/user identifiers."""
+    set_error_context(request_id="req-123", user_id="u-456")
+    enricher = ContextVarsEnricher()
+    result = await enricher.enrich({})
+
+    ctx = result["context"]
+    assert ctx["request_id"] == "req-123"
+    assert ctx["user_id"] == "u-456"
+
+
+@pytest.mark.asyncio
+async def test_enrich_includes_tenant_in_context() -> None:
+    """Tenant ID from event is included in context group."""
     set_error_context(request_id="req-123", user_id="u-456")
     enricher = ContextVarsEnricher()
     result = await enricher.enrich({"tenant_id": "t-789"})
 
-    assert result.get("request_id") == "req-123"
-    assert result.get("user_id") == "u-456"
-    assert result.get("tenant_id") == "t-789"
+    ctx = result["context"]
+    assert ctx["request_id"] == "req-123"
+    assert ctx["user_id"] == "u-456"
+    assert ctx["tenant_id"] == "t-789"
 
 
 @pytest.mark.asyncio
 async def test_enrich_handles_missing_vars_and_no_tenant() -> None:
+    """Empty context returned when no context vars are set."""
     # Clear context vars by setting to None-like via .set on ContextVar
-    # ContextVar has no clear; we set different token values in isolation.
     request_id_var.set(None)  # type: ignore[arg-type]
     user_id_var.set(None)  # type: ignore[arg-type]
 
     enricher = ContextVarsEnricher()
     result = await enricher.enrich({})
 
-    assert "request_id" not in result
-    assert "user_id" not in result
-    assert "tenant_id" not in result
+    assert "context" in result
+    ctx = result["context"]
+    assert "request_id" not in ctx
+    assert "user_id" not in ctx
+    assert "tenant_id" not in ctx
 
 
 @pytest.mark.asyncio
 async def test_enrich_survives_context_var_get_exceptions(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """Enricher continues even when context var access raises."""
+
     class BrokenVar:
         def get(self, default=None):  # type: ignore[no-untyped-def]
             raise RuntimeError("boom")
@@ -52,16 +83,19 @@ async def test_enrich_survives_context_var_get_exceptions(
     enricher = ContextVarsEnricher()
     result = await enricher.enrich({"tenant_id": "t-1"})
 
-    # Should not include request_id/user_id due to exceptions, still include tenant
-    assert result.get("tenant_id") == "t-1"
-    assert "request_id" not in result
-    assert "user_id" not in result
+    # Should still return context structure with tenant
+    assert "context" in result
+    ctx = result["context"]
+    assert ctx["tenant_id"] == "t-1"
+    assert "request_id" not in ctx
+    assert "user_id" not in ctx
 
 
 @pytest.mark.asyncio
-async def test_enrich_includes_otlp_trace_and_span_when_available(
+async def test_context_contains_trace_span_ids(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """Context group includes OpenTelemetry trace/span IDs when available."""
     # Create fake opentelemetry.trace module
     fake_otel = ModuleType("opentelemetry")
     fake_trace = ModuleType("opentelemetry.trace")
@@ -89,11 +123,14 @@ async def test_enrich_includes_otlp_trace_and_span_when_available(
     try:
         enricher = ContextVarsEnricher()
         result = await enricher.enrich({})
+
+        assert "context" in result
+        ctx = result["context"]
         # Hex strings, zero-padded to 32/16 chars
-        assert result.get("trace_id").endswith("1234abcd")
-        assert len(result.get("trace_id")) == 32
-        assert result.get("span_id").endswith("abcd1234")
-        assert len(result.get("span_id")) == 16
+        assert ctx["trace_id"].endswith("1234abcd")
+        assert len(ctx["trace_id"]) == 32
+        assert ctx["span_id"].endswith("abcd1234")
+        assert len(ctx["span_id"]) == 16
     finally:
         # cleanup fake modules
         sys.modules.pop("opentelemetry.trace", None)

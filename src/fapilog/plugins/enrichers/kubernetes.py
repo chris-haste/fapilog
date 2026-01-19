@@ -63,7 +63,12 @@ class KubernetesEnricher:
         return None
 
     async def enrich(self, event: dict[str, Any]) -> dict[str, Any]:
-        return dict(self._cached_fields)
+        """Return Kubernetes metadata targeting the diagnostics semantic group.
+
+        Returns:
+            Dict with structure: {"diagnostics": {"k8s_pod": ..., "k8s_namespace": ..., ...}}
+        """
+        return {"diagnostics": dict(self._cached_fields)}
 
     async def health_check(self) -> bool:
         return True
@@ -106,13 +111,13 @@ class KubernetesEnricher:
 
 PLUGIN_METADATA = {
     "name": "kubernetes",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "plugin_type": "enricher",
     "entry_point": "fapilog.plugins.enrichers.kubernetes:KubernetesEnricher",
-    "description": "Adds Kubernetes pod metadata (pod, namespace, node, deployment) from env vars.",
+    "description": "Adds K8s pod metadata (pod, namespace, node, deployment) to diagnostics group.",
     "author": "Fapilog Core",
     "compatibility": {"min_fapilog_version": "0.3.0"},
-    "api_version": "1.0",
+    "api_version": "1.1",
 }
 
 
