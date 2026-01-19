@@ -1,6 +1,6 @@
 # Performance Tuning
 
-Adjust throughput, latency, and sampling to fit your workload.
+Adjust throughput, latency, and sampling to fit your workload. For indicative performance numbers, see [Benchmarks](benchmarks.md).
 
 ## Queue and batch tuning
 

@@ -17,6 +17,7 @@ redactors
 redaction-guarantee
 graceful-shutdown
 performance-tuning
+benchmarks
 integration-guide
 fastapi
 comparisons
