@@ -15,10 +15,17 @@ from pydantic import BaseModel, Field
 
 
 class LogEvent(BaseModel):
-    """Canonical event structure for logging in the core pipeline.
+    """Canonical event structure for logging in the core pipeline (v1.1 schema).
 
-    This model is designed to be efficient and stable. Additional fields
-    can be added over time, but existing fields should remain compatible.
+    This model follows the v1.1 canonical schema with semantic field groupings:
+    - context: Request/trace identifiers (correlation_id, request_id, trace_id, etc.)
+    - diagnostics: Runtime/operational data (host, pid, service, k8s info, exceptions)
+    - data: User-provided structured data
+
+    Breaking changes from v1.0:
+    - Removed: metadata (use data instead)
+    - Removed: correlation_id (use context["correlation_id"])
+    - Removed: component (use context or data)
     """
 
     # Required core fields
@@ -30,17 +37,22 @@ class LogEvent(BaseModel):
     level: str = Field(default="INFO", description="Log level")
     message: str = Field(default="", description="Human-readable message")
 
-    # Optional context fields
+    # Optional identification
     logger: str | None = Field(default=None, description="Logger name")
-    component: str | None = Field(
-        default=None, description="Component or subsystem name"
-    )
-    correlation_id: str | None = Field(
-        default=None, description="Correlation or request identifier"
-    )
 
-    # Free-form metadata for structured logging
-    metadata: dict[str, Any] = Field(default_factory=dict)
+    # Semantic groupings (v1.1)
+    context: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Request/trace context - identifies WHO and WHAT request",
+    )
+    diagnostics: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Runtime/operational context - identifies WHERE and system state",
+    )
+    data: dict[str, Any] = Field(
+        default_factory=dict,
+        description="User-provided structured data (replaces metadata)",
+    )
 
     model_config = {
         "extra": "allow",
@@ -51,6 +63,7 @@ class LogEvent(BaseModel):
     def to_mapping(self) -> Mapping[str, Any]:
         """Return a readonly mapping for zero-copy style access.
 
+        Returns a dict with v1.1 schema structure including semantic groups.
         Pydantic returns a dict; callers should avoid mutating it in
         performance critical paths to prevent copies.
         """
