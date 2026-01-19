@@ -21,7 +21,7 @@ from fapilog.fastapi import get_request_logger, setup_logging
 
 app = FastAPI(
     lifespan=setup_logging(
-        preset="production",
+        preset="fastapi",  # Includes redaction by default
         skip_paths=["/health"],
         sample_rate=0.1,
         redact_headers=["authorization", "cookie"],
@@ -129,5 +129,26 @@ app.add_middleware(LoggingMiddleware)
 After: one line of setup.
 
 ```python
-app = FastAPI(lifespan=setup_logging(preset="production"))
+app = FastAPI(lifespan=setup_logging(preset="fastapi"))
 ```
+
+## Redaction
+
+The `fastapi` preset enables automatic redaction of sensitive fields by default:
+- `password`, `api_key`, `token`, `secret`, `authorization`
+- `api_secret`, `private_key`, `ssn`, `credit_card`
+
+This protects against accidental PII leakage in container logs that flow to centralized systems.
+
+If you need to disable redaction for debugging (not recommended for production):
+
+```python
+from fapilog import Settings, get_async_logger
+
+settings = Settings(
+    core={"log_level": "INFO", "sinks": ["stdout_json"], "redactors": []},
+)
+logger = await get_async_logger(settings=settings)
+```
+
+For local development with full visibility, use the `dev` preset instead.

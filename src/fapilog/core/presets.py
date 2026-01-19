@@ -82,10 +82,40 @@ PRESETS: dict[str, dict[str, Any]] = {
             "batch_max_size": 50,
             "sinks": ["stdout_json"],
             "enrichers": ["context_vars"],
-            "redactors": [],  # Explicit opt-out for API debugging
+            "redactors": ["field_mask", "regex_mask", "url_credentials"],
         },
         "enricher_config": {
             "context_vars": {},
+        },
+        "redactor_config": {
+            "field_mask": {
+                "fields_to_mask": [
+                    "metadata.password",
+                    "metadata.api_key",
+                    "metadata.token",
+                    "metadata.secret",
+                    "metadata.authorization",
+                    "metadata.api_secret",
+                    "metadata.private_key",
+                    "metadata.ssn",
+                    "metadata.credit_card",
+                ],
+            },
+            "regex_mask": {
+                "patterns": [
+                    r"(?i).*password.*",
+                    r"(?i).*passwd.*",
+                    r"(?i).*api[_-]?key.*",
+                    r"(?i).*apikey.*",
+                    r"(?i).*secret.*",
+                    r"(?i).*token.*",
+                    r"(?i).*authorization.*",
+                    r"(?i).*private[_-]?key.*",
+                    r"(?i).*ssn.*",
+                    r"(?i).*credit[_-]?card.*",
+                ],
+            },
+            "url_credentials": {},
         },
     },
     "minimal": {
