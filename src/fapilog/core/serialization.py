@@ -1,10 +1,20 @@
 """
 Zero-copy-oriented serialization utilities for core pipeline.
 
-This module provides a basic JSON serializer that minimizes copies by using
-orjson and exposing bytes directly. Callers can create memoryviews over the
-returned bytes to avoid further copying. This satisfies the foundational
-requirements for Story 2.1a.
+This module provides JSON serialization optimized for the fapilog logging
+pipeline, minimizing copies by using orjson and exposing bytes directly.
+Callers can create memoryviews over the returned bytes to avoid further copying.
+
+Key functions:
+- serialize_envelope(): Schema-versioned envelope serialization (v1.1 schema)
+- serialize_mapping_to_json_bytes(): Generic JSON serialization
+- ensure_rfc3339_utc(): Timestamp normalization
+
+After Stories 1.26/1.27/1.28 (v1.1 schema alignment):
+- build_envelope() produces events with context/diagnostics/data fields
+- serialize_envelope() trusts this upstream schema compliance
+- Serialization failures only occur for non-JSON-serializable objects
+- The fallback path is now truly exceptional, not the normal path
 """
 
 from __future__ import annotations
@@ -210,46 +220,51 @@ def ensure_rfc3339_utc(ts: float | str) -> str:
 def serialize_envelope(log: Mapping[str, Any]) -> SerializedView:
     """Build a schema-versioned envelope {"schema_version":"1.1","log":{...}}.
 
+    After Stories 1.26/1.27, the pipeline produces log events in the v1.1
+    canonical schema from build_envelope() + enrichers. This function trusts
+    that upstream provides the correct structure and only fails for truly
+    unserializable data (non-JSON-serializable objects).
+
     The v1.1 schema organizes fields into semantic groupings:
     - context: Request/trace identifiers (correlation_id, request_id, etc.)
     - diagnostics: Runtime/operational data (exception info, etc.)
     - data: User-provided structured data
 
-    Required keys in log: timestamp, level, message, context, diagnostics.
+    Required keys in log: timestamp, level, message.
     - timestamp may be float seconds or RFC3339 string; normalized to RFC3339 UTC Z.
-    - context and diagnostics must be mappings; they are included as-is.
-    Optional keys: data (dict), tags (list[str]), logger (str).
 
-    Raises TypeError/ValueError on invalid shapes to allow strict-mode handling.
+    Optional keys with defaults:
+    - context: {} (request/trace context from enrichers)
+    - diagnostics: {} (runtime info like exceptions)
+    - data: {} (user-provided structured data)
+    - tags: list[str]
+    - logger: str
+
+    Raises:
+        ValueError: If timestamp, level, or message are missing.
+        FapilogError: If the payload contains non-JSON-serializable objects.
     """
-    # Validate required fields
+    # Validate required fields (minimal validation - trust upstream schema)
     if "timestamp" not in log or "level" not in log or "message" not in log:
         raise ValueError("missing required fields in log payload")
-    if "context" not in log or not isinstance(log.get("context"), Mapping):
-        raise TypeError("context must be a mapping")
-    if "diagnostics" not in log or not isinstance(log.get("diagnostics"), Mapping):
-        raise TypeError("diagnostics must be a mapping")
 
     # Normalize timestamp
     ts = ensure_rfc3339_utc(log["timestamp"])
 
-    # Construct normalized log object preserving allowed fields
+    # Get context/diagnostics/data with defaults (trust upstream provides mappings)
+    context = log.get("context")
+    diagnostics = log.get("diagnostics")
+    data = log.get("data")
+
+    # Construct normalized log object
     norm_log: dict[str, Any] = {
         "timestamp": ts,
         "level": str(log["level"]),
         "message": str(log["message"]),
-        "context": dict(log.get("context", {})),
-        "diagnostics": dict(log.get("diagnostics", {})),
+        "context": dict(context) if isinstance(context, Mapping) else {},
+        "diagnostics": dict(diagnostics) if isinstance(diagnostics, Mapping) else {},
+        "data": dict(data) if isinstance(data, Mapping) else {},
     }
-
-    # Include data field (v1.1 schema)
-    if "data" in log:
-        if isinstance(log["data"], Mapping):
-            norm_log["data"] = dict(log["data"])
-        else:
-            raise TypeError("data must be a mapping")
-    else:
-        norm_log["data"] = {}
 
     # Copy optional known fields when present
     for key in ("tags", "logger"):

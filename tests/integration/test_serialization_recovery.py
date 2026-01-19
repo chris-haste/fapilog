@@ -12,15 +12,19 @@ gracefully:
 Story 7.2: These tests verify behavioral correctness of serialization
 failure handling, not just line coverage.
 
-Implementation Note:
-The fapilog pipeline has two serialization paths:
-1. serialize_envelope() - requires context/diagnostics fields (fails for LogEvent)
-2. serialize_mapping_to_json_bytes() - fallback that serializes any mapping
+Implementation Note (Updated Story 1.28):
+After v1.1 schema alignment (Stories 1.26/1.27/1.28), the pipeline produces
+log events that serialize successfully through serialize_envelope(). The only
+failures are truly exceptional - non-JSON-serializable objects (custom classes,
+lambdas, etc.) embedded in the event data.
 
-When serialize_envelope fails, the fallback is used. If that also fails
-(e.g., non-serializable object), the event is handled based on mode:
+Serialization paths:
+1. serialize_envelope() - succeeds for all valid events from build_envelope()
+2. serialize_mapping_to_json_bytes() - fallback for edge cases
+
+When serialize_envelope fails (non-serializable data), handling depends on mode:
 - strict mode: event is dropped
-- best-effort mode: event falls through to dict-path sink
+- best-effort mode: fallback attempted, or falls through to dict-path sink
 
 These tests verify behavior with serialize_in_flush=True and a collecting
 sink that tracks what events were successfully serialized.

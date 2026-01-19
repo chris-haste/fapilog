@@ -44,17 +44,21 @@ class StdoutJsonSink:
             try:
                 view = serialize_envelope(entry)
             except Exception as e:
-                # Use instance value instead of Settings() (Story 1.25)
+                # After Story 1.28: This exception path is now truly exceptional.
+                # With v1.1 schema alignment, serialize_envelope() only fails for
+                # non-JSON-serializable objects (e.g., custom classes, lambdas),
+                # not schema mismatch.
                 strict = self._strict_envelope_mode
                 diagnostics.warn(
                     "sink",
-                    "envelope serialization error",
+                    "serialization error (non-serializable data)",
                     reason=type(e).__name__,
                     detail=str(e),
-                    mode=("strict" if strict else "best"),
+                    mode=("strict" if strict else "best-effort"),
                 )
                 if strict:
                     return None
+                # Best-effort fallback for edge cases
                 from ...core.serialization import (
                     serialize_mapping_to_json_bytes,
                 )
