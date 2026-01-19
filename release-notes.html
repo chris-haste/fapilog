@@ -222,6 +222,7 @@
 <li><p>Added one-liner FastAPI setup helpers (<code class="docutils literal notranslate"><span class="pre">setup_logging</span></code>, <code class="docutils literal notranslate"><span class="pre">get_request_logger</span></code>) with lifespan support.</p></li>
 <li><p>Added default log-level selection based on TTY/CI when no preset or explicit log level is set.</p></li>
 <li><p>Added stderr fallback for sink write failures with optional diagnostics warnings.</p></li>
+<li><p><strong>Security</strong>: Fallback minimal redaction now recurses into lists, preventing secrets in arrays from leaking to stderr during sink failures (Story 4.48).</p></li>
 </ul>
 </section>
 <section id="id1">
