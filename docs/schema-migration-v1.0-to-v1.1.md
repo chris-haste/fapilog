@@ -113,5 +113,5 @@ All other fields go to `data`.
 ## References
 
 - [ADR-0003: Canonical Log Schema v1.1](adr/0003-canonical-log-schema-v1.1.md)
-- [Story 1.26](stories/1.26.canonical-log-schema-v1.1.md)
+- Story 1.26 (see `docs/stories/`)
 - JSON Schema: `jsonschema/log_envelope_v1.json`

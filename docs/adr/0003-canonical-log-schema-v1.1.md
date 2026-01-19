@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-01-19
-**Story:** [1.26 - Canonical Log Schema v1.1](../stories/1.26.canonical-log-schema-v1.1.md)
+**Story:** 1.26 - Canonical Log Schema v1.1
 
 ## Context
 
@@ -118,5 +118,5 @@ FieldMaskRedactor(config={"fields_to_mask": ["data.password"]})
 
 ## References
 
-- Story: [1.26 - Canonical Log Schema v1.1](../stories/1.26.canonical-log-schema-v1.1.md)
+- Story: 1.26 - Canonical Log Schema v1.1 (see `docs/stories/`)
 - JSON Schema: `jsonschema/log_envelope_v1.json`
