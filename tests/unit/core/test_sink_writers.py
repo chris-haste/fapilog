@@ -452,3 +452,62 @@ class TestMakeSinkWriter:
         await write_serialized_fn(view)
 
         sink.write_serialized.assert_called_once_with(view)
+
+
+class TestSinkWriterGroupRedactMode:
+    """Test fallback redact_mode parameter (Story 4.46)."""
+
+    @pytest.mark.asyncio
+    async def test_write_passes_redact_mode_to_handler(self) -> None:
+        """write() passes redact_mode to handle_sink_write_failure."""
+        from fapilog.core.sink_writers import SinkWriterGroup
+
+        sink = FailingSink()
+        group = SinkWriterGroup([sink], redact_mode="none")
+        entry = {"message": "test"}
+
+        with patch(
+            "fapilog.core.sink_writers.handle_sink_write_failure",
+            new_callable=AsyncMock,
+        ) as mock_handler:
+            await group.write(entry)
+
+            mock_handler.assert_called_once()
+            call_kwargs = mock_handler.call_args.kwargs
+            assert call_kwargs["redact_mode"] == "none"
+
+    @pytest.mark.asyncio
+    async def test_default_redact_mode_is_minimal(self) -> None:
+        """SinkWriterGroup defaults redact_mode to 'minimal'."""
+        from fapilog.core.sink_writers import SinkWriterGroup
+
+        sink = FailingSink()
+        group = SinkWriterGroup([sink])
+        entry = {"message": "test"}
+
+        with patch(
+            "fapilog.core.sink_writers.handle_sink_write_failure",
+            new_callable=AsyncMock,
+        ) as mock_handler:
+            await group.write(entry)
+
+            call_kwargs = mock_handler.call_args.kwargs
+            assert call_kwargs["redact_mode"] == "minimal"
+
+    @pytest.mark.asyncio
+    async def test_write_serialized_passes_redact_mode(self) -> None:
+        """write_serialized() passes redact_mode to handler."""
+        from fapilog.core.sink_writers import SinkWriterGroup
+
+        sink = FailingSink()
+        group = SinkWriterGroup([sink], redact_mode="inherit")
+        view = MagicMock()
+
+        with patch(
+            "fapilog.core.sink_writers.handle_sink_write_failure",
+            new_callable=AsyncMock,
+        ) as mock_handler:
+            await group.write_serialized(view)
+
+            call_kwargs = mock_handler.call_args.kwargs
+            assert call_kwargs["redact_mode"] == "inherit"

@@ -4,6 +4,28 @@ import os
 import sys
 from typing import Iterable
 
+# Minimal sensitive fields for fallback redaction (Story 4.46)
+FALLBACK_SENSITIVE_FIELDS: frozenset[str] = frozenset(
+    {
+        "password",
+        "passwd",
+        "secret",
+        "token",
+        "api_key",
+        "apikey",
+        "api_secret",
+        "apisecret",
+        "authorization",
+        "auth",
+        "credential",
+        "credentials",
+        "private_key",
+        "privatekey",
+        "access_token",
+        "refresh_token",
+    }
+)
+
 _CI_ENV_VARS: tuple[str, ...] = (
     "CI",
     "GITHUB_ACTIONS",

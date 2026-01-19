@@ -8,7 +8,7 @@ import pytest
 
 from fapilog import Settings, get_logger
 from fapilog.plugins.sinks import fallback as fallback_module
-from fapilog.plugins.sinks.fallback import FallbackSink
+from fapilog.plugins.sinks.fallback import FallbackSink, minimal_redact
 
 
 class TestFallbackSink:
@@ -347,3 +347,170 @@ class TestSinkFallbackIntegration:
                 asyncio.run(logger.stop_and_drain())
 
         assert handler.called
+
+
+class TestMinimalRedact:
+    """Test minimal_redact function (Story 4.46 AC2)."""
+
+    def test_masks_password_field(self) -> None:
+        payload = {"user": "alice", "password": "secret123"}
+        result = minimal_redact(payload)
+        assert result == {"user": "alice", "password": "***"}
+
+    def test_masks_api_key_field(self) -> None:
+        payload = {"user": "alice", "api_key": "sk-xxx"}
+        result = minimal_redact(payload)
+        assert result == {"user": "alice", "api_key": "***"}
+
+    def test_masks_multiple_sensitive_fields(self) -> None:
+        payload = {"user": "alice", "password": "secret123", "api_key": "sk-xxx"}
+        result = minimal_redact(payload)
+        assert result == {"user": "alice", "password": "***", "api_key": "***"}
+
+    def test_case_insensitive_matching(self) -> None:
+        payload = {"PASSWORD": "secret", "Api_Key": "sk-xxx", "TOKEN": "tok"}
+        result = minimal_redact(payload)
+        assert result == {"PASSWORD": "***", "Api_Key": "***", "TOKEN": "***"}
+
+    def test_handles_nested_dicts(self) -> None:
+        payload = {
+            "user": "alice",
+            "login": {"password": "secret", "token": "tok123"},
+        }
+        result = minimal_redact(payload)
+        assert result == {
+            "user": "alice",
+            "login": {"password": "***", "token": "***"},
+        }
+
+    def test_deeply_nested_dicts(self) -> None:
+        payload = {"level1": {"level2": {"level3": {"secret": "hidden"}}}}
+        result = minimal_redact(payload)
+        assert result == {"level1": {"level2": {"level3": {"secret": "***"}}}}
+
+    def test_preserves_non_sensitive_fields(self) -> None:
+        payload = {"user": "alice", "email": "alice@example.com", "age": 30}
+        result = minimal_redact(payload)
+        assert result == {"user": "alice", "email": "alice@example.com", "age": 30}
+
+    def test_handles_empty_dict(self) -> None:
+        assert minimal_redact({}) == {}
+
+    def test_handles_non_string_values(self) -> None:
+        payload = {"password": 12345, "token": ["a", "b"], "secret": None}
+        result = minimal_redact(payload)
+        assert result == {"password": "***", "token": "***", "secret": "***"}
+
+    def test_does_not_mutate_original(self) -> None:
+        original = {"user": "alice", "password": "secret"}
+        minimal_redact(original)
+        assert original == {"user": "alice", "password": "secret"}
+
+    def test_handles_list_values_without_recursing(self) -> None:
+        payload = {"items": [{"password": "secret"}]}
+        result = minimal_redact(payload)
+        # Lists are not recursed into - they're left as-is
+        assert result == {"items": [{"password": "secret"}]}
+
+
+class TestFallbackRedactionModes:
+    """Test fallback redaction modes (Story 4.46 AC1, AC2, AC4)."""
+
+    @pytest.mark.asyncio
+    async def test_minimal_mode_redacts_sensitive_fields(self) -> None:
+        """AC2: minimal mode applies built-in field masking."""
+        primary = AsyncMock()
+        primary.write.side_effect = Exception("sink failed")
+        fallback = FallbackSink(primary)
+        entry = {"user": "alice", "password": "secret123", "api_key": "sk-xxx"}
+
+        with patch("sys.stderr.write") as stderr_write:
+            await fallback.write(entry, redact_mode="minimal")
+
+        stderr_write.assert_called_once()
+        written = json.loads(stderr_write.call_args[0][0].strip())
+        assert written["user"] == "alice"
+        assert written["password"] == "***"
+        assert written["api_key"] == "***"
+
+    @pytest.mark.asyncio
+    async def test_none_mode_no_redaction(self) -> None:
+        """AC4: none mode writes unredacted payload."""
+        primary = AsyncMock()
+        primary.write.side_effect = Exception("sink failed")
+        fallback = FallbackSink(primary)
+        entry = {"user": "alice", "password": "secret123"}
+
+        with patch("sys.stderr.write") as stderr_write:
+            await fallback.write(entry, redact_mode="none")
+
+        stderr_write.assert_called_once()
+        written = json.loads(stderr_write.call_args[0][0].strip())
+        assert written["password"] == "secret123"
+
+    @pytest.mark.asyncio
+    async def test_none_mode_emits_warning(self) -> None:
+        """AC1: Warning when fallback triggers without redaction."""
+        primary = AsyncMock()
+        primary.write.side_effect = Exception("sink failed")
+        fallback = FallbackSink(primary)
+
+        with patch("fapilog.plugins.sinks.fallback.diagnostics.warn") as warn_mock:
+            with patch("sys.stderr.write"):
+                await fallback.write({"message": "test"}, redact_mode="none")
+
+        # Find the unredacted fallback warning
+        unredacted_warns = [
+            c for c in warn_mock.call_args_list if "without redaction" in str(c)
+        ]
+        assert len(unredacted_warns) == 1
+
+    @pytest.mark.asyncio
+    async def test_default_redact_mode_is_minimal(self) -> None:
+        """AC5: Default redact mode should be minimal."""
+        primary = AsyncMock()
+        primary.write.side_effect = Exception("sink failed")
+        fallback = FallbackSink(primary)
+        entry = {"user": "alice", "password": "secret123"}
+
+        # Don't pass redact_mode - should default to minimal
+        with patch("sys.stderr.write") as stderr_write:
+            await fallback.write(entry)
+
+        stderr_write.assert_called_once()
+        written = json.loads(stderr_write.call_args[0][0].strip())
+        assert written["password"] == "***"
+
+    @pytest.mark.asyncio
+    async def test_inherit_mode_no_additional_redaction(self) -> None:
+        """AC3: inherit mode uses pipeline redactors (already applied)."""
+        primary = AsyncMock()
+        primary.write.side_effect = Exception("sink failed")
+        fallback = FallbackSink(primary)
+        # Simulate entry that was already redacted by pipeline
+        entry = {"user": "alice", "password": "already-redacted-by-pipeline"}
+
+        with patch("sys.stderr.write") as stderr_write:
+            await fallback.write(entry, redact_mode="inherit")
+
+        stderr_write.assert_called_once()
+        written = json.loads(stderr_write.call_args[0][0].strip())
+        # "inherit" mode passes through - pipeline already handled redaction
+        assert written["password"] == "already-redacted-by-pipeline"
+
+    @pytest.mark.asyncio
+    async def test_inherit_mode_no_warning(self) -> None:
+        """AC3: inherit mode should NOT emit unredacted fallback warning."""
+        primary = AsyncMock()
+        primary.write.side_effect = Exception("sink failed")
+        fallback = FallbackSink(primary)
+
+        with patch("fapilog.plugins.sinks.fallback.diagnostics.warn") as warn_mock:
+            with patch("sys.stderr.write"):
+                await fallback.write({"message": "test"}, redact_mode="inherit")
+
+        # Should NOT have unredacted fallback warning (unlike "none" mode)
+        unredacted_warns = [
+            c for c in warn_mock.call_args_list if "without redaction" in str(c)
+        ]
+        assert len(unredacted_warns) == 0
