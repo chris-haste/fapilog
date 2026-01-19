@@ -123,3 +123,38 @@ Before committing, all changes must pass:
 - **Coverage**: 90% minimum on changed lines
 - **Dead code**: `vulture src/ tests/`
 - **Assertions**: `python scripts/lint_test_assertions.py tests/`
+
+## Testing Principles
+
+### Contract Tests (Producer/Consumer)
+
+When a function's output is consumed by another function, test them together:
+
+```python
+# BAD: Testing serialize_envelope() with hand-crafted data
+def test_serialize():
+    data = {"timestamp": ..., "context": {}, "diagnostics": {}}  # Manual dict
+    serialize_envelope(data)  # Passes, but real pipeline may fail!
+
+# GOOD: Testing the actual contract
+def test_serialize_accepts_real_envelope():
+    envelope = build_envelope(level="INFO", message="test")  # Real output
+    serialize_envelope(envelope)  # Tests the actual interface
+```
+
+**Rule:** If function A's output feeds function B, write a test that calls `B(A(...))`.
+
+### Avoid Hand-Crafted Test Data for Internal Interfaces
+
+- Use real functions to generate test data where possible
+- If you must hand-craft data, ensure it matches what the real producer outputs
+- Watch for tests that "work around" validation by adding fields manually
+
+### Schema Drift Warning Signs
+
+If you find yourself:
+- Adding fields to test data to make a consumer function happy
+- Writing comments like "this will fail because X doesn't have Y"
+- Catching exceptions as "expected behavior" in normal code paths
+
+**Stop.** These are signs of schema drift. The producer and consumer are misaligned.

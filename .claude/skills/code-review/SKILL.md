@@ -74,6 +74,34 @@ This gives the user immediate visibility that the skill is active.
   - Flag as P1: unresolved mypy errors or excessive `# type: ignore` usage
 - **Security**: secrets, injection, unsafe subprocess
 - **Performance**: obvious hotspots, unnecessary IO
+- **Contract/Schema Compatibility**: producer/consumer alignment (see below)
+
+### 2a. Contract/Schema Check
+
+If changes involve data structures passed between functions (schemas, dicts, models):
+
+1. **Identify producer/consumer pairs** - Does function A's output feed into function B?
+2. **Check for contract tests** - Is there a test that calls `consumer(producer(...))`?
+3. **Flag hand-crafted test data** - Tests that manually construct dicts with fields to satisfy validation instead of using real function output
+
+**Flag as P1:**
+- Tests with hand-crafted dicts that add fields like `"context": {}` to bypass validation
+- Missing contract test when a function's output schema changed
+- Try/except patterns that catch validation errors as "expected" in normal code paths
+- Comments in tests acknowledging schema mismatch (e.g., "will fail because missing X")
+
+**Example of what to flag:**
+```python
+# P1: Hand-crafted data bypasses real producer
+def test_serialize():
+    data = {"timestamp": ..., "context": {}, "diagnostics": {}}  # Manual!
+    serialize_envelope(data)
+
+# Should be:
+def test_serialize():
+    data = build_envelope(level="INFO", message="test")  # Real producer
+    serialize_envelope(data)
+```
 
 ### 3. AC Verification (Evidence-Required)
 
@@ -118,6 +146,9 @@ For EACH acceptance criterion from the story:
     - **Run `vulture src/ tests/`** - no dead code
     - **Run `python scripts/check_pydantic_v1.py`** - no deprecated Pydantic v1 syntax
     - **Run `python scripts/check_settings_descriptions.py --min-length 15`** (if Settings touched)
+  - **Contract Tests** (if schema/interface changes):
+    - Contract test exists for producer/consumer pairs?
+    - Tests use real function output, not hand-crafted dicts?
   - **Documentation**: Docstrings where needed? README/CHANGELOG updated if required?
 - Flag any unmet DoD items as P1 issues
 
