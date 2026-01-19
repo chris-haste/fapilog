@@ -656,6 +656,33 @@ class SyncLoggerFacade(_LoggerMixin):
             level_gate=level_gate,
         )
 
+    def start(self) -> None:
+        """Start the background worker with startup validation.
+
+        Emits a one-time warning if drop_on_full=False is configured,
+        since same-thread calls will still drop to prevent deadlock.
+        """
+        # Emit one-time warning for drop_on_full=False configuration
+        # Check _worker_loop is None to ensure warning only emits once
+        if not self._drop_on_full and self._worker_loop is None:
+            try:
+                from .diagnostics import warn
+
+                warn(
+                    "backpressure",
+                    "drop_on_full=False configured - note: same-thread calls "
+                    "will still drop immediately to prevent deadlock. "
+                    "Consider AsyncLoggerFacade for async contexts.",
+                    _rate_limit_key="startup-drop-on-full-warning",
+                    setting="drop_on_full=False",
+                    recommendation="Use AsyncLoggerFacade in async contexts",
+                )
+            except Exception:
+                pass
+
+        # Call parent implementation
+        super().start()
+
     async def stop_and_drain(self) -> DrainResult:
         try:
             running_loop = asyncio.get_running_loop()
