@@ -140,17 +140,21 @@ class RotatingFileSink:
                 try:
                     view: SerializedView = serialize_envelope(entry)
                 except Exception as e:
-                    # Use config value instead of Settings() (Story 1.25)
+                    # After Story 1.28: This exception path is now truly exceptional.
+                    # With v1.1 schema alignment, serialize_envelope() only fails for
+                    # non-JSON-serializable objects (e.g., custom classes, lambdas),
+                    # not schema mismatch.
                     strict = self._cfg.strict_envelope_mode
                     diagnostics.warn(
                         "sink",
-                        "envelope serialization error",
+                        "serialization error (non-serializable data)",
                         mode="strict" if strict else "best-effort",
                         reason=type(e).__name__,
                         detail=str(e),
                     )
                     if strict:
                         return None
+                    # Best-effort fallback for edge cases
                     view = serialize_mapping_to_json_bytes(entry)
                 segments = convert_json_bytes_to_jsonl(view)
                 payload_segments: tuple[memoryview, ...] = tuple(

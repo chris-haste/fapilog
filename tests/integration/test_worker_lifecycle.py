@@ -446,11 +446,11 @@ async def test_strict_envelope_mode_drops_unserializable() -> None:
     rather than falling back to the dict sink. This tests that behavior
     by verifying unserializable events don't reach ANY sink.
 
-    Note: LogEvent payloads don't include context/diagnostics fields required
-    by serialize_envelope, so all events fail envelope serialization. The
-    distinction is:
+    After Story 1.28 (v1.1 schema alignment): Valid events from build_envelope()
+    now serialize successfully. Only events with non-JSON-serializable objects
+    (custom classes, lambdas, etc.) fail serialization. The distinction is:
     - Best-effort mode: Falls back to serialize_mapping_to_json_bytes
-    - Strict mode: Drops events that fail any serialization step
+    - Strict mode: Drops events that fail serialization
     """
     serialized_events: list[dict[str, Any]] = []
     fallback_events: list[dict[str, Any]] = []

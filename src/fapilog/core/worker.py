@@ -421,9 +421,25 @@ class LoggerWorker:
     async def _try_serialize(
         self, entry: dict[str, Any]
     ) -> tuple[SerializedView | None, bool]:
+        """Serialize entry to envelope format.
+
+        After Story 1.28 (v1.1 schema alignment), this should succeed for all
+        valid log entries from build_envelope() + enrichers. Failures indicate
+        actual issues (non-JSON-serializable objects) not schema mismatch.
+
+        Returns:
+            Tuple of (SerializedView or None, should_drop).
+            - (view, False): Serialization succeeded
+            - (None, True): Serialization failed in strict mode, drop event
+            - (view, False): Serialization failed, fallback succeeded
+            - (None, False): Both failed, let dict-path handle it
+        """
         try:
             return serialize_envelope(entry), False
         except Exception as exc:
+            # After Story 1.28: This exception path is now truly exceptional.
+            # With v1.1 schema alignment, serialize_envelope() only fails for
+            # non-JSON-serializable objects, not schema mismatch.
             strict_mode = False
             try:
                 strict_mode = bool(self._strict_envelope_mode_provider())
@@ -432,7 +448,7 @@ class LoggerWorker:
             try:
                 warn(
                     "sink",
-                    "envelope serialization error",
+                    "serialization error (non-serializable data)",
                     mode="strict" if strict_mode else "best-effort",
                     reason=type(exc).__name__,
                     detail=str(exc),
@@ -441,6 +457,7 @@ class LoggerWorker:
                 pass
             if strict_mode:
                 return None, True
+            # Best-effort fallback for edge cases
             try:
                 return serialize_mapping_to_json_bytes(entry), False
             except Exception:
