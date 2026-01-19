@@ -60,9 +60,10 @@ class _StubPool:
 
 @pytest.mark.asyncio
 async def test_hmac_signature_computed_correctly() -> None:
-    """HMAC-SHA256 signature matches expected computation."""
+    """HMAC-SHA256 signature matches expected computation with timestamp."""
     secret = "test-secret-key"
     payload = {"message": "hello", "level": "info"}
+    fixed_timestamp = 1737216000
 
     pool = _StubPool([httpx.Response(200)])
     config = WebhookSinkConfig(
@@ -72,17 +73,27 @@ async def test_hmac_signature_computed_correctly() -> None:
     )
     sink = WebhookSink(config=config, pool=pool)  # type: ignore[arg-type]
 
-    await sink.start()
-    await sink.write(payload)
-    await sink.stop()
+    # Patch time.time to return fixed timestamp
+    import time
+
+    original_time = time.time
+    time.time = lambda: float(fixed_timestamp)
+
+    try:
+        await sink.start()
+        await sink.write(payload)
+        await sink.stop()
+    finally:
+        time.time = original_time
 
     # Verify the signature header exists and is correct
     _, sent_payload, headers = pool.calls[0]
     signature_header = headers.get("X-Fapilog-Signature-256")
 
-    # Compute expected signature and verify
-    body = json.dumps(sent_payload, separators=(",", ":")).encode()
-    expected_signature = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
+    # Compute expected signature with timestamp.payload format
+    json_body = json.dumps(sent_payload, separators=(",", ":"))
+    message = f"{fixed_timestamp}.{json_body}".encode()
+    expected_signature = hmac.new(secret.encode(), message, hashlib.sha256).hexdigest()
     assert signature_header == f"sha256={expected_signature}"
 
 
@@ -116,7 +127,7 @@ async def test_header_mode_emits_deprecation_warning() -> None:
     config = WebhookSinkConfig(
         endpoint="https://hooks.example.com",
         secret="my-secret",
-        # signature_mode defaults to HEADER (legacy)
+        signature_mode=SignatureMode.HEADER,  # Explicit opt-in to deprecated mode
     )
     sink = WebhookSink(config=config, pool=pool)  # type: ignore[arg-type]
 
@@ -171,8 +182,10 @@ async def test_no_secret_no_signature() -> None:
 
 @pytest.mark.asyncio
 async def test_hmac_mode_with_batching() -> None:
-    """HMAC signature works correctly with batched payloads."""
+    """HMAC signature works correctly with batched payloads including timestamp."""
     secret = "batch-secret"
+    fixed_timestamp = 1737216000
+
     pool = _StubPool([httpx.Response(200)])
     config = WebhookSinkConfig(
         endpoint="https://hooks.example.com",
@@ -182,17 +195,27 @@ async def test_hmac_mode_with_batching() -> None:
     )
     sink = WebhookSink(config=config, pool=pool)  # type: ignore[arg-type]
 
-    await sink.start()
-    await sink.write({"n": 1})
-    await sink.write({"n": 2})
-    await sink.stop()
+    # Patch time.time to return fixed timestamp
+    import time
+
+    original_time = time.time
+    time.time = lambda: float(fixed_timestamp)
+
+    try:
+        await sink.start()
+        await sink.write({"n": 1})
+        await sink.write({"n": 2})
+        await sink.stop()
+    finally:
+        time.time = original_time
 
     _, sent_payload, headers = pool.calls[0]
     signature_header = headers.get("X-Fapilog-Signature-256")
 
-    # Verify signature matches the batched payload
-    body = json.dumps(sent_payload, separators=(",", ":")).encode()
-    expected = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
+    # Verify signature matches the batched payload with timestamp
+    json_body = json.dumps(sent_payload, separators=(",", ":"))
+    message = f"{fixed_timestamp}.{json_body}".encode()
+    expected = hmac.new(secret.encode(), message, hashlib.sha256).hexdigest()
     assert signature_header == f"sha256={expected}"
 
 
@@ -212,10 +235,75 @@ def test_config_accepts_signature_mode_string() -> None:
     assert config.signature_mode == SignatureMode.HMAC
 
 
-def test_config_default_signature_mode_is_header() -> None:
-    """Default signature_mode is HEADER for backward compatibility."""
+def test_config_default_signature_mode_is_hmac() -> None:
+    """Default signature_mode is HMAC for security (AC1)."""
     config = WebhookSinkConfig(
         endpoint="https://hooks.example.com",
         secret="test",
     )
-    assert config.signature_mode == SignatureMode.HEADER
+    assert config.signature_mode == SignatureMode.HMAC
+
+
+@pytest.mark.asyncio
+async def test_timestamp_header_present_in_hmac_mode() -> None:
+    """HMAC mode includes X-Fapilog-Timestamp header with Unix timestamp (AC2)."""
+    pool = _StubPool([httpx.Response(200)])
+    config = WebhookSinkConfig(
+        endpoint="https://hooks.example.com",
+        secret="test-secret",
+        signature_mode=SignatureMode.HMAC,
+    )
+    sink = WebhookSink(config=config, pool=pool)  # type: ignore[arg-type]
+
+    await sink.start()
+    await sink.write({"test": "data"})
+    await sink.stop()
+
+    _, _, headers = pool.calls[0]
+    assert "X-Fapilog-Timestamp" in headers
+    # Timestamp should be a valid integer (Unix timestamp)
+    timestamp_value = int(headers["X-Fapilog-Timestamp"])
+    # Should be a reasonable recent timestamp (after 2024-01-01)
+    assert timestamp_value > 1704067200
+
+
+@pytest.mark.asyncio
+async def test_signature_includes_timestamp_in_computation() -> None:
+    """HMAC signature computation includes timestamp for replay protection (AC3)."""
+    secret = "test-secret-key"
+    payload = {"message": "hello"}
+    fixed_timestamp = 1737216000
+
+    pool = _StubPool([httpx.Response(200)])
+    config = WebhookSinkConfig(
+        endpoint="https://hooks.example.com",
+        secret=secret,
+        signature_mode=SignatureMode.HMAC,
+    )
+    sink = WebhookSink(config=config, pool=pool)  # type: ignore[arg-type]
+
+    # Patch time.time to return fixed timestamp
+    import time
+
+    original_time = time.time
+    time.time = lambda: float(fixed_timestamp)
+
+    try:
+        await sink.start()
+        await sink.write(payload)
+        await sink.stop()
+    finally:
+        time.time = original_time
+
+    _, sent_payload, headers = pool.calls[0]
+    signature_header = headers.get("X-Fapilog-Signature-256")
+    timestamp_header = headers.get("X-Fapilog-Timestamp")
+
+    # Verify timestamp header matches our fixed time
+    assert timestamp_header == str(fixed_timestamp)
+
+    # Compute expected signature with timestamp.payload format
+    json_payload = json.dumps(sent_payload, separators=(",", ":"))
+    message = f"{fixed_timestamp}.{json_payload}".encode()
+    expected_signature = hmac.new(secret.encode(), message, hashlib.sha256).hexdigest()
+    assert signature_header == f"sha256={expected_signature}"
