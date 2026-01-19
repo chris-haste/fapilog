@@ -75,6 +75,7 @@
 <li class="toctree-l2"><a class="reference internal" href="rotating-file-sink.html">Rotating File Sink</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sink-routing.html">Sink routing by level</a></li>
 <li class="toctree-l2"><a class="reference internal" href="redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="redaction-guarantee.html">Redaction Guarantee</a></li>
 <li class="toctree-l2"><a class="reference internal" href="graceful-shutdown.html">Graceful Shutdown</a></li>
 <li class="toctree-l2"><a class="reference internal" href="performance-tuning.html">Performance Tuning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="integration-guide.html">Integration Guide</a></li>
@@ -201,11 +202,19 @@
 <section id="redaction-defaults">
 <h2>Redaction defaults<a class="headerlink" href="#redaction-defaults" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Redactors enabled: <code class="docutils literal notranslate"><span class="pre">core.enable_redactors=True</span></code></p></li>
-<li><p>Order: <code class="docutils literal notranslate"><span class="pre">field-mask</span></code> → <code class="docutils literal notranslate"><span class="pre">regex-mask</span></code> → <code class="docutils literal notranslate"><span class="pre">url-credentials</span></code></p></li>
-<li><p>Patterns: regex-mask uses a broad secret matcher (password/pass/secret/api key/token/authorization/set-cookie/ssn/email).</p></li>
+<li><p><strong>With no preset</strong>: Redaction is <strong>disabled</strong> by default (<code class="docutils literal notranslate"><span class="pre">core.redactors=[]</span></code>). The redactors stage is enabled (<code class="docutils literal notranslate"><span class="pre">core.enable_redactors=True</span></code>), but no redactors are configured.</p></li>
+<li><p><strong>With <code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code></strong>: Enables <code class="docutils literal notranslate"><span class="pre">field_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code>, and <code class="docutils literal notranslate"><span class="pre">url_credentials</span></code> in that order.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">field_mask</span></code>: Masks specific <code class="docutils literal notranslate"><span class="pre">metadata.*</span></code> fields (password, api_key, token, etc.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">regex_mask</span></code>: Matches any field path containing sensitive keywords (password, secret, token, etc.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">url_credentials</span></code>: Strips userinfo from URLs</p></li>
+</ul>
+</li>
+<li><p><strong>With other presets</strong> (<code class="docutils literal notranslate"><span class="pre">dev</span></code>, <code class="docutils literal notranslate"><span class="pre">fastapi</span></code>, <code class="docutils literal notranslate"><span class="pre">minimal</span></code>): No redactors enabled.</p></li>
+<li><p>Order when active: <code class="docutils literal notranslate"><span class="pre">field-mask</span></code> → <code class="docutils literal notranslate"><span class="pre">regex-mask</span></code> → <code class="docutils literal notranslate"><span class="pre">url-credentials</span></code></p></li>
 <li><p>Guardrails: <code class="docutils literal notranslate"><span class="pre">core.redaction_max_depth=6</span></code>, <code class="docutils literal notranslate"><span class="pre">core.redaction_max_keys_scanned=5000</span></code></p></li>
 </ul>
+<p>See <a class="reference internal" href="redaction-guarantee.html"><span class="std std-doc">Redaction Guarantee</span></a> for complete details on what’s redacted.</p>
 </section>
 <section id="exceptions-and-diagnostics">
 <h2>Exceptions and diagnostics<a class="headerlink" href="#exceptions-and-diagnostics" title="Link to this heading"></a></h2>
@@ -237,7 +246,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on January 18, 2026.
+      <span class="lastupdated">Last updated on January 19, 2026.
       </span></p>
   </div>
 

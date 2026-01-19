@@ -73,6 +73,7 @@
 <li class="toctree-l2"><a class="reference internal" href="user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/sink-routing.html">Sink routing by level</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/redaction-guarantee.html">Redaction Guarantee</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/performance-tuning.html">Performance Tuning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/integration-guide.html">Integration Guide</a></li>
@@ -179,6 +180,8 @@
 <section id="unreleased">
 <h2>[Unreleased]<a class="headerlink" href="#unreleased" title="Link to this heading"></a></h2>
 <ul class="simple">
+<li><p><strong>Breaking</strong>: Production preset now includes <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code> redactor for broader secret protection; users may see additional fields masked (Story 4.47).</p></li>
+<li><p><strong>Docs</strong>: Added <code class="docutils literal notranslate"><span class="pre">redaction-guarantee.md</span></code> documenting exact redaction behavior per preset; fixed inaccurate claims in <code class="docutils literal notranslate"><span class="pre">reliability-defaults.md</span></code> (Story 4.47).</p></li>
 <li><p><strong>Tooling</strong>: Added automated changelog generation with git-cliff and conventional commit linting via pre-commit hooks; release workflow now validates changelog entries match tagged version (Story 10.12).</p></li>
 <li><p><strong>Docs</strong>: Documented same-thread backpressure behavior where <code class="docutils literal notranslate"><span class="pre">drop_on_full=False</span></code> cannot be honored; enhanced diagnostic warning with <code class="docutils literal notranslate"><span class="pre">drop_on_full_setting</span></code> field (Story 1.19).</p></li>
 <li><p><strong>Performance</strong>: Cache sampling rate, filter config, and error dedupe window at logger initialization to avoid <code class="docutils literal notranslate"><span class="pre">Settings()</span></code> instantiation on every log call (Story 1.23).</p></li>
@@ -295,7 +298,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on January 18, 2026.
+      <span class="lastupdated">Last updated on January 19, 2026.
       </span></p>
   </div>
 
