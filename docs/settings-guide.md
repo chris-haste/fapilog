@@ -27,7 +27,7 @@ This guide documents Settings groups and fields.
 | `core.redactors_order` | list | PydanticUndefined | Ordered list of redactor plugin names to apply |
 | `core.sinks` | list | PydanticUndefined | Sink plugins to use (by name); falls back to env-based default when empty |
 | `core.enrichers` | list | PydanticUndefined | Enricher plugins to use (by name) |
-| `core.redactors` | list | PydanticUndefined | Redactor plugins to use (by name); empty to disable |
+| `core.redactors` | list | PydanticUndefined | Redactor plugins to use (by name); defaults to ['url_credentials'] for secure defaults; set to [] to disable all redaction |
 | `core.processors` | list | PydanticUndefined | Processor plugins to use (by name) |
 | `core.filters` | list | PydanticUndefined | Filter plugins to apply before enrichment (by name) |
 | `core.redaction_max_depth` | int | None | 6 | Optional max depth guardrail for nested redaction |

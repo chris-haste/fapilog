@@ -4,6 +4,7 @@ These tests prevent drift between docs, presets, and settings by asserting
 the exact redaction configuration. Update both code AND docs if these fail.
 
 Story: 4.47 - Redaction Defaults Alignment
+Story: 3.7 - Secure Defaults - URL Credential Redaction
 """
 
 from __future__ import annotations
@@ -17,13 +18,13 @@ from fapilog.core.presets import PRESETS, get_preset
 class TestDefaultSettingsRedactors:
     """Verify Settings() defaults match documentation claims."""
 
-    def test_default_redactors_empty(self) -> None:
-        """Default Settings has no redactors enabled.
+    def test_default_redactors_includes_url_credentials(self) -> None:
+        """Default Settings enables url_credentials redactor for secure defaults.
 
-        Docs claim: 'With no preset, redaction is disabled by default.'
+        Story 3.7: URL credential redaction is enabled by default.
         """
         settings = Settings()
-        assert settings.core.redactors == []
+        assert settings.core.redactors == ["url_credentials"]
 
     def test_enable_redactors_true_by_default(self) -> None:
         """Redactors stage is enabled by default (just no redactors configured).
@@ -42,6 +43,18 @@ class TestDefaultSettingsRedactors:
         assert "field-mask" in settings.core.redactors_order
         assert "regex-mask" in settings.core.redactors_order
         assert "url-credentials" in settings.core.redactors_order
+
+
+class TestExplicitOptOut:
+    """Verify users can explicitly disable redaction."""
+
+    def test_explicit_empty_redactors_disables_all(self) -> None:
+        """Setting redactors=[] explicitly disables all redaction.
+
+        Story 3.7 AC2: Users can explicitly disable URL credential redaction.
+        """
+        settings = Settings(core={"redactors": []})
+        assert settings.core.redactors == []
 
 
 class TestProductionPresetRedactors:
@@ -137,23 +150,31 @@ class TestProductionRegexMaskConfig:
             )
 
 
-class TestOtherPresetsNoRedactors:
-    """Verify non-production presets have no redactors (as documented)."""
+class TestOtherPresetsExplicitOptOut:
+    """Verify non-production presets explicitly opt-out of redaction.
+
+    Story 3.7 AC3: Presets continue to work as documented.
+    """
 
     @pytest.mark.parametrize(
         "preset_name",
         ["dev", "fastapi", "minimal"],
     )
-    def test_preset_has_no_redactors(self, preset_name: str) -> None:
-        """Non-production presets do not enable redactors by default.
+    def test_preset_explicitly_opts_out(self, preset_name: str) -> None:
+        """Non-production presets explicitly set redactors=[] to opt-out.
 
-        Docs claim: dev, fastapi, minimal have no redaction protection.
+        Story 3.7: Presets must explicitly disable redaction (not rely on defaults).
         """
         preset = get_preset(preset_name)
 
-        # Preset may not have core.redactors key, or it may be empty
-        redactors = preset.get("core", {}).get("redactors", [])
-        assert redactors == [], f"{preset_name} preset should have no redactors"
+        # Preset MUST explicitly set redactors: [] to opt-out
+        assert "core" in preset, f"{preset_name} preset must have core section"
+        assert "redactors" in preset["core"], (
+            f"{preset_name} preset must explicitly set redactors to opt-out"
+        )
+        assert preset["core"]["redactors"] == [], (
+            f"{preset_name} preset should explicitly set redactors=[] to opt-out"
+        )
 
 
 class TestPresetConsistency:

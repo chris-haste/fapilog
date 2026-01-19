@@ -183,7 +183,10 @@ class TestGetAsyncLoggerCoverage:
         """Test async logger with redactors enabled."""
         settings = Settings()
         settings.core.enable_redactors = True
-        settings.core.redactors_order = ["field-mask", "regex-mask"]
+        settings.core.redactors = [
+            "field_mask",
+            "regex_mask",
+        ]  # Explicitly set redactors
         settings.core.sensitive_fields_policy = ["password"]
 
         logger = await get_async_logger(name="async-redactors-test", settings=settings)

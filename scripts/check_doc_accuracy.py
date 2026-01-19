@@ -32,16 +32,19 @@ class CheckResult:
 
 
 # Default checks for fapilog documentation
+# Note: Story 3.7 changed url_credentials to be enabled by default for secure defaults
 CHECKS: list[dict[str, Any]] = [
     {
         "file": "docs/redaction-guarantees.md",
-        "must_contain": ["disabled by default", "when enabled", "preset"],
-        "must_not_contain": [r"always scrubbed(?! when)", r"always redact(?!ed when)"],
+        # url_credentials is now enabled by default (Story 3.7)
+        "must_contain": ["secure default", "by default", "preset"],
+        "must_not_contain": [],
     },
     {
         "file": "docs/user-guide/redaction-guarantee.md",
-        "must_contain": ["disabled by default", "when enabled"],
-        "must_not_contain": [r"always scrubbed(?! when)", r"always redact(?!ed when)"],
+        # url_credentials is now enabled by default (Story 3.7)
+        "must_contain": ["secure default", "by default"],
+        "must_not_contain": [],
     },
     {
         "file": "docs/core-concepts/envelope.md",
