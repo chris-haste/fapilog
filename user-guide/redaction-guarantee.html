@@ -188,7 +188,7 @@
 <h1>Redaction Guarantee<a class="headerlink" href="#redaction-guarantee" title="Link to this heading"></a></h1>
 <p>This page documents exactly what fapilog redacts under each configuration.</p>
 <blockquote>
-<div><p><strong>Important:</strong> Redaction is disabled by default. Features described below only apply when enabled via <code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code> or explicit redactor configuration. See <a class="reference internal" href="reliability-defaults.html"><span class="std std-doc">Reliability Defaults</span></a> for details.</p>
+<div><p><strong>Secure Default:</strong> URL credential redaction (<code class="docutils literal notranslate"><span class="pre">url_credentials</span></code>) is enabled by default in all configurations. Additional redactors (<code class="docutils literal notranslate"><span class="pre">field_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code>) are available via <code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code> or explicit configuration. See <a class="reference internal" href="reliability-defaults.html"><span class="std std-doc">Reliability Defaults</span></a> for details.</p>
 </div></blockquote>
 <section id="quick-reference">
 <h2>Quick Reference<a class="headerlink" href="#quick-reference" title="Link to this heading"></a></h2>
@@ -205,14 +205,14 @@
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Settings()</span></code> (no preset)</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
-<td><p>No</p></td>
-<td><p>None</p></td>
+<td><p><strong>Yes</strong></p></td>
+<td><p>Basic (URL credentials scrubbed)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">preset=&quot;dev&quot;</span></code></p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
-<td><p>None</p></td>
+<td><p>None (explicit opt-out)</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code></p></td>
 <td><p>Yes</p></td>
@@ -224,13 +224,13 @@
 <td><p>No</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
-<td><p>None</p></td>
+<td><p>None (explicit opt-out)</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">preset=&quot;minimal&quot;</span></code></p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
-<td><p>None</p></td>
+<td><p>None (explicit opt-out)</p></td>
 </tr>
 </tbody>
 </table>
@@ -369,9 +369,9 @@
 </section>
 <section id="disabling-redaction">
 <h2>Disabling Redaction<a class="headerlink" href="#disabling-redaction" title="Link to this heading"></a></h2>
-<p>To disable all redaction (not recommended for production):</p>
+<p>URL credential redaction is enabled by default for security. To disable all redaction (not recommended for production):</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span>
-    <span class="n">core</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;redactors&quot;</span><span class="p">:</span> <span class="p">[]},</span>  <span class="c1"># Empty list disables redaction</span>
+    <span class="n">core</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;redactors&quot;</span><span class="p">:</span> <span class="p">[]},</span>  <span class="c1"># Empty list disables all redaction</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -381,6 +381,9 @@
 <span class="p">)</span>
 </pre></div>
 </div>
+<blockquote>
+<div><p><strong>Note:</strong> The <code class="docutils literal notranslate"><span class="pre">dev</span></code>, <code class="docutils literal notranslate"><span class="pre">fastapi</span></code>, and <code class="docutils literal notranslate"><span class="pre">minimal</span></code> presets explicitly set <code class="docutils literal notranslate"><span class="pre">redactors:</span> <span class="pre">[]</span></code> to disable redaction for development visibility and debugging. This is intentional - if you need URL credential protection in development, use <code class="docutils literal notranslate"><span class="pre">Settings()</span></code> without a preset or use <code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code>.</p>
+</div></blockquote>
 </section>
 <section id="guardrails">
 <h2>Guardrails<a class="headerlink" href="#guardrails" title="Link to this heading"></a></h2>
@@ -395,10 +398,10 @@
 <h2>CI Protection<a class="headerlink" href="#ci-protection" title="Link to this heading"></a></h2>
 <p>The tests in <code class="docutils literal notranslate"><span class="pre">tests/unit/test_redaction_defaults.py</span></code> validate that:</p>
 <ol class="arabic simple">
-<li><p>Default <code class="docutils literal notranslate"><span class="pre">Settings()</span></code> has no redactors enabled</p></li>
+<li><p>Default <code class="docutils literal notranslate"><span class="pre">Settings()</span></code> has <code class="docutils literal notranslate"><span class="pre">url_credentials</span></code> enabled for secure defaults</p></li>
 <li><p>Production preset enables <code class="docutils literal notranslate"><span class="pre">field_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code>, and <code class="docutils literal notranslate"><span class="pre">url_credentials</span></code></p></li>
 <li><p>All documented fields and patterns are configured</p></li>
-<li><p>Non-production presets have no redactors</p></li>
+<li><p>Non-production presets (<code class="docutils literal notranslate"><span class="pre">dev</span></code>, <code class="docutils literal notranslate"><span class="pre">fastapi</span></code>, <code class="docutils literal notranslate"><span class="pre">minimal</span></code>) explicitly set <code class="docutils literal notranslate"><span class="pre">redactors:</span> <span class="pre">[]</span></code> to opt-out</p></li>
 </ol>
 <p>If these tests fail, update both code AND documentation to maintain alignment.</p>
 </section>

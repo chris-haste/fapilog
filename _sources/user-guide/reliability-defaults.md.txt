@@ -21,12 +21,13 @@ This is intentional—blocking on the same thread would cause a deadlock since t
 
 ## Redaction defaults
 
-- **With no preset**: Redaction is **disabled** by default (`core.redactors=[]`). The redactors stage is enabled (`core.enable_redactors=True`), but no redactors are configured.
+- **With no preset**: URL credential redaction is **enabled by default** (`core.redactors=["url_credentials"]`). This provides secure defaults by automatically scrubbing credentials from URLs in log output.
 - **With `preset="production"`**: Enables `field_mask`, `regex_mask`, and `url_credentials` in that order.
   - `field_mask`: Masks specific `metadata.*` fields (password, api_key, token, etc.)
   - `regex_mask`: Matches any field path containing sensitive keywords (password, secret, token, etc.)
   - `url_credentials`: Strips userinfo from URLs
-- **With other presets** (`dev`, `fastapi`, `minimal`): No redactors enabled.
+- **With other presets** (`dev`, `fastapi`, `minimal`): Redaction is **explicitly disabled** (`redactors: []`) for development visibility and debugging. Use `Settings()` without a preset or `preset="production"` if you need URL credential protection in these environments.
+- **Opt-out**: Set `core.redactors=[]` to disable all redaction, or `core.enable_redactors=False` to disable the redactors stage entirely.
 - Order when active: `field-mask` → `regex-mask` → `url-credentials`
 - Guardrails: `core.redaction_max_depth=6`, `core.redaction_max_keys_scanned=5000`
 

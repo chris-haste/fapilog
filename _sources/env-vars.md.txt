@@ -28,7 +28,7 @@
 | `FAPILOG_CORE__PROCESSORS` | list | PydanticUndefined | Processor plugins to use (by name) |
 | `FAPILOG_CORE__REDACTION_MAX_DEPTH` | int | None | 6 | Optional max depth guardrail for nested redaction |
 | `FAPILOG_CORE__REDACTION_MAX_KEYS_SCANNED` | int | None | 5000 | Optional max keys scanned guardrail for redaction |
-| `FAPILOG_CORE__REDACTORS` | list | PydanticUndefined | Redactor plugins to use (by name); empty to disable |
+| `FAPILOG_CORE__REDACTORS` | list | PydanticUndefined | Redactor plugins to use (by name); defaults to ['url_credentials'] for secure defaults; set to [] to disable all redaction |
 | `FAPILOG_CORE__REDACTORS_ORDER` | list | PydanticUndefined | Ordered list of redactor plugin names to apply |
 | `FAPILOG_CORE__RESOURCE_POOL_ACQUIRE_TIMEOUT_SECONDS` | float | 2.0 | Default acquire timeout for pools |
 | `FAPILOG_CORE__RESOURCE_POOL_MAX_SIZE` | int | 8 | Default max size for resource pools |
