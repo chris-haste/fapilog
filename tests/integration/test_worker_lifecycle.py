@@ -455,8 +455,16 @@ async def test_strict_envelope_mode_drops_unserializable() -> None:
     serialized_events: list[dict[str, Any]] = []
     fallback_events: list[dict[str, Any]] = []
 
-    # Patch at the logger module level where the function is imported
-    with patch("fapilog.core.logger.strict_envelope_mode_enabled", return_value=True):
+    # Patch Settings before creating logger so it caches strict_envelope_mode=True
+    # (Story 1.25 - settings are cached at logger init time)
+    with patch("fapilog.core.settings.Settings") as mock_settings_cls:
+        mock_settings = MagicMock()
+        mock_settings.core.strict_envelope_mode = True
+        mock_settings.observability.logging.sampling_rate = 1.0
+        mock_settings.core.filters = []
+        mock_settings.core.error_dedupe_window_seconds = 0.0
+        mock_settings_cls.return_value = mock_settings
+
         logger = AsyncLoggerFacade(
             name="test-strict",
             queue_capacity=100,

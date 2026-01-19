@@ -12,8 +12,9 @@ import contextvars
 import threading
 import time
 import warnings
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, Iterable
+from typing import Any
 
 from ..metrics.metrics import MetricsCollector
 from ..plugins.enrichers import BaseEnricher
@@ -27,7 +28,6 @@ from .worker import (
     LoggerWorker,
     enqueue_with_backpressure,
     stop_plugins,
-    strict_envelope_mode_enabled,
 )
 
 
@@ -134,11 +134,12 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._level_gate: int | None = level_gate
         self._error_dedupe: dict[str, tuple[float, int]] = {}
 
-        # Cache settings values at init to avoid per-call overhead (Story 1.23)
+        # Cache settings values at init to avoid per-call overhead (Story 1.23, 1.25)
         self._cached_sampling_rate: float = 1.0
         self._cached_sampling_filters: set[str] = set()
         self._cached_sampling_configured: bool = False
         self._cached_error_dedupe_window: float = 0.0
+        self._cached_strict_envelope_mode: bool = False
         try:
             from .settings import Settings
 
@@ -155,6 +156,7 @@ class _LoggerMixin(_WorkerCountersMixin):
                 & {"sampling", "adaptive_sampling", "trace_sampling"}
             )
             self._cached_error_dedupe_window = float(s.core.error_dedupe_window_seconds)
+            self._cached_strict_envelope_mode = bool(s.core.strict_envelope_mode)
         except Exception:
             pass
 
@@ -375,6 +377,8 @@ class _LoggerMixin(_WorkerCountersMixin):
             pass
 
     def _make_worker(self) -> LoggerWorker:
+        # Use cached strict_envelope_mode to avoid Settings() on hot path (Story 1.25)
+        cached_strict_mode = self._cached_strict_envelope_mode
         return LoggerWorker(
             queue=self._queue,
             batch_max_size=self._batch_max_size,
@@ -387,7 +391,7 @@ class _LoggerMixin(_WorkerCountersMixin):
             processors_getter=lambda: list(self._processors),
             metrics=self._metrics,
             serialize_in_flush=self._serialize_in_flush,
-            strict_envelope_mode_provider=strict_envelope_mode_enabled,
+            strict_envelope_mode_provider=lambda: cached_strict_mode,
             stop_flag=lambda: self._stop_flag,
             drained_event=self._drained_event,
             flush_event=self._flush_event,

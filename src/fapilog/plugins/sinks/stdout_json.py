@@ -20,13 +20,18 @@ class StdoutJsonSink:
     - Accepts dict-like finalized entries and emits one JSON per line to stdout
     - Uses zero-copy serialization helpers
     - Signals failures via SinkWriteError; core catches and triggers fallback
+
+    Args:
+        strict_envelope_mode: If True, drop entries that fail envelope
+            serialization. If False, fall back to best-effort JSON.
     """
 
     name = "stdout_json"
     _lock: asyncio.Lock
 
-    def __init__(self) -> None:
+    def __init__(self, *, strict_envelope_mode: bool = False) -> None:
         self._lock = asyncio.Lock()
+        self._strict_envelope_mode = strict_envelope_mode
 
     async def start(self) -> None:  # lifecycle placeholder
         return None
@@ -39,14 +44,8 @@ class StdoutJsonSink:
             try:
                 view = serialize_envelope(entry)
             except Exception as e:
-                # Strict vs best-effort behavior
-                strict = False
-                try:
-                    from ...core import settings as _settings
-
-                    strict = bool(_settings.Settings().core.strict_envelope_mode)
-                except Exception:
-                    strict = False
+                # Use instance value instead of Settings() (Story 1.25)
+                strict = self._strict_envelope_mode
                 diagnostics.warn(
                     "sink",
                     "envelope serialization error",
