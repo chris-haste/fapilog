@@ -86,10 +86,13 @@ class TestPresetDefinitions:
         config = get_preset("fastapi")
         assert "context_vars" in config["core"]["enrichers"]
 
-    def test_minimal_preset_is_empty(self):
-        """Minimal preset is empty dict (uses defaults)."""
+    def test_minimal_preset_opts_out_of_redaction(self):
+        """Minimal preset explicitly opts out of redaction for minimal overhead.
+
+        Story 3.7: Presets must explicitly set redactors=[] to opt-out.
+        """
         config = get_preset("minimal")
-        assert config == {}
+        assert config == {"core": {"redactors": []}}
 
 
 class TestPresetValidation:

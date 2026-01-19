@@ -686,8 +686,12 @@ class CoreSettings(BaseModel):
         description=("Enricher plugins to use (by name)"),
     )
     redactors: list[str] = Field(
-        default_factory=list,
-        description=("Redactor plugins to use (by name); empty to disable"),
+        default_factory=lambda: ["url_credentials"],
+        description=(
+            "Redactor plugins to use (by name); "
+            "defaults to ['url_credentials'] for secure defaults; "
+            "set to [] to disable all redaction"
+        ),
     )
     processors: list[str] = Field(
         default_factory=list,

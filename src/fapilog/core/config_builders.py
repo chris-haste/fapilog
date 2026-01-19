@@ -353,9 +353,9 @@ def _build_pipeline(
         "fapilog.enrichers", enricher_names, settings, _enricher_configs(settings)
     )
 
-    redactor_names = list(core_cfg.redactors or [])
-    if not redactor_names and core_cfg.enable_redactors and core_cfg.redactors_order:
-        redactor_names = list(core_cfg.redactors_order)
+    # Use redactors from settings directly. Settings now defaults to ["url_credentials"]
+    # for secure defaults. Empty list means explicit opt-out - no fallback needed.
+    redactor_names = list(core_cfg.redactors) if core_cfg.enable_redactors else []
     redactors = load_plugins(
         "fapilog.redactors", redactor_names, settings, _redactor_configs(settings)
     )

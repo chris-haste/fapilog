@@ -13,6 +13,7 @@ PRESETS: dict[str, dict[str, Any]] = {
             "batch_max_size": 1,
             "sinks": ["stdout_pretty"],
             "enrichers": ["runtime_info", "context_vars"],
+            "redactors": [],  # Explicit opt-out for development visibility
         },
         "enricher_config": {
             "runtime_info": {},
@@ -81,12 +82,17 @@ PRESETS: dict[str, dict[str, Any]] = {
             "batch_max_size": 50,
             "sinks": ["stdout_json"],
             "enrichers": ["context_vars"],
+            "redactors": [],  # Explicit opt-out for API debugging
         },
         "enricher_config": {
             "context_vars": {},
         },
     },
-    "minimal": {},
+    "minimal": {
+        "core": {
+            "redactors": [],  # Explicit opt-out for minimal overhead
+        },
+    },
 }
 
 

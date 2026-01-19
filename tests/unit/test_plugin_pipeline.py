@@ -102,13 +102,15 @@ async def test_file_env_fallback(monkeypatch: pytest.MonkeyPatch, tmp_path) -> N
 
 
 @pytest.mark.asyncio
-async def test_redactors_from_legacy_order(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_explicit_empty_redactors_disables_all(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Story 3.7: Setting redactors=[] explicitly disables all redaction."""
     instances: list[_DummySink] = []
     _make_loader(monkeypatch, instances)
     settings = Settings()
-    settings.core.redactors = []  # Force legacy path
+    settings.core.redactors = []  # Explicit opt-out
     settings.core.enable_redactors = True
-    settings.core.redactors_order = ["field-mask", "regex-mask"]
 
     logger = get_logger(settings=settings)
     await logger.stop_and_drain()
@@ -116,4 +118,5 @@ async def test_redactors_from_legacy_order(monkeypatch: pytest.MonkeyPatch) -> N
     redactor_names = [
         inst.name for inst in instances if inst.group == "fapilog.redactors"
     ]
-    assert redactor_names == ["field-mask", "regex-mask"]
+    # Empty redactors list means no redactors loaded (opt-out)
+    assert redactor_names == []

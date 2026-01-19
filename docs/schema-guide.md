@@ -211,7 +211,7 @@
       "title": "Redaction Max Keys Scanned"
     },
     "redactors": {
-      "description": "Redactor plugins to use (by name); empty to disable",
+      "description": "Redactor plugins to use (by name); defaults to ['url_credentials'] for secure defaults; set to [] to disable all redaction",
       "items": {
         "type": "string"
       },
