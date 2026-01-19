@@ -9,10 +9,12 @@ Reference materials and additional information.
 env-vars
 settings-guide
 schema-guide
+schema-migration-v1.0-to-v1.1
 plugin-guide
 redaction-guarantees
 security-operator-workflows
 quality-signals
+adr/0003-canonical-log-schema-v1.1
 ```
 
 ## Overview

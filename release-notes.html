@@ -142,10 +142,12 @@
 <li class="toctree-l2"><a class="reference internal" href="env-vars.html">Environment Variables</a></li>
 <li class="toctree-l2"><a class="reference internal" href="settings-guide.html">Settings Reference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="schema-guide.html">Schema Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="schema-migration-v1.0-to-v1.1.html">Schema Migration Guide: v1.0 to v1.1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plugin-guide.html">Plugin Catalog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="redaction-guarantees.html">Redaction Guarantees</a></li>
 <li class="toctree-l2"><a class="reference internal" href="security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quality-signals.html">Quality Signals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="adr/0003-canonical-log-schema-v1.1.html">ADR-0003: Canonical Log Schema v1.1</a></li>
 </ul>
 </li>
 </ul>
@@ -180,6 +182,7 @@
 <section id="unreleased">
 <h2>[Unreleased]<a class="headerlink" href="#unreleased" title="Link to this heading"></a></h2>
 <ul class="simple">
+<li><p><strong>Breaking</strong>: Log schema v1.1 with semantic field groupings (<code class="docutils literal notranslate"><span class="pre">context</span></code>, <code class="docutils literal notranslate"><span class="pre">diagnostics</span></code>, <code class="docutils literal notranslate"><span class="pre">data</span></code>); <code class="docutils literal notranslate"><span class="pre">metadata</span></code> renamed to <code class="docutils literal notranslate"><span class="pre">data</span></code>, <code class="docutils literal notranslate"><span class="pre">correlation_id</span></code> moved to <code class="docutils literal notranslate"><span class="pre">context.correlation_id</span></code>, timestamp now RFC3339 string (Story 1.26). See <code class="docutils literal notranslate"><span class="pre">docs/schema-migration-v1.0-to-v1.1.md</span></code>.</p></li>
 <li><p><strong>Tooling</strong>: Aligned ruff, black, and mypy target versions with <code class="docutils literal notranslate"><span class="pre">requires-python</span> <span class="pre">=</span> <span class="pre">&quot;&gt;=3.10&quot;</span></code>; added pre-commit hook to enforce Python 3.10+ (Story 10.16).</p></li>
 <li><p><strong>Breaking</strong>: Production preset now includes <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code> redactor for broader secret protection; users may see additional fields masked (Story 4.47).</p></li>
 <li><p><strong>Docs</strong>: Added <code class="docutils literal notranslate"><span class="pre">redaction-guarantee.md</span></code> documenting exact redaction behavior per preset; fixed inaccurate claims in <code class="docutils literal notranslate"><span class="pre">reliability-defaults.md</span></code> (Story 4.47).</p></li>
