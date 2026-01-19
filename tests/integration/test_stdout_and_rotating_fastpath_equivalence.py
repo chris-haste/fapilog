@@ -68,9 +68,14 @@ async def test_stdout_fastpath_on_off_equivalence(
     def _normalize(obj: dict) -> dict:
         # Remove dynamic fields; handle envelope form if present
         if "schema_version" in obj and "log" in obj:
-            log = dict(obj["log"])  # shallow copy
+            import copy as cp
+
+            log = cp.deepcopy(obj["log"])
             log.pop("timestamp", None)
-            log.pop("correlation_id", None)
+            log.pop("correlation_id", None)  # v1.0 location
+            # v1.1: correlation_id is in context
+            if "context" in log and isinstance(log["context"], dict):
+                log["context"].pop("correlation_id", None)
             return {"schema_version": obj["schema_version"], "log": log}
         else:
             copy = dict(obj)
@@ -122,9 +127,14 @@ async def test_rotating_file_fastpath_on_off_equivalence(
 
     def _normalize(obj: dict) -> dict:
         if "schema_version" in obj and "log" in obj:
-            log = dict(obj["log"])
+            import copy as cp
+
+            log = cp.deepcopy(obj["log"])
             log.pop("timestamp", None)
-            log.pop("correlation_id", None)
+            log.pop("correlation_id", None)  # v1.0 location
+            # v1.1: correlation_id is in context
+            if "context" in log and isinstance(log["context"], dict):
+                log["context"].pop("correlation_id", None)
             return {"schema_version": obj["schema_version"], "log": log}
         else:
             copy = dict(obj)

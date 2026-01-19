@@ -35,11 +35,10 @@ envelope_logs = st.fixed_dictionaries(
         "message": message_text,
         "context": st.dictionaries(json_key, json_values, max_size=6),
         "diagnostics": st.dictionaries(json_key, json_values, max_size=6),
+        "data": st.dictionaries(json_key, json_values, max_size=6),
     },
     optional={
         "tags": st.lists(message_text, max_size=5),
-        "span_id": message_text,
-        "trace_id": message_text,
         "logger": message_text,
     },
 )
@@ -57,11 +56,12 @@ def test_serialize_envelope_preserves_required_fields(event: dict) -> None:
     view = serialize_envelope(event)
     parsed = json.loads(view.data)
 
-    assert parsed["schema_version"] == "1.0"
+    assert parsed["schema_version"] == "1.1"
     log = parsed["log"]
 
     assert log["level"] == str(event["level"])
     assert log["message"] == str(event["message"])
     assert log["context"] == event["context"]
     assert log["diagnostics"] == event["diagnostics"]
+    assert log["data"] == event["data"]
     assert log["timestamp"].endswith("Z")

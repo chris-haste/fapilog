@@ -208,12 +208,17 @@ def ensure_rfc3339_utc(ts: float | str) -> str:
 
 
 def serialize_envelope(log: Mapping[str, Any]) -> SerializedView:
-    """Build a schema-versioned envelope {"schema_version":"1.0","log":{...}}.
+    """Build a schema-versioned envelope {"schema_version":"1.1","log":{...}}.
+
+    The v1.1 schema organizes fields into semantic groupings:
+    - context: Request/trace identifiers (correlation_id, request_id, etc.)
+    - diagnostics: Runtime/operational data (exception info, etc.)
+    - data: User-provided structured data
 
     Required keys in log: timestamp, level, message, context, diagnostics.
     - timestamp may be float seconds or RFC3339 string; normalized to RFC3339 UTC Z.
     - context and diagnostics must be mappings; they are included as-is.
-    Optional keys: tags (list[str]), span_id (str), trace_id (str), logger (str).
+    Optional keys: data (dict), tags (list[str]), logger (str).
 
     Raises TypeError/ValueError on invalid shapes to allow strict-mode handling.
     """
@@ -236,10 +241,20 @@ def serialize_envelope(log: Mapping[str, Any]) -> SerializedView:
         "context": dict(log.get("context", {})),
         "diagnostics": dict(log.get("diagnostics", {})),
     }
+
+    # Include data field (v1.1 schema)
+    if "data" in log:
+        if isinstance(log["data"], Mapping):
+            norm_log["data"] = dict(log["data"])
+        else:
+            raise TypeError("data must be a mapping")
+    else:
+        norm_log["data"] = {}
+
     # Copy optional known fields when present
-    for key in ("tags", "span_id", "trace_id", "logger"):
+    for key in ("tags", "logger"):
         if key in log:
             norm_log[key] = log[key]
 
-    envelope = {"schema_version": "1.0", "log": norm_log}
+    envelope = {"schema_version": "1.1", "log": norm_log}
     return serialize_mapping_to_json_bytes(envelope)

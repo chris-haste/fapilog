@@ -76,7 +76,7 @@ class TestFastPathSuccess:
         data = _json.loads(bytes(observed["data"]).decode("utf-8"))
         assert isinstance(data, dict)
         if "schema_version" in data:
-            assert data.get("schema_version") == "1.0"
+            assert data.get("schema_version") == "1.1"  # v1.1 schema
             log = data.get("log", {})
             assert log.get("message") == "hello"
             assert log.get("level") == "INFO"
@@ -92,7 +92,11 @@ class TestFastPathStrictMode:
 
     @pytest.mark.asyncio
     async def test_fastpath_strict_envelope_error_drops_entry(self) -> None:
+        """In strict mode, events with non-serializable data are dropped."""
         calls = {"serialized": 0, "dict": 0}
+
+        class NonSerializable:
+            pass
 
         async def _sink_write(_entry: dict[str, Any]) -> None:
             calls["dict"] += 1
@@ -119,11 +123,12 @@ class TestFastPathStrictMode:
                 serialize_in_flush=True,
             )
             logger.start()
-            logger.info("hello")
+            # v1.1: valid events serialize successfully, only non-serializable fails
+            logger.info("bad-event", payload=NonSerializable())
             await asyncio.sleep(0.05)
             await logger.stop_and_drain()
 
-        # In strict mode, envelope error should cause drop (no sink calls)
+        # In strict mode, events that fail serialization are dropped (no fallback)
         assert calls["serialized"] == 0
         assert calls["dict"] == 0
 

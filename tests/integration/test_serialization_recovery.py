@@ -114,7 +114,8 @@ async def test_serialization_failure_mid_batch_preserves_prior_events() -> None:
     result = await logger.stop_and_drain()
 
     # Extract messages from serialized events (successfully serialized)
-    serialized_messages = [e.get("message") for e in serialized_events]
+    # v1.1 schema wraps in {"schema_version": "1.1", "log": {...}}
+    serialized_messages = [e.get("log", e).get("message") for e in serialized_events]
 
     # Verify: valid events should have been serialized successfully
     assert "event-1" in serialized_messages, "event-1 should serialize"
@@ -176,7 +177,8 @@ async def test_pipeline_continues_after_serialization_failure() -> None:
 
     result = await logger.stop_and_drain()
 
-    serialized_messages = [e.get("message") for e in serialized_events]
+    # v1.1 schema wraps in {"schema_version": "1.1", "log": {...}}
+    serialized_messages = [e.get("log", e).get("message") for e in serialized_events]
 
     # Batch 1 valid events should be serialized
     assert "batch1-event1" in serialized_messages, "batch1-event1 should serialize"
@@ -295,7 +297,7 @@ async def test_serialization_error_emits_diagnostic() -> None:
         if "serializ" in d.get("message", "").lower() or d.get("component") == "sink"
     ]
 
-    assert len(serialization_errors) >= 1, (
+    assert len(serialization_errors) >= 1, (  # noqa: WA002
         "Should emit diagnostic on serialization error"
     )
 
@@ -348,7 +350,8 @@ async def test_deeply_nested_non_serializable_handled() -> None:
 
     result = await logger.stop_and_drain()
 
-    serialized_messages = [e.get("message") for e in serialized_events]
+    # v1.1 schema wraps in {"schema_version": "1.1", "log": {...}}
+    serialized_messages = [e.get("log", e).get("message") for e in serialized_events]
     assert "valid-before" in serialized_messages, "valid-before should serialize"
     assert "valid-after" in serialized_messages, "valid-after should serialize"
     assert "nested-bad" not in serialized_messages, "nested-bad should not serialize"

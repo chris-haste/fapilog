@@ -1,35 +1,73 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://fapilog.dev/schemas/log_envelope_v1.json",
-  "title": "Fapilog Log Envelope v1.0",
+  "title": "Fapilog Log Envelope v1.1",
+  "description": "Canonical log schema v1.1 with semantic field groupings: context (request/trace identifiers), diagnostics (runtime/operational data), and data (user-provided structured data).",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema_version", "log"],
   "properties": {
     "schema_version": {
       "type": "string",
-      "const": "1.0"
+      "const": "1.1"
     },
     "log": {
       "type": "object",
-      "required": ["timestamp", "level", "message", "context", "diagnostics"],
+      "required": ["timestamp", "level", "message", "context", "diagnostics", "data"],
       "additionalProperties": true,
       "properties": {
         "timestamp": {
           "type": "string",
+          "description": "RFC3339 UTC timestamp with Z suffix and millisecond precision",
           "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"
         },
-        "level": { "type": "string" },
-        "message": { "type": "string" },
-        "context": { "type": "object" },
-        "diagnostics": { "type": "object" },
+        "level": {
+          "type": "string",
+          "description": "Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL"
+        },
+        "message": {
+          "type": "string",
+          "description": "Human-readable log message"
+        },
+        "logger": {
+          "type": "string",
+          "description": "Logger name"
+        },
+        "context": {
+          "type": "object",
+          "description": "Request/trace context - identifies WHO and WHAT request",
+          "properties": {
+            "correlation_id": { "type": "string" },
+            "request_id": { "type": "string" },
+            "user_id": { "type": "string" },
+            "tenant_id": { "type": "string" },
+            "trace_id": { "type": "string" },
+            "span_id": { "type": "string" }
+          },
+          "additionalProperties": true
+        },
+        "diagnostics": {
+          "type": "object",
+          "description": "Runtime/operational context - identifies WHERE and system state",
+          "properties": {
+            "service": { "type": "string" },
+            "env": { "type": "string" },
+            "host": { "type": "string" },
+            "pid": { "type": "integer" },
+            "python": { "type": "string" },
+            "exception": { "type": "object" }
+          },
+          "additionalProperties": true
+        },
+        "data": {
+          "type": "object",
+          "description": "User-provided structured data from log call extra args",
+          "additionalProperties": true
+        },
         "tags": {
           "type": "array",
           "items": { "type": "string" }
-        },
-        "span_id": { "type": "string" },
-        "trace_id": { "type": "string" },
-        "logger": { "type": "string" }
+        }
       }
     }
   }

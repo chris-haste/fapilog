@@ -393,11 +393,11 @@ class TestContextBinding:
 
         m1, m2, m3 = collected[0], collected[1], collected[2]
         # m1: per-call user="B" overrides bound user="A"
-        assert m1["metadata"].get("user") == "B"
+        assert m1["data"].get("user") == "B"
         # m2: trace was unbound, so shouldn't be present
-        assert "trace" not in m2["metadata"]
+        assert "trace" not in m2["data"]
         # m3: context cleared, only per-call user="C"
-        assert m3["metadata"].get("user") == "C"
+        assert m3["data"].get("user") == "C"
 
 
 class TestEnricherEdgeCases:
@@ -553,9 +553,10 @@ class TestNoCopyEnqueue:
         await logger.stop_and_drain()
 
         assert seen, "expected at least one entry"
-        meta = seen[0].get("metadata", {})
-        # The sentinel is embedded under metadata.sentinel; ensure same identity
-        assert meta.get("sentinel") is sentinel
+        # v1.1 schema: custom fields in data
+        data = seen[0].get("data", {})
+        # The sentinel is embedded under data.sentinel; ensure same identity
+        assert data.get("sentinel") is sentinel
 
     @pytest.mark.asyncio
     async def test_cross_thread_enqueue_preserves_identity(self) -> None:
@@ -582,5 +583,6 @@ class TestNoCopyEnqueue:
         await logger.stop_and_drain()
 
         assert seen, "expected emitted entries"
-        meta = seen[0].get("metadata", {})
-        assert meta.get("marker") is sentinel
+        # v1.1 schema: custom fields in data
+        data = seen[0].get("data", {})
+        assert data.get("marker") is sentinel

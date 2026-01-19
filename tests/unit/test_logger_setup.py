@@ -792,8 +792,8 @@ class TestPreparePayloadSharedBehavior:
         sync_payload = sync_logger._prepare_payload("INFO", "hello")  # type: ignore[attr-defined]
         async_payload = async_logger._prepare_payload("INFO", "hello-async")  # type: ignore[attr-defined]
 
-        assert sync_payload["metadata"]["user"] == "alice"
-        assert async_payload["metadata"]["user"] == "alice"
+        assert sync_payload["data"]["user"] == "alice"
+        assert async_payload["data"]["user"] == "alice"
 
     def test_prepare_payload_dedupes_errors_per_facade(self) -> None:
         """Error deduplication should work identically in both facades."""
@@ -818,18 +818,19 @@ class TestPreparePayloadSharedBehavior:
         assert payload["message"] == "test message"
 
     def test_prepare_payload_with_metadata(self) -> None:
-        """Metadata should be merged into the payload correctly."""
+        """Context fields should be merged into context, others into data."""
         logger = SyncLoggerFacade(**_logger_args())
 
         payload = logger._prepare_payload(  # type: ignore[attr-defined]
             "INFO",
             "test",
             request_id="abc123",
-            user_id=42,
+            custom_field=42,
         )
 
-        assert payload["metadata"]["request_id"] == "abc123"
-        assert payload["metadata"]["user_id"] == 42
+        # v1.1 schema: request_id is a context field, custom_field goes to data
+        assert payload["context"]["request_id"] == "abc123"
+        assert payload["data"]["custom_field"] == 42
 
 
 class TestContextBindingSharedBehavior:
@@ -859,9 +860,9 @@ class TestContextBindingSharedBehavior:
         logger.unbind("role")
 
         payload = logger._prepare_payload("INFO", "test")  # type: ignore[attr-defined]
-        assert "user" in payload["metadata"]
-        assert "session" in payload["metadata"]
-        assert "role" not in payload["metadata"]
+        assert "user" in payload["data"]
+        assert "session" in payload["data"]
+        assert "role" not in payload["data"]
 
     def test_clear_context_removes_all(self) -> None:
         """clear_context should remove all bound context."""
@@ -871,8 +872,8 @@ class TestContextBindingSharedBehavior:
         logger.clear_context()
 
         payload = logger._prepare_payload("INFO", "test")  # type: ignore[attr-defined]
-        assert "user" not in payload["metadata"]
-        assert "role" not in payload["metadata"]
+        assert "user" not in payload["data"]
+        assert "role" not in payload["data"]
 
 
 class TestMixinInheritance:

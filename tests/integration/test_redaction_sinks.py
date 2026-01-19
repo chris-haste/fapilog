@@ -58,13 +58,13 @@ async def test_redaction_reaches_stdout_sink() -> None:
         sink = StdoutJsonSink()
 
         # Create real field mask redactor
-        # Use metadata.* paths since fields are in metadata dict
+        # Use data.* paths since fields are in data dict (v1.1 schema)
         redactor = FieldMaskRedactor(
             config={
                 "fields_to_mask": [
-                    "metadata.password",
-                    "metadata.credit_card",
-                    "metadata.user.ssn",
+                    "data.password",
+                    "data.credit_card",
+                    "data.user.ssn",
                 ],
             }
         )
@@ -91,17 +91,20 @@ async def test_redaction_reaches_stdout_sink() -> None:
 
     # Parse the JSON output
     assert output.strip(), "No output captured"
-    log_entry = json.loads(output.strip())
+    envelope = json.loads(output.strip())
 
-    # Verify sensitive fields are masked (in metadata)
-    metadata = log_entry.get("metadata", {})
-    assert metadata.get("password") == "***", "password should be masked"
-    assert metadata.get("credit_card") == "***", "credit_card should be masked"
-    assert metadata.get("user", {}).get("ssn") == "***", "ssn should be masked"
+    # Serialized envelope wraps log in {"schema_version": "1.1", "log": {...}}
+    log_entry = envelope.get("log", envelope)  # fallback for non-envelope output
+
+    # Verify sensitive fields are masked (in data - v1.1 schema)
+    data = log_entry.get("data", {})
+    assert data.get("password") == "***", "password should be masked"
+    assert data.get("credit_card") == "***", "credit_card should be masked"
+    assert data.get("user", {}).get("ssn") == "***", "ssn should be masked"
 
     # Verify non-sensitive fields are NOT masked
-    assert metadata.get("username") == "alice", "username should not be masked"
-    assert metadata.get("user", {}).get("name") == "Alice", "name should not be masked"
+    assert data.get("username") == "alice", "username should not be masked"
+    assert data.get("user", {}).get("name") == "Alice", "name should not be masked"
 
     # Verify the actual secret values do NOT appear anywhere in raw output
     assert "secret123" not in output, "raw password leaked to output"
@@ -135,10 +138,10 @@ async def test_redaction_reaches_file_sink(tmp_path: Path) -> None:
     await sink.start()
 
     try:
-        # Create redactor
+        # Create redactor (v1.1 schema uses data.* paths)
         redactor = FieldMaskRedactor(
             config={
-                "fields_to_mask": ["metadata.api_key", "metadata.token"],
+                "fields_to_mask": ["data.api_key", "data.token"],
             }
         )
 
@@ -221,10 +224,10 @@ async def test_redaction_reaches_http_sink() -> None:
     await sink.start()
 
     try:
-        # Create redactor
+        # Create redactor (v1.1 schema uses data.* paths)
         redactor = FieldMaskRedactor(
             config={
-                "fields_to_mask": ["metadata.password", "metadata.secret"],
+                "fields_to_mask": ["data.password", "data.secret"],
             }
         )
 
@@ -242,10 +245,10 @@ async def test_redaction_reaches_http_sink() -> None:
     assert len(capturing_sender.captured) == 1, "Expected 1 captured request"
 
     sent_event = capturing_sender.captured[0]
-    metadata = sent_event.get("metadata", {})
-    assert metadata.get("password") == "***", "password should be masked in HTTP body"
-    assert metadata.get("secret") == "***", "secret should be masked in HTTP body"
-    assert metadata.get("username") == "bob", "username should not be masked"
+    data = sent_event.get("data", {})
+    assert data.get("password") == "***", "password should be masked in HTTP body"
+    assert data.get("secret") == "***", "secret should be masked in HTTP body"
+    assert data.get("username") == "bob", "username should not be masked"
 
     # Verify raw secrets never sent
     all_content = json.dumps(capturing_sender.captured)
@@ -310,10 +313,10 @@ async def test_redaction_reaches_postgres_sink(redaction_postgres_pool: Any) -> 
     await sink.start()
 
     try:
-        # Create redactor
+        # Create redactor (v1.1 schema uses data.* paths)
         redactor = FieldMaskRedactor(
             config={
-                "fields_to_mask": ["metadata.password", "metadata.credit_card"],
+                "fields_to_mask": ["data.password", "data.credit_card"],
             }
         )
 
@@ -339,23 +342,25 @@ async def test_redaction_reaches_postgres_sink(redaction_postgres_pool: Any) -> 
             "SELECT * FROM public.redaction_test_logs WHERE message = 'payment'"
         )
 
-    assert row is not None, "No row found in database"
+    assert row is not None, "No row found in database"  # noqa: WA003
 
-    # Parse the 'event' JSONB column (sink's schema uses 'event', not 'data')
+    # Parse the 'event' JSONB column (sink's schema uses 'event')
     event_data = row["event"]
     if isinstance(event_data, str):
         event_data = json.loads(event_data)
 
-    # Check in metadata since that's where fields are stored
-    metadata = event_data.get("metadata", {})
+    # Check in data since that's where fields are stored (v1.1 schema)
+    data = event_data.get("data", {})
 
     # Verify sensitive fields are masked IN THE DATABASE
-    assert metadata.get("password") == "***", "password should be masked in DB"
-    assert metadata.get("credit_card") == "***", "credit_card should be masked in DB"
+    assert data.get("password") == "***", "password should be masked in DB"
+    assert data.get("credit_card") == "***", "credit_card should be masked in DB"
 
     # Verify non-sensitive fields are NOT masked
-    assert metadata.get("user_id") == "u-123", "user_id should not be masked"
-    assert metadata.get("amount") == 99.99, "amount should not be masked"
+    # user_id is a context field in v1.1 schema, so it's in context not data
+    context = event_data.get("context", {})
+    assert context.get("user_id") == "u-123", "user_id should not be masked"
+    assert data.get("amount") == 99.99, "amount should not be masked"
 
     # Verify raw secret never stored
     full_row_str = str(row)
@@ -384,7 +389,7 @@ async def test_redaction_applies_to_all_log_levels() -> None:
 
     redactor = FieldMaskRedactor(
         config={
-            "fields_to_mask": ["metadata.secret"],
+            "fields_to_mask": ["data.secret"],
         }
     )
 
@@ -410,10 +415,10 @@ async def test_redaction_applies_to_all_log_levels() -> None:
     # Verify we got events (at least info and above based on default log level)
     assert len(test_events) >= 4, f"Expected at least 4 events, got {len(test_events)}"
 
-    # All captured events should have masked secret in metadata
+    # All captured events should have masked secret in data (v1.1 schema)
     for event in test_events:
-        metadata = event.get("metadata", {})
-        assert metadata.get("secret") == "***", (
+        data = event.get("data", {})
+        assert data.get("secret") == "***", (
             f"Event {event['message']} has unmasked secret"
         )
 
@@ -444,7 +449,7 @@ async def test_redaction_happens_before_serialization() -> None:
 
     redactor = FieldMaskRedactor(
         config={
-            "fields_to_mask": ["metadata.password"],
+            "fields_to_mask": ["data.password"],
         }
     )
 
@@ -460,10 +465,10 @@ async def test_redaction_happens_before_serialization() -> None:
     assert len(captured_payloads) == 1, "Expected 1 captured payload"
 
     payload = captured_payloads[0]
-    metadata = payload.get("metadata", {})
+    data = payload.get("data", {})
 
     # Verify redaction occurred BEFORE reaching sink
-    assert metadata.get("password") == "***", "password should be masked at sink time"
+    assert data.get("password") == "***", "password should be masked at sink time"
     assert "supersecret" not in str(payload), "supersecret appears in payload"
 
     # Verify the unmasked value never reaches the sink

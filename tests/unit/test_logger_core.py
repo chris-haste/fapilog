@@ -179,9 +179,11 @@ class TestCorrelationId:
 
         assert captured, "Expected at least one emitted entry"
         event = captured[0]
-        assert "correlation_id" in event
-        assert isinstance(event["correlation_id"], str)
-        assert len(event["correlation_id"]) > 0
+        # v1.1 schema: correlation_id is in context
+        assert "context" in event
+        assert "correlation_id" in event["context"]
+        assert isinstance(event["context"]["correlation_id"], str)
+        assert len(event["context"]["correlation_id"]) > 0
 
     @pytest.mark.asyncio
     async def test_context_propagation_and_uuid_fallback(self) -> None:
@@ -207,9 +209,10 @@ class TestCorrelationId:
 
         assert len(captured) >= 2
         a, b = captured[0], captured[1]
-        assert a["correlation_id"] == "req-123"
-        assert isinstance(b["correlation_id"], str)
-        assert len(b["correlation_id"]) > 0
+        # v1.1 schema: correlation_id is in context
+        assert a["context"]["correlation_id"] == "req-123"
+        assert isinstance(b["context"]["correlation_id"], str)
+        assert len(b["context"]["correlation_id"]) > 0
 
 
 class TestBatchAndDrain:

@@ -255,13 +255,14 @@ class TestExceptionSerialization:
         event = collected[0]
         assert event.get("message") == "caught error"
 
-        # Exception info captured in error.* fields within metadata
-        metadata = event.get("metadata", {})
-        assert metadata.get("error.type") == "ValueError"
-        assert metadata.get("error.message") == "test exception"
-        assert "error.stack" in metadata
+        # v1.1 schema: exception info in diagnostics.exception
+        diagnostics = event.get("diagnostics", {})
+        exc_data = diagnostics.get("exception", {})
+        assert exc_data.get("error.type") == "ValueError"
+        assert exc_data.get("error.message") == "test exception"
+        assert "error.stack" in exc_data
         # Stack should contain traceback info
-        assert "ValueError" in metadata.get("error.stack", "")
+        assert "ValueError" in exc_data.get("error.stack", "")
 
     def test_exception_with_explicit_exc_info(self) -> None:
         """Explicit exc_info tuple is captured in error.* fields."""
@@ -293,11 +294,12 @@ class TestExceptionSerialization:
         event = collected[0]
         assert event.get("message") == "with exc_info"
 
-        # Exception info captured in error.* fields within metadata
-        metadata = event.get("metadata", {})
-        assert metadata.get("error.type") == "RuntimeError"
-        assert metadata.get("error.message") == "explicit error"
-        assert "error.stack" in metadata
+        # v1.1 schema: exception info in diagnostics.exception
+        diagnostics = event.get("diagnostics", {})
+        exc_data = diagnostics.get("exception", {})
+        assert exc_data.get("error.type") == "RuntimeError"
+        assert exc_data.get("error.message") == "explicit error"
+        assert "error.stack" in exc_data
 
     def test_exception_serialization_with_exc_param_and_exc_info_tuple(self) -> None:
         """Both exc= parameter and exc_info= tuple are captured correctly."""
@@ -341,9 +343,10 @@ class TestExceptionSerialization:
         # Both messages should be captured
         assert len(collected) == 2
 
-        # Verify exception info was serialized
-        metas = [e.get("metadata", {}) for e in collected]
-        assert any("error.stack" in m or "error.frames" in m for m in metas)
+        # v1.1 schema: verify exception info was serialized in diagnostics.exception
+        for e in collected:
+            exc_data = e.get("diagnostics", {}).get("exception", {})
+            assert "error.stack" in exc_data or "error.frames" in exc_data
 
 
 class TestSinkErrorMetrics:

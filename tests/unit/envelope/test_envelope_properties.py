@@ -24,10 +24,12 @@ def test_envelope_invariants(ts) -> None:
         "message": "ok",
         "context": {},
         "diagnostics": {},
+        "data": {},
     }
     env = json.loads(serialize_envelope(log).data)
     assert set(env.keys()) == {"schema_version", "log"}
-    assert env["schema_version"] == "1.0"
+    assert env["schema_version"] == "1.1"
     assert env["log"]["timestamp"].endswith("Z") and "T" in env["log"]["timestamp"]
     assert env["log"]["level"] == "INFO"
     assert env["log"]["message"] == "ok"
+    assert env["log"]["data"] == {}
