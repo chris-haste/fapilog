@@ -706,4 +706,117 @@
 
 ## LogEnvelope Schema
 
-_Envelope schema file not found._
+### LogEnvelope v1.x (from file)
+
+```json
+{
+  "$id": "https://fapilog.dev/schemas/log_envelope_v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Canonical log schema v1.1 with semantic field groupings: context (request/trace identifiers), diagnostics (runtime/operational data), and data (user-provided structured data).",
+  "properties": {
+    "log": {
+      "additionalProperties": true,
+      "properties": {
+        "context": {
+          "additionalProperties": true,
+          "description": "Request/trace context - identifies WHO and WHAT request",
+          "properties": {
+            "correlation_id": {
+              "type": "string"
+            },
+            "request_id": {
+              "type": "string"
+            },
+            "span_id": {
+              "type": "string"
+            },
+            "tenant_id": {
+              "type": "string"
+            },
+            "trace_id": {
+              "type": "string"
+            },
+            "user_id": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "data": {
+          "additionalProperties": true,
+          "description": "User-provided structured data from log call extra args",
+          "type": "object"
+        },
+        "diagnostics": {
+          "additionalProperties": true,
+          "description": "Runtime/operational context - identifies WHERE and system state",
+          "properties": {
+            "env": {
+              "type": "string"
+            },
+            "exception": {
+              "type": "object"
+            },
+            "host": {
+              "type": "string"
+            },
+            "pid": {
+              "type": "integer"
+            },
+            "python": {
+              "type": "string"
+            },
+            "service": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "level": {
+          "description": "Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL",
+          "type": "string"
+        },
+        "logger": {
+          "description": "Logger name",
+          "type": "string"
+        },
+        "message": {
+          "description": "Human-readable log message",
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "timestamp": {
+          "description": "RFC3339 UTC timestamp with Z suffix and millisecond precision",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "timestamp",
+        "level",
+        "message",
+        "context",
+        "diagnostics",
+        "data"
+      ],
+      "type": "object"
+    },
+    "schema_version": {
+      "const": "1.1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "log"
+  ],
+  "title": "Fapilog Log Envelope v1.1",
+  "type": "object"
+}
+```
