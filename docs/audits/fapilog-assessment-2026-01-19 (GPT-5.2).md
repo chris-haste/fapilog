@@ -1,7 +1,5 @@
 # Open Source Library Assessment Report — `fapilog`
 
----
-
 ## Executive Summary
 
 - **`fapilog` is a feature-rich, pipeline-oriented logging library**: bounded queue, batching, backpressure/drop policy, pluggable stages (filters/enrichers/redactors/processors/sinks), and FastAPI integration.
