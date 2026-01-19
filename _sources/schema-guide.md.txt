@@ -130,6 +130,17 @@
       "title": "Exceptions Max Stack Chars",
       "type": "integer"
     },
+    "fallback_redact_mode": {
+      "default": "minimal",
+      "description": "Redaction mode for fallback stderr output: 'inherit' uses pipeline redactors, 'minimal' applies built-in sensitive field masking, 'none' writes unredacted (opt-in to legacy behavior)",
+      "enum": [
+        "inherit",
+        "minimal",
+        "none"
+      ],
+      "title": "Fallback Redact Mode",
+      "type": "string"
+    },
     "filters": {
       "description": "Filter plugins to apply before enrichment (by name)",
       "items": {

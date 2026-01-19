@@ -377,7 +377,12 @@
 <td><p>False</p></td>
 <td><p>Write to multiple sinks in parallel instead of sequentially</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.benchmark_file_path</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.fallback_redact_mode</span></code></p></td>
+<td><p>Literal</p></td>
+<td><p>minimal</p></td>
+<td><p>Redaction mode for fallback stderr output: ‘inherit’ uses pipeline redactors, ‘minimal’ applies built-in sensitive field masking, ‘none’ writes unredacted (opt-in to legacy behavior)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.benchmark_file_path</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>

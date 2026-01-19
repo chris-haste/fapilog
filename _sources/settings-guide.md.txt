@@ -44,6 +44,7 @@ This guide documents Settings groups and fields.
 | `core.sink_circuit_breaker_failure_threshold` | int | 5 | Number of consecutive failures before opening circuit |
 | `core.sink_circuit_breaker_recovery_timeout_seconds` | float | 30.0 | Seconds to wait before probing a failed sink |
 | `core.sink_parallel_writes` | bool | False | Write to multiple sinks in parallel instead of sequentially |
+| `core.fallback_redact_mode` | Literal | minimal | Redaction mode for fallback stderr output: 'inherit' uses pipeline redactors, 'minimal' applies built-in sensitive field masking, 'none' writes unredacted (opt-in to legacy behavior) |
 | `core.benchmark_file_path` | str | None | — | Optional path used by performance benchmarks |
 
 ## security
