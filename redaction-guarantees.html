@@ -180,12 +180,15 @@
   <section class="tex2jax_ignore mathjax_ignore" id="redaction-guarantees">
 <h1>Redaction Guarantees<a class="headerlink" href="#redaction-guarantees" title="Link to this heading"></a></h1>
 <p>This document defines the guarantees, guardrails, and configuration for data redaction in Fapilog.</p>
+<blockquote>
+<div><p><strong>Important:</strong> Redaction is disabled by default. Features below only apply when enabled via <code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code> or explicit redactor configuration. See <a class="reference internal" href="user-guide/reliability-defaults.html"><span class="std std-doc">Reliability Defaults</span></a> for details.</p>
+</div></blockquote>
 <section id="guarantees">
 <h2>Guarantees<a class="headerlink" href="#guarantees" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>URL credentials are always scrubbed from string values resembling <code class="docutils literal notranslate"><span class="pre">scheme://user:pass&#64;host...</span></code> across all fields.</p></li>
-<li><p>Explicitly configured dotted field paths are masked, including nested objects and lists. Arrays support <code class="docutils literal notranslate"><span class="pre">*</span></code>/<code class="docutils literal notranslate"><span class="pre">[*]</span></code> wildcard and numeric indices.</p></li>
-<li><p>Regex-based masks are applied to dotted field paths that match configured regular expressions.</p></li>
+<li><p>URL credentials are scrubbed from string values resembling <code class="docutils literal notranslate"><span class="pre">scheme://user:pass&#64;host...</span></code> across all fields <strong>when the <code class="docutils literal notranslate"><span class="pre">url_credentials</span></code> redactor is enabled</strong>.</p></li>
+<li><p>Explicitly configured dotted field paths are masked, including nested objects and lists, <strong>when the <code class="docutils literal notranslate"><span class="pre">field_mask</span></code> redactor is enabled</strong>. Arrays support <code class="docutils literal notranslate"><span class="pre">*</span></code>/<code class="docutils literal notranslate"><span class="pre">[*]</span></code> wildcard and numeric indices.</p></li>
+<li><p>Regex-based masks are applied to dotted field paths that match configured regular expressions <strong>when the <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code> redactor is enabled</strong>.</p></li>
 <li><p>Redactors never raise upstream; failures are recorded via diagnostics with a <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">redactor,</span> <span class="pre">reason</span> <span class="pre">}</span></code> payload.</p></li>
 </ul>
 </section>

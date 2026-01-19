@@ -2,6 +2,8 @@
 
 This page documents exactly what fapilog redacts under each configuration.
 
+> **Important:** Redaction is disabled by default. Features described below only apply when enabled via `preset="production"` or explicit redactor configuration. See [Reliability Defaults](reliability-defaults.md) for details.
+
 ## Quick Reference
 
 | Configuration | field_mask | regex_mask | url_credentials | Protection Level |
