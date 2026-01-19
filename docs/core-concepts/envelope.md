@@ -13,7 +13,7 @@ Every log entry is a mapping with core fields plus metadata:
   "level": "INFO",
   "message": "User action",
   "logger": "app",
-  "timestamp": "2024-01-01T12:00:00.000Z",
+  "timestamp": 1704110400.123,
   "correlation_id": "req-123",
   "metadata": {
     "user_id": "abc",
@@ -25,7 +25,8 @@ Every log entry is a mapping with core fields plus metadata:
 - `level`: one of DEBUG/INFO/WARNING/ERROR.
 - `message`: the message string passed to the logger method.
 - `logger`: logger name (`get_logger(name=...)`).
-- `timestamp`: ISO 8601 with milliseconds in UTC.
+- `timestamp`: POSIX timestamp as float seconds (UTC).
+  > **Note:** Story 1.26 will change this to RFC3339 string format (`"2024-01-01T12:00:00.000Z"`) in a future release.
 - `correlation_id`: auto-generated UUID or value derived from context vars.
 - `metadata`: merged bound context + per-call kwargs + enrichment + serialized exceptions.
 
@@ -53,5 +54,5 @@ Serialization respects `exceptions_max_frames` and `exceptions_max_stack_chars` 
 
 ## Where to see it
 
-- Default stdout sink emits JSON lines with these fields flattened (metadata keys merged at top level).
+- Default stdout sink emits JSON lines preserving the envelope structure. The `metadata` field remains nested.
 - File/HTTP sinks receive the same envelope structure before serialization.
