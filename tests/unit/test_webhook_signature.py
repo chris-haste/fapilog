@@ -244,6 +244,25 @@ def test_config_default_signature_mode_is_hmac() -> None:
     assert config.signature_mode == SignatureMode.HMAC
 
 
+def test_config_replay_tolerance_seconds_default() -> None:
+    """Default replay_tolerance_seconds is 300 (5 minutes)."""
+    config = WebhookSinkConfig(
+        endpoint="https://hooks.example.com",
+        secret="test",
+    )
+    assert config.replay_tolerance_seconds == 300
+
+
+def test_config_replay_tolerance_seconds_custom() -> None:
+    """replay_tolerance_seconds can be customized."""
+    config = WebhookSinkConfig(
+        endpoint="https://hooks.example.com",
+        secret="test",
+        replay_tolerance_seconds=600,
+    )
+    assert config.replay_tolerance_seconds == 600
+
+
 @pytest.mark.asyncio
 async def test_timestamp_header_present_in_hmac_mode() -> None:
     """HMAC mode includes X-Fapilog-Timestamp header with Unix timestamp (AC2)."""

@@ -44,6 +44,11 @@ class WebhookSinkConfig(BaseModel):
         default=SignatureMode.HMAC,
         description="Authentication mode: 'hmac' (recommended) or 'header' (deprecated)",
     )
+    replay_tolerance_seconds: int = Field(
+        default=300,
+        ge=0,
+        description="Recommended replay tolerance for receivers (5 minutes). Receivers should reject requests with timestamps outside this window.",
+    )
     headers: dict[str, str] = Field(default_factory=dict)
     retry: RetryCallable | RetryConfig | None = None
     timeout_seconds: float = Field(default=5.0, gt=0.0)

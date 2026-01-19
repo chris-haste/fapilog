@@ -574,4 +574,6 @@ ignore_names = [
   "_dropped_count",
   # Pydantic v2 model configuration - used by framework
   "model_config",
+  # Webhook config field - documentation-only for receiver tolerance
+  "replay_tolerance_seconds",
 ]
