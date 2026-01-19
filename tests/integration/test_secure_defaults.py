@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 from typing import Any
+from urllib.parse import urlparse
 
 import pytest
 
@@ -64,8 +65,9 @@ async def test_url_credentials_scrubbed_by_default() -> None:
     # Credentials should be removed
     assert "alice" not in url, f"Username should be scrubbed, got: {url}"
     assert "secret" not in url, f"Password should be scrubbed, got: {url}"
-    # Host should remain
-    assert "api.example.com" in url, f"Host should remain, got: {url}"
+    # Host should remain (use urlparse for proper structural check)
+    parsed = urlparse(url)
+    assert parsed.hostname == "api.example.com", f"Host should remain, got: {url}"
 
 
 @pytest.mark.asyncio
