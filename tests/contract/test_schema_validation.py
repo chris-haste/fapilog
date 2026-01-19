@@ -12,14 +12,14 @@ import json
 from pathlib import Path
 
 import pytest
+from jsonschema import validate as jsonschema_validate
 
 from fapilog.core.envelope import build_envelope
 from fapilog.core.serialization import serialize_envelope
-from jsonschema import validate as jsonschema_validate
 
 pytestmark = pytest.mark.contract
 
-SCHEMA_PATH = Path(__file__).parents[2] / "jsonschema" / "log_envelope_v1.json"
+SCHEMA_PATH = Path(__file__).parents[2] / "schemas" / "log_envelope_v1.json"
 
 
 @pytest.fixture
