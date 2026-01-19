@@ -406,11 +406,52 @@ class TestMinimalRedact:
         minimal_redact(original)
         assert original == {"user": "alice", "password": "secret"}
 
-    def test_handles_list_values_without_recursing(self) -> None:
-        payload = {"items": [{"password": "secret"}]}
+    def test_handles_list_of_dicts(self) -> None:
+        """AC1: List contents are recursively redacted."""
+        payload = {"users": [{"password": "secret", "name": "alice"}]}
         result = minimal_redact(payload)
-        # Lists are not recursed into - they're left as-is
-        assert result == {"items": [{"password": "secret"}]}
+        assert result == {"users": [{"password": "***", "name": "alice"}]}
+
+    def test_handles_nested_lists(self) -> None:
+        """AC2: Nested lists containing dicts are redacted."""
+        payload = {"matrix": [[{"token": "abc"}], [{"api_key": "xyz"}]]}
+        result = minimal_redact(payload)
+        assert result == {"matrix": [[{"token": "***"}], [{"api_key": "***"}]]}
+
+    def test_handles_mixed_nesting(self) -> None:
+        """AC3: Arbitrary combinations of dicts and lists are handled."""
+        payload = {
+            "data": {
+                "items": [
+                    {"login_info": {"password": "secret", "username": "admin"}},
+                    {"api_key": "sk-xxx", "public": True},
+                ]
+            }
+        }
+        result = minimal_redact(payload)
+        assert result["data"]["items"][0]["login_info"]["password"] == "***"
+        assert result["data"]["items"][0]["login_info"]["username"] == "admin"
+        assert result["data"]["items"][1]["api_key"] == "***"
+        assert result["data"]["items"][1]["public"] is True
+
+    def test_preserves_primitive_lists(self) -> None:
+        """AC4: Lists containing primitives (strings, numbers) are preserved."""
+        payload = {"tags": ["prod", "critical"], "counts": [1, 2, 3]}
+        result = minimal_redact(payload)
+        assert result == {"tags": ["prod", "critical"], "counts": [1, 2, 3]}
+
+    def test_depth_limit_prevents_overflow(self) -> None:
+        """AC5: Extremely deep nesting doesn't cause stack overflow."""
+        # Create deeply nested structure (150 levels)
+        deep: dict = {"password": "secret"}
+        for _ in range(150):
+            deep = {"nested": [deep]}
+
+        # Should not raise RecursionError
+        result = minimal_redact(deep)
+
+        # Structure should be preserved (redaction may stop at depth limit)
+        assert "nested" in result
 
 
 class TestFallbackRedactionModes:

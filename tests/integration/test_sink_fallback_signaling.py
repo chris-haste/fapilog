@@ -1,14 +1,18 @@
 """
-Integration tests for sink failure signaling and fallback (Story 4.41).
+Integration tests for sink failure signaling and fallback (Story 4.41, 4.48).
 
 Tests that:
 - Sinks raising SinkWriteError trigger fallback to stderr
 - Sinks returning False trigger fallback to stderr
 - Fallback works through the full get_logger pipeline
+- Fallback redacts sensitive fields in lists (Story 4.48)
 """
 
 import asyncio
+import json
 from unittest.mock import patch
+
+import pytest
 
 from fapilog import get_logger
 from fapilog.core.errors import SinkWriteError
@@ -203,3 +207,33 @@ class TestSinkFallbackIntegration:
         except Exception:
             _drain_logger(logger)
             raise
+
+
+class TestFallbackListRedaction:
+    """Integration tests for fallback redaction of lists (Story 4.48)."""
+
+    @pytest.mark.asyncio
+    async def test_fallback_redacts_sensitive_fields_in_lists(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """AC6: Fallback redacts sensitive fields within list items."""
+        from fapilog.plugins.sinks.fallback import handle_sink_write_failure
+
+        class MockSink:
+            name = "mock_sink"
+
+        payload = {"users": [{"password": "secret", "name": "alice"}]}
+        await handle_sink_write_failure(
+            payload,
+            sink=MockSink(),
+            error=Exception("test"),
+            serialized=False,
+            redact_mode="minimal",
+        )
+
+        captured = capsys.readouterr()
+        # Parse the JSON output to verify redaction
+        output = json.loads(captured.err.strip())
+        assert output["users"][0]["password"] == "***"
+        assert output["users"][0]["name"] == "alice"
+        assert "secret" not in captured.err

@@ -10,25 +10,54 @@ from ...core.defaults import FALLBACK_SENSITIVE_FIELDS, should_fallback_sink
 # Type alias for redact mode
 RedactMode = Literal["inherit", "minimal", "none"]
 
+# Prevent stack overflow on pathological input
+_MAX_REDACT_DEPTH = 32
 
-def minimal_redact(payload: dict[str, Any]) -> dict[str, Any]:
+
+def _redact_list(items: list[Any], *, _depth: int) -> list[Any]:
+    """Recursively redact sensitive fields within list items."""
+    if _depth >= _MAX_REDACT_DEPTH:
+        return items  # Stop recursion at depth limit
+
+    result: list[Any] = []
+    for item in items:
+        if isinstance(item, dict):
+            result.append(minimal_redact(item, _depth=_depth + 1))
+        elif isinstance(item, list):
+            result.append(_redact_list(item, _depth=_depth + 1))
+        else:
+            result.append(item)
+    return result
+
+
+def minimal_redact(
+    payload: dict[str, Any],
+    *,
+    _depth: int = 0,
+) -> dict[str, Any]:
     """Apply minimal redaction for fallback safety.
 
     Masks values of keys that match FALLBACK_SENSITIVE_FIELDS (case-insensitive).
-    Recursively processes nested dictionaries but not lists.
+    Recursively processes nested dictionaries and lists.
 
     Args:
         payload: The dictionary to redact.
+        _depth: Internal recursion depth counter (do not set manually).
 
     Returns:
         A new dictionary with sensitive fields masked as "***".
     """
+    if _depth >= _MAX_REDACT_DEPTH:
+        return payload  # Stop recursion at depth limit
+
     result: dict[str, Any] = {}
     for key, value in payload.items():
         if key.lower() in FALLBACK_SENSITIVE_FIELDS:
             result[key] = "***"
         elif isinstance(value, dict):
-            result[key] = minimal_redact(value)
+            result[key] = minimal_redact(value, _depth=_depth + 1)
+        elif isinstance(value, list):
+            result[key] = _redact_list(value, _depth=_depth + 1)
         else:
             result[key] = value
     return result

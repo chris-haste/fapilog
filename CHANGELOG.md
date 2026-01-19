@@ -39,6 +39,7 @@ All notable changes to this project will be documented in this file. This change
 - Added one-liner FastAPI setup helpers (`setup_logging`, `get_request_logger`) with lifespan support.
 - Added default log-level selection based on TTY/CI when no preset or explicit log level is set.
 - Added stderr fallback for sink write failures with optional diagnostics warnings.
+- **Security**: Fallback minimal redaction now recurses into lists, preventing secrets in arrays from leaking to stderr during sink failures (Story 4.48).
 
 ## [0.3.5] - 2026-01-01
 
