@@ -85,6 +85,10 @@ def pytest_configure(config: pytest.Config) -> None:
         "markers",
         "enterprise: Enterprise feature tests",
     )
+    config.addinivalue_line(
+        "markers",
+        "contract: Contract tests ensuring schema compatibility between pipeline stages",
+    )
 
 
 @pytest.fixture(autouse=True)
@@ -103,3 +107,40 @@ def reset_diagnostics_cache() -> Generator[None, None, None]:
     yield
     # Also reset after test to clean up
     diag._internal_logging_enabled = None
+
+
+@pytest.fixture
+def strict_serialization(
+    monkeypatch: pytest.MonkeyPatch,
+) -> Generator[None, None, None]:
+    """Fail if fallback serialization is triggered.
+
+    Use this fixture in tests where the happy path should always work.
+    If fallback triggers, it indicates schema drift between build_envelope()
+    and serialize_envelope().
+
+    The fallback path in LoggerWorker._try_serialize() calls
+    serialize_mapping_to_json_bytes() when serialize_envelope() fails.
+    This fixture monkeypatches that fallback to fail loudly.
+
+    Example:
+        def test_normal_logging_uses_envelope_path(strict_serialization, logger):
+            '''Normal logging should never trigger fallback.'''
+            logger.info("test message")
+            # If fallback is triggered, test fails with clear message
+
+    See Story 10.17 for context on contract testing infrastructure.
+    """
+
+    def _fail_on_fallback(*args: object, **kwargs: object) -> None:
+        pytest.fail(
+            "Fallback serialization triggered! "
+            "This indicates schema mismatch between build_envelope() and serialize_envelope(). "
+            "See Story 10.17 for context."
+        )
+
+    monkeypatch.setattr(
+        "fapilog.core.worker.serialize_mapping_to_json_bytes",
+        _fail_on_fallback,
+    )
+    yield
