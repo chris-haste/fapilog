@@ -357,7 +357,9 @@ async def test_redaction_reaches_postgres_sink(redaction_postgres_pool: Any) -> 
     assert data.get("credit_card") == "***", "credit_card should be masked in DB"
 
     # Verify non-sensitive fields are NOT masked
-    assert data.get("user_id") == "u-123", "user_id should not be masked"
+    # user_id is a context field in v1.1 schema, so it's in context not data
+    context = event_data.get("context", {})
+    assert context.get("user_id") == "u-123", "user_id should not be masked"
     assert data.get("amount") == 99.99, "amount should not be masked"
 
     # Verify raw secret never stored
