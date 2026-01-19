@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Graceful Shutdown &mdash; fapilog latest documentation</title>
+  <title>Performance Benchmarks &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -24,8 +24,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Performance Tuning" href="performance-tuning.html" />
-    <link rel="prev" title="Redaction Guarantee" href="redaction-guarantee.html" /> 
+    <link rel="next" title="Integration Guide" href="integration-guide.html" />
+    <link rel="prev" title="Performance Tuning" href="performance-tuning.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -76,9 +76,9 @@
 <li class="toctree-l2"><a class="reference internal" href="sink-routing.html">Sink routing by level</a></li>
 <li class="toctree-l2"><a class="reference internal" href="redactors.html">Redactors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="redaction-guarantee.html">Redaction Guarantee</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Graceful Shutdown</a></li>
+<li class="toctree-l2"><a class="reference internal" href="graceful-shutdown.html">Graceful Shutdown</a></li>
 <li class="toctree-l2"><a class="reference internal" href="performance-tuning.html">Performance Tuning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="benchmarks.html">Performance Benchmarks</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Performance Benchmarks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="integration-guide.html">Integration Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fastapi.html">FastAPI / ASGI Integration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="comparisons.html">Comparisons: fapilog vs stdlib, structlog, loguru</a></li>
@@ -175,9 +175,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="index.html">User Guide</a></li>
-      <li class="breadcrumb-item active">Graceful Shutdown</li>
+      <li class="breadcrumb-item active">Performance Benchmarks</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/user-guide/graceful-shutdown.md.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/user-guide/benchmarks.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -185,50 +185,279 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="graceful-shutdown">
-<h1>Graceful Shutdown<a class="headerlink" href="#graceful-shutdown" title="Link to this heading"></a></h1>
-<p>Ensure buffered logs are flushed before exit.</p>
-<section id="sync">
-<h2>Sync<a class="headerlink" href="#sync" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">runtime</span>
-
-<span class="k">with</span> <span class="n">runtime</span><span class="p">()</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;work started&quot;</span><span class="p">)</span>
-    <span class="c1"># ... do work ...</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;work done&quot;</span><span class="p">)</span>
-<span class="c1"># stop_and_drain is called internally</span>
-</pre></div>
-</div>
+  <section class="tex2jax_ignore mathjax_ignore" id="performance-benchmarks">
+<h1>Performance Benchmarks<a class="headerlink" href="#performance-benchmarks" title="Link to this heading"></a></h1>
+<p>Indicative benchmark results comparing fapilog to Python stdlib logging. These results help contextualize <a class="reference internal" href="performance-tuning.html"><span class="std std-doc">performance tuning</span></a> recommendations.</p>
+<section id="methodology">
+<h2>Methodology<a class="headerlink" href="#methodology" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Baseline</p></td>
+<td><p>Python stdlib <code class="docutils literal notranslate"><span class="pre">logging</span></code> to file</p></td>
+</tr>
+<tr class="row-odd"><td><p>Test</p></td>
+<td><p>fapilog with rotating file sink</p></td>
+</tr>
+<tr class="row-even"><td><p>Metrics</p></td>
+<td><p>Throughput (logs/sec), latency (μs), peak memory (bytes)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Warmup</p></td>
+<td><p>1,000 calls before measurement</p></td>
+</tr>
+<tr class="row-even"><td><p>Iterations</p></td>
+<td><p>20,000 (throughput/memory), 5,000 (latency)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Payload</p></td>
+<td><p>~256 bytes JSON</p></td>
+</tr>
+</tbody>
+</table>
+<p>Two scenarios are measured:</p>
+<ol class="arabic simple">
+<li><p><strong>Standard benchmark</strong> - Raw log call rate with fast file I/O</p></li>
+<li><p><strong>Slow sink benchmark</strong> - Application-side latency when sink I/O is constrained (2ms simulated delay)</p></li>
+</ol>
 </section>
-<section id="async">
-<h2>Async<a class="headerlink" href="#async" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">runtime_async</span>
-
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-    <span class="k">async</span> <span class="k">with</span> <span class="n">runtime_async</span><span class="p">()</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
-        <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;async work&quot;</span><span class="p">)</span>
-
-<span class="c1"># drains on context exit</span>
-</pre></div>
-</div>
+<section id="environment">
+<h2>Environment<a class="headerlink" href="#environment" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Component</p></th>
+<th class="head"><p>Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Python</p></td>
+<td><p>3.13.7</p></td>
+</tr>
+<tr class="row-odd"><td><p>OS</p></td>
+<td><p>macOS 24.6.0 (Darwin)</p></td>
+</tr>
+<tr class="row-even"><td><p>CPU</p></td>
+<td><p>Apple M1 Max</p></td>
+</tr>
+<tr class="row-odd"><td><p>Memory</p></td>
+<td><p>32 GB</p></td>
+</tr>
+<tr class="row-even"><td><p>fapilog</p></td>
+<td><p>0.3.6</p></td>
+</tr>
+</tbody>
+</table>
 </section>
-<section id="manual-drain">
-<h2>Manual drain<a class="headerlink" href="#manual-drain" title="Link to this heading"></a></h2>
-<p>If you have a sync logger and need to drain explicitly:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
-
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;done&quot;</span><span class="p">)</span>
-<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">stop_and_drain</span><span class="p">())</span>
-</pre></div>
-</div>
+<section id="results">
+<h2>Results<a class="headerlink" href="#results" title="Link to this heading"></a></h2>
+<section id="standard-throughput">
+<h3>Standard Throughput<a class="headerlink" href="#standard-throughput" title="Link to this heading"></a></h3>
+<p>Raw log call throughput with fast file I/O:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Logger</p></th>
+<th class="head"><p>Logs/sec</p></th>
+<th class="head"><p>Relative</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>stdlib</p></td>
+<td><p>90,393</p></td>
+<td><p>1.0x</p></td>
+</tr>
+<tr class="row-odd"><td><p>fapilog</p></td>
+<td><p>3,295</p></td>
+<td><p>0.04x</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Interpretation:</strong> For raw throughput to a fast local file, stdlib logging is faster. fapilog’s async machinery (queue, batching, background flush) adds overhead that doesn’t pay off when the sink is already fast.</p>
 </section>
-<section id="settings">
-<h2>Settings<a class="headerlink" href="#settings" title="Link to this heading"></a></h2>
+<section id="standard-latency">
+<h3>Standard Latency<a class="headerlink" href="#standard-latency" title="Link to this heading"></a></h3>
+<p>Per-call latency with fast file I/O:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Logger</p></th>
+<th class="head"><p>Avg (μs)</p></th>
+<th class="head"><p>Median (μs)</p></th>
+<th class="head"><p>P95 (μs)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>stdlib</p></td>
+<td><p>24</p></td>
+<td><p>12</p></td>
+<td><p>91</p></td>
+</tr>
+<tr class="row-odd"><td><p>fapilog</p></td>
+<td><p>279</p></td>
+<td><p>261</p></td>
+<td><p>523</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Interpretation:</strong> Similar to throughput, fapilog has higher per-call latency when sinks are fast. The async infrastructure has fixed costs regardless of sink speed.</p>
+</section>
+<section id="slow-sink-latency-enterprise-scenario">
+<h3>Slow Sink Latency (Enterprise Scenario)<a class="headerlink" href="#slow-sink-latency-enterprise-scenario" title="Link to this heading"></a></h3>
+<p>Application-side latency when sink I/O is constrained (2ms simulated delay):</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Logger</p></th>
+<th class="head"><p>Avg (μs)</p></th>
+<th class="head"><p>Median (μs)</p></th>
+<th class="head"><p>P95 (μs)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>stdlib</p></td>
+<td><p>2,037</p></td>
+<td><p>2,014</p></td>
+<td><p>2,040</p></td>
+</tr>
+<tr class="row-odd"><td><p>fapilog</p></td>
+<td><p>286</p></td>
+<td><p>274</p></td>
+<td><p>483</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Latency reduction: 86%</strong></p>
+<p><strong>Interpretation:</strong> When sink I/O is slow (network sinks, constrained disk, external services), fapilog’s non-blocking design prevents the application from stalling. The log call returns immediately while the async backend handles I/O in the background. This is where fapilog’s architecture provides value.</p>
+</section>
+<section id="burst-absorption">
+<h3>Burst Absorption<a class="headerlink" href="#burst-absorption" title="Link to this heading"></a></h3>
+<p>Ability to absorb traffic bursts without blocking (20,000 log calls in rapid succession with 2ms sink delay):</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Metric</p></th>
+<th class="head"><p>Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Submitted</p></td>
+<td><p>22,000</p></td>
+</tr>
+<tr class="row-odd"><td><p>Processed</p></td>
+<td><p>12,362</p></td>
+</tr>
+<tr class="row-even"><td><p>Dropped</p></td>
+<td><p>1,712</p></td>
+</tr>
+<tr class="row-odd"><td><p>Queue high-water mark</p></td>
+<td><p>10,000</p></td>
+</tr>
+<tr class="row-even"><td><p>Flush latency</p></td>
+<td><p>5.0s</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Interpretation:</strong> With <code class="docutils literal notranslate"><span class="pre">drop_on_full=True</span></code>, fapilog absorbs bursts up to queue capacity, then gracefully drops overflow rather than blocking the application. Configure queue size based on expected burst patterns.</p>
+</section>
+<section id="memory">
+<h3>Memory<a class="headerlink" href="#memory" title="Link to this heading"></a></h3>
+<p>Peak memory during throughput test:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Logger</p></th>
+<th class="head"><p>Peak (bytes)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>stdlib</p></td>
+<td><p>85,719</p></td>
+</tr>
+<tr class="row-odd"><td><p>fapilog</p></td>
+<td><p>10,670,043</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Interpretation:</strong> fapilog uses more memory due to its queue, batching buffers, and async infrastructure. This is a deliberate trade-off for non-blocking behavior. Configure <code class="docutils literal notranslate"><span class="pre">max_queue_size</span></code> based on available memory.</p>
+</section>
+</section>
+<section id="when-to-use-fapilog">
+<h2>When to Use fapilog<a class="headerlink" href="#when-to-use-fapilog" title="Link to this heading"></a></h2>
+<p>Based on these benchmarks:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Scenario</p></th>
+<th class="head"><p>Recommendation</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Fast local file, low volume</p></td>
+<td><p>stdlib may suffice</p></td>
+</tr>
+<tr class="row-odd"><td><p>Network sinks (HTTP, cloud services)</p></td>
+<td><p>fapilog recommended</p></td>
+</tr>
+<tr class="row-even"><td><p>High-volume with slow I/O</p></td>
+<td><p>fapilog recommended</p></td>
+</tr>
+<tr class="row-odd"><td><p>Latency-sensitive applications</p></td>
+<td><p>fapilog recommended</p></td>
+</tr>
+<tr class="row-even"><td><p>Burst traffic patterns</p></td>
+<td><p>fapilog with <code class="docutils literal notranslate"><span class="pre">drop_on_full=True</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="limitations">
+<h2>Limitations<a class="headerlink" href="#limitations" title="Link to this heading"></a></h2>
+<p>These results are indicative, not definitive:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">core.shutdown_timeout_seconds</span></code>: max wait when bound to a running loop.</p></li>
-<li><p>For threaded worker mode, the logger signals the worker thread to stop and joins with a timeout to avoid hangs.</p></li>
+<li><p><strong>Single machine</strong> - Development laptop, not production hardware</p></li>
+<li><p><strong>Front-end measurement</strong> - Measures log call latency, not end-to-end delivery</p></li>
+<li><p><strong>Environment-dependent</strong> - Results vary with CPU, disk, Python version, workload</p></li>
+<li><p><strong>Not a substitute for load testing</strong> - Test in your actual environment before deployment</p></li>
+</ul>
+</section>
+<section id="reproducing-these-results">
+<h2>Reproducing These Results<a class="headerlink" href="#reproducing-these-results" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>scripts/benchmarking.py<span class="w"> </span>--iterations<span class="w"> </span><span class="m">20000</span><span class="w"> </span>--latency-iterations<span class="w"> </span><span class="m">5000</span>
+</pre></div>
+</div>
+<p>Options:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Flag</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--iterations</span></code></p></td>
+<td><p>20000</p></td>
+<td><p>Throughput/memory test iterations</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--latency-iterations</span></code></p></td>
+<td><p>5000</p></td>
+<td><p>Latency test iterations</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--payload-bytes</span></code></p></td>
+<td><p>256</p></td>
+<td><p>Approximate payload size</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--slow-sink-ms</span></code></p></td>
+<td><p>2.0</p></td>
+<td><p>Simulated sink delay for enterprise tests</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--burst</span></code></p></td>
+<td><p>20000</p></td>
+<td><p>Burst size for absorption test</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="related">
+<h2>Related<a class="headerlink" href="#related" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="performance-tuning.html"><span class="std std-doc">Performance Tuning</span></a> - Configuration recommendations</p></li>
+<li><p>Story 10.19 - CI-based regression detection (planned)</p></li>
 </ul>
 </section>
 </section>
@@ -237,8 +466,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="redaction-guarantee.html" class="btn btn-neutral float-left" title="Redaction Guarantee" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="performance-tuning.html" class="btn btn-neutral float-right" title="Performance Tuning" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="performance-tuning.html" class="btn btn-neutral float-left" title="Performance Tuning" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="integration-guide.html" class="btn btn-neutral float-right" title="Integration Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
