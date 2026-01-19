@@ -271,7 +271,7 @@ markers = [
 ]
 
 [tool.ruff]
-target-version = "py38"
+target-version = "py310"
 line-length = 88
 
 [tool.ruff.lint]
@@ -288,6 +288,12 @@ ignore = [
     "E501",  # line too long, handled by black
     "B008",  # do not perform function calls in argument defaults
     "C901",  # too complex
+    # Python 3.10+ syntax modernization - defer to future story
+    "UP006",  # use dict instead of Dict
+    "UP007",  # use X | Y for union types
+    "UP035",  # deprecated typing imports
+    "UP038",  # use X | Y in isinstance
+    "UP045",  # use X | None instead of Optional
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -295,7 +301,7 @@ ignore = [
 "src/fapilog/_version.py" = ["I001"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
@@ -361,7 +367,7 @@ exclude_lines = [
 
 [tool.black]
 line-length = 88
-target-version = ['py38']
+target-version = ['py310']
 include = '\.pyi?$'
 extend-exclude = '''
 /(

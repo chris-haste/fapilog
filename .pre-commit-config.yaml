@@ -58,6 +58,14 @@ repos:
   # Local hooks (project automation)
   - repo: local
     hooks:
+      - id: check-python-version
+        name: Check Python >= 3.10
+        entry: python -c "import sys; exit(0 if sys.version_info >= (3, 10) else 1)"
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
       - id: generate-env-matrix
         name: Generate env vars doc
         entry: sh -c 'python scripts/generate_env_matrix.py --output docs/env-vars.md && git add docs/env-vars.md'
