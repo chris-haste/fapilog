@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
-- **Performance**: Eliminate remaining `Settings()` hot path calls in diagnostics and sinks; add `configure_diagnostics()` for explicit control and `strict_envelope_mode` config to `RotatingFileSinkConfig` and `StdoutJsonSink` (Story 1.25).
+- **Tooling**: Aligned ruff, black, and mypy target versions with `requires-python = ">=3.10"`; added pre-commit hook to enforce Python 3.10+ (Story 10.16).
 - **Breaking**: Production preset now includes `regex_mask` redactor for broader secret protection; users may see additional fields masked (Story 4.47).
 - **Docs**: Added `redaction-guarantee.md` documenting exact redaction behavior per preset; fixed inaccurate claims in `reliability-defaults.md` (Story 4.47).
 - **Tooling**: Added automated changelog generation with git-cliff and conventional commit linting via pre-commit hooks; release workflow now validates changelog entries match tagged version (Story 10.12).

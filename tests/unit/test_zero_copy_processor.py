@@ -36,7 +36,7 @@ async def test_process_many_counts() -> None:
     out = await proc.process_many(views)
     assert len(out) == len(views)
     # Zero-copy: returned memoryviews should be the same objects
-    assert all(a is b for a, b in zip(out, views))
+    assert all(a is b for a, b in zip(out, views, strict=True))
 
 
 @pytest.mark.asyncio
