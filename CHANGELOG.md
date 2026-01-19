@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+- **Breaking**: Production preset now includes `regex_mask` redactor for broader secret protection; users may see additional fields masked (Story 4.47).
+- **Docs**: Added `redaction-guarantee.md` documenting exact redaction behavior per preset; fixed inaccurate claims in `reliability-defaults.md` (Story 4.47).
 - **Tooling**: Added automated changelog generation with git-cliff and conventional commit linting via pre-commit hooks; release workflow now validates changelog entries match tagged version (Story 10.12).
 - **Docs**: Documented same-thread backpressure behavior where `drop_on_full=False` cannot be honored; enhanced diagnostic warning with `drop_on_full_setting` field (Story 1.19).
 - **Performance**: Cache sampling rate, filter config, and error dedupe window at logger initialization to avoid `Settings()` instantiation on every log call (Story 1.23).

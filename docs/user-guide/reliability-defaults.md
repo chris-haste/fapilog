@@ -20,10 +20,17 @@ This is intentional—blocking on the same thread would cause a deadlock since t
 **Recommendation**: In async contexts (FastAPI routes, asyncio code), use `AsyncLoggerFacade` to avoid same-thread semantics entirely. The async facade integrates with the event loop without blocking.
 
 ## Redaction defaults
-- Redactors enabled: `core.enable_redactors=True`
-- Order: `field-mask` → `regex-mask` → `url-credentials`
-- Patterns: regex-mask uses a broad secret matcher (password/pass/secret/api key/token/authorization/set-cookie/ssn/email).
+
+- **With no preset**: Redaction is **disabled** by default (`core.redactors=[]`). The redactors stage is enabled (`core.enable_redactors=True`), but no redactors are configured.
+- **With `preset="production"`**: Enables `field_mask`, `regex_mask`, and `url_credentials` in that order.
+  - `field_mask`: Masks specific `metadata.*` fields (password, api_key, token, etc.)
+  - `regex_mask`: Matches any field path containing sensitive keywords (password, secret, token, etc.)
+  - `url_credentials`: Strips userinfo from URLs
+- **With other presets** (`dev`, `fastapi`, `minimal`): No redactors enabled.
+- Order when active: `field-mask` → `regex-mask` → `url-credentials`
 - Guardrails: `core.redaction_max_depth=6`, `core.redaction_max_keys_scanned=5000`
+
+See [Redaction Guarantee](redaction-guarantee.md) for complete details on what's redacted.
 
 ## Exceptions and diagnostics
 - Exceptions serialized by default: `core.exceptions_enabled=True`
