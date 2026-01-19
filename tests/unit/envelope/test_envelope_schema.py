@@ -16,9 +16,8 @@ def test_envelope_schema_validation(tmp_path: Path) -> None:
         "message": "ok",
         "context": {"a": 1},
         "diagnostics": {"d": True},
+        "data": {"user_key": "value"},
         "tags": ["x"],
-        "trace_id": "0af7651916cd43dd8448eb211c80319c",
-        "span_id": "b7ad6b7169203331",
         "logger": "fapilog.core",
     }
     env_json = serialize_envelope(log).data.decode("utf-8")
@@ -26,5 +25,5 @@ def test_envelope_schema_validation(tmp_path: Path) -> None:
 
     # Inline validation without dependency: basic checks
     assert set(envelope.keys()) == {"schema_version", "log"}
-    assert envelope["schema_version"] == "1.0"
+    assert envelope["schema_version"] == "1.1"
     assert set(log.keys()).issubset(set(envelope["log"].keys()))

@@ -29,11 +29,13 @@ def test_get_logger_basic_enqueue_and_stdout_json():
         sys.stdout.flush()
         data = buf.getvalue().decode("utf-8").strip().splitlines()
         assert len(data) >= 1
-        js = json.loads(data[0])
+        envelope = json.loads(data[0])
+        # v1.1 schema: output wrapped in {"schema_version": "1.1", "log": {...}}
+        js = envelope.get("log", envelope)
         assert js["message"] == "hello"
         assert js["level"] == "INFO"
         assert js["logger"] == "test"
-        assert js["metadata"]["k"] == 1
+        assert js["data"]["k"] == 1
     finally:
         sys.stdout = orig  # type: ignore[assignment]
 
@@ -58,12 +60,16 @@ def test_get_logger_emits_correlation_id():
         sys.stdout.flush()
         data = buf.getvalue().decode("utf-8").strip().splitlines()
         assert len(data) == 1
-        js = json.loads(data[0])
+        envelope = json.loads(data[0])
+        # v1.1 schema: output wrapped in {"schema_version": "1.1", "log": {...}}
+        js = envelope.get("log", envelope)
         assert js["message"] == "hello"
         assert js["level"] == "INFO"
         assert js["logger"] == "corr-test"
-        assert "correlation_id" in js and isinstance(js["correlation_id"], str)
-        assert len(js["correlation_id"]) > 0
+        # v1.1 schema: correlation_id is in context
+        assert "correlation_id" in js.get("context", {})
+        assert isinstance(js["context"]["correlation_id"], str)
+        assert len(js["context"]["correlation_id"]) > 0
     finally:
         sys.stdout = orig  # type: ignore[assignment]
 
@@ -104,4 +110,5 @@ def test_backpressure_wait_then_drop(monkeypatch):
 
     res = asyncio.run(logger.stop_and_drain())
     assert res.submitted >= res.processed
-    assert res.dropped >= 0
+    # submitted = processed + dropped when no events are still in queue
+    assert res.dropped == res.submitted - res.processed

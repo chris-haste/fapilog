@@ -478,28 +478,31 @@ async def test_strict_envelope_mode_drops_unserializable() -> None:
         )
         logger.start()
 
-        # All events will fail serialize_envelope (missing context/diagnostics)
-        # In strict mode, they should be dropped, not fall back
+        # With v1.1 schema, valid events now pass serialize_envelope (have context/diagnostics)
+        # Only events with non-serializable payloads fail and are dropped in strict mode
         await logger.info("event-1")
         await logger.info("event-with-bad-payload", payload=NonSerializable())
         await logger.info("event-2")
 
         await logger.stop_and_drain()
 
-    # In strict mode, events that fail envelope serialization are dropped
-    # They should NOT fall back to the dict sink
+    # In strict mode, events that fail serialization are dropped, not fall back
     fallback_messages = [e.get("message") for e in fallback_events]
     assert "event-with-bad-payload" not in fallback_messages, (
         "Bad event should not fall back to dict sink in strict mode"
     )
 
-    # Valid events also fail envelope serialization (missing context/diagnostics)
-    # but the key behavior is they don't fall back in strict mode
+    # Valid events should NOT fall back either - they serialize successfully
     assert "event-1" not in fallback_messages
     assert "event-2" not in fallback_messages
 
-    # No events should reach the serialized sink either (all fail envelope)
-    assert len(serialized_events) == 0
+    # v1.1 schema: valid events now serialize successfully (have context/diagnostics/data)
+    # Only the bad payload event is dropped
+    # Note: serialized output is {"schema_version": "1.1", "log": {...}}
+    serialized_messages = [e.get("log", e).get("message") for e in serialized_events]
+    assert "event-1" in serialized_messages, "Valid events should serialize in v1.1"
+    assert "event-2" in serialized_messages, "Valid events should serialize in v1.1"
+    assert "event-with-bad-payload" not in serialized_messages, "Bad payload dropped"
 
 
 @pytest.mark.asyncio
@@ -529,7 +532,8 @@ async def test_best_effort_mode_falls_back_to_mapping_serializer() -> None:
 
     await logger.stop_and_drain()
 
-    serialized_messages = [e.get("message") for e in serialized_events]
+    # v1.1 schema wraps in {"schema_version": "1.1", "log": {...}}
+    serialized_messages = [e.get("log", e).get("message") for e in serialized_events]
     fallback_messages = [e.get("message") for e in fallback_events]
 
     # Valid events should be serialized

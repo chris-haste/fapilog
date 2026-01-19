@@ -44,9 +44,10 @@ async def test_log_exception_and_exc_info_true() -> None:
     await asyncio.sleep(0)
     await logger.stop_and_drain()
     assert captured
-    meta = captured[-1]["metadata"]
-    assert meta.get("error.type") == "ZeroDivisionError"
-    assert "error.stack" in meta
+    # v1.1 schema: exception data in diagnostics.exception
+    exc_data = captured[-1].get("diagnostics", {}).get("exception", {})
+    assert exc_data.get("error.type") == "ZeroDivisionError"
+    assert "error.stack" in exc_data
 
 
 @pytest.mark.asyncio
@@ -73,5 +74,6 @@ async def test_exc_and_exc_info_precedence() -> None:
     await asyncio.sleep(0)
     await logger.stop_and_drain()
 
-    meta = captured[-1]["metadata"]
-    assert meta.get("error.type") == "RuntimeError"
+    # v1.1 schema: exception data in diagnostics.exception
+    exc_data = captured[-1].get("diagnostics", {}).get("exception", {})
+    assert exc_data.get("error.type") == "RuntimeError"

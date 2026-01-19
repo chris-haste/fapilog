@@ -284,15 +284,14 @@ class TestAsyncLoggerFacade:
         assert res.submitted == 1
         assert res.processed == 1
 
-        # Verify exception data is present (check for error metadata)
+        # Verify exception data is present (v1.1 schema)
         assert len(collected) == 1
         entry = collected[0]
         assert entry["level"] == "ERROR"
-        # Check for error metadata (the structure shows error.frames, error.message, etc.)
-        assert (
-            "error.frames" in entry["metadata"] or "error.message" in entry["metadata"]
-        )
-        assert entry["metadata"]["extra_data"] == "test"
+        # v1.1 schema: exception in diagnostics.exception, extra in data
+        exc_data = entry.get("diagnostics", {}).get("exception", {})
+        assert "error.frames" in exc_data or "error.message" in exc_data
+        assert entry["data"]["extra_data"] == "test"
 
     @pytest.mark.asyncio
     async def test_async_logger_metrics_integration(self) -> None:
@@ -414,8 +413,8 @@ class TestAsyncLoggerFacade:
         assert res.processed == 50
         assert res.dropped == 0
 
-        # Verify all task IDs are present
-        task_ids = {entry["metadata"]["task_id"] for entry in collected}
+        # Verify all task IDs are present (v1.1 schema: custom fields in data)
+        task_ids = {entry["data"]["task_id"] for entry in collected}
         assert task_ids == {0, 1, 2, 3, 4}
 
 

@@ -17,7 +17,7 @@ async def test_bind_and_precedence_and_unbind_and_clear() -> None:
     # Swap sink to capture outputs
     logger._sink_write = capture  # type: ignore[attr-defined]
 
-    # Bind some context
+    # Bind some context - request_id and user_id are context fields (v1.1)
     logger.bind(request_id="abc", user_id="u1")
     logger.info("started")
 
@@ -36,15 +36,16 @@ async def test_bind_and_precedence_and_unbind_and_clear() -> None:
     await logger.stop_and_drain()
 
     assert len(captured) >= 4
-    m0 = captured[-4]["metadata"]
-    assert m0["request_id"] == "abc" and m0["user_id"] == "u1"
-    m1 = captured[-3]["metadata"]
-    assert m1["user_id"] == "u2"  # per-call override wins
-    m2 = captured[-2]["metadata"]
-    assert "user_id" not in m2 and m2.get("request_id") == "abc"
-    m3 = captured[-1]["metadata"]
-    # cleared context shouldn't include previous keys
-    assert "request_id" not in m3 and "user_id" not in m3
+    # v1.1 schema: request_id and user_id are in context, not data
+    ctx0 = captured[-4]["context"]
+    assert ctx0["request_id"] == "abc" and ctx0["user_id"] == "u1"
+    ctx1 = captured[-3]["context"]
+    assert ctx1["user_id"] == "u2"  # per-call override wins
+    ctx2 = captured[-2]["context"]
+    assert "user_id" not in ctx2 and ctx2.get("request_id") == "abc"
+    ctx3 = captured[-1]["context"]
+    # cleared context still has correlation_id but no request_id/user_id
+    assert "request_id" not in ctx3 and "user_id" not in ctx3
 
 
 @pytest.mark.asyncio
@@ -96,8 +97,9 @@ async def test_isolation_across_tasks() -> None:
     await logger.stop_and_drain()
 
     # Verify no cross-contamination
+    # v1.1 schema: custom fields like "req" go to data, not metadata
     req_values = [
-        e["metadata"].get("req")
+        e["data"].get("req")
         for e in captured
         if e.get("message") in {"a1", "a2", "b1", "b2"}
     ]
@@ -106,6 +108,6 @@ async def test_isolation_across_tasks() -> None:
     for e in captured:
         msg = e.get("message")
         if msg in ("a1", "a2"):
-            assert e["metadata"].get("req") == "A"
+            assert e["data"].get("req") == "A"
         if msg in ("b1", "b2"):
-            assert e["metadata"].get("req") == "B"
+            assert e["data"].get("req") == "B"

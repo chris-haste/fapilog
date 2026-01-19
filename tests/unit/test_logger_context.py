@@ -44,7 +44,8 @@ class TestCorrelationId:
             request_id_var.reset(token)
 
         assert captured
-        assert captured[0].get("correlation_id") == "REQ-123"
+        # v1.1 schema: correlation_id is in context
+        assert captured[0].get("context", {}).get("correlation_id") == "REQ-123"
 
 
 class TestDiagnostics:

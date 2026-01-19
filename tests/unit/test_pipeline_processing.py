@@ -389,9 +389,10 @@ class TestExceptionSerialization:
 
         assert len(out) == 1
         event = out[0]
-        metadata = event.get("metadata", {})
+        # v1.1 schema: exception in diagnostics.exception
+        exc_data = event.get("diagnostics", {}).get("exception", {})
 
-        assert "error.message" in metadata or "error.frames" in metadata
+        assert "error.message" in exc_data or "error.frames" in exc_data
 
     @pytest.mark.asyncio
     async def test_exception_with_exc_info_tuple(self) -> None:
@@ -421,9 +422,10 @@ class TestExceptionSerialization:
 
         assert len(out) == 1
         event = out[0]
-        metadata = event.get("metadata", {})
+        # v1.1 schema: exception in diagnostics.exception
+        exc_data = event.get("diagnostics", {}).get("exception", {})
 
-        assert "error.message" in metadata or "error.frames" in metadata
+        assert "error.message" in exc_data or "error.frames" in exc_data
 
     @pytest.mark.asyncio
     async def test_exception_serialization_disabled(self) -> None:
@@ -451,10 +453,11 @@ class TestExceptionSerialization:
 
         assert len(out) == 1
         event = out[0]
-        metadata = event.get("metadata", {})
+        # v1.1 schema: exception would be in diagnostics.exception if enabled
+        exc_data = event.get("diagnostics", {}).get("exception", {})
 
-        assert "error.message" not in metadata
-        assert "error.frames" not in metadata
+        assert "error.message" not in exc_data
+        assert "error.frames" not in exc_data
 
     @pytest.mark.asyncio
     async def test_exception_serialization_error_handling(self) -> None:

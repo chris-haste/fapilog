@@ -289,11 +289,13 @@ class TestContextBindingAndMetadata:
 
         assert len(out) == 1
         event = out[0]
-        metadata = event.get("metadata", {})
+        # v1.1 schema: user_id and request_id are context fields, session is data
+        context = event.get("context", {})
+        data = event.get("data", {})
 
-        assert metadata.get("user_id") == "67890"
-        assert metadata.get("session") == "abc"
-        assert metadata.get("request_id") == "xyz"
+        assert context.get("user_id") == "67890"  # extra overrides bound_context
+        assert data.get("session") == "abc"  # session is not a context field
+        assert context.get("request_id") == "xyz"
 
     @pytest.mark.asyncio
     async def test_context_unbind_and_clear(self) -> None:
