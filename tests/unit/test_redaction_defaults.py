@@ -97,17 +97,17 @@ class TestProductionFieldMaskConfig:
         prod = get_preset("production")
         fields = prod["redactor_config"]["field_mask"]["fields_to_mask"]
 
-        # Documented fields that must be masked
+        # Documented fields that must be masked (using v1.1 schema "data" prefix)
         required_fields = [
-            "metadata.password",
-            "metadata.api_key",
-            "metadata.token",
-            "metadata.secret",
-            "metadata.authorization",
-            "metadata.api_secret",
-            "metadata.private_key",
-            "metadata.ssn",
-            "metadata.credit_card",
+            "data.password",
+            "data.api_key",
+            "data.token",
+            "data.secret",
+            "data.authorization",
+            "data.api_secret",
+            "data.private_key",
+            "data.ssn",
+            "data.credit_card",
         ]
 
         for field in required_fields:

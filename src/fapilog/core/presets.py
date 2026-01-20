@@ -48,15 +48,15 @@ PRESETS: dict[str, dict[str, Any]] = {
         "redactor_config": {
             "field_mask": {
                 "fields_to_mask": [
-                    "metadata.password",
-                    "metadata.api_key",
-                    "metadata.token",
-                    "metadata.secret",
-                    "metadata.authorization",
-                    "metadata.api_secret",
-                    "metadata.private_key",
-                    "metadata.ssn",
-                    "metadata.credit_card",
+                    "data.password",
+                    "data.api_key",
+                    "data.token",
+                    "data.secret",
+                    "data.authorization",
+                    "data.api_secret",
+                    "data.private_key",
+                    "data.ssn",
+                    "data.credit_card",
                 ],
             },
             "regex_mask": {
@@ -90,15 +90,15 @@ PRESETS: dict[str, dict[str, Any]] = {
         "redactor_config": {
             "field_mask": {
                 "fields_to_mask": [
-                    "metadata.password",
-                    "metadata.api_key",
-                    "metadata.token",
-                    "metadata.secret",
-                    "metadata.authorization",
-                    "metadata.api_secret",
-                    "metadata.private_key",
-                    "metadata.ssn",
-                    "metadata.credit_card",
+                    "data.password",
+                    "data.api_key",
+                    "data.token",
+                    "data.secret",
+                    "data.authorization",
+                    "data.api_secret",
+                    "data.private_key",
+                    "data.ssn",
+                    "data.credit_card",
                 ],
             },
             "regex_mask": {

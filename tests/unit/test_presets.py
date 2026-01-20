@@ -45,15 +45,15 @@ class TestPresetDefinitions:
         """Production preset enables field mask redactor."""
         config = get_preset("production")
         assert config["redactor_config"]["field_mask"]["fields_to_mask"] == [
-            "metadata.password",
-            "metadata.api_key",
-            "metadata.token",
-            "metadata.secret",
-            "metadata.authorization",
-            "metadata.api_secret",
-            "metadata.private_key",
-            "metadata.ssn",
-            "metadata.credit_card",
+            "data.password",
+            "data.api_key",
+            "data.token",
+            "data.secret",
+            "data.authorization",
+            "data.api_secret",
+            "data.private_key",
+            "data.ssn",
+            "data.credit_card",
         ]
 
     def test_production_preset_has_batch_size_100(self):

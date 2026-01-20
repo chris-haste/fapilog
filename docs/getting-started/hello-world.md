@@ -117,9 +117,9 @@ if __name__ == "__main__":
   "level": "INFO",
   "message": "User credentials",
   "username": "john_doe",
-  "password": "***REDACTED***",
-  "api_key": "***REDACTED***",
-  "email": "***REDACTED***"
+  "password": "***",
+  "api_key": "***",
+  "email": "***"
 }
 ```
 
