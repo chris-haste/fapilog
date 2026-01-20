@@ -237,7 +237,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">SinkWriteError</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MySink</span><span class="p">:</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my-sink&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my_sink&quot;</span>
 
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entry</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
@@ -298,7 +298,7 @@
 <h3>Enrichers<a class="headerlink" href="#enrichers" title="Link to this heading"></a></h3>
 <p>Return an empty dict on failure so the event continues:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MyEnricher</span><span class="p">:</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my-enricher&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my_enricher&quot;</span>
 
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">enrich</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
@@ -316,7 +316,7 @@
 <h3>Redactors<a class="headerlink" href="#redactors" title="Link to this heading"></a></h3>
 <p>Be conservative to avoid leaking sensitive data:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MyRedactor</span><span class="p">:</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my-redactor&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my_redactor&quot;</span>
 
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">redact</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
@@ -351,7 +351,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.errors</span><span class="w"> </span><span class="kn">import</span> <span class="n">SinkWriteError</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MySink</span><span class="p">:</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my-sink&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my_sink&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_failures</span> <span class="o">=</span> <span class="mi">0</span>
@@ -387,7 +387,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.retry</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncRetrier</span><span class="p">,</span> <span class="n">RetryConfig</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MySink</span><span class="p">:</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my-sink&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my_sink&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_retrier</span> <span class="o">=</span> <span class="n">AsyncRetrier</span><span class="p">(</span>

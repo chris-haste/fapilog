@@ -197,13 +197,15 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEnricher</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MyEnricher</span><span class="p">(</span><span class="n">BaseEnricher</span><span class="p">):</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my-enricher&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my_enricher&quot;</span>
 
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">enrich</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entry</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;service&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;billing&quot;</span>
-        <span class="k">return</span> <span class="n">entry</span>
+        <span class="c1"># Return a dict targeting semantic groups (context, diagnostics, data)</span>
+        <span class="c1"># These fields are deep-merged into the event</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;context&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;service&quot;</span><span class="p">:</span> <span class="s2">&quot;billing&quot;</span><span class="p">}}</span>
 </pre></div>
 </div>
+<p><strong>Important:</strong> Enrichers return fields to deep-merge into the event, not the full event itself. Return dicts targeting semantic groups like <code class="docutils literal notranslate"><span class="pre">context</span></code>, <code class="docutils literal notranslate"><span class="pre">diagnostics</span></code>, or <code class="docutils literal notranslate"><span class="pre">data</span></code>. See <a class="reference internal" href="error-handling.html"><span class="std std-doc">Plugin Error Handling</span></a> for patterns including error containment.</p>
 </section>
 <section id="registering-an-enricher">
 <h2>Registering an enricher<a class="headerlink" href="#registering-an-enricher" title="Link to this heading"></a></h2>
@@ -215,14 +217,50 @@
 <section id="built-in-enrichers">
 <h2>Built-in enrichers<a class="headerlink" href="#built-in-enrichers" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">runtime-info</span></code> (host, pid, python, service/env/version)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">context-vars</span></code> (request/user IDs from ContextVar)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">runtime_info</span></code> (host, pid, python, service/env/version)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">context_vars</span></code> (request/user IDs from ContextVar)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">kubernetes</span></code> (pod/namespace/node/container/deployment from Downward API env vars)</p></li>
 </ul>
 </section>
 <section id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
 <p>Enrichers run before redaction and sinks. You can enable/disable at runtime via <code class="docutils literal notranslate"><span class="pre">logger.enable_enricher</span></code> / <code class="docutils literal notranslate"><span class="pre">logger.disable_enricher</span></code> (sync/async facades).</p>
+</section>
+<section id="configuration-pattern">
+<h2>Configuration Pattern<a class="headerlink" href="#configuration-pattern" title="Link to this heading"></a></h2>
+<p>Use Pydantic v2 models for enricher configuration:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">ConfigDict</span><span class="p">,</span> <span class="n">Field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEnricher</span><span class="p">,</span> <span class="n">parse_plugin_config</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyEnricherConfig</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="s2">&quot;forbid&quot;</span><span class="p">)</span>
+
+    <span class="n">service_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;unknown&quot;</span><span class="p">)</span>
+    <span class="n">include_host</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyEnricher</span><span class="p">(</span><span class="n">BaseEnricher</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;my_enricher&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">MyEnricherConfig</span> <span class="o">|</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">parse_plugin_config</span><span class="p">(</span><span class="n">MyEnricherConfig</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_service_name</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">service_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_include_host</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">include_host</span>
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">enrich</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entry</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;context&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;service&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_service_name</span><span class="p">}}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_include_host</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">socket</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;diagnostics&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;host&quot;</span><span class="p">:</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">()}</span>
+        <span class="k">return</span> <span class="n">result</span>
+</pre></div>
+</div>
 </section>
 <section id="kubernetes-enricher">
 <h2>Kubernetes Enricher<a class="headerlink" href="#kubernetes-enricher" title="Link to this heading"></a></h2>

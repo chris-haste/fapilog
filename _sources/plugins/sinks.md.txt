@@ -13,13 +13,25 @@ class MySink(BaseSink):
     async def start(self) -> None:
         ...
 
-    async def write(self, entry: dict) -> None:
+    async def write(self, entry: dict) -> bool | None:
         # entry is a dict log envelope; emit to your target
+        # Return None/True for success, False for failure
         ...
 
     async def stop(self) -> None:
         ...
 ```
+
+### Return value semantics
+
+| Return | Meaning | Core action |
+| --- | --- | --- |
+| `None` / no return | Success | None |
+| `True` | Success | None |
+| `False` | Failure | Trigger fallback, increment circuit breaker |
+| `SinkWriteError` raised | Failure | Trigger fallback, increment circuit breaker |
+
+For detailed error handling patterns, see [Plugin Error Handling](error-handling.md).
 
 ## Registering a sink
 

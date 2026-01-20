@@ -255,9 +255,10 @@
 <section id="api-versioning">
 <h2>API Versioning<a class="headerlink" href="#api-versioning" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Current API contract is defined at <code class="docutils literal notranslate"><span class="pre">fapilog.plugins.versioning.PLUGIN_API_VERSION</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">0)</span></code>).</p></li>
+<li><p>Current API contract is defined at <code class="docutils literal notranslate"><span class="pre">fapilog.plugins.versioning.PLUGIN_API_VERSION</span></code> as a tuple (e.g., <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">0)</span></code>).</p></li>
+<li><p>Plugins declare their version in <code class="docutils literal notranslate"><span class="pre">PLUGIN_METADATA[&quot;api_version&quot;]</span></code> as a <strong>string</strong> (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;1.0&quot;</span></code>).</p></li>
 <li><p>Policy: compatible when declared major matches current major, and declared minor is less than or equal to current minor.</p></li>
-<li><p>Utilities: <code class="docutils literal notranslate"><span class="pre">parse_api_version()</span></code> and <code class="docutils literal notranslate"><span class="pre">is_plugin_api_compatible()</span></code>.</p></li>
+<li><p>Utilities: <code class="docutils literal notranslate"><span class="pre">parse_api_version(&quot;1.0&quot;)</span> <span class="pre">-&gt;</span> <span class="pre">(1,</span> <span class="pre">0)</span></code> and <code class="docutils literal notranslate"><span class="pre">is_plugin_api_compatible((major,</span> <span class="pre">minor))</span> <span class="pre">-&gt;</span> <span class="pre">bool</span></code>.</p></li>
 </ul>
 </section>
 <section id="protocols">
@@ -292,7 +293,7 @@
 </pre></div>
 </div>
 <p>Parse configs with the shared helper so plugins accept config objects, dicts, kwargs, or loader-style nested <code class="docutils literal notranslate"><span class="pre">{&quot;config&quot;:</span> <span class="pre">{...}}</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_plugin_config</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_plugin_config</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MyPlugin</span><span class="p">:</span>
