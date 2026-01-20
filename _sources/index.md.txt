@@ -1,4 +1,4 @@
-# Fapilog - Production-ready logging for the modern Python stack
+# Fapilog - Batteries-included, async-first logging for Python services
 
 **fapilog** is a high-performance logging pipeline that eliminates the bottlenecks of traditional Python logging. By replacing blocking I/O with a lock-free, async-native architecture, it ensures your application never stalls to write a log. While it’s an excellent choice for FastAPI and microservices, its lightweight footprint and pluggable sinks make it equally powerful for on-prem, desktop, or embedded projects.
 
