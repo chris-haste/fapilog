@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Graceful Shutdown &mdash; fapilog latest documentation</title>
+  <title>ADR-0004: Encryption Out of Scope &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -24,8 +24,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Performance Tuning" href="performance-tuning.html" />
-    <link rel="prev" title="Redaction Guarantee" href="redaction-guarantee.html" /> 
+    <link rel="next" title="Fapilog Open Source Library Assessment" href="../audits/fapilog-assessment-2026-01-19%20%28Claude-Opus-4.5%29.html" />
+    <link rel="prev" title="ADR-0003: Canonical Log Schema v1.1" href="0003-canonical-log-schema-v1.1.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -67,24 +67,24 @@
 <li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html#id1">Diagnostics &amp; Resilience</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">User Guide</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="environment-variables.html">Environment Variable Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="using-logger.html">Using the Logger</a></li>
-<li class="toctree-l2"><a class="reference internal" href="context-enrichment.html">Context Enrichment</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rotating-file-sink.html">Rotating File Sink</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sink-routing.html">Sink routing by level</a></li>
-<li class="toctree-l2"><a class="reference internal" href="redactors.html">Redactors</a></li>
-<li class="toctree-l2"><a class="reference internal" href="redaction-guarantee.html">Redaction Guarantee</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Graceful Shutdown</a></li>
-<li class="toctree-l2"><a class="reference internal" href="performance-tuning.html">Performance Tuning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="benchmarks.html">Performance Benchmarks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="integration-guide.html">Integration Guide</a></li>
-<li class="toctree-l2"><a class="reference internal" href="fastapi.html">FastAPI / ASGI Integration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="comparisons.html">Comparisons: fapilog vs stdlib, structlog, loguru</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
-<li class="toctree-l2"><a class="reference internal" href="testing-plugins.html">Testing Plugins</a></li>
-<li class="toctree-l2"><a class="reference internal" href="webhook-security.html">Webhook Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide/index.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/environment-variables.html">Environment Variable Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/using-logger.html">Using the Logger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/context-enrichment.html">Context Enrichment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/sink-routing.html">Sink routing by level</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/redaction-guarantee.html">Redaction Guarantee</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/performance-tuning.html">Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/benchmarks.html">Performance Benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/integration-guide.html">Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/fastapi.html">FastAPI / ASGI Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/comparisons.html">Comparisons: fapilog vs stdlib, structlog, loguru</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/testing-plugins.html">Testing Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/webhook-security.html">Webhook Security</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
@@ -146,7 +146,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../contributing/changelog.html">Changelog Workflow</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../appendices.html">Appendices</a><ul>
+<li class="toctree-l1 current"><a class="reference internal" href="../appendices.html">Appendices</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../env-vars.html">Environment Variables</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../settings-guide.html">Settings Reference</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../schema-guide.html">Schema Guide</a></li>
@@ -155,8 +155,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../redaction-guarantees.html">Redaction Guarantees</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../quality-signals.html">Quality Signals</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../adr/0003-canonical-log-schema-v1.1.html">ADR-0003: Canonical Log Schema v1.1</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../adr/0004-encryption-out-of-scope.html">ADR-0004: Encryption Out of Scope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="0003-canonical-log-schema-v1.1.html">ADR-0003: Canonical Log Schema v1.1</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">ADR-0004: Encryption Out of Scope</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../audits/fapilog-assessment-2026-01-19%20%28Claude-Opus-4.5%29.html">Fapilog Open Source Library Assessment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../audits/fapilog-assessment-2026-01-19%20%28GPT-5.2%29.html">Open Source Library Assessment Report — <code class="docutils literal notranslate"><span class="pre">fapilog</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="../audits/fapilog-assessment-2026-01-19%20%28Gemini-3-Flash%29.html">fapilog: Open Source Library Assessment Report</a></li>
@@ -178,10 +178,10 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="index.html">User Guide</a></li>
-      <li class="breadcrumb-item active">Graceful Shutdown</li>
+          <li class="breadcrumb-item"><a href="../appendices.html">Appendices</a></li>
+      <li class="breadcrumb-item active">ADR-0004: Encryption Out of Scope</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/user-guide/graceful-shutdown.md.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/adr/0004-encryption-out-of-scope.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -189,51 +189,86 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="graceful-shutdown">
-<h1>Graceful Shutdown<a class="headerlink" href="#graceful-shutdown" title="Link to this heading"></a></h1>
-<p>Ensure buffered logs are flushed before exit.</p>
-<section id="sync">
-<h2>Sync<a class="headerlink" href="#sync" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">runtime</span>
-
-<span class="k">with</span> <span class="n">runtime</span><span class="p">()</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;work started&quot;</span><span class="p">)</span>
-    <span class="c1"># ... do work ...</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;work done&quot;</span><span class="p">)</span>
-<span class="c1"># stop_and_drain is called internally</span>
-</pre></div>
-</div>
-</section>
-<section id="async">
-<h2>Async<a class="headerlink" href="#async" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">runtime_async</span>
-
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-    <span class="k">async</span> <span class="k">with</span> <span class="n">runtime_async</span><span class="p">()</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
-        <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;async work&quot;</span><span class="p">)</span>
-
-<span class="c1"># drains on context exit</span>
-</pre></div>
-</div>
-</section>
-<section id="manual-drain">
-<h2>Manual drain<a class="headerlink" href="#manual-drain" title="Link to this heading"></a></h2>
-<p>If you have a sync logger and need to drain explicitly:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
-
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;done&quot;</span><span class="p">)</span>
-<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">stop_and_drain</span><span class="p">())</span>
-</pre></div>
-</div>
-</section>
-<section id="settings">
-<h2>Settings<a class="headerlink" href="#settings" title="Link to this heading"></a></h2>
+  <section class="tex2jax_ignore mathjax_ignore" id="adr-0004-encryption-out-of-scope">
+<h1>ADR-0004: Encryption Out of Scope<a class="headerlink" href="#adr-0004-encryption-out-of-scope" title="Link to this heading"></a></h1>
+<p><strong>Status:</strong> Accepted
+<strong>Date:</strong> 2026-01-19</p>
+<section id="context">
+<h2>Context<a class="headerlink" href="#context" title="Link to this heading"></a></h2>
+<p>The enterprise features documentation and codebase included <code class="docutils literal notranslate"><span class="pre">EncryptionSettings</span></code> configuration models and references to <code class="docutils literal notranslate"><span class="pre">encrypt_audit_logs</span></code> in <code class="docutils literal notranslate"><span class="pre">CompliancePolicy</span></code>. However, encryption was never actually implemented - the code contained stubs, warnings (“encryption not yet implemented”), and skipped validation for encryption-related fields.</p>
+<p>Questions arose about whether fapilog should implement encryption:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">core.shutdown_timeout_seconds</span></code>: max wait when bound to a running loop.</p></li>
-<li><p>For threaded worker mode, the logger signals the worker thread to stop and joins with a timeout to avoid hangs.</p></li>
+<li><p>Log encryption at rest</p></li>
+<li><p>Key management integration (KMS, Vault)</p></li>
+<li><p>Encrypted transport configuration</p></li>
 </ul>
+</section>
+<section id="decision">
+<h2>Decision<a class="headerlink" href="#decision" title="Link to this heading"></a></h2>
+<p>Encryption is <strong>out of scope</strong> for fapilog. Users are responsible for encryption at the infrastructure level.</p>
+<section id="rationale">
+<h3>Rationale<a class="headerlink" href="#rationale" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>Infrastructure-level concern</strong>: Encryption at rest is better handled by the storage layer (encrypted filesystems, cloud storage encryption, database encryption). Fapilog writing encrypted files would duplicate what infrastructure already provides.</p></li>
+<li><p><strong>Transport encryption</strong>: TLS configuration belongs to the HTTP client/server layer, not the logging library. Fapilog’s HTTP sink relies on the underlying HTTP client for TLS.</p></li>
+<li><p><strong>Complexity vs value</strong>: Implementing encryption correctly (key management, rotation, algorithm selection, secure key storage) is a significant undertaking that would duplicate existing, battle-tested solutions.</p></li>
+<li><p><strong>Separation of concerns</strong>: A logging library should focus on structured log generation, redaction, and routing. Encryption is orthogonal and better solved by specialized tools.</p></li>
+</ol>
+</section>
+<section id="recommended-alternatives">
+<h3>Recommended Alternatives<a class="headerlink" href="#recommended-alternatives" title="Link to this heading"></a></h3>
+<p>Users requiring encryption should use:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Requirement</p></th>
+<th class="head"><p>Recommended Solution</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Encryption at rest</p></td>
+<td><p>Encrypted filesystems (LUKS, FileVault), cloud storage encryption (S3 SSE, GCS encryption), database TDE</p></td>
+</tr>
+<tr class="row-odd"><td><p>Encryption in transit</p></td>
+<td><p>TLS configuration on HTTP clients, load balancers, or reverse proxies</p></td>
+</tr>
+<tr class="row-even"><td><p>Key management</p></td>
+<td><p>AWS KMS, GCP KMS, Azure Key Vault, HashiCorp Vault - at the infrastructure layer</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="consequences">
+<h2>Consequences<a class="headerlink" href="#consequences" title="Link to this heading"></a></h2>
+<section id="positive">
+<h3>Positive<a class="headerlink" href="#positive" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Simpler codebase without encryption stubs and unimplemented features</p></li>
+<li><p>Clear documentation about what fapilog does and doesn’t do</p></li>
+<li><p>Users aren’t misled by configuration options that don’t work</p></li>
+<li><p>Encourages proper infrastructure-level encryption practices</p></li>
+</ul>
+</section>
+<section id="negative">
+<h3>Negative<a class="headerlink" href="#negative" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Users expecting built-in encryption must implement it elsewhere</p></li>
+<li><p>May require documentation to guide users toward infrastructure solutions</p></li>
+</ul>
+</section>
+<section id="actions-taken">
+<h3>Actions Taken<a class="headerlink" href="#actions-taken" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Removed <code class="docutils literal notranslate"><span class="pre">EncryptionSettings</span></code> documentation from enterprise.md</p></li>
+<li><p>Removed <code class="docutils literal notranslate"><span class="pre">encrypt_audit_logs</span></code> from CompliancePolicy examples</p></li>
+<li><p>Removed encryption references from compliance framework mappings</p></li>
+<li><p>Updated “At a Glance” table to remove encryption from Data Protection</p></li>
+</ul>
+</section>
+<section id="future-consideration">
+<h3>Future Consideration<a class="headerlink" href="#future-consideration" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">EncryptionSettings</span></code> model and <code class="docutils literal notranslate"><span class="pre">encrypt_audit_logs</span></code> field remain in the codebase as deprecated stubs. A future cleanup story could remove them entirely, or they could be repurposed if a valid use case emerges (e.g., field-level encryption for specific sensitive values before they reach sinks).</p>
+</section>
 </section>
 </section>
 
@@ -241,8 +276,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="redaction-guarantee.html" class="btn btn-neutral float-left" title="Redaction Guarantee" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="performance-tuning.html" class="btn btn-neutral float-right" title="Performance Tuning" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="0003-canonical-log-schema-v1.1.html" class="btn btn-neutral float-left" title="ADR-0003: Canonical Log Schema v1.1" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../audits/fapilog-assessment-2026-01-19%20%28Claude-Opus-4.5%29.html" class="btn btn-neutral float-right" title="Fapilog Open Source Library Assessment" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
