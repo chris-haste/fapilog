@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import List
 
 # Current released version (update on release)
-CURRENT_VERSION = "0.3.5"
+CURRENT_VERSION = "0.4.0"
 
 # Pattern to match min_fapilog_version in plugin metadata
 VERSION_PATTERN = re.compile(r'"min_fapilog_version":\s*"([^"]+)"')
