@@ -150,18 +150,43 @@ class TestProductionRegexMaskConfig:
             )
 
 
-class TestOtherPresetsExplicitOptOut:
-    """Verify non-production presets explicitly opt-out of redaction.
+class TestFastapiPresetRedactors:
+    """Verify fastapi preset enables redaction.
+
+    Story 10.21: FastAPI preset should enable redaction by default.
+    """
+
+    def test_fastapi_preset_enables_redactors(self) -> None:
+        """FastAPI preset enables redactors for security by default.
+
+        Story 10.21 AC1: FastAPI preset enables same redactors as production.
+        """
+        fastapi = get_preset("fastapi")
+        production = get_preset("production")
+        assert fastapi["core"]["redactors"] == production["core"]["redactors"]
+
+    def test_fastapi_preset_redactor_config_matches_production(self) -> None:
+        """FastAPI preset redactor_config matches production preset.
+
+        Story 10.21 AC1: Redactor config should match production.
+        """
+        fastapi = get_preset("fastapi")
+        production = get_preset("production")
+        assert fastapi["redactor_config"] == production["redactor_config"]
+
+
+class TestDevAndMinimalPresetsExplicitOptOut:
+    """Verify dev and minimal presets explicitly opt-out of redaction.
 
     Story 3.7 AC3: Presets continue to work as documented.
     """
 
     @pytest.mark.parametrize(
         "preset_name",
-        ["dev", "fastapi", "minimal"],
+        ["dev", "minimal"],
     )
     def test_preset_explicitly_opts_out(self, preset_name: str) -> None:
-        """Non-production presets explicitly set redactors=[] to opt-out.
+        """Dev and minimal presets explicitly set redactors=[] to opt-out.
 
         Story 3.7: Presets must explicitly disable redaction (not rely on defaults).
         """

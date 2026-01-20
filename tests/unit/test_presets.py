@@ -86,6 +86,38 @@ class TestPresetDefinitions:
         config = get_preset("fastapi")
         assert "context_vars" in config["core"]["enrichers"]
 
+    def test_fastapi_preset_enables_redactors(self):
+        """FastAPI preset enables redactors for security by default.
+
+        Story 10.21 AC1: FastAPI preset enables same redactors as production.
+        """
+        config = get_preset("fastapi")
+        assert config["core"]["redactors"] == [
+            "field_mask",
+            "regex_mask",
+            "url_credentials",
+        ]
+
+    def test_fastapi_preset_has_redactor_config(self):
+        """FastAPI preset has redactor_config section.
+
+        Story 10.21 AC1: Redactor config must be present.
+        """
+        config = get_preset("fastapi")
+        assert "redactor_config" in config
+        assert "field_mask" in config["redactor_config"]
+        assert "regex_mask" in config["redactor_config"]
+        assert "url_credentials" in config["redactor_config"]
+
+    def test_fastapi_preset_redactor_config_matches_production(self):
+        """FastAPI preset redactor_config matches production preset.
+
+        Story 10.21 AC1: FastAPI redactor config should match production.
+        """
+        fastapi_config = get_preset("fastapi")
+        production_config = get_preset("production")
+        assert fastapi_config["redactor_config"] == production_config["redactor_config"]
+
     def test_minimal_preset_opts_out_of_redaction(self):
         """Minimal preset explicitly opts out of redaction for minimal overhead.
 

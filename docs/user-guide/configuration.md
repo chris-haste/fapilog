@@ -58,7 +58,7 @@ Set the lifespan before the application starts.
 |--------|-----------|-------|---------------|-----------|------------|
 | `dev` | DEBUG | stdout_pretty | No | No | 1 (immediate) |
 | `production` | INFO | stdout_json + file | 50MB × 10 files | Yes (9 fields) | 100 |
-| `fastapi` | INFO | stdout_json | No | No | 50 |
+| `fastapi` | INFO | stdout_json | No | Yes (9 fields) | 50 |
 | `minimal` | INFO | stdout_json | No | No | 256 (default) |
 
 ### Preset Details
@@ -79,6 +79,7 @@ Set the lifespan before the application starts.
 - `context_vars` enricher enabled for request context propagation
 - Container-friendly stdout JSON output
 - Balanced batch size for latency/throughput tradeoff
+- Automatic redaction of: `password`, `api_key`, `token`, `secret`, `authorization`, `api_secret`, `private_key`, `ssn`, `credit_card`
 
 **`minimal`** - Matches `get_logger()` with no arguments:
 - Use for explicit preset selection while maintaining backwards compatibility
