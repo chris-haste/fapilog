@@ -63,7 +63,7 @@ Use validators to ensure plugins satisfy protocol contracts:
 from fapilog.testing import validate_filter
 
 class MyFilter:
-    name = "my-filter"
+    name = "my_filter"
     async def filter(self, event: dict): ...
 
 validate_filter(MyFilter()).raise_if_invalid()

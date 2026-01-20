@@ -8,12 +8,15 @@ Add contextual metadata to log entries. Implement `BaseEnricher`.
 from fapilog.plugins import BaseEnricher
 
 class MyEnricher(BaseEnricher):
-    name = "my-enricher"
+    name = "my_enricher"
 
     async def enrich(self, entry: dict) -> dict:
-        entry["service"] = "billing"
-        return entry
+        # Return a dict targeting semantic groups (context, diagnostics, data)
+        # These fields are deep-merged into the event
+        return {"context": {"service": "billing"}}
 ```
+
+**Important:** Enrichers return fields to deep-merge into the event, not the full event itself. Return dicts targeting semantic groups like `context`, `diagnostics`, or `data`. See [Plugin Error Handling](error-handling.md) for patterns including error containment.
 
 ## Registering an enricher
 
@@ -22,13 +25,50 @@ class MyEnricher(BaseEnricher):
 
 ## Built-in enrichers
 
-- `runtime-info` (host, pid, python, service/env/version)
-- `context-vars` (request/user IDs from ContextVar)
+- `runtime_info` (host, pid, python, service/env/version)
+- `context_vars` (request/user IDs from ContextVar)
 - `kubernetes` (pod/namespace/node/container/deployment from Downward API env vars)
 
 ## Usage
 
 Enrichers run before redaction and sinks. You can enable/disable at runtime via `logger.enable_enricher` / `logger.disable_enricher` (sync/async facades).
+
+## Configuration Pattern
+
+Use Pydantic v2 models for enricher configuration:
+
+```python
+from pydantic import BaseModel, ConfigDict, Field
+from fapilog.plugins import BaseEnricher, parse_plugin_config
+
+
+class MyEnricherConfig(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    service_name: str = Field(default="unknown")
+    include_host: bool = True
+
+
+class MyEnricher(BaseEnricher):
+    name = "my_enricher"
+
+    def __init__(
+        self,
+        *,
+        config: MyEnricherConfig | dict | None = None,
+        **kwargs: object,
+    ) -> None:
+        cfg = parse_plugin_config(MyEnricherConfig, config, **kwargs)
+        self._service_name = cfg.service_name
+        self._include_host = cfg.include_host
+
+    async def enrich(self, entry: dict) -> dict:
+        result = {"context": {"service": self._service_name}}
+        if self._include_host:
+            import socket
+            result["diagnostics"] = {"host": socket.gethostname()}
+        return result
+```
 
 ## Kubernetes Enricher
 

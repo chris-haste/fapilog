@@ -48,7 +48,7 @@ As of v0.4, sinks should **signal failures** to enable fallback and circuit brea
 from fapilog.core.errors import SinkWriteError
 
 class MySink:
-    name = "my-sink"
+    name = "my_sink"
 
     async def write(self, entry: dict) -> bool | None:
         try:
@@ -94,7 +94,7 @@ Return an empty dict on failure so the event continues:
 
 ```python
 class MyEnricher:
-    name = "my-enricher"
+    name = "my_enricher"
 
     async def enrich(self, event: dict) -> dict:
         try:
@@ -113,7 +113,7 @@ Be conservative to avoid leaking sensitive data:
 
 ```python
 class MyRedactor:
-    name = "my-redactor"
+    name = "my_redactor"
 
     async def redact(self, event: dict) -> dict:
         try:
@@ -148,7 +148,7 @@ import time
 from fapilog.core.errors import SinkWriteError
 
 class MySink:
-    name = "my-sink"
+    name = "my_sink"
 
     def __init__(self) -> None:
         self._failures = 0
@@ -185,7 +185,7 @@ from fapilog.core.errors import SinkWriteError
 from fapilog.core.retry import AsyncRetrier, RetryConfig
 
 class MySink:
-    name = "my-sink"
+    name = "my_sink"
 
     def __init__(self) -> None:
         self._retrier = AsyncRetrier(
