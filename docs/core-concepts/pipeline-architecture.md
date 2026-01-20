@@ -115,8 +115,8 @@ Redactors remove or mask sensitive information:
 {
   "message": "User credentials",
   "username": "john_doe",
-  "password": "***REDACTED***",
-  "api_key": "***REDACTED***"
+  "password": "***",
+  "api_key": "***"
 }
 ```
 

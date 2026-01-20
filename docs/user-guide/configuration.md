@@ -54,29 +54,31 @@ Set the lifespan before the application starts.
 
 ### Preset Comparison
 
-| Preset | Log Level | Sinks | File Rotation | Redaction | Batch Size |
-|--------|-----------|-------|---------------|-----------|------------|
-| `dev` | DEBUG | stdout_pretty | No | No | 1 (immediate) |
-| `production` | INFO | stdout_json + file | 50MB × 10 files | Yes (9 fields) | 100 |
-| `fastapi` | INFO | stdout_json | No | Yes (9 fields) | 50 |
-| `minimal` | INFO | stdout_json | No | No | 256 (default) |
+| Preset | Log Level | Sinks | File Rotation | Redaction | Enrichers | Batch Size |
+|--------|-----------|-------|---------------|-----------|-----------|------------|
+| `dev` | DEBUG | stdout_pretty | No | No | runtime_info, context_vars | 1 (immediate) |
+| `production` | INFO | stdout_json + file | 50MB × 10 files | Yes (9 fields) | runtime_info, context_vars | 100 |
+| `fastapi` | INFO | stdout_json | No | Yes (9 fields) | context_vars only | 50 |
+| `minimal` | INFO | stdout_json | No | No | runtime_info, context_vars | 256 (default) |
 
 ### Preset Details
 
 **`dev`** - Local development with maximum visibility:
 - DEBUG level shows all messages
 - Immediate flushing (batch_size=1) for real-time debugging
+- Both `runtime_info` and `context_vars` enrichers enabled
 - Internal diagnostics enabled
 - Pretty console output in terminals
 - No redaction (safe for local secrets)
 
 **`production`** - Production deployments with safety features:
 - File rotation: `./logs/fapilog-*.log`, 50MB max, 10 files retained, gzip compressed
+- Both `runtime_info` and `context_vars` enrichers for complete diagnostic data
 - Automatic redaction of: `password`, `api_key`, `token`, `secret`, `authorization`, `api_secret`, `private_key`, `ssn`, `credit_card`
 - `drop_on_full=False` ensures no log loss under pressure
 
 **`fastapi`** - Optimized for async FastAPI applications:
-- `context_vars` enricher enabled for request context propagation
+- `context_vars` enricher only (excludes `runtime_info` for reduced overhead in high-throughput scenarios)
 - Container-friendly stdout JSON output
 - Balanced batch size for latency/throughput tradeoff
 - Automatic redaction of: `password`, `api_key`, `token`, `secret`, `authorization`, `api_secret`, `private_key`, `ssn`, `credit_card`
