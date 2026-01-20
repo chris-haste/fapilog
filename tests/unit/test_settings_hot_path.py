@@ -221,16 +221,22 @@ class TestLifecycleTimeoutInjection:
 
     def test_install_signal_handlers_uses_passed_timeout(self) -> None:
         """install_signal_handlers should use passed timeout, not Settings()."""
-        from fapilog.core.lifecycle import install_signal_handlers
-
         mock_logger = MagicMock()
 
         with patch("fapilog.core.settings.Settings") as mock_cls:
+            # Import inside patch context to ensure any import-triggered
+            # Settings() calls are captured (fixes Python 3.12 CI flakiness)
+            from fapilog.core.lifecycle import install_signal_handlers
+
+            # Record call count after import but before our target call
+            calls_from_import = mock_cls.call_count
+
             # Pass explicit timeout - should not need Settings
             install_signal_handlers(mock_logger, timeout_seconds=5.0)
 
-            # Settings should not be called since timeout was provided
-            assert mock_cls.call_count == 0
+            # Settings should not be called for the timeout since one was provided
+            # We only check that no NEW calls were made during install_signal_handlers
+            assert mock_cls.call_count == calls_from_import
 
 
 class TestSinkConfigInjection:
