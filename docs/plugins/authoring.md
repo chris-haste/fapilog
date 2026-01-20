@@ -63,9 +63,10 @@ PLUGIN_METADATA = {
 
 ## API Versioning
 
-- Current API contract is defined at `fapilog.plugins.versioning.PLUGIN_API_VERSION` (e.g., `(1, 0)`).
+- Current API contract is defined at `fapilog.plugins.versioning.PLUGIN_API_VERSION` as a tuple (e.g., `(1, 0)`).
+- Plugins declare their version in `PLUGIN_METADATA["api_version"]` as a **string** (e.g., `"1.0"`).
 - Policy: compatible when declared major matches current major, and declared minor is less than or equal to current minor.
-- Utilities: `parse_api_version()` and `is_plugin_api_compatible()`.
+- Utilities: `parse_api_version("1.0") -> (1, 0)` and `is_plugin_api_compatible((major, minor)) -> bool`.
 
 ## Protocols
 
@@ -105,7 +106,7 @@ class MyPluginConfig(BaseModel):
 Parse configs with the shared helper so plugins accept config objects, dicts, kwargs, or loader-style nested `{"config": {...}}`:
 
 ```python
-from fapilog.plugins.utils import parse_plugin_config
+from fapilog.plugins import parse_plugin_config
 
 
 class MyPlugin:
