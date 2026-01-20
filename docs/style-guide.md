@@ -111,8 +111,9 @@ Explain why this feature exists and what problems it solves.
 
 ```python
 # Copy-paste ready example
-from fapilog import configure_logging
-configure_logging()
+from fapilog import get_logger
+
+logger = get_logger()
 ```
 ````
 
@@ -143,34 +144,35 @@ For each API function, class, or method:
 
 **Example Structure:**
 ```markdown
-## configure_logging()
+## get_logger()
 
-**Configure the Fapilog logging system with the given settings.**
+**Get a configured sync logger instance.**
 
 ### Purpose
 
-Initialize the logging system with sinks, enrichers, and middleware as configured.
+Create and return a configured logger with sinks, enrichers, and processors.
 
 ### Parameters
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `settings` | `LoggingSettings` | `None` | Complete configuration object |
-| `app` | `Any` | `None` | FastAPI app instance |
+| `name` | `str` | `None` | Optional logger name |
+| `preset` | `str` | `None` | Built-in preset (dev, production, fastapi, minimal) |
+| `format` | `str` | `None` | Output format (json, pretty, auto) |
+| `settings` | `Settings` | `None` | Complete configuration object |
 
 ### Example
 
 ```python
-from fapilog import configure_logging
-from fapilog.settings import LoggingSettings
+from fapilog import get_logger, Settings
 
-# Basic configuration
-configure_logging()
+# Basic usage
+logger = get_logger()
 
 # Custom configuration
-settings = LoggingSettings(level="DEBUG", sinks=["stdout"])
-configure_logging(settings=settings)
-````
+settings = Settings(core={"log_level": "DEBUG", "sinks": ["stdout_json"]})
+logger = get_logger(settings=settings)
+```
 
 ### See Also
 
@@ -188,9 +190,10 @@ configure_logging(settings=settings)
 **Language Specification:**
 ```python
 # Always specify the language for syntax highlighting
-from fapilog import configure_logging
-configure_logging()
-````
+from fapilog import get_logger
+
+logger = get_logger()
+```
 
 ```bash
 # Shell commands
@@ -227,32 +230,30 @@ python -m pytest tests/
 **Good Example:**
 
 ```python
-from fapilog import configure_logging, log
+from fapilog import get_logger
 
-# Configure logging
-configure_logging()
+# Get logger
+logger = get_logger()
 
 # Basic logging
-log.info("Application started", version="1.0.0")
-log.error("Database connection failed", database="postgres")
+logger.info("Application started", version="1.0.0")
+logger.error("Database connection failed", database="postgres")
 ```
 
 **Bad Example:**
 
 ```python
 # Too complex for basic example
-from fapilog import configure_logging, log
-from fapilog.settings import LoggingSettings
+from fapilog import get_logger, Settings
 from fapilog.sinks import CustomSink
 from fapilog.enrichers import CustomEnricher
 
-settings = LoggingSettings(
-    level="DEBUG",
-    sinks=["stdout", "file", "loki"],
+settings = Settings(
+    core={"log_level": "DEBUG", "sinks": ["stdout_json", "file", "loki"]},
     custom_sinks={"custom": CustomSink()},
     enrichers=[CustomEnricher()]
 )
-configure_logging(settings=settings)
+logger = get_logger(settings=settings)
 ```
 
 ### **Error Handling Examples**
@@ -260,11 +261,11 @@ configure_logging(settings=settings)
 **Include error scenarios:**
 
 ```python
-from fapilog.exceptions import ConfigurationError
+from fapilog import get_logger
 
 try:
-    configure_logging(settings=invalid_settings)
-except ConfigurationError as e:
+    logger = get_logger(settings=invalid_settings)
+except ValueError as e:
     print(f"Configuration error: {e}")
     # Handle error appropriately
 ```
@@ -343,7 +344,7 @@ except ConfigurationError as e:
 
 ```markdown
 [User Guide](user-guide.md)
-[API Reference](api-reference.md#configure_logging)
+[API Reference](api-reference.md#get_logger)
 [Examples](examples/index.md)
 ```
 
@@ -453,15 +454,15 @@ Structured logging provides machine-readable logs that work seamlessly with mode
 ### Usage
 
 ```python
-from fapilog import configure_logging, log
+from fapilog import get_logger
 
-configure_logging()
+logger = get_logger()
 
 # Structured logging with context
-log.info("User logged in",
-         user_id="123",
-         ip_address="192.168.1.100",
-         duration_ms=45.2)
+logger.info("User logged in",
+            user_id="123",
+            ip_address="192.168.1.100",
+            duration_ms=45.2)
 ```
 ````
 
@@ -483,10 +484,9 @@ log.info("User logged in",
 Enable structured logging with the `format` setting:
 
 ```python
-from fapilog.settings import LoggingSettings
+from fapilog import get_logger
 
-settings = LoggingSettings(format="json")  # Default
-configure_logging(settings=settings)
+logger = get_logger(format="json")  # Default
 ```
 
 ### See Also

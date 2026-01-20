@@ -50,11 +50,11 @@ Use the `@docs:` marker system to embed documentation directly in your source co
 Add `@docs:` markers directly in your Python docstrings:
 
 ````python
-async def configure_logging(level: str = "INFO") -> None:
+async def get_async_logger(name: str | None = None) -> AsyncLoggerFacade:
     """
-    Configure the logging system with the specified settings.
+    Get a configured async logger instance.
 
-    This function must be called before any logging operations can occur.
+    Returns a fully configured async logger ready for use.
     It sets up sinks, processors, and enrichers based on the provided configuration.
 
     @docs:use_cases
@@ -64,22 +64,21 @@ async def configure_logging(level: str = "INFO") -> None:
 
     @docs:examples
     ```python
-    from fapilog import configure_logging
+    from fapilog import get_async_logger
 
-    # Basic configuration
-    await configure_logging(level="DEBUG", format="pretty")
+    # Basic usage
+    logger = await get_async_logger()
 
-    # With custom sinks
-    await configure_logging(
-        level="INFO",
-        format="json",
-        sinks=["stdout", "file", "http"]
-    )
+    # With format
+    logger = await get_async_logger(format="pretty")
+
+    # With preset
+    logger = await get_async_logger(preset="dev")
     ```
 
     @docs:notes
     - All timestamps are emitted in **RFC3339 UTC format**
-    - Configuration is **immutable** after initialization
+    - Logger should be drained on shutdown with `await logger.drain()`
     - See [Logging Levels](../concepts/logging-levels.md) for details
     """
     pass
@@ -220,19 +219,16 @@ This function initializes the internal logging infrastructure by creating sink i
 **Good Example:**
 
 ```python
-from fapilog import configure_logging, LoggingSettings
+from fapilog import get_logger, Settings
 
 # Basic configuration
-settings = LoggingSettings(level="DEBUG", format="pretty")
-configure_logging(settings)
+logger = get_logger(format="pretty")
 
-# With custom sinks
-settings = LoggingSettings(
-    level="INFO",
-    sinks=["stdout", "file"],
-    file_path="/var/log/app.log"
+# With custom settings
+settings = Settings(
+    core={"log_level": "INFO", "sinks": ["stdout_json", "file"]},
 )
-configure_logging(settings)
+logger = get_logger(settings=settings)
 ```
 
 #### @docs: Examples Best Practices
