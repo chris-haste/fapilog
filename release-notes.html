@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Release Notes &mdash; fapilog latest documentation</title>
+  <title>Release Notes &mdash; fapilog 0.4.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -15,7 +15,7 @@
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=c6e86fd7"></script>
+      <script src="_static/documentation_options.js?v=6c02275b"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -190,72 +190,108 @@
 <p>All notable changes to this project will be documented in this file. This changelog follows <a class="reference external" href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a> and <a class="reference external" href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <section id="unreleased">
 <h2>[Unreleased]<a class="headerlink" href="#unreleased" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p><strong>Breaking</strong>: <code class="docutils literal notranslate"><span class="pre">fastapi</span></code> preset now enables redaction by default (<code class="docutils literal notranslate"><span class="pre">field_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">url_credentials</span></code>), matching <code class="docutils literal notranslate"><span class="pre">production</span></code> preset security posture (Story 10.21). Use <code class="docutils literal notranslate"><span class="pre">dev</span></code> preset for debugging or explicitly set <code class="docutils literal notranslate"><span class="pre">redactors=[]</span></code> to disable.</p></li>
-<li><p><strong>Docs</strong>: Added performance benchmarks page with methodology, results, and reproduction instructions (Story 10.20).</p></li>
-<li><p><strong>Breaking</strong>: Log schema v1.1 with semantic field groupings (<code class="docutils literal notranslate"><span class="pre">context</span></code>, <code class="docutils literal notranslate"><span class="pre">diagnostics</span></code>, <code class="docutils literal notranslate"><span class="pre">data</span></code>); <code class="docutils literal notranslate"><span class="pre">metadata</span></code> renamed to <code class="docutils literal notranslate"><span class="pre">data</span></code>, <code class="docutils literal notranslate"><span class="pre">correlation_id</span></code> moved to <code class="docutils literal notranslate"><span class="pre">context.correlation_id</span></code>, timestamp now RFC3339 string (Story 1.26). See <code class="docutils literal notranslate"><span class="pre">docs/schema-migration-v1.0-to-v1.1.md</span></code>.</p></li>
-<li><p><strong>Breaking</strong>: Enrichers now return nested dicts targeting semantic groups (<code class="docutils literal notranslate"><span class="pre">{&quot;diagnostics&quot;:</span> <span class="pre">{...}}</span></code>) instead of flat dicts; <code class="docutils literal notranslate"><span class="pre">enrich_parallel()</span></code> uses deep-merge; <code class="docutils literal notranslate"><span class="pre">LogEvent</span></code> model updated to v1.1 schema with <code class="docutils literal notranslate"><span class="pre">context</span></code>, <code class="docutils literal notranslate"><span class="pre">diagnostics</span></code>, <code class="docutils literal notranslate"><span class="pre">data</span></code> fields replacing <code class="docutils literal notranslate"><span class="pre">metadata</span></code>, <code class="docutils literal notranslate"><span class="pre">correlation_id</span></code>, <code class="docutils literal notranslate"><span class="pre">component</span></code> (Story 1.27).</p></li>
-<li><p><strong>Changed</strong>: Serialization path cleanup - <code class="docutils literal notranslate"><span class="pre">serialize_envelope()</span></code> now trusts upstream v1.1 schema compliance and only fails for non-JSON-serializable objects; exception-driven fallback is now truly exceptional, not the normal path; <code class="docutils literal notranslate"><span class="pre">strict_envelope_mode</span></code> now works correctly (Story 1.28).</p></li>
-<li><p><strong>Tooling</strong>: Aligned ruff, black, and mypy target versions with <code class="docutils literal notranslate"><span class="pre">requires-python</span> <span class="pre">=</span> <span class="pre">&quot;&gt;=3.10&quot;</span></code>; added pre-commit hook to enforce Python 3.10+ (Story 10.16).</p></li>
-<li><p><strong>Breaking</strong>: Production preset now includes <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code> redactor for broader secret protection; users may see additional fields masked (Story 4.47).</p></li>
-<li><p><strong>Docs</strong>: Added <code class="docutils literal notranslate"><span class="pre">redaction-guarantee.md</span></code> documenting exact redaction behavior per preset; fixed inaccurate claims in <code class="docutils literal notranslate"><span class="pre">reliability-defaults.md</span></code> (Story 4.47).</p></li>
-<li><p><strong>Tooling</strong>: Added automated changelog generation with git-cliff and conventional commit linting via pre-commit hooks; release workflow now validates changelog entries match tagged version (Story 10.12).</p></li>
-<li><p><strong>Docs</strong>: Documented same-thread backpressure behavior where <code class="docutils literal notranslate"><span class="pre">drop_on_full=False</span></code> cannot be honored; enhanced diagnostic warning with <code class="docutils literal notranslate"><span class="pre">drop_on_full_setting</span></code> field (Story 1.19).</p></li>
-<li><p><strong>Performance</strong>: Cache sampling rate, filter config, and error dedupe window at logger initialization to avoid <code class="docutils literal notranslate"><span class="pre">Settings()</span></code> instantiation on every log call (Story 1.23).</p></li>
-<li><p><strong>Changed</strong>: Internal diagnostics now write to stderr by default (Unix convention); add <code class="docutils literal notranslate"><span class="pre">core.diagnostics_output=&quot;stdout&quot;</span></code> for backward compatibility (Story 6.11).</p></li>
-<li><p><strong>Security</strong>: WebhookSink now supports HMAC-SHA256 signatures (<code class="docutils literal notranslate"><span class="pre">signature_mode=&quot;hmac&quot;</span></code>) instead of sending secrets in headers; legacy header mode emits deprecation warning (Story 4.42).</p></li>
-<li><p><strong>Security</strong>: External plugins now blocked by default; use <code class="docutils literal notranslate"><span class="pre">plugins.allow_external=true</span></code> or <code class="docutils literal notranslate"><span class="pre">plugins.allowlist</span></code> for explicit opt-in (Story 3.5). This is a <strong>breaking change</strong> for users of external entry point plugins.</p></li>
-<li><p><strong>Fixed</strong>: Benchmark script key alignment in <code class="docutils literal notranslate"><span class="pre">derive_verdicts()</span></code> to match actual output keys from <code class="docutils literal notranslate"><span class="pre">benchmark()</span></code> (Story 10.11).</p></li>
-<li><p>Added CI smoke test for benchmark script to catch future regressions.</p></li>
-<li><p><strong>Fixed</strong>: Strict mode serialization drops now correctly increment the <code class="docutils literal notranslate"><span class="pre">dropped</span></code> counter and record metrics; previously these drops were silently unaccounted (Story 1.24).</p></li>
-<li><p>Fixed extras documentation accuracy: removed non-existent extras (enterprise, loki, cloud, siem), documented all real extras with descriptions.</p></li>
-<li><p><strong>Security</strong>: Bumped orjson minimum version to 3.9.15 (CVE-2024-27454 fix).</p></li>
-<li><p>Added <code class="docutils literal notranslate"><span class="pre">SECURITY.md</span></code> with vulnerability reporting guidance.</p></li>
-<li><p>Added <code class="docutils literal notranslate"><span class="pre">CODE_OF_CONDUCT.md</span></code> (Contributor Covenant).</p></li>
-<li><p>Fixed Python version badge in README (3.8+ → 3.10+).</p></li>
-<li><p>Added production tip callout in README for <code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code> guidance.</p></li>
-<li><p>Updated plugin group documentation in architecture docs.</p></li>
-<li><p>Added CloudWatch sink size limit documentation comment.</p></li>
-<li><p>Updated <code class="docutils literal notranslate"><span class="pre">CONTRIBUTING.md</span></code> with correct Python version, repo name, and governance file references.</p></li>
-<li><p>Added <code class="docutils literal notranslate"><span class="pre">SinkWriteError</span></code> for sinks to signal write failures to the core pipeline; core now catches these errors (and <code class="docutils literal notranslate"><span class="pre">False</span></code> returns) to trigger fallback and circuit breaker behavior (Story 4.41).</p></li>
-<li><p>Updated built-in sinks (<code class="docutils literal notranslate"><span class="pre">stdout_json</span></code>, <code class="docutils literal notranslate"><span class="pre">stdout_pretty</span></code>, <code class="docutils literal notranslate"><span class="pre">rotating_file</span></code>, <code class="docutils literal notranslate"><span class="pre">audit</span></code>) to raise <code class="docutils literal notranslate"><span class="pre">SinkWriteError</span></code> instead of swallowing errors, enabling proper fallback handling.</p></li>
-<li><p>Updated <code class="docutils literal notranslate"><span class="pre">BaseSink</span></code> protocol documentation to reflect the new error signaling contract.</p></li>
-<li><p>Split large test files into focused modules: <code class="docutils literal notranslate"><span class="pre">test_error_handling.py</span></code> → 4 files, <code class="docutils literal notranslate"><span class="pre">test_high_performance_lru_cache.py</span></code> → 3 files, <code class="docutils literal notranslate"><span class="pre">test_logger_pipeline.py</span></code> → 3 files, <code class="docutils literal notranslate"><span class="pre">test_rotating_file_sink.py</span></code> → 3 files (total test count preserved at 1704).</p></li>
-<li><p>Added CI timeout multiplier (<code class="docutils literal notranslate"><span class="pre">CI_TIMEOUT_MULTIPLIER</span></code>) with <code class="docutils literal notranslate"><span class="pre">get_test_timeout()</span></code> helper for timing-sensitive tests on slow CI runners.</p></li>
-<li><p>Standardized Hypothesis property test settings: removed per-test <code class="docutils literal notranslate"><span class="pre">max_examples</span></code> overrides so all tests respect <code class="docutils literal notranslate"><span class="pre">HYPOTHESIS_MAX_EXAMPLES</span></code> env var.</p></li>
-<li><p>Added fluent builder API (<code class="docutils literal notranslate"><span class="pre">LoggerBuilder</span></code>, <code class="docutils literal notranslate"><span class="pre">AsyncLoggerBuilder</span></code>) for chainable logger configuration with IDE autocomplete support.</p></li>
-<li><p>Added pretty console output (<code class="docutils literal notranslate"><span class="pre">stdout_pretty</span></code>) and <code class="docutils literal notranslate"><span class="pre">format</span></code> selection for stdout logging.</p></li>
-<li><p>Added one-liner FastAPI setup helpers (<code class="docutils literal notranslate"><span class="pre">setup_logging</span></code>, <code class="docutils literal notranslate"><span class="pre">get_request_logger</span></code>) with lifespan support.</p></li>
-<li><p>Added default log-level selection based on TTY/CI when no preset or explicit log level is set.</p></li>
-<li><p>Added stderr fallback for sink write failures with optional diagnostics warnings.</p></li>
-<li><p><strong>Security</strong>: Fallback minimal redaction now recurses into lists, preventing secrets in arrays from leaking to stderr during sink failures (Story 4.48).</p></li>
-</ul>
 </section>
 <section id="id1">
-<h2>[0.3.5] - 2026-01-01<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<h2>[0.4.0] - 2026-01-19<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<section id="breaking-changes">
+<h3>Breaking Changes<a class="headerlink" href="#breaking-changes" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code> preset now enables redaction by default (<code class="docutils literal notranslate"><span class="pre">field_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">url_credentials</span></code>), matching <code class="docutils literal notranslate"><span class="pre">production</span></code> preset security posture (Story 10.21). Use <code class="docutils literal notranslate"><span class="pre">dev</span></code> preset for debugging or explicitly set <code class="docutils literal notranslate"><span class="pre">redactors=[]</span></code> to disable.</p></li>
+<li><p>Log schema v1.1 with semantic field groupings (<code class="docutils literal notranslate"><span class="pre">context</span></code>, <code class="docutils literal notranslate"><span class="pre">diagnostics</span></code>, <code class="docutils literal notranslate"><span class="pre">data</span></code>); <code class="docutils literal notranslate"><span class="pre">metadata</span></code> renamed to <code class="docutils literal notranslate"><span class="pre">data</span></code>, <code class="docutils literal notranslate"><span class="pre">correlation_id</span></code> moved to <code class="docutils literal notranslate"><span class="pre">context.correlation_id</span></code>, timestamp now RFC3339 string (Story 1.26). See <code class="docutils literal notranslate"><span class="pre">docs/schema-migration-v1.0-to-v1.1.md</span></code>.</p></li>
+<li><p>Enrichers now return nested dicts targeting semantic groups (<code class="docutils literal notranslate"><span class="pre">{&quot;diagnostics&quot;:</span> <span class="pre">{...}}</span></code>) instead of flat dicts; <code class="docutils literal notranslate"><span class="pre">enrich_parallel()</span></code> uses deep-merge; <code class="docutils literal notranslate"><span class="pre">LogEvent</span></code> model updated to v1.1 schema with <code class="docutils literal notranslate"><span class="pre">context</span></code>, <code class="docutils literal notranslate"><span class="pre">diagnostics</span></code>, <code class="docutils literal notranslate"><span class="pre">data</span></code> fields replacing <code class="docutils literal notranslate"><span class="pre">metadata</span></code>, <code class="docutils literal notranslate"><span class="pre">correlation_id</span></code>, <code class="docutils literal notranslate"><span class="pre">component</span></code> (Story 1.27).</p></li>
+<li><p>Production preset now includes <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code> redactor for broader secret protection; users may see additional fields masked (Story 4.47).</p></li>
+<li><p>External plugins now blocked by default; use <code class="docutils literal notranslate"><span class="pre">plugins.allow_external=true</span></code> or <code class="docutils literal notranslate"><span class="pre">plugins.allowlist</span></code> for explicit opt-in (Story 3.5).</p></li>
+</ul>
+</section>
 <section id="added">
 <h3>Added<a class="headerlink" href="#added" title="Link to this heading"></a></h3>
 <ul class="simple">
-<li><p>Hash-chain integrity for AuditTrail.</p></li>
+<li><p>Fluent builder API (<code class="docutils literal notranslate"><span class="pre">LoggerBuilder</span></code>, <code class="docutils literal notranslate"><span class="pre">AsyncLoggerBuilder</span></code>) for chainable logger configuration with IDE autocomplete support.</p></li>
+<li><p>Pretty console output (<code class="docutils literal notranslate"><span class="pre">stdout_pretty</span></code>) and <code class="docutils literal notranslate"><span class="pre">format</span></code> selection for stdout logging.</p></li>
+<li><p>One-liner FastAPI setup helpers (<code class="docutils literal notranslate"><span class="pre">setup_logging</span></code>, <code class="docutils literal notranslate"><span class="pre">get_request_logger</span></code>) with lifespan support.</p></li>
+<li><p>Default log-level selection based on TTY/CI when no preset or explicit log level is set.</p></li>
+<li><p>Stderr fallback for sink write failures with optional diagnostics warnings.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SinkWriteError</span></code> for sinks to signal write failures to the core pipeline; core now catches these errors (and <code class="docutils literal notranslate"><span class="pre">False</span></code> returns) to trigger fallback and circuit breaker behavior (Story 4.41).</p></li>
+<li><p>CI smoke test for benchmark script to catch future regressions.</p></li>
+<li><p>CI timeout multiplier (<code class="docutils literal notranslate"><span class="pre">CI_TIMEOUT_MULTIPLIER</span></code>) with <code class="docutils literal notranslate"><span class="pre">get_test_timeout()</span></code> helper for timing-sensitive tests on slow CI runners.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SECURITY.md</span></code> with vulnerability reporting guidance.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CODE_OF_CONDUCT.md</span></code> (Contributor Covenant).</p></li>
+<li><p>Production tip callout in README for <code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code> guidance.</p></li>
 </ul>
 </section>
 <section id="changed">
 <h3>Changed<a class="headerlink" href="#changed" title="Link to this heading"></a></h3>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">unbind()</span></code> now returns self for method chaining.</p></li>
+<li><p>Serialization path cleanup - <code class="docutils literal notranslate"><span class="pre">serialize_envelope()</span></code> now trusts upstream v1.1 schema compliance and only fails for non-JSON-serializable objects; exception-driven fallback is now truly exceptional, not the normal path; <code class="docutils literal notranslate"><span class="pre">strict_envelope_mode</span></code> now works correctly (Story 1.28).</p></li>
+<li><p>Internal diagnostics now write to stderr by default (Unix convention); add <code class="docutils literal notranslate"><span class="pre">core.diagnostics_output=&quot;stdout&quot;</span></code> for backward compatibility (Story 6.11).</p></li>
+<li><p>Updated built-in sinks (<code class="docutils literal notranslate"><span class="pre">stdout_json</span></code>, <code class="docutils literal notranslate"><span class="pre">stdout_pretty</span></code>, <code class="docutils literal notranslate"><span class="pre">rotating_file</span></code>, <code class="docutils literal notranslate"><span class="pre">audit</span></code>) to raise <code class="docutils literal notranslate"><span class="pre">SinkWriteError</span></code> instead of swallowing errors, enabling proper fallback handling.</p></li>
+<li><p>Updated <code class="docutils literal notranslate"><span class="pre">BaseSink</span></code> protocol documentation to reflect the new error signaling contract.</p></li>
+<li><p>Aligned ruff, black, and mypy target versions with <code class="docutils literal notranslate"><span class="pre">requires-python</span> <span class="pre">=</span> <span class="pre">&quot;&gt;=3.10&quot;</span></code>; added pre-commit hook to enforce Python 3.10+ (Story 10.16).</p></li>
+<li><p>Standardized Hypothesis property test settings: removed per-test <code class="docutils literal notranslate"><span class="pre">max_examples</span></code> overrides so all tests respect <code class="docutils literal notranslate"><span class="pre">HYPOTHESIS_MAX_EXAMPLES</span></code> env var.</p></li>
+<li><p>Split large test files into focused modules: <code class="docutils literal notranslate"><span class="pre">test_error_handling.py</span></code> → 4 files, <code class="docutils literal notranslate"><span class="pre">test_high_performance_lru_cache.py</span></code> → 3 files, <code class="docutils literal notranslate"><span class="pre">test_logger_pipeline.py</span></code> → 3 files, <code class="docutils literal notranslate"><span class="pre">test_rotating_file_sink.py</span></code> → 3 files (total test count preserved at 1704).</p></li>
 </ul>
 </section>
 <section id="fixed">
 <h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading"></a></h3>
 <ul class="simple">
-<li><p>GitHub release workflow now handles existing releases.</p></li>
+<li><p>Benchmark script key alignment in <code class="docutils literal notranslate"><span class="pre">derive_verdicts()</span></code> to match actual output keys from <code class="docutils literal notranslate"><span class="pre">benchmark()</span></code> (Story 10.11).</p></li>
+<li><p>Strict mode serialization drops now correctly increment the <code class="docutils literal notranslate"><span class="pre">dropped</span></code> counter and record metrics; previously these drops were silently unaccounted (Story 1.24).</p></li>
+<li><p>Extras documentation accuracy: removed non-existent extras (enterprise, loki, cloud, siem), documented all real extras with descriptions.</p></li>
+<li><p>Python version badge in README (3.8+ → 3.10+).</p></li>
+<li><p>Plugin group documentation in architecture docs.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CONTRIBUTING.md</span></code> with correct Python version, repo name, and governance file references.</p></li>
+</ul>
+</section>
+<section id="security">
+<h3>Security<a class="headerlink" href="#security" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>WebhookSink now supports HMAC-SHA256 signatures (<code class="docutils literal notranslate"><span class="pre">signature_mode=&quot;hmac&quot;</span></code>) instead of sending secrets in headers; legacy header mode emits deprecation warning (Story 4.42).</p></li>
+<li><p>Bumped orjson minimum version to 3.9.15 (CVE-2024-27454 fix).</p></li>
+<li><p>Fallback minimal redaction now recurses into lists, preventing secrets in arrays from leaking to stderr during sink failures (Story 4.48).</p></li>
+</ul>
+</section>
+<section id="performance">
+<h3>Performance<a class="headerlink" href="#performance" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Cache sampling rate, filter config, and error dedupe window at logger initialization to avoid <code class="docutils literal notranslate"><span class="pre">Settings()</span></code> instantiation on every log call (Story 1.23).</p></li>
+</ul>
+</section>
+<section id="documentation">
+<h3>Documentation<a class="headerlink" href="#documentation" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Added performance benchmarks page with methodology, results, and reproduction instructions (Story 10.20).</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">redaction-guarantee.md</span></code> documenting exact redaction behavior per preset; fixed inaccurate claims in <code class="docutils literal notranslate"><span class="pre">reliability-defaults.md</span></code> (Story 4.47).</p></li>
+<li><p>Documented same-thread backpressure behavior where <code class="docutils literal notranslate"><span class="pre">drop_on_full=False</span></code> cannot be honored; enhanced diagnostic warning with <code class="docutils literal notranslate"><span class="pre">drop_on_full_setting</span></code> field (Story 1.19).</p></li>
+<li><p>Added automated changelog generation with git-cliff and conventional commit linting via pre-commit hooks; release workflow now validates changelog entries match tagged version (Story 10.12).</p></li>
+<li><p>Added CloudWatch sink size limit documentation comment.</p></li>
 </ul>
 </section>
 </section>
 <section id="id2">
-<h2>[0.3.4] - 2025-12-30<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
+<h2>[0.3.5] - 2026-01-01<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <section id="id3">
 <h3>Added<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Hash-chain integrity for AuditTrail.</p></li>
+</ul>
+</section>
+<section id="id4">
+<h3>Changed<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">unbind()</span></code> now returns self for method chaining.</p></li>
+</ul>
+</section>
+<section id="id5">
+<h3>Fixed<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>GitHub release workflow now handles existing releases.</p></li>
+</ul>
+</section>
+</section>
+<section id="id6">
+<h2>[0.3.4] - 2025-12-30<a class="headerlink" href="#id6" title="Link to this heading"></a></h2>
+<section id="id7">
+<h3>Added<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Enterprise key management for tamper-evident plugin (Story 4.18).</p></li>
 <li><p>Verification API and CLI for tamper-evident plugin (Story 4.17).</p></li>
@@ -263,8 +299,8 @@
 <li><p>Configurable worker count for logging pipeline.</p></li>
 </ul>
 </section>
-<section id="id4">
-<h3>Fixed<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<section id="id8">
+<h3>Fixed<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>PYTHONPATH passing to subprocess in CLI test.</p></li>
 <li><p>fapilog-tamper tests now skip gracefully if package not available.</p></li>
@@ -273,8 +309,8 @@
 </ul>
 </section>
 </section>
-<section id="id5">
-<h2>[0.3.3] - 2025-12-22<a class="headerlink" href="#id5" title="Link to this heading"></a></h2>
+<section id="id9">
+<h2>[0.3.3] - 2025-12-22<a class="headerlink" href="#id9" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Project status upgraded from Alpha to Beta classification.</p></li>
 <li><p>Fixed plugin catalog generation to exclude failed plugin entries.</p></li>
@@ -283,8 +319,8 @@
 <li><p>Removed placeholder Discord and Plugin Marketplace links from PyPI metadata.</p></li>
 </ul>
 </section>
-<section id="id6">
-<h2>[0.3.2] - 2025-12-22<a class="headerlink" href="#id6" title="Link to this heading"></a></h2>
+<section id="id10">
+<h2>[0.3.2] - 2025-12-22<a class="headerlink" href="#id10" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Backpressure configuration now honored: <code class="docutils literal notranslate"><span class="pre">drop_on_full</span></code> waits instead of dropping when set to false; sink/enricher/redactor failures emit diagnostics.</p></li>
 <li><p>FastAPI request/response logging middleware added (sampling, header redaction, skip paths) and exported alongside context middleware.</p></li>
