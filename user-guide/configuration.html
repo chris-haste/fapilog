@@ -264,7 +264,7 @@
 <td><p>INFO</p></td>
 <td><p>stdout_json</p></td>
 <td><p>No</p></td>
-<td><p>No</p></td>
+<td><p>Yes (9 fields)</p></td>
 <td><p>50</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
@@ -298,6 +298,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">context_vars</span></code> enricher enabled for request context propagation</p></li>
 <li><p>Container-friendly stdout JSON output</p></li>
 <li><p>Balanced batch size for latency/throughput tradeoff</p></li>
+<li><p>Automatic redaction of: <code class="docutils literal notranslate"><span class="pre">password</span></code>, <code class="docutils literal notranslate"><span class="pre">api_key</span></code>, <code class="docutils literal notranslate"><span class="pre">token</span></code>, <code class="docutils literal notranslate"><span class="pre">secret</span></code>, <code class="docutils literal notranslate"><span class="pre">authorization</span></code>, <code class="docutils literal notranslate"><span class="pre">api_secret</span></code>, <code class="docutils literal notranslate"><span class="pre">private_key</span></code>, <code class="docutils literal notranslate"><span class="pre">ssn</span></code>, <code class="docutils literal notranslate"><span class="pre">credit_card</span></code></p></li>
 </ul>
 <p><strong><code class="docutils literal notranslate"><span class="pre">minimal</span></code></strong> - Matches <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> with no arguments:</p>
 <ul class="simple">
@@ -476,7 +477,7 @@ interval settings and represent fixed intervals (not wall-clock boundaries).</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on January 19, 2026.
+      <span class="lastupdated">Last updated on January 20, 2026.
       </span></p>
   </div>
 

@@ -191,6 +191,7 @@
 <section id="unreleased">
 <h2>[Unreleased]<a class="headerlink" href="#unreleased" title="Link to this heading"></a></h2>
 <ul class="simple">
+<li><p><strong>Breaking</strong>: <code class="docutils literal notranslate"><span class="pre">fastapi</span></code> preset now enables redaction by default (<code class="docutils literal notranslate"><span class="pre">field_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">url_credentials</span></code>), matching <code class="docutils literal notranslate"><span class="pre">production</span></code> preset security posture (Story 10.21). Use <code class="docutils literal notranslate"><span class="pre">dev</span></code> preset for debugging or explicitly set <code class="docutils literal notranslate"><span class="pre">redactors=[]</span></code> to disable.</p></li>
 <li><p><strong>Docs</strong>: Added performance benchmarks page with methodology, results, and reproduction instructions (Story 10.20).</p></li>
 <li><p><strong>Breaking</strong>: Log schema v1.1 with semantic field groupings (<code class="docutils literal notranslate"><span class="pre">context</span></code>, <code class="docutils literal notranslate"><span class="pre">diagnostics</span></code>, <code class="docutils literal notranslate"><span class="pre">data</span></code>); <code class="docutils literal notranslate"><span class="pre">metadata</span></code> renamed to <code class="docutils literal notranslate"><span class="pre">data</span></code>, <code class="docutils literal notranslate"><span class="pre">correlation_id</span></code> moved to <code class="docutils literal notranslate"><span class="pre">context.correlation_id</span></code>, timestamp now RFC3339 string (Story 1.26). See <code class="docutils literal notranslate"><span class="pre">docs/schema-migration-v1.0-to-v1.1.md</span></code>.</p></li>
 <li><p><strong>Breaking</strong>: Enrichers now return nested dicts targeting semantic groups (<code class="docutils literal notranslate"><span class="pre">{&quot;diagnostics&quot;:</span> <span class="pre">{...}}</span></code>) instead of flat dicts; <code class="docutils literal notranslate"><span class="pre">enrich_parallel()</span></code> uses deep-merge; <code class="docutils literal notranslate"><span class="pre">LogEvent</span></code> model updated to v1.1 schema with <code class="docutils literal notranslate"><span class="pre">context</span></code>, <code class="docutils literal notranslate"><span class="pre">diagnostics</span></code>, <code class="docutils literal notranslate"><span class="pre">data</span></code> fields replacing <code class="docutils literal notranslate"><span class="pre">metadata</span></code>, <code class="docutils literal notranslate"><span class="pre">correlation_id</span></code>, <code class="docutils literal notranslate"><span class="pre">component</span></code> (Story 1.27).</p></li>
@@ -315,7 +316,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on January 19, 2026.
+      <span class="lastupdated">Last updated on January 20, 2026.
       </span></p>
   </div>
 
