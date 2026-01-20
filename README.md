@@ -13,6 +13,8 @@
 [![PyPI Version](https://img.shields.io/pypi/v/fapilog.svg?style=flat-square&color=008080&logo=pypi&logoColor=white)](https://pypi.org/project/fapilog/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-008080?style=flat-square&logo=apache&logoColor=white)](https://opensource.org/licenses/Apache-2.0)
 
+> **Save evaluation time:** [Independent technical assessments](docs/audits/) are available from multiple AI reviewers.
+
 ## Why fapilog?
 
 - **Non‑blocking under slow sinks**: Background worker, queue, and batching keep your app responsive when disk/network collectors slow down.
@@ -105,7 +107,7 @@ logger = get_logger(preset="minimal")
 |--------|-----------|--------------|-----------|------------|----------|
 | `dev` | DEBUG | No | No | 1 (immediate) | Local development |
 | `production` | INFO | Yes (50MB rotation) | Yes (9 fields) | 100 | Production deployments |
-| `fastapi` | INFO | No | No | 50 | FastAPI/async apps |
+| `fastapi` | INFO | No | Yes (9 fields) | 50 | FastAPI/async apps |
 | `minimal` | INFO | No | No | Default | Backwards compatible |
 
 See [docs/user-guide/configuration.md](docs/user-guide/configuration.md) for full preset details.
@@ -278,7 +280,7 @@ Fapilog features an extensible plugin ecosystem:
 - **HTTP**: `http` and `webhook` sinks with retry, batching, and HMAC signing
 - **Cloud**: `cloudwatch` (AWS, requires `boto3`), `loki` (Grafana)
 - **Database**: `postgres` (requires `asyncpg`)
-- **Compliance**: `audit` sink with integrity checks, `routing` for level-based fan-out
+- **Routing**: `routing` for level-based fan-out
 
 ### **Processor Plugins**
 
