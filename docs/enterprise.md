@@ -8,7 +8,7 @@ Fapilog provides building blocks for enterprise environments. This page highligh
 |------------|-------------|
 | **Compliance Controls (assist)** | Policy templates and logging patterns that can be aligned to SOC2, HIPAA, GDPR, PCI-DSS, ISO 27001, SOX (you own control validation) |
 | **Audit Trail** | Structured audit events with optional tamper-evident hash chains (via add-on) |
-| **Data Protection** | PII/PHI tagging, redaction knobs, encryption settings |
+| **Data Protection** | PII/PHI tagging, redaction configuration |
 | **Access Control** | Role-based access settings and auth mode configuration helpers |
 | **Integrity** | SHA-256 checksums, sequence numbers, chain verification (when enabled) |
 
@@ -36,13 +36,12 @@ Fapilog provides building blocks for enterprise environments. This page highligh
 Fapilog ships configuration helpers that can map to common frameworks. Use them as starting points and validate against your own policies and auditors:
 
 ```python
-from fapilog.core.audit import ComplianceLevel, CompliancePolicy
+from fapilog_audit import ComplianceLevel, CompliancePolicy
 
 # Configure for your compliance requirements
 policy = CompliancePolicy(
     level=ComplianceLevel.SOC2,
     retention_days=365,
-    encrypt_audit_logs=True,
     require_integrity_check=True,
     real_time_alerts=True,
 )
@@ -52,10 +51,10 @@ policy = CompliancePolicy(
 
 | Framework | Control areas this can help with |
 |-----------|----------------------------------|
-| **SOC2** | Encryption, integrity checks, access logging |
+| **SOC2** | Integrity checks, access logging, audit trails |
 | **HIPAA** | PHI redaction, minimum necessary patterns, audit trails |
 | **GDPR** | PII redaction, data subject request support (application responsibility) |
-| **PCI-DSS** | Encryption at rest, access logging (card data handling remains your responsibility) |
+| **PCI-DSS** | Access logging, audit trails (encryption and card data handling are your responsibility) |
 | **ISO 27001** | Security logging and integrity controls |
 | **SOX** | Change/event logging with chain verification |
 
@@ -66,7 +65,7 @@ policy = CompliancePolicy(
 The `AuditTrail` building blocks provide structured audit logging. You control event content and ensure policies meet your regulatory scope:
 
 ```python
-from fapilog.core.audit import AuditTrail, AuditEventType, CompliancePolicy
+from fapilog_audit import AuditTrail, AuditEventType, ComplianceLevel, CompliancePolicy
 
 # Initialize audit trail
 audit = AuditTrail(
@@ -124,7 +123,7 @@ event.checksum         # SHA-256 of this event (integrity)
 Verify integrity of audit logs at any time:
 
 ```python
-from fapilog.core.audit import AuditTrail
+from fapilog_audit import AuditTrail
 
 # Load events from storage
 events = await audit.get_events(
@@ -171,63 +170,43 @@ await audit.log_data_access(
 
 ### Automatic Redaction
 
-Built-in redactors help mask common sensitive fields but must be tuned to your schemas and policies:
+The `url_credentials` redactor is enabled by default to scrub credentials from URLs. Additional redactors (`field_mask`, `regex_mask`) require explicit configuration or using a preset like `production` or `fastapi`:
 
 ```python
-from fapilog import get_logger, Settings
+from fapilog import get_logger
 
-# Redactors are enabled by default
+# Default: only url_credentials redactor is enabled
 logger = get_logger()
+logger.info("Connecting", url="https://user:secret@api.example.com/path")
+# Output: {"url": "https://api.example.com/path"}  # credentials stripped
 
-# Sensitive fields are automatically masked
+# For field-based redaction, use a preset or explicit config
+from fapilog import get_logger
+logger = get_logger(preset="production")  # enables all redactors
 logger.info("User created", password="secret123", api_key="sk-xxx")
-# Output: {"password": "***REDACTED***", "api_key": "***REDACTED***"}
+# Output: {"password": "***", "api_key": "***"}
 ```
 
 **Built-in Redactors:**
 
-| Redactor | What It Protects |
-|----------|-----------------|
-| `field-mask` | Named fields (password, secret, token, etc.) |
-| `regex-mask` | Pattern-based detection (SSN, email, etc.) |
-| `url-credentials` | Credentials in URLs (`user:pass@host`) |
+| Redactor | What It Protects | Default |
+|----------|-----------------|---------|
+| `url-credentials` | Credentials in URLs (`user:pass@host`) | Enabled |
+| `field-mask` | Named fields (password, secret, token, etc.) | Requires preset or config |
+| `regex-mask` | Pattern-based detection (SSN, email, etc.) | Requires preset or config |
 
 See [Redaction Guarantees](redaction-guarantees.md) for configuration details.
-
-### Encryption Configuration
-
-Configure encryption with support for enterprise key management. These are primitives; key custody and rotation remain your responsibility:
-
-```python
-from fapilog.core.encryption import EncryptionSettings
-
-encryption = EncryptionSettings(
-    enabled=True,
-    algorithm="AES-256",
-    key_source="vault",  # Options: env, file, kms, vault
-    key_id="fapilog/audit-key",
-    rotate_interval_days=90,
-    min_tls_version="1.3",
-)
-```
-
-**Key Sources:**
-
-| Source | Use Case |
-|--------|----------|
-| `env` | Environment variable (development) |
-| `file` | File path (on-prem) |
-| `kms` | AWS KMS, GCP KMS, Azure Key Vault |
-| `vault` | HashiCorp Vault |
 
 ---
 
 ## Access Control
 
-Configure role-based access control. Integrate with your identity provider and test according to your threat model:
+> **Note:** `AccessControlSettings` provides configuration primitives only. Fapilog does not enforce access control - you must integrate these settings with your identity provider and application middleware.
+
+Define access control policies using the configuration model:
 
 ```python
-from fapilog.core.access_control import AccessControlSettings
+from fapilog.core.access_control import AccessControlSettings, validate_access_control
 
 access = AccessControlSettings(
     enabled=True,
@@ -237,6 +216,23 @@ access = AccessControlSettings(
     allow_anonymous_read=False,
     allow_anonymous_write=False,
 )
+
+# Validate configuration against security baselines
+result = validate_access_control(access)
+if not result.ok:
+    for issue in result.issues:
+        print(f"{issue.field}: {issue.message}")
+```
+
+**Integration responsibility:** Use these settings to configure your authentication middleware, API gateway, or application-level access checks. For example:
+
+```python
+# Example: FastAPI dependency using AccessControlSettings
+async def require_role(role: str, settings: AccessControlSettings = Depends(get_settings)):
+    if not settings.enabled:
+        return
+    if role not in settings.allowed_roles:
+        raise HTTPException(403, "Insufficient permissions")
 ```
 
 ---
@@ -249,7 +245,6 @@ Configure log retention to align with your data lifecycle requirements:
 policy = CompliancePolicy(
     retention_days=365,      # Keep logs for 1 year
     archive_after_days=90,   # Archive after 90 days
-    encrypt_audit_logs=True,
 )
 ```
 
@@ -262,7 +257,7 @@ policy = CompliancePolicy(
 Validate your configuration against compliance baselines:
 
 ```python
-from fapilog.core.compliance import validate_compliance_policy
+from fapilog_audit import validate_compliance_policy
 
 result = validate_compliance_policy(policy)
 
@@ -275,15 +270,17 @@ if not result.ok:
 
 ```
 [error] retention_days: must be >= 30
-[error] encrypt_audit_logs: must be enabled
-[warn] gdpr_data_subject_rights: required for GDPR level
+[error] require_integrity_check: must be enabled
+[error] gdpr_data_subject_rights: required
 ```
 
 ---
 
 ## Real-Time Compliance Alerts
 
-Configure alerts for compliance-relevant events:
+> **Note:** Alert *detection* is implemented, but alert *delivery* is a stub. You must provide your own alerting integration.
+
+Configure which events should trigger alerts:
 
 ```python
 policy = CompliancePolicy(
@@ -293,7 +290,9 @@ policy = CompliancePolicy(
 )
 ```
 
-When enabled, security events and critical errors trigger the alert pathway. Implement your alerting logic via a custom sink:
+When these flags are enabled, the `AuditTrail` identifies events that should trigger alerts (security events, critical errors, PII access for GDPR, PHI access for HIPAA). However, the actual alert delivery is not implemented - you must integrate your own alerting system.
+
+**Option 1: Custom sink for alert routing**
 
 ```python
 class ComplianceAlertSink:
@@ -301,6 +300,15 @@ class ComplianceAlertSink:
         if entry.get("log_level") == "SECURITY":
             await send_to_pagerduty(entry)
             await send_to_slack(entry)
+```
+
+**Option 2: Subclass AuditTrail and override `_send_compliance_alert`**
+
+```python
+class MyAuditTrail(AuditTrail):
+    async def _send_compliance_alert(self, event: AuditEvent) -> None:
+        await send_to_pagerduty(event.model_dump())
+        await send_to_slack(event.message)
 ```
 
 ---
@@ -336,8 +344,8 @@ Fapilog's JSON output integrates with standard log aggregators:
 |-------------|-----------------|---------------|
 | Audit trail | `AuditTrail` | `CompliancePolicy.enabled=True` |
 | Log integrity | Hash chains | Automatic (sequence + checksum) |
-| PII protection | Redactors | `core.enable_redactors=True` |
-| Encryption config | `EncryptionSettings` | `encryption.enabled=True` |
+| URL credential protection | `url_credentials` redactor | Enabled by default |
+| PII/field redaction | `field_mask`, `regex_mask` | `preset="production"` or explicit config |
 | Access control | `AccessControlSettings` | `access_control.enabled=True` |
 | Retention policy | `CompliancePolicy` | `retention_days=365` |
 | Security events | `AuditEventType` | `log_security_event()` |
