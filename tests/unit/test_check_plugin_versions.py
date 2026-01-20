@@ -209,7 +209,7 @@ PLUGIN_METADATA = {"compatibility": {"min_fapilog_version": "0.3.0"}}
         plugins_dir = tmp_path / "src" / "fapilog" / "plugins"
         plugins_dir.mkdir(parents=True)
         (plugins_dir / "invalid.py").write_text("""
-PLUGIN_METADATA = {"compatibility": {"min_fapilog_version": "0.4.0"}}
+PLUGIN_METADATA = {"compatibility": {"min_fapilog_version": "99.0.0"}}
 """)
 
         monkeypatch.chdir(tmp_path)

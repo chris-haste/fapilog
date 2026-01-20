@@ -103,7 +103,7 @@ class TestJsonSchemaValidation:
         """Serialized envelope should pass JSON schema validation."""
         jsonschema = pytest.importorskip("jsonschema")
 
-        schema_path = Path(__file__).parents[2] / "jsonschema" / "log_envelope_v1.json"
+        schema_path = Path(__file__).parents[2] / "schemas" / "log_envelope_v1.json"
         schema = json.loads(schema_path.read_text())
 
         envelope = build_envelope(
@@ -122,7 +122,7 @@ class TestJsonSchemaValidation:
         """Envelope with all optional fields should validate."""
         jsonschema = pytest.importorskip("jsonschema")
 
-        schema_path = Path(__file__).parents[2] / "jsonschema" / "log_envelope_v1.json"
+        schema_path = Path(__file__).parents[2] / "schemas" / "log_envelope_v1.json"
         schema = json.loads(schema_path.read_text())
 
         try:

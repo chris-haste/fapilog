@@ -2,7 +2,7 @@
 JSON Schema validation tests for pipeline output.
 
 These tests validate that serialized log envelopes conform to the published
-JSON schema (jsonschema/log_envelope_v1.json). If these tests fail, the
+JSON schema (schemas/log_envelope_v1.json). If these tests fail, the
 pipeline output has drifted from the documented schema.
 """
 
