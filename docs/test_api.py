@@ -8,13 +8,15 @@ to automatically generate formatted API documentation.
 from typing import Any, Dict, List, Optional
 
 
-async def configure_logging(
-    level: str = "INFO", format: str = "json", sinks: Optional[List[str]] = None
+async def get_async_logger(
+    name: Optional[str] = None,
+    preset: Optional[str] = None,
+    format: Optional[str] = None,
 ) -> None:
     """
-    Configure the logging system with the specified settings.
+    Get a configured async logger instance.
 
-    This function must be called before any logging operations can occur.
+    Returns a fully configured async logger ready for use.
     It sets up sinks, processors, and enrichers based on the provided configuration.
 
     @docs:use_cases
@@ -25,22 +27,21 @@ async def configure_logging(
 
     @docs:examples
     ```python
-    from fapilog import configure_logging, LoggingSettings
+    from fapilog import get_async_logger
 
-    # Basic configuration
-    await configure_logging(level="DEBUG", format="pretty")
+    # Basic usage
+    logger = await get_async_logger()
 
-    # With custom sinks
-    await configure_logging(
-        level="INFO",
-        format="json",
-        sinks=["stdout", "file", "http"]
-    )
+    # With format
+    logger = await get_async_logger(format="pretty")
+
+    # With preset
+    logger = await get_async_logger(preset="dev")
     ```
 
     @docs:notes
     - All timestamps are emitted in **RFC3339 UTC format**
-    - The configuration is **immutable** after initialization - changes require restart
+    - Logger should be drained on shutdown with `await logger.drain()`
     - See [Logging Levels](../concepts/logging-levels.md) for detailed level descriptions
     - Related: [Custom Sinks](../examples/custom-sinks.md), [Environment Configuration](../config.md)
     """
