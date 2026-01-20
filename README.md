@@ -1,4 +1,4 @@
-# Fapilog - Production-ready logging for the modern Python stack
+# Fapilog - Batteries-included, async-first logging for Python services
 
 **fapilog** delivers production-ready logging for the modern Python stack—async-first, structured, and optimized for FastAPI and cloud-native apps. It’s equally suitable for **on-prem**, **desktop**, or **embedded** projects where structured, JSON-ready, and pluggable logging is required.
 
@@ -350,4 +350,4 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ---
 
-**Fapilog** - The future of async-first logging for Python applications.
+**Fapilog** - Batteries-included, async-first logging for Python services.
