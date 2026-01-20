@@ -245,7 +245,7 @@
 <p>The <code class="docutils literal notranslate"><span class="pre">production</span></code> and <code class="docutils literal notranslate"><span class="pre">fastapi</span></code> presets enable all three redactors with sensible defaults:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Auth&quot;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">&quot;secret&quot;</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;sk-123&quot;</span><span class="p">)</span>
-<span class="c1"># Both fields redacted: password=&quot;[REDACTED]&quot;, api_key=&quot;[REDACTED]&quot;</span>
+<span class="c1"># Both fields redacted: password=&quot;***&quot;, api_key=&quot;***&quot;</span>
 </pre></div>
 </div>
 <p>Fields masked by <code class="docutils literal notranslate"><span class="pre">production</span></code>/<code class="docutils literal notranslate"><span class="pre">fastapi</span></code> presets:</p>
@@ -268,7 +268,7 @@
     <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">patterns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;secret.*&quot;</span><span class="p">,</span> <span class="s2">&quot;token.*&quot;</span><span class="p">])</span>
     <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Login&quot;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">&quot;secret123&quot;</span><span class="p">)</span>  <span class="c1"># password=[REDACTED]</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Login&quot;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">&quot;secret123&quot;</span><span class="p">)</span>  <span class="c1"># password=***</span>
 </pre></div>
 </div>
 </section>

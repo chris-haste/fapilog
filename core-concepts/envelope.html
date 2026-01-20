@@ -192,45 +192,64 @@
   <section class="tex2jax_ignore mathjax_ignore" id="envelope">
 <h1>Envelope<a class="headerlink" href="#envelope" title="Link to this heading"></a></h1>
 <p>The envelope is the structured log payload emitted by fapilog before serialization.</p>
-<section id="shape">
-<h2>Shape<a class="headerlink" href="#shape" title="Link to this heading"></a></h2>
-<p>Every log entry is a mapping with core fields plus metadata:</p>
+<section id="shape-v1-1-schema">
+<h2>Shape (v1.1 Schema)<a class="headerlink" href="#shape-v1-1-schema" title="Link to this heading"></a></h2>
+<p>Every log entry follows the v1.1 schema with semantic field groupings:</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-01-15T10:30:00.123Z&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;User action&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;logger&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;app&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1704110400.123</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;correlation_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;req-123&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;metadata&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;abc&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;action&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;login&quot;</span>
+<span class="w">  </span><span class="nt">&quot;context&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;correlation_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;req-123&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;request_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;abc-456&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user-789&quot;</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;diagnostics&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;service&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;api&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;production&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;host&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;web-01&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;pid&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">12345</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;action&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;login&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;duration_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">42</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">level</span></code>: one of DEBUG/INFO/WARNING/ERROR.</p></li>
+<section id="core-fields">
+<h3>Core Fields<a class="headerlink" href="#core-fields" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">timestamp</span></code>: RFC3339 UTC string with millisecond precision (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;2024-01-15T10:30:00.123Z&quot;</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">level</span></code>: one of DEBUG/INFO/WARNING/ERROR/CRITICAL.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">message</span></code>: the message string passed to the logger method.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">logger</span></code>: logger name (<code class="docutils literal notranslate"><span class="pre">get_logger(name=...)</span></code>).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">timestamp</span></code>: POSIX timestamp as float seconds (UTC).</p>
-<blockquote>
-<div><p><strong>Note:</strong> Story 1.26 will change this to RFC3339 string format (<code class="docutils literal notranslate"><span class="pre">&quot;2024-01-01T12:00:00.000Z&quot;</span></code>) in a future release.</p>
-</div></blockquote>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">correlation_id</span></code>: auto-generated UUID or value derived from context vars.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">metadata</span></code>: merged bound context + per-call kwargs + enrichment + serialized exceptions.</p></li>
 </ul>
+</section>
+<section id="semantic-groupings">
+<h3>Semantic Groupings<a class="headerlink" href="#semantic-groupings" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">context</span></code>: Request/trace identifiers (correlation_id, request_id, user_id, tenant_id, trace_id, span_id). These identify WHO and WHAT request is being logged.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">diagnostics</span></code>: Runtime/operational data (service, env, host, pid, exception). These identify WHERE the log originated and system state.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data</span></code>: User-provided structured data from extra kwargs and bound context (excluding context fields).</p></li>
+</ul>
+</section>
 </section>
 <section id="exceptions">
 <h2>Exceptions<a class="headerlink" href="#exceptions" title="Link to this heading"></a></h2>
-<p>When <code class="docutils literal notranslate"><span class="pre">exc_info=True</span></code> or <code class="docutils literal notranslate"><span class="pre">exc</span></code> is provided, the envelope includes structured exception data:</p>
+<p>When <code class="docutils literal notranslate"><span class="pre">exc_info=True</span></code> or <code class="docutils literal notranslate"><span class="pre">exc</span></code> is provided, the envelope includes structured exception data in the <code class="docutils literal notranslate"><span class="pre">diagnostics.exception</span></code> field:</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;exception_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ValueError&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;exception_message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bad input&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;stack&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;... trimmed stack trace ...&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;frames&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">    </span><span class="p">{</span><span class="nt">&quot;filename&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;app.py&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;lineno&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;function&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;handle&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;context_line&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">}</span>
-<span class="w">  </span><span class="p">]</span>
+<span class="w">  </span><span class="nt">&quot;diagnostics&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;exception&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;exception_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ValueError&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;exception_message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bad input&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;stack&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;... trimmed stack trace ...&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;frames&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">&quot;filename&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;app.py&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;lineno&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;function&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;handle&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;context_line&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">}</span>
+<span class="w">      </span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -246,7 +265,7 @@
 <section id="where-to-see-it">
 <h2>Where to see it<a class="headerlink" href="#where-to-see-it" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Default stdout sink emits JSON lines preserving the envelope structure. The <code class="docutils literal notranslate"><span class="pre">metadata</span></code> field remains nested.</p></li>
+<li><p>Default stdout sink emits JSON lines preserving the envelope structure. The <code class="docutils literal notranslate"><span class="pre">context</span></code>, <code class="docutils literal notranslate"><span class="pre">diagnostics</span></code>, and <code class="docutils literal notranslate"><span class="pre">data</span></code> fields remain nested.</p></li>
 <li><p>File/HTTP sinks receive the same envelope structure before serialization.</p></li>
 </ul>
 </section>

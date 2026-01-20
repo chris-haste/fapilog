@@ -193,7 +193,7 @@
 <h1>Redaction Guarantee<a class="headerlink" href="#redaction-guarantee" title="Link to this heading"></a></h1>
 <p>This page documents exactly what fapilog redacts under each configuration.</p>
 <blockquote>
-<div><p><strong>Secure Default:</strong> URL credential redaction (<code class="docutils literal notranslate"><span class="pre">url_credentials</span></code>) is enabled by default in all configurations. Additional redactors (<code class="docutils literal notranslate"><span class="pre">field_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code>) are available via <code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code> or explicit configuration. See <a class="reference internal" href="reliability-defaults.html"><span class="std std-doc">Reliability Defaults</span></a> for details.</p>
+<div><p><strong>Secure Default:</strong> URL credential redaction (<code class="docutils literal notranslate"><span class="pre">url_credentials</span></code>) is enabled by default in all configurations. Additional redactors (<code class="docutils literal notranslate"><span class="pre">field_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code>) are available via <code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">preset=&quot;fastapi&quot;</span></code>, or explicit configuration. See <a class="reference internal" href="reliability-defaults.html"><span class="std std-doc">Reliability Defaults</span></a> for details.</p>
 </div></blockquote>
 <section id="quick-reference">
 <h2>Quick Reference<a class="headerlink" href="#quick-reference" title="Link to this heading"></a></h2>
@@ -226,10 +226,10 @@
 <td><p>Standard</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">preset=&quot;fastapi&quot;</span></code></p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-<td><p>None (explicit opt-out)</p></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>Standard</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">preset=&quot;minimal&quot;</span></code></p></td>
 <td><p>No</p></td>
@@ -245,24 +245,24 @@
 <p>When using <code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code>, three redactors are enabled in order:</p>
 <section id="field-mask-redactor">
 <h3>1. field_mask Redactor<a class="headerlink" href="#field-mask-redactor" title="Link to this heading"></a></h3>
-<p>Masks specific field paths under <code class="docutils literal notranslate"><span class="pre">metadata.*</span></code>:</p>
+<p>Masks specific field paths under <code class="docutils literal notranslate"><span class="pre">data.*</span></code>:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">metadata.password</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">metadata.api_key</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">metadata.token</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">metadata.secret</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">metadata.authorization</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">metadata.api_secret</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">metadata.private_key</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">metadata.ssn</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">metadata.credit_card</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data.password</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data.api_key</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data.token</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data.secret</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data.authorization</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data.api_secret</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data.private_key</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data.ssn</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data.credit_card</span></code></p></li>
 </ul>
 <p><strong>Example:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Input</span>
-<span class="p">{</span><span class="s2">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;hunter2&quot;</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="s2">&quot;alice&quot;</span><span class="p">}}</span>
+<span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;hunter2&quot;</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="s2">&quot;alice&quot;</span><span class="p">}}</span>
 
 <span class="c1"># Output</span>
-<span class="p">{</span><span class="s2">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;***&quot;</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="s2">&quot;alice&quot;</span><span class="p">}}</span>
+<span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;***&quot;</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="s2">&quot;alice&quot;</span><span class="p">}}</span>
 </pre></div>
 </div>
 </section>
@@ -387,7 +387,7 @@
 </pre></div>
 </div>
 <blockquote>
-<div><p><strong>Note:</strong> The <code class="docutils literal notranslate"><span class="pre">dev</span></code>, <code class="docutils literal notranslate"><span class="pre">fastapi</span></code>, and <code class="docutils literal notranslate"><span class="pre">minimal</span></code> presets explicitly set <code class="docutils literal notranslate"><span class="pre">redactors:</span> <span class="pre">[]</span></code> to disable redaction for development visibility and debugging. This is intentional - if you need URL credential protection in development, use <code class="docutils literal notranslate"><span class="pre">Settings()</span></code> without a preset or use <code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code>.</p>
+<div><p><strong>Note:</strong> The <code class="docutils literal notranslate"><span class="pre">dev</span></code> and <code class="docutils literal notranslate"><span class="pre">minimal</span></code> presets explicitly set <code class="docutils literal notranslate"><span class="pre">redactors:</span> <span class="pre">[]</span></code> to disable redaction for development visibility and debugging. This is intentional - if you need URL credential protection in development, use <code class="docutils literal notranslate"><span class="pre">Settings()</span></code> without a preset, <code class="docutils literal notranslate"><span class="pre">preset=&quot;fastapi&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code>.</p>
 </div></blockquote>
 </section>
 <section id="guardrails">
@@ -406,7 +406,7 @@
 <li><p>Default <code class="docutils literal notranslate"><span class="pre">Settings()</span></code> has <code class="docutils literal notranslate"><span class="pre">url_credentials</span></code> enabled for secure defaults</p></li>
 <li><p>Production preset enables <code class="docutils literal notranslate"><span class="pre">field_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code>, and <code class="docutils literal notranslate"><span class="pre">url_credentials</span></code></p></li>
 <li><p>All documented fields and patterns are configured</p></li>
-<li><p>Non-production presets (<code class="docutils literal notranslate"><span class="pre">dev</span></code>, <code class="docutils literal notranslate"><span class="pre">fastapi</span></code>, <code class="docutils literal notranslate"><span class="pre">minimal</span></code>) explicitly set <code class="docutils literal notranslate"><span class="pre">redactors:</span> <span class="pre">[]</span></code> to opt-out</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">dev</span></code> and <code class="docutils literal notranslate"><span class="pre">minimal</span></code> presets explicitly set <code class="docutils literal notranslate"><span class="pre">redactors:</span> <span class="pre">[]</span></code> to opt-out</p></li>
 </ol>
 <p>If these tests fail, update both code AND documentation to maintain alignment.</p>
 </section>

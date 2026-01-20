@@ -2,7 +2,7 @@
 
 This page documents exactly what fapilog redacts under each configuration.
 
-> **Secure Default:** URL credential redaction (`url_credentials`) is enabled by default in all configurations. Additional redactors (`field_mask`, `regex_mask`) are available via `preset="production"` or explicit configuration. See [Reliability Defaults](reliability-defaults.md) for details.
+> **Secure Default:** URL credential redaction (`url_credentials`) is enabled by default in all configurations. Additional redactors (`field_mask`, `regex_mask`) are available via `preset="production"`, `preset="fastapi"`, or explicit configuration. See [Reliability Defaults](reliability-defaults.md) for details.
 
 ## Quick Reference
 
@@ -11,7 +11,7 @@ This page documents exactly what fapilog redacts under each configuration.
 | `Settings()` (no preset) | No | No | **Yes** | Basic (URL credentials scrubbed) |
 | `preset="dev"` | No | No | No | None (explicit opt-out) |
 | `preset="production"` | Yes | Yes | Yes | Standard |
-| `preset="fastapi"` | No | No | No | None (explicit opt-out) |
+| `preset="fastapi"` | Yes | Yes | Yes | Standard |
 | `preset="minimal"` | No | No | No | None (explicit opt-out) |
 
 ## Production Preset Details
@@ -20,25 +20,25 @@ When using `preset="production"`, three redactors are enabled in order:
 
 ### 1. field_mask Redactor
 
-Masks specific field paths under `metadata.*`:
+Masks specific field paths under `data.*`:
 
-- `metadata.password`
-- `metadata.api_key`
-- `metadata.token`
-- `metadata.secret`
-- `metadata.authorization`
-- `metadata.api_secret`
-- `metadata.private_key`
-- `metadata.ssn`
-- `metadata.credit_card`
+- `data.password`
+- `data.api_key`
+- `data.token`
+- `data.secret`
+- `data.authorization`
+- `data.api_secret`
+- `data.private_key`
+- `data.ssn`
+- `data.credit_card`
 
 **Example:**
 ```python
 # Input
-{"metadata": {"password": "hunter2", "user": "alice"}}
+{"data": {"password": "hunter2", "user": "alice"}}
 
 # Output
-{"metadata": {"password": "***", "user": "alice"}}
+{"data": {"password": "***", "user": "alice"}}
 ```
 
 ### 2. regex_mask Redactor
@@ -145,7 +145,7 @@ settings = Settings(
 )
 ```
 
-> **Note:** The `dev`, `fastapi`, and `minimal` presets explicitly set `redactors: []` to disable redaction for development visibility and debugging. This is intentional - if you need URL credential protection in development, use `Settings()` without a preset or use `preset="production"`.
+> **Note:** The `dev` and `minimal` presets explicitly set `redactors: []` to disable redaction for development visibility and debugging. This is intentional - if you need URL credential protection in development, use `Settings()` without a preset, `preset="fastapi"`, or `preset="production"`.
 
 ## Guardrails
 
@@ -163,6 +163,6 @@ The tests in `tests/unit/test_redaction_defaults.py` validate that:
 1. Default `Settings()` has `url_credentials` enabled for secure defaults
 2. Production preset enables `field_mask`, `regex_mask`, and `url_credentials`
 3. All documented fields and patterns are configured
-4. Non-production presets (`dev`, `fastapi`, `minimal`) explicitly set `redactors: []` to opt-out
+4. The `dev` and `minimal` presets explicitly set `redactors: []` to opt-out
 
 If these tests fail, update both code AND documentation to maintain alignment.

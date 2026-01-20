@@ -43,7 +43,7 @@ The `production` and `fastapi` presets enable all three redactors with sensible 
 ```python
 logger = get_logger(preset="production")
 logger.info("Auth", password="secret", api_key="sk-123")
-# Both fields redacted: password="[REDACTED]", api_key="[REDACTED]"
+# Both fields redacted: password="***", api_key="***"
 ```
 
 Fields masked by `production`/`fastapi` presets:
@@ -66,7 +66,7 @@ logger = (
     .with_redaction(patterns=["secret.*", "token.*"])
     .build()
 )
-logger.info("Login", password="secret123")  # password=[REDACTED]
+logger.info("Login", password="secret123")  # password=***
 ```
 
 ### Using Environment Variables
