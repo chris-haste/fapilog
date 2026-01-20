@@ -27,9 +27,8 @@ logger.info("viewed record", user_id="u-123", contains_pii=True)
 - `compliance_level` — `basic`, `sox`, `hipaa`, `gdpr`, `pci_dss`, `soc2`, `iso27001`
 - `storage_path` — directory for JSONL audit files
 - `retention_days` — retention window (metadata only; manage rotation/archival per policy)
-- `encrypt_logs` — enable encryption if supported by the underlying storage
 - `require_integrity` — keep hash-chain integrity fields for tamper detection
-- `real_time_alerts` — enable policy-driven alert emission
+- `real_time_alerts` — enable policy-driven alert detection (delivery requires custom integration; see [Real-Time Compliance Alerts](../enterprise.md#real-time-compliance-alerts))
 
 ## Event Mapping
 
