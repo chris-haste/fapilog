@@ -28,7 +28,7 @@ logger.info("viewed record", user_id="u-123", contains_pii=True)
 - `storage_path` — directory for JSONL audit files
 - `retention_days` — retention window (metadata only; manage rotation/archival per policy)
 - `require_integrity` — keep hash-chain integrity fields for tamper detection
-- `real_time_alerts` — enable policy-driven alert detection (delivery requires custom integration; see [Real-Time Compliance Alerts](../enterprise.md#real-time-compliance-alerts))
+- `real_time_alerts` — enable policy-driven alert detection (delivery requires custom integration; see [Enterprise Features](../enterprise.md))
 
 ## Event Mapping
 
