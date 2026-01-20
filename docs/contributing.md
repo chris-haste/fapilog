@@ -202,22 +202,26 @@ def log_event(logger: Any, event_dict: Dict[str, Any]) -> None:
 **Google style for all public APIs:**
 
 ```python
-def configure_logging(
-    settings: Optional[LoggingSettings] = None,
-    app: Optional[Any] = None
-) -> None:
-    """Configure Fapilog with the given settings.
+def process_request(
+    request_id: str,
+    user_id: Optional[str] = None
+) -> dict[str, Any]:
+    """Process an incoming request with logging.
 
     Args:
-        settings: Logging configuration. If None, created from environment.
-        app: FastAPI app instance. If provided, middleware is registered.
+        request_id: Unique request identifier for tracing.
+        user_id: Optional user identifier for context binding.
+
+    Returns:
+        Response dictionary with processing result.
 
     Raises:
-        ConfigurationError: If settings are invalid.
+        ValueError: If request_id is empty or invalid.
 
     Example:
-        >>> configure_logging()
-        >>> configure_logging(settings=LoggingSettings(level="DEBUG"))
+        >>> result = process_request("req-123", user_id="user-456")
+        >>> result["status"]
+        'completed'
     """
     pass
 ```
@@ -241,30 +245,27 @@ def configure_logging(
 **Function naming:** `test_*`
 
 ```python
-# tests/test_bootstrap.py
+# tests/test_example.py
 import pytest
-from fapilog import configure_logging, log
+from fapilog import get_logger, runtime
 
-class TestBootstrap:
-    """Test bootstrap functionality."""
+class TestLogging:
+    """Test logging functionality."""
 
-    def test_configure_logging_defaults(self):
-        """Test configure_logging with default settings."""
+    def test_get_logger_defaults(self):
+        """Test get_logger with default settings."""
         # Arrange
         # Act
-        configure_logging()
+        logger = get_logger()
         # Assert
-        assert log is not None
+        assert logger is not None
 
-    @pytest.mark.asyncio
-    async def test_async_logging(self):
-        """Test async logging functionality."""
-        # Arrange
-        configure_logging()
-        # Act
-        log.info("Test message")
-        # Assert
-        # Verify log was written
+    def test_runtime_context_manager(self):
+        """Test runtime context manager for auto-drain."""
+        # Arrange / Act / Assert
+        with runtime() as logger:
+            logger.info("Test message")
+        # Logger auto-drained on exit
 ```
 
 ### **Test Categories**
@@ -343,37 +344,42 @@ hatch run test-cov
 **All public APIs must have docstrings:**
 
 ```python
-def configure_logging(
-    settings: Optional[LoggingSettings] = None,
-    app: Optional[Any] = None
-) -> None:
-    """Configure Fapilog logging system.
+def get_logger(
+    name: Optional[str] = None,
+    *,
+    preset: Optional[str] = None,
+    settings: Optional[Settings] = None
+) -> SyncLoggerFacade:
+    """Return a sync logger with optional preset or settings.
 
-    This function initializes the logging system with the provided settings
-    or environment variables. It sets up sinks, enrichers, and middleware
-    as configured.
+    Creates a logger instance with background worker, queue, and batching.
+    Uses zero-config defaults if no parameters are provided.
 
     Args:
-        settings: Complete logging configuration. If None, created from
-            environment variables using LoggingSettings.from_env().
-        app: FastAPI application instance. If provided, TraceIDMiddleware
-            is automatically registered and exception handlers are added.
+        name: Optional logger name for identification.
+        preset: Built-in preset name (dev, production, fastapi, minimal).
+            Mutually exclusive with settings.
+        settings: Explicit Settings object for full control.
+            Mutually exclusive with preset.
+
+    Returns:
+        A configured SyncLoggerFacade ready for use.
 
     Raises:
-        ConfigurationError: If settings are invalid or required dependencies
-            are missing (e.g., httpx for Loki sink).
+        ValueError: If both preset and settings are provided.
 
     Example:
-        Basic configuration with defaults:
-        >>> configure_logging()
+        Zero-config usage:
+        >>> logger = get_logger()
+        >>> logger.info("Application started")
 
-        Custom configuration:
-        >>> settings = LoggingSettings(level="DEBUG", sinks=["stdout"])
-        >>> configure_logging(settings=settings)
+        With preset:
+        >>> logger = get_logger(preset="production")
+        >>> logger.info("User login", user_id="123")
 
-        FastAPI integration:
-        >>> app = FastAPI()
-        >>> configure_logging(app=app)
+        With custom settings:
+        >>> settings = Settings(core={"log_level": "DEBUG"})
+        >>> logger = get_logger(settings=settings)
     """
 ```
 
@@ -683,8 +689,9 @@ Brief description of the issue.
 1. Install fapilog: `pip install fapilog`
 2. Run this code:
    ```python
-   from fapilog import configure_logging
-   configure_logging()
+   from fapilog import get_logger
+   logger = get_logger()
+   logger.info("test")
    ```
 ````
 

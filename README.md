@@ -110,6 +110,8 @@ logger = get_logger(preset="minimal")
 | `fastapi` | INFO | No | Yes (9 fields) | 50 | FastAPI/async apps |
 | `minimal` | INFO | No | No | Default | Backwards compatible |
 
+> **Security Note:** By default, only URL credentials (`user:pass@host`) are stripped. For full field redaction (passwords, API keys, tokens), use a preset like `production`/`fastapi` or configure redactors manually. See [redaction docs](docs/core-concepts/redaction.md).
+
 See [docs/user-guide/configuration.md](docs/user-guide/configuration.md) for full preset details.
 
 ### Sink routing by level
