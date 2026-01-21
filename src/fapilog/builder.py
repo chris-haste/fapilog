@@ -229,6 +229,202 @@ class LoggerBuilder:
         existing.extend(filters)
         return self
 
+    def with_sampling(
+        self,
+        rate: float = 1.0,
+        *,
+        seed: int | None = None,
+    ) -> LoggerBuilder:
+        """Configure probabilistic sampling filter.
+
+        Args:
+            rate: Sample rate 0.0-1.0 (1.0 = keep all, 0.1 = keep 10%)
+            seed: Random seed for reproducibility
+
+        Example:
+            >>> builder.with_sampling(rate=0.1)  # Keep 10% of logs
+        """
+        filters = self._config.setdefault("core", {}).setdefault("filters", [])
+        if "sampling" not in filters:
+            filters.append("sampling")
+
+        filter_config = self._config.setdefault("filter_config", {})
+        sampling_config: dict[str, Any] = {"sample_rate": rate}
+        if seed is not None:
+            sampling_config["seed"] = seed
+        filter_config["sampling"] = sampling_config
+
+        return self
+
+    def with_adaptive_sampling(
+        self,
+        min_rate: float = 0.01,
+        max_rate: float = 1.0,
+        *,
+        target_events_per_sec: float = 1000.0,
+        window_seconds: float = 60.0,
+    ) -> LoggerBuilder:
+        """Configure adaptive sampling based on event rate.
+
+        Args:
+            min_rate: Minimum sample rate (default: 0.01)
+            max_rate: Maximum sample rate (default: 1.0)
+            target_events_per_sec: Target event throughput (default: 1000)
+            window_seconds: Measurement window (default: 60)
+
+        Example:
+            >>> builder.with_adaptive_sampling(target_events_per_sec=500)
+        """
+        filters = self._config.setdefault("core", {}).setdefault("filters", [])
+        if "adaptive_sampling" not in filters:
+            filters.append("adaptive_sampling")
+
+        filter_config = self._config.setdefault("filter_config", {})
+        filter_config["adaptive_sampling"] = {
+            "min_rate": min_rate,
+            "max_rate": max_rate,
+            "target_events_per_sec": target_events_per_sec,
+            "window_seconds": window_seconds,
+        }
+
+        return self
+
+    def with_trace_sampling(
+        self,
+        default_rate: float = 1.0,
+        *,
+        honor_upstream: bool = True,
+    ) -> LoggerBuilder:
+        """Configure distributed trace-aware sampling.
+
+        Args:
+            default_rate: Default sample rate when no trace context (default: 1.0)
+            honor_upstream: Honor upstream sampling decisions (default: True)
+
+        Example:
+            >>> builder.with_trace_sampling(default_rate=0.1)
+        """
+        filters = self._config.setdefault("core", {}).setdefault("filters", [])
+        if "trace_sampling" not in filters:
+            filters.append("trace_sampling")
+
+        filter_config = self._config.setdefault("filter_config", {})
+        filter_config["trace_sampling"] = {
+            "default_rate": default_rate,
+            "honor_upstream": honor_upstream,
+        }
+
+        return self
+
+    def with_rate_limit(
+        self,
+        capacity: int = 10,
+        *,
+        refill_rate: float = 5.0,
+        key_field: str | None = None,
+        max_keys: int = 10000,
+        overflow_action: str = "drop",
+    ) -> LoggerBuilder:
+        """Configure token bucket rate limiting filter.
+
+        Args:
+            capacity: Token bucket capacity (default: 10)
+            refill_rate: Tokens refilled per second (default: 5.0)
+            key_field: Event field for partitioning buckets
+            max_keys: Maximum buckets to track (default: 10000)
+            overflow_action: Action on overflow ("drop" or "mark")
+
+        Example:
+            >>> builder.with_rate_limit(capacity=100, refill_rate=10.0)
+        """
+        filters = self._config.setdefault("core", {}).setdefault("filters", [])
+        if "rate_limit" not in filters:
+            filters.append("rate_limit")
+
+        filter_config = self._config.setdefault("filter_config", {})
+        rate_limit_config: dict[str, Any] = {
+            "capacity": capacity,
+            "refill_rate_per_sec": refill_rate,
+            "max_keys": max_keys,
+            "overflow_action": overflow_action,
+        }
+        if key_field is not None:
+            rate_limit_config["key_field"] = key_field
+        filter_config["rate_limit"] = rate_limit_config
+
+        return self
+
+    def with_first_occurrence(
+        self,
+        window_seconds: float = 300.0,
+        *,
+        max_entries: int = 10000,
+        key_fields: list[str] | None = None,
+    ) -> LoggerBuilder:
+        """Configure first-occurrence deduplication filter.
+
+        Args:
+            window_seconds: Deduplication window (default: 300 = 5 minutes)
+            max_entries: Maximum tracked messages (default: 10000)
+            key_fields: Fields to use as dedup key (default: message only)
+
+        Example:
+            >>> builder.with_first_occurrence(window_seconds=60)
+        """
+        filters = self._config.setdefault("core", {}).setdefault("filters", [])
+        if "first_occurrence" not in filters:
+            filters.append("first_occurrence")
+
+        filter_config = self._config.setdefault("filter_config", {})
+        first_occurrence_config: dict[str, Any] = {
+            "window_seconds": window_seconds,
+            "max_entries": max_entries,
+        }
+        if key_fields is not None:
+            first_occurrence_config["key_fields"] = key_fields
+        filter_config["first_occurrence"] = first_occurrence_config
+
+        return self
+
+    def with_size_guard(
+        self,
+        max_bytes: str | int = "256 KB",
+        *,
+        action: str = "truncate",
+        preserve_fields: list[str] | None = None,
+    ) -> LoggerBuilder:
+        """Configure payload size limiting processor.
+
+        Args:
+            max_bytes: Maximum payload size ("256 KB" or 262144)
+            action: Action on oversized payloads ("truncate", "drop", "warn")
+            preserve_fields: Fields to never remove during truncation
+
+        Example:
+            >>> builder.with_size_guard(max_bytes="1 MB", action="truncate")
+        """
+        processors = self._config.setdefault("core", {}).setdefault("processors", [])
+        if "size_guard" not in processors:
+            processors.append("size_guard")
+
+        processor_config = self._config.setdefault("processor_config", {})
+        size_guard_config: dict[str, Any] = {
+            "max_bytes": max_bytes,
+            "action": action,
+        }
+        if preserve_fields is not None:
+            size_guard_config["preserve_fields"] = preserve_fields
+        else:
+            size_guard_config["preserve_fields"] = [
+                "level",
+                "timestamp",
+                "logger",
+                "correlation_id",
+            ]
+        processor_config["size_guard"] = size_guard_config
+
+        return self
+
     def with_queue_size(self, size: int) -> LoggerBuilder:
         """Set max queue size.
 
