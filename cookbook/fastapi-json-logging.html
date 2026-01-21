@@ -1,0 +1,377 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FastAPI JSON logging to stdout (Uvicorn access logs included) &mdash; fapilog latest documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=30646c52"></script>
+      <script src="../_static/custom.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="FastAPI request_id logging (correlation ID middleware, concurrency-safe)" href="fastapi-request-id-logging.html" />
+    <link rel="prev" title="Cookbook" href="index.html" />
+ 
+
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/cookbook/fastapi-json-logging.html" />
+<meta name="robots" content="noindex, follow" />
+
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            fapilog
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/quickstart.html">Quickstart Tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/hello-world.html">Hello World Walkthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../core-concepts/index.html">Core Concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/pipeline-architecture.html">Pipeline Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/envelope.html">Envelope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/batching-backpressure.html">Batching &amp; Backpressure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/redaction.html">Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/metrics.html">Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html">Diagnostics Resilience</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html#id1">Diagnostics &amp; Resilience</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide/index.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/builder-configuration.html">Configuring Fapilog with the Builder API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/settings-to-builder-migration.html">Migrating from Settings to Builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/environment-variables.html">Environment Variable Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/using-logger.html">Using the Logger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/context-enrichment.html">Context Enrichment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/sink-routing.html">Sink routing by level</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/redaction-guarantee.html">Redaction Guarantee</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/performance-tuning.html">Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/benchmarks.html">Performance Benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/integration-guide.html">Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/fastapi.html">FastAPI / ASGI Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/comparisons.html">Comparisons: fapilog vs stdlib, structlog, loguru</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/testing-plugins.html">Testing Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/webhook-security.html">Webhook Security</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Cookbook</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">FastAPI JSON logging to stdout (Uvicorn access logs included)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fastapi-request-id-logging.html">FastAPI request_id logging (correlation ID middleware, concurrency-safe)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api-reference/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/top-level-functions.html">Top-Level Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/builder.html">Builder API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/logger-methods.html">Logger Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/audit-trail.html">Audit Trail</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/types.html">Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/plugins/index.html">Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/modules.html">API Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples &amp; Recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/builder-configurations.html">Builder Configuration Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/fastapi-logging.html">FastAPI Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cli-tools.html">Logging in Scripts/CLIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/redacting-secrets.html">Redacting Secrets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/structured-error-logging.html">Structured Error Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/kubernetes-file-sink.html">Kubernetes File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/prometheus-metrics.html">Prometheus Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloudwatch_logging/index.html">CloudWatch Logging (LocalStack)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloud-sinks/index.html">Cloud Sink Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugin Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/authoring.html">Authoring Fapilog Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/enrichers.html">Enrichers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/filters.html">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/processors.html">Processors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/testing.html">Plugin Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/configuration.html">Plugin Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/health-checks.html">Plugin Health Checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/error-handling.html">Plugin Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../patterns.html">Integration Patterns</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting/index.html">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/logs-dropped-under-load.html">Logs Dropped Under Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/destination-size-limits.html">Logs Rejected by Destination Size Limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/context-values-missing.html">Context Values Missing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/file-sink-not-rotating.html">File Sink Not Rotating</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/serialization-errors.html">Serialization Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/cloudwatch-sink.html">CloudWatch Sink Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/loki-sink.html">Loki Sink Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices.html">Appendices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../env-vars.html">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../settings-guide.html">Settings Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-guide.html">Schema Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-migration-v1.0-to-v1.1.html">Schema Migration Guide: v1.0 to v1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugin-guide.html">Plugin Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction-guarantees.html">Redaction Guarantees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quality-signals.html">Quality Signals</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">fapilog</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Cookbook</a></li>
+      <li class="breadcrumb-item active">FastAPI JSON logging to stdout (Uvicorn access logs included)</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/cookbook/fastapi-json-logging.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="fastapi-json-logging-to-stdout-uvicorn-access-logs-included">
+<h1>FastAPI JSON logging to stdout (Uvicorn access logs included)<a class="headerlink" href="#fastapi-json-logging-to-stdout-uvicorn-access-logs-included" title="Link to this heading"></a></h1>
+<p>Container platforms like Docker, Kubernetes, and AWS ECS expect structured JSON logs on stdout. Without consistent formatting, log aggregation systems (CloudWatch, Datadog, ELK) can’t parse your logs reliably.</p>
+<section id="the-problem">
+<h2>The Problem<a class="headerlink" href="#the-problem" title="Link to this heading"></a></h2>
+<p>A typical FastAPI application produces two distinct log streams:</p>
+<p><strong>Application logs</strong> (your code):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">INFO</span><span class="p">:</span>     <span class="n">Processing</span> <span class="n">order</span> <span class="mi">12345</span>
+</pre></div>
+</div>
+<p><strong>Uvicorn access logs</strong> (HTTP requests):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">INFO</span><span class="p">:</span>     <span class="mf">127.0.0.1</span><span class="p">:</span><span class="mi">52486</span> <span class="o">-</span> <span class="s2">&quot;GET /api/orders HTTP/1.1&quot;</span> <span class="mi">200</span> <span class="n">OK</span>
+</pre></div>
+</div>
+<p>These plain text formats cause problems:</p>
+<ol class="arabic simple">
+<li><p><strong>Inconsistent structure</strong> - App logs and access logs have different formats</p></li>
+<li><p><strong>Color codes</strong> - Uvicorn adds ANSI escape sequences that break JSON parsers</p></li>
+<li><p><strong>No machine-readable fields</strong> - Can’t filter by status code, latency, or request ID</p></li>
+</ol>
+</section>
+<section id="the-solution">
+<h2>The Solution<a class="headerlink" href="#the-solution" title="Link to this heading"></a></h2>
+<p>fapilog provides unified JSON output for both application and access logs:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">Depends</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span><span class="p">,</span> <span class="n">get_request_logger</span>
+
+<span class="n">lifespan</span> <span class="o">=</span> <span class="n">setup_logging</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">lifespan</span><span class="p">)</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/api/orders/</span><span class="si">{order_id}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_order</span><span class="p">(</span><span class="n">order_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">Depends</span><span class="p">(</span><span class="n">get_request_logger</span><span class="p">)):</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Processing order&quot;</span><span class="p">,</span> <span class="n">order_id</span><span class="o">=</span><span class="n">order_id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;order_id&quot;</span><span class="p">:</span> <span class="n">order_id</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;shipped&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">preset=&quot;fastapi&quot;</span></code> configuration:</p>
+<ul class="simple">
+<li><p>Outputs JSON to stdout (no files)</p></li>
+<li><p>Disables color codes</p></li>
+<li><p>Includes request context (request_id) automatically</p></li>
+<li><p>Masks sensitive fields (passwords, API keys, tokens)</p></li>
+</ul>
+</section>
+<section id="sample-output">
+<h2>Sample Output<a class="headerlink" href="#sample-output" title="Link to this heading"></a></h2>
+<p><strong>Application log:</strong></p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-01-21T10:30:00.123Z&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Processing order&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;order_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;12345&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;request_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;550e8400-e29b-41d4-a716-446655440000&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Access log:</strong></p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-01-21T10:30:00.456Z&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;HTTP request&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;method&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;GET&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/api/orders/12345&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;status_code&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">200</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;duration_ms&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">15.2</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;request_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;550e8400-e29b-41d4-a716-446655440000&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Both share consistent field names (<code class="docutils literal notranslate"><span class="pre">timestamp</span></code>, <code class="docutils literal notranslate"><span class="pre">level</span></code>, <code class="docutils literal notranslate"><span class="pre">message</span></code>, <code class="docutils literal notranslate"><span class="pre">request_id</span></code>), making log aggregation straightforward.</p>
+</section>
+<section id="including-uvicorn-access-logs">
+<h2>Including Uvicorn Access Logs<a class="headerlink" href="#including-uvicorn-access-logs" title="Link to this heading"></a></h2>
+<p>fapilog’s <code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code> automatically installs middleware that captures HTTP requests. The <code class="docutils literal notranslate"><span class="pre">LoggingMiddleware</span></code> handles:</p>
+<ul class="simple">
+<li><p>Request method, path, and query parameters</p></li>
+<li><p>Response status codes</p></li>
+<li><p>Request duration</p></li>
+<li><p>Client IP address</p></li>
+<li><p>Request ID correlation</p></li>
+</ul>
+<p>No additional Uvicorn configuration is needed. The default Uvicorn access log is effectively replaced by fapilog’s structured output.</p>
+<section id="disabling-default-uvicorn-logs">
+<h3>Disabling Default Uvicorn Logs<a class="headerlink" href="#disabling-default-uvicorn-logs" title="Link to this heading"></a></h3>
+<p>If you want to suppress Uvicorn’s default access logging entirely (recommended to avoid duplicate logs), configure Uvicorn:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">uvicorn</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">uvicorn</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+        <span class="s2">&quot;main:app&quot;</span><span class="p">,</span>
+        <span class="n">host</span><span class="o">=</span><span class="s2">&quot;0.0.0.0&quot;</span><span class="p">,</span>
+        <span class="n">port</span><span class="o">=</span><span class="mi">8000</span><span class="p">,</span>
+        <span class="n">access_log</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># Disable Uvicorn&#39;s access log</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p>Or via CLI:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uvicorn<span class="w"> </span>main:app<span class="w"> </span>--host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="w"> </span><span class="m">8000</span><span class="w"> </span>--no-access-log
+</pre></div>
+</div>
+</section>
+</section>
+<section id="docker-configuration">
+<h2>Docker Configuration<a class="headerlink" href="#docker-configuration" title="Link to this heading"></a></h2>
+<p>A minimal Dockerfile for JSON logging:</p>
+<div class="highlight-dockerfile notranslate"><div class="highlight"><pre><span></span><span class="k">FROM</span><span class="w"> </span><span class="s">python:3.11-slim</span>
+
+<span class="k">WORKDIR</span><span class="w"> </span><span class="s">/app</span>
+<span class="k">COPY</span><span class="w"> </span>requirements.txt<span class="w"> </span>.
+<span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+
+<span class="k">COPY</span><span class="w"> </span>.<span class="w"> </span>.
+
+<span class="c"># Use --no-access-log to avoid duplicate access logs</span>
+<span class="k">CMD</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;uvicorn&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;main:app&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--host&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;0.0.0.0&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--port&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;8000&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--no-access-log&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="docker-compose">
+<h3>Docker Compose<a class="headerlink" href="#docker-compose" title="Link to this heading"></a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">services</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">api</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">build</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
+<span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;8000:8000&quot;</span>
+<span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">FAPILOG_CORE__LOG_LEVEL=INFO</span>
+<span class="w">    </span><span class="nt">logging</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json-file</span>
+<span class="w">      </span><span class="nt">options</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">max-size</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;10m&quot;</span>
+<span class="w">        </span><span class="nt">max-file</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="explicit-format-control">
+<h2>Explicit Format Control<a class="headerlink" href="#explicit-format-control" title="Link to this heading"></a></h2>
+<p>If you’re not using the FastAPI integration but still want JSON output:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_async_logger</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="c1"># format=&quot;json&quot; ensures JSON output regardless of environment</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;json&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting service&quot;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="s2">&quot;1.0.0&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For automatic format detection (JSON in containers, pretty in terminals):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="going-deeper">
+<h2>Going Deeper<a class="headerlink" href="#going-deeper" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="fastapi-request-id-logging.html"><span class="std std-doc">FastAPI request_id Logging</span></a> - Correlation ID middleware</p></li>
+<li><p><a class="reference internal" href="../user-guide/context-enrichment.html"><span class="std std-doc">Context Enrichment</span></a> - Adding custom fields to all logs</p></li>
+<li><p><a class="reference internal" href="../user-guide/redactors.html"><span class="std std-doc">Redaction</span></a> - Masking sensitive data</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Cookbook" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="fastapi-request-id-logging.html" class="btn btn-neutral float-right" title="FastAPI request_id logging (correlation ID middleware, concurrency-safe)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Chris Haste.
+      <span class="lastupdated">Last updated on January 21, 2026.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
