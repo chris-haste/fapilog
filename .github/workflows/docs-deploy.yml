@@ -54,10 +54,38 @@ jobs:
       - name: Build docs
         env:
           FAPILOG_DOC_VERSION: ${{ steps.version.outputs.label }}
+          # Set canonical URL for GH Pages builds to point to RTD stable docs
+          # This triggers canonical tag injection and robots.txt deployment
+          GHPAGES_CANONICAL_URL: "https://docs.fapilog.dev/en/stable/"
         run: |
           hatch run docs:build || {
             echo "Docs build failed"; exit 1;
           }
+
+      - name: Verify GH Pages SEO configuration
+        run: |
+          echo "Verifying canonical tags in HTML files..."
+          if ! grep -r 'rel="canonical"' docs/_build/html/*.html > /dev/null 2>&1; then
+            echo "ERROR: No canonical tags found in HTML files"
+            exit 1
+          fi
+          echo "Canonical tags found in HTML files"
+
+          echo "Verifying robots.txt exists..."
+          if [ ! -f docs/_build/html/robots.txt ]; then
+            echo "ERROR: robots.txt not found in build output"
+            exit 1
+          fi
+          echo "robots.txt found at docs/_build/html/robots.txt"
+
+          echo "Verifying noindex meta tags..."
+          if ! grep -r 'name="robots" content="noindex' docs/_build/html/*.html > /dev/null 2>&1; then
+            echo "ERROR: No noindex meta tags found in HTML files"
+            exit 1
+          fi
+          echo "noindex meta tags found in HTML files"
+
+          echo "GH Pages SEO configuration verified successfully"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
