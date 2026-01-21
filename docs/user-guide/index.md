@@ -9,6 +9,7 @@ Practical usage patterns and configuration for fapilog.
 
 configuration
 builder-configuration
+../guides/settings-to-builder-migration
 environment-variables
 using-logger
 context-enrichment
