@@ -485,6 +485,40 @@
 </div>
 </section>
 </section>
+<section id="test-isolation-with-logger-caching">
+<h2>Test Isolation with Logger Caching<a class="headerlink" href="#test-isolation-with-logger-caching" title="Link to this heading"></a></h2>
+<p>Since fapilog caches logger instances by name, tests need isolation to avoid shared state. Two approaches:</p>
+<section id="option-1-use-reuse-false-recommended">
+<h3>Option 1: Use <code class="docutils literal notranslate"><span class="pre">reuse=False</span></code> (Recommended)<a class="headerlink" href="#option-1-use-reuse-false-recommended" title="Link to this heading"></a></h3>
+<p>Create independent logger instances per test:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">asyncio</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_my_feature</span><span class="p">():</span>
+    <span class="c1"># reuse=False creates a fresh instance not added to cache</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">(</span><span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;test message&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Clean up when done</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">drain</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="option-2-clear-cache-in-fixtures">
+<h3>Option 2: Clear Cache in Fixtures<a class="headerlink" href="#option-2-clear-cache-in-fixtures" title="Link to this heading"></a></h3>
+<p>Clear the cache before/after tests:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">clear_logger_cache</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span><span class="p">(</span><span class="n">autouse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">isolate_logger_cache</span><span class="p">():</span>
+    <span class="k">await</span> <span class="n">clear_logger_cache</span><span class="p">()</span>
+    <span class="k">yield</span>
+    <span class="k">await</span> <span class="n">clear_logger_cache</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The fapilog test suite uses an autouse fixture in <code class="docutils literal notranslate"><span class="pre">conftest.py</span></code> that clears the cache between tests.</p>
+</section>
+</section>
 <section id="best-practices">
 <h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
 <ol class="arabic simple">
@@ -494,6 +528,7 @@
 <li><p><strong>Test lifecycle methods</strong> to ensure proper resource management</p></li>
 <li><p><strong>Test error handling</strong> by configuring mocks to fail</p></li>
 <li><p><strong>Test idempotency</strong> - call <code class="docutils literal notranslate"><span class="pre">stop()</span></code> twice to verify it doesn’t break</p></li>
+<li><p><strong>Use <code class="docutils literal notranslate"><span class="pre">reuse=False</span></code></strong> when creating loggers in tests that need isolation</p></li>
 </ol>
 </section>
 <section id="migration-notes">

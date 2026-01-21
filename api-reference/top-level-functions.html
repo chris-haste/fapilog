@@ -200,6 +200,7 @@
     <span class="n">preset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="nb">format</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;json&quot;</span><span class="p">,</span> <span class="s2">&quot;pretty&quot;</span><span class="p">,</span> <span class="s2">&quot;auto&quot;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">settings</span><span class="p">:</span> <span class="n">_Settings</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">reuse</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_SyncLoggerFacade</span>
 </pre></div>
 </div>
@@ -235,12 +236,17 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
 <td><p>Custom settings. If None, uses environment variables.</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">reuse</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>If True, return cached instance for the same name. If False, create a new independent instance.</p></td>
+</tr>
 </tbody>
 </table>
 </section>
 <section id="returns">
 <h3>Returns<a class="headerlink" href="#returns" title="Link to this heading"></a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">_SyncLoggerFacade</span></code> - A logger instance ready for use.</p>
+<p><code class="docutils literal notranslate"><span class="pre">_SyncLoggerFacade</span></code> - A logger instance ready for use (cached by name when <code class="docutils literal notranslate"><span class="pre">reuse=True</span></code>).</p>
 </section>
 <section id="examples">
 <h3>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h3>
@@ -287,6 +293,7 @@
 <li><p>Automatic sink selection: pretty in TTY, JSON when piped; file/http sink when configured via settings/env.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">preset</span></code> and <code class="docutils literal notranslate"><span class="pre">settings</span></code> are mutually exclusive; <code class="docutils literal notranslate"><span class="pre">format</span></code> and <code class="docutils literal notranslate"><span class="pre">settings</span></code> are mutually exclusive.</p></li>
 <li><p>When <code class="docutils literal notranslate"><span class="pre">settings</span></code> is omitted, the default <code class="docutils literal notranslate"><span class="pre">format</span></code> behavior is <code class="docutils literal notranslate"><span class="pre">auto</span></code>.</p></li>
+<li><p><strong>Caching</strong>: By default, loggers are cached by name. Calling <code class="docutils literal notranslate"><span class="pre">get_logger(&quot;foo&quot;)</span></code> multiple times returns the same instance. Use <code class="docutils literal notranslate"><span class="pre">reuse=False</span></code> for independent instances (e.g., in tests).</p></li>
 </ul>
 </section>
 </section>
@@ -298,6 +305,7 @@
     <span class="n">preset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="nb">format</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;json&quot;</span><span class="p">,</span> <span class="s2">&quot;pretty&quot;</span><span class="p">,</span> <span class="s2">&quot;auto&quot;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">settings</span><span class="p">:</span> <span class="n">_Settings</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">reuse</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_AsyncLoggerFacade</span>
 </pre></div>
 </div>
@@ -333,12 +341,17 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
 <td><p>Custom settings. If None, uses environment variables.</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">reuse</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>If True, return cached instance for the same name. If False, create a new independent instance.</p></td>
+</tr>
 </tbody>
 </table>
 </section>
 <section id="id2">
 <h3>Returns<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">_AsyncLoggerFacade</span></code> - A logger instance with awaitable methods.</p>
+<p><code class="docutils literal notranslate"><span class="pre">_AsyncLoggerFacade</span></code> - A logger instance with awaitable methods (cached by name when <code class="docutils literal notranslate"><span class="pre">reuse=True</span></code>).</p>
 </section>
 <section id="id3">
 <h3>Examples<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
@@ -358,6 +371,7 @@
 <li><p>Async API surface: <code class="docutils literal notranslate"><span class="pre">debug</span></code>, <code class="docutils literal notranslate"><span class="pre">info</span></code>, <code class="docutils literal notranslate"><span class="pre">warning</span></code>, <code class="docutils literal notranslate"><span class="pre">error</span></code>, <code class="docutils literal notranslate"><span class="pre">exception</span></code>, <code class="docutils literal notranslate"><span class="pre">drain</span></code>, <code class="docutils literal notranslate"><span class="pre">bind</span></code>, <code class="docutils literal notranslate"><span class="pre">unbind</span></code>, <code class="docutils literal notranslate"><span class="pre">clear_context</span></code></p></li>
 <li><p>Uses the same settings/env vars as <code class="docutils literal notranslate"><span class="pre">get_logger</span></code></p></li>
 <li><p>Prefer <code class="docutils literal notranslate"><span class="pre">runtime_async()</span></code> for automatic lifecycle management</p></li>
+<li><p><strong>Caching</strong>: By default, loggers are cached by name. Calling <code class="docutils literal notranslate"><span class="pre">get_async_logger(&quot;foo&quot;)</span></code> multiple times returns the same instance. Use <code class="docutils literal notranslate"><span class="pre">reuse=False</span></code> for independent instances (e.g., in tests).</p></li>
 </ul>
 </section>
 </section>
@@ -401,6 +415,53 @@
 <span class="c1"># Logger automatically drained on exit</span>
 </pre></div>
 </div>
+</section>
+</section>
+<section id="get-cached-loggers-get-cached-loggers">
+<h2>get_cached_loggers {#get_cached_loggers}<a class="headerlink" href="#get-cached-loggers-get-cached-loggers" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_cached_loggers</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Return a snapshot of currently cached logger names and their types.</p>
+<section id="id7">
+<h3>Returns<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">dict[str,</span> <span class="pre">str]</span></code> - Mapping of logger names to their type (<code class="docutils literal notranslate"><span class="pre">&quot;async&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;sync&quot;</span></code>).</p>
+</section>
+<section id="id8">
+<h3>Examples<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span><span class="p">,</span> <span class="n">get_async_logger</span><span class="p">,</span> <span class="n">get_cached_loggers</span>
+
+<span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;service-a&quot;</span><span class="p">)</span>
+<span class="k">await</span> <span class="n">get_async_logger</span><span class="p">(</span><span class="s2">&quot;service-b&quot;</span><span class="p">)</span>
+
+<span class="n">cached</span> <span class="o">=</span> <span class="n">get_cached_loggers</span><span class="p">()</span>
+<span class="c1"># {&quot;service-a&quot;: &quot;sync&quot;, &quot;service-b&quot;: &quot;async&quot;}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="clear-logger-cache-clear-logger-cache">
+<h2>clear_logger_cache {#clear_logger_cache}<a class="headerlink" href="#clear-logger-cache-clear-logger-cache" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">clear_logger_cache</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</pre></div>
+</div>
+<p>Drain all cached loggers and clear the cache. Useful for test cleanup.</p>
+<section id="id9">
+<h3>Examples<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">clear_logger_cache</span>
+
+<span class="c1"># Clear all cached loggers (drains them first)</span>
+<span class="k">await</span> <span class="n">clear_logger_cache</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="id10">
+<h3>Notes<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Drains all cached loggers before removing them from the cache</p></li>
+<li><p>Thread-safe; can be called from any thread</p></li>
+<li><p>Commonly used in test fixtures for isolation between tests</p></li>
+</ul>
 <hr class="docutils" />
 <p><em>These top-level functions provide the main entry points for using fapilog.</em></p>
 </section>

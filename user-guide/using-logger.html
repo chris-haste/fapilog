@@ -227,11 +227,52 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">stop_and_drain()</span></code> / <code class="docutils literal notranslate"><span class="pre">drain()</span></code>: graceful shutdown; use <code class="docutils literal notranslate"><span class="pre">asyncio.run(logger.stop_and_drain())</span></code> for sync loggers if needed outside <code class="docutils literal notranslate"><span class="pre">runtime()</span></code>.</p></li>
 </ul>
 </section>
+<section id="logger-caching">
+<h2>Logger Caching<a class="headerlink" href="#logger-caching" title="Link to this heading"></a></h2>
+<p>By default, <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> and <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> cache instances by name (like Python’s <code class="docutils literal notranslate"><span class="pre">logging.getLogger()</span></code>):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># These return the same instance</span>
+<span class="n">logger1</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;my-service&quot;</span><span class="p">)</span>
+<span class="n">logger2</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;my-service&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">logger1</span> <span class="ow">is</span> <span class="n">logger2</span>
+
+<span class="c1"># Same for async</span>
+<span class="n">logger_a</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">(</span><span class="s2">&quot;my-service&quot;</span><span class="p">)</span>
+<span class="n">logger_b</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">(</span><span class="s2">&quot;my-service&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">logger_a</span> <span class="ow">is</span> <span class="n">logger_b</span>
+</pre></div>
+</div>
+<p>This prevents resource exhaustion from accidentally creating thousands of logger instances.</p>
+<section id="creating-independent-instances">
+<h3>Creating Independent Instances<a class="headerlink" href="#creating-independent-instances" title="Link to this heading"></a></h3>
+<p>Use <code class="docutils literal notranslate"><span class="pre">reuse=False</span></code> when you need a fresh instance:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a new instance even if one with this name exists</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;test-logger&quot;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Don&#39;t forget to drain when done</span>
+<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">stop_and_drain</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="cache-management">
+<h3>Cache Management<a class="headerlink" href="#cache-management" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_cached_loggers</span><span class="p">,</span> <span class="n">clear_logger_cache</span>
+
+<span class="c1"># See what&#39;s cached</span>
+<span class="n">cached</span> <span class="o">=</span> <span class="n">get_cached_loggers</span><span class="p">()</span>
+<span class="c1"># {&quot;my-service&quot;: &quot;sync&quot;, &quot;other-service&quot;: &quot;async&quot;}</span>
+
+<span class="c1"># Clear all cached loggers (drains them first)</span>
+<span class="k">await</span> <span class="n">clear_logger_cache</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
 <section id="tips">
 <h2>Tips<a class="headerlink" href="#tips" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Lead with sync for scripts/CLI; use async in FastAPI/asyncio apps.</p></li>
 <li><p>Reuse a logger per request/task; bind context at request start and clear at the end.</p></li>
+<li><p>Let caching handle instance reuse; avoid storing loggers in global variables.</p></li>
 </ul>
 </section>
 </section>
