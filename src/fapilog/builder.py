@@ -669,6 +669,215 @@ class LoggerBuilder:
         self._config.setdefault("core", {})["capture_unhandled_enabled"] = enabled
         return self
 
+    def with_routing(
+        self,
+        rules: list[dict[str, Any]],
+        *,
+        fallback: list[str] | None = None,
+        overlap: bool = True,
+    ) -> LoggerBuilder:
+        """Configure level-based sink routing.
+
+        Args:
+            rules: List of routing rules, each with "levels" and "sinks" keys
+            fallback: Sinks to use when no rules match
+            overlap: Allow events to match multiple rules (default: True)
+
+        Example:
+            >>> builder.with_routing(
+            ...     rules=[
+            ...         {"levels": ["ERROR"], "sinks": ["cloudwatch"]},
+            ...         {"levels": ["INFO", "DEBUG"], "sinks": ["file"]},
+            ...     ],
+            ...     fallback=["stdout_json"],
+            ... )
+        """
+        routing_config: dict[str, Any] = {
+            "enabled": True,
+            "rules": rules,
+            "overlap": overlap,
+        }
+        if fallback is not None:
+            routing_config["fallback_sinks"] = fallback
+
+        self._config["sink_routing"] = routing_config
+        return self
+
+    def with_field_mask(
+        self,
+        fields: list[str],
+        *,
+        mask: str = "***",
+        block_on_failure: bool = False,
+        max_depth: int = 16,
+        max_keys: int = 1000,
+    ) -> LoggerBuilder:
+        """Configure field-based redaction.
+
+        Args:
+            fields: Field paths to mask (e.g., ["password", "user.ssn"])
+            mask: Replacement string (default: "***")
+            block_on_failure: Block log entry if redaction fails (default: False)
+            max_depth: Maximum nested depth to scan (default: 16)
+            max_keys: Maximum keys to scan (default: 1000)
+
+        Example:
+            >>> builder.with_field_mask(["password", "api_key"], mask="[REDACTED]")
+        """
+        redactors = self._config.setdefault("core", {}).setdefault("redactors", [])
+        if "field_mask" not in redactors:
+            redactors.append("field_mask")
+
+        redactor_config = self._config.setdefault("redactor_config", {})
+        redactor_config["field_mask"] = {
+            "fields_to_mask": fields,
+            "mask_string": mask,
+            "block_on_unredactable": block_on_failure,
+            "max_depth": max_depth,
+            "max_keys_scanned": max_keys,
+        }
+        return self
+
+    def with_regex_mask(
+        self,
+        patterns: list[str],
+        *,
+        mask: str = "***",
+        block_on_failure: bool = False,
+        max_depth: int = 16,
+        max_keys: int = 1000,
+    ) -> LoggerBuilder:
+        """Configure regex-based field path redaction.
+
+        Note: Patterns match field PATHS (e.g., "context.password"),
+        not field content. Use patterns like "(?i).*password.*".
+
+        Args:
+            patterns: Regex patterns to match against field paths
+            mask: Replacement string (default: "***")
+            block_on_failure: Block log entry if redaction fails (default: False)
+            max_depth: Maximum nested depth to scan (default: 16)
+            max_keys: Maximum keys to scan (default: 1000)
+
+        Example:
+            >>> builder.with_regex_mask(["(?i).*password.*", "(?i).*secret.*"])
+        """
+        redactors = self._config.setdefault("core", {}).setdefault("redactors", [])
+        if "regex_mask" not in redactors:
+            redactors.append("regex_mask")
+
+        redactor_config = self._config.setdefault("redactor_config", {})
+        redactor_config["regex_mask"] = {
+            "patterns": patterns,
+            "mask_string": mask,
+            "block_on_unredactable": block_on_failure,
+            "max_depth": max_depth,
+            "max_keys_scanned": max_keys,
+        }
+        return self
+
+    def with_url_credential_redaction(
+        self,
+        *,
+        enabled: bool = True,
+        max_string_length: int = 4096,
+    ) -> LoggerBuilder:
+        """Configure URL credential redaction.
+
+        Scrubs credentials from URLs like "https://user:pass@host/..."
+
+        Args:
+            enabled: Enable URL credential redaction (default: True)
+            max_string_length: Max string length to parse (default: 4096)
+
+        Example:
+            >>> builder.with_url_credential_redaction(max_string_length=8192)
+        """
+        redactors = self._config.setdefault("core", {}).setdefault("redactors", [])
+        if enabled and "url_credentials" not in redactors:
+            redactors.append("url_credentials")
+        elif not enabled and "url_credentials" in redactors:
+            redactors.remove("url_credentials")
+
+        if enabled:
+            redactor_config = self._config.setdefault("redactor_config", {})
+            redactor_config["url_credentials"] = {
+                "max_string_length": max_string_length,
+            }
+        return self
+
+    def with_redaction_guardrails(
+        self,
+        *,
+        max_depth: int = 6,
+        max_keys: int = 5000,
+    ) -> LoggerBuilder:
+        """Configure global redaction guardrails.
+
+        Args:
+            max_depth: Maximum nested depth for redaction (default: 6)
+            max_keys: Maximum keys scanned during redaction (default: 5000)
+
+        Example:
+            >>> builder.with_redaction_guardrails(max_depth=10, max_keys=10000)
+        """
+        core = self._config.setdefault("core", {})
+        core["redaction_max_depth"] = max_depth
+        core["redaction_max_keys_scanned"] = max_keys
+        return self
+
+    def configure_enricher(
+        self,
+        name: str,
+        **config: Any,
+    ) -> LoggerBuilder:
+        """Configure a specific enricher.
+
+        Args:
+            name: Enricher name (e.g., "runtime_info", "context_vars")
+            **config: Enricher-specific configuration
+
+        Example:
+            >>> builder.configure_enricher("runtime_info", service="my-api")
+        """
+        enricher_config = self._config.setdefault("enricher_config", {})
+        enricher_config[name] = config
+        return self
+
+    def with_plugins(
+        self,
+        *,
+        enabled: bool = True,
+        allow_external: bool = False,
+        allowlist: list[str] | None = None,
+        denylist: list[str] | None = None,
+        validation_mode: str = "disabled",
+    ) -> LoggerBuilder:
+        """Configure plugin loading behavior.
+
+        Args:
+            enabled: Enable plugin loading (default: True)
+            allow_external: Allow entry point plugins (default: False)
+            allowlist: Only allow these plugins (empty = all allowed)
+            denylist: Block these plugins
+            validation_mode: Validation mode ("disabled", "warn", "strict")
+
+        Example:
+            >>> builder.with_plugins(allowlist=["rotating_file", "stdout_json"])
+        """
+        plugins_config: dict[str, Any] = {
+            "enabled": enabled,
+            "allow_external": allow_external,
+            "validation_mode": validation_mode,
+        }
+        if allowlist is not None:
+            plugins_config["allowlist"] = allowlist
+        if denylist is not None:
+            plugins_config["denylist"] = denylist
+
+        self._config["plugins"] = plugins_config
+        return self
+
     def add_cloudwatch(
         self,
         log_group: str,
