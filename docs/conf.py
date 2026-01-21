@@ -193,10 +193,14 @@ html_favicon = None
 # Exclude large sets of drafts/roadmap docs from builds to reduce warnings
 exclude_patterns = [
     "**/*.md.md",
+    "adr/**",
     "architecture/**",
+    "audits/**",
     "contributing/**",
     "prd/**",
     "stories/**",
+    "documentation-review-report.md",
+    "patterns/property-based-tests.md",
     "style-guide.md",
     "INFRASTRUCTURE_SETUP.md",
     "README.md",
