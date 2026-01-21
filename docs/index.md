@@ -58,6 +58,7 @@ await logger.error("Database connection failed", exc_info=True)
 getting-started/index
 core-concepts/index
 user-guide/index
+cookbook/index
 enterprise
 api-reference/index
 examples/index
@@ -72,6 +73,7 @@ appendices
 - **[Getting Started](getting-started/index.md)** - Installation and quickstart
 - **[Core Concepts](core-concepts/index.md)** - Understanding the architecture
 - **[User Guide](user-guide/index.md)** - Practical usage and configuration
+- **[Cookbook](cookbook/index.md)** - Focused recipes for common problems
 - **[Enterprise Features](enterprise.md)** - Compliance, audit trails, and security (see the new tamper/KMS guide under Enterprise)
 
 **Reference:**
