@@ -101,6 +101,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../cookbook/fastapi-json-logging.html">FastAPI JSON logging to stdout (Uvicorn access logs included)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../cookbook/fastapi-request-id-logging.html">FastAPI request_id logging (correlation ID middleware, concurrency-safe)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../cookbook/non-blocking-async-logging.html">Non-blocking logging in FastAPI (protect latency under slow sinks)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/dev-prod-logging-config.html">One FastAPI logging config for dev + prod (Uvicorn/Gunicorn)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
@@ -199,6 +200,7 @@
   <section class="tex2jax_ignore mathjax_ignore" id="integration-guide">
 <h1>Integration Guide<a class="headerlink" href="#integration-guide" title="Link to this heading"></a></h1>
 <p>Patterns for common application types.</p>
+<p><strong>See also:</strong> <a class="reference internal" href="../cookbook/dev-prod-logging-config.html"><span class="std std-doc">One FastAPI config for dev + prod</span></a> - Single configuration that adapts to environment automatically.</p>
 <section id="fastapi-async-web">
 <h2>FastAPI / async web<a class="headerlink" href="#fastapi-async-web" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">Depends</span>
