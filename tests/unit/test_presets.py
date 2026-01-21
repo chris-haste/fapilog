@@ -126,11 +126,82 @@ class TestPresetDefinitions:
         config = get_preset("minimal")
         assert config == {"core": {"redactors": []}}
 
+    # Story 10.30: Serverless Preset Tests
+
+    def test_serverless_preset_exists(self):
+        """Serverless preset is available via get_preset.
+
+        Story 10.30 AC1: Preset available via get_logger(preset="serverless").
+        """
+        config = get_preset("serverless")
+        assert "core" in config
+
+    def test_serverless_preset_has_info_log_level(self):
+        """Serverless preset sets log level to INFO."""
+        config = get_preset("serverless")
+        assert config["core"]["log_level"] == "INFO"
+
+    def test_serverless_preset_uses_stdout_only(self):
+        """Serverless preset uses only stdout_json, no file sinks.
+
+        Story 10.30 AC2: Only stdout_json sink, no rotating_file.
+        """
+        config = get_preset("serverless")
+        assert config["core"]["sinks"] == ["stdout_json"]
+        assert "rotating_file" not in config["core"]["sinks"]
+
+    def test_serverless_preset_enables_redactors(self):
+        """Serverless preset enables same redactors as production.
+
+        Story 10.30 AC3: Production-grade redaction enabled.
+        """
+        config = get_preset("serverless")
+        assert config["core"]["redactors"] == [
+            "field_mask",
+            "regex_mask",
+            "url_credentials",
+        ]
+
+    def test_serverless_preset_redactor_config_matches_production(self):
+        """Serverless preset redactor_config matches production preset.
+
+        Story 10.30 AC3: Same redactor configuration as production.
+        """
+        serverless_config = get_preset("serverless")
+        production_config = get_preset("production")
+        assert (
+            serverless_config["redactor_config"] == production_config["redactor_config"]
+        )
+
+    def test_serverless_preset_has_small_batch_size(self):
+        """Serverless preset uses smaller batch size for short-lived functions.
+
+        Story 10.30 AC4: Batch size <= 25 for quick flushing.
+        """
+        config = get_preset("serverless")
+        assert config["core"]["batch_max_size"] <= 25
+
+    def test_serverless_preset_enables_drop_on_full(self):
+        """Serverless preset enables drop_on_full to avoid blocking.
+
+        Story 10.30: Don't block in time-constrained environments.
+        """
+        config = get_preset("serverless")
+        assert config["core"]["drop_on_full"] is True
+
+    def test_serverless_preset_has_enrichers(self):
+        """Serverless preset enables runtime_info and context_vars enrichers."""
+        config = get_preset("serverless")
+        assert "runtime_info" in config["core"]["enrichers"]
+        assert "context_vars" in config["core"]["enrichers"]
+
 
 class TestPresetValidation:
     """Test preset name validation."""
 
-    @pytest.mark.parametrize("name", ["dev", "production", "fastapi", "minimal"])
+    @pytest.mark.parametrize(
+        "name", ["dev", "production", "fastapi", "minimal", "serverless"]
+    )
     def test_valid_presets_accepted(self, name: str):
         """All valid preset names are accepted without raising."""
         validate_preset(name)
@@ -153,7 +224,8 @@ class TestPresetValidation:
     def test_error_message_lists_valid_presets(self):
         """Error message includes list of valid presets."""
         with pytest.raises(
-            ValueError, match="Valid presets: dev, fastapi, minimal, production"
+            ValueError,
+            match="Valid presets: dev, fastapi, minimal, production, serverless",
         ):
             validate_preset("invalid")
 
@@ -188,7 +260,16 @@ class TestPresetToSettings:
         settings = Settings(**config)
         assert settings.core.log_level == "INFO"  # Default
 
-    @pytest.mark.parametrize("name", ["dev", "production", "fastapi", "minimal"])
+    def test_serverless_preset_creates_valid_settings(self):
+        """Serverless preset can be converted to Settings."""
+        config = get_preset("serverless")
+        settings = Settings(**config)
+        assert settings.core.log_level == "INFO"
+        assert settings.core.drop_on_full is True
+
+    @pytest.mark.parametrize(
+        "name", ["dev", "production", "fastapi", "minimal", "serverless"]
+    )
     def test_all_presets_create_valid_settings(self, name: str):
         """All presets produce valid Settings objects with core config."""
         config = get_preset(name)
@@ -199,10 +280,10 @@ class TestPresetToSettings:
 class TestPresetList:
     """Test preset listing."""
 
-    def test_list_presets_returns_all_four(self):
-        """list_presets returns all four preset names."""
+    def test_list_presets_returns_all_five(self):
+        """list_presets returns all five preset names."""
         presets = list_presets()
-        assert set(presets) == {"dev", "production", "fastapi", "minimal"}
+        assert set(presets) == {"dev", "production", "fastapi", "minimal", "serverless"}
 
     def test_list_presets_is_sorted(self):
         """list_presets returns sorted list."""
