@@ -80,8 +80,8 @@ class TestDefaultLogLevelIntegration:
     def test_default_log_level_uses_tty(self) -> None:
         with patch("fapilog.core.defaults.is_ci_environment", return_value=False):
             with patch("fapilog.core.defaults.is_tty_environment", return_value=True):
-                # Use auto_detect=False to test Story 10.6 defaults in isolation
-                logger = get_logger(auto_detect=False)
+                # Use auto_detect=False and reuse=False to test defaults in isolation
+                logger = get_logger(auto_detect=False, reuse=False)
                 try:
                     assert logger._level_gate is None  # noqa: SLF001
                 finally:
@@ -90,7 +90,7 @@ class TestDefaultLogLevelIntegration:
     def test_default_log_level_non_tty(self) -> None:
         with patch("fapilog.core.defaults.is_ci_environment", return_value=False):
             with patch("fapilog.core.defaults.is_tty_environment", return_value=False):
-                logger = get_logger(auto_detect=False)
+                logger = get_logger(auto_detect=False, reuse=False)
                 try:
                     assert logger._level_gate == LEVEL_PRIORITY["INFO"]  # noqa: SLF001
                 finally:
@@ -99,7 +99,7 @@ class TestDefaultLogLevelIntegration:
     def test_ci_overrides_tty_default(self) -> None:
         with patch("fapilog.core.defaults.is_ci_environment", return_value=True):
             with patch("fapilog.core.defaults.is_tty_environment", return_value=True):
-                logger = get_logger(auto_detect=False)
+                logger = get_logger(auto_detect=False, reuse=False)
                 try:
                     assert logger._level_gate == LEVEL_PRIORITY["INFO"]  # noqa: SLF001
                 finally:
@@ -109,7 +109,7 @@ class TestDefaultLogLevelIntegration:
         settings = Settings(core={"log_level": "ERROR"})
         with patch("fapilog.core.defaults.is_ci_environment", return_value=False):
             with patch("fapilog.core.defaults.is_tty_environment", return_value=True):
-                logger = get_logger(settings=settings)
+                logger = get_logger(settings=settings, reuse=False)
                 try:
                     assert logger._level_gate == LEVEL_PRIORITY["ERROR"]  # noqa: SLF001
                 finally:
@@ -118,7 +118,7 @@ class TestDefaultLogLevelIntegration:
     def test_preset_log_level_overrides_defaults(self) -> None:
         with patch("fapilog.core.defaults.is_ci_environment", return_value=False):
             with patch("fapilog.core.defaults.is_tty_environment", return_value=True):
-                logger = get_logger(preset="production")
+                logger = get_logger(preset="production", reuse=False)
                 try:
                     assert logger._level_gate == LEVEL_PRIORITY["INFO"]  # noqa: SLF001
                 finally:

@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio as _asyncio
 import os as _os
 import sys as _sys
+import threading as _threading
 from contextlib import asynccontextmanager as _asynccontextmanager
 from contextlib import contextmanager as _contextmanager
 from contextlib import suppress as _suppress
@@ -56,12 +57,20 @@ __all__ = [
     "LoggerBuilder",
     "AsyncLoggerBuilder",
     "sinks",
+    "get_cached_loggers",
+    "clear_logger_cache",
     "__version__",
     "VERSION",
 ]
 
 # Keep references to background drain tasks to avoid GC warnings in tests
 _PENDING_DRAIN_TASKS: list[object] = []
+
+# Logger instance caches with lock for thread safety (Story 10.29)
+_async_logger_cache: dict[str, _AsyncLoggerFacade] = {}
+_sync_logger_cache: dict[str, _SyncLoggerFacade] = {}
+_cache_lock = _threading.Lock()
+_DEFAULT_LOGGER_KEY = "__fapilog_default__"
 
 
 def _normalize(name: str) -> str:
@@ -681,11 +690,13 @@ def get_logger(
     sinks: list[object] | None = None,
     auto_detect: bool = True,
     environment: str | None = None,
+    reuse: bool = True,
 ) -> _SyncLoggerFacade:
     """Return a sync logger with optional preset or output format controls.
 
     Args:
-        name: Optional logger name.
+        name: Optional logger name. Loggers with the same name return the same
+            cached instance by default (like stdlib logging.getLogger).
         preset: Built-in preset name (dev, production, fastapi, minimal).
         format: Output format ("json", "pretty", "auto"); defaults to auto when
             no settings are provided.
@@ -696,6 +707,8 @@ def get_logger(
             applies appropriate configurations.
         environment: Explicit environment type override ("local", "docker",
             "kubernetes", "lambda", "ci"). Mutually exclusive with preset/settings.
+        reuse: If True (default), return cached instance for this name.
+            Set to False to create a new independent instance (useful for tests).
 
     Priority order (highest to lowest):
         1. Explicit settings parameter
@@ -703,7 +716,17 @@ def get_logger(
         3. Explicit environment parameter
         4. Auto-detection (if auto_detect=True)
         5. Story 10.6 defaults
+
+    Note:
+        Cached loggers persist for the application lifetime. For short-lived
+        scripts, use `runtime()` context manager for automatic cleanup.
     """
+    cache_key = name or _DEFAULT_LOGGER_KEY
+
+    # Fast path: check cache without lock
+    if reuse and cache_key in _sync_logger_cache:
+        return _sync_logger_cache[cache_key]
+
     setup, _ = _prepare_logger(
         name,
         preset=preset,
@@ -721,12 +744,28 @@ def get_logger(
         setup.filters,
     )
 
-    return _cast(
+    facade = _cast(
         _SyncLoggerFacade,
         _create_and_start_facade(
             _SyncLoggerFacade, name, setup, enrichers, redactors, processors, filters
         ),
     )
+
+    if reuse:
+        with _cache_lock:
+            # Double-check pattern: another thread may have created it
+            if cache_key in _sync_logger_cache:  # pragma: no cover - race condition
+                # Drain ours, return existing (rare race condition)
+                try:
+                    coro = facade.stop_and_drain()
+                    _asyncio.run(coro)
+                except Exception:
+                    with _suppress(Exception):
+                        coro.close()
+                return _sync_logger_cache[cache_key]
+            _sync_logger_cache[cache_key] = facade
+
+    return facade
 
 
 async def get_async_logger(
@@ -738,11 +777,13 @@ async def get_async_logger(
     sinks: list[object] | None = None,
     auto_detect: bool = True,
     environment: str | None = None,
+    reuse: bool = True,
 ) -> _AsyncLoggerFacade:
     """Return an async logger with optional preset or output format controls.
 
     Args:
-        name: Optional logger name.
+        name: Optional logger name. Loggers with the same name return the same
+            cached instance by default (like stdlib logging.getLogger).
         preset: Built-in preset name (dev, production, fastapi, minimal).
         format: Output format ("json", "pretty", "auto"); defaults to auto when
             no settings are provided.
@@ -753,6 +794,8 @@ async def get_async_logger(
             applies appropriate configurations.
         environment: Explicit environment type override ("local", "docker",
             "kubernetes", "lambda", "ci"). Mutually exclusive with preset/settings.
+        reuse: If True (default), return cached instance for this name.
+            Set to False to create a new independent instance (useful for tests).
 
     Priority order (highest to lowest):
         1. Explicit settings parameter
@@ -760,7 +803,17 @@ async def get_async_logger(
         3. Explicit environment parameter
         4. Auto-detection (if auto_detect=True)
         5. Story 10.6 defaults
+
+    Note:
+        Cached loggers persist for the application lifetime. For short-lived
+        scripts, use `runtime_async()` context manager for automatic cleanup.
     """
+    cache_key = name or _DEFAULT_LOGGER_KEY
+
+    # Fast path: check cache without lock
+    if reuse and cache_key in _async_logger_cache:
+        return _async_logger_cache[cache_key]
+
     setup, _ = _prepare_logger(
         name,
         preset=preset,
@@ -776,20 +829,36 @@ async def get_async_logger(
     processors = await _start_plugins(setup.processors, "processor")
     filters = await _start_plugins(setup.filters, "filter")
 
-    return _cast(
+    facade = _cast(
         _AsyncLoggerFacade,
         _create_and_start_facade(
             _AsyncLoggerFacade, name, setup, enrichers, redactors, processors, filters
         ),
     )
 
+    if reuse:
+        with _cache_lock:
+            # Double-check pattern: another coroutine may have created it
+            if cache_key in _async_logger_cache:  # pragma: no cover - race condition
+                # Another coroutine created it, drain ours and return theirs
+                await facade.drain()
+                return _async_logger_cache[cache_key]
+            _async_logger_cache[cache_key] = facade
+
+    return facade
+
 
 @_asynccontextmanager
 async def runtime_async(
     *, settings: _Settings | None = None
 ) -> _AsyncIterator[_AsyncLoggerFacade]:
-    """Async context manager that initializes and drains the default async runtime."""
-    logger = await get_async_logger(settings=settings)
+    """Async context manager that initializes and drains the default async runtime.
+
+    Uses reuse=False internally to ensure the logger is independent from the
+    cache and can be safely drained without affecting other users of the
+    default logger name.
+    """
+    logger = await get_async_logger(settings=settings, reuse=False)
     try:
         yield logger
     finally:
@@ -864,6 +933,54 @@ def runtime(
                         return
 
                 _threading.Thread(target=_runner, daemon=True).start()
+
+
+def get_cached_loggers() -> dict[str, str]:
+    """Return names of all cached loggers.
+
+    Returns:
+        Dict mapping cache keys to logger types ("async" or "sync").
+
+    Example:
+        >>> get_cached_loggers()
+        {'my-service': 'async', 'other-service': 'sync'}
+    """
+    with _cache_lock:
+        result: dict[str, str] = {}
+        for key in _async_logger_cache:
+            result[key] = "async"
+        for key in _sync_logger_cache:
+            result[key] = "sync"
+        return result
+
+
+async def clear_logger_cache() -> None:
+    """Drain and remove all cached loggers.
+
+    Useful for test cleanup or application shutdown. Drains all loggers
+    to ensure clean shutdown of worker tasks before clearing the cache.
+
+    Example:
+        >>> await clear_logger_cache()
+    """
+    with _cache_lock:
+        async_loggers = list(_async_logger_cache.values())
+        sync_loggers = list(_sync_logger_cache.values())
+        _async_logger_cache.clear()
+        _sync_logger_cache.clear()
+
+    # Drain outside lock to avoid deadlocks
+    for async_logger in async_loggers:
+        try:
+            await async_logger.drain()
+        except Exception:  # pragma: no cover - defensive
+            pass
+
+    for sync_logger in sync_loggers:
+        try:
+            await sync_logger.stop_and_drain()
+        except Exception:  # pragma: no cover - defensive
+            pass
 
 
 # Version info for compatibility (injected by hatch-vcs at build time)

@@ -133,6 +133,8 @@ class _LoggerMixin(_WorkerCountersMixin):
         )
         self._level_gate: int | None = level_gate
         self._error_dedupe: dict[str, tuple[float, int]] = {}
+        self._drained: bool = False  # Track if drain() was called (Story 10.29)
+        self._started: bool = False  # Track if workers were started (Story 10.29)
 
         # Cache settings values at init to avoid per-call overhead (Story 1.23, 1.25)
         self._cached_sampling_rate: float = 1.0
@@ -188,6 +190,7 @@ class _LoggerMixin(_WorkerCountersMixin):
         if self._worker_loop is not None:
             return
         self._stop_flag = False
+        self._started = True  # Mark that workers are being started (Story 10.29)
         try:
             # BOUND LOOP MODE: Use the caller's existing event loop
             loop = asyncio.get_running_loop()
@@ -515,6 +518,7 @@ class _LoggerMixin(_WorkerCountersMixin):
                 pass
 
         await self._stop_enrichers_and_redactors()
+        self._drained = True
         flush_latency = time.perf_counter() - start
         return DrainResult(
             submitted=self._submitted,
@@ -556,6 +560,7 @@ class _LoggerMixin(_WorkerCountersMixin):
 
             self._worker_thread = None
             self._worker_loop = None
+        self._drained = True
         flush_latency = time.perf_counter() - start
         return DrainResult(
             submitted=self._submitted,
@@ -565,6 +570,33 @@ class _LoggerMixin(_WorkerCountersMixin):
             queue_depth_high_watermark=self._queue_high_watermark,
             flush_latency_seconds=flush_latency,
         )
+
+    def __del__(self) -> None:
+        """Warn if logger is garbage collected without being drained.
+
+        This helps users identify resource leaks when loggers are created
+        without proper cleanup. The warning is suppressed during interpreter
+        shutdown to avoid spurious messages.
+        """
+        # Guard against interpreter shutdown - sys might be None or finalizing
+        try:
+            import sys
+
+            if sys.is_finalizing():  # pragma: no cover - shutdown path
+                return
+        except Exception:  # pragma: no cover - shutdown path
+            return
+
+        # Only warn if workers were started but never drained
+        if self._started and not self._drained:
+            warnings.warn(
+                f"Logger '{self._name}' was garbage collected without calling "
+                "drain(). This causes resource leaks. Use runtime_async() context "
+                "manager, call drain() explicitly, or use the default name-based "
+                "caching (reuse=True).",
+                ResourceWarning,
+                stacklevel=2,
+            )
 
     def bind(self, **context: Any) -> Any:
         current = {}
