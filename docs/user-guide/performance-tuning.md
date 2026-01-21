@@ -1,6 +1,6 @@
 # Performance Tuning
 
-Adjust throughput, latency, and sampling to fit your workload. For indicative performance numbers, see [Benchmarks](benchmarks.md).
+Adjust throughput, latency, and sampling to fit your workload. For indicative performance numbers, see [Benchmarks](benchmarks.md). For protecting latency under slow sinks, see [Non-blocking Async Logging](../cookbook/non-blocking-async-logging.md).
 
 ## Queue and batch tuning
 
