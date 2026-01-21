@@ -191,6 +191,16 @@
 <p>All notable changes to this project will be documented in this file. This changelog follows <a class="reference external" href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a> and <a class="reference external" href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <section id="unreleased">
 <h2>[Unreleased]<a class="headerlink" href="#unreleased" title="Link to this heading"></a></h2>
+<section id="added">
+<h3>Added<a class="headerlink" href="#added" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Logger instance caching: <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> and <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> now cache instances by name (like stdlib <code class="docutils literal notranslate"><span class="pre">logging.getLogger()</span></code>), preventing resource exhaustion from unbounded logger creation (Story 10.29).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reuse</span></code> parameter for <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> and <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> to opt out of caching when needed (e.g., tests).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_cached_loggers()</span></code> function to inspect cached logger names and types.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">clear_logger_cache()</span></code> async function to drain and clear all cached loggers.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ResourceWarning</span></code> emitted when loggers are garbage collected without being drained.</p></li>
+</ul>
+</section>
 </section>
 <section id="id1">
 <h2>[0.4.0] - 2026-01-19<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
@@ -204,8 +214,8 @@
 <li><p>External plugins now blocked by default; use <code class="docutils literal notranslate"><span class="pre">plugins.allow_external=true</span></code> or <code class="docutils literal notranslate"><span class="pre">plugins.allowlist</span></code> for explicit opt-in (Story 3.5).</p></li>
 </ul>
 </section>
-<section id="added">
-<h3>Added<a class="headerlink" href="#added" title="Link to this heading"></a></h3>
+<section id="id2">
+<h3>Added<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Fluent builder API (<code class="docutils literal notranslate"><span class="pre">LoggerBuilder</span></code>, <code class="docutils literal notranslate"><span class="pre">AsyncLoggerBuilder</span></code>) for chainable logger configuration with IDE autocomplete support.</p></li>
 <li><p>Pretty console output (<code class="docutils literal notranslate"><span class="pre">stdout_pretty</span></code>) and <code class="docutils literal notranslate"><span class="pre">format</span></code> selection for stdout logging.</p></li>
@@ -268,31 +278,31 @@
 </ul>
 </section>
 </section>
-<section id="id2">
-<h2>[0.3.5] - 2026-01-01<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <section id="id3">
-<h3>Added<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<h2>[0.3.5] - 2026-01-01<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
+<section id="id4">
+<h3>Added<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Hash-chain integrity for AuditTrail.</p></li>
 </ul>
 </section>
-<section id="id4">
-<h3>Changed<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<section id="id5">
+<h3>Changed<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">unbind()</span></code> now returns self for method chaining.</p></li>
 </ul>
 </section>
-<section id="id5">
-<h3>Fixed<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<section id="id6">
+<h3>Fixed<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>GitHub release workflow now handles existing releases.</p></li>
 </ul>
 </section>
 </section>
-<section id="id6">
-<h2>[0.3.4] - 2025-12-30<a class="headerlink" href="#id6" title="Link to this heading"></a></h2>
 <section id="id7">
-<h3>Added<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<h2>[0.3.4] - 2025-12-30<a class="headerlink" href="#id7" title="Link to this heading"></a></h2>
+<section id="id8">
+<h3>Added<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Enterprise key management for tamper-evident plugin (Story 4.18).</p></li>
 <li><p>Verification API and CLI for tamper-evident plugin (Story 4.17).</p></li>
@@ -300,8 +310,8 @@
 <li><p>Configurable worker count for logging pipeline.</p></li>
 </ul>
 </section>
-<section id="id8">
-<h3>Fixed<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<section id="id9">
+<h3>Fixed<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>PYTHONPATH passing to subprocess in CLI test.</p></li>
 <li><p>fapilog-tamper tests now skip gracefully if package not available.</p></li>
@@ -310,8 +320,8 @@
 </ul>
 </section>
 </section>
-<section id="id9">
-<h2>[0.3.3] - 2025-12-22<a class="headerlink" href="#id9" title="Link to this heading"></a></h2>
+<section id="id10">
+<h2>[0.3.3] - 2025-12-22<a class="headerlink" href="#id10" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Project status upgraded from Alpha to Beta classification.</p></li>
 <li><p>Fixed plugin catalog generation to exclude failed plugin entries.</p></li>
@@ -320,8 +330,8 @@
 <li><p>Removed placeholder Discord and Plugin Marketplace links from PyPI metadata.</p></li>
 </ul>
 </section>
-<section id="id10">
-<h2>[0.3.2] - 2025-12-22<a class="headerlink" href="#id10" title="Link to this heading"></a></h2>
+<section id="id11">
+<h2>[0.3.2] - 2025-12-22<a class="headerlink" href="#id11" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Backpressure configuration now honored: <code class="docutils literal notranslate"><span class="pre">drop_on_full</span></code> waits instead of dropping when set to false; sink/enricher/redactor failures emit diagnostics.</p></li>
 <li><p>FastAPI request/response logging middleware added (sampling, header redaction, skip paths) and exported alongside context middleware.</p></li>

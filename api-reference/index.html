@@ -231,10 +231,12 @@
 <section id="top-level-functions">
 <h3>Top-Level Functions<a class="headerlink" href="#top-level-functions" title="Link to this heading"></a></h3>
 <ul class="simple">
-<li><p><strong>get_logger</strong> - Ready-to-use logger instance</p></li>
-<li><p><strong>get_async_logger</strong> - Async logger factory</p></li>
+<li><p><strong>get_logger</strong> - Ready-to-use logger instance (cached by name)</p></li>
+<li><p><strong>get_async_logger</strong> - Async logger factory (cached by name)</p></li>
 <li><p><strong>runtime</strong> - Context manager for logger lifecycle</p></li>
 <li><p><strong>runtime_async</strong> - Async context manager for lifecycle</p></li>
+<li><p><strong>get_cached_loggers</strong> - Inspect cached logger names</p></li>
+<li><p><strong>clear_logger_cache</strong> - Drain and clear all cached loggers</p></li>
 </ul>
 </section>
 <section id="logger-methods">
