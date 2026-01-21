@@ -140,6 +140,42 @@ fapilog selects a sensible default log level:
 
 Explicit `core.log_level` or a preset always overrides these defaults.
 
+## Environment Auto-Detection
+
+When you call `get_logger()` without a preset or settings, fapilog automatically detects your runtime environment and applies lightweight configuration tweaks. This is controlled by `auto_detect=True` (the default).
+
+| Detected Environment | Detection Method | Applied Configuration |
+|---------------------|------------------|----------------------|
+| Lambda | `AWS_LAMBDA_FUNCTION_NAME` env var | Smaller batches (10), faster flush (0.1s), smaller queue (1000) |
+| Kubernetes | `/var/run/secrets/kubernetes.io/serviceaccount` or `POD_NAME` env var | INFO level, `kubernetes` enricher |
+| Docker | `/.dockerenv` file or `/proc/1/cgroup` contains "docker" | INFO level |
+| CI | Common CI env vars (see Story 10.6) | INFO level |
+| Local | Default fallback | Uses TTY-based log level defaults |
+
+**Important:** Auto-detection applies incremental tweaks to the base configuration—it does **not** apply full preset configurations. For example:
+
+- Auto-detecting Lambda adds smaller batches and the `runtime_info` enricher
+- `preset="serverless"` provides the complete serverless config **including redactors**
+
+If you need full preset behavior (especially redaction) in cloud environments, use explicit presets:
+
+```python
+# Full preset with redaction enabled
+logger = get_logger(preset="serverless")
+
+# Auto-detect only (applies tweaks but no redaction beyond url_credentials default)
+logger = get_logger()
+
+# Explicit environment without full preset
+logger = get_logger(environment="lambda")  # Same as auto-detect for Lambda
+```
+
+To disable auto-detection entirely:
+
+```python
+logger = get_logger(auto_detect=False)
+```
+
 On sink write failures (exceptions raised by a sink), fapilog falls back to stderr.
 If stderr fails too, the entry is dropped. Diagnostics warnings are emitted when
 internal diagnostics are enabled:
