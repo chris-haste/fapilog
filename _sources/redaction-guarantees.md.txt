@@ -8,7 +8,7 @@ This document defines the guarantees, guardrails, and configuration for data red
 
 - URL credentials are scrubbed from string values resembling `scheme://user:pass@host...` across all fields **by default** (the `url_credentials` redactor is enabled in all configurations).
 - Explicitly configured dotted field paths are masked, including nested objects and lists, **when the `field_mask` redactor is enabled**. Arrays support `*`/`[*]` wildcard and numeric indices.
-- Regex-based masks are applied to dotted field paths that match configured regular expressions **when the `regex_mask` redactor is enabled**.
+- Regex-based masks are applied to dotted field paths that match configured regular expressions **when the `regex_mask` redactor is enabled**. Note: patterns match against field paths (e.g., `context.password`, `user.api_key`), not field content. Use patterns like `(?i).*password.*` to mask all fields containing "password" in their path.
 - Redactors never raise upstream; failures are recorded via diagnostics with a `{ redactor, reason }` payload.
 
 ## Deterministic Order
@@ -49,8 +49,10 @@ redactors:
       - diagnostics.secrets[*].value
   regex_mask:
     patterns:
-      - "(?i)password=([^&\\s]+)"
-      - "(?i)api[_-]?key([=:])([A-Za-z0-9_-]{16,})"
+      - "(?i).*password.*"
+      - "(?i).*api[_-]?key.*"
+      - "(?i).*secret.*"
+      - "(?i).*token.*"
 ```
 
 ## Example Before/After

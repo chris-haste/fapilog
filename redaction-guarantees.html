@@ -200,7 +200,7 @@
 <ul class="simple">
 <li><p>URL credentials are scrubbed from string values resembling <code class="docutils literal notranslate"><span class="pre">scheme://user:pass&#64;host...</span></code> across all fields <strong>by default</strong> (the <code class="docutils literal notranslate"><span class="pre">url_credentials</span></code> redactor is enabled in all configurations).</p></li>
 <li><p>Explicitly configured dotted field paths are masked, including nested objects and lists, <strong>when the <code class="docutils literal notranslate"><span class="pre">field_mask</span></code> redactor is enabled</strong>. Arrays support <code class="docutils literal notranslate"><span class="pre">*</span></code>/<code class="docutils literal notranslate"><span class="pre">[*]</span></code> wildcard and numeric indices.</p></li>
-<li><p>Regex-based masks are applied to dotted field paths that match configured regular expressions <strong>when the <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code> redactor is enabled</strong>.</p></li>
+<li><p>Regex-based masks are applied to dotted field paths that match configured regular expressions <strong>when the <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code> redactor is enabled</strong>. Note: patterns match against field paths (e.g., <code class="docutils literal notranslate"><span class="pre">context.password</span></code>, <code class="docutils literal notranslate"><span class="pre">user.api_key</span></code>), not field content. Use patterns like <code class="docutils literal notranslate"><span class="pre">(?i).*password.*</span></code> to mask all fields containing “password” in their path.</p></li>
 <li><p>Redactors never raise upstream; failures are recorded via diagnostics with a <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">redactor,</span> <span class="pre">reason</span> <span class="pre">}</span></code> payload.</p></li>
 </ul>
 </section>
@@ -241,8 +241,10 @@
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">diagnostics.secrets[*].value</span>
 <span class="w">  </span><span class="nt">regex_mask</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">patterns</span><span class="p">:</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;(?i)password=([^&amp;\\s]+)&quot;</span>
-<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;(?i)api[_-]?key([=:])([A-Za-z0-9_-]{16,})&quot;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;(?i).*password.*&quot;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;(?i).*api[_-]?key.*&quot;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;(?i).*secret.*&quot;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;(?i).*token.*&quot;</span>
 </pre></div>
 </div>
 </section>

@@ -246,7 +246,7 @@
 </table>
 <section id="runtimeinfoenricher">
 <h3>RuntimeInfoEnricher<a class="headerlink" href="#runtimeinfoenricher" title="Link to this heading"></a></h3>
-<p>Adds system and runtime information:</p>
+<p>Adds system and runtime information under the <code class="docutils literal notranslate"><span class="pre">diagnostics</span></code> semantic group:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">service</span></code>: from <code class="docutils literal notranslate"><span class="pre">FAPILOG_SERVICE</span></code> env var (default: “fapilog”)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">env</span></code>: from <code class="docutils literal notranslate"><span class="pre">FAPILOG_ENV</span></code> or <code class="docutils literal notranslate"><span class="pre">ENV</span></code> env var (default: “dev”)</p></li>
@@ -255,15 +255,18 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">pid</span></code>: process ID</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">python</span></code>: Python version</p></li>
 </ul>
+<p>Returns: <code class="docutils literal notranslate"><span class="pre">{&quot;diagnostics&quot;:</span> <span class="pre">{&quot;service&quot;:</span> <span class="pre">&quot;...&quot;,</span> <span class="pre">&quot;env&quot;:</span> <span class="pre">&quot;...&quot;,</span> <span class="pre">&quot;host&quot;:</span> <span class="pre">&quot;...&quot;,</span> <span class="pre">&quot;pid&quot;:</span> <span class="pre">1234,</span> <span class="pre">&quot;python&quot;:</span> <span class="pre">&quot;3.11.0&quot;}}</span></code></p>
 </section>
 <section id="contextvarsenricher">
 <h3>ContextVarsEnricher<a class="headerlink" href="#contextvarsenricher" title="Link to this heading"></a></h3>
-<p>Adds values from context variables when present:</p>
+<p>Adds values from context variables under the <code class="docutils literal notranslate"><span class="pre">context</span></code> semantic group when present:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">request_id</span></code>: from fapilog’s request context</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code>: from fapilog’s user context</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">trace_id</span></code>, <code class="docutils literal notranslate"><span class="pre">span_id</span></code>: when OpenTelemetry is available</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tenant_id</span></code>: from event data if present</p></li>
 </ul>
+<p>Returns: <code class="docutils literal notranslate"><span class="pre">{&quot;context&quot;:</span> <span class="pre">{&quot;request_id&quot;:</span> <span class="pre">&quot;...&quot;,</span> <span class="pre">&quot;user_id&quot;:</span> <span class="pre">&quot;...&quot;,</span> <span class="pre">&quot;trace_id&quot;:</span> <span class="pre">&quot;...&quot;,</span> <span class="pre">&quot;span_id&quot;:</span> <span class="pre">&quot;...&quot;}}</span></code></p>
 </section>
 <section id="kubernetesenricher">
 <h3>KubernetesEnricher<a class="headerlink" href="#kubernetesenricher" title="Link to this heading"></a></h3>

@@ -68,6 +68,26 @@ logger = get_logger()
 logger.info("to file", event="startup")
 ```
 
+## Direct Class Usage
+
+For full control, instantiate the sink class directly:
+
+```python
+from pathlib import Path
+from fapilog.plugins.sinks.rotating_file import RotatingFileSink, RotatingFileSinkConfig
+
+config = RotatingFileSinkConfig(
+    directory=Path("./logs"),
+    filename_prefix="app",
+    max_bytes=10_000_000,  # 10 MB
+    max_files=5,
+    compress_rotated=True,
+)
+sink = RotatingFileSink(config)
+```
+
+Config fields: `directory`, `filename_prefix`, `mode`, `max_bytes`, `interval_seconds`, `max_files`, `max_total_bytes`, `compress_rotated`, `strict_envelope_mode`.
+
 ## Migration
 
 See `docs/guides/migration-file-rotation.md` for a before/after conversion from
