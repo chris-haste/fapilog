@@ -7,6 +7,7 @@ Real-world usage patterns and practical examples for fapilog.
 :titlesonly:
 :caption: Examples & Recipes
 
+builder-configurations
 fastapi-logging
 cli-tools
 redacting-secrets

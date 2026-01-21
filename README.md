@@ -221,6 +221,40 @@ See Redactors documentation: [docs/plugins/redactors.md](docs/plugins/redactors.
 
 ## 🔧 Configuration
 
+### Builder API (Recommended)
+
+The Builder API provides a fluent, type-safe way to configure loggers:
+
+```python
+from fapilog import LoggerBuilder
+
+# Production setup with file rotation and CloudWatch
+logger = (
+    LoggerBuilder()
+    .with_preset("production")
+    .with_level("INFO")
+    .add_file("logs/app", max_bytes="100 MB", max_files=10)
+    .add_cloudwatch("/myapp/prod", region="us-east-1")
+    .with_circuit_breaker(enabled=True)
+    .with_redaction(fields=["password", "api_key"])
+    .build()
+)
+
+# Async version for FastAPI
+from fapilog import AsyncLoggerBuilder
+
+logger = await (
+    AsyncLoggerBuilder()
+    .with_preset("fastapi")
+    .add_stdout()
+    .build_async()
+)
+```
+
+See [Builder API Reference](docs/api-reference/builder.md) for complete documentation.
+
+### Settings Class
+
 Container-scoped settings via Pydantic v2:
 
 ```python
