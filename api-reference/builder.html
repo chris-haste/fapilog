@@ -1,0 +1,1363 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Builder API Reference &mdash; fapilog latest documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=30646c52"></script>
+      <script src="../_static/custom.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Logger Methods" href="logger-methods.html" />
+    <link rel="prev" title="Top-Level Functions" href="top-level-functions.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            fapilog
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/quickstart.html">Quickstart Tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/hello-world.html">Hello World Walkthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../core-concepts/index.html">Core Concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/pipeline-architecture.html">Pipeline Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/envelope.html">Envelope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/batching-backpressure.html">Batching &amp; Backpressure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/redaction.html">Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/metrics.html">Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html">Diagnostics Resilience</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html#id1">Diagnostics &amp; Resilience</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide/index.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/builder-configuration.html">Configuring Fapilog with the Builder API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/settings-to-builder-migration.html">Migrating from Settings to Builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/environment-variables.html">Environment Variable Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/using-logger.html">Using the Logger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/context-enrichment.html">Context Enrichment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/sink-routing.html">Sink routing by level</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/redaction-guarantee.html">Redaction Guarantee</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/performance-tuning.html">Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/benchmarks.html">Performance Benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/integration-guide.html">Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/fastapi.html">FastAPI / ASGI Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/comparisons.html">Comparisons: fapilog vs stdlib, structlog, loguru</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/testing-plugins.html">Testing Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/webhook-security.html">Webhook Security</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="top-level-functions.html">Top-Level Functions</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Builder API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logger-methods.html">Logger Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="audit-trail.html">Audit Trail</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="types.html">Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins/index.html">Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lifecycle-results.html">Lifecycle &amp; Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html">API Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples &amp; Recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/builder-configurations.html">Builder Configuration Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/fastapi-logging.html">FastAPI Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cli-tools.html">Logging in Scripts/CLIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/redacting-secrets.html">Redacting Secrets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/structured-error-logging.html">Structured Error Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/kubernetes-file-sink.html">Kubernetes File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/prometheus-metrics.html">Prometheus Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloudwatch_logging/index.html">CloudWatch Logging (LocalStack)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloud-sinks/index.html">Cloud Sink Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugin Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/authoring.html">Authoring Fapilog Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/enrichers.html">Enrichers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/filters.html">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/processors.html">Processors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/testing.html">Plugin Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/configuration.html">Plugin Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/health-checks.html">Plugin Health Checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/error-handling.html">Plugin Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../patterns.html">Integration Patterns</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting/index.html">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/logs-dropped-under-load.html">Logs Dropped Under Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/destination-size-limits.html">Logs Rejected by Destination Size Limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/context-values-missing.html">Context Values Missing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/file-sink-not-rotating.html">File Sink Not Rotating</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/serialization-errors.html">Serialization Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/cloudwatch-sink.html">CloudWatch Sink Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/loki-sink.html">Loki Sink Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices.html">Appendices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../env-vars.html">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../settings-guide.html">Settings Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-guide.html">Schema Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-migration-v1.0-to-v1.1.html">Schema Migration Guide: v1.0 to v1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugin-guide.html">Plugin Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction-guarantees.html">Redaction Guarantees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quality-signals.html">Quality Signals</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">fapilog</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">API Reference</a></li>
+      <li class="breadcrumb-item active">Builder API Reference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api-reference/builder.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="builder-api-reference">
+<h1>Builder API Reference<a class="headerlink" href="#builder-api-reference" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">LoggerBuilder</span></code> and <code class="docutils literal notranslate"><span class="pre">AsyncLoggerBuilder</span></code> classes provide a fluent API for configuring fapilog loggers. All configuration methods return <code class="docutils literal notranslate"><span class="pre">self</span></code> for chaining.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>The Builder API offers an alternative to Settings-based configuration with these advantages:</p>
+<ul class="simple">
+<li><p><strong>Discoverability</strong> - IDE autocomplete shows all available options</p></li>
+<li><p><strong>Validation</strong> - Errors caught at build time with clear messages</p></li>
+<li><p><strong>Readability</strong> - Configuration intent is clear from method names</p></li>
+<li><p><strong>Type Safety</strong> - Full type hints for all parameters</p></li>
+</ul>
+</section>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="c1"># Minimal setup</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+<span class="c1"># Production setup</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_level</span><span class="p">(</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="s2">&quot;logs/app&quot;</span><span class="p">,</span> <span class="n">max_bytes</span><span class="o">=</span><span class="s2">&quot;100 MB&quot;</span><span class="p">,</span> <span class="n">max_files</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_circuit_breaker</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>For async applications:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncLoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="p">(</span>
+    <span class="n">AsyncLoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">build_async</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="core-configuration">
+<h2>Core Configuration<a class="headerlink" href="#core-configuration" title="Link to this heading"></a></h2>
+<section id="with-name-name">
+<h3>with_name(name)<a class="headerlink" href="#with-name-name" title="Link to this heading"></a></h3>
+<p>Set the logger name for identification and caching.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code> (str): Logger name</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_name</span><span class="p">(</span><span class="s2">&quot;my-service&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Equivalent Settings:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">get_logger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;my-service&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-level-level">
+<h3>with_level(level)<a class="headerlink" href="#with-level-level" title="Link to this heading"></a></h3>
+<p>Set the minimum log level. Events below this level are filtered.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">level</span></code> (str): Log level - <code class="docutils literal notranslate"><span class="pre">&quot;DEBUG&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;INFO&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;WARNING&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;ERROR&quot;</span></code></p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_level</span><span class="p">(</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Equivalent Settings:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Settings</span><span class="p">(</span><span class="n">core</span><span class="o">=</span><span class="n">CoreSettings</span><span class="p">(</span><span class="n">log_level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-preset-preset">
+<h3>with_preset(preset)<a class="headerlink" href="#with-preset-preset" title="Link to this heading"></a></h3>
+<p>Apply a preset configuration. Preset is applied first, then subsequent methods override specific values.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">preset</span></code> (str): Preset name - <code class="docutils literal notranslate"><span class="pre">&quot;dev&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;production&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;fastapi&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;minimal&quot;</span></code></p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Raises:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ValueError</span></code>: If a preset is already set</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Preset Summary:</strong></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Preset</p></th>
+<th class="head"><p>Log Level</p></th>
+<th class="head"><p>File Logging</p></th>
+<th class="head"><p>Redaction</p></th>
+<th class="head"><p>Batch Size</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dev</span></code></p></td>
+<td><p>DEBUG</p></td>
+<td><p>No</p></td>
+<td><p>No</p></td>
+<td><p>1 (immediate)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">production</span></code></p></td>
+<td><p>INFO</p></td>
+<td><p>Yes (50MB rotation)</p></td>
+<td><p>Yes</p></td>
+<td><p>100</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
+<td><p>INFO</p></td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+<td><p>50</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
+<td><p>INFO</p></td>
+<td><p>No</p></td>
+<td><p>No</p></td>
+<td><p>256</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<hr class="docutils" />
+<section id="with-app-name-name">
+<h3>with_app_name(name)<a class="headerlink" href="#with-app-name-name" title="Link to this heading"></a></h3>
+<p>Set application name for log identification.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code> (str): Application name</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_app_name</span><span class="p">(</span><span class="s2">&quot;my-service&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Equivalent Settings:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Settings</span><span class="p">(</span><span class="n">core</span><span class="o">=</span><span class="n">CoreSettings</span><span class="p">(</span><span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;my-service&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="sinks">
+<h2>Sinks<a class="headerlink" href="#sinks" title="Link to this heading"></a></h2>
+<section id="add-stdout-format-json">
+<h3>add_stdout(format=“json”)<a class="headerlink" href="#add-stdout-format-json" title="Link to this heading"></a></h3>
+<p>Add stdout sink with JSON or pretty output.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">format</span></code> (str): Output format - <code class="docutils literal notranslate"><span class="pre">&quot;json&quot;</span></code> (default) or <code class="docutils literal notranslate"><span class="pre">&quot;pretty&quot;</span></code></p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>  <span class="c1"># JSON output</span>
+<span class="n">builder</span><span class="o">.</span><span class="n">add_stdout</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;pretty&quot;</span><span class="p">)</span>  <span class="c1"># Human-readable output</span>
+</pre></div>
+</div>
+<p><strong>Equivalent Settings:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Settings</span><span class="p">(</span><span class="n">core</span><span class="o">=</span><span class="n">CoreSettings</span><span class="p">(</span><span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;stdout_json&quot;</span><span class="p">]))</span>
+<span class="n">Settings</span><span class="p">(</span><span class="n">core</span><span class="o">=</span><span class="n">CoreSettings</span><span class="p">(</span><span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;stdout_pretty&quot;</span><span class="p">]))</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="add-stdout-pretty">
+<h3>add_stdout_pretty()<a class="headerlink" href="#add-stdout-pretty" title="Link to this heading"></a></h3>
+<p>Convenience method for pretty-formatted stdout (equivalent to <code class="docutils literal notranslate"><span class="pre">add_stdout(format=&quot;pretty&quot;)</span></code>).</p>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">add_stdout_pretty</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="add-file-directory-max-bytes-10-mb-interval-none-max-files-none-compress-false">
+<h3>add_file(directory, *, max_bytes=“10 MB”, interval=None, max_files=None, compress=False)<a class="headerlink" href="#add-file-directory-max-bytes-10-mb-interval-none-max-files-none-compress-false" title="Link to this heading"></a></h3>
+<p>Add rotating file sink.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">directory</span></code> (str): Log directory (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_bytes</span></code> (str | int): Max bytes before rotation (supports <code class="docutils literal notranslate"><span class="pre">&quot;10</span> <span class="pre">MB&quot;</span></code> strings)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">interval</span></code> (str | int | None): Rotation interval (supports <code class="docutils literal notranslate"><span class="pre">&quot;daily&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;1h&quot;</span></code> strings)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_files</span></code> (int | None): Max rotated files to keep</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">compress</span></code> (bool): Compress rotated files with gzip</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Raises:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ValueError</span></code>: If directory is empty</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">add_file</span><span class="p">(</span>
+    <span class="s2">&quot;logs/app&quot;</span><span class="p">,</span>
+    <span class="n">max_bytes</span><span class="o">=</span><span class="s2">&quot;50 MB&quot;</span><span class="p">,</span>
+    <span class="n">max_files</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">compress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Equivalent Settings:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Settings</span><span class="p">(</span>
+    <span class="n">core</span><span class="o">=</span><span class="n">CoreSettings</span><span class="p">(</span><span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;rotating_file&quot;</span><span class="p">]),</span>
+    <span class="n">sink_config</span><span class="o">=</span><span class="n">SinkConfig</span><span class="p">(</span>
+        <span class="n">rotating_file</span><span class="o">=</span><span class="n">RotatingFileSinkSettings</span><span class="p">(</span>
+            <span class="n">directory</span><span class="o">=</span><span class="s2">&quot;logs/app&quot;</span><span class="p">,</span>
+            <span class="n">max_bytes</span><span class="o">=</span><span class="s2">&quot;50 MB&quot;</span><span class="p">,</span>
+            <span class="n">max_files</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="n">compress_rotated</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="add-http-endpoint-timeout-30s-headers-none">
+<h3>add_http(endpoint, *, timeout=“30s”, headers=None)<a class="headerlink" href="#add-http-endpoint-timeout-30s-headers-none" title="Link to this heading"></a></h3>
+<p>Add HTTP sink for sending logs to a remote endpoint.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">endpoint</span></code> (str): HTTP endpoint URL (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">timeout</span></code> (str | float): Request timeout (supports <code class="docutils literal notranslate"><span class="pre">&quot;30s&quot;</span></code> strings)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">headers</span></code> (dict[str, str] | None): Additional HTTP headers</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Raises:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ValueError</span></code>: If endpoint is empty</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">add_http</span><span class="p">(</span>
+    <span class="s2">&quot;https://logs.example.com/ingest&quot;</span><span class="p">,</span>
+    <span class="n">timeout</span><span class="o">=</span><span class="s2">&quot;10s&quot;</span><span class="p">,</span>
+    <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="s2">&quot;Bearer token&quot;</span><span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="add-webhook-endpoint-secret-none-timeout-5s-headers-none">
+<h3>add_webhook(endpoint, *, secret=None, timeout=“5s”, headers=None)<a class="headerlink" href="#add-webhook-endpoint-secret-none-timeout-5s-headers-none" title="Link to this heading"></a></h3>
+<p>Add webhook sink with optional HMAC signing.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">endpoint</span></code> (str): Webhook destination URL (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">secret</span></code> (str | None): Shared secret for HMAC signing</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">timeout</span></code> (str | float): Request timeout (supports <code class="docutils literal notranslate"><span class="pre">&quot;5s&quot;</span></code> strings)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">headers</span></code> (dict[str, str] | None): Additional HTTP headers</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Raises:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ValueError</span></code>: If endpoint is empty</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">add_webhook</span><span class="p">(</span>
+    <span class="s2">&quot;https://alerts.example.com/webhook&quot;</span><span class="p">,</span>
+    <span class="n">secret</span><span class="o">=</span><span class="s2">&quot;my-signing-secret&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="add-cloudwatch-log-group-stream-none-region-none-endpoint-url-none-batch-size-100-batch-timeout-5s-max-retries-3-retry-delay-0-5-create-group-true-create-stream-true-circuit-breaker-true-circuit-breaker-threshold-5">
+<h3>add_cloudwatch(log_group, *, stream=None, region=None, endpoint_url=None, batch_size=100, batch_timeout=“5s”, max_retries=3, retry_delay=0.5, create_group=True, create_stream=True, circuit_breaker=True, circuit_breaker_threshold=5)<a class="headerlink" href="#add-cloudwatch-log-group-stream-none-region-none-endpoint-url-none-batch-size-100-batch-timeout-5s-max-retries-3-retry-delay-0-5-create-group-true-create-stream-true-circuit-breaker-true-circuit-breaker-threshold-5" title="Link to this heading"></a></h3>
+<p>Add AWS CloudWatch Logs sink.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">log_group</span></code> (str): CloudWatch log group name (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stream</span></code> (str | None): Log stream name (auto-generated if not provided)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">region</span></code> (str | None): AWS region (uses default if not provided)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">endpoint_url</span></code> (str | None): Custom endpoint (e.g., LocalStack)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">batch_size</span></code> (int): Events per batch (default: 100)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">batch_timeout</span></code> (str | float): Batch flush timeout</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_retries</span></code> (int): Max retries for PutLogEvents (default: 3)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">retry_delay</span></code> (str | float): Base delay for exponential backoff</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">create_group</span></code> (bool): Create log group if missing (default: True)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">create_stream</span></code> (bool): Create log stream if missing (default: True)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">circuit_breaker</span></code> (bool): Enable circuit breaker (default: True)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">circuit_breaker_threshold</span></code> (int): Failures before opening (default: 5)</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">add_cloudwatch</span><span class="p">(</span>
+    <span class="s2">&quot;/myapp/prod&quot;</span><span class="p">,</span>
+    <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Equivalent Settings:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Settings</span><span class="p">(</span>
+    <span class="n">core</span><span class="o">=</span><span class="n">CoreSettings</span><span class="p">(</span><span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;cloudwatch&quot;</span><span class="p">]),</span>
+    <span class="n">sink_config</span><span class="o">=</span><span class="n">SinkConfig</span><span class="p">(</span>
+        <span class="n">cloudwatch</span><span class="o">=</span><span class="n">CloudWatchSinkSettings</span><span class="p">(</span>
+            <span class="n">log_group_name</span><span class="o">=</span><span class="s2">&quot;/myapp/prod&quot;</span><span class="p">,</span>
+            <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="add-loki-url-http-localhost-3100-tenant-id-none-labels-none-label-keys-none-batch-size-100-batch-timeout-5s-timeout-10s-max-retries-3-retry-delay-0-5-auth-username-none-auth-password-none-auth-token-none-circuit-breaker-true-circuit-breaker-threshold-5">
+<h3>add_loki(url=“http://localhost:3100”, *, tenant_id=None, labels=None, label_keys=None, batch_size=100, batch_timeout=“5s”, timeout=“10s”, max_retries=3, retry_delay=0.5, auth_username=None, auth_password=None, auth_token=None, circuit_breaker=True, circuit_breaker_threshold=5)<a class="headerlink" href="#add-loki-url-http-localhost-3100-tenant-id-none-labels-none-label-keys-none-batch-size-100-batch-timeout-5s-timeout-10s-max-retries-3-retry-delay-0-5-auth-username-none-auth-password-none-auth-token-none-circuit-breaker-true-circuit-breaker-threshold-5" title="Link to this heading"></a></h3>
+<p>Add Grafana Loki sink.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">url</span></code> (str): Loki push endpoint (default: <code class="docutils literal notranslate"><span class="pre">http://localhost:3100</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tenant_id</span></code> (str | None): Multi-tenant identifier</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">labels</span></code> (dict[str, str] | None): Static labels for log streams</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">label_keys</span></code> (list[str] | None): Event keys to promote to labels</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">batch_size</span></code> (int): Events per batch (default: 100)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">batch_timeout</span></code> (str | float): Batch flush timeout</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">timeout</span></code> (str | float): HTTP request timeout</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_retries</span></code> (int): Max retries on failure (default: 3)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">retry_delay</span></code> (str | float): Base delay for exponential backoff</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">auth_username</span></code> (str | None): Basic auth username</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">auth_password</span></code> (str | None): Basic auth password</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">auth_token</span></code> (str | None): Bearer token</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">circuit_breaker</span></code> (bool): Enable circuit breaker (default: True)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">circuit_breaker_threshold</span></code> (int): Failures before opening (default: 5)</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">add_loki</span><span class="p">(</span>
+    <span class="s2">&quot;http://loki:3100&quot;</span><span class="p">,</span>
+    <span class="n">tenant_id</span><span class="o">=</span><span class="s2">&quot;myapp&quot;</span><span class="p">,</span>
+    <span class="n">labels</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;env&quot;</span><span class="p">:</span> <span class="s2">&quot;production&quot;</span><span class="p">,</span> <span class="s2">&quot;service&quot;</span><span class="p">:</span> <span class="s2">&quot;api&quot;</span><span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="add-postgres-dsn-none-host-localhost-port-5432-database-fapilog-user-fapilog-password-none-table-logs-schema-public-batch-size-100-batch-timeout-5s-max-retries-3-retry-delay-0-5-min-pool-2-max-pool-10-pool-acquire-timeout-10s-create-table-true-use-jsonb-true-include-raw-json-none-extract-fields-none-circuit-breaker-true-circuit-breaker-threshold-5">
+<h3>add_postgres(dsn=None, *, host=“localhost”, port=5432, database=“fapilog”, user=“fapilog”, password=None, table=“logs”, schema=“public”, batch_size=100, batch_timeout=“5s”, max_retries=3, retry_delay=0.5, min_pool=2, max_pool=10, pool_acquire_timeout=“10s”, create_table=True, use_jsonb=True, include_raw_json=None, extract_fields=None, circuit_breaker=True, circuit_breaker_threshold=5)<a class="headerlink" href="#add-postgres-dsn-none-host-localhost-port-5432-database-fapilog-user-fapilog-password-none-table-logs-schema-public-batch-size-100-batch-timeout-5s-max-retries-3-retry-delay-0-5-min-pool-2-max-pool-10-pool-acquire-timeout-10s-create-table-true-use-jsonb-true-include-raw-json-none-extract-fields-none-circuit-breaker-true-circuit-breaker-threshold-5" title="Link to this heading"></a></h3>
+<p>Add PostgreSQL sink for structured log storage.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dsn</span></code> (str | None): Full connection string (overrides host/port/database/user/password)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">host</span></code> (str): Database host (default: <code class="docutils literal notranslate"><span class="pre">localhost</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">port</span></code> (int): Database port (default: 5432)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">database</span></code> (str): Database name (default: <code class="docutils literal notranslate"><span class="pre">fapilog</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user</span></code> (str): Database user (default: <code class="docutils literal notranslate"><span class="pre">fapilog</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">password</span></code> (str | None): Database password</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">table</span></code> (str): Target table name (default: <code class="docutils literal notranslate"><span class="pre">logs</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">schema</span></code> (str): Database schema (default: <code class="docutils literal notranslate"><span class="pre">public</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">batch_size</span></code> (int): Events per batch (default: 100)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">batch_timeout</span></code> (str | float): Batch flush timeout</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_retries</span></code> (int): Max retries on failure (default: 3)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">retry_delay</span></code> (str | float): Base delay for exponential backoff</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_pool</span></code> (int): Minimum pool connections (default: 2)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_pool</span></code> (int): Maximum pool connections (default: 10)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pool_acquire_timeout</span></code> (str | float): Timeout for acquiring connections</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">create_table</span></code> (bool): Auto-create table if missing (default: True)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">use_jsonb</span></code> (bool): Use JSONB column type (default: True)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">include_raw_json</span></code> (bool | None): Store full event JSON payload</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">extract_fields</span></code> (list[str] | None): Fields to promote to columns</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">circuit_breaker</span></code> (bool): Enable circuit breaker (default: True)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">circuit_breaker_threshold</span></code> (int): Failures before opening (default: 5)</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">add_postgres</span><span class="p">(</span>
+    <span class="n">dsn</span><span class="o">=</span><span class="s2">&quot;postgresql://user:pass@db.example.com/logs&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="c1"># Or with individual parameters:</span>
+<span class="n">builder</span><span class="o">.</span><span class="n">add_postgres</span><span class="p">(</span>
+    <span class="n">host</span><span class="o">=</span><span class="s2">&quot;db.example.com&quot;</span><span class="p">,</span>
+    <span class="n">database</span><span class="o">=</span><span class="s2">&quot;logs&quot;</span><span class="p">,</span>
+    <span class="n">user</span><span class="o">=</span><span class="s2">&quot;fapilog&quot;</span><span class="p">,</span>
+    <span class="n">password</span><span class="o">=</span><span class="s2">&quot;secret&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="filters">
+<h2>Filters<a class="headerlink" href="#filters" title="Link to this heading"></a></h2>
+<section id="with-filters-filters">
+<h3>with_filters(*filters)<a class="headerlink" href="#with-filters-filters" title="Link to this heading"></a></h3>
+<p>Enable filters by name.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">*filters</span></code> (str): Filter names (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;level&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;sampling&quot;</span></code>)</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_filters</span><span class="p">(</span><span class="s2">&quot;level&quot;</span><span class="p">,</span> <span class="s2">&quot;sampling&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-sampling-rate-1-0-seed-none">
+<h3>with_sampling(rate=1.0, *, seed=None)<a class="headerlink" href="#with-sampling-rate-1-0-seed-none" title="Link to this heading"></a></h3>
+<p>Configure probabilistic sampling filter.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">rate</span></code> (float): Sample rate 0.0-1.0 (1.0 = keep all, 0.1 = keep 10%)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">seed</span></code> (int | None): Random seed for reproducibility</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_sampling</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>  <span class="c1"># Keep 10% of logs</span>
+</pre></div>
+</div>
+<p><strong>Equivalent Settings:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Settings</span><span class="p">(</span>
+    <span class="n">core</span><span class="o">=</span><span class="n">CoreSettings</span><span class="p">(</span><span class="n">filters</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sampling&quot;</span><span class="p">]),</span>
+    <span class="n">filter_config</span><span class="o">=</span><span class="n">FilterConfig</span><span class="p">(</span>
+        <span class="n">sampling</span><span class="o">=</span><span class="n">SamplingFilterSettings</span><span class="p">(</span><span class="n">sample_rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-adaptive-sampling-min-rate-0-01-max-rate-1-0-target-events-per-sec-1000-0-window-seconds-60-0">
+<h3>with_adaptive_sampling(min_rate=0.01, max_rate=1.0, *, target_events_per_sec=1000.0, window_seconds=60.0)<a class="headerlink" href="#with-adaptive-sampling-min-rate-0-01-max-rate-1-0-target-events-per-sec-1000-0-window-seconds-60-0" title="Link to this heading"></a></h3>
+<p>Configure adaptive sampling that adjusts rate based on event volume.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">min_rate</span></code> (float): Minimum sample rate (default: 0.01)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_rate</span></code> (float): Maximum sample rate (default: 1.0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">target_events_per_sec</span></code> (float): Target event throughput (default: 1000)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">window_seconds</span></code> (float): Measurement window (default: 60)</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_adaptive_sampling</span><span class="p">(</span><span class="n">target_events_per_sec</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-trace-sampling-default-rate-1-0-honor-upstream-true">
+<h3>with_trace_sampling(default_rate=1.0, *, honor_upstream=True)<a class="headerlink" href="#with-trace-sampling-default-rate-1-0-honor-upstream-true" title="Link to this heading"></a></h3>
+<p>Configure distributed trace-aware sampling.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">default_rate</span></code> (float): Default sample rate when no trace context (default: 1.0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">honor_upstream</span></code> (bool): Honor upstream sampling decisions (default: True)</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_trace_sampling</span><span class="p">(</span><span class="n">default_rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-rate-limit-capacity-10-refill-rate-5-0-key-field-none-max-keys-10000-overflow-action-drop">
+<h3>with_rate_limit(capacity=10, *, refill_rate=5.0, key_field=None, max_keys=10000, overflow_action=“drop”)<a class="headerlink" href="#with-rate-limit-capacity-10-refill-rate-5-0-key-field-none-max-keys-10000-overflow-action-drop" title="Link to this heading"></a></h3>
+<p>Configure token bucket rate limiting filter.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">capacity</span></code> (int): Token bucket capacity (default: 10)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">refill_rate</span></code> (float): Tokens refilled per second (default: 5.0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">key_field</span></code> (str | None): Event field for partitioning buckets</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_keys</span></code> (int): Maximum buckets to track (default: 10000)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">overflow_action</span></code> (str): Action on overflow - <code class="docutils literal notranslate"><span class="pre">&quot;drop&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;mark&quot;</span></code></p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_rate_limit</span><span class="p">(</span><span class="n">capacity</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">refill_rate</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-first-occurrence-window-seconds-300-0-max-entries-10000-key-fields-none">
+<h3>with_first_occurrence(window_seconds=300.0, *, max_entries=10000, key_fields=None)<a class="headerlink" href="#with-first-occurrence-window-seconds-300-0-max-entries-10000-key-fields-none" title="Link to this heading"></a></h3>
+<p>Configure first-occurrence deduplication filter.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">window_seconds</span></code> (float): Deduplication window (default: 300 = 5 minutes)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_entries</span></code> (int): Maximum tracked messages (default: 10000)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">key_fields</span></code> (list[str] | None): Fields to use as dedup key</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_first_occurrence</span><span class="p">(</span><span class="n">window_seconds</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="processors">
+<h2>Processors<a class="headerlink" href="#processors" title="Link to this heading"></a></h2>
+<section id="with-size-guard-max-bytes-256-kb-action-truncate-preserve-fields-none">
+<h3>with_size_guard(max_bytes=“256 KB”, *, action=“truncate”, preserve_fields=None)<a class="headerlink" href="#with-size-guard-max-bytes-256-kb-action-truncate-preserve-fields-none" title="Link to this heading"></a></h3>
+<p>Configure payload size limiting processor.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">max_bytes</span></code> (str | int): Maximum payload size (supports <code class="docutils literal notranslate"><span class="pre">&quot;256</span> <span class="pre">KB&quot;</span></code> strings)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">action</span></code> (str): Action on oversized payloads - <code class="docutils literal notranslate"><span class="pre">&quot;truncate&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;drop&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;warn&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">preserve_fields</span></code> (list[str] | None): Fields to never remove during truncation</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_size_guard</span><span class="p">(</span><span class="n">max_bytes</span><span class="o">=</span><span class="s2">&quot;1 MB&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;truncate&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="redaction">
+<h2>Redaction<a class="headerlink" href="#redaction" title="Link to this heading"></a></h2>
+<section id="with-redaction-fields-none-patterns-none">
+<h3>with_redaction(*, fields=None, patterns=None)<a class="headerlink" href="#with-redaction-fields-none-patterns-none" title="Link to this heading"></a></h3>
+<p>Configure redaction with field names and/or regex patterns.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">fields</span></code> (list[str] | None): Field names to redact (e.g., <code class="docutils literal notranslate"><span class="pre">[&quot;password&quot;,</span> <span class="pre">&quot;ssn&quot;]</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">patterns</span></code> (list[str] | None): Regex patterns to redact</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span>
+    <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">,</span> <span class="s2">&quot;api_key&quot;</span><span class="p">],</span>
+    <span class="n">patterns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;(?i)secret.*&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-field-mask-fields-mask-block-on-failure-false-max-depth-16-max-keys-1000">
+<h3>with_field_mask(fields, <em>, mask=”</em>**”, block_on_failure=False, max_depth=16, max_keys=1000)<a class="headerlink" href="#with-field-mask-fields-mask-block-on-failure-false-max-depth-16-max-keys-1000" title="Link to this heading"></a></h3>
+<p>Configure field-based redaction with full control.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">fields</span></code> (list[str]): Field paths to mask (e.g., <code class="docutils literal notranslate"><span class="pre">[&quot;password&quot;,</span> <span class="pre">&quot;user.ssn&quot;]</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mask</span></code> (str): Replacement string (default: <code class="docutils literal notranslate"><span class="pre">&quot;***&quot;</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">block_on_failure</span></code> (bool): Block log entry if redaction fails</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_depth</span></code> (int): Maximum nested depth to scan (default: 16)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_keys</span></code> (int): Maximum keys to scan (default: 1000)</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_field_mask</span><span class="p">(</span>
+    <span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">,</span> <span class="s2">&quot;api_key&quot;</span><span class="p">],</span>
+    <span class="n">mask</span><span class="o">=</span><span class="s2">&quot;[REDACTED]&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-regex-mask-patterns-mask-block-on-failure-false-max-depth-16-max-keys-1000">
+<h3>with_regex_mask(patterns, <em>, mask=”</em>**”, block_on_failure=False, max_depth=16, max_keys=1000)<a class="headerlink" href="#with-regex-mask-patterns-mask-block-on-failure-false-max-depth-16-max-keys-1000" title="Link to this heading"></a></h3>
+<p>Configure regex-based field path redaction.</p>
+<p><strong>Note:</strong> Patterns match field <strong>paths</strong> (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;context.password&quot;</span></code>), not field content.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">patterns</span></code> (list[str]): Regex patterns to match against field paths</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mask</span></code> (str): Replacement string (default: <code class="docutils literal notranslate"><span class="pre">&quot;***&quot;</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">block_on_failure</span></code> (bool): Block log entry if redaction fails</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_depth</span></code> (int): Maximum nested depth to scan (default: 16)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_keys</span></code> (int): Maximum keys to scan (default: 1000)</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_regex_mask</span><span class="p">([</span><span class="s2">&quot;(?i).*password.*&quot;</span><span class="p">,</span> <span class="s2">&quot;(?i).*secret.*&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-url-credential-redaction-enabled-true-max-string-length-4096">
+<h3>with_url_credential_redaction(*, enabled=True, max_string_length=4096)<a class="headerlink" href="#with-url-credential-redaction-enabled-true-max-string-length-4096" title="Link to this heading"></a></h3>
+<p>Configure URL credential redaction.</p>
+<p>Scrubs credentials from URLs like <code class="docutils literal notranslate"><span class="pre">https://user:pass&#64;host/...</span></code></p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">enabled</span></code> (bool): Enable URL credential redaction (default: True)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_string_length</span></code> (int): Max string length to parse (default: 4096)</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_url_credential_redaction</span><span class="p">(</span><span class="n">max_string_length</span><span class="o">=</span><span class="mi">8192</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-redaction-guardrails-max-depth-6-max-keys-5000">
+<h3>with_redaction_guardrails(*, max_depth=6, max_keys=5000)<a class="headerlink" href="#with-redaction-guardrails-max-depth-6-max-keys-5000" title="Link to this heading"></a></h3>
+<p>Configure global redaction guardrails.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">max_depth</span></code> (int): Maximum nested depth for redaction (default: 6)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_keys</span></code> (int): Maximum keys scanned during redaction (default: 5000)</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_redaction_guardrails</span><span class="p">(</span><span class="n">max_depth</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">max_keys</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="performance-reliability">
+<h2>Performance &amp; Reliability<a class="headerlink" href="#performance-reliability" title="Link to this heading"></a></h2>
+<section id="with-queue-size-size">
+<h3>with_queue_size(size)<a class="headerlink" href="#with-queue-size-size" title="Link to this heading"></a></h3>
+<p>Set maximum queue size for buffering log events.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code> (int): Maximum queue size</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_queue_size</span><span class="p">(</span><span class="mi">10000</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-batch-size-size">
+<h3>with_batch_size(size)<a class="headerlink" href="#with-batch-size-size" title="Link to this heading"></a></h3>
+<p>Set batch max size for sink writes.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code> (int): Maximum batch size</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_batch_size</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-batch-timeout-timeout">
+<h3>with_batch_timeout(timeout)<a class="headerlink" href="#with-batch-timeout-timeout" title="Link to this heading"></a></h3>
+<p>Set batch timeout for sink writes.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">timeout</span></code> (str | float): Batch timeout (supports <code class="docutils literal notranslate"><span class="pre">&quot;1s&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;500ms&quot;</span></code> strings)</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_batch_timeout</span><span class="p">(</span><span class="s2">&quot;500ms&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-workers-count-1">
+<h3>with_workers(count=1)<a class="headerlink" href="#with-workers-count-1" title="Link to this heading"></a></h3>
+<p>Set number of worker tasks for flush processing.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">count</span></code> (int): Number of workers (default: 1)</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_workers</span><span class="p">(</span><span class="n">count</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-circuit-breaker-enabled-true-failure-threshold-5-recovery-timeout-30s">
+<h3>with_circuit_breaker(*, enabled=True, failure_threshold=5, recovery_timeout=“30s”)<a class="headerlink" href="#with-circuit-breaker-enabled-true-failure-threshold-5-recovery-timeout-30s" title="Link to this heading"></a></h3>
+<p>Configure sink circuit breaker for fault isolation.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">enabled</span></code> (bool): Enable circuit breaker (default: True)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">failure_threshold</span></code> (int): Consecutive failures before opening circuit</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">recovery_timeout</span></code> (str | float): Time before probing failed sink</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_circuit_breaker</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">failure_threshold</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Equivalent Settings:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Settings</span><span class="p">(</span>
+    <span class="n">core</span><span class="o">=</span><span class="n">CoreSettings</span><span class="p">(</span>
+        <span class="n">sink_circuit_breaker_enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">sink_circuit_breaker_failure_threshold</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">sink_circuit_breaker_recovery_timeout_seconds</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-backpressure-wait-ms-50-drop-on-full-true">
+<h3>with_backpressure(*, wait_ms=50, drop_on_full=True)<a class="headerlink" href="#with-backpressure-wait-ms-50-drop-on-full-true" title="Link to this heading"></a></h3>
+<p>Configure queue backpressure behavior.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">wait_ms</span></code> (int): Milliseconds to wait for queue space (default: 50)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">drop_on_full</span></code> (bool): Drop events if queue still full after wait (default: True)</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_backpressure</span><span class="p">(</span><span class="n">wait_ms</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">drop_on_full</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-shutdown-timeout-timeout-3s">
+<h3>with_shutdown_timeout(timeout=“3s”)<a class="headerlink" href="#with-shutdown-timeout-timeout-3s" title="Link to this heading"></a></h3>
+<p>Set maximum time to flush on shutdown.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">timeout</span></code> (str | float): Shutdown timeout</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_shutdown_timeout</span><span class="p">(</span><span class="s2">&quot;5s&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-parallel-sink-writes-enabled-true">
+<h3>with_parallel_sink_writes(enabled=True)<a class="headerlink" href="#with-parallel-sink-writes-enabled-true" title="Link to this heading"></a></h3>
+<p>Enable parallel writes to multiple sinks.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">enabled</span></code> (bool): Write to sinks in parallel (default: True)</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_parallel_sink_writes</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="routing">
+<h2>Routing<a class="headerlink" href="#routing" title="Link to this heading"></a></h2>
+<section id="with-routing-rules-fallback-none-overlap-true">
+<h3>with_routing(rules, *, fallback=None, overlap=True)<a class="headerlink" href="#with-routing-rules-fallback-none-overlap-true" title="Link to this heading"></a></h3>
+<p>Configure level-based sink routing.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">rules</span></code> (list[dict[str, Any]]): List of routing rules, each with <code class="docutils literal notranslate"><span class="pre">&quot;levels&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;sinks&quot;</span></code> keys</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fallback</span></code> (list[str] | None): Sinks to use when no rules match</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">overlap</span></code> (bool): Allow events to match multiple rules (default: True)</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_routing</span><span class="p">(</span>
+    <span class="n">rules</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">],</span> <span class="s2">&quot;sinks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;cloudwatch&quot;</span><span class="p">]},</span>
+        <span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span> <span class="s2">&quot;DEBUG&quot;</span><span class="p">],</span> <span class="s2">&quot;sinks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">]},</span>
+    <span class="p">],</span>
+    <span class="n">fallback</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;stdout_json&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="enrichers">
+<h2>Enrichers<a class="headerlink" href="#enrichers" title="Link to this heading"></a></h2>
+<section id="with-enrichers-enrichers">
+<h3>with_enrichers(*enrichers)<a class="headerlink" href="#with-enrichers-enrichers" title="Link to this heading"></a></h3>
+<p>Enable enrichers by name.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">*enrichers</span></code> (str): Enricher names (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;runtime_info&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;context_vars&quot;</span></code>)</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_enrichers</span><span class="p">(</span><span class="s2">&quot;runtime_info&quot;</span><span class="p">,</span> <span class="s2">&quot;context_vars&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="configure-enricher-name-config">
+<h3>configure_enricher(name, **config)<a class="headerlink" href="#configure-enricher-name-config" title="Link to this heading"></a></h3>
+<p>Configure a specific enricher.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code> (str): Enricher name</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">**config</span></code> (Any): Enricher-specific configuration</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">configure_enricher</span><span class="p">(</span><span class="s2">&quot;runtime_info&quot;</span><span class="p">,</span> <span class="n">service</span><span class="o">=</span><span class="s2">&quot;my-api&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-context-kwargs">
+<h3>with_context(**kwargs)<a class="headerlink" href="#with-context-kwargs" title="Link to this heading"></a></h3>
+<p>Set default bound context for all log entries.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> (object): Context key-value pairs</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_context</span><span class="p">(</span><span class="n">service</span><span class="o">=</span><span class="s2">&quot;api&quot;</span><span class="p">,</span> <span class="n">environment</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="advanced-configuration">
+<h2>Advanced Configuration<a class="headerlink" href="#advanced-configuration" title="Link to this heading"></a></h2>
+<section id="with-exceptions-enabled-true-max-frames-10-max-stack-chars-20000">
+<h3>with_exceptions(*, enabled=True, max_frames=10, max_stack_chars=20000)<a class="headerlink" href="#with-exceptions-enabled-true-max-frames-10-max-stack-chars-20000" title="Link to this heading"></a></h3>
+<p>Configure exception serialization.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">enabled</span></code> (bool): Enable structured exception capture (default: True)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_frames</span></code> (int): Maximum stack frames to capture (default: 10)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_stack_chars</span></code> (int): Maximum total stack string length (default: 20000)</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_exceptions</span><span class="p">(</span><span class="n">max_frames</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-metrics-enabled-true">
+<h3>with_metrics(enabled=True)<a class="headerlink" href="#with-metrics-enabled-true" title="Link to this heading"></a></h3>
+<p>Enable Prometheus-compatible metrics.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">enabled</span></code> (bool): Enable metrics collection (default: True)</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_metrics</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-error-deduplication-window-seconds-5-0">
+<h3>with_error_deduplication(window_seconds=5.0)<a class="headerlink" href="#with-error-deduplication-window-seconds-5-0" title="Link to this heading"></a></h3>
+<p>Configure error log deduplication.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">window_seconds</span></code> (float): Seconds to suppress duplicate errors (0 disables)</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_error_deduplication</span><span class="p">(</span><span class="n">window_seconds</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-diagnostics-enabled-true-output-stderr">
+<h3>with_diagnostics(*, enabled=True, output=“stderr”)<a class="headerlink" href="#with-diagnostics-enabled-true-output-stderr" title="Link to this heading"></a></h3>
+<p>Configure internal diagnostics output.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">enabled</span></code> (bool): Enable internal logging (default: True)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code> (str): Output stream - <code class="docutils literal notranslate"><span class="pre">&quot;stderr&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;stdout&quot;</span></code></p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_diagnostics</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s2">&quot;stderr&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-strict-mode-enabled-true">
+<h3>with_strict_mode(enabled=True)<a class="headerlink" href="#with-strict-mode-enabled-true" title="Link to this heading"></a></h3>
+<p>Enable strict envelope mode (drop on serialization failure).</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">enabled</span></code> (bool): Enable strict mode (default: True)</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_strict_mode</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-unhandled-exception-capture-enabled-true">
+<h3>with_unhandled_exception_capture(enabled=True)<a class="headerlink" href="#with-unhandled-exception-capture-enabled-true" title="Link to this heading"></a></h3>
+<p>Enable automatic capture of unhandled exceptions.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">enabled</span></code> (bool): Install exception hooks (default: True)</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_unhandled_exception_capture</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="with-plugins-enabled-true-allow-external-false-allowlist-none-denylist-none-validation-mode-disabled">
+<h3>with_plugins(*, enabled=True, allow_external=False, allowlist=None, denylist=None, validation_mode=“disabled”)<a class="headerlink" href="#with-plugins-enabled-true-allow-external-false-allowlist-none-denylist-none-validation-mode-disabled" title="Link to this heading"></a></h3>
+<p>Configure plugin loading behavior.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">enabled</span></code> (bool): Enable plugin loading (default: True)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">allow_external</span></code> (bool): Allow entry point plugins (default: False)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">allowlist</span></code> (list[str] | None): Only allow these plugins</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">denylist</span></code> (list[str] | None): Block these plugins</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">validation_mode</span></code> (str): Validation mode - <code class="docutils literal notranslate"><span class="pre">&quot;disabled&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;warn&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;strict&quot;</span></code></p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_plugins</span><span class="p">(</span><span class="n">allowlist</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;rotating_file&quot;</span><span class="p">,</span> <span class="s2">&quot;stdout_json&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="building-the-logger">
+<h2>Building the Logger<a class="headerlink" href="#building-the-logger" title="Link to this heading"></a></h2>
+<section id="build">
+<h3>build()<a class="headerlink" href="#build" title="Link to this heading"></a></h3>
+<p>Build and return a synchronous logger.</p>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">SyncLoggerFacade</span></code></p>
+<p><strong>Raises:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ValueError</span></code>: If configuration is invalid</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="build-async-asyncloggerbuilder-only">
+<h3>build_async() (AsyncLoggerBuilder only)<a class="headerlink" href="#build-async-asyncloggerbuilder-only" title="Link to this heading"></a></h3>
+<p>Build and return an asynchronous logger.</p>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">AsyncLoggerFacade</span></code></p>
+<p><strong>Raises:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ValueError</span></code>: If configuration is invalid</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">AsyncLoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span><span class="o">.</span><span class="n">build_async</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="complete-method-index">
+<h2>Complete Method Index<a class="headerlink" href="#complete-method-index" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Method</p></th>
+<th class="head"><p>Category</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_name()</span></code></p></td>
+<td><p>Core</p></td>
+<td><p>Set logger name</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_level()</span></code></p></td>
+<td><p>Core</p></td>
+<td><p>Set log level</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_preset()</span></code></p></td>
+<td><p>Core</p></td>
+<td><p>Apply preset configuration</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_app_name()</span></code></p></td>
+<td><p>Core</p></td>
+<td><p>Set application name</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">add_stdout()</span></code></p></td>
+<td><p>Sinks</p></td>
+<td><p>Add stdout sink</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">add_stdout_pretty()</span></code></p></td>
+<td><p>Sinks</p></td>
+<td><p>Add pretty stdout sink</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">add_file()</span></code></p></td>
+<td><p>Sinks</p></td>
+<td><p>Add rotating file sink</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">add_http()</span></code></p></td>
+<td><p>Sinks</p></td>
+<td><p>Add HTTP sink</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">add_webhook()</span></code></p></td>
+<td><p>Sinks</p></td>
+<td><p>Add webhook sink</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">add_cloudwatch()</span></code></p></td>
+<td><p>Sinks</p></td>
+<td><p>Add AWS CloudWatch sink</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">add_loki()</span></code></p></td>
+<td><p>Sinks</p></td>
+<td><p>Add Grafana Loki sink</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">add_postgres()</span></code></p></td>
+<td><p>Sinks</p></td>
+<td><p>Add PostgreSQL sink</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_filters()</span></code></p></td>
+<td><p>Filters</p></td>
+<td><p>Enable filters by name</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_sampling()</span></code></p></td>
+<td><p>Filters</p></td>
+<td><p>Configure probabilistic sampling</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_adaptive_sampling()</span></code></p></td>
+<td><p>Filters</p></td>
+<td><p>Configure adaptive sampling</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_trace_sampling()</span></code></p></td>
+<td><p>Filters</p></td>
+<td><p>Configure trace-aware sampling</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_rate_limit()</span></code></p></td>
+<td><p>Filters</p></td>
+<td><p>Configure rate limiting</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_first_occurrence()</span></code></p></td>
+<td><p>Filters</p></td>
+<td><p>Configure deduplication</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_size_guard()</span></code></p></td>
+<td><p>Processors</p></td>
+<td><p>Configure size limiting</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_redaction()</span></code></p></td>
+<td><p>Redaction</p></td>
+<td><p>Configure basic redaction</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_field_mask()</span></code></p></td>
+<td><p>Redaction</p></td>
+<td><p>Configure field masking</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_regex_mask()</span></code></p></td>
+<td><p>Redaction</p></td>
+<td><p>Configure regex masking</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_url_credential_redaction()</span></code></p></td>
+<td><p>Redaction</p></td>
+<td><p>Configure URL credential scrubbing</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_redaction_guardrails()</span></code></p></td>
+<td><p>Redaction</p></td>
+<td><p>Configure redaction limits</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_queue_size()</span></code></p></td>
+<td><p>Performance</p></td>
+<td><p>Set queue size</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_batch_size()</span></code></p></td>
+<td><p>Performance</p></td>
+<td><p>Set batch size</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_batch_timeout()</span></code></p></td>
+<td><p>Performance</p></td>
+<td><p>Set batch timeout</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_workers()</span></code></p></td>
+<td><p>Performance</p></td>
+<td><p>Set worker count</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_circuit_breaker()</span></code></p></td>
+<td><p>Reliability</p></td>
+<td><p>Configure circuit breaker</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_backpressure()</span></code></p></td>
+<td><p>Reliability</p></td>
+<td><p>Configure backpressure</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_shutdown_timeout()</span></code></p></td>
+<td><p>Reliability</p></td>
+<td><p>Set shutdown timeout</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_parallel_sink_writes()</span></code></p></td>
+<td><p>Performance</p></td>
+<td><p>Enable parallel writes</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_routing()</span></code></p></td>
+<td><p>Routing</p></td>
+<td><p>Configure sink routing</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_enrichers()</span></code></p></td>
+<td><p>Enrichers</p></td>
+<td><p>Enable enrichers</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">configure_enricher()</span></code></p></td>
+<td><p>Enrichers</p></td>
+<td><p>Configure enricher</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_context()</span></code></p></td>
+<td><p>Enrichers</p></td>
+<td><p>Set default context</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_exceptions()</span></code></p></td>
+<td><p>Advanced</p></td>
+<td><p>Configure exception handling</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_metrics()</span></code></p></td>
+<td><p>Advanced</p></td>
+<td><p>Enable metrics</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_error_deduplication()</span></code></p></td>
+<td><p>Advanced</p></td>
+<td><p>Configure error dedup</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_diagnostics()</span></code></p></td>
+<td><p>Advanced</p></td>
+<td><p>Configure diagnostics</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_strict_mode()</span></code></p></td>
+<td><p>Advanced</p></td>
+<td><p>Enable strict mode</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_unhandled_exception_capture()</span></code></p></td>
+<td><p>Advanced</p></td>
+<td><p>Capture unhandled exceptions</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_plugins()</span></code></p></td>
+<td><p>Advanced</p></td>
+<td><p>Configure plugin loading</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">build()</span></code></p></td>
+<td><p>Build</p></td>
+<td><p>Build sync logger</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">build_async()</span></code></p></td>
+<td><p>Build</p></td>
+<td><p>Build async logger</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="top-level-functions.html" class="btn btn-neutral float-left" title="Top-Level Functions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="logger-methods.html" class="btn btn-neutral float-right" title="Logger Methods" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Chris Haste.
+      <span class="lastupdated">Last updated on January 21, 2026.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

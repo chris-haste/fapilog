@@ -8,6 +8,7 @@ Complete API reference for fapilog, organized by functionality.
 :caption: API Reference
 
 top-level-functions
+builder
 logger-methods
 context-binding
 audit-trail
@@ -23,6 +24,7 @@ modules
 The API Reference is organized by functionality to help you quickly find what you need:
 
 - **Top-Level Functions** (`top-level-functions`) - Main entry points and utilities
+- **Builder API** (`builder`) - Fluent configuration with `LoggerBuilder`
 - **Logger Methods** (`logger-methods`) - All available logging methods
 - **Context Binding** (`context-binding`) - Request context and correlation
 - **Configuration** (`configuration`) - Settings and environment configuration
@@ -41,6 +43,11 @@ The API Reference is organized by functionality to help you quickly find what yo
 - **runtime_async** - Async context manager for lifecycle
 - **get_cached_loggers** - Inspect cached logger names
 - **clear_logger_cache** - Drain and clear all cached loggers
+
+### Builder API
+
+- **LoggerBuilder** - Fluent builder for sync loggers
+- **AsyncLoggerBuilder** - Fluent builder for async loggers
 
 ### Logger Methods
 

@@ -1,0 +1,793 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Migrating from Settings to Builder &mdash; fapilog latest documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=30646c52"></script>
+      <script src="../_static/custom.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Environment Variable Configuration" href="../user-guide/environment-variables.html" />
+    <link rel="prev" title="Configuring Fapilog with the Builder API" href="../user-guide/builder-configuration.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            fapilog
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/quickstart.html">Quickstart Tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/hello-world.html">Hello World Walkthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../core-concepts/index.html">Core Concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/pipeline-architecture.html">Pipeline Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/envelope.html">Envelope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/batching-backpressure.html">Batching &amp; Backpressure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/redaction.html">Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/metrics.html">Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html">Diagnostics Resilience</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html#id1">Diagnostics &amp; Resilience</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="../user-guide/index.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/builder-configuration.html">Configuring Fapilog with the Builder API</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Migrating from Settings to Builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/environment-variables.html">Environment Variable Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/using-logger.html">Using the Logger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/context-enrichment.html">Context Enrichment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/sink-routing.html">Sink routing by level</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/redaction-guarantee.html">Redaction Guarantee</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/performance-tuning.html">Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/benchmarks.html">Performance Benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/integration-guide.html">Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/fastapi.html">FastAPI / ASGI Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/comparisons.html">Comparisons: fapilog vs stdlib, structlog, loguru</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/testing-plugins.html">Testing Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/webhook-security.html">Webhook Security</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api-reference/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/top-level-functions.html">Top-Level Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/builder.html">Builder API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/logger-methods.html">Logger Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/audit-trail.html">Audit Trail</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/types.html">Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/plugins/index.html">Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/modules.html">API Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples &amp; Recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/builder-configurations.html">Builder Configuration Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/fastapi-logging.html">FastAPI Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cli-tools.html">Logging in Scripts/CLIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/redacting-secrets.html">Redacting Secrets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/structured-error-logging.html">Structured Error Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/kubernetes-file-sink.html">Kubernetes File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/prometheus-metrics.html">Prometheus Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloudwatch_logging/index.html">CloudWatch Logging (LocalStack)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloud-sinks/index.html">Cloud Sink Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugin Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/authoring.html">Authoring Fapilog Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/enrichers.html">Enrichers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/filters.html">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/processors.html">Processors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/testing.html">Plugin Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/configuration.html">Plugin Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/health-checks.html">Plugin Health Checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/error-handling.html">Plugin Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../patterns.html">Integration Patterns</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting/index.html">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/logs-dropped-under-load.html">Logs Dropped Under Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/destination-size-limits.html">Logs Rejected by Destination Size Limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/context-values-missing.html">Context Values Missing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/file-sink-not-rotating.html">File Sink Not Rotating</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/serialization-errors.html">Serialization Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/cloudwatch-sink.html">CloudWatch Sink Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/loki-sink.html">Loki Sink Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices.html">Appendices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../env-vars.html">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../settings-guide.html">Settings Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-guide.html">Schema Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-migration-v1.0-to-v1.1.html">Schema Migration Guide: v1.0 to v1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugin-guide.html">Plugin Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction-guarantees.html">Redaction Guarantees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quality-signals.html">Quality Signals</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">fapilog</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../user-guide/index.html">User Guide</a></li>
+      <li class="breadcrumb-item active">Migrating from Settings to Builder</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/guides/settings-to-builder-migration.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="migrating-from-settings-to-builder">
+<h1>Migrating from Settings to Builder<a class="headerlink" href="#migrating-from-settings-to-builder" title="Link to this heading"></a></h1>
+<p>This guide helps you convert existing Settings-based configurations to the Builder API.</p>
+<section id="when-to-migrate">
+<h2>When to Migrate<a class="headerlink" href="#when-to-migrate" title="Link to this heading"></a></h2>
+<p><strong>Migrate to Builder when:</strong></p>
+<ul class="simple">
+<li><p>Starting a new project or feature</p></li>
+<li><p>Refactoring existing configuration code</p></li>
+<li><p>Want better IDE support and discoverability</p></li>
+<li><p>Configuration is defined in Python code</p></li>
+</ul>
+<p><strong>Keep Settings when:</strong></p>
+<ul class="simple">
+<li><p>Configuration is entirely environment-variable driven</p></li>
+<li><p>Need runtime configuration changes after logger creation</p></li>
+<li><p>Integrating with external config management systems (Consul, etc.)</p></li>
+<li><p>Configuration is loaded from JSON/YAML files</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="quick-conversion-reference">
+<h2>Quick Conversion Reference<a class="headerlink" href="#quick-conversion-reference" title="Link to this heading"></a></h2>
+<section id="core-settings">
+<h3>Core Settings<a class="headerlink" href="#core-settings" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Settings Pattern</p></th>
+<th class="head"><p>Builder Pattern</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(log_level=&quot;INFO&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_level(&quot;INFO&quot;)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(app_name=&quot;my-app&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_app_name(&quot;my-app&quot;)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(max_queue_size=10000)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_queue_size(10000)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(batch_max_size=100)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_batch_size(100)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(batch_timeout_seconds=1.0)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_batch_timeout(&quot;1s&quot;)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(worker_count=4)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_workers(4)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(shutdown_timeout_seconds=5.0)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_shutdown_timeout(&quot;5s&quot;)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(backpressure_wait_ms=50)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_backpressure(wait_ms=50)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(drop_on_full=False)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_backpressure(drop_on_full=False)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(enable_metrics=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_metrics(enabled=True)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(sink_parallel_writes=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_parallel_sink_writes(True)</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="circuit-breaker">
+<h3>Circuit Breaker<a class="headerlink" href="#circuit-breaker" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Settings Pattern</p></th>
+<th class="head"><p>Builder Pattern</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(sink_circuit_breaker_enabled=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_circuit_breaker(enabled=True)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(sink_circuit_breaker_failure_threshold=5)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_circuit_breaker(failure_threshold=5)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(sink_circuit_breaker_recovery_timeout_seconds=30)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_circuit_breaker(recovery_timeout=&quot;30s&quot;)</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="sinks">
+<h3>Sinks<a class="headerlink" href="#sinks" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Settings Pattern</p></th>
+<th class="head"><p>Builder Pattern</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(sinks=[&quot;stdout_json&quot;])</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_stdout()</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(sinks=[&quot;stdout_pretty&quot;])</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_stdout(format=&quot;pretty&quot;)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(sinks=[&quot;rotating_file&quot;])</span></code> + config</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_file(directory,</span> <span class="pre">...)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(sinks=[&quot;http&quot;])</span></code> + config</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_http(endpoint,</span> <span class="pre">...)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(sinks=[&quot;webhook&quot;])</span></code> + config</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_webhook(endpoint,</span> <span class="pre">...)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(sinks=[&quot;cloudwatch&quot;])</span></code> + config</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_cloudwatch(log_group,</span> <span class="pre">...)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(sinks=[&quot;loki&quot;])</span></code> + config</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_loki(url,</span> <span class="pre">...)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(sinks=[&quot;postgres&quot;])</span></code> + config</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_postgres(...)</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="filters">
+<h3>Filters<a class="headerlink" href="#filters" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Settings Pattern</p></th>
+<th class="head"><p>Builder Pattern</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(filters=[&quot;sampling&quot;])</span></code> + config</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_sampling(rate=0.1)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(filters=[&quot;adaptive_sampling&quot;])</span></code> + config</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_adaptive_sampling(...)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(filters=[&quot;trace_sampling&quot;])</span></code> + config</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_trace_sampling(...)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(filters=[&quot;rate_limit&quot;])</span></code> + config</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_rate_limit(...)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(filters=[&quot;first_occurrence&quot;])</span></code> + config</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_first_occurrence(...)</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="redaction">
+<h3>Redaction<a class="headerlink" href="#redaction" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Settings Pattern</p></th>
+<th class="head"><p>Builder Pattern</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(redactors=[&quot;field_mask&quot;])</span></code> + config</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_field_mask(fields,</span> <span class="pre">...)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(redactors=[&quot;regex_mask&quot;])</span></code> + config</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_regex_mask(patterns,</span> <span class="pre">...)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(redactors=[&quot;url_credentials&quot;])</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_url_credential_redaction()</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="enrichers">
+<h3>Enrichers<a class="headerlink" href="#enrichers" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Settings Pattern</p></th>
+<th class="head"><p>Builder Pattern</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(enrichers=[&quot;runtime_info&quot;,</span> <span class="pre">&quot;context_vars&quot;])</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_enrichers(&quot;runtime_info&quot;,</span> <span class="pre">&quot;context_vars&quot;)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CoreSettings(default_bound_context={...})</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_context(key=value,</span> <span class="pre">...)</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<hr class="docutils" />
+<section id="step-by-step-migration">
+<h2>Step-by-Step Migration<a class="headerlink" href="#step-by-step-migration" title="Link to this heading"></a></h2>
+<section id="example-1-basic-configuration">
+<h3>Example 1: Basic Configuration<a class="headerlink" href="#example-1-basic-configuration" title="Link to this heading"></a></h3>
+<p><strong>Before (Settings):</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span><span class="p">,</span> <span class="n">get_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreSettings</span>
+
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span>
+    <span class="n">core</span><span class="o">=</span><span class="n">CoreSettings</span><span class="p">(</span>
+        <span class="n">log_level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span>
+        <span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;stdout_json&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;app&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>After (Builder):</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_name</span><span class="p">(</span><span class="s2">&quot;app&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_level</span><span class="p">(</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="example-2-file-sink-with-rotation">
+<h3>Example 2: File Sink with Rotation<a class="headerlink" href="#example-2-file-sink-with-rotation" title="Link to this heading"></a></h3>
+<p><strong>Before (Settings):</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span><span class="p">,</span> <span class="n">get_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreSettings</span><span class="p">,</span> <span class="n">SinkConfig</span><span class="p">,</span> <span class="n">RotatingFileSinkSettings</span>
+
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span>
+    <span class="n">core</span><span class="o">=</span><span class="n">CoreSettings</span><span class="p">(</span>
+        <span class="n">log_level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span>
+        <span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;rotating_file&quot;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="n">sink_config</span><span class="o">=</span><span class="n">SinkConfig</span><span class="p">(</span>
+        <span class="n">rotating_file</span><span class="o">=</span><span class="n">RotatingFileSinkSettings</span><span class="p">(</span>
+            <span class="n">directory</span><span class="o">=</span><span class="s2">&quot;/var/log/myapp&quot;</span><span class="p">,</span>
+            <span class="n">max_bytes</span><span class="o">=</span><span class="s2">&quot;50 MB&quot;</span><span class="p">,</span>
+            <span class="n">max_files</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="n">compress_rotated</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>After (Builder):</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_level</span><span class="p">(</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_file</span><span class="p">(</span>
+        <span class="s2">&quot;/var/log/myapp&quot;</span><span class="p">,</span>
+        <span class="n">max_bytes</span><span class="o">=</span><span class="s2">&quot;50 MB&quot;</span><span class="p">,</span>
+        <span class="n">max_files</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">compress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="example-3-cloudwatch-with-circuit-breaker">
+<h3>Example 3: CloudWatch with Circuit Breaker<a class="headerlink" href="#example-3-cloudwatch-with-circuit-breaker" title="Link to this heading"></a></h3>
+<p><strong>Before (Settings):</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span><span class="p">,</span> <span class="n">get_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreSettings</span><span class="p">,</span> <span class="n">SinkConfig</span><span class="p">,</span> <span class="n">CloudWatchSinkSettings</span>
+
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span>
+    <span class="n">core</span><span class="o">=</span><span class="n">CoreSettings</span><span class="p">(</span>
+        <span class="n">log_level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span>
+        <span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;cloudwatch&quot;</span><span class="p">],</span>
+        <span class="n">sink_circuit_breaker_enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">sink_circuit_breaker_failure_threshold</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">sink_circuit_breaker_recovery_timeout_seconds</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">sink_config</span><span class="o">=</span><span class="n">SinkConfig</span><span class="p">(</span>
+        <span class="n">cloudwatch</span><span class="o">=</span><span class="n">CloudWatchSinkSettings</span><span class="p">(</span>
+            <span class="n">log_group_name</span><span class="o">=</span><span class="s2">&quot;/myapp/prod&quot;</span><span class="p">,</span>
+            <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>After (Builder):</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_level</span><span class="p">(</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_cloudwatch</span><span class="p">(</span><span class="s2">&quot;/myapp/prod&quot;</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_circuit_breaker</span><span class="p">(</span>
+        <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">failure_threshold</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">recovery_timeout</span><span class="o">=</span><span class="s2">&quot;30s&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="example-4-sampling-and-rate-limiting">
+<h3>Example 4: Sampling and Rate Limiting<a class="headerlink" href="#example-4-sampling-and-rate-limiting" title="Link to this heading"></a></h3>
+<p><strong>Before (Settings):</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span><span class="p">,</span> <span class="n">get_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreSettings</span><span class="p">,</span> <span class="n">FilterConfig</span><span class="p">,</span> <span class="n">SamplingFilterSettings</span><span class="p">,</span> <span class="n">RateLimitFilterSettings</span>
+
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span>
+    <span class="n">core</span><span class="o">=</span><span class="n">CoreSettings</span><span class="p">(</span>
+        <span class="n">log_level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span>
+        <span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;stdout_json&quot;</span><span class="p">],</span>
+        <span class="n">filters</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sampling&quot;</span><span class="p">,</span> <span class="s2">&quot;rate_limit&quot;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="n">filter_config</span><span class="o">=</span><span class="n">FilterConfig</span><span class="p">(</span>
+        <span class="n">sampling</span><span class="o">=</span><span class="n">SamplingFilterSettings</span><span class="p">(</span><span class="n">sample_rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">),</span>
+        <span class="n">rate_limit</span><span class="o">=</span><span class="n">RateLimitFilterSettings</span><span class="p">(</span>
+            <span class="n">capacity</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+            <span class="n">refill_rate_per_sec</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>After (Builder):</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_level</span><span class="p">(</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_sampling</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_rate_limit</span><span class="p">(</span><span class="n">capacity</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">refill_rate</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="example-5-redaction-configuration">
+<h3>Example 5: Redaction Configuration<a class="headerlink" href="#example-5-redaction-configuration" title="Link to this heading"></a></h3>
+<p><strong>Before (Settings):</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span><span class="p">,</span> <span class="n">get_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreSettings</span><span class="p">,</span> <span class="n">RedactorConfig</span><span class="p">,</span> <span class="n">FieldMaskSettings</span><span class="p">,</span> <span class="n">RegexMaskSettings</span>
+
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span>
+    <span class="n">core</span><span class="o">=</span><span class="n">CoreSettings</span><span class="p">(</span>
+        <span class="n">log_level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span>
+        <span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;stdout_json&quot;</span><span class="p">],</span>
+        <span class="n">redactors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;field_mask&quot;</span><span class="p">,</span> <span class="s2">&quot;regex_mask&quot;</span><span class="p">,</span> <span class="s2">&quot;url_credentials&quot;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="n">redactor_config</span><span class="o">=</span><span class="n">RedactorConfig</span><span class="p">(</span>
+        <span class="n">field_mask</span><span class="o">=</span><span class="n">FieldMaskSettings</span><span class="p">(</span>
+            <span class="n">fields_to_mask</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">,</span> <span class="s2">&quot;api_key&quot;</span><span class="p">],</span>
+            <span class="n">mask_string</span><span class="o">=</span><span class="s2">&quot;[REDACTED]&quot;</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">regex_mask</span><span class="o">=</span><span class="n">RegexMaskSettings</span><span class="p">(</span>
+            <span class="n">patterns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;(?i).*secret.*&quot;</span><span class="p">],</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>After (Builder):</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_level</span><span class="p">(</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_field_mask</span><span class="p">([</span><span class="s2">&quot;password&quot;</span><span class="p">,</span> <span class="s2">&quot;api_key&quot;</span><span class="p">],</span> <span class="n">mask</span><span class="o">=</span><span class="s2">&quot;[REDACTED]&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_regex_mask</span><span class="p">([</span><span class="s2">&quot;(?i).*secret.*&quot;</span><span class="p">])</span>
+    <span class="o">.</span><span class="n">with_url_credential_redaction</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="example-6-sink-routing">
+<h3>Example 6: Sink Routing<a class="headerlink" href="#example-6-sink-routing" title="Link to this heading"></a></h3>
+<p><strong>Before (Settings):</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span><span class="p">,</span> <span class="n">get_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreSettings</span><span class="p">,</span> <span class="n">SinkConfig</span><span class="p">,</span> <span class="n">CloudWatchSinkSettings</span><span class="p">,</span> <span class="n">SinkRoutingSettings</span>
+
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span>
+    <span class="n">core</span><span class="o">=</span><span class="n">CoreSettings</span><span class="p">(</span>
+        <span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;stdout_json&quot;</span><span class="p">,</span> <span class="s2">&quot;cloudwatch&quot;</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="n">sink_config</span><span class="o">=</span><span class="n">SinkConfig</span><span class="p">(</span>
+        <span class="n">cloudwatch</span><span class="o">=</span><span class="n">CloudWatchSinkSettings</span><span class="p">(</span>
+            <span class="n">log_group_name</span><span class="o">=</span><span class="s2">&quot;/myapp/errors&quot;</span><span class="p">,</span>
+            <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">),</span>
+    <span class="n">sink_routing</span><span class="o">=</span><span class="n">SinkRoutingSettings</span><span class="p">(</span>
+        <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">rules</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">],</span> <span class="s2">&quot;sinks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;cloudwatch&quot;</span><span class="p">]},</span>
+            <span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span> <span class="s2">&quot;WARNING&quot;</span><span class="p">],</span> <span class="s2">&quot;sinks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;stdout_json&quot;</span><span class="p">]},</span>
+        <span class="p">],</span>
+        <span class="n">fallback_sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;stdout_json&quot;</span><span class="p">],</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>After (Builder):</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_cloudwatch</span><span class="p">(</span><span class="s2">&quot;/myapp/errors&quot;</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_routing</span><span class="p">(</span>
+        <span class="n">rules</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">],</span> <span class="s2">&quot;sinks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;cloudwatch&quot;</span><span class="p">]},</span>
+            <span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span> <span class="s2">&quot;WARNING&quot;</span><span class="p">],</span> <span class="s2">&quot;sinks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;stdout_json&quot;</span><span class="p">]},</span>
+        <span class="p">],</span>
+        <span class="n">fallback</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;stdout_json&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="example-7-full-production-configuration">
+<h3>Example 7: Full Production Configuration<a class="headerlink" href="#example-7-full-production-configuration" title="Link to this heading"></a></h3>
+<p><strong>Before (Settings):</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span><span class="p">,</span> <span class="n">get_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">CoreSettings</span><span class="p">,</span>
+    <span class="n">SinkConfig</span><span class="p">,</span>
+    <span class="n">FilterConfig</span><span class="p">,</span>
+    <span class="n">RedactorConfig</span><span class="p">,</span>
+    <span class="n">RotatingFileSinkSettings</span><span class="p">,</span>
+    <span class="n">CloudWatchSinkSettings</span><span class="p">,</span>
+    <span class="n">SamplingFilterSettings</span><span class="p">,</span>
+    <span class="n">FieldMaskSettings</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span>
+    <span class="n">core</span><span class="o">=</span><span class="n">CoreSettings</span><span class="p">(</span>
+        <span class="n">log_level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span>
+        <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;my-service&quot;</span><span class="p">,</span>
+        <span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;rotating_file&quot;</span><span class="p">,</span> <span class="s2">&quot;cloudwatch&quot;</span><span class="p">],</span>
+        <span class="n">filters</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sampling&quot;</span><span class="p">],</span>
+        <span class="n">redactors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;field_mask&quot;</span><span class="p">,</span> <span class="s2">&quot;url_credentials&quot;</span><span class="p">],</span>
+        <span class="n">max_queue_size</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+        <span class="n">batch_max_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">worker_count</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">sink_circuit_breaker_enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">sink_circuit_breaker_failure_threshold</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">drop_on_full</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">enable_metrics</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">sink_config</span><span class="o">=</span><span class="n">SinkConfig</span><span class="p">(</span>
+        <span class="n">rotating_file</span><span class="o">=</span><span class="n">RotatingFileSinkSettings</span><span class="p">(</span>
+            <span class="n">directory</span><span class="o">=</span><span class="s2">&quot;logs/app&quot;</span><span class="p">,</span>
+            <span class="n">max_bytes</span><span class="o">=</span><span class="s2">&quot;100 MB&quot;</span><span class="p">,</span>
+            <span class="n">max_files</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+            <span class="n">compress_rotated</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">cloudwatch</span><span class="o">=</span><span class="n">CloudWatchSinkSettings</span><span class="p">(</span>
+            <span class="n">log_group_name</span><span class="o">=</span><span class="s2">&quot;/myapp/prod&quot;</span><span class="p">,</span>
+            <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="n">filter_config</span><span class="o">=</span><span class="n">FilterConfig</span><span class="p">(</span>
+        <span class="n">sampling</span><span class="o">=</span><span class="n">SamplingFilterSettings</span><span class="p">(</span><span class="n">sample_rate</span><span class="o">=</span><span class="mf">0.5</span><span class="p">),</span>
+    <span class="p">),</span>
+    <span class="n">redactor_config</span><span class="o">=</span><span class="n">RedactorConfig</span><span class="p">(</span>
+        <span class="n">field_mask</span><span class="o">=</span><span class="n">FieldMaskSettings</span><span class="p">(</span>
+            <span class="n">fields_to_mask</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">,</span> <span class="s2">&quot;api_key&quot;</span><span class="p">,</span> <span class="s2">&quot;ssn&quot;</span><span class="p">],</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>After (Builder):</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_level</span><span class="p">(</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_app_name</span><span class="p">(</span><span class="s2">&quot;my-service&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Sinks</span>
+    <span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="s2">&quot;logs/app&quot;</span><span class="p">,</span> <span class="n">max_bytes</span><span class="o">=</span><span class="s2">&quot;100 MB&quot;</span><span class="p">,</span> <span class="n">max_files</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">compress</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_cloudwatch</span><span class="p">(</span><span class="s2">&quot;/myapp/prod&quot;</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Filters</span>
+    <span class="o">.</span><span class="n">with_sampling</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+    <span class="c1"># Redaction</span>
+    <span class="o">.</span><span class="n">with_field_mask</span><span class="p">([</span><span class="s2">&quot;password&quot;</span><span class="p">,</span> <span class="s2">&quot;api_key&quot;</span><span class="p">,</span> <span class="s2">&quot;ssn&quot;</span><span class="p">])</span>
+    <span class="o">.</span><span class="n">with_url_credential_redaction</span><span class="p">()</span>
+
+    <span class="c1"># Performance</span>
+    <span class="o">.</span><span class="n">with_queue_size</span><span class="p">(</span><span class="mi">10000</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_batch_size</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_workers</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Reliability</span>
+    <span class="o">.</span><span class="n">with_circuit_breaker</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">failure_threshold</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_backpressure</span><span class="p">(</span><span class="n">drop_on_full</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Observability</span>
+    <span class="o">.</span><span class="n">with_metrics</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="handling-presets">
+<h2>Handling Presets<a class="headerlink" href="#handling-presets" title="Link to this heading"></a></h2>
+<p>If you’re using environment variables with Settings, consider using Builder presets:</p>
+<p><strong>Before (Environment-driven Settings):</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span><span class="p">,</span> <span class="n">get_logger</span>
+
+<span class="c1"># Settings reads from FAPILOG_* environment variables</span>
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">()</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>After (Builder with Preset):</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="c1"># Use preset based on environment</span>
+<span class="n">preset</span> <span class="o">=</span> <span class="s2">&quot;production&quot;</span> <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;ENV&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;production&quot;</span> <span class="k">else</span> <span class="s2">&quot;dev&quot;</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="n">preset</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Or continue using Settings for pure environment-variable configuration - the Builder is not required for all use cases.</p>
+</section>
+<hr class="docutils" />
+<section id="migration-tips">
+<h2>Migration Tips<a class="headerlink" href="#migration-tips" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Start with presets</strong> - Use <code class="docutils literal notranslate"><span class="pre">.with_preset()</span></code> as a base and override specific values</p></li>
+<li><p><strong>Method chaining order doesn’t matter</strong> - Builder accumulates configuration; order is flexible</p></li>
+<li><p><strong>Duration strings accepted</strong> - Use <code class="docutils literal notranslate"><span class="pre">&quot;30s&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;5m&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;1h&quot;</span></code> instead of seconds</p></li>
+<li><p><strong>Size strings accepted</strong> - Use <code class="docutils literal notranslate"><span class="pre">&quot;10</span> <span class="pre">MB&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;1</span> <span class="pre">GB&quot;</span></code> instead of bytes</p></li>
+<li><p><strong>Sinks auto-registered</strong> - <code class="docutils literal notranslate"><span class="pre">add_*</span></code> methods handle both sink registration and configuration</p></li>
+<li><p><strong>Filters auto-enabled</strong> - <code class="docutils literal notranslate"><span class="pre">with_sampling()</span></code>, <code class="docutils literal notranslate"><span class="pre">with_rate_limit()</span></code>, etc. enable the filter automatically</p></li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="../api-reference/builder.html"><span class="std std-doc">Builder API Reference</span></a> - Complete method documentation</p></li>
+<li><p><a class="reference internal" href="../user-guide/builder-configuration.html"><span class="std std-doc">Builder Configuration Guide</span></a> - Task-oriented tutorials</p></li>
+<li><p><a class="reference internal" href="../examples/builder-configurations.html"><span class="std std-doc">Example Configurations</span></a> - Real-world examples</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../user-guide/builder-configuration.html" class="btn btn-neutral float-left" title="Configuring Fapilog with the Builder API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../user-guide/environment-variables.html" class="btn btn-neutral float-right" title="Environment Variable Configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Chris Haste.
+      <span class="lastupdated">Last updated on January 21, 2026.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

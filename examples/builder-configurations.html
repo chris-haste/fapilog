@@ -1,0 +1,724 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Builder Configuration Examples &mdash; fapilog latest documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=30646c52"></script>
+      <script src="../_static/custom.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="FastAPI Logging" href="fastapi-logging.html" />
+    <link rel="prev" title="Examples &amp; Recipes" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            fapilog
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/quickstart.html">Quickstart Tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/hello-world.html">Hello World Walkthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../core-concepts/index.html">Core Concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/pipeline-architecture.html">Pipeline Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/envelope.html">Envelope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/batching-backpressure.html">Batching &amp; Backpressure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/redaction.html">Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/metrics.html">Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html">Diagnostics Resilience</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html#id1">Diagnostics &amp; Resilience</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide/index.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/builder-configuration.html">Configuring Fapilog with the Builder API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/settings-to-builder-migration.html">Migrating from Settings to Builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/environment-variables.html">Environment Variable Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/using-logger.html">Using the Logger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/context-enrichment.html">Context Enrichment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/sink-routing.html">Sink routing by level</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/redaction-guarantee.html">Redaction Guarantee</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/performance-tuning.html">Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/benchmarks.html">Performance Benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/integration-guide.html">Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/fastapi.html">FastAPI / ASGI Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/comparisons.html">Comparisons: fapilog vs stdlib, structlog, loguru</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/testing-plugins.html">Testing Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/webhook-security.html">Webhook Security</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api-reference/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/top-level-functions.html">Top-Level Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/builder.html">Builder API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/logger-methods.html">Logger Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/audit-trail.html">Audit Trail</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/types.html">Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/plugins/index.html">Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/modules.html">API Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples &amp; Recipes</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Builder Configuration Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fastapi-logging.html">FastAPI Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli-tools.html">Logging in Scripts/CLIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="redacting-secrets.html">Redacting Secrets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="structured-error-logging.html">Structured Error Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kubernetes-file-sink.html">Kubernetes File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="prometheus-metrics.html">Prometheus Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sampling-debug-logs.html">Sampling Debug Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cloudwatch_logging/index.html">CloudWatch Logging (LocalStack)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cloud-sinks/index.html">Cloud Sink Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugin Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/authoring.html">Authoring Fapilog Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/enrichers.html">Enrichers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/filters.html">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/processors.html">Processors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/testing.html">Plugin Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/configuration.html">Plugin Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/health-checks.html">Plugin Health Checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/error-handling.html">Plugin Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../patterns.html">Integration Patterns</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting/index.html">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/logs-dropped-under-load.html">Logs Dropped Under Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/destination-size-limits.html">Logs Rejected by Destination Size Limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/context-values-missing.html">Context Values Missing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/file-sink-not-rotating.html">File Sink Not Rotating</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/serialization-errors.html">Serialization Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/cloudwatch-sink.html">CloudWatch Sink Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/loki-sink.html">Loki Sink Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices.html">Appendices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../env-vars.html">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../settings-guide.html">Settings Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-guide.html">Schema Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-migration-v1.0-to-v1.1.html">Schema Migration Guide: v1.0 to v1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugin-guide.html">Plugin Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction-guarantees.html">Redaction Guarantees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quality-signals.html">Quality Signals</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">fapilog</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Examples &amp; Recipes</a></li>
+      <li class="breadcrumb-item active">Builder Configuration Examples</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/builder-configurations.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="builder-configuration-examples">
+<h1>Builder Configuration Examples<a class="headerlink" href="#builder-configuration-examples" title="Link to this heading"></a></h1>
+<p>Real-world configuration patterns using the Builder API.</p>
+<section id="local-development">
+<h2>Local Development<a class="headerlink" href="#local-development" title="Link to this heading"></a></h2>
+<p>Optimized for debugging with immediate output and full visibility:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;dev&quot;</span><span class="p">)</span>  <span class="c1"># DEBUG level, pretty output, immediate flush</span>
+    <span class="o">.</span><span class="n">with_diagnostics</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># Show internal diagnostics</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="c1"># Or build from scratch:</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_level</span><span class="p">(</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;pretty&quot;</span><span class="p">)</span>  <span class="c1"># Human-readable output</span>
+    <span class="o">.</span><span class="n">with_batch_size</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Immediate flush for debugging</span>
+    <span class="o">.</span><span class="n">with_diagnostics</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="production-with-cloudwatch">
+<h2>Production with CloudWatch<a class="headerlink" href="#production-with-cloudwatch" title="Link to this heading"></a></h2>
+<p>Standard production setup with AWS CloudWatch for centralized logging:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_app_name</span><span class="p">(</span><span class="s2">&quot;my-service&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_level</span><span class="p">(</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
+
+    <span class="c1"># CloudWatch for centralized logs</span>
+    <span class="o">.</span><span class="n">add_cloudwatch</span><span class="p">(</span>
+        <span class="s2">&quot;/myapp/prod&quot;</span><span class="p">,</span>
+        <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+        <span class="n">batch_timeout</span><span class="o">=</span><span class="s2">&quot;5s&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Local file backup</span>
+    <span class="o">.</span><span class="n">add_file</span><span class="p">(</span>
+        <span class="s2">&quot;logs/app&quot;</span><span class="p">,</span>
+        <span class="n">max_bytes</span><span class="o">=</span><span class="s2">&quot;100 MB&quot;</span><span class="p">,</span>
+        <span class="n">max_files</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">compress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Reliability</span>
+    <span class="o">.</span><span class="n">with_circuit_breaker</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">failure_threshold</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_backpressure</span><span class="p">(</span><span class="n">drop_on_full</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_shutdown_timeout</span><span class="p">(</span><span class="s2">&quot;10s&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Performance</span>
+    <span class="o">.</span><span class="n">with_queue_size</span><span class="p">(</span><span class="mi">10000</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_workers</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="multi-sink-with-level-routing">
+<h2>Multi-Sink with Level Routing<a class="headerlink" href="#multi-sink-with-level-routing" title="Link to this heading"></a></h2>
+<p>Route errors to CloudWatch while keeping all logs in files:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_level</span><span class="p">(</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_app_name</span><span class="p">(</span><span class="s2">&quot;api-gateway&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Define all sinks</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>  <span class="c1"># For container stdout</span>
+    <span class="o">.</span><span class="n">add_cloudwatch</span><span class="p">(</span><span class="s2">&quot;/myapp/errors&quot;</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="s2">&quot;logs/app&quot;</span><span class="p">,</span> <span class="n">max_bytes</span><span class="o">=</span><span class="s2">&quot;50 MB&quot;</span><span class="p">,</span> <span class="n">max_files</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+
+    <span class="c1"># Route by level</span>
+    <span class="o">.</span><span class="n">with_routing</span><span class="p">(</span>
+        <span class="n">rules</span><span class="o">=</span><span class="p">[</span>
+            <span class="c1"># Errors go to CloudWatch for alerting</span>
+            <span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">],</span> <span class="s2">&quot;sinks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;cloudwatch&quot;</span><span class="p">]},</span>
+            <span class="c1"># Debug logs only to file (not stdout)</span>
+            <span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">],</span> <span class="s2">&quot;sinks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;rotating_file&quot;</span><span class="p">]},</span>
+            <span class="c1"># Info/Warning to stdout for container logs</span>
+            <span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span> <span class="s2">&quot;WARNING&quot;</span><span class="p">],</span> <span class="s2">&quot;sinks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;stdout_json&quot;</span><span class="p">]},</span>
+        <span class="p">],</span>
+        <span class="c1"># Everything also goes to file</span>
+        <span class="n">fallback</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;rotating_file&quot;</span><span class="p">],</span>
+        <span class="n">overlap</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Allow events to match multiple rules</span>
+    <span class="p">)</span>
+
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="high-throughput-with-sampling">
+<h2>High-Throughput with Sampling<a class="headerlink" href="#high-throughput-with-sampling" title="Link to this heading"></a></h2>
+<p>Handle high log volume with adaptive sampling:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_level</span><span class="p">(</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_app_name</span><span class="p">(</span><span class="s2">&quot;high-volume-service&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Adaptive sampling based on volume</span>
+    <span class="o">.</span><span class="n">with_adaptive_sampling</span><span class="p">(</span>
+        <span class="n">target_events_per_sec</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>  <span class="c1"># Target 1000 events/sec</span>
+        <span class="n">min_rate</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>  <span class="c1"># Never go below 1%</span>
+        <span class="n">max_rate</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>   <span class="c1"># Keep all when volume is low</span>
+        <span class="n">window_seconds</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Rate limiting as safety net</span>
+    <span class="o">.</span><span class="n">with_rate_limit</span><span class="p">(</span>
+        <span class="n">capacity</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span>
+        <span class="n">refill_rate</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span>
+        <span class="n">overflow_action</span><span class="o">=</span><span class="s2">&quot;drop&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Performance tuning</span>
+    <span class="o">.</span><span class="n">with_queue_size</span><span class="p">(</span><span class="mi">50000</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_batch_size</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_batch_timeout</span><span class="p">(</span><span class="s2">&quot;500ms&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_workers</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_parallel_sink_writes</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Size guard for large payloads</span>
+    <span class="o">.</span><span class="n">with_size_guard</span><span class="p">(</span><span class="n">max_bytes</span><span class="o">=</span><span class="s2">&quot;256 KB&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;truncate&quot;</span><span class="p">)</span>
+
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="compliance-ready-with-full-redaction">
+<h2>Compliance-Ready with Full Redaction<a class="headerlink" href="#compliance-ready-with-full-redaction" title="Link to this heading"></a></h2>
+<p>HIPAA/PCI-DSS compliant logging with comprehensive redaction:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_app_name</span><span class="p">(</span><span class="s2">&quot;healthcare-api&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_level</span><span class="p">(</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Comprehensive field redaction</span>
+    <span class="o">.</span><span class="n">with_field_mask</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="c1"># PII</span>
+            <span class="s2">&quot;ssn&quot;</span><span class="p">,</span> <span class="s2">&quot;social_security&quot;</span><span class="p">,</span> <span class="s2">&quot;date_of_birth&quot;</span><span class="p">,</span> <span class="s2">&quot;dob&quot;</span><span class="p">,</span>
+            <span class="c1"># Financial</span>
+            <span class="s2">&quot;credit_card&quot;</span><span class="p">,</span> <span class="s2">&quot;card_number&quot;</span><span class="p">,</span> <span class="s2">&quot;cvv&quot;</span><span class="p">,</span> <span class="s2">&quot;account_number&quot;</span><span class="p">,</span>
+            <span class="c1"># Authentication</span>
+            <span class="s2">&quot;password&quot;</span><span class="p">,</span> <span class="s2">&quot;api_key&quot;</span><span class="p">,</span> <span class="s2">&quot;token&quot;</span><span class="p">,</span> <span class="s2">&quot;secret&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;authorization&quot;</span><span class="p">,</span> <span class="s2">&quot;bearer&quot;</span><span class="p">,</span> <span class="s2">&quot;jwt&quot;</span><span class="p">,</span>
+            <span class="c1"># Healthcare specific</span>
+            <span class="s2">&quot;patient_id&quot;</span><span class="p">,</span> <span class="s2">&quot;medical_record&quot;</span><span class="p">,</span> <span class="s2">&quot;diagnosis&quot;</span><span class="p">,</span>
+        <span class="p">],</span>
+        <span class="n">mask</span><span class="o">=</span><span class="s2">&quot;[REDACTED]&quot;</span><span class="p">,</span>
+        <span class="n">block_on_failure</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Block if redaction fails</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Regex patterns for dynamic field names</span>
+    <span class="o">.</span><span class="n">with_regex_mask</span><span class="p">([</span>
+        <span class="sa">r</span><span class="s2">&quot;(?i).*password.*&quot;</span><span class="p">,</span>
+        <span class="sa">r</span><span class="s2">&quot;(?i).*secret.*&quot;</span><span class="p">,</span>
+        <span class="sa">r</span><span class="s2">&quot;(?i).*token.*&quot;</span><span class="p">,</span>
+        <span class="sa">r</span><span class="s2">&quot;(?i).*ssn.*&quot;</span><span class="p">,</span>
+        <span class="sa">r</span><span class="s2">&quot;(?i).*credit.*card.*&quot;</span><span class="p">,</span>
+    <span class="p">])</span>
+
+    <span class="c1"># URL credential scrubbing</span>
+    <span class="o">.</span><span class="n">with_url_credential_redaction</span><span class="p">(</span><span class="n">max_string_length</span><span class="o">=</span><span class="mi">8192</span><span class="p">)</span>
+
+    <span class="c1"># Strict redaction guardrails</span>
+    <span class="o">.</span><span class="n">with_redaction_guardrails</span><span class="p">(</span><span class="n">max_depth</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">max_keys</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+
+    <span class="c1"># Sinks</span>
+    <span class="o">.</span><span class="n">add_file</span><span class="p">(</span>
+        <span class="s2">&quot;logs/audit&quot;</span><span class="p">,</span>
+        <span class="n">max_bytes</span><span class="o">=</span><span class="s2">&quot;100 MB&quot;</span><span class="p">,</span>
+        <span class="n">max_files</span><span class="o">=</span><span class="mi">365</span><span class="p">,</span>  <span class="c1"># Keep a year of logs</span>
+        <span class="n">compress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">add_cloudwatch</span><span class="p">(</span><span class="s2">&quot;/healthcare/audit&quot;</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">)</span>
+
+    <span class="c1"># No log loss for compliance</span>
+    <span class="o">.</span><span class="n">with_backpressure</span><span class="p">(</span><span class="n">drop_on_full</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="fastapi-application">
+<h2>FastAPI Application<a class="headerlink" href="#fastapi-application" title="Link to this heading"></a></h2>
+<p>Async logger optimized for FastAPI:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncLoggerBuilder</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">create_logger</span><span class="p">():</span>
+    <span class="k">return</span> <span class="k">await</span> <span class="p">(</span>
+        <span class="n">AsyncLoggerBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">with_app_name</span><span class="p">(</span><span class="s2">&quot;api-service&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Context for all requests</span>
+        <span class="o">.</span><span class="n">with_context</span><span class="p">(</span>
+            <span class="n">service</span><span class="o">=</span><span class="s2">&quot;api-service&quot;</span><span class="p">,</span>
+            <span class="n">version</span><span class="o">=</span><span class="s2">&quot;1.2.3&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Enrichers for request context</span>
+        <span class="o">.</span><span class="n">with_enrichers</span><span class="p">(</span><span class="s2">&quot;context_vars&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Redaction for API security</span>
+        <span class="o">.</span><span class="n">with_field_mask</span><span class="p">([</span><span class="s2">&quot;password&quot;</span><span class="p">,</span> <span class="s2">&quot;api_key&quot;</span><span class="p">,</span> <span class="s2">&quot;authorization&quot;</span><span class="p">])</span>
+        <span class="o">.</span><span class="n">with_url_credential_redaction</span><span class="p">()</span>
+
+        <span class="c1"># Performance for async</span>
+        <span class="o">.</span><span class="n">with_queue_size</span><span class="p">(</span><span class="mi">5000</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">with_batch_size</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">with_batch_timeout</span><span class="p">(</span><span class="s2">&quot;200ms&quot;</span><span class="p">)</span>
+
+        <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">build_async</span><span class="p">()</span>
+    <span class="p">)</span>
+
+<span class="c1"># In FastAPI lifespan:</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">asynccontextmanager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+
+<span class="nd">@asynccontextmanager</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">lifespan</span><span class="p">(</span><span class="n">app</span><span class="p">:</span> <span class="n">FastAPI</span><span class="p">):</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">create_logger</span><span class="p">()</span>
+    <span class="k">yield</span>
+    <span class="k">await</span> <span class="n">app</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">drain</span><span class="p">()</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">lifespan</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="grafana-loki-integration">
+<h2>Grafana Loki Integration<a class="headerlink" href="#grafana-loki-integration" title="Link to this heading"></a></h2>
+<p>Send logs to Grafana Loki for centralized observability:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_level</span><span class="p">(</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_app_name</span><span class="p">(</span><span class="s2">&quot;microservice&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Loki sink</span>
+    <span class="o">.</span><span class="n">add_loki</span><span class="p">(</span>
+        <span class="s2">&quot;http://loki:3100&quot;</span><span class="p">,</span>
+        <span class="n">tenant_id</span><span class="o">=</span><span class="s2">&quot;my-org&quot;</span><span class="p">,</span>
+        <span class="n">labels</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;env&quot;</span><span class="p">:</span> <span class="s2">&quot;production&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;service&quot;</span><span class="p">:</span> <span class="s2">&quot;api&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;team&quot;</span><span class="p">:</span> <span class="s2">&quot;platform&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="n">label_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;level&quot;</span><span class="p">,</span> <span class="s2">&quot;logger&quot;</span><span class="p">],</span>  <span class="c1"># Promote to Loki labels</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">batch_timeout</span><span class="o">=</span><span class="s2">&quot;5s&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Also log to stdout for container logs</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+
+    <span class="c1"># Circuit breaker for Loki failures</span>
+    <span class="o">.</span><span class="n">with_circuit_breaker</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">failure_threshold</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="postgresql-audit-logs">
+<h2>PostgreSQL Audit Logs<a class="headerlink" href="#postgresql-audit-logs" title="Link to this heading"></a></h2>
+<p>Store structured logs in PostgreSQL for querying:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_level</span><span class="p">(</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_app_name</span><span class="p">(</span><span class="s2">&quot;audit-service&quot;</span><span class="p">)</span>
+
+    <span class="c1"># PostgreSQL sink</span>
+    <span class="o">.</span><span class="n">add_postgres</span><span class="p">(</span>
+        <span class="n">host</span><span class="o">=</span><span class="s2">&quot;db.example.com&quot;</span><span class="p">,</span>
+        <span class="n">port</span><span class="o">=</span><span class="mi">5432</span><span class="p">,</span>
+        <span class="n">database</span><span class="o">=</span><span class="s2">&quot;audit_logs&quot;</span><span class="p">,</span>
+        <span class="n">user</span><span class="o">=</span><span class="s2">&quot;logger&quot;</span><span class="p">,</span>
+        <span class="n">password</span><span class="o">=</span><span class="s2">&quot;secure-password&quot;</span><span class="p">,</span>
+        <span class="n">table</span><span class="o">=</span><span class="s2">&quot;application_logs&quot;</span><span class="p">,</span>
+        <span class="n">schema</span><span class="o">=</span><span class="s2">&quot;audit&quot;</span><span class="p">,</span>
+
+        <span class="c1"># Performance</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">batch_timeout</span><span class="o">=</span><span class="s2">&quot;5s&quot;</span><span class="p">,</span>
+        <span class="n">min_pool</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">max_pool</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+
+        <span class="c1"># Schema options</span>
+        <span class="n">use_jsonb</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># JSONB for flexible querying</span>
+        <span class="n">extract_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;level&quot;</span><span class="p">,</span> <span class="s2">&quot;logger&quot;</span><span class="p">,</span> <span class="s2">&quot;user_id&quot;</span><span class="p">,</span> <span class="s2">&quot;request_id&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Stdout backup</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+
+    <span class="o">.</span><span class="n">with_circuit_breaker</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">failure_threshold</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="webhook-alerts">
+<h2>Webhook Alerts<a class="headerlink" href="#webhook-alerts" title="Link to this heading"></a></h2>
+<p>Send critical logs to a webhook for alerting:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_level</span><span class="p">(</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Main logging</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="s2">&quot;logs/app&quot;</span><span class="p">,</span> <span class="n">max_bytes</span><span class="o">=</span><span class="s2">&quot;50 MB&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Webhook for alerts</span>
+    <span class="o">.</span><span class="n">add_webhook</span><span class="p">(</span>
+        <span class="s2">&quot;https://alerts.example.com/webhook&quot;</span><span class="p">,</span>
+        <span class="n">secret</span><span class="o">=</span><span class="s2">&quot;signing-secret-key&quot;</span><span class="p">,</span>
+        <span class="n">timeout</span><span class="o">=</span><span class="s2">&quot;5s&quot;</span><span class="p">,</span>
+        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;X-Source&quot;</span><span class="p">:</span> <span class="s2">&quot;my-service&quot;</span><span class="p">},</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Route only errors to webhook</span>
+    <span class="o">.</span><span class="n">with_routing</span><span class="p">(</span>
+        <span class="n">rules</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">],</span> <span class="s2">&quot;sinks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;webhook&quot;</span><span class="p">]},</span>
+        <span class="p">],</span>
+        <span class="n">fallback</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;stdout_json&quot;</span><span class="p">,</span> <span class="s2">&quot;rotating_file&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="kubernetes-deployment">
+<h2>Kubernetes Deployment<a class="headerlink" href="#kubernetes-deployment" title="Link to this heading"></a></h2>
+<p>Container-friendly configuration for Kubernetes:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_level</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;LOG_LEVEL&quot;</span><span class="p">,</span> <span class="s2">&quot;INFO&quot;</span><span class="p">))</span>
+    <span class="o">.</span><span class="n">with_app_name</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;APP_NAME&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">))</span>
+
+    <span class="c1"># Context from K8s environment</span>
+    <span class="o">.</span><span class="n">with_context</span><span class="p">(</span>
+        <span class="n">pod</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;POD_NAME&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">),</span>
+        <span class="n">namespace</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;POD_NAMESPACE&quot;</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">),</span>
+        <span class="n">node</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;NODE_NAME&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Enrichers</span>
+    <span class="o">.</span><span class="n">with_enrichers</span><span class="p">(</span><span class="s2">&quot;runtime_info&quot;</span><span class="p">,</span> <span class="s2">&quot;context_vars&quot;</span><span class="p">)</span>
+
+    <span class="c1"># JSON stdout for log aggregators (Fluentd, Fluent Bit)</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+
+    <span class="c1"># Redaction</span>
+    <span class="o">.</span><span class="n">with_field_mask</span><span class="p">([</span><span class="s2">&quot;password&quot;</span><span class="p">,</span> <span class="s2">&quot;api_key&quot;</span><span class="p">,</span> <span class="s2">&quot;token&quot;</span><span class="p">])</span>
+
+    <span class="c1"># Performance for ephemeral containers</span>
+    <span class="o">.</span><span class="n">with_queue_size</span><span class="p">(</span><span class="mi">5000</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_batch_timeout</span><span class="p">(</span><span class="s2">&quot;500ms&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_shutdown_timeout</span><span class="p">(</span><span class="s2">&quot;5s&quot;</span><span class="p">)</span>  <span class="c1"># Fast shutdown for rolling updates</span>
+
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="testing-configuration">
+<h2>Testing Configuration<a class="headerlink" href="#testing-configuration" title="Link to this heading"></a></h2>
+<p>Minimal configuration for unit tests:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">create_test_logger</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Logger for unit tests - immediate flush, no external sinks.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">LoggerBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_level</span><span class="p">(</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">add_stdout</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;pretty&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">with_batch_size</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Immediate flush</span>
+        <span class="o">.</span><span class="n">with_queue_size</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>  <span class="c1"># Small queue</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+    <span class="p">)</span>
+
+<span class="c1"># Or capture logs for assertions:</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">create_capturing_logger</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Logger that captures output for test assertions.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">LoggerBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_level</span><span class="p">(</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>  <span class="c1"># JSON for parsing</span>
+        <span class="o">.</span><span class="n">with_batch_size</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="microservice-template">
+<h2>Microservice Template<a class="headerlink" href="#microservice-template" title="Link to this heading"></a></h2>
+<p>Complete template for microservice logging:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span><span class="p">,</span> <span class="n">AsyncLoggerBuilder</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">create_service_logger</span><span class="p">(</span>
+    <span class="n">service_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">async_mode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">cloudwatch_group</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Factory for consistent service logging configuration.&quot;&quot;&quot;</span>
+
+    <span class="n">env</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;ENV&quot;</span><span class="p">,</span> <span class="s2">&quot;development&quot;</span><span class="p">)</span>
+    <span class="n">is_production</span> <span class="o">=</span> <span class="n">env</span> <span class="o">==</span> <span class="s2">&quot;production&quot;</span>
+
+    <span class="n">builder_class</span> <span class="o">=</span> <span class="n">AsyncLoggerBuilder</span> <span class="k">if</span> <span class="n">async_mode</span> <span class="k">else</span> <span class="n">LoggerBuilder</span>
+    <span class="n">builder</span> <span class="o">=</span> <span class="n">builder_class</span><span class="p">()</span>
+
+    <span class="c1"># Base configuration</span>
+    <span class="n">builder</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">builder</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span> <span class="k">if</span> <span class="n">is_production</span> <span class="k">else</span> <span class="s2">&quot;dev&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">with_app_name</span><span class="p">(</span><span class="n">service_name</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">with_context</span><span class="p">(</span>
+            <span class="n">service</span><span class="o">=</span><span class="n">service_name</span><span class="p">,</span>
+            <span class="n">environment</span><span class="o">=</span><span class="n">env</span><span class="p">,</span>
+            <span class="n">version</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;APP_VERSION&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Production additions</span>
+    <span class="k">if</span> <span class="n">is_production</span><span class="p">:</span>
+        <span class="n">builder</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">builder</span>
+            <span class="o">.</span><span class="n">with_field_mask</span><span class="p">([</span><span class="s2">&quot;password&quot;</span><span class="p">,</span> <span class="s2">&quot;api_key&quot;</span><span class="p">,</span> <span class="s2">&quot;token&quot;</span><span class="p">,</span> <span class="s2">&quot;secret&quot;</span><span class="p">])</span>
+            <span class="o">.</span><span class="n">with_url_credential_redaction</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">with_circuit_breaker</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">with_backpressure</span><span class="p">(</span><span class="n">drop_on_full</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">with_metrics</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Optional CloudWatch</span>
+        <span class="k">if</span> <span class="n">cloudwatch_group</span><span class="p">:</span>
+            <span class="n">builder</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">add_cloudwatch</span><span class="p">(</span>
+                <span class="n">cloudwatch_group</span><span class="p">,</span>
+                <span class="n">region</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;AWS_REGION&quot;</span><span class="p">,</span> <span class="s2">&quot;us-east-1&quot;</span><span class="p">),</span>
+            <span class="p">)</span>
+
+    <span class="c1"># Build</span>
+    <span class="k">if</span> <span class="n">async_mode</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">builder</span>  <span class="c1"># Caller must await .build_async()</span>
+    <span class="k">return</span> <span class="n">builder</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+<span class="c1"># Usage:</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">create_service_logger</span><span class="p">(</span><span class="s2">&quot;user-service&quot;</span><span class="p">)</span>
+
+<span class="c1"># Async:</span>
+<span class="c1"># logger = await create_service_logger(&quot;user-service&quot;, async_mode=True).build_async()</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Examples &amp; Recipes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="fastapi-logging.html" class="btn btn-neutral float-right" title="FastAPI Logging" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Chris Haste.
+      <span class="lastupdated">Last updated on January 21, 2026.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
