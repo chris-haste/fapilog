@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Release Notes &mdash; fapilog latest documentation</title>
+  <title>Release Notes &mdash; fapilog 0.5.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -15,7 +15,7 @@
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=c6e86fd7"></script>
+      <script src="_static/documentation_options.js?v=1dd76d02"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -182,8 +182,37 @@
   <section class="tex2jax_ignore mathjax_ignore" id="release-notes">
 <h1>Release Notes<a class="headerlink" href="#release-notes" title="Link to this heading"></a></h1>
 <p>All notable changes to this project will be documented in this file. This changelog follows <a class="reference external" href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a> and <a class="reference external" href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
-<section id="unreleased">
-<h2>[Unreleased]<a class="headerlink" href="#unreleased" title="Link to this heading"></a></h2>
+<section id="id1">
+<h2>[0.5.0] - 2026-01-21<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<section id="breaking-changes">
+<h3>Breaking Changes<a class="headerlink" href="#breaking-changes" title="Link to this heading"></a></h3>
+<ul>
+<li><p><strong>Logger instance caching enabled by default:</strong> <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> and <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> now cache instances by name, matching stdlib <code class="docutils literal notranslate"><span class="pre">logging.getLogger()</span></code> behavior (Story 10.29). This prevents resource exhaustion from unbounded logger creation.</p>
+<p><strong>Migration:</strong> Code that relied on fresh instances per call should add <code class="docutils literal notranslate"><span class="pre">reuse=False</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># v0.4.0: each call created a new instance</span>
+<span class="c1"># v0.5.0: same name returns cached instance (add reuse=False for old behavior)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;my-service&quot;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>ResourceWarning on undrained loggers:</strong> Loggers created with <code class="docutils literal notranslate"><span class="pre">reuse=False</span></code> that are garbage collected without <code class="docutils literal notranslate"><span class="pre">drain()</span></code> being called now emit a <code class="docutils literal notranslate"><span class="pre">ResourceWarning</span></code>.</p>
+<p><strong>Migration:</strong> Use context managers or explicit cleanup:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Option 1: Context manager (recommended)</span>
+<span class="k">async</span> <span class="k">with</span> <span class="n">runtime_async</span><span class="p">()</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;message&quot;</span><span class="p">)</span>
+
+<span class="c1"># Option 2: Explicit drain</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="c1"># ... use logger ...</span>
+<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">drain</span><span class="p">()</span>
+
+<span class="c1"># Option 3: Clear cache in test teardown</span>
+<span class="k">await</span> <span class="n">clear_logger_cache</span><span class="p">()</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
 <section id="added">
 <h3>Added<a class="headerlink" href="#added" title="Link to this heading"></a></h3>
 <ul class="simple">
@@ -193,13 +222,30 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">clear_logger_cache()</span></code> async function to drain and clear all cached loggers.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ResourceWarning</span></code> emitted when loggers are garbage collected without being drained.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code> preset for AWS Lambda, Google Cloud Run, and Azure Functions: stdout-only output, <code class="docutils literal notranslate"><span class="pre">drop_on_full=True</span></code>, smaller batch size (25), production-grade redaction (Story 10.30).</p></li>
+<li><p><strong>Builder API parity with Settings</strong> (Stories 10.22-10.27):</p>
+<ul>
+<li><p>Core settings: <code class="docutils literal notranslate"><span class="pre">with_level()</span></code>, <code class="docutils literal notranslate"><span class="pre">with_name()</span></code>, <code class="docutils literal notranslate"><span class="pre">with_queue_size()</span></code>, <code class="docutils literal notranslate"><span class="pre">with_workers()</span></code>, <code class="docutils literal notranslate"><span class="pre">with_drop_on_full()</span></code>, <code class="docutils literal notranslate"><span class="pre">with_strict_mode()</span></code>, <code class="docutils literal notranslate"><span class="pre">with_diagnostics()</span></code></p></li>
+<li><p>Cloud sinks: <code class="docutils literal notranslate"><span class="pre">with_cloudwatch()</span></code>, <code class="docutils literal notranslate"><span class="pre">with_loki()</span></code>, <code class="docutils literal notranslate"><span class="pre">with_postgres()</span></code>, <code class="docutils literal notranslate"><span class="pre">with_webhook()</span></code></p></li>
+<li><p>Filters: <code class="docutils literal notranslate"><span class="pre">with_level_filter()</span></code>, <code class="docutils literal notranslate"><span class="pre">with_sampling()</span></code>, <code class="docutils literal notranslate"><span class="pre">with_adaptive_sampling()</span></code>, <code class="docutils literal notranslate"><span class="pre">with_trace_sampling()</span></code>, <code class="docutils literal notranslate"><span class="pre">with_rate_limit()</span></code>, <code class="docutils literal notranslate"><span class="pre">with_error_deduplication()</span></code></p></li>
+<li><p>Processors: <code class="docutils literal notranslate"><span class="pre">with_size_guard()</span></code></p></li>
+<li><p>Advanced: <code class="docutils literal notranslate"><span class="pre">with_context()</span></code>, <code class="docutils literal notranslate"><span class="pre">with_enricher()</span></code>, <code class="docutils literal notranslate"><span class="pre">with_redactor()</span></code>, <code class="docutils literal notranslate"><span class="pre">with_field_mask()</span></code>, <code class="docutils literal notranslate"><span class="pre">with_regex_mask()</span></code>, <code class="docutils literal notranslate"><span class="pre">with_url_credentials_redactor()</span></code>, <code class="docutils literal notranslate"><span class="pre">with_debug()</span></code></p></li>
+</ul>
+</li>
+<li><p>Builder API parity enforcement via CI to prevent configuration drift (Story 10.27).</p></li>
+</ul>
+</section>
+<section id="documentation">
+<h3>Documentation<a class="headerlink" href="#documentation" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Comprehensive builder API documentation with examples for all methods (Story 10.28).</p></li>
+<li><p>Logger caching documentation explaining lifecycle and cache management.</p></li>
 </ul>
 </section>
 </section>
-<section id="id1">
-<h2>[0.4.0] - 2026-01-19<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
-<section id="breaking-changes">
-<h3>Breaking Changes<a class="headerlink" href="#breaking-changes" title="Link to this heading"></a></h3>
+<section id="id2">
+<h2>[0.4.0] - 2026-01-19<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
+<section id="id3">
+<h3>Breaking Changes<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code> preset now enables redaction by default (<code class="docutils literal notranslate"><span class="pre">field_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">url_credentials</span></code>), matching <code class="docutils literal notranslate"><span class="pre">production</span></code> preset security posture (Story 10.21). Use <code class="docutils literal notranslate"><span class="pre">dev</span></code> preset for debugging or explicitly set <code class="docutils literal notranslate"><span class="pre">redactors=[]</span></code> to disable.</p></li>
 <li><p>Log schema v1.1 with semantic field groupings (<code class="docutils literal notranslate"><span class="pre">context</span></code>, <code class="docutils literal notranslate"><span class="pre">diagnostics</span></code>, <code class="docutils literal notranslate"><span class="pre">data</span></code>); <code class="docutils literal notranslate"><span class="pre">metadata</span></code> renamed to <code class="docutils literal notranslate"><span class="pre">data</span></code>, <code class="docutils literal notranslate"><span class="pre">correlation_id</span></code> moved to <code class="docutils literal notranslate"><span class="pre">context.correlation_id</span></code>, timestamp now RFC3339 string (Story 1.26). See <code class="docutils literal notranslate"><span class="pre">docs/schema-migration-v1.0-to-v1.1.md</span></code>.</p></li>
@@ -208,8 +254,8 @@
 <li><p>External plugins now blocked by default; use <code class="docutils literal notranslate"><span class="pre">plugins.allow_external=true</span></code> or <code class="docutils literal notranslate"><span class="pre">plugins.allowlist</span></code> for explicit opt-in (Story 3.5).</p></li>
 </ul>
 </section>
-<section id="id2">
-<h3>Added<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<section id="id4">
+<h3>Added<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Fluent builder API (<code class="docutils literal notranslate"><span class="pre">LoggerBuilder</span></code>, <code class="docutils literal notranslate"><span class="pre">AsyncLoggerBuilder</span></code>) for chainable logger configuration with IDE autocomplete support.</p></li>
 <li><p>Pretty console output (<code class="docutils literal notranslate"><span class="pre">stdout_pretty</span></code>) and <code class="docutils literal notranslate"><span class="pre">format</span></code> selection for stdout logging.</p></li>
@@ -261,8 +307,8 @@
 <li><p>Cache sampling rate, filter config, and error dedupe window at logger initialization to avoid <code class="docutils literal notranslate"><span class="pre">Settings()</span></code> instantiation on every log call (Story 1.23).</p></li>
 </ul>
 </section>
-<section id="documentation">
-<h3>Documentation<a class="headerlink" href="#documentation" title="Link to this heading"></a></h3>
+<section id="id5">
+<h3>Documentation<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Added performance benchmarks page with methodology, results, and reproduction instructions (Story 10.20).</p></li>
 <li><p>Added <code class="docutils literal notranslate"><span class="pre">redaction-guarantee.md</span></code> documenting exact redaction behavior per preset; fixed inaccurate claims in <code class="docutils literal notranslate"><span class="pre">reliability-defaults.md</span></code> (Story 4.47).</p></li>
@@ -272,31 +318,31 @@
 </ul>
 </section>
 </section>
-<section id="id3">
-<h2>[0.3.5] - 2026-01-01<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
-<section id="id4">
-<h3>Added<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<section id="id6">
+<h2>[0.3.5] - 2026-01-01<a class="headerlink" href="#id6" title="Link to this heading"></a></h2>
+<section id="id7">
+<h3>Added<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Hash-chain integrity for AuditTrail.</p></li>
 </ul>
 </section>
-<section id="id5">
-<h3>Changed<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<section id="id8">
+<h3>Changed<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">unbind()</span></code> now returns self for method chaining.</p></li>
 </ul>
 </section>
-<section id="id6">
-<h3>Fixed<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
+<section id="id9">
+<h3>Fixed<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>GitHub release workflow now handles existing releases.</p></li>
 </ul>
 </section>
 </section>
-<section id="id7">
-<h2>[0.3.4] - 2025-12-30<a class="headerlink" href="#id7" title="Link to this heading"></a></h2>
-<section id="id8">
-<h3>Added<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<section id="id10">
+<h2>[0.3.4] - 2025-12-30<a class="headerlink" href="#id10" title="Link to this heading"></a></h2>
+<section id="id11">
+<h3>Added<a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Enterprise key management for tamper-evident plugin (Story 4.18).</p></li>
 <li><p>Verification API and CLI for tamper-evident plugin (Story 4.17).</p></li>
@@ -304,8 +350,8 @@
 <li><p>Configurable worker count for logging pipeline.</p></li>
 </ul>
 </section>
-<section id="id9">
-<h3>Fixed<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<section id="id12">
+<h3>Fixed<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>PYTHONPATH passing to subprocess in CLI test.</p></li>
 <li><p>fapilog-tamper tests now skip gracefully if package not available.</p></li>
@@ -314,8 +360,8 @@
 </ul>
 </section>
 </section>
-<section id="id10">
-<h2>[0.3.3] - 2025-12-22<a class="headerlink" href="#id10" title="Link to this heading"></a></h2>
+<section id="id13">
+<h2>[0.3.3] - 2025-12-22<a class="headerlink" href="#id13" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Project status upgraded from Alpha to Beta classification.</p></li>
 <li><p>Fixed plugin catalog generation to exclude failed plugin entries.</p></li>
@@ -324,8 +370,8 @@
 <li><p>Removed placeholder Discord and Plugin Marketplace links from PyPI metadata.</p></li>
 </ul>
 </section>
-<section id="id11">
-<h2>[0.3.2] - 2025-12-22<a class="headerlink" href="#id11" title="Link to this heading"></a></h2>
+<section id="id14">
+<h2>[0.3.2] - 2025-12-22<a class="headerlink" href="#id14" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Backpressure configuration now honored: <code class="docutils literal notranslate"><span class="pre">drop_on_full</span></code> waits instead of dropping when set to false; sink/enricher/redactor failures emit diagnostics.</p></li>
 <li><p>FastAPI request/response logging middleware added (sampling, header redaction, skip paths) and exported alongside context middleware.</p></li>
