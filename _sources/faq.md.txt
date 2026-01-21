@@ -315,7 +315,7 @@ Yes! fapilog is open source and welcomes contributions:
 - **Testing** - Report bugs and test fixes
 - **Community** - Help other users
 
-See the {doc}`Contributing Guide <contributing/index>` for details.
+See the [Contributing Guide](https://github.com/chris-haste/fapilog/blob/main/CONTRIBUTING.md) for details.
 
 ---
 

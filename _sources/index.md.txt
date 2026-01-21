@@ -64,7 +64,6 @@ examples/index
 plugins/index
 troubleshooting/index
 faq
-contributing/index
 appendices
 ```
 
@@ -84,6 +83,6 @@ appendices
 
 **Development:**
 
-- **[Contributing](contributing/index.md)** - How to contribute to fapilog
+- **[Contributing](https://github.com/chris-haste/fapilog/blob/main/CONTRIBUTING.md)** - How to contribute to fapilog
 - **[Release Notes](release-notes.md)** - Changelog and upgrade guides
 - **[Appendices](appendices.md)** - Glossary, architecture diagrams, and license
