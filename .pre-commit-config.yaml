@@ -131,3 +131,12 @@ repos:
         language: system
         pass_filenames: false
         stages: [pre-commit, pre-push]
+
+      - id: builder-parity
+        name: Check Builder/Settings Parity
+        entry: python scripts/check_builder_parity.py
+        language: system
+        pass_filenames: false
+        files: ^src/fapilog/(builder|core/settings)\.py$
+        stages: [pre-commit]
+        description: "Ensure all Settings fields have corresponding builder methods"
