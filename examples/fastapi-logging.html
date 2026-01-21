@@ -97,6 +97,10 @@
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/webhook-security.html">Webhook Security</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../cookbook/index.html">Cookbook</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/fastapi-request-id-logging.html">FastAPI request_id logging (correlation ID middleware, concurrency-safe)</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api-reference/index.html">API Reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../api-reference/top-level-functions.html">Top-Level Functions</a></li>
@@ -258,6 +262,12 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">request_id</span></code> flows automatically when using <code class="docutils literal notranslate"><span class="pre">RequestContextMiddleware</span></code> + <code class="docutils literal notranslate"><span class="pre">ContextVarsEnricher</span></code></p></li>
 <li><p>The completion log has method/path/status—use <code class="docutils literal notranslate"><span class="pre">request_id</span></code> to correlate</p></li>
 <li><p>Use <code class="docutils literal notranslate"><span class="pre">logger.bind()</span></code> only if you specifically need HTTP context in every log entry</p></li>
+</ul>
+</section>
+<section id="see-also">
+<h2>See Also<a class="headerlink" href="#see-also" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="../cookbook/fastapi-request-id-logging.html"><span class="std std-doc">FastAPI request_id Logging (Cookbook)</span></a> - Deep dive into concurrency-safe correlation IDs</p></li>
 </ul>
 </section>
 </section>

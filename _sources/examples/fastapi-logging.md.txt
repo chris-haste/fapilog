@@ -69,3 +69,7 @@ Query by `request_id` to see all logs for a request, including the HTTP context 
 - `request_id` flows automatically when using `RequestContextMiddleware` + `ContextVarsEnricher`
 - The completion log has method/path/status—use `request_id` to correlate
 - Use `logger.bind()` only if you specifically need HTTP context in every log entry
+
+## See Also
+
+- [FastAPI request_id Logging (Cookbook)](../cookbook/fastapi-request-id-logging.md) - Deep dive into concurrency-safe correlation IDs
