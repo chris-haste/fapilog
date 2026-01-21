@@ -473,6 +473,215 @@ class LoggerBuilder:
         self._config.setdefault("core", {})["capture_unhandled_enabled"] = enabled
         return self
 
+    def add_cloudwatch(
+        self,
+        log_group: str,
+        *,
+        stream: str | None = None,
+        region: str | None = None,
+        endpoint_url: str | None = None,
+        batch_size: int = 100,
+        batch_timeout: str | float = "5s",
+        max_retries: int = 3,
+        retry_delay: str | float = 0.5,
+        create_group: bool = True,
+        create_stream: bool = True,
+        circuit_breaker: bool = True,
+        circuit_breaker_threshold: int = 5,
+    ) -> LoggerBuilder:
+        """Add AWS CloudWatch Logs sink.
+
+        Args:
+            log_group: CloudWatch log group name (required)
+            stream: Log stream name (auto-generated if not provided)
+            region: AWS region (uses default if not provided)
+            endpoint_url: Custom endpoint (e.g., LocalStack)
+            batch_size: Events per batch (default: 100)
+            batch_timeout: Batch flush timeout ("5s" or 5.0)
+            max_retries: Max retries for PutLogEvents (default: 3)
+            retry_delay: Base delay for backoff ("0.5s" or 0.5)
+            create_group: Create log group if missing (default: True)
+            create_stream: Create log stream if missing (default: True)
+            circuit_breaker: Enable circuit breaker (default: True)
+            circuit_breaker_threshold: Failures before opening (default: 5)
+
+        Example:
+            >>> builder.add_cloudwatch("/myapp/prod", region="us-east-1")
+        """
+        config: dict[str, Any] = {
+            "log_group_name": log_group,
+            "batch_size": batch_size,
+            "batch_timeout_seconds": self._parse_duration(batch_timeout),
+            "max_retries": max_retries,
+            "retry_base_delay": self._parse_duration(retry_delay),
+            "create_log_group": create_group,
+            "create_log_stream": create_stream,
+            "circuit_breaker_enabled": circuit_breaker,
+            "circuit_breaker_threshold": circuit_breaker_threshold,
+        }
+
+        if stream is not None:
+            config["log_stream_name"] = stream
+        if region is not None:
+            config["region"] = region
+        if endpoint_url is not None:
+            config["endpoint_url"] = endpoint_url
+
+        self._sinks.append({"name": "cloudwatch", "config": config})
+        return self
+
+    def add_loki(
+        self,
+        url: str = "http://localhost:3100",
+        *,
+        tenant_id: str | None = None,
+        labels: dict[str, str] | None = None,
+        label_keys: list[str] | None = None,
+        batch_size: int = 100,
+        batch_timeout: str | float = "5s",
+        timeout: str | float = "10s",
+        max_retries: int = 3,
+        retry_delay: str | float = 0.5,
+        auth_username: str | None = None,
+        auth_password: str | None = None,
+        auth_token: str | None = None,
+        circuit_breaker: bool = True,
+        circuit_breaker_threshold: int = 5,
+    ) -> LoggerBuilder:
+        """Add Grafana Loki sink.
+
+        Args:
+            url: Loki push endpoint (default: http://localhost:3100)
+            tenant_id: Multi-tenant identifier
+            labels: Static labels for log streams
+            label_keys: Event keys to promote to labels
+            batch_size: Events per batch (default: 100)
+            batch_timeout: Batch flush timeout ("5s" or 5.0)
+            timeout: HTTP request timeout ("10s" or 10.0)
+            max_retries: Max retries on failure (default: 3)
+            retry_delay: Base delay for backoff (0.5 or float)
+            auth_username: Basic auth username
+            auth_password: Basic auth password
+            auth_token: Bearer token
+            circuit_breaker: Enable circuit breaker (default: True)
+            circuit_breaker_threshold: Failures before opening (default: 5)
+
+        Example:
+            >>> builder.add_loki("http://loki:3100", tenant_id="myapp")
+        """
+        config: dict[str, Any] = {
+            "url": url,
+            "batch_size": batch_size,
+            "batch_timeout_seconds": self._parse_duration(batch_timeout),
+            "timeout_seconds": self._parse_duration(timeout),
+            "max_retries": max_retries,
+            "retry_base_delay": self._parse_duration(retry_delay),
+            "circuit_breaker_enabled": circuit_breaker,
+            "circuit_breaker_threshold": circuit_breaker_threshold,
+        }
+
+        if tenant_id is not None:
+            config["tenant_id"] = tenant_id
+        if labels is not None:
+            config["labels"] = labels
+        if label_keys is not None:
+            config["label_keys"] = label_keys
+        if auth_username is not None:
+            config["auth_username"] = auth_username
+        if auth_password is not None:
+            config["auth_password"] = auth_password
+        if auth_token is not None:
+            config["auth_token"] = auth_token
+
+        self._sinks.append({"name": "loki", "config": config})
+        return self
+
+    def add_postgres(
+        self,
+        dsn: str | None = None,
+        *,
+        host: str = "localhost",
+        port: int = 5432,
+        database: str = "fapilog",
+        user: str = "fapilog",
+        password: str | None = None,
+        table: str = "logs",
+        schema: str = "public",
+        batch_size: int = 100,
+        batch_timeout: str | float = "5s",
+        max_retries: int = 3,
+        retry_delay: str | float = 0.5,
+        min_pool: int = 2,
+        max_pool: int = 10,
+        pool_acquire_timeout: str | float = "10s",
+        create_table: bool = True,
+        use_jsonb: bool = True,
+        include_raw_json: bool | None = None,
+        extract_fields: list[str] | None = None,
+        circuit_breaker: bool = True,
+        circuit_breaker_threshold: int = 5,
+    ) -> LoggerBuilder:
+        """Add PostgreSQL sink for structured log storage.
+
+        Args:
+            dsn: Full connection string (overrides host/port/database/user/password)
+            host: Database host (default: localhost)
+            port: Database port (default: 5432)
+            database: Database name (default: fapilog)
+            user: Database user (default: fapilog)
+            password: Database password
+            table: Target table name (default: logs)
+            schema: Database schema (default: public)
+            batch_size: Events per batch (default: 100)
+            batch_timeout: Batch flush timeout ("5s" or 5.0)
+            max_retries: Max retries on failure (default: 3)
+            retry_delay: Base delay for backoff (0.5 or float)
+            min_pool: Minimum pool connections (default: 2)
+            max_pool: Maximum pool connections (default: 10)
+            pool_acquire_timeout: Timeout for acquiring connections ("10s" or 10.0)
+            create_table: Auto-create table if missing (default: True)
+            use_jsonb: Use JSONB column type (default: True)
+            include_raw_json: Store full event JSON payload
+            extract_fields: Fields to promote to columns for fast queries
+            circuit_breaker: Enable circuit breaker (default: True)
+            circuit_breaker_threshold: Failures before opening (default: 5)
+
+        Example:
+            >>> builder.add_postgres(dsn="postgresql://user:pass@host/db")
+            >>> builder.add_postgres(host="db.example.com", database="logs")
+        """
+        config: dict[str, Any] = {
+            "host": host,
+            "port": port,
+            "database": database,
+            "user": user,
+            "table_name": table,
+            "schema_name": schema,
+            "batch_size": batch_size,
+            "batch_timeout_seconds": self._parse_duration(batch_timeout),
+            "max_retries": max_retries,
+            "retry_base_delay": self._parse_duration(retry_delay),
+            "min_pool_size": min_pool,
+            "max_pool_size": max_pool,
+            "pool_acquire_timeout": self._parse_duration(pool_acquire_timeout),
+            "create_table": create_table,
+            "use_jsonb": use_jsonb,
+            "circuit_breaker_enabled": circuit_breaker,
+            "circuit_breaker_threshold": circuit_breaker_threshold,
+        }
+
+        if dsn is not None:
+            config["dsn"] = dsn
+        if password is not None:
+            config["password"] = password
+        if include_raw_json is not None:
+            config["include_raw_json"] = include_raw_json
+        if extract_fields is not None:
+            config["extract_fields"] = extract_fields
+
+        self._sinks.append({"name": "postgres", "config": config})
+        return self
+
     def build(self) -> SyncLoggerFacade:
         """Build and return logger.
 
