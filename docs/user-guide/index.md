@@ -8,6 +8,7 @@ Practical usage patterns and configuration for fapilog.
 :caption: User Guide
 
 configuration
+builder-configuration
 environment-variables
 using-logger
 context-enrichment
@@ -31,6 +32,7 @@ webhook-security
 The User Guide covers everything you need to know to use fapilog effectively in real applications:
 
 - **Configuration** - Environment variables, settings, and configuration
+- **Builder Configuration** - Fluent API for programmatic configuration
 - **Using the Logger** - Logging methods, extra fields, exceptions
 - **Context Enrichment** - Adding business context and correlation
 - **Rotating File Sink** - File logging with rotation and retention
