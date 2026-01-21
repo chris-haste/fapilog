@@ -2,6 +2,8 @@
 
 Patterns for common application types.
 
+**See also:** [One FastAPI config for dev + prod](../cookbook/dev-prod-logging-config.md) - Single configuration that adapts to environment automatically.
+
 ## FastAPI / async web
 
 ```python

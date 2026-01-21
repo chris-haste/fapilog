@@ -10,6 +10,7 @@ Focused, SEO-friendly guides that solve specific problems. Each recipe addresses
 fastapi-json-logging
 fastapi-request-id-logging
 non-blocking-async-logging
+dev-prod-logging-config
 ```
 
 ## Quick Links
@@ -17,3 +18,4 @@ non-blocking-async-logging
 - [FastAPI JSON Logging](fastapi-json-logging.md) - Unified JSON output for app and Uvicorn access logs
 - [FastAPI request_id Logging](fastapi-request-id-logging.md) - Correlation ID middleware that works with async
 - [Non-blocking Async Logging](non-blocking-async-logging.md) - Protect latency with backpressure modes
+- [Dev + Prod Logging Config](dev-prod-logging-config.md) - Single config that adapts to environment
