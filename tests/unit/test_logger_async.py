@@ -424,7 +424,7 @@ class TestGetAsyncLogger:
     @pytest.mark.asyncio
     async def test_get_async_logger_basic_functionality(self) -> None:
         """Test basic async logger creation and usage."""
-        logger = await get_async_logger("test_logger")
+        logger = await get_async_logger("test_logger", reuse=False)
 
         # Verify logger is properly configured
         assert logger._name == "test_logger"
@@ -442,7 +442,7 @@ class TestGetAsyncLogger:
         """Test async logger creation with custom settings."""
         core_settings = CoreSettings(enable_metrics=True)
         settings = Settings(core=core_settings)
-        logger = await get_async_logger("test_logger", settings=settings)
+        logger = await get_async_logger("test_logger", settings=settings, reuse=False)
 
         # Verify metrics are enabled
         assert isinstance(logger._metrics, MetricsCollector)
@@ -457,7 +457,7 @@ class TestGetAsyncLogger:
     @pytest.mark.asyncio
     async def test_get_async_logger_default_name(self) -> None:
         """Test async logger creation with default name."""
-        logger = await get_async_logger()
+        logger = await get_async_logger(reuse=False)
 
         # Verify default name is used
         assert logger._name == "root"
@@ -474,7 +474,7 @@ class TestGetAsyncLogger:
         """Ensure async factory binds workers to the current event loop."""
         loop = asyncio.get_running_loop()
 
-        logger = await get_async_logger("loop_bind")
+        logger = await get_async_logger("loop_bind", reuse=False)
 
         assert logger._worker_loop is loop
 
@@ -485,7 +485,7 @@ class TestGetAsyncLogger:
     async def test_async_logger_integration_with_sinks(self) -> None:
         """Test async logger integration with different sink types."""
         # Test with stdout sink (default)
-        logger = await get_async_logger("stdout_test")
+        logger = await get_async_logger("stdout_test", reuse=False)
 
         # Test basic logging
         await logger.info("stdout test message")
@@ -496,7 +496,7 @@ class TestGetAsyncLogger:
     @pytest.mark.asyncio
     async def test_async_logger_context_binding_integration(self) -> None:
         """Test async logger context binding integration."""
-        logger = await get_async_logger("context_test")
+        logger = await get_async_logger("context_test", reuse=False)
 
         # Bind context
         bound_logger = logger.bind(user_id="123", session_id="abc")
@@ -513,7 +513,7 @@ class TestGetAsyncLogger:
     @pytest.mark.asyncio
     async def test_async_logger_concurrent_usage(self) -> None:
         """Test async logger with concurrent usage patterns."""
-        logger = await get_async_logger("concurrent_test")
+        logger = await get_async_logger("concurrent_test", reuse=False)
 
         # Create multiple concurrent logging tasks
         async def log_task(task_id: int, count: int):
@@ -533,7 +533,7 @@ class TestGetAsyncLogger:
     @pytest.mark.asyncio
     async def test_async_logger_flush_and_drain(self) -> None:
         """Test async logger flush and drain methods."""
-        logger = await get_async_logger("flush_test")
+        logger = await get_async_logger("flush_test", reuse=False)
 
         # Submit some logs
         for i in range(10):
@@ -553,7 +553,7 @@ class TestGetAsyncLogger:
     @pytest.mark.asyncio
     async def test_async_logger_factory_worker_lifecycle(self) -> None:
         """Test async logger worker lifecycle management via factory."""
-        logger = await get_async_logger("lifecycle_test")
+        logger = await get_async_logger("lifecycle_test", reuse=False)
 
         # Verify workers are started
         assert logger._worker_loop is asyncio.get_running_loop()

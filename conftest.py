@@ -5,7 +5,7 @@ Root pytest configuration.
 from __future__ import annotations
 
 import os
-from collections.abc import Generator
+from collections.abc import AsyncGenerator, Generator
 
 import pytest
 
@@ -107,6 +107,21 @@ def reset_diagnostics_cache() -> Generator[None, None, None]:
     yield
     # Also reset after test to clean up
     diag._internal_logging_enabled = None
+
+
+@pytest.fixture(autouse=True)
+async def _clear_logger_cache() -> AsyncGenerator[None, None]:
+    """Clear logger cache before and after each test.
+
+    Story 10.29 introduced logger caching by default, which requires
+    this cleanup to maintain test isolation - each test gets fresh
+    logger instances rather than potentially reusing cached loggers.
+    """
+    from fapilog import clear_logger_cache
+
+    await clear_logger_cache()
+    yield
+    await clear_logger_cache()
 
 
 @pytest.fixture

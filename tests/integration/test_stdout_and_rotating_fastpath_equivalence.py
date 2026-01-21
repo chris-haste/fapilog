@@ -35,7 +35,7 @@ async def test_stdout_fastpath_on_off_equivalence(
     monkeypatch.setenv("FAPILOG_CORE__SERIALIZE_IN_FLUSH", "1")
     orig = _swap_stdout(buf_on)
     try:
-        logger_on = get_logger("t")
+        logger_on = get_logger("t", reuse=False)
         logger_on.info("m", extra={"a": 1})
         await asyncio.sleep(0.05)
         await logger_on.stop_and_drain()
@@ -49,7 +49,7 @@ async def test_stdout_fastpath_on_off_equivalence(
     monkeypatch.setenv("FAPILOG_CORE__SERIALIZE_IN_FLUSH", "0")
     orig = _swap_stdout(buf_off)
     try:
-        logger_off = get_logger("t")
+        logger_off = get_logger("t", reuse=False)
         logger_off.info("m", extra={"a": 1})
         await asyncio.sleep(0.05)
         await logger_off.stop_and_drain()
@@ -98,7 +98,7 @@ async def test_rotating_file_fastpath_on_off_equivalence(
 
     async def _produce(fastpath: bool) -> list[str]:
         monkeypatch.setenv("FAPILOG_CORE__SERIALIZE_IN_FLUSH", "1" if fastpath else "0")
-        logger = get_logger("t")
+        logger = get_logger("t", reuse=False)
         for i in range(5):
             logger.info("m", extra={"i": i})
         await asyncio.sleep(0.1)
