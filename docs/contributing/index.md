@@ -20,6 +20,7 @@ Please see our comprehensive **[Contributing Guide](https://github.com/chris-has
 
 test-categories
 contract-tests
+configuration-parity
 changelog
 ```
 
@@ -30,6 +31,7 @@ changelog
 - **[Ask a Question](https://github.com/chris-haste/fapilog/discussions)** - Need help? Start a discussion
 - **[Test Categories](test-categories.md)** - Test markers and CI subsets
 - **[Contract Tests](contract-tests.md)** - Schema compatibility testing patterns
+- **[Configuration Parity](configuration-parity.md)** - Settings/Builder API alignment
 
 ## Key Development Commands
 
