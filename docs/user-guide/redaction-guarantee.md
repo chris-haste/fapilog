@@ -2,7 +2,7 @@
 
 This page documents exactly what fapilog redacts under each configuration.
 
-> **Secure Default:** URL credential redaction (`url_credentials`) is enabled by default in all configurations. Additional redactors (`field_mask`, `regex_mask`) are available via `preset="production"`, `preset="fastapi"`, or explicit configuration. See [Reliability Defaults](reliability-defaults.md) for details.
+> **Secure Default:** URL credential redaction (`url_credentials`) is enabled by default in all configurations. Additional redactors (`field_mask`, `regex_mask`) are available via `preset="production"`, `preset="serverless"`, `preset="fastapi"`, or explicit configuration. See [Reliability Defaults](reliability-defaults.md) for details.
 
 ## Quick Reference
 
@@ -11,6 +11,7 @@ This page documents exactly what fapilog redacts under each configuration.
 | `Settings()` (no preset) | No | No | **Yes** | Basic (URL credentials scrubbed) |
 | `preset="dev"` | No | No | No | None (explicit opt-out) |
 | `preset="production"` | Yes | Yes | Yes | Standard |
+| `preset="serverless"` | Yes | Yes | Yes | Standard |
 | `preset="fastapi"` | Yes | Yes | Yes | Standard |
 | `preset="minimal"` | No | No | No | None (explicit opt-out) |
 
