@@ -353,7 +353,7 @@ fapilog draws inspiration from:
 
 ### Contributing
 
-We welcome contributions from the community! See the {doc}`Contributing Guide <contributing/index>` for details on:
+We welcome contributions from the community! See the [Contributing Guide](https://github.com/chris-haste/fapilog/blob/main/CONTRIBUTING.md) for details on:
 
 - Code contributions
 - Documentation improvements

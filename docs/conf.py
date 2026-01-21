@@ -194,6 +194,7 @@ html_favicon = None
 exclude_patterns = [
     "**/*.md.md",
     "architecture/**",
+    "contributing/**",
     "prd/**",
     "stories/**",
     "style-guide.md",
