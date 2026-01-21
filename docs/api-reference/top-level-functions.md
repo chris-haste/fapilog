@@ -11,6 +11,7 @@ def get_logger(
     preset: str | None = None,
     format: Literal["json", "pretty", "auto"] | None = None,
     settings: _Settings | None = None,
+    reuse: bool = True,
 ) -> _SyncLoggerFacade
 ```
 
@@ -24,10 +25,11 @@ Return a ready-to-use **synchronous** logger facade wired to a container-scoped 
 | `preset`   | `str \| None`       | `None`  | Built-in preset (`dev`, `production`, `fastapi`, `minimal`).   |
 | `format`   | `Literal[...]`      | `None`  | Output format: `json`, `pretty`, `auto` (pretty in TTY).        |
 | `settings` | `_Settings \| None` | `None`  | Custom settings. If None, uses environment variables.          |
+| `reuse`    | `bool`              | `True`  | If True, return cached instance for the same name. If False, create a new independent instance. |
 
 ### Returns
 
-`_SyncLoggerFacade` - A logger instance ready for use.
+`_SyncLoggerFacade` - A logger instance ready for use (cached by name when `reuse=True`).
 
 ### Examples
 
@@ -72,6 +74,7 @@ The following environment variables are automatically read:
 - Automatic sink selection: pretty in TTY, JSON when piped; file/http sink when configured via settings/env.
 - `preset` and `settings` are mutually exclusive; `format` and `settings` are mutually exclusive.
 - When `settings` is omitted, the default `format` behavior is `auto`.
+- **Caching**: By default, loggers are cached by name. Calling `get_logger("foo")` multiple times returns the same instance. Use `reuse=False` for independent instances (e.g., in tests).
 
 ## get_async_logger (async) {#get_async_logger}
 
@@ -82,6 +85,7 @@ async def get_async_logger(
     preset: str | None = None,
     format: Literal["json", "pretty", "auto"] | None = None,
     settings: _Settings | None = None,
+    reuse: bool = True,
 ) -> _AsyncLoggerFacade
 ```
 
@@ -95,10 +99,11 @@ Return a ready-to-use **async** logger facade with awaitable methods.
 | `preset`   | `str \| None`       | `None`  | Built-in preset (`dev`, `production`, `fastapi`, `minimal`).   |
 | `format`   | `Literal[...]`      | `None`  | Output format: `json`, `pretty`, `auto` (pretty in TTY).        |
 | `settings` | `_Settings \| None` | `None`  | Custom settings. If None, uses environment variables.          |
+| `reuse`    | `bool`              | `True`  | If True, return cached instance for the same name. If False, create a new independent instance. |
 
 ### Returns
 
-`_AsyncLoggerFacade` - A logger instance with awaitable methods.
+`_AsyncLoggerFacade` - A logger instance with awaitable methods (cached by name when `reuse=True`).
 
 ### Examples
 
@@ -117,6 +122,7 @@ await logger.drain()  # graceful shutdown
 - Async API surface: `debug`, `info`, `warning`, `error`, `exception`, `drain`, `bind`, `unbind`, `clear_context`
 - Uses the same settings/env vars as `get_logger`
 - Prefer `runtime_async()` for automatic lifecycle management
+- **Caching**: By default, loggers are cached by name. Calling `get_async_logger("foo")` multiple times returns the same instance. Use `reuse=False` for independent instances (e.g., in tests).
 
 ## runtime {#runtime}
 
@@ -161,6 +167,53 @@ async with runtime_async() as logger:
     await logger.debug("Item", index=1)
 # Logger automatically drained on exit
 ```
+
+## get_cached_loggers {#get_cached_loggers}
+
+```python
+def get_cached_loggers() -> dict[str, str]
+```
+
+Return a snapshot of currently cached logger names and their types.
+
+### Returns
+
+`dict[str, str]` - Mapping of logger names to their type (`"async"` or `"sync"`).
+
+### Examples
+
+```python
+from fapilog import get_logger, get_async_logger, get_cached_loggers
+
+get_logger("service-a")
+await get_async_logger("service-b")
+
+cached = get_cached_loggers()
+# {"service-a": "sync", "service-b": "async"}
+```
+
+## clear_logger_cache {#clear_logger_cache}
+
+```python
+async def clear_logger_cache() -> None
+```
+
+Drain all cached loggers and clear the cache. Useful for test cleanup.
+
+### Examples
+
+```python
+from fapilog import clear_logger_cache
+
+# Clear all cached loggers (drains them first)
+await clear_logger_cache()
+```
+
+### Notes
+
+- Drains all cached loggers before removing them from the cache
+- Thread-safe; can be called from any thread
+- Commonly used in test fixtures for isolation between tests
 
 ---
 

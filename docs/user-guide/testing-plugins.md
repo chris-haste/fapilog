@@ -300,6 +300,43 @@ async def test_redacts_sensitive_fields():
     assert result["user"]["ssn"] != "123-45-6789"
 ```
 
+## Test Isolation with Logger Caching
+
+Since fapilog caches logger instances by name, tests need isolation to avoid shared state. Two approaches:
+
+### Option 1: Use `reuse=False` (Recommended)
+
+Create independent logger instances per test:
+
+```python
+@pytest.mark.asyncio
+async def test_my_feature():
+    # reuse=False creates a fresh instance not added to cache
+    logger = await get_async_logger("test", reuse=False)
+
+    await logger.info("test message")
+
+    # Clean up when done
+    await logger.drain()
+```
+
+### Option 2: Clear Cache in Fixtures
+
+Clear the cache before/after tests:
+
+```python
+import pytest
+from fapilog import clear_logger_cache
+
+@pytest.fixture(autouse=True)
+async def isolate_logger_cache():
+    await clear_logger_cache()
+    yield
+    await clear_logger_cache()
+```
+
+The fapilog test suite uses an autouse fixture in `conftest.py` that clears the cache between tests.
+
 ## Best Practices
 
 1. **Always validate protocol compliance** before testing behavior
@@ -308,6 +345,7 @@ async def test_redacts_sensitive_fields():
 4. **Test lifecycle methods** to ensure proper resource management
 5. **Test error handling** by configuring mocks to fail
 6. **Test idempotency** - call `stop()` twice to verify it doesn't break
+7. **Use `reuse=False`** when creating loggers in tests that need isolation
 
 ## Migration Notes
 
