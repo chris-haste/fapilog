@@ -8,6 +8,10 @@ from __future__ import annotations
 
 import subprocess
 import sys
+from pathlib import Path
+
+# Project root is two levels up from this test file
+PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 
 
 class TestParityCheckScript:
@@ -19,7 +23,7 @@ class TestParityCheckScript:
             [sys.executable, "scripts/check_builder_parity.py"],
             capture_output=True,
             text=True,
-            cwd="/Users/chris/Development/fapilog",
+            cwd=PROJECT_ROOT,
         )
         # Script may pass or fail depending on current parity state
         # but should not crash with an exception
@@ -35,7 +39,7 @@ class TestParityCheckScript:
             ],
             capture_output=True,
             text=True,
-            cwd="/Users/chris/Development/fapilog",
+            cwd=PROJECT_ROOT,
         )
         assert result.returncode == 0, f"Import failed: {result.stderr}"
         assert "ok" in result.stdout
