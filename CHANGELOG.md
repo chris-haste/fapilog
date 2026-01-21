@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+### Added
+
+- Logger instance caching: `get_logger()` and `get_async_logger()` now cache instances by name (like stdlib `logging.getLogger()`), preventing resource exhaustion from unbounded logger creation (Story 10.29).
+- `reuse` parameter for `get_logger()` and `get_async_logger()` to opt out of caching when needed (e.g., tests).
+- `get_cached_loggers()` function to inspect cached logger names and types.
+- `clear_logger_cache()` async function to drain and clear all cached loggers.
+- `ResourceWarning` emitted when loggers are garbage collected without being drained.
+
 ## [0.4.0] - 2026-01-19
 
 ### Breaking Changes

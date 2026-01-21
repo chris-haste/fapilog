@@ -35,10 +35,12 @@ The API Reference is organized by functionality to help you quickly find what yo
 
 ### Top-Level Functions
 
-- **get_logger** - Ready-to-use logger instance
-- **get_async_logger** - Async logger factory
+- **get_logger** - Ready-to-use logger instance (cached by name)
+- **get_async_logger** - Async logger factory (cached by name)
 - **runtime** - Context manager for logger lifecycle
 - **runtime_async** - Async context manager for lifecycle
+- **get_cached_loggers** - Inspect cached logger names
+- **clear_logger_cache** - Drain and clear all cached loggers
 
 ### Logger Methods
 
