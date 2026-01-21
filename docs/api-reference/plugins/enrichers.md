@@ -39,7 +39,7 @@ class MyEnricher:
 
 ### RuntimeInfoEnricher
 
-Adds system and runtime information:
+Adds system and runtime information under the `diagnostics` semantic group:
 
 - `service`: from `FAPILOG_SERVICE` env var (default: "fapilog")
 - `env`: from `FAPILOG_ENV` or `ENV` env var (default: "dev")
@@ -48,13 +48,18 @@ Adds system and runtime information:
 - `pid`: process ID
 - `python`: Python version
 
+Returns: `{"diagnostics": {"service": "...", "env": "...", "host": "...", "pid": 1234, "python": "3.11.0"}}`
+
 ### ContextVarsEnricher
 
-Adds values from context variables when present:
+Adds values from context variables under the `context` semantic group when present:
 
 - `request_id`: from fapilog's request context
 - `user_id`: from fapilog's user context
 - `trace_id`, `span_id`: when OpenTelemetry is available
+- `tenant_id`: from event data if present
+
+Returns: `{"context": {"request_id": "...", "user_id": "...", "trace_id": "...", "span_id": "..."}}`
 
 ### KubernetesEnricher
 
