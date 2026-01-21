@@ -210,7 +210,7 @@ class TestPresetConsistency:
 
         This test ensures new presets get documented.
         """
-        expected_presets = {"dev", "production", "fastapi", "minimal"}
+        expected_presets = {"dev", "production", "fastapi", "minimal", "serverless"}
         actual_presets = set(PRESETS.keys())
 
         assert actual_presets == expected_presets, (

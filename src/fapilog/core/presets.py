@@ -123,6 +123,50 @@ PRESETS: dict[str, dict[str, Any]] = {
             "redactors": [],  # Explicit opt-out for minimal overhead
         },
     },
+    "serverless": {
+        "core": {
+            "log_level": "INFO",
+            "batch_max_size": 25,  # Smaller batches for short-lived functions
+            "drop_on_full": True,  # Don't block in time-constrained environments
+            "sinks": ["stdout_json"],  # Stdout only, captured by cloud provider
+            "enrichers": ["runtime_info", "context_vars"],
+            "redactors": ["field_mask", "regex_mask", "url_credentials"],
+        },
+        "enricher_config": {
+            "runtime_info": {},
+            "context_vars": {},
+        },
+        "redactor_config": {
+            "field_mask": {
+                "fields_to_mask": [
+                    "data.password",
+                    "data.api_key",
+                    "data.token",
+                    "data.secret",
+                    "data.authorization",
+                    "data.api_secret",
+                    "data.private_key",
+                    "data.ssn",
+                    "data.credit_card",
+                ],
+            },
+            "regex_mask": {
+                "patterns": [
+                    r"(?i).*password.*",
+                    r"(?i).*passwd.*",
+                    r"(?i).*api[_-]?key.*",
+                    r"(?i).*apikey.*",
+                    r"(?i).*secret.*",
+                    r"(?i).*token.*",
+                    r"(?i).*authorization.*",
+                    r"(?i).*private[_-]?key.*",
+                    r"(?i).*ssn.*",
+                    r"(?i).*credit[_-]?card.*",
+                ],
+            },
+            "url_credentials": {},
+        },
+    },
 }
 
 
@@ -144,7 +188,7 @@ def get_preset(name: str) -> dict[str, Any]:
     """Get preset configuration by name.
 
     Args:
-        name: Preset name (dev, production, fastapi, minimal)
+        name: Preset name (dev, production, fastapi, minimal, serverless)
 
     Returns:
         Settings-compatible configuration dict (deep copy)

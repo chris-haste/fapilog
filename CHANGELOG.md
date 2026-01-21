@@ -2,60 +2,16 @@
 
 All notable changes to this project will be documented in this file. This changelog follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.5.0] - Unreleased
-
-### Breaking Changes
-
-- **Logger instance caching enabled by default:** `get_logger()` and `get_async_logger()` now cache instances by name, matching stdlib `logging.getLogger()` behavior (Story 10.29). This prevents resource exhaustion from unbounded logger creation.
-
-  **Migration:** Code that relied on fresh instances per call should add `reuse=False`:
-
-  ```python
-  # v0.4.0: each call created a new instance
-  # v0.5.0: same name returns cached instance (add reuse=False for old behavior)
-  logger = get_logger("my-service", reuse=False)
-  ```
-
-- **ResourceWarning on undrained loggers:** Loggers created with `reuse=False` that are garbage collected without `drain()` being called now emit a `ResourceWarning`.
-
-  **Migration:** Use context managers or explicit cleanup:
-
-  ```python
-  # Option 1: Context manager (recommended)
-  async with runtime_async() as logger:
-      logger.info("message")
-
-  # Option 2: Explicit drain
-  logger = get_logger("test", reuse=False)
-  # ... use logger ...
-  await logger.drain()
-
-  # Option 3: Clear cache in test teardown
-  await clear_logger_cache()
-  ```
+## [Unreleased]
 
 ### Added
 
-- Logger instance caching for `get_logger()` and `get_async_logger()` by name, preventing resource exhaustion from unbounded logger creation (Story 10.29).
+- Logger instance caching: `get_logger()` and `get_async_logger()` now cache instances by name (like stdlib `logging.getLogger()`), preventing resource exhaustion from unbounded logger creation (Story 10.29).
 - `reuse` parameter for `get_logger()` and `get_async_logger()` to opt out of caching when needed (e.g., tests).
 - `get_cached_loggers()` function to inspect cached logger names and types.
 - `clear_logger_cache()` async function to drain and clear all cached loggers.
-- **Builder API parity with Settings** (Stories 10.22-10.27):
-  - Core settings: `with_level()`, `with_name()`, `with_queue_size()`, `with_workers()`, `with_drop_on_full()`, `with_strict_mode()`, `with_diagnostics()`
-  - Cloud sinks: `with_cloudwatch()`, `with_loki()`, `with_postgres()`, `with_webhook()`
-  - Filters: `with_level_filter()`, `with_sampling()`, `with_adaptive_sampling()`, `with_trace_sampling()`, `with_rate_limit()`, `with_error_deduplication()`
-  - Processors: `with_size_guard()`
-  - Advanced: `with_context()`, `with_enricher()`, `with_redactor()`, `with_field_mask()`, `with_regex_mask()`, `with_url_credentials_redactor()`, `with_debug()`
-- Builder API parity enforcement via CI to prevent configuration drift (Story 10.27).
-
-### Documentation
-
-- Comprehensive builder API documentation with examples for all methods (Story 10.28).
-- Logger caching documentation explaining lifecycle and cache management.
-
-### Cancelled
-
-- Story 4.49 (scope creep, not logging-specific).
+- `ResourceWarning` emitted when loggers are garbage collected without being drained.
+- `serverless` preset for AWS Lambda, Google Cloud Run, and Azure Functions: stdout-only output, `drop_on_full=True`, smaller batch size (25), production-grade redaction (Story 10.30).
 
 ## [0.4.0] - 2026-01-19
 
