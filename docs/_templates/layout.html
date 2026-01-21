@@ -1,0 +1,19 @@
+{#
+  Template override for sphinx_rtd_theme to add canonical tags and noindex meta.
+
+  This is used by GitHub Pages builds to:
+  1. Point search engines to the canonical RTD docs (docs.fapilog.dev)
+  2. Discourage indexing of the GH Pages mirror (prevents duplicate content penalty)
+
+  For RTD builds, these variables are not set, so no extra tags are added.
+#}
+{% extends "!layout.html" %}
+
+{% block extrahead %}
+{{ super() }}
+{# Canonical URL pointing to RTD stable docs #}
+{% if ghpages_canonical_url %}
+<link rel="canonical" href="{{ ghpages_canonical_url }}{{ pagename }}.html" />
+<meta name="robots" content="noindex, follow" />
+{% endif %}
+{% endblock %}

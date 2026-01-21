@@ -10,6 +10,7 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 import importlib.util
+import os
 import sys
 import warnings
 from pathlib import Path
@@ -65,6 +66,7 @@ extensions = [
     "myst_parser",
     "sphinx_autodoc_typehints",
     "sphinx_copybutton",
+    "sphinx_sitemap",
 ]
 
 # Optional extensions
@@ -166,10 +168,40 @@ html_theme_options = {
     "style_nav_header_background": "#2980B9",
 }
 
+# -- Sitemap and SEO configuration -------------------------------------------
+
+# Detect if this is a GitHub Pages build (canonical URL env var is set)
+_ghpages_canonical = os.getenv("GHPAGES_CANONICAL_URL")
+
+# Base URL for sitemap generation
+# - RTD builds: Use RTD stable URL for sitemap.xml generation
+# - GH Pages builds: No sitemap (would point to wrong domain)
+if not _ghpages_canonical:
+    # RTD build: generate sitemap with correct URLs
+    html_baseurl = "https://docs.fapilog.dev/en/stable/"
+    sitemap_filename = "sitemap.xml"
+    # Disable language/version URL prefixes (RTD handles this via html_baseurl)
+    sitemap_url_scheme = "{link}"
+
+# For GH Pages builds, canonical URLs point to RTD stable docs via template.
+# RTD builds don't need this (RTD handles canonical URLs automatically).
+html_context = {
+    "ghpages_canonical_url": _ghpages_canonical,
+}
+
+# Add any paths that contain custom templates
+templates_path = ["_templates"]
+
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
+
+# Extra path for root-level files (robots.txt for GH Pages builds)
+# Only include _extra for GH Pages builds (when GHPAGES_CANONICAL_URL is set)
+# RTD should not have robots.txt blocking indexing
+if _ghpages_canonical:
+    html_extra_path = ["_extra"]
 
 # Custom CSS for additional styling
 html_css_files = [
