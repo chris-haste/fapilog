@@ -90,6 +90,10 @@ BUILDER_TO_SINKS: dict[str, str] = {
     "add_stdout_pretty": "stdout_json",  # Convenience method
     "add_http": "http",
     "add_webhook": "webhook",
+    # Story 10.24: Cloud sink builder methods
+    "add_cloudwatch": "cloudwatch",
+    "add_loki": "loki",
+    "add_postgres": "postgres",
 }
 
 # Fields intentionally excluded from parity requirements
@@ -115,6 +119,7 @@ EXCLUDED_CORE_FIELDS: set[str] = {
 # Sinks intentionally excluded (covered via other mechanisms)
 EXCLUDED_SINKS: set[str] = {
     "stdout_json",  # Covered by add_stdout()
+    "sealed",  # Internal sink for tamper-evident logging (fapilog-tamper)
 }
 
 
@@ -275,13 +280,9 @@ class TestBuilderCoreParity:
 class TestBuilderSinkParity:
     """Tests for SinkConfig parity.
 
-    Note: This test is expected to FAIL until Story 10.24 is complete.
+    Story 10.24 implements cloud sink builder methods.
     """
 
-    @pytest.mark.xfail(
-        reason="Story 10.24 not yet implemented",
-        strict=False,
-    )
     def test_all_sink_configs_have_builder_methods(self) -> None:
         """Ensure each sink in SinkConfig has an add_* method."""
         sink_types = get_sink_config_types()
