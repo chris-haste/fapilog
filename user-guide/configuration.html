@@ -193,6 +193,7 @@
 <span class="c1"># Choose the preset that matches your use case</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;dev&quot;</span><span class="p">)</span>         <span class="c1"># Local development</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>  <span class="c1"># Production deployment</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;serverless&quot;</span><span class="p">)</span>  <span class="c1"># Lambda, Cloud Run, Azure Functions</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>  <span class="c1"># FastAPI apps</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;minimal&quot;</span><span class="p">)</span>     <span class="c1"># Backwards compatible default</span>
 </pre></div>
@@ -257,7 +258,15 @@
 <td><p>runtime_info, context_vars</p></td>
 <td><p>100</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
+<td><p>INFO</p></td>
+<td><p>stdout_json</p></td>
+<td><p>No</p></td>
+<td><p>Yes (9 fields)</p></td>
+<td><p>runtime_info, context_vars</p></td>
+<td><p>25</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
 <td><p>INFO</p></td>
 <td><p>stdout_json</p></td>
 <td><p>No</p></td>
@@ -265,7 +274,7 @@
 <td><p>context_vars only</p></td>
 <td><p>50</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
 <td><p>INFO</p></td>
 <td><p>stdout_json</p></td>
 <td><p>No</p></td>
@@ -293,6 +302,14 @@
 <li><p>Both <code class="docutils literal notranslate"><span class="pre">runtime_info</span></code> and <code class="docutils literal notranslate"><span class="pre">context_vars</span></code> enrichers for complete diagnostic data</p></li>
 <li><p>Automatic redaction of: <code class="docutils literal notranslate"><span class="pre">password</span></code>, <code class="docutils literal notranslate"><span class="pre">api_key</span></code>, <code class="docutils literal notranslate"><span class="pre">token</span></code>, <code class="docutils literal notranslate"><span class="pre">secret</span></code>, <code class="docutils literal notranslate"><span class="pre">authorization</span></code>, <code class="docutils literal notranslate"><span class="pre">api_secret</span></code>, <code class="docutils literal notranslate"><span class="pre">private_key</span></code>, <code class="docutils literal notranslate"><span class="pre">ssn</span></code>, <code class="docutils literal notranslate"><span class="pre">credit_card</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">drop_on_full=False</span></code> ensures no log loss under pressure</p></li>
+</ul>
+<p><strong><code class="docutils literal notranslate"><span class="pre">serverless</span></code></strong> - Optimized for AWS Lambda, Google Cloud Run, Azure Functions:</p>
+<ul class="simple">
+<li><p>Stdout-only output (no file sinks) — cloud providers capture stdout automatically</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">drop_on_full=True</span></code> to avoid blocking in time-constrained environments</p></li>
+<li><p>Smaller batch size (25) for quick flushing before function timeout</p></li>
+<li><p>Production-grade redaction enabled</p></li>
+<li><p>Both <code class="docutils literal notranslate"><span class="pre">runtime_info</span></code> and <code class="docutils literal notranslate"><span class="pre">context_vars</span></code> enrichers for diagnostics</p></li>
 </ul>
 <p><strong><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></strong> - Optimized for async FastAPI applications:</p>
 <ul class="simple">

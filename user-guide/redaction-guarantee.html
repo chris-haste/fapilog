@@ -186,7 +186,7 @@
 <h1>Redaction Guarantee<a class="headerlink" href="#redaction-guarantee" title="Link to this heading"></a></h1>
 <p>This page documents exactly what fapilog redacts under each configuration.</p>
 <blockquote>
-<div><p><strong>Secure Default:</strong> URL credential redaction (<code class="docutils literal notranslate"><span class="pre">url_credentials</span></code>) is enabled by default in all configurations. Additional redactors (<code class="docutils literal notranslate"><span class="pre">field_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code>) are available via <code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">preset=&quot;fastapi&quot;</span></code>, or explicit configuration. See <a class="reference internal" href="reliability-defaults.html"><span class="std std-doc">Reliability Defaults</span></a> for details.</p>
+<div><p><strong>Secure Default:</strong> URL credential redaction (<code class="docutils literal notranslate"><span class="pre">url_credentials</span></code>) is enabled by default in all configurations. Additional redactors (<code class="docutils literal notranslate"><span class="pre">field_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code>) are available via <code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">preset=&quot;serverless&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">preset=&quot;fastapi&quot;</span></code>, or explicit configuration. See <a class="reference internal" href="reliability-defaults.html"><span class="std std-doc">Reliability Defaults</span></a> for details.</p>
 </div></blockquote>
 <section id="quick-reference">
 <h2>Quick Reference<a class="headerlink" href="#quick-reference" title="Link to this heading"></a></h2>
@@ -218,13 +218,19 @@
 <td><p>Yes</p></td>
 <td><p>Standard</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">preset=&quot;fastapi&quot;</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">preset=&quot;serverless&quot;</span></code></p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Standard</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">preset=&quot;minimal&quot;</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">preset=&quot;fastapi&quot;</span></code></p></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>Standard</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">preset=&quot;minimal&quot;</span></code></p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>

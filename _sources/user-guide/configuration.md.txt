@@ -12,6 +12,7 @@ from fapilog import get_logger, get_async_logger
 # Choose the preset that matches your use case
 logger = get_logger(preset="dev")         # Local development
 logger = get_logger(preset="production")  # Production deployment
+logger = get_logger(preset="serverless")  # Lambda, Cloud Run, Azure Functions
 logger = await get_async_logger(preset="fastapi")  # FastAPI apps
 logger = get_logger(preset="minimal")     # Backwards compatible default
 ```
@@ -58,6 +59,7 @@ Set the lifespan before the application starts.
 |--------|-----------|-------|---------------|-----------|-----------|------------|
 | `dev` | DEBUG | stdout_pretty | No | No | runtime_info, context_vars | 1 (immediate) |
 | `production` | INFO | stdout_json + file | 50MB × 10 files | Yes (9 fields) | runtime_info, context_vars | 100 |
+| `serverless` | INFO | stdout_json | No | Yes (9 fields) | runtime_info, context_vars | 25 |
 | `fastapi` | INFO | stdout_json | No | Yes (9 fields) | context_vars only | 50 |
 | `minimal` | INFO | stdout_json | No | No | runtime_info, context_vars | 256 (default) |
 
@@ -76,6 +78,13 @@ Set the lifespan before the application starts.
 - Both `runtime_info` and `context_vars` enrichers for complete diagnostic data
 - Automatic redaction of: `password`, `api_key`, `token`, `secret`, `authorization`, `api_secret`, `private_key`, `ssn`, `credit_card`
 - `drop_on_full=False` ensures no log loss under pressure
+
+**`serverless`** - Optimized for AWS Lambda, Google Cloud Run, Azure Functions:
+- Stdout-only output (no file sinks) — cloud providers capture stdout automatically
+- `drop_on_full=True` to avoid blocking in time-constrained environments
+- Smaller batch size (25) for quick flushing before function timeout
+- Production-grade redaction enabled
+- Both `runtime_info` and `context_vars` enrichers for diagnostics
 
 **`fastapi`** - Optimized for async FastAPI applications:
 - `context_vars` enricher only (excludes `runtime_info` for reduced overhead in high-throughput scenarios)
