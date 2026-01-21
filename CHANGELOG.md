@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. This change
 - `get_cached_loggers()` function to inspect cached logger names and types.
 - `clear_logger_cache()` async function to drain and clear all cached loggers.
 - `ResourceWarning` emitted when loggers are garbage collected without being drained.
+- `serverless` preset for AWS Lambda, Google Cloud Run, and Azure Functions: stdout-only output, `drop_on_full=True`, smaller batch size (25), production-grade redaction (Story 10.30).
 
 ## [0.4.0] - 2026-01-19
 
