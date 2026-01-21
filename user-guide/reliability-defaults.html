@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Reliability Defaults and Guardrails &mdash; fapilog 0.5.0 documentation</title>
+  <title>Reliability Defaults and Guardrails &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -15,7 +15,7 @@
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -208,14 +208,14 @@
 <h2>Redaction defaults<a class="headerlink" href="#redaction-defaults" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p><strong>With no preset</strong>: URL credential redaction is <strong>enabled by default</strong> (<code class="docutils literal notranslate"><span class="pre">core.redactors=[&quot;url_credentials&quot;]</span></code>). This provides secure defaults by automatically scrubbing credentials from URLs in log output.</p></li>
-<li><p><strong>With <code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code></strong>: Enables <code class="docutils literal notranslate"><span class="pre">field_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code>, and <code class="docutils literal notranslate"><span class="pre">url_credentials</span></code> in that order.</p>
+<li><p><strong>With <code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">preset=&quot;fastapi&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">preset=&quot;serverless&quot;</span></code></strong>: Enables <code class="docutils literal notranslate"><span class="pre">field_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code>, and <code class="docutils literal notranslate"><span class="pre">url_credentials</span></code> in that order.</p>
 <ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">field_mask</span></code>: Masks specific <code class="docutils literal notranslate"><span class="pre">metadata.*</span></code> fields (password, api_key, token, etc.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">field_mask</span></code>: Masks specific <code class="docutils literal notranslate"><span class="pre">data.*</span></code> fields (password, api_key, token, etc.)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">regex_mask</span></code>: Matches any field path containing sensitive keywords (password, secret, token, etc.)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">url_credentials</span></code>: Strips userinfo from URLs</p></li>
 </ul>
 </li>
-<li><p><strong>With other presets</strong> (<code class="docutils literal notranslate"><span class="pre">dev</span></code>, <code class="docutils literal notranslate"><span class="pre">fastapi</span></code>, <code class="docutils literal notranslate"><span class="pre">minimal</span></code>): Redaction is <strong>explicitly disabled</strong> (<code class="docutils literal notranslate"><span class="pre">redactors:</span> <span class="pre">[]</span></code>) for development visibility and debugging. Use <code class="docutils literal notranslate"><span class="pre">Settings()</span></code> without a preset or <code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code> if you need URL credential protection in these environments.</p></li>
+<li><p><strong>With <code class="docutils literal notranslate"><span class="pre">dev</span></code> and <code class="docutils literal notranslate"><span class="pre">minimal</span></code> presets</strong>: Redaction is <strong>explicitly disabled</strong> (<code class="docutils literal notranslate"><span class="pre">redactors:</span> <span class="pre">[]</span></code>) for development visibility and debugging. Use <code class="docutils literal notranslate"><span class="pre">Settings()</span></code> without a preset or a production-grade preset if you need URL credential protection in these environments.</p></li>
 <li><p><strong>Opt-out</strong>: Set <code class="docutils literal notranslate"><span class="pre">core.redactors=[]</span></code> to disable all redaction, or <code class="docutils literal notranslate"><span class="pre">core.enable_redactors=False</span></code> to disable the redactors stage entirely.</p></li>
 <li><p>Order when active: <code class="docutils literal notranslate"><span class="pre">field-mask</span></code> → <code class="docutils literal notranslate"><span class="pre">regex-mask</span></code> → <code class="docutils literal notranslate"><span class="pre">url-credentials</span></code></p></li>
 <li><p>Guardrails: <code class="docutils literal notranslate"><span class="pre">core.redaction_max_depth=6</span></code>, <code class="docutils literal notranslate"><span class="pre">core.redaction_max_keys_scanned=5000</span></code></p></li>

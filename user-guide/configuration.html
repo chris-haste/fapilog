@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Configuration &mdash; fapilog 0.5.0 documentation</title>
+  <title>Configuration &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -15,7 +15,7 @@
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -366,6 +366,60 @@ fapilog selects a sensible default log level:</p>
 <li><p>CI: forces <code class="docutils literal notranslate"><span class="pre">INFO</span></code> even if TTY</p></li>
 </ul>
 <p>Explicit <code class="docutils literal notranslate"><span class="pre">core.log_level</span></code> or a preset always overrides these defaults.</p>
+</section>
+<section id="environment-auto-detection">
+<h2>Environment Auto-Detection<a class="headerlink" href="#environment-auto-detection" title="Link to this heading"></a></h2>
+<p>When you call <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> without a preset or settings, fapilog automatically detects your runtime environment and applies lightweight configuration tweaks. This is controlled by <code class="docutils literal notranslate"><span class="pre">auto_detect=True</span></code> (the default).</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Detected Environment</p></th>
+<th class="head"><p>Detection Method</p></th>
+<th class="head"><p>Applied Configuration</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Lambda</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">AWS_LAMBDA_FUNCTION_NAME</span></code> env var</p></td>
+<td><p>Smaller batches (10), faster flush (0.1s), smaller queue (1000)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Kubernetes</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/var/run/secrets/kubernetes.io/serviceaccount</span></code> or <code class="docutils literal notranslate"><span class="pre">POD_NAME</span></code> env var</p></td>
+<td><p>INFO level, <code class="docutils literal notranslate"><span class="pre">kubernetes</span></code> enricher</p></td>
+</tr>
+<tr class="row-even"><td><p>Docker</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/.dockerenv</span></code> file or <code class="docutils literal notranslate"><span class="pre">/proc/1/cgroup</span></code> contains “docker”</p></td>
+<td><p>INFO level</p></td>
+</tr>
+<tr class="row-odd"><td><p>CI</p></td>
+<td><p>Common CI env vars (see Story 10.6)</p></td>
+<td><p>INFO level</p></td>
+</tr>
+<tr class="row-even"><td><p>Local</p></td>
+<td><p>Default fallback</p></td>
+<td><p>Uses TTY-based log level defaults</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Important:</strong> Auto-detection applies incremental tweaks to the base configuration—it does <strong>not</strong> apply full preset configurations. For example:</p>
+<ul class="simple">
+<li><p>Auto-detecting Lambda adds smaller batches and the <code class="docutils literal notranslate"><span class="pre">runtime_info</span></code> enricher</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">preset=&quot;serverless&quot;</span></code> provides the complete serverless config <strong>including redactors</strong></p></li>
+</ul>
+<p>If you need full preset behavior (especially redaction) in cloud environments, use explicit presets:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Full preset with redaction enabled</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;serverless&quot;</span><span class="p">)</span>
+
+<span class="c1"># Auto-detect only (applies tweaks but no redaction beyond url_credentials default)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
+
+<span class="c1"># Explicit environment without full preset</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">environment</span><span class="o">=</span><span class="s2">&quot;lambda&quot;</span><span class="p">)</span>  <span class="c1"># Same as auto-detect for Lambda</span>
+</pre></div>
+</div>
+<p>To disable auto-detection entirely:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">auto_detect</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>On sink write failures (exceptions raised by a sink), fapilog falls back to stderr.
 If stderr fails too, the entry is dropped. Diagnostics warnings are emitted when
 internal diagnostics are enabled:</p>
