@@ -14,11 +14,6 @@ plugin-guide
 redaction-guarantees
 security-operator-workflows
 quality-signals
-adr/0003-canonical-log-schema-v1.1
-adr/0004-encryption-out-of-scope
-audits/fapilog-assessment-2026-01-19 (Claude-Opus-4.5)
-audits/fapilog-assessment-2026-01-19 (GPT-5.2)
-audits/fapilog-assessment-2026-01-19 (Gemini-3-Flash)
 ```
 
 ## Overview
@@ -353,7 +348,7 @@ fapilog draws inspiration from:
 
 ### Contributing
 
-We welcome contributions from the community! See the {doc}`Contributing Guide <contributing/index>` for details on:
+We welcome contributions from the community! See the [Contributing Guide](https://github.com/chris-haste/fapilog/blob/main/CONTRIBUTING.md) for details on:
 
 - Code contributions
 - Documentation improvements

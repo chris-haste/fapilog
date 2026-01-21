@@ -103,6 +103,71 @@ def test_serialize():
     serialize_envelope(data)
 ```
 
+### 2b. Configuration Parity Validation
+
+**Reference:** Stories 10.22-10.28, `scripts/builder_param_mappings.py`
+
+**Trigger:** PRs modifying ANY of:
+- `src/fapilog/core/settings.py` (all Settings classes)
+- `src/fapilog/builder.py`
+- `scripts/builder_param_mappings.py`
+
+#### 1. CoreSettings Changes
+
+- [ ] New field has `with_*()` method in builder
+- [ ] Method added to `CORE_COVERAGE` in mappings
+- [ ] Or field added to `CORE_EXCLUSIONS` with rationale
+
+#### 2. Sink Settings Changes (CloudWatch, Loki, Postgres)
+
+- [ ] New field has parameter in corresponding `add_*()` method
+- [ ] Parameter mapping in `SINK_PARAM_MAPPINGS`
+- [ ] Duration params accept "30s" strings
+- [ ] Size params accept "10 MB" strings
+
+#### 3. Filter/Processor Changes
+
+- [ ] New filter type has `with_*()` method
+- [ ] Filter added to `FILTER_COVERAGE`
+- [ ] Method enables filter AND configures it
+
+#### 4. Advanced Settings (Routing, Redactors, Plugins)
+
+- [ ] New fields covered by appropriate `with_*()` method
+- [ ] Mapping in `ADVANCED_COVERAGE`
+
+#### Consistency Checks (All Categories)
+
+- [ ] Duration fields: `_parse_duration()` used for string support
+- [ ] Size fields: Settings `SizeField` type handles string parsing
+- [ ] Boolean fields: `enabled` parameter name
+- [ ] All methods return `Self`
+- [ ] Docstrings include usage example
+
+#### Blocking Issues (P0)
+
+- Settings field without builder coverage (check all categories)
+- Builder method parameter without Settings field mapping
+- Missing entry in `builder_param_mappings.py`
+- Missing unit test for new builder method
+
+#### Should Fix (P1)
+
+- Parameter name doesn't match convention
+- Missing `_parse_duration()` for duration field
+- Docstring missing example
+
+#### Verification Command
+
+```bash
+python scripts/check_builder_parity.py
+```
+
+#### Non-Blocking (P2)
+
+- Docstring wording improvements
+- Additional test edge cases
+
 ### 3. AC Verification (Evidence-Required)
 
 For EACH acceptance criterion from the story:

@@ -110,6 +110,84 @@ Cover the meaningful boundaries for the changed behavior:
 - boundary values
 - timezones/idempotency/concurrency only if the story touches them
 
+## Configuration Parity Rule
+
+**Reference:** Stories 10.22-10.28, `docs/architecture/builder-design-patterns.md`
+
+When adding or modifying any configuration in fapilog, follow the appropriate pattern based on category:
+
+### Configuration Categories
+
+| Category | Settings Location | Builder Pattern | Example |
+|----------|-------------------|-----------------|---------|
+| Core | `CoreSettings` | `with_*()` | `with_workers()` |
+| Cloud Sinks | `CloudWatch/Loki/PostgresSinkSettings` | `add_*()` | `add_cloudwatch()` |
+| Filters | `FilterConfig.*` | `with_*()` | `with_sampling()` |
+| Processors | `ProcessorConfigSettings.*` | `with_*()` | `with_size_guard()` |
+| Advanced | `SinkRoutingSettings`, `RedactorConfig.*` | `with_*()` | `with_routing()` |
+
+### Required Steps (All Categories)
+
+1. **Settings**: Add field to appropriate Settings class with docstring
+2. **Builder**: Add/update corresponding builder method
+3. **Mapping**: Update `scripts/builder_param_mappings.py`
+4. **Test**: Add unit test for builder method
+5. **Verify**: Run `python scripts/check_builder_parity.py`
+
+### Category-Specific Patterns
+
+#### Core Settings (`with_*` methods)
+
+```python
+# CoreSettings field
+worker_count: int = Field(default=1, description="Number of workers")
+
+# Builder method
+def with_workers(self, count: int = 1) -> LoggerBuilder:
+    self._config.setdefault("core", {})["worker_count"] = count
+    return self
+```
+
+#### Cloud Sinks (`add_*` methods)
+
+```python
+# CloudWatchSinkSettings field
+log_group_name: str = Field(...)
+
+# Builder method parameter (note: simplified param name)
+def add_cloudwatch(self, log_group: str, ...) -> LoggerBuilder:
+    config["log_group_name"] = log_group  # Maps param -> field
+```
+
+**Param naming:** Use human-friendly names, document mapping in `builder_param_mappings.py`
+
+#### Filters/Processors
+
+```python
+# with_sampling() enables 'sampling' filter AND configures it
+def with_sampling(self, rate: float = 1.0, *, seed: int | None = None):
+    filters = self._config.setdefault("core", {}).setdefault("filters", [])
+    if "sampling" not in filters:
+        filters.append("sampling")
+    filter_config = self._config.setdefault("filter_config", {})
+    filter_config["sampling"] = {"sample_rate": rate, "seed": seed}
+```
+
+### Consistency Requirements
+
+- **Duration fields**: Accept both strings ("30s") and floats via `_parse_duration()`
+- **Size fields**: Accept both strings ("10 MB") and ints
+- **Boolean fields**: Use `enabled` as parameter name
+- **Return type**: Always `Self` for chaining
+
+### Checklist Before Complete
+
+- [ ] Settings field added with description
+- [ ] Builder method added with docstring and example
+- [ ] Parameter mapping added to `scripts/builder_param_mappings.py`
+- [ ] Unit test for builder method
+- [ ] Parity test passes: `python scripts/check_builder_parity.py`
+
 ## Reference Files
 
 For common test patterns and legacy code techniques, see:
