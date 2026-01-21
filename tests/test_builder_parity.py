@@ -60,6 +60,27 @@ BUILDER_TO_CORE_FIELDS: dict[str, list[str]] = {
     "with_enrichers": ["enrichers"],
     "with_filters": ["filters"],
     "with_redaction": ["redactors"],  # Partial - enables field_mask/regex_mask
+    # Story 10.23: Core settings builder methods
+    "with_circuit_breaker": [
+        "sink_circuit_breaker_enabled",
+        "sink_circuit_breaker_failure_threshold",
+        "sink_circuit_breaker_recovery_timeout_seconds",
+    ],
+    "with_backpressure": ["backpressure_wait_ms", "drop_on_full"],
+    "with_workers": ["worker_count"],
+    "with_shutdown_timeout": ["shutdown_timeout_seconds"],
+    "with_exceptions": [
+        "exceptions_enabled",
+        "exceptions_max_frames",
+        "exceptions_max_stack_chars",
+    ],
+    "with_parallel_sink_writes": ["sink_parallel_writes"],
+    "with_metrics": ["enable_metrics"],
+    "with_error_deduplication": ["error_dedupe_window_seconds"],
+    "with_diagnostics": ["internal_logging_enabled", "diagnostics_output"],
+    "with_app_name": ["app_name"],
+    "with_strict_mode": ["strict_envelope_mode"],
+    "with_unhandled_exception_capture": ["capture_unhandled_enabled"],
 }
 
 # Mapping of add_* methods to sink types they cover
@@ -72,9 +93,23 @@ BUILDER_TO_SINKS: dict[str, str] = {
 }
 
 # Fields intentionally excluded from parity requirements
+# Synced with scripts/builder_param_mappings.py CORE_EXCLUSIONS
 EXCLUDED_CORE_FIELDS: set[str] = {
-    "schema_version",  # Internal versioning
-    "benchmark_file_path",  # Testing/benchmarking only
+    "schema_version",  # Internal versioning, not user-configurable
+    "benchmark_file_path",  # Test-only field
+    "sensitive_fields_policy",  # Policy hint, not runtime config
+    "redactors_order",  # Managed internally by redactor methods
+    "enable_redactors",  # Controlled via redactor list being non-empty
+    "processors",  # Managed internally, not directly set by builder
+    "sinks",  # Managed by add_* sink methods
+    # Fields planned for Story 10.26 (Advanced Settings)
+    "context_binding_enabled",  # Story 10.26: with_context_binding()
+    "serialize_in_flush",  # Story 10.26: with_serialize_in_flush()
+    "resource_pool_max_size",  # Story 10.26: with_resource_pool()
+    "resource_pool_acquire_timeout_seconds",  # Story 10.26: with_resource_pool()
+    "redaction_max_depth",  # Story 10.26: with_redaction_guardrails()
+    "redaction_max_keys_scanned",  # Story 10.26: with_redaction_guardrails()
+    "fallback_redact_mode",  # Story 10.26: with_fallback_redaction()
 }
 
 # Sinks intentionally excluded (covered via other mechanisms)
@@ -217,18 +252,16 @@ class TestBuilderMethodNamingConventions:
 class TestBuilderCoreParity:
     """Tests for CoreSettings parity.
 
-    Note: This test is expected to FAIL until Stories 10.23-10.26 are complete.
-    The failure documents the current gap.
+    Story 10.23 implements all CoreSettings builder methods.
+    Remaining advanced fields are tracked for Story 10.26.
     """
 
-    @pytest.mark.xfail(
-        reason="Stories 10.23-10.26 not yet implemented",
-        strict=False,
-    )
     def test_all_core_settings_have_builder_coverage(self) -> None:
         """Ensure CoreSettings fields have builder methods.
 
-        This test will pass once all builder methods are implemented.
+        Story 10.23 provides full coverage for CoreSettings.
+        Advanced fields (context_binding, resource_pool, etc.) are excluded
+        and tracked for Story 10.26.
         """
         core_fields = get_core_settings_fields()
         builder_coverage = get_builder_covered_core_fields()
