@@ -170,7 +170,6 @@ If you're a maintainer planning new work:
 1. Check if a story already exists (search this directory)
 2. If not, create a new story file following the naming convention
 3. Update the relevant series overview if applicable
-4. Update `docs/roadmap.md` if it's a user-facing feature
 
 ## Templates
 
@@ -203,5 +202,4 @@ We're standardizing story formats for consistency. See:
 - [Migration Action Plan](./MIGRATION_ACTION_PLAN.md) - Step-by-step migration checklist
 - [Migration Complete Summary](./MIGRATION_COMPLETE_SUMMARY.md) - Summary of completed migrations
 - [Standardization Guide](./STANDARDIZATION_GUIDE.md) - Format requirements and migration guide
-- [Roadmap](../roadmap.md) - Public-facing feature overview
 - [Contributing Guide](../../CONTRIBUTING.md) - How to contribute to the project
