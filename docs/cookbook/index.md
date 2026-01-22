@@ -15,6 +15,7 @@ redacting-secrets-pii
 safe-request-response-logging
 skip-noisy-endpoints
 log-sampling-rate-limiting
+graceful-shutdown-flush
 ```
 
 ## Quick Links
@@ -27,3 +28,4 @@ log-sampling-rate-limiting
 - [Safe Request/Response Logging](safe-request-response-logging.md) - Body logging without hanging or breaking streaming
 - [Skipping Health/Metrics Endpoints](skip-noisy-endpoints.md) - Reduce log noise from health checks
 - [Log Sampling and Rate Limiting](log-sampling-rate-limiting.md) - Control log volume during traffic spikes
+- [Graceful Shutdown & Flushing Logs](graceful-shutdown-flush.md) - Don't lose logs on deploy
