@@ -4,22 +4,7 @@ orphan: true
 
 # Tamper-Evident Logging Add-on (Optional)
 
-> **Implementation Stories**: This design is implemented across Stories 4.14–4.18.
-> See the fapilog-audit stories for detailed acceptance criteria and technical design.
-
 This design keeps the core light while offering an opt-in, first-class tamper-evident capability delivered as a separate plugin/package.
-
-## Story Breakdown
-
-| Story | Title                          | Status |
-| ----- | ------------------------------ | ------ |
-| 4.14  | Package Bootstrap              | Done   |
-| 4.15  | IntegrityEnricher & ChainState | Done   |
-| 4.16  | SealedSink & Manifests         | Done   |
-| 4.17  | Verification API & CLI         | Done   |
-| 4.18  | Enterprise Key Management      | Done   |
-
-> **Note**: Story 4.13 (keyless hash chains in core) was cancelled. All tamper-evident functionality is in the plugin.
 
 ## Packaging and Opt-in
 

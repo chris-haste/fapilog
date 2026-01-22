@@ -149,7 +149,7 @@ When you call `get_logger()` without a preset or settings, fapilog automatically
 | Lambda | `AWS_LAMBDA_FUNCTION_NAME` env var | Smaller batches (10), faster flush (0.1s), smaller queue (1000) |
 | Kubernetes | `/var/run/secrets/kubernetes.io/serviceaccount` or `POD_NAME` env var | INFO level, `kubernetes` enricher |
 | Docker | `/.dockerenv` file or `/proc/1/cgroup` contains "docker" | INFO level |
-| CI | Common CI env vars (see Story 10.6) | INFO level |
+| CI | Common CI env vars (`CI`, `GITHUB_ACTIONS`, etc.) | INFO level |
 | Local | Default fallback | Uses TTY-based log level defaults |
 
 **Important:** Auto-detection applies incremental tweaks to the base configuration—it does **not** apply full preset configurations. For example:

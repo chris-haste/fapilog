@@ -204,47 +204,7 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="tamper-evident-logging-add-on-optional">
 <h1>Tamper-Evident Logging Add-on (Optional)<a class="headerlink" href="#tamper-evident-logging-add-on-optional" title="Link to this heading"></a></h1>
-<blockquote>
-<div><p><strong>Implementation Stories</strong>: This design is implemented across Stories 4.14–4.18.
-See the fapilog-audit stories for detailed acceptance criteria and technical design.</p>
-</div></blockquote>
 <p>This design keeps the core light while offering an opt-in, first-class tamper-evident capability delivered as a separate plugin/package.</p>
-<section id="story-breakdown">
-<h2>Story Breakdown<a class="headerlink" href="#story-breakdown" title="Link to this heading"></a></h2>
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Story</p></th>
-<th class="head"><p>Title</p></th>
-<th class="head"><p>Status</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>4.14</p></td>
-<td><p>Package Bootstrap</p></td>
-<td><p>Done</p></td>
-</tr>
-<tr class="row-odd"><td><p>4.15</p></td>
-<td><p>IntegrityEnricher &amp; ChainState</p></td>
-<td><p>Done</p></td>
-</tr>
-<tr class="row-even"><td><p>4.16</p></td>
-<td><p>SealedSink &amp; Manifests</p></td>
-<td><p>Done</p></td>
-</tr>
-<tr class="row-odd"><td><p>4.17</p></td>
-<td><p>Verification API &amp; CLI</p></td>
-<td><p>Done</p></td>
-</tr>
-<tr class="row-even"><td><p>4.18</p></td>
-<td><p>Enterprise Key Management</p></td>
-<td><p>Done</p></td>
-</tr>
-</tbody>
-</table>
-<blockquote>
-<div><p><strong>Note</strong>: Story 4.13 (keyless hash chains in core) was cancelled. All tamper-evident functionality is in the plugin.</p>
-</div></blockquote>
-</section>
 <section id="packaging-and-opt-in">
 <h2>Packaging and Opt-in<a class="headerlink" href="#packaging-and-opt-in" title="Link to this heading"></a></h2>
 <ul class="simple">
