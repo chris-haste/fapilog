@@ -56,6 +56,7 @@ Draft → Ready → Ready for Code Review → Complete
 - Title max 50 chars
 - Scope is optional but recommended
 - Body bullets explain _why_, not just _what_
+- No Co-Authored-By, "Generated with", or AI attribution lines
 
 **Example:**
 
