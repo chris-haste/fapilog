@@ -129,6 +129,7 @@ The `ContextVarsEnricher` (enabled by default) reads this value and adds it to e
 
 ## Going Deeper
 
+- [Exception Logging with Request Context](exception-logging-request-context.md) - Correlate errors with requests
 - [FastAPI Logging Example](../examples/fastapi-logging.md) - More middleware options
 - [Context Binding Reference](../api-reference/context-binding.md) - Manual context management
 - [Context Enrichment](../user-guide/context-enrichment.md) - How enrichers work
