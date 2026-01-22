@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. This changelog follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2026-01-21
+
+### Added
+
+- **FastAPI `log_errors_on_skip` parameter:** `LoggingMiddleware` and `setup_logging()` now accept `log_errors_on_skip` (default: True) to log unhandled exceptions on skipped paths (Story 1.32). This ensures visibility into crashes on health endpoints while still skipping routine success logs.
+
+### Documentation
+
+- Added 10 cookbook recipes for common FastAPI logging patterns:
+  - FastAPI request_id logging
+  - FastAPI JSON logging
+  - Non-blocking async logging
+  - Development and production logging configuration
+  - Redacting secrets and PII
+  - Safe request/response logging
+  - Skip noisy endpoints
+  - Log sampling and rate limiting
+  - Graceful shutdown and log flushing
+  - Exception logging with request context
+- SEO improvements with sitemap generation and canonical URL tags.
+- Fixed documentation accuracy and cross-reference issues.
+
+### Changed
+
+- Updated PyPI description to be more concrete.
+- Organized audit assessment files into versioned directories.
+
 ## [0.5.0] - 2026-01-21
 
 ### Breaking Changes
@@ -36,7 +63,6 @@ All notable changes to this project will be documented in this file. This change
 
 ### Added
 
-- **FastAPI `log_errors_on_skip` parameter:** `LoggingMiddleware` and `setup_logging()` now accept `log_errors_on_skip` (default: True) to log unhandled exceptions on skipped paths (Story 1.32). This ensures visibility into crashes on health endpoints while still skipping routine success logs.
 - Logger instance caching: `get_logger()` and `get_async_logger()` now cache instances by name (like stdlib `logging.getLogger()`), preventing resource exhaustion from unbounded logger creation (Story 10.29).
 - `reuse` parameter for `get_logger()` and `get_async_logger()` to opt out of caching when needed (e.g., tests).
 - `get_cached_loggers()` function to inspect cached logger names and types.
