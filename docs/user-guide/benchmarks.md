@@ -130,4 +130,3 @@ Options:
 ## Related
 
 - [Performance Tuning](performance-tuning.md) - Configuration recommendations
-- Story 10.19 - CI-based regression detection (planned)

@@ -1,6 +1,6 @@
 # Plugin Configuration
 
-This guide explains the new configuration-driven plugin wiring introduced in Story 4.19.
+This guide explains configuration-driven plugin wiring.
 
 ## Selecting Plugins
 

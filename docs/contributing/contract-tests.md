@@ -13,7 +13,7 @@ If these stages disagree on the data shape, logs may be lost or corrupted. Contr
 
 ### Historical Context
 
-Story 10.17 introduced contract testing after identifying a schema mismatch between `build_envelope()` and `serialize_envelope()`. The mismatch went undetected because:
+Contract testing was introduced after identifying a schema mismatch between `build_envelope()` and `serialize_envelope()`. The mismatch went undetected because:
 
 - Unit tests tested each function in isolation
 - Property tests used synthetic data, not real `build_envelope()` output
