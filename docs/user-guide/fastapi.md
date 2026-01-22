@@ -55,7 +55,7 @@ Skip specific paths via `skip_paths=["/health"]`, or inject your own logger inst
 
 - `sample_rate` (default 1.0): apply probabilistic sampling to successful `request_completed` logs; errors are always logged.
 - `include_headers` (default False) + `redact_headers`: when enabled, include headers in the log metadata, masking any header names listed in `redact_headers` with `***`.
-- `skip_paths`: list of paths to skip logging (e.g., health checks).
+- `skip_paths`: list of paths to skip logging (e.g., health checks). See [Skipping Health/Metrics Endpoints](../cookbook/skip-noisy-endpoints.md) for patterns and best practices.
 
 Example with options:
 
