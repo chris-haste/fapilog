@@ -103,7 +103,7 @@ python scripts/publish_to_pypi.py
 
    See CHANGELOG.md for detailed changes.
 
-   https://github.com/chris-haste/fastapi-logger/blob/vX.Y.Z/CHANGELOG.md#xyz---yyyy-mm-dd"
+   https://github.com/chris-haste/fapilog/blob/vX.Y.Z/CHANGELOG.md#xyz---yyyy-mm-dd"
    ```
 
 2. **Push the tag to GitHub**
@@ -136,12 +136,10 @@ After pushing the tag, you can:
 
 ## Package Name
 
-The package is published to PyPI as **`fapilog`** and is developed in the `fastapi-logger` repository.
-
 - **PyPI Package**: `fapilog`
-- **GitHub Repository**: `fastapi-logger`
+- **GitHub Repository**: `fapilog`
 - **Installation**: `pip install fapilog`
-- **Source Code**: `github.com/chris-haste/fastapi-logger`
+- **Source Code**: `github.com/chris-haste/fapilog`
 
 ## Manual PyPI Publishing (Legacy)
 
