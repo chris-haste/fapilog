@@ -32,6 +32,8 @@ fapilog is built around a few core concepts that make it fast, reliable, and dev
 
 ## Key Principles
 
+Fapilog isn't a thin wrapper over existing logging libraries—it's an async-first logging pipeline designed to keep your app responsive under slow or bursty log sinks, with backpressure policies, redaction, and first-class FastAPI integration built in.
+
 ### 1. Async-First Design
 
 Everything in fapilog is async by default. This means:
