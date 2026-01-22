@@ -8,10 +8,12 @@
 
 Traditional logging libraries block your application, lose context, and produce unstructured output. Fapilog gives you:
 
-- **🚀 Async-first** - Never block your application again
-- **📊 Structured** - JSON logs that machines can actually parse
-- **🔒 Production-ready** - Built-in redaction, metrics, and resilience
-- **⚡ High-performance** - Lock-free queues and zero-copy processing
+- **Async-first** - Never block your application again
+- **Structured** - JSON logs that machines can actually parse
+- **Production-ready** - Built-in redaction, metrics, and resilience
+- **High-performance** - Lock-free queues and zero-copy processing
+
+**[Read more about why fapilog →](why-fapilog.md)** | **[Compare with alternatives →](comparisons.md)**
 
 ## Quick Example
 
@@ -56,6 +58,8 @@ await logger.error("Database connection failed", exc_info=True)
 :caption: Documentation
 
 getting-started/index
+why-fapilog
+comparisons
 core-concepts/index
 user-guide/index
 cookbook/index

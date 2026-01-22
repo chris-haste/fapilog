@@ -27,6 +27,8 @@ Fapilog isn't a thin wrapper over existing logging libraries—it's an async-fir
 - **Operational visibility**: Optional metrics for queue depth, drops, and flush latency.
 - **Pre-1.0 stability**: Core logger and FastAPI middleware APIs are stable within minor versions; see [Stability](#stability) for details.
 
+**[Read more →](https://docs.fapilog.dev/why-fapilog/)** | **[Compare with structlog, loguru, and others →](https://docs.fapilog.dev/comparisons/)**
+
 ## When to use / when stdlib is enough
 
 ### Use fapilog when
