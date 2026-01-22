@@ -11,6 +11,7 @@ fastapi-json-logging
 fastapi-request-id-logging
 non-blocking-async-logging
 dev-prod-logging-config
+redacting-secrets-pii
 ```
 
 ## Quick Links
@@ -19,3 +20,4 @@ dev-prod-logging-config
 - [FastAPI request_id Logging](fastapi-request-id-logging.md) - Correlation ID middleware that works with async
 - [Non-blocking Async Logging](non-blocking-async-logging.md) - Protect latency with backpressure modes
 - [Dev + Prod Logging Config](dev-prod-logging-config.md) - Single config that adapts to environment
+- [Redacting Secrets and PII](redacting-secrets-pii.md) - Secure defaults and custom redaction patterns

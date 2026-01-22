@@ -102,6 +102,7 @@
 <li class="toctree-l2"><a class="reference internal" href="fastapi-request-id-logging.html">FastAPI request_id logging (correlation ID middleware, concurrency-safe)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="non-blocking-async-logging.html">Non-blocking logging in FastAPI (protect latency under slow sinks)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dev-prod-logging-config.html">One FastAPI logging config for dev + prod (Uvicorn/Gunicorn)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="redacting-secrets-pii.html">Redacting secrets and PII in FastAPI logs (Authorization, tokens, fields)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
@@ -206,6 +207,7 @@
 <li class="toctree-l1"><a class="reference internal" href="fastapi-request-id-logging.html">FastAPI request_id logging (correlation ID middleware, concurrency-safe)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="non-blocking-async-logging.html">Non-blocking logging in FastAPI (protect latency under slow sinks)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dev-prod-logging-config.html">One FastAPI logging config for dev + prod (Uvicorn/Gunicorn)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="redacting-secrets-pii.html">Redacting secrets and PII in FastAPI logs (Authorization, tokens, fields)</a></li>
 </ul>
 </div>
 <section id="quick-links">
@@ -215,6 +217,7 @@
 <li><p><a class="reference internal" href="fastapi-request-id-logging.html"><span class="std std-doc">FastAPI request_id Logging</span></a> - Correlation ID middleware that works with async</p></li>
 <li><p><a class="reference internal" href="non-blocking-async-logging.html"><span class="std std-doc">Non-blocking Async Logging</span></a> - Protect latency with backpressure modes</p></li>
 <li><p><a class="reference internal" href="dev-prod-logging-config.html"><span class="std std-doc">Dev + Prod Logging Config</span></a> - Single config that adapts to environment</p></li>
+<li><p><a class="reference internal" href="redacting-secrets-pii.html"><span class="std std-doc">Redacting Secrets and PII</span></a> - Secure defaults and custom redaction patterns</p></li>
 </ul>
 </section>
 </section>
@@ -231,7 +234,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on January 21, 2026.
+      <span class="lastupdated">Last updated on January 22, 2026.
       </span></p>
   </div>
 
