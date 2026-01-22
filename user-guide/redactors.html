@@ -245,6 +245,48 @@
 <li><p>Add custom regex patterns via settings if needed.</p></li>
 </ul>
 </section>
+<section id="regex-pattern-safety">
+<h2>Regex Pattern Safety<a class="headerlink" href="#regex-pattern-safety" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">regex-mask</span></code> redactor validates patterns at config time to prevent ReDoS (Regular Expression Denial of Service) attacks. Patterns with these constructs are rejected:</p>
+<ul class="simple">
+<li><p><strong>Nested quantifiers</strong>: <code class="docutils literal notranslate"><span class="pre">(a+)+</span></code>, <code class="docutils literal notranslate"><span class="pre">(a*)*</span></code>, <code class="docutils literal notranslate"><span class="pre">(a+)*</span></code></p></li>
+<li><p><strong>Alternation with quantifiers</strong>: <code class="docutils literal notranslate"><span class="pre">(a|aa)+</span></code>, <code class="docutils literal notranslate"><span class="pre">(foo|foobar)*</span></code></p></li>
+<li><p><strong>Wildcards in bounded repetition</strong>: <code class="docutils literal notranslate"><span class="pre">(.*a){10,}</span></code></p></li>
+</ul>
+<section id="safe-patterns">
+<h3>Safe patterns<a class="headerlink" href="#safe-patterns" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># These are safe and accepted</span>
+<span class="n">patterns</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="sa">r</span><span class="s2">&quot;user\.email&quot;</span><span class="p">,</span>              <span class="c1"># Literal path</span>
+    <span class="sa">r</span><span class="s2">&quot;user\..*\.secret&quot;</span><span class="p">,</span>         <span class="c1"># Simple wildcard</span>
+    <span class="sa">r</span><span class="s2">&quot;request\.headers\.[^.]+&quot;</span><span class="p">,</span>  <span class="c1"># Character class</span>
+    <span class="sa">r</span><span class="s2">&quot;(password|secret|token)&quot;</span><span class="p">,</span>  <span class="c1"># Alternation without quantifier</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="patterns-to-avoid">
+<h3>Patterns to avoid<a class="headerlink" href="#patterns-to-avoid" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># These are rejected by default</span>
+<span class="n">patterns</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="sa">r</span><span class="s2">&quot;(a+)+&quot;</span><span class="p">,</span>           <span class="c1"># Nested quantifiers - exponential backtracking</span>
+    <span class="sa">r</span><span class="s2">&quot;(a|aa)+&quot;</span><span class="p">,</span>         <span class="c1"># Overlapping alternation - exponential backtracking</span>
+    <span class="sa">r</span><span class="s2">&quot;(.*a){10,}&quot;</span><span class="p">,</span>      <span class="c1"># Wildcard in repetition - exponential backtracking</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="escape-hatch">
+<h3>Escape hatch<a class="headerlink" href="#escape-hatch" title="Link to this heading"></a></h3>
+<p>If you understand the risks and need to use a pattern that triggers validation, use <code class="docutils literal notranslate"><span class="pre">allow_unsafe_patterns=True</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="n">RegexMaskConfig</span><span class="p">(</span>
+    <span class="n">patterns</span><span class="o">=</span><span class="p">[</span><span class="sa">r</span><span class="s2">&quot;(complex|pattern)+&quot;</span><span class="p">],</span>
+    <span class="n">allow_unsafe_patterns</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Bypasses ReDoS validation</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
 </section>
 
 
