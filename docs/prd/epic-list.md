@@ -9,3 +9,4 @@
 **Epic 7: Community & Ecosystem Growth** - Establish community contribution framework and plugin marketplace
 **Epic 8: Production Excellence** - Implement production-ready features with monitoring and deployment tools
 **Epic 9: FastAPI Integration Layer** - Provide native FastAPI integration tools for enhanced developer productivity and observability
+**Epic 11: fapilog-audit Enterprise Audit Trail** - Deliver production-solid audit trail with tamper-evident logging, pluggable storage, and 90% test coverage
