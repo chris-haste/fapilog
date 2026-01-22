@@ -22,7 +22,6 @@ performance-tuning
 benchmarks
 integration-guide
 fastapi
-comparisons
 reliability-defaults
 testing-plugins
 webhook-security
