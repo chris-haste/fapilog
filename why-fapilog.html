@@ -4,16 +4,16 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Search &mdash; fapilog latest documentation</title>
+  <title>Why Fapilog? &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="_static/custom.css" />
 
   
-    
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=c6e86fd7"></script>
@@ -23,14 +23,14 @@
       <script src="_static/copybutton.js?v=30646c52"></script>
       <script src="_static/custom.js"></script>
     <script src="_static/js/theme.js"></script>
-    <script src="_static/searchtools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="#" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Python Logging Library Comparison" href="comparisons.html" />
+    <link rel="prev" title="Hello World Walkthrough" href="getting-started/hello-world.html" />
  
 
 
-<link rel="canonical" href="https://docs.fapilog.dev/en/stable/search.html" />
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/why-fapilog.html" />
 <meta name="robots" content="noindex, follow" />
 
 
@@ -48,7 +48,7 @@
             fapilog
           </a>
 <div role="search">
-  <form id="rtd-search-form" class="wy-form" action="#" method="get">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
@@ -56,14 +56,14 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="getting-started/index.html">Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="getting-started/installation.html">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="getting-started/quickstart.html">Quickstart Tutorial</a></li>
 <li class="toctree-l2"><a class="reference internal" href="getting-started/hello-world.html">Hello World Walkthrough</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="why-fapilog.html">Why Fapilog?</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Why Fapilog?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="comparisons.html">Python Logging Library Comparison</a></li>
 <li class="toctree-l1"><a class="reference internal" href="core-concepts/index.html">Core Concepts</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="core-concepts/pipeline-architecture.html">Pipeline Architecture</a></li>
@@ -194,8 +194,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Search</li>
+      <li class="breadcrumb-item active">Why Fapilog?</li>
       <li class="wy-breadcrumbs-aside">
+            <a href="_sources/why-fapilog.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -203,22 +204,170 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <noscript>
-  <div id="fallback" class="admonition warning">
-    <p class="last">
-      Please activate JavaScript to enable the search functionality.
-    </p>
-  </div>
-  </noscript>
+  <section class="tex2jax_ignore mathjax_ignore" id="why-fapilog">
+<h1>Why Fapilog?<a class="headerlink" href="#why-fapilog" title="Link to this heading"></a></h1>
+<p>Fapilog is an <strong>async-first structured logging library</strong> for Python services. If you’re building FastAPI applications, microservices, or any system where logging shouldn’t slow down your requests, fapilog was designed for your use case.</p>
+<section id="quick-decision-guide">
+<h2>Quick Decision Guide<a class="headerlink" href="#quick-decision-guide" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>If you need…</p></th>
+<th class="head"><p>Best choice</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Async-first logging with backpressure handling</p></td>
+<td><p><strong>fapilog</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>Simplest possible API, sync is fine</p></td>
+<td><p>loguru</p></td>
+</tr>
+<tr class="row-even"><td><p>Processor ecosystem, stdlib compatibility</p></td>
+<td><p>structlog</p></td>
+</tr>
+<tr class="row-odd"><td><p>Full observability (logs + traces + metrics)</p></td>
+<td><p>OpenTelemetry</p></td>
+</tr>
+<tr class="row-even"><td><p>Zero dependencies</p></td>
+<td><p>stdlib logging</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Not sure?</strong> Read on for details, or jump to the <a class="reference internal" href="comparisons.html"><span class="std std-doc">full comparison</span></a>.</p>
+</section>
+<section id="is-fapilog-right-for-your-project">
+<h2>Is Fapilog Right for Your Project?<a class="headerlink" href="#is-fapilog-right-for-your-project" title="Link to this heading"></a></h2>
+<p>Use fapilog if you’re building:</p>
+<ul class="simple">
+<li><p><strong>Microservices and distributed systems</strong> - Request ID tracking, async-first, multiple cloud sinks</p></li>
+<li><p><strong>FastAPI/async applications</strong> - Built-in middleware, non-blocking logging</p></li>
+<li><p><strong>High-throughput services</strong> - Backpressure handling, won’t impact request latency</p></li>
+<li><p><strong>Production services at scale</strong> - Reliability features (circuit breaker, sink routing, batching)</p></li>
+<li><p><strong>Applications with compliance needs</strong> - Built-in PII redaction (field/regex/URL)</p></li>
+<li><p><strong>Cloud-native applications</strong> - Native CloudWatch, Loki, PostgreSQL sinks</p></li>
+<li><p><strong>Services with variable load patterns</strong> - Backpressure policies handle bursts gracefully</p></li>
+</ul>
+</section>
+<section id="what-makes-fapilog-different">
+<h2>What Makes Fapilog Different<a class="headerlink" href="#what-makes-fapilog-different" title="Link to this heading"></a></h2>
+<section id="true-async-first-architecture">
+<h3>1. True Async-First Architecture<a class="headerlink" href="#true-async-first-architecture" title="Link to this heading"></a></h3>
+<p>Most Python logging libraries are synchronous—they block your application while writing to disk or network. Fapilog uses a background worker with an async queue, so your API latency doesn’t suffer when sinks are slow.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_async_logger</span>
 
-  
-  <div id="search-results">
-  
-  </div>
+<span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">()</span>
+<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Request processed&quot;</span><span class="p">)</span>  <span class="c1"># Returns immediately</span>
+</pre></div>
+</div>
+</section>
+<section id="backpressure-policies">
+<h3>2. Backpressure Policies<a class="headerlink" href="#backpressure-policies" title="Link to this heading"></a></h3>
+<p>What happens when logs arrive faster than they can be written? Most libraries either block (hurting latency) or silently drop logs (hurting reliability). Fapilog lets you choose:</p>
+<ul class="simple">
+<li><p><strong>drop</strong> - Discard new logs when queue is full (protect latency)</p></li>
+<li><p><strong>wait</strong> - Block until queue has space (protect durability)</p></li>
+<li><p><strong>discard_oldest</strong> - Drop oldest logs to make room (balance both)</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_backpressure</span><span class="p">(</span><span class="n">policy</span><span class="o">=</span><span class="s2">&quot;wait&quot;</span><span class="p">)</span>  <span class="c1"># Never lose logs</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="built-in-redaction">
+<h3>3. Built-in Redaction<a class="headerlink" href="#built-in-redaction" title="Link to this heading"></a></h3>
+<p>PII and secrets are masked by default with the production preset. No compliance surprises.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User login&quot;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">&quot;secret123&quot;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="s2">&quot;user@example.com&quot;</span><span class="p">)</span>
+<span class="c1"># Output: password=**REDACTED**, email=**REDACTED**</span>
+</pre></div>
+</div>
+</section>
+<section id="fastapi-integration">
+<h3>4. FastAPI Integration<a class="headerlink" href="#fastapi-integration" title="Link to this heading"></a></h3>
+<p>One line gets you request logging, correlation IDs, and context propagation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="level-based-sink-routing">
+<h3>5. Level-Based Sink Routing<a class="headerlink" href="#level-based-sink-routing" title="Link to this heading"></a></h3>
+<p>Send errors to a database for alerting while info logs go to stdout:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_routing</span><span class="p">(</span>
+        <span class="n">rules</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">],</span> <span class="s2">&quot;sinks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;postgres&quot;</span><span class="p">]},</span>
+            <span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span> <span class="s2">&quot;INFO&quot;</span><span class="p">,</span> <span class="s2">&quot;WARNING&quot;</span><span class="p">],</span> <span class="s2">&quot;sinks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;stdout&quot;</span><span class="p">]},</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="honest-trade-offs">
+<h2>Honest Trade-offs<a class="headerlink" href="#honest-trade-offs" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Consideration</p></th>
+<th class="head"><p>Reality</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Maturity</strong></p></td>
+<td><p>New (2024) vs structlog (2013), loguru (2018)</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Community</strong></p></td>
+<td><p>Growing vs established ecosystems with more tutorials and Stack Overflow answers</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Sync use cases</strong></p></td>
+<td><p>If you don’t need async, loguru is simpler</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Processor ecosystem</strong></p></td>
+<td><p>structlog has more built-in processors and community extensions</p></td>
+</tr>
+</tbody>
+</table>
+<section id="when-fapilog-might-not-be-the-best-fit">
+<h3>When fapilog might not be the best fit<a class="headerlink" href="#when-fapilog-might-not-be-the-best-fit" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Simple scripts or CLIs</strong>: If you’re writing to fast local stdout with minimal structure, stdlib or loguru is simpler.</p></li>
+<li><p><strong>Existing structlog codebases</strong>: Migration effort may not be worth it unless you’re hitting blocking I/O issues.</p></li>
+<li><p><strong>Need full observability</strong>: If you want unified logs + traces + metrics, OpenTelemetry is the industry standard.</p></li>
+</ul>
+</section>
+</section>
+<section id="learn-more">
+<h2>Learn More<a class="headerlink" href="#learn-more" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong><a class="reference internal" href="comparisons.html"><span class="std std-doc">Full Feature Comparison</span></a></strong> - Detailed comparison with structlog, loguru, stdlib, and OpenTelemetry</p></li>
+<li><p><strong><a class="reference internal" href="getting-started/index.html"><span class="std std-doc">Getting Started</span></a></strong> - Install and start logging in 2 minutes</p></li>
+<li><p><strong><a class="reference internal" href="core-concepts/pipeline-architecture.html"><span class="std std-doc">Architecture</span></a></strong> - How the async pipeline works</p></li>
+<li><p><strong><a class="reference internal" href="cookbook/index.html"><span class="std std-doc">Cookbook</span></a></strong> - Copy-paste solutions for common problems</p></li>
+</ul>
+</section>
+</section>
+
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="getting-started/hello-world.html" class="btn btn-neutral float-left" title="Hello World Walkthrough" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="comparisons.html" class="btn btn-neutral float-right" title="Python Logging Library Comparison" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 
@@ -242,14 +391,7 @@
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-  <script>
-    jQuery(function() { Search.loadIndex("searchindex.js"); });
-  </script>
-  
-  <script id="searchindexloader"></script>
-   
-
+  </script> 
 
 </body>
 </html>

@@ -1,0 +1,735 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Python Logging Library Comparison &mdash; fapilog latest documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=c6e86fd7"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=30646c52"></script>
+      <script src="_static/custom.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Core Concepts" href="core-concepts/index.html" />
+    <link rel="prev" title="Why Fapilog?" href="why-fapilog.html" />
+ 
+
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/comparisons.html" />
+<meta name="robots" content="noindex, follow" />
+
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            fapilog
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started/index.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/quickstart.html">Quickstart Tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/hello-world.html">Hello World Walkthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="why-fapilog.html">Why Fapilog?</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Python Logging Library Comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core-concepts/index.html">Core Concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/pipeline-architecture.html">Pipeline Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/envelope.html">Envelope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/batching-backpressure.html">Batching &amp; Backpressure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/redaction.html">Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/metrics.html">Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/diagnostics-resilience.html">Diagnostics Resilience</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core-concepts/diagnostics-resilience.html#id1">Diagnostics &amp; Resilience</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user-guide/index.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/builder-configuration.html">Configuring Fapilog with the Builder API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/settings-to-builder-migration.html">Migrating from Settings to Builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/environment-variables.html">Environment Variable Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/using-logger.html">Using the Logger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/context-enrichment.html">Context Enrichment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/sink-routing.html">Sink routing by level</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/redaction-guarantee.html">Redaction Guarantee</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/performance-tuning.html">Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/benchmarks.html">Performance Benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/integration-guide.html">Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/fastapi.html">FastAPI / ASGI Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/testing-plugins.html">Testing Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/webhook-security.html">Webhook Security</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cookbook/index.html">Cookbook</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cookbook/fastapi-json-logging.html">FastAPI JSON logging to stdout (Uvicorn access logs included)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cookbook/fastapi-request-id-logging.html">FastAPI request_id logging (correlation ID middleware, concurrency-safe)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cookbook/django-structured-logging.html">Django Structured JSON Logging with Correlation IDs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cookbook/non-blocking-async-logging.html">Non-blocking logging in FastAPI (protect latency under slow sinks)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cookbook/dev-prod-logging-config.html">One FastAPI logging config for dev + prod (Uvicorn/Gunicorn)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cookbook/redacting-secrets-pii.html">Redacting secrets and PII in FastAPI logs (Authorization, tokens, fields)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cookbook/safe-request-response-logging.html">Logging request/response bodies without hanging (safe patterns)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cookbook/skip-noisy-endpoints.html">Skipping health/metrics endpoints (noise reduction)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cookbook/log-sampling-rate-limiting.html">Log sampling and rate limiting for FastAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cookbook/graceful-shutdown-flush.html">Graceful shutdown &amp; flushing logs (don’t lose logs on deploy)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cookbook/exception-logging-request-context.html">Exception logging in FastAPI with request_id + structured context</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="enterprise.html">Enterprise Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api-reference/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/top-level-functions.html">Top-Level Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/builder.html">Builder API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/logger-methods.html">Logger Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/audit-trail.html">Audit Trail</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/types.html">Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/plugins/index.html">Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/modules.html">API Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples &amp; Recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/builder-configurations.html">Builder Configuration Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/fastapi-logging.html">FastAPI Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/cli-tools.html">Logging in Scripts/CLIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/redacting-secrets.html">Redacting Secrets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/structured-error-logging.html">Structured Error Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/kubernetes-file-sink.html">Kubernetes File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/prometheus-metrics.html">Prometheus Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/cloudwatch_logging/index.html">CloudWatch Logging (LocalStack)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/cloud-sinks/index.html">Cloud Sink Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="plugins/index.html">Plugin Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="plugins/authoring.html">Authoring Fapilog Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins/contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins/enrichers.html">Enrichers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins/filters.html">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins/processors.html">Processors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins/testing.html">Plugin Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins/configuration.html">Plugin Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins/health-checks.html">Plugin Health Checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins/error-handling.html">Plugin Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="patterns.html">Integration Patterns</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting/index.html">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/logs-dropped-under-load.html">Logs Dropped Under Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/destination-size-limits.html">Logs Rejected by Destination Size Limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/context-values-missing.html">Context Values Missing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/file-sink-not-rotating.html">File Sink Not Rotating</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/serialization-errors.html">Serialization Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/cloudwatch-sink.html">CloudWatch Sink Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting/loki-sink.html">Loki Sink Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendices.html">Appendices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="env-vars.html">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="settings-guide.html">Settings Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="schema-guide.html">Schema Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="schema-migration-v1.0-to-v1.1.html">Schema Migration Guide: v1.0 to v1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugin-guide.html">Plugin Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="redaction-guarantees.html">Redaction Guarantees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quality-signals.html">Quality Signals</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">fapilog</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Python Logging Library Comparison</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/comparisons.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="python-logging-library-comparison">
+<h1>Python Logging Library Comparison<a class="headerlink" href="#python-logging-library-comparison" title="Link to this heading"></a></h1>
+<p>This page compares five Python logging libraries that developers most commonly evaluate:</p>
+<ul class="simple">
+<li><p><strong>fapilog</strong> - Async-first logging with backpressure and built-in redaction</p></li>
+<li><p><strong>structlog</strong> - Structured logging with processor pipelines (since 2013)</p></li>
+<li><p><strong>loguru</strong> - Developer-friendly logging with beautiful defaults (21k GitHub stars)</p></li>
+<li><p><strong>stdlib logging</strong> - Python’s built-in logging module</p></li>
+<li><p><strong>OpenTelemetry</strong> - Unified observability for logs, traces, and metrics</p></li>
+</ul>
+<p><em>Last updated: January 2026</em></p>
+<section id="when-to-use-each">
+<h2>When to Use Each<a class="headerlink" href="#when-to-use-each" title="Link to this heading"></a></h2>
+<section id="fapilog">
+<h3>fapilog<a class="headerlink" href="#fapilog" title="Link to this heading"></a></h3>
+<p><strong>Best for:</strong></p>
+<ul class="simple">
+<li><p><strong>Microservices and distributed systems</strong> - Request ID tracking, async-first, multiple cloud sinks</p></li>
+<li><p><strong>FastAPI/async applications</strong> - Built-in middleware, non-blocking logging</p></li>
+<li><p><strong>High-throughput services</strong> - Backpressure handling, won’t impact request latency</p></li>
+<li><p><strong>Production services at scale</strong> - Reliability features (circuit breaker, sink routing, batching)</p></li>
+<li><p><strong>Applications with compliance needs</strong> - Built-in PII redaction (field/regex/URL)</p></li>
+<li><p><strong>Cloud-native applications</strong> - Native CloudWatch, Loki, PostgreSQL sinks</p></li>
+<li><p><strong>Services with variable load patterns</strong> - Backpressure policies handle bursts gracefully</p></li>
+</ul>
+<p><strong>Example use case:</strong> An API service handling 10k+ requests/second where a slow logging backend shouldn’t cause request timeouts.</p>
+</section>
+<section id="structlog">
+<h3>structlog<a class="headerlink" href="#structlog" title="Link to this heading"></a></h3>
+<p><strong>Best for:</strong></p>
+<ul class="simple">
+<li><p>Projects already using stdlib logging that want structured output without changing handlers</p></li>
+<li><p>Teams wanting the largest processor ecosystem and community extensions</p></li>
+<li><p>Multi-framework consistency (same patterns across Django, Flask, CLI)</p></li>
+<li><p>Libraries that need to work with whatever logger the consumer provides</p></li>
+</ul>
+<p><strong>Example use case:</strong> A Django monolith with existing stdlib logging infrastructure that needs structured JSON output without replacing handlers or changing deployment.</p>
+</section>
+<section id="loguru">
+<h3>loguru<a class="headerlink" href="#loguru" title="Link to this heading"></a></h3>
+<p><strong>Best for:</strong></p>
+<ul class="simple">
+<li><p>Rapid prototyping and development</p></li>
+<li><p>Small to medium applications</p></li>
+<li><p>Projects prioritizing developer experience</p></li>
+<li><p>Scripts and CLI tools</p></li>
+<li><p>Teams wanting beautiful console output with zero setup</p></li>
+</ul>
+<p><strong>Example use case:</strong> A CLI tool or internal service where simplicity matters more than async performance.</p>
+</section>
+<section id="stdlib-logging">
+<h3>stdlib logging<a class="headerlink" href="#stdlib-logging" title="Link to this heading"></a></h3>
+<p><strong>Best for:</strong></p>
+<ul class="simple">
+<li><p>Projects that cannot add dependencies</p></li>
+<li><p>Maximum compatibility requirements</p></li>
+<li><p>Educational purposes</p></li>
+<li><p>Simple applications with fast local sinks</p></li>
+</ul>
+<p><strong>Example use case:</strong> A library that must work everywhere without pulling in dependencies.</p>
+</section>
+<section id="opentelemetry">
+<h3>OpenTelemetry<a class="headerlink" href="#opentelemetry" title="Link to this heading"></a></h3>
+<p><strong>Best for:</strong></p>
+<ul class="simple">
+<li><p>Comprehensive observability strategy (logs + traces + metrics unified)</p></li>
+<li><p>Microservices needing trace correlation across services</p></li>
+<li><p>Enterprise environments with existing OTel infrastructure</p></li>
+<li><p>Vendor-neutral telemetry requirements</p></li>
+</ul>
+<p><strong>Example use case:</strong> A distributed system where correlating logs with traces across 50+ services is essential for debugging.</p>
+</section>
+</section>
+<section id="feature-comparison">
+<h2>Feature Comparison<a class="headerlink" href="#feature-comparison" title="Link to this heading"></a></h2>
+<section id="core-architecture">
+<h3>Core Architecture<a class="headerlink" href="#core-architecture" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>fapilog</p></th>
+<th class="head"><p>structlog</p></th>
+<th class="head"><p>loguru</p></th>
+<th class="head"><p>stdlib</p></th>
+<th class="head"><p>OpenTelemetry</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Architecture</strong></p></td>
+<td><p>Async pipeline</p></td>
+<td><p>Processor chain</p></td>
+<td><p>Single logger</p></td>
+<td><p>Handler chain</p></td>
+<td><p>Exporter bridge</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Concurrency model</strong></p></td>
+<td><p>Background worker</p></td>
+<td><p>Synchronous</p></td>
+<td><p>Synchronous</p></td>
+<td><p>Synchronous</p></td>
+<td><p>Varies by exporter</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Queue type</strong></p></td>
+<td><p>Bounded async</p></td>
+<td><p>None</p></td>
+<td><p>None</p></td>
+<td><p>Optional QueueHandler</p></td>
+<td><p>Batch exporter</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>I/O model</strong></p></td>
+<td><p>Non-blocking</p></td>
+<td><p>Blocking</p></td>
+<td><p>Blocking</p></td>
+<td><p>Blocking</p></td>
+<td><p>Depends on backend</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Backpressure policies</strong></p></td>
+<td><p>✅ drop/wait/discard</p></td>
+<td><p>❌</p></td>
+<td><p>❌</p></td>
+<td><p>❌</p></td>
+<td><p>❌</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="async-support">
+<h3>Async Support<a class="headerlink" href="#async-support" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>fapilog</p></th>
+<th class="head"><p>structlog</p></th>
+<th class="head"><p>loguru</p></th>
+<th class="head"><p>stdlib</p></th>
+<th class="head"><p>OpenTelemetry</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Async-first design</strong></p></td>
+<td><p>✅ Yes</p></td>
+<td><p>❌ No</p></td>
+<td><p>❌ No</p></td>
+<td><p>❌ No</p></td>
+<td><p>❌ No</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Non-blocking I/O</strong></p></td>
+<td><p>✅ Always</p></td>
+<td><p>❌ Manual</p></td>
+<td><p>❌ No</p></td>
+<td><p>⚠️ QueueHandler</p></td>
+<td><p>⚠️ Batch only</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Background worker</strong></p></td>
+<td><p>✅ Built-in</p></td>
+<td><p>❌ Manual</p></td>
+<td><p>❌ No</p></td>
+<td><p>⚠️ QueueListener</p></td>
+<td><p>⚠️ Collector</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Async API</strong></p></td>
+<td><p>✅ Native</p></td>
+<td><p>⚠️ Wrapper</p></td>
+<td><p>⚠️ Async sinks</p></td>
+<td><p>❌ No</p></td>
+<td><p>❌ No</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Legend:</strong> ✅ Full support | ⚠️ Partial/manual | ❌ Not available</p>
+</section>
+<section id="structured-logging-context">
+<h3>Structured Logging &amp; Context<a class="headerlink" href="#structured-logging-context" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>fapilog</p></th>
+<th class="head"><p>structlog</p></th>
+<th class="head"><p>loguru</p></th>
+<th class="head"><p>stdlib</p></th>
+<th class="head"><p>OpenTelemetry</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>JSON output</strong></p></td>
+<td><p>✅ Built-in</p></td>
+<td><p>✅ Built-in</p></td>
+<td><p>⚠️ Serializer</p></td>
+<td><p>⚠️ Formatter</p></td>
+<td><p>✅ OTLP</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Context binding</strong></p></td>
+<td><p>✅ <code class="docutils literal notranslate"><span class="pre">bind()</span></code></p></td>
+<td><p>✅ <code class="docutils literal notranslate"><span class="pre">bind()</span></code></p></td>
+<td><p>✅ <code class="docutils literal notranslate"><span class="pre">contextualize</span></code></p></td>
+<td><p>⚠️ Filters</p></td>
+<td><p>✅ Resource attrs</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Request correlation</strong></p></td>
+<td><p>✅ Built-in</p></td>
+<td><p>⚠️ Manual</p></td>
+<td><p>⚠️ Manual</p></td>
+<td><p>⚠️ Manual</p></td>
+<td><p>✅ Trace context</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Exception serialization</strong></p></td>
+<td><p>✅ Structured</p></td>
+<td><p>⚠️ Processor</p></td>
+<td><p>⚠️ Text</p></td>
+<td><p>⚠️ Text</p></td>
+<td><p>✅ Structured</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="security-redaction">
+<h3>Security &amp; Redaction<a class="headerlink" href="#security-redaction" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>fapilog</p></th>
+<th class="head"><p>structlog</p></th>
+<th class="head"><p>loguru</p></th>
+<th class="head"><p>stdlib</p></th>
+<th class="head"><p>OpenTelemetry</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Built-in redaction</strong></p></td>
+<td><p>✅ Field/regex/URL</p></td>
+<td><p>❌ Custom processor</p></td>
+<td><p>❌ No</p></td>
+<td><p>❌ No</p></td>
+<td><p>❌ No</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>PII masking</strong></p></td>
+<td><p>✅ Default patterns</p></td>
+<td><p>⚠️ Manual</p></td>
+<td><p>❌ Manual</p></td>
+<td><p>❌ Manual</p></td>
+<td><p>❌ Manual</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Credential stripping</strong></p></td>
+<td><p>✅ URL passwords</p></td>
+<td><p>❌ Manual</p></td>
+<td><p>❌ No</p></td>
+<td><p>❌ No</p></td>
+<td><p>❌ No</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="framework-integration">
+<h3>Framework Integration<a class="headerlink" href="#framework-integration" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>fapilog</p></th>
+<th class="head"><p>structlog</p></th>
+<th class="head"><p>loguru</p></th>
+<th class="head"><p>stdlib</p></th>
+<th class="head"><p>OpenTelemetry</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>FastAPI</strong></p></td>
+<td><p>✅ Middleware</p></td>
+<td><p>⚠️ Manual</p></td>
+<td><p>⚠️ Manual</p></td>
+<td><p>⚠️ Manual</p></td>
+<td><p>✅ Auto-instrument</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Django</strong></p></td>
+<td><p>⚠️ SyncFacade</p></td>
+<td><p>⚠️ Manual</p></td>
+<td><p>⚠️ Manual</p></td>
+<td><p>✅ Native</p></td>
+<td><p>✅ Auto-instrument</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Flask</strong></p></td>
+<td><p>⚠️ Manual</p></td>
+<td><p>⚠️ Manual</p></td>
+<td><p>⚠️ Manual</p></td>
+<td><p>✅ Native</p></td>
+<td><p>✅ Auto-instrument</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="performance-characteristics">
+<h3>Performance Characteristics<a class="headerlink" href="#performance-characteristics" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Aspect</p></th>
+<th class="head"><p>fapilog</p></th>
+<th class="head"><p>structlog</p></th>
+<th class="head"><p>loguru</p></th>
+<th class="head"><p>stdlib</p></th>
+<th class="head"><p>OpenTelemetry</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Throughput</strong></p></td>
+<td><p>High (batching)</p></td>
+<td><p>Medium</p></td>
+<td><p>Medium</p></td>
+<td><p>High</p></td>
+<td><p>Medium</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Latency per call</strong></p></td>
+<td><p>Very low (async)</p></td>
+<td><p>Low</p></td>
+<td><p>Low</p></td>
+<td><p>Very low</p></td>
+<td><p>Medium</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Memory</strong></p></td>
+<td><p>Bounded queue</p></td>
+<td><p>Low</p></td>
+<td><p>Low</p></td>
+<td><p>Low/unbounded</p></td>
+<td><p>Medium</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Under slow sinks</strong></p></td>
+<td><p>✅ Non-blocking</p></td>
+<td><p>❌ Blocks</p></td>
+<td><p>❌ Blocks</p></td>
+<td><p>⚠️ QueueHandler</p></td>
+<td><p>⚠️ Collector</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="architecture-comparison">
+<h2>Architecture Comparison<a class="headerlink" href="#architecture-comparison" title="Link to this heading"></a></h2>
+<section id="id1">
+<h3>fapilog<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Log Event → Enrichment → Redaction → Processing → Queue → Background Worker → Sinks
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Background worker runs in separate thread with asyncio loop</p></li>
+<li><p>Bounded queue with configurable overflow policies</p></li>
+<li><p>Batching reduces I/O operations</p></li>
+</ul>
+</section>
+<section id="id2">
+<h3>structlog<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Log Event → Processor Chain → Renderer → Wrapped Logger (stdlib/other)
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Synchronous processor pipeline</p></li>
+<li><p>Wraps existing loggers for output</p></li>
+<li><p>Async requires manual QueueHandler setup</p></li>
+</ul>
+</section>
+<section id="id3">
+<h3>loguru<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Log Event → Format → Sinks (handlers)
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Single global logger instance</p></li>
+<li><p>Sinks can be async functions but emit is synchronous</p></li>
+<li><p>Thread-safe with locks</p></li>
+</ul>
+</section>
+<section id="stdlib-queuehandler">
+<h3>stdlib + QueueHandler<a class="headerlink" href="#stdlib-queuehandler" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Log Event → QueueHandler → Queue → QueueListener (thread) → Handlers
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Thread-based async pattern</p></li>
+<li><p>Requires manual setup and lifecycle management</p></li>
+<li><p>No backpressure (queue grows unbounded)</p></li>
+</ul>
+</section>
+<section id="id4">
+<h3>OpenTelemetry<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Log Event → stdlib bridge → OTLP Exporter → OTel Collector → Backend
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Bridges existing logging to OTLP format</p></li>
+<li><p>Requires external collector infrastructure</p></li>
+<li><p>Focused on observability correlation, not logging features</p></li>
+</ul>
+</section>
+</section>
+<section id="migration-considerations">
+<h2>Migration Considerations<a class="headerlink" href="#migration-considerations" title="Link to this heading"></a></h2>
+<section id="from-stdlib-to-fapilog">
+<h3>From stdlib to fapilog<a class="headerlink" href="#from-stdlib-to-fapilog" title="Link to this heading"></a></h3>
+<p><strong>Effort:</strong> Low-Medium</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Before (stdlib)</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User logged in&quot;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="s2">&quot;123&quot;</span><span class="p">})</span>
+
+<span class="c1"># After (fapilog)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User logged in&quot;</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;123&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="from-loguru-to-fapilog">
+<h3>From loguru to fapilog<a class="headerlink" href="#from-loguru-to-fapilog" title="Link to this heading"></a></h3>
+<p><strong>Effort:</strong> Medium</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Before (loguru)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">loguru</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User logged in&quot;</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;123&quot;</span><span class="p">)</span>
+
+<span class="c1"># After (fapilog)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User logged in&quot;</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;123&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Key differences:</p>
+<ul class="simple">
+<li><p>fapilog uses factory pattern vs loguru’s single global logger</p></li>
+<li><p>Context binding syntax is similar (<code class="docutils literal notranslate"><span class="pre">bind()</span></code>)</p></li>
+<li><p>Async API requires <code class="docutils literal notranslate"><span class="pre">await</span></code> with fapilog</p></li>
+</ul>
+</section>
+<section id="from-structlog-to-fapilog">
+<h3>From structlog to fapilog<a class="headerlink" href="#from-structlog-to-fapilog" title="Link to this heading"></a></h3>
+<p><strong>Effort:</strong> Medium-High</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Before (structlog)</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">structlog</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">structlog</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;user_logged_in&quot;</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;123&quot;</span><span class="p">)</span>
+
+<span class="c1"># After (fapilog)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User logged in&quot;</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;123&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Key differences:</p>
+<ul class="simple">
+<li><p>Different processor model (fapilog has separate enrichers, redactors, processors)</p></li>
+<li><p>Built-in async support vs manual setup</p></li>
+<li><p>Backpressure handling included</p></li>
+</ul>
+</section>
+</section>
+<section id="trade-offs-summary">
+<h2>Trade-offs Summary<a class="headerlink" href="#trade-offs-summary" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Library</p></th>
+<th class="head"><p>Strengths</p></th>
+<th class="head"><p>Limitations</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>fapilog</strong></p></td>
+<td><p>Async-first, backpressure, redaction, FastAPI</p></td>
+<td><p>Newer (2024), smaller community</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>structlog</strong></p></td>
+<td><p>Mature (2013), processor ecosystem, stdlib compat</p></td>
+<td><p>No async pipeline, no backpressure</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>loguru</strong></p></td>
+<td><p>Best DX, beautiful defaults, zero config</p></td>
+<td><p>Sync only, no redaction, performance at scale</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>stdlib</strong></p></td>
+<td><p>Zero deps, universal, battle-tested</p></td>
+<td><p>Verbose, no structure, no async</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>OpenTelemetry</strong></p></td>
+<td><p>Industry standard, trace correlation</p></td>
+<td><p>Complex setup, not logging-focused</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="learn-more">
+<h2>Learn More<a class="headerlink" href="#learn-more" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong><a class="reference internal" href="why-fapilog.html"><span class="std std-doc">Why Fapilog?</span></a></strong> - Quick overview of fapilog’s differentiators</p></li>
+<li><p><strong><a class="reference internal" href="getting-started/index.html"><span class="std std-doc">Getting Started</span></a></strong> - Install and start logging</p></li>
+<li><p><strong><a class="reference internal" href="user-guide/benchmarks.html"><span class="std std-doc">Benchmarks</span></a></strong> - Performance methodology and results</p></li>
+<li><p><strong><a class="reference internal" href="core-concepts/pipeline-architecture.html"><span class="std std-doc">Architecture</span></a></strong> - How fapilog’s async pipeline works</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="why-fapilog.html" class="btn btn-neutral float-left" title="Why Fapilog?" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="core-concepts/index.html" class="btn btn-neutral float-right" title="Core Concepts" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Chris Haste.
+      <span class="lastupdated">Last updated on January 22, 2026.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
