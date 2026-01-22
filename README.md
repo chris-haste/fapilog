@@ -1,6 +1,8 @@
 # Fapilog - Batteries-included, async-first logging for Python services
 
-**fapilog** delivers production-ready logging for the modern Python stack—async-first, structured, and optimized for FastAPI and cloud-native apps. It’s equally suitable for **on-prem**, **desktop**, or **embedded** projects where structured, JSON-ready, and pluggable logging is required.
+**fapilog** delivers production-ready logging for the modern Python stack—async-first, structured, and optimized for FastAPI and cloud-native apps. It's equally suitable for **on-prem**, **desktop**, or **embedded** projects where structured, JSON-ready, and pluggable logging is required.
+
+Fapilog isn't a thin wrapper over existing logging libraries—it's an async-first logging pipeline designed to keep your app responsive under slow or bursty log sinks, with backpressure policies, redaction, and first-class FastAPI integration built in.
 
 ![Async-first](https://img.shields.io/badge/async-first-008080?style=flat-square&logo=python&logoColor=white)
 ![JSON Ready](https://img.shields.io/badge/json-ready-008080?style=flat-square&logo=json&logoColor=white)
