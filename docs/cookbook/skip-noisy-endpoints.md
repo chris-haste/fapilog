@@ -141,19 +141,32 @@ Skipping health endpoints typically reduces log volume by 50-90%, depending on:
 
 The real benefit isn't just cost—it's signal-to-noise ratio. When health checks are 90% of your logs, finding an actual error requires wading through noise.
 
-## Errors Still Get Logged
+## Errors on Skipped Paths
 
-`skip_paths` only suppresses successful request completion logs. If a health endpoint returns an error (5xx status), it's still logged:
+By default, unhandled exceptions on skipped paths are still logged at ERROR level. This ensures visibility into crashes even on health endpoints:
 
 ```python
 @app.get("/health")
 async def health():
-    if not db.is_connected():
-        raise HTTPException(status_code=503, detail="Database unavailable")
-    return {"status": "ok"}
+    raise RuntimeError("Database connection failed")  # Logged as request_failed
 ```
 
-When the database is down, you'll see `request_failed` logs for `/health` even though successful health checks are skipped. This ensures you catch infrastructure issues without drowning in routine checks.
+When the handler crashes, you'll see `request_failed` logs for `/health` even though successful health checks are skipped.
+
+**Note:** HTTPExceptions (like `HTTPException(status_code=503)`) are not logged because they're handled by FastAPI's exception handler and converted to responses—they're expected error responses, not crashes.
+
+### Opting Out
+
+If you need complete silence on skipped paths (no logs at all, even for crashes), set `log_errors_on_skip=False`:
+
+```python
+lifespan = setup_logging(
+    skip_paths=["/health", "/metrics"],
+    log_errors_on_skip=False,  # Complete silence on skipped paths
+)
+```
+
+This is useful when health endpoints are monitored externally and you don't want any fapilog log entries for them.
 
 ## Combining with Sampling
 

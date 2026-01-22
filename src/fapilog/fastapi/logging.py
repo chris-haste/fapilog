@@ -29,6 +29,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         sample_rate: float = 1.0,
         include_headers: bool = False,
         redact_headers: Iterable[str] | None = None,
+        log_errors_on_skip: bool = True,
     ) -> None:
         super().__init__(app)
         self._logger = logger
@@ -37,13 +38,32 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         self._sample_rate = float(sample_rate)
         self._include_headers = bool(include_headers)
         self._redact_headers = {h.lower() for h in (redact_headers or [])}
+        self._log_errors_on_skip = bool(log_errors_on_skip)
 
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
         path = request.url.path
         if path in self._skip_paths:
-            return await call_next(request)
+            if not self._log_errors_on_skip:
+                return await call_next(request)
+            # Wrap in try-except to catch errors on skipped paths
+            start = time.perf_counter()
+            correlation_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+            try:
+                return await call_next(request)
+            except Exception as exc:
+                status_code = 500
+                if isinstance(exc, HTTPException):
+                    status_code = exc.status_code
+                await self._log_error(
+                    request=request,
+                    status_code=status_code,
+                    correlation_id=correlation_id,
+                    latency_ms=(time.perf_counter() - start) * 1000.0,
+                    exc=exc,
+                )
+                raise
 
         start = time.perf_counter()
 

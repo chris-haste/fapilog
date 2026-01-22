@@ -23,7 +23,10 @@ class _StubAsyncLogger:
 
 
 def _make_app(
-    logger: _StubAsyncLogger, *, skip_paths: list[str] | None = None
+    logger: _StubAsyncLogger,
+    *,
+    skip_paths: list[str] | None = None,
+    log_errors_on_skip: bool = True,
 ) -> FastAPI:
     app = FastAPI()
     app.add_middleware(RequestContextMiddleware)
@@ -31,6 +34,7 @@ def _make_app(
         LoggingMiddleware,
         logger=logger,
         skip_paths=skip_paths or [],
+        log_errors_on_skip=log_errors_on_skip,
     )
 
     @app.get("/ok")
@@ -233,3 +237,78 @@ def test_logging_middleware_default_logger_error(monkeypatch):
     resp = client.get("/boom")
     assert resp.status_code == 500
     assert any(e["message"] == "request_failed" for e in events)
+
+
+class TestLogErrorsOnSkip:
+    """Integration tests for log_errors_on_skip feature (Story 1.32)."""
+
+    def test_health_endpoint_error_logged(self):
+        """Test that errors on skipped health endpoints are logged by default."""
+        logger = _StubAsyncLogger()
+        app = _make_app(logger, skip_paths=["/health"])
+
+        @app.get("/health")
+        async def health() -> dict[str, str]:
+            raise RuntimeError("Database connection failed")
+
+        client = TestClient(app, raise_server_exceptions=False)
+        resp = client.get("/health")
+
+        assert resp.status_code == 500
+        # Error should be logged despite path being skipped
+        error_events = [e for e in logger.events if e["message"] == "request_failed"]
+        assert len(error_events) == 1
+        assert error_events[0]["metadata"]["path"] == "/health"
+        assert error_events[0]["metadata"]["error_type"] == "RuntimeError"
+
+    def test_health_endpoint_success_silent(self):
+        """Test that successful requests on skipped health endpoints are not logged."""
+        logger = _StubAsyncLogger()
+        app = _make_app(logger, skip_paths=["/health"])
+
+        @app.get("/health")
+        async def health() -> dict[str, str]:
+            return {"status": "ok"}
+
+        client = TestClient(app)
+        resp = client.get("/health")
+
+        assert resp.status_code == 200
+        # No log entries for successful health check
+        assert all(e["metadata"].get("path") != "/health" for e in logger.events)
+
+    def test_log_errors_on_skip_false_silences_errors(self):
+        """Test that log_errors_on_skip=False completely silences skipped paths."""
+        logger = _StubAsyncLogger()
+        app = _make_app(logger, skip_paths=["/health"], log_errors_on_skip=False)
+
+        @app.get("/health")
+        async def health() -> dict[str, str]:
+            raise RuntimeError("Database connection failed")
+
+        client = TestClient(app, raise_server_exceptions=False)
+        resp = client.get("/health")
+
+        assert resp.status_code == 500
+        # No log entries at all for /health
+        assert all(e["metadata"].get("path") != "/health" for e in logger.events)
+
+    def test_http_exception_on_skipped_path_not_logged(self):
+        """HTTPExceptions on skipped paths are not logged (handled by FastAPI exception handler)."""
+        # Note: HTTPExceptions are caught by FastAPI's exception handler and converted
+        # to responses before reaching the middleware's exception handler. This is
+        # expected behavior since HTTPExceptions are controlled error responses,
+        # not unexpected failures.
+        logger = _StubAsyncLogger()
+        app = _make_app(logger, skip_paths=["/health"])
+
+        @app.get("/health")
+        async def health() -> dict[str, str]:
+            raise HTTPException(status_code=503, detail="Service unavailable")
+
+        client = TestClient(app, raise_server_exceptions=False)
+        resp = client.get("/health")
+
+        assert resp.status_code == 503
+        # HTTPExceptions are handled by FastAPI, not logged as errors on skipped paths
+        assert all(e["metadata"].get("path") != "/health" for e in logger.events)
