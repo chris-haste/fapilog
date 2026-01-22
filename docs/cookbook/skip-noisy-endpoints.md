@@ -187,4 +187,4 @@ This setup:
 ## Going Deeper
 
 - [FastAPI Integration Guide](../user-guide/fastapi.md) - Complete middleware options
-- [Log Sampling](../cookbook/non-blocking-async-logging.md) - Rate limiting and backpressure
+- [Log Sampling and Rate Limiting](log-sampling-rate-limiting.md) - Sampling and rate limiting for traffic spikes

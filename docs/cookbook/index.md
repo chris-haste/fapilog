@@ -14,6 +14,7 @@ dev-prod-logging-config
 redacting-secrets-pii
 safe-request-response-logging
 skip-noisy-endpoints
+log-sampling-rate-limiting
 ```
 
 ## Quick Links
@@ -25,3 +26,4 @@ skip-noisy-endpoints
 - [Redacting Secrets and PII](redacting-secrets-pii.md) - Secure defaults and custom redaction patterns
 - [Safe Request/Response Logging](safe-request-response-logging.md) - Body logging without hanging or breaking streaming
 - [Skipping Health/Metrics Endpoints](skip-noisy-endpoints.md) - Reduce log noise from health checks
+- [Log Sampling and Rate Limiting](log-sampling-rate-limiting.md) - Control log volume during traffic spikes
