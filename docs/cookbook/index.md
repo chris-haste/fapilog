@@ -16,6 +16,7 @@ safe-request-response-logging
 skip-noisy-endpoints
 log-sampling-rate-limiting
 graceful-shutdown-flush
+exception-logging-request-context
 ```
 
 ## Quick Links
@@ -29,3 +30,4 @@ graceful-shutdown-flush
 - [Skipping Health/Metrics Endpoints](skip-noisy-endpoints.md) - Reduce log noise from health checks
 - [Log Sampling and Rate Limiting](log-sampling-rate-limiting.md) - Control log volume during traffic spikes
 - [Graceful Shutdown & Flushing Logs](graceful-shutdown-flush.md) - Don't lose logs on deploy
+- [Exception Logging with Request Context](exception-logging-request-context.md) - Correlate errors with requests
