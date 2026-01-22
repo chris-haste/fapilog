@@ -12,6 +12,7 @@ fastapi-request-id-logging
 non-blocking-async-logging
 dev-prod-logging-config
 redacting-secrets-pii
+safe-request-response-logging
 ```
 
 ## Quick Links
@@ -21,3 +22,4 @@ redacting-secrets-pii
 - [Non-blocking Async Logging](non-blocking-async-logging.md) - Protect latency with backpressure modes
 - [Dev + Prod Logging Config](dev-prod-logging-config.md) - Single config that adapts to environment
 - [Redacting Secrets and PII](redacting-secrets-pii.md) - Secure defaults and custom redaction patterns
+- [Safe Request/Response Logging](safe-request-response-logging.md) - Body logging without hanging or breaking streaming
