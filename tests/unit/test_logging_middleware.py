@@ -246,3 +246,133 @@ class TestLoggingMiddleware:
         )
 
         logger.error.assert_called_once()
+
+
+class TestLogErrorsOnSkip:
+    """Tests for log_errors_on_skip feature (Story 1.32)."""
+
+    def test_init_log_errors_on_skip_defaults_true(self) -> None:
+        """Test log_errors_on_skip defaults to True."""
+        app = MagicMock()
+        middleware = LoggingMiddleware(app)
+        assert middleware._log_errors_on_skip is True
+
+    def test_init_log_errors_on_skip_explicit_false(self) -> None:
+        """Test log_errors_on_skip can be set to False."""
+        app = MagicMock()
+        middleware = LoggingMiddleware(app, log_errors_on_skip=False)
+        assert middleware._log_errors_on_skip is False
+
+    @pytest.mark.asyncio
+    async def test_skipped_path_error_logged_by_default(self) -> None:
+        """Test that errors on skipped paths are logged when log_errors_on_skip=True (default)."""
+        app = MagicMock()
+        logger = AsyncMock()
+        logger.error = AsyncMock()
+        middleware = LoggingMiddleware(app, logger=logger, skip_paths=["/health"])
+
+        request = MagicMock()
+        request.url.path = "/health"
+        request.method = "GET"
+        request.headers = {}
+        request.client = MagicMock(host="127.0.0.1")
+
+        error = RuntimeError("Database connection failed")
+        call_next = AsyncMock(side_effect=error)
+
+        with pytest.raises(RuntimeError, match="Database connection failed"):
+            await middleware.dispatch(request, call_next)
+
+        logger.error.assert_called_once()
+        call_kwargs = logger.error.call_args.kwargs
+        assert call_kwargs["path"] == "/health"
+        assert call_kwargs["error_type"] == "RuntimeError"
+
+    @pytest.mark.asyncio
+    async def test_skipped_path_success_not_logged(self) -> None:
+        """Test that successful requests on skipped paths are not logged."""
+        app = MagicMock()
+        logger = AsyncMock()
+        logger.info = AsyncMock()
+        logger.error = AsyncMock()
+        middleware = LoggingMiddleware(app, logger=logger, skip_paths=["/health"])
+
+        request = MagicMock()
+        request.url.path = "/health"
+        response = MagicMock()
+
+        call_next = AsyncMock(return_value=response)
+
+        result = await middleware.dispatch(request, call_next)
+
+        assert result is response
+        logger.info.assert_not_called()
+        logger.error.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_log_errors_on_skip_false_silences_errors(self) -> None:
+        """Test that log_errors_on_skip=False silences errors on skipped paths."""
+        app = MagicMock()
+        logger = AsyncMock()
+        logger.error = AsyncMock()
+        middleware = LoggingMiddleware(
+            app, logger=logger, skip_paths=["/health"], log_errors_on_skip=False
+        )
+
+        request = MagicMock()
+        request.url.path = "/health"
+
+        error = RuntimeError("Database connection failed")
+        call_next = AsyncMock(side_effect=error)
+
+        with pytest.raises(RuntimeError, match="Database connection failed"):
+            await middleware.dispatch(request, call_next)
+
+        logger.error.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_error_format_matches_normal_path(self) -> None:
+        """Contract test: errors on skipped paths use the same format as non-skipped paths."""
+        app = MagicMock()
+        logger = AsyncMock()
+        logger.error = AsyncMock()
+        middleware = LoggingMiddleware(app, logger=logger, skip_paths=["/health"])
+
+        # Error on skipped path
+        request_skipped = MagicMock()
+        request_skipped.url.path = "/health"
+        request_skipped.method = "GET"
+        request_skipped.headers = {}
+        request_skipped.client = MagicMock(host="127.0.0.1")
+
+        error = RuntimeError("test error")
+        call_next = AsyncMock(side_effect=error)
+
+        with pytest.raises(RuntimeError):
+            await middleware.dispatch(request_skipped, call_next)
+
+        skipped_call = logger.error.call_args
+
+        # Error on non-skipped path
+        logger.error.reset_mock()
+        request_normal = MagicMock()
+        request_normal.url.path = "/api/users"
+        request_normal.method = "GET"
+        request_normal.headers = {}
+        request_normal.client = MagicMock(host="127.0.0.1")
+
+        call_next_normal = AsyncMock(side_effect=error)
+
+        with pytest.raises(RuntimeError):
+            await middleware.dispatch(request_normal, call_next_normal)
+
+        normal_call = logger.error.call_args
+
+        # Both should have the same message
+        assert skipped_call.args[0] == "request_failed"
+        assert normal_call.args[0] == "request_failed"
+
+        # Both should have the same keys (except path-specific values)
+        skipped_keys = set(skipped_call.kwargs.keys())
+        normal_keys = set(normal_call.kwargs.keys())
+        assert skipped_keys == normal_keys

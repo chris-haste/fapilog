@@ -42,6 +42,23 @@ def test_configure_middleware_adds_defaults_and_resets_stack() -> None:
     assert app.middleware_stack is None
 
 
+def test_configure_middleware_propagates_log_errors_on_skip() -> None:
+    """Test log_errors_on_skip is passed to LoggingMiddleware."""
+    app = FastAPI()
+    logger = object()
+
+    _configure_middleware(
+        app,
+        logger=logger,
+        log_errors_on_skip=False,
+    )
+
+    logging_mw = next(
+        mw for mw in app.user_middleware if mw.cls.__name__ == "LoggingMiddleware"
+    )
+    assert logging_mw.kwargs["log_errors_on_skip"] is False
+
+
 def test_configure_middleware_resets_stack_when_updated() -> None:
     app = FastAPI()
     app.add_middleware(RequestContextMiddleware)

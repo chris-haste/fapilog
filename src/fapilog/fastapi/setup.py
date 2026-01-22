@@ -24,6 +24,7 @@ def _configure_middleware(
     skip_paths: list[str] | None = None,
     sample_rate: float = 1.0,
     redact_headers: list[str] | None = None,
+    log_errors_on_skip: bool = True,
 ) -> None:
     """Configure FastAPI middleware in the correct order."""
 
@@ -57,6 +58,7 @@ def _configure_middleware(
                 skip_paths=skip_paths or [],
                 sample_rate=sample_rate,
                 redact_headers=redact_headers or [],
+                log_errors_on_skip=log_errors_on_skip,
             )
             app.add_middleware(RequestContextMiddleware)
             updated = True
@@ -72,6 +74,7 @@ def _configure_middleware(
                     skip_paths=skip_paths or [],
                     sample_rate=sample_rate,
                     redact_headers=redact_headers or [],
+                    log_errors_on_skip=log_errors_on_skip,
                 ),
             )
             updated = True
@@ -105,6 +108,7 @@ def setup_logging(
     skip_paths: list[str] | None = None,
     sample_rate: float = 1.0,
     redact_headers: list[str] | None = None,
+    log_errors_on_skip: bool = True,
     wrap_lifespan: Callable[[FastAPI], AsyncContextManager[None]] | None = None,
     auto_middleware: bool = True,
 ) -> Callable[[FastAPI], AsyncContextManager[None]]:
@@ -115,6 +119,16 @@ def setup_logging(
     - Adds middleware automatically by default (set auto_middleware=False to opt out)
     - Drains logger on shutdown
     - Wraps user's lifespan if provided
+
+    Args:
+        app: FastAPI application instance.
+        preset: Logger preset name.
+        skip_paths: Paths to skip logging for (e.g., ["/health", "/metrics"]).
+        sample_rate: Fraction of requests to log (0.0 to 1.0).
+        redact_headers: Header names to redact from logs.
+        log_errors_on_skip: Whether to log errors on skipped paths (default: True).
+        wrap_lifespan: User lifespan to wrap.
+        auto_middleware: Whether to auto-configure middleware.
     """
     app_ref = app
 
@@ -135,6 +149,7 @@ def setup_logging(
                 skip_paths=skip_paths,
                 sample_rate=sample_rate,
                 redact_headers=redact_headers,
+                log_errors_on_skip=log_errors_on_skip,
             )
         try:
             if wrap_lifespan is not None:

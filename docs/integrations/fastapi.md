@@ -25,6 +25,7 @@ app = FastAPI(
         skip_paths=["/health"],
         sample_rate=0.1,
         redact_headers=["authorization", "cookie"],
+        log_errors_on_skip=True,  # Log crashes on skipped paths (default)
     )
 )
 

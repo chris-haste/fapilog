@@ -36,6 +36,7 @@ All notable changes to this project will be documented in this file. This change
 
 ### Added
 
+- **FastAPI `log_errors_on_skip` parameter:** `LoggingMiddleware` and `setup_logging()` now accept `log_errors_on_skip` (default: True) to log unhandled exceptions on skipped paths (Story 1.32). This ensures visibility into crashes on health endpoints while still skipping routine success logs.
 - Logger instance caching: `get_logger()` and `get_async_logger()` now cache instances by name (like stdlib `logging.getLogger()`), preventing resource exhaustion from unbounded logger creation (Story 10.29).
 - `reuse` parameter for `get_logger()` and `get_async_logger()` to opt out of caching when needed (e.g., tests).
 - `get_cached_loggers()` function to inspect cached logger names and types.
