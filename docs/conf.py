@@ -249,7 +249,6 @@ exclude_patterns = [
     "install-and-update.md",
     "license-credits.md",
     "prd.md",
-    "roadmap.md",
     "FUTURE-CLI.md",
 ]
 
