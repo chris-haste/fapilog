@@ -1,0 +1,91 @@
+name: Cleanup merged feature branches
+
+on:
+  schedule:
+    # every day at 03:17 UTC
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write        # needed to delete refs
+  pull-requests: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete merged branches (safe prefixes only)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // --- CONFIG ---
+            const prefixes = ["feat/", "fix/", "chore/", "refactor/", "docs/", "test/", "perf/"];
+            const protectedExact = new Set(["main", "master", "gh-pages"]);
+            const protectedPrefixes = ["release/"];
+            const keepPrefixes = ["keep/", "do-not-delete/"];
+            // --------------
+
+            const repoInfo = await github.rest.repos.get({ owner, repo });
+            const defaultBranch = repoInfo.data.default_branch;
+
+            function isProtected(name) {
+              if (protectedExact.has(name)) return true;
+              if (protectedPrefixes.some(p => name.startsWith(p))) return true;
+              if (keepPrefixes.some(p => name.startsWith(p))) return true;
+              return false;
+            }
+
+            function hasAllowedPrefix(name) {
+              return prefixes.some(p => name.startsWith(p));
+            }
+
+            const branches = await github.paginate(github.rest.repos.listBranches, {
+              owner, repo,
+              per_page: 100,
+              protected: false
+            });
+
+            let deleted = 0;
+            let skipped = 0;
+
+            for (const b of branches) {
+              const name = b.name;
+
+              if (isProtected(name) || !hasAllowedPrefix(name)) {
+                skipped++;
+                continue;
+              }
+
+              let cmp;
+              try {
+                cmp = await github.rest.repos.compareCommits({
+                  owner, repo,
+                  base: defaultBranch,
+                  head: name
+                });
+              } catch (e) {
+                skipped++;
+                continue;
+              }
+
+              const status = cmp.data.status;
+              const fullyMerged = (status === "ahead" || status === "identical");
+
+              if (!fullyMerged) {
+                skipped++;
+                continue;
+              }
+
+              await github.rest.git.deleteRef({
+                owner, repo,
+                ref: `heads/${name}`
+              });
+
+              deleted++;
+              core.info(`Deleted merged branch: ${name}`);
+            }
+
+            core.info(`Done. Deleted: ${deleted}. Skipped: ${skipped}. Default branch: ${defaultBranch}`);
