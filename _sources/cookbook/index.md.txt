@@ -9,6 +9,7 @@ Focused, SEO-friendly guides that solve specific problems. Each recipe addresses
 
 fastapi-json-logging
 fastapi-request-id-logging
+django-structured-logging
 non-blocking-async-logging
 dev-prod-logging-config
 redacting-secrets-pii
@@ -23,6 +24,7 @@ exception-logging-request-context
 
 - [FastAPI JSON Logging](fastapi-json-logging.md) - Unified JSON output for app and Uvicorn access logs
 - [FastAPI request_id Logging](fastapi-request-id-logging.md) - Correlation ID middleware that works with async
+- [Django Structured JSON Logging](django-structured-logging.md) - Correlation IDs and JSON logging for Django
 - [Non-blocking Async Logging](non-blocking-async-logging.md) - Protect latency with backpressure modes
 - [Dev + Prod Logging Config](dev-prod-logging-config.md) - Single config that adapts to environment
 - [Redacting Secrets and PII](redacting-secrets-pii.md) - Secure defaults and custom redaction patterns
