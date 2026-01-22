@@ -26,6 +26,28 @@ from pydantic import BaseModel, ConfigDict, Field
 from ...core import diagnostics
 from ..utils import parse_plugin_config
 
+# ReDoS detection patterns - identify common catastrophic backtracking constructs
+_REDOS_DETECTORS = [
+    (re.compile(r"\([^)]*[+*][^)]*\)[+*]"), "nested quantifier"),
+    (re.compile(r"\([^)]*\|[^)]*\)[+*]"), "alternation with quantifier"),
+    (re.compile(r"\.\*[^)]*\)\{[0-9]+,"), "wildcard in bounded repetition"),
+]
+
+
+def _is_potentially_dangerous(pattern: str) -> str | None:
+    """Check if a regex pattern contains potentially dangerous ReDoS constructs.
+
+    Args:
+        pattern: The regex pattern string to check.
+
+    Returns:
+        A reason string if the pattern is potentially dangerous, None if safe.
+    """
+    for detector, reason in _REDOS_DETECTORS:
+        if detector.search(pattern):
+            return reason
+    return None
+
 
 class RegexMaskConfig(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid", validate_default=True)
@@ -35,6 +57,10 @@ class RegexMaskConfig(BaseModel):
     block_on_unredactable: bool = False
     max_depth: int = Field(default=16, ge=1)
     max_keys_scanned: int = Field(default=1000, ge=1)
+    allow_unsafe_patterns: bool = Field(
+        default=False,
+        description="Bypass ReDoS pattern validation. Use with caution.",
+    )
 
 
 class RegexMaskRedactor:
@@ -48,7 +74,15 @@ class RegexMaskRedactor:
         self._patterns: list[re.Pattern[str]] = []
         self._pattern_errors: list[str] = []
 
+        allow_unsafe = bool(cfg.allow_unsafe_patterns)
         for p in cfg.patterns:
+            # Check for ReDoS-vulnerable patterns unless escape hatch is enabled
+            if not allow_unsafe:
+                danger_reason = _is_potentially_dangerous(p)
+                if danger_reason:
+                    self._pattern_errors.append(f"{p}: {danger_reason}")
+                    continue
+
             try:
                 self._patterns.append(re.compile(p))
             except re.error as e:
