@@ -265,3 +265,6 @@ htmlcov/
 
 logs/
 todo.txt
+
+# Debug artifacts
+.issue_*.json
