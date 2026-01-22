@@ -307,5 +307,5 @@ logger = await (
 
 ## Going Deeper
 
-- [Configuration Reference](../user-guide/configuration.md) - All redaction settings
-- [Testing Guide](../user-guide/testing.md) - More testing patterns
+- [Redactors Reference](../user-guide/redactors.md) - Complete redactor documentation
+- [Configuration Reference](../user-guide/configuration.md) - All settings options
