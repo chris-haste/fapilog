@@ -20,7 +20,6 @@ jobs:
         installer: ["pip", "uv"]
         target:
           - core
-          - extra-enterprise
           - extra-all
           - plugin-local
     steps:
@@ -45,9 +44,6 @@ jobs:
             core)
               pip install "./[dev]"
               ;;
-            extra-enterprise)
-              pip install "./[enterprise,dev]"
-              ;;
             extra-all)
               pip install "./[all,dev]"
               ;;
@@ -63,9 +59,6 @@ jobs:
           case "${{ matrix.target }}" in
             core)
               uv pip install --system -e ".[dev]"
-              ;;
-            extra-enterprise)
-              uv pip install --system -e ".[enterprise,dev]"
               ;;
             extra-all)
               uv pip install --system -e ".[all,dev]"
