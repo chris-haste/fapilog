@@ -257,8 +257,8 @@ htmlcov/
 .pytest_cache/
 .tox/ 
 
-# Claude local settings (commands are committed)
-.claude/settings.local.json
+# Claude Code (workflow-specific, not relevant to library users)
+.claude/
 
 # Codex commands
 .codex/
