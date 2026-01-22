@@ -102,6 +102,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../cookbook/dev-prod-logging-config.html">One FastAPI logging config for dev + prod (Uvicorn/Gunicorn)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../cookbook/redacting-secrets-pii.html">Redacting secrets and PII in FastAPI logs (Authorization, tokens, fields)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../cookbook/safe-request-response-logging.html">Logging request/response bodies without hanging (safe patterns)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/skip-noisy-endpoints.html">Skipping health/metrics endpoints (noise reduction)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
@@ -217,6 +218,7 @@ when you need more control.</p>
         <span class="n">skip_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;/health&quot;</span><span class="p">],</span>
         <span class="n">sample_rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
         <span class="n">redact_headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;authorization&quot;</span><span class="p">,</span> <span class="s2">&quot;cookie&quot;</span><span class="p">],</span>
+        <span class="n">log_errors_on_skip</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Log crashes on skipped paths (default)</span>
     <span class="p">)</span>
 <span class="p">)</span>
 

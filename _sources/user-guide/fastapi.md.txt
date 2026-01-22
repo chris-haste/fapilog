@@ -55,7 +55,8 @@ Skip specific paths via `skip_paths=["/health"]`, or inject your own logger inst
 
 - `sample_rate` (default 1.0): apply probabilistic sampling to successful `request_completed` logs; errors are always logged.
 - `include_headers` (default False) + `redact_headers`: when enabled, include headers in the log metadata, masking any header names listed in `redact_headers` with `***`.
-- `skip_paths`: list of paths to skip logging (e.g., health checks).
+- `skip_paths`: list of paths to skip logging (e.g., health checks). See [Skipping Health/Metrics Endpoints](../cookbook/skip-noisy-endpoints.md) for patterns and best practices.
+- `log_errors_on_skip` (default True): when True, unhandled exceptions on skipped paths are logged at ERROR level. Set to False for complete silence on skipped paths.
 
 Example with options:
 
@@ -66,6 +67,7 @@ app.add_middleware(
     include_headers=True,
     redact_headers=["authorization", "cookie"],
     skip_paths=["/healthz"],
+    log_errors_on_skip=True,  # Still log crashes on health endpoints
 )
 ```
 

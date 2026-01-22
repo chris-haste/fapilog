@@ -102,6 +102,7 @@
 <li class="toctree-l2"><a class="reference internal" href="cookbook/dev-prod-logging-config.html">One FastAPI logging config for dev + prod (Uvicorn/Gunicorn)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cookbook/redacting-secrets-pii.html">Redacting secrets and PII in FastAPI logs (Authorization, tokens, fields)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cookbook/safe-request-response-logging.html">Logging request/response bodies without hanging (safe patterns)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cookbook/skip-noisy-endpoints.html">Skipping health/metrics endpoints (noise reduction)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="enterprise.html">Enterprise Features</a></li>
@@ -233,6 +234,7 @@
 <section id="added">
 <h3>Added<a class="headerlink" href="#added" title="Link to this heading"></a></h3>
 <ul class="simple">
+<li><p><strong>FastAPI <code class="docutils literal notranslate"><span class="pre">log_errors_on_skip</span></code> parameter:</strong> <code class="docutils literal notranslate"><span class="pre">LoggingMiddleware</span></code> and <code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code> now accept <code class="docutils literal notranslate"><span class="pre">log_errors_on_skip</span></code> (default: True) to log unhandled exceptions on skipped paths (Story 1.32). This ensures visibility into crashes on health endpoints while still skipping routine success logs.</p></li>
 <li><p>Logger instance caching: <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> and <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> now cache instances by name (like stdlib <code class="docutils literal notranslate"><span class="pre">logging.getLogger()</span></code>), preventing resource exhaustion from unbounded logger creation (Story 10.29).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">reuse</span></code> parameter for <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> and <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> to opt out of caching when needed (e.g., tests).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">get_cached_loggers()</span></code> function to inspect cached logger names and types.</p></li>

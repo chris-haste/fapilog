@@ -104,6 +104,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../cookbook/dev-prod-logging-config.html">One FastAPI logging config for dev + prod (Uvicorn/Gunicorn)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../cookbook/redacting-secrets-pii.html">Redacting secrets and PII in FastAPI logs (Authorization, tokens, fields)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../cookbook/safe-request-response-logging.html">Logging request/response bodies without hanging (safe patterns)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/skip-noisy-endpoints.html">Skipping health/metrics endpoints (noise reduction)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
@@ -251,7 +252,8 @@
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">sample_rate</span></code> (default 1.0): apply probabilistic sampling to successful <code class="docutils literal notranslate"><span class="pre">request_completed</span></code> logs; errors are always logged.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">include_headers</span></code> (default False) + <code class="docutils literal notranslate"><span class="pre">redact_headers</span></code>: when enabled, include headers in the log metadata, masking any header names listed in <code class="docutils literal notranslate"><span class="pre">redact_headers</span></code> with <code class="docutils literal notranslate"><span class="pre">***</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">skip_paths</span></code>: list of paths to skip logging (e.g., health checks).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">skip_paths</span></code>: list of paths to skip logging (e.g., health checks). See <a class="reference internal" href="../cookbook/skip-noisy-endpoints.html"><span class="std std-doc">Skipping Health/Metrics Endpoints</span></a> for patterns and best practices.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log_errors_on_skip</span></code> (default True): when True, unhandled exceptions on skipped paths are logged at ERROR level. Set to False for complete silence on skipped paths.</p></li>
 </ul>
 <p>Example with options:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span>
@@ -260,6 +262,7 @@
     <span class="n">include_headers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">redact_headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;authorization&quot;</span><span class="p">,</span> <span class="s2">&quot;cookie&quot;</span><span class="p">],</span>
     <span class="n">skip_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;/healthz&quot;</span><span class="p">],</span>
+    <span class="n">log_errors_on_skip</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Still log crashes on health endpoints</span>
 <span class="p">)</span>
 </pre></div>
 </div>

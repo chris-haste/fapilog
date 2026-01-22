@@ -13,6 +13,7 @@ non-blocking-async-logging
 dev-prod-logging-config
 redacting-secrets-pii
 safe-request-response-logging
+skip-noisy-endpoints
 ```
 
 ## Quick Links
@@ -23,3 +24,4 @@ safe-request-response-logging
 - [Dev + Prod Logging Config](dev-prod-logging-config.md) - Single config that adapts to environment
 - [Redacting Secrets and PII](redacting-secrets-pii.md) - Secure defaults and custom redaction patterns
 - [Safe Request/Response Logging](safe-request-response-logging.md) - Body logging without hanging or breaking streaming
+- [Skipping Health/Metrics Endpoints](skip-noisy-endpoints.md) - Reduce log noise from health checks
