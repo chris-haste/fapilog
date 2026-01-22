@@ -1,0 +1,569 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Log sampling and rate limiting for FastAPI &mdash; fapilog latest documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=30646c52"></script>
+      <script src="../_static/custom.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Enterprise Features" href="../enterprise.html" />
+    <link rel="prev" title="Skipping health/metrics endpoints (noise reduction)" href="skip-noisy-endpoints.html" />
+ 
+
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/cookbook/log-sampling-rate-limiting.html" />
+<meta name="robots" content="noindex, follow" />
+
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            fapilog
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/quickstart.html">Quickstart Tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/hello-world.html">Hello World Walkthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../core-concepts/index.html">Core Concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/pipeline-architecture.html">Pipeline Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/envelope.html">Envelope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/batching-backpressure.html">Batching &amp; Backpressure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/redaction.html">Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/metrics.html">Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html">Diagnostics Resilience</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html#id1">Diagnostics &amp; Resilience</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide/index.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/builder-configuration.html">Configuring Fapilog with the Builder API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/settings-to-builder-migration.html">Migrating from Settings to Builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/environment-variables.html">Environment Variable Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/using-logger.html">Using the Logger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/context-enrichment.html">Context Enrichment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/sink-routing.html">Sink routing by level</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/redaction-guarantee.html">Redaction Guarantee</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/performance-tuning.html">Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/benchmarks.html">Performance Benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/integration-guide.html">Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/fastapi.html">FastAPI / ASGI Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/comparisons.html">Comparisons: fapilog vs stdlib, structlog, loguru</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/testing-plugins.html">Testing Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/webhook-security.html">Webhook Security</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Cookbook</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="fastapi-json-logging.html">FastAPI JSON logging to stdout (Uvicorn access logs included)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fastapi-request-id-logging.html">FastAPI request_id logging (correlation ID middleware, concurrency-safe)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="non-blocking-async-logging.html">Non-blocking logging in FastAPI (protect latency under slow sinks)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-prod-logging-config.html">One FastAPI logging config for dev + prod (Uvicorn/Gunicorn)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="redacting-secrets-pii.html">Redacting secrets and PII in FastAPI logs (Authorization, tokens, fields)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="safe-request-response-logging.html">Logging request/response bodies without hanging (safe patterns)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="skip-noisy-endpoints.html">Skipping health/metrics endpoints (noise reduction)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Log sampling and rate limiting for FastAPI</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api-reference/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/top-level-functions.html">Top-Level Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/builder.html">Builder API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/logger-methods.html">Logger Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/audit-trail.html">Audit Trail</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/types.html">Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/plugins/index.html">Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/modules.html">API Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples &amp; Recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/builder-configurations.html">Builder Configuration Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/fastapi-logging.html">FastAPI Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cli-tools.html">Logging in Scripts/CLIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/redacting-secrets.html">Redacting Secrets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/structured-error-logging.html">Structured Error Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/kubernetes-file-sink.html">Kubernetes File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/prometheus-metrics.html">Prometheus Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloudwatch_logging/index.html">CloudWatch Logging (LocalStack)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloud-sinks/index.html">Cloud Sink Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugin Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/authoring.html">Authoring Fapilog Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/enrichers.html">Enrichers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/filters.html">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/processors.html">Processors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/testing.html">Plugin Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/configuration.html">Plugin Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/health-checks.html">Plugin Health Checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/error-handling.html">Plugin Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../patterns.html">Integration Patterns</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting/index.html">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/logs-dropped-under-load.html">Logs Dropped Under Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/destination-size-limits.html">Logs Rejected by Destination Size Limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/context-values-missing.html">Context Values Missing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/file-sink-not-rotating.html">File Sink Not Rotating</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/serialization-errors.html">Serialization Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/cloudwatch-sink.html">CloudWatch Sink Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/loki-sink.html">Loki Sink Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices.html">Appendices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../env-vars.html">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../settings-guide.html">Settings Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-guide.html">Schema Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-migration-v1.0-to-v1.1.html">Schema Migration Guide: v1.0 to v1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugin-guide.html">Plugin Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction-guarantees.html">Redaction Guarantees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quality-signals.html">Quality Signals</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">fapilog</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Cookbook</a></li>
+      <li class="breadcrumb-item active">Log sampling and rate limiting for FastAPI</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/cookbook/log-sampling-rate-limiting.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="log-sampling-and-rate-limiting-for-fastapi">
+<h1>Log sampling and rate limiting for FastAPI<a class="headerlink" href="#log-sampling-and-rate-limiting-for-fastapi" title="Link to this heading"></a></h1>
+<p>Traffic spikes shouldn’t mean log bill spikes. When your service goes from 100 requests/second to 10,000, your observability costs can explode. Sampling and rate limiting help you maintain visibility without drowning in data.</p>
+<section id="the-problem">
+<h2>The Problem<a class="headerlink" href="#the-problem" title="Link to this heading"></a></h2>
+<p>A traffic spike creates a cascade of costs:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Normal: 100 req/s × 86,400 sec/day = 8.6M logs/day
+Spike:  10,000 req/s × 3,600 sec/hour = 36M logs/hour
+</pre></div>
+</div>
+<p>At $0.50 per GB ingested, a single hour-long spike can cost more than a month of normal traffic. Worse, the flood of data makes it harder to find actual problems.</p>
+</section>
+<section id="sampling-log-a-percentage">
+<h2>Sampling: Log a Percentage<a class="headerlink" href="#sampling-log-a-percentage" title="Link to this heading"></a></h2>
+<p>Sampling logs a random percentage of events. Use it when you need statistical visibility without capturing every request.</p>
+<section id="quick-setup-fastapi-middleware">
+<h3>Quick Setup (FastAPI Middleware)<a class="headerlink" href="#quick-setup-fastapi-middleware" title="Link to this heading"></a></h3>
+<p>The simplest approach uses the middleware’s built-in sampling:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span>
+
+<span class="n">lifespan</span> <span class="o">=</span> <span class="n">setup_logging</span><span class="p">(</span>
+    <span class="n">sample_rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>  <span class="c1"># Log 10% of successful requests</span>
+<span class="p">)</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">lifespan</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This samples at the request level—10% of successful requests are logged. Errors are always logged regardless of sample rate.</p>
+</section>
+<section id="pipeline-level-sampling">
+<h3>Pipeline-Level Sampling<a class="headerlink" href="#pipeline-level-sampling" title="Link to this heading"></a></h3>
+<p>For more control, configure the sampling filter in the logging pipeline:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_sampling</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>  <span class="c1"># Keep 10% of all log events</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Or via Settings:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span><span class="p">,</span> <span class="n">get_async_logger</span>
+
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">()</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">filters</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;sampling&quot;</span><span class="p">]</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">filter_config</span><span class="o">.</span><span class="n">sampling</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;sample_rate&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">}</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="when-to-use-sampling">
+<h3>When to Use Sampling<a class="headerlink" href="#when-to-use-sampling" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Scenario</p></th>
+<th class="head"><p>Sample Rate</p></th>
+<th class="head"><p>Rationale</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>High-traffic API</p></td>
+<td><p>0.01–0.1</p></td>
+<td><p>Statistical debugging, cost control</p></td>
+</tr>
+<tr class="row-odd"><td><p>Development</p></td>
+<td><p>1.0</p></td>
+<td><p>Full visibility</p></td>
+</tr>
+<tr class="row-even"><td><p>Load testing</p></td>
+<td><p>0.001</p></td>
+<td><p>Prevent log explosion</p></td>
+</tr>
+<tr class="row-odd"><td><p>Batch processing</p></td>
+<td><p>0.1</p></td>
+<td><p>Representative sampling</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="reproducible-sampling">
+<h3>Reproducible Sampling<a class="headerlink" href="#reproducible-sampling" title="Link to this heading"></a></h3>
+<p>For testing or debugging, set a seed to get deterministic sampling:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_sampling</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="rate-limiting-cap-volume">
+<h2>Rate Limiting: Cap Volume<a class="headerlink" href="#rate-limiting-cap-volume" title="Link to this heading"></a></h2>
+<p>Rate limiting uses a token bucket to cap log volume per second. Unlike sampling, it guarantees a maximum throughput regardless of traffic volume.</p>
+<section id="configuration">
+<h3>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_rate_limit</span><span class="p">(</span>
+        <span class="n">capacity</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>      <span class="c1"># Bucket holds 100 tokens</span>
+        <span class="n">refill_rate</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>  <span class="c1"># Refills 10 tokens per second</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Or via Settings:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span><span class="p">,</span> <span class="n">get_async_logger</span>
+
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">()</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">filters</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;rate_limit&quot;</span><span class="p">]</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">filter_config</span><span class="o">.</span><span class="n">rate_limit</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;capacity&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="s2">&quot;refill_rate_per_sec&quot;</span><span class="p">:</span> <span class="mf">10.0</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="how-token-bucket-works">
+<h3>How Token Bucket Works<a class="headerlink" href="#how-token-bucket-works" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>Bucket starts with <code class="docutils literal notranslate"><span class="pre">capacity</span></code> tokens (e.g., 100)</p></li>
+<li><p>Each log event consumes 1 token</p></li>
+<li><p>Tokens refill at <code class="docutils literal notranslate"><span class="pre">refill_rate</span></code> per second (e.g., 10/sec)</p></li>
+<li><p>When bucket is empty, logs are dropped until tokens refill</p></li>
+</ol>
+<p>This creates a burst-capable rate limiter:</p>
+<ul class="simple">
+<li><p><strong>Burst</strong>: Up to 100 logs instantly (full bucket)</p></li>
+<li><p><strong>Sustained</strong>: 10 logs/second maximum</p></li>
+</ul>
+</section>
+<section id="per-key-rate-limiting">
+<h3>Per-Key Rate Limiting<a class="headerlink" href="#per-key-rate-limiting" title="Link to this heading"></a></h3>
+<p>Rate limit by a specific field to prevent one noisy source from exhausting the budget:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_rate_limit</span><span class="p">(</span>
+        <span class="n">capacity</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">refill_rate</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">key_field</span><span class="o">=</span><span class="s2">&quot;user_id&quot;</span><span class="p">,</span>  <span class="c1"># Separate bucket per user</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Each unique <code class="docutils literal notranslate"><span class="pre">user_id</span></code> gets its own token bucket.</p>
+</section>
+<section id="overflow-actions">
+<h3>Overflow Actions<a class="headerlink" href="#overflow-actions" title="Link to this heading"></a></h3>
+<p>By default, excess logs are dropped. You can mark them instead:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_rate_limit</span><span class="p">(</span>
+        <span class="n">capacity</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">refill_rate</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>
+        <span class="n">overflow_action</span><span class="o">=</span><span class="s2">&quot;mark&quot;</span><span class="p">,</span>  <span class="c1"># Add rate_limited=True instead of dropping</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Marked logs can be filtered downstream or counted for alerting.</p>
+</section>
+</section>
+<section id="which-should-i-use">
+<h2>Which Should I Use?<a class="headerlink" href="#which-should-i-use" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Approach</p></th>
+<th class="head"><p>Use When</p></th>
+<th class="head"><p>Tradeoff</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Sampling</p></td>
+<td><p>High volume, statistical debugging</p></td>
+<td><p>Miss individual requests</p></td>
+</tr>
+<tr class="row-odd"><td><p>Rate limiting</p></td>
+<td><p>Spike protection, budget control</p></td>
+<td><p>Drop excess during spikes</p></td>
+</tr>
+<tr class="row-even"><td><p>Both</p></td>
+<td><p>Maximum protection</p></td>
+<td><p>Combined limitations</p></td>
+</tr>
+</tbody>
+</table>
+<section id="decision-guide">
+<h3>Decision Guide<a class="headerlink" href="#decision-guide" title="Link to this heading"></a></h3>
+<p><strong>Choose sampling when:</strong></p>
+<ul class="simple">
+<li><p>You need statistical trends, not every event</p></li>
+<li><p>Traffic is consistently high</p></li>
+<li><p>Cost is the primary concern</p></li>
+</ul>
+<p><strong>Choose rate limiting when:</strong></p>
+<ul class="simple">
+<li><p>You need guaranteed throughput caps</p></li>
+<li><p>Traffic is spiky/unpredictable</p></li>
+<li><p>You want burst capability</p></li>
+</ul>
+<p><strong>Combine both when:</strong></p>
+<ul class="simple">
+<li><p>You have both consistent high volume AND spikes</p></li>
+<li><p>You need defense in depth</p></li>
+</ul>
+</section>
+<section id="combined-configuration">
+<h3>Combined Configuration<a class="headerlink" href="#combined-configuration" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_sampling</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>          <span class="c1"># First: keep 50%</span>
+    <span class="o">.</span><span class="n">with_rate_limit</span><span class="p">(</span><span class="n">capacity</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">refill_rate</span><span class="o">=</span><span class="mf">100.0</span><span class="p">)</span>  <span class="c1"># Then: cap at 100/sec</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Filters run in order—sampling first reduces volume, rate limiting caps the result.</p>
+</section>
+</section>
+<section id="preserving-important-logs">
+<h2>Preserving Important Logs<a class="headerlink" href="#preserving-important-logs" title="Link to this heading"></a></h2>
+<p>Neither sampling nor rate limiting should drop critical information. fapilog provides several mechanisms to ensure important logs get through.</p>
+<section id="errors-always-logged-middleware">
+<h3>Errors Always Logged (Middleware)<a class="headerlink" href="#errors-always-logged-middleware" title="Link to this heading"></a></h3>
+<p>When using <code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code> with <code class="docutils literal notranslate"><span class="pre">sample_rate</span></code>, errors bypass sampling:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">lifespan</span> <span class="o">=</span> <span class="n">setup_logging</span><span class="p">(</span>
+    <span class="n">sample_rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>  <span class="c1"># 10% of successful requests</span>
+    <span class="c1"># Errors (5xx, unhandled exceptions) always logged</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>This is automatic—no configuration needed.</p>
+</section>
+<section id="level-based-filtering">
+<h3>Level-Based Filtering<a class="headerlink" href="#level-based-filtering" title="Link to this heading"></a></h3>
+<p>Use the level filter to ensure ERROR and above always pass:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_sampling</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>  <span class="c1"># Sample all levels at 10%</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="c1"># For more control, use sink routing to send errors to a separate sink</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_routing</span><span class="p">(</span>
+        <span class="n">rules</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">],</span> <span class="s2">&quot;sinks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;errors&quot;</span><span class="p">]},</span>
+            <span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span> <span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span> <span class="s2">&quot;WARNING&quot;</span><span class="p">],</span> <span class="s2">&quot;sinks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;main&quot;</span><span class="p">]},</span>
+        <span class="p">],</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="adaptive-sampling">
+<h3>Adaptive Sampling<a class="headerlink" href="#adaptive-sampling" title="Link to this heading"></a></h3>
+<p>For dynamic adjustment based on load, use adaptive sampling:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_adaptive_sampling</span><span class="p">(</span>
+        <span class="n">min_rate</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>           <span class="c1"># Never below 1%</span>
+        <span class="n">max_rate</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>            <span class="c1"># Up to 100% when quiet</span>
+        <span class="n">target_events_per_sec</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>  <span class="c1"># Target throughput</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>This automatically reduces sampling during high load while maintaining full visibility during quiet periods.</p>
+</section>
+</section>
+<section id="monitoring-your-sampling">
+<h2>Monitoring Your Sampling<a class="headerlink" href="#monitoring-your-sampling" title="Link to this heading"></a></h2>
+<p>Track sampling effectiveness with fapilog metrics:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_sampling</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_metrics</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="c1"># Metrics exposed:</span>
+<span class="c1"># - fapilog_sample_rate: Current effective sample rate</span>
+<span class="c1"># - fapilog_events_filtered: Events dropped by filters</span>
+</pre></div>
+</div>
+</section>
+<section id="environment-based-configuration">
+<h2>Environment-Based Configuration<a class="headerlink" href="#environment-based-configuration" title="Link to this heading"></a></h2>
+<p>Adjust sampling by environment:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Production: aggressive sampling</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__FILTERS</span><span class="o">=</span><span class="s1">&#39;[&quot;sampling&quot;, &quot;rate_limit&quot;]&#39;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILTER_CONFIG__SAMPLING__SAMPLE_RATE</span><span class="o">=</span><span class="m">0</span>.1
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILTER_CONFIG__RATE_LIMIT__CAPACITY</span><span class="o">=</span><span class="m">1000</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILTER_CONFIG__RATE_LIMIT__REFILL_RATE_PER_SEC</span><span class="o">=</span><span class="m">100</span>
+
+<span class="c1"># Development: full logging</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILTER_CONFIG__SAMPLING__SAMPLE_RATE</span><span class="o">=</span><span class="m">1</span>.0
+</pre></div>
+</div>
+</section>
+<section id="going-deeper">
+<h2>Going Deeper<a class="headerlink" href="#going-deeper" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="../user-guide/configuration.html"><span class="std std-doc">Configuration Guide</span></a> - Complete settings reference</p></li>
+<li><p><a class="reference internal" href="../user-guide/performance-tuning.html"><span class="std std-doc">Performance Tuning</span></a> - Optimization strategies</p></li>
+<li><p><a class="reference internal" href="skip-noisy-endpoints.html"><span class="std std-doc">Skipping Health Endpoints</span></a> - Eliminate noise at the source</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="skip-noisy-endpoints.html" class="btn btn-neutral float-left" title="Skipping health/metrics endpoints (noise reduction)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../enterprise.html" class="btn btn-neutral float-right" title="Enterprise Features" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Chris Haste.
+      <span class="lastupdated">Last updated on January 22, 2026.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
