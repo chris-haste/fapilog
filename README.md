@@ -1,9 +1,5 @@
 # Fapilog - Batteries-included, async-first logging for Python services
 
-**fapilog** delivers production-ready logging for the modern Python stack—async-first, structured, and optimized for FastAPI and cloud-native apps. It's equally suitable for **on-prem**, **desktop**, or **embedded** projects where structured, JSON-ready, and pluggable logging is required.
-
-Fapilog isn't a thin wrapper over existing logging libraries—it's an async-first logging pipeline designed to keep your app responsive under slow or bursty log sinks, with backpressure policies, redaction, and first-class FastAPI integration built in.
-
 ![Async-first](https://img.shields.io/badge/async-first-008080?style=flat-square&logo=python&logoColor=white)
 ![JSON Ready](https://img.shields.io/badge/json-ready-008080?style=flat-square&logo=json&logoColor=white)
 ![Enterprise Ready](https://img.shields.io/badge/enterprise-ready-008080?style=flat-square&logo=shield&logoColor=white)
@@ -14,6 +10,10 @@ Fapilog isn't a thin wrapper over existing logging libraries—it's an async-fir
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-008080?style=flat-square&logo=python&logoColor=white)](https://pypi.org/project/fapilog/)
 [![PyPI Version](https://img.shields.io/pypi/v/fapilog.svg?style=flat-square&color=008080&logo=pypi&logoColor=white)](https://pypi.org/project/fapilog/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-008080?style=flat-square&logo=apache&logoColor=white)](https://opensource.org/licenses/Apache-2.0)
+
+**fapilog** delivers production-ready logging for the modern Python stack—async-first, structured, and optimized for FastAPI and cloud-native apps. It's equally suitable for **on-prem**, **desktop**, or **embedded** projects where structured, JSON-ready, and pluggable logging is required.
+
+Fapilog isn't a thin wrapper over existing logging libraries—it's an async-first logging pipeline designed to keep your app responsive under slow or bursty log sinks, with backpressure policies, redaction, and first-class FastAPI integration built in.
 
 > **Save evaluation time:** [Independent technical assessments](docs/audits/) are available from multiple AI reviewers.
 
