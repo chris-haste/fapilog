@@ -11,7 +11,7 @@ app = FastAPI(
         preset="fastapi",
         skip_paths=["/health"],
         sample_rate=1.0,
-        redact_headers=["authorization"],
+        include_headers=True,  # Sensitive headers redacted by default
     )
 )
 
@@ -54,9 +54,47 @@ Skip specific paths via `skip_paths=["/health"]`, or inject your own logger inst
 ### Middleware options
 
 - `sample_rate` (default 1.0): apply probabilistic sampling to successful `request_completed` logs; errors are always logged.
-- `include_headers` (default False) + `redact_headers`: when enabled, include headers in the log metadata, masking any header names listed in `redact_headers` with `***`.
+- `include_headers` (default False): include headers in log metadata. **Security:** Sensitive headers are redacted by default (see below).
 - `skip_paths`: list of paths to skip logging (e.g., health checks). See [Skipping Health/Metrics Endpoints](../cookbook/skip-noisy-endpoints.md) for patterns and best practices.
 - `log_errors_on_skip` (default True): when True, unhandled exceptions on skipped paths are logged at ERROR level. Set to False for complete silence on skipped paths.
+
+#### Header redaction (security)
+
+When `include_headers=True`, the following headers are **redacted by default** to prevent accidental credential leakage:
+
+- `authorization`, `proxy-authorization`, `www-authenticate`
+- `cookie`, `set-cookie`
+- `x-api-key`, `x-auth-token`, `x-csrf-token`, `x-forwarded-authorization`
+
+**Extending defaults** — add custom headers to the redaction list:
+
+```python
+app.add_middleware(
+    LoggingMiddleware,
+    include_headers=True,
+    additional_redact_headers=["x-internal-token", "x-secret-key"],
+)
+```
+
+**Allowlist mode** — only log specific headers (all others excluded):
+
+```python
+app.add_middleware(
+    LoggingMiddleware,
+    include_headers=True,
+    allow_headers=["content-type", "accept", "user-agent"],
+)
+```
+
+**Disabling defaults** (not recommended):
+
+```python
+app.add_middleware(
+    LoggingMiddleware,
+    include_headers=True,
+    disable_default_redactions=True,  # Emits a warning
+)
+```
 
 Example with options:
 
@@ -65,7 +103,7 @@ app.add_middleware(
     LoggingMiddleware,
     sample_rate=0.1,
     include_headers=True,
-    redact_headers=["authorization", "cookie"],
+    additional_redact_headers=["x-custom-secret"],
     skip_paths=["/healthz"],
     log_errors_on_skip=True,  # Still log crashes on health endpoints
 )

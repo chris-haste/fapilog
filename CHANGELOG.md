@@ -8,6 +8,13 @@ All notable changes to this project will be documented in this file. This change
 
 - **Regex ReDoS protection:** `RegexMaskRedactor` now validates patterns at config time to prevent catastrophic backtracking. Patterns with nested quantifiers, overlapping alternation, or wildcards in bounded repetition are rejected. Use `allow_unsafe_patterns=True` to bypass validation if needed (Story 4.50).
 
+### Changed
+
+- **Secure header redaction by default:** `LoggingMiddleware` now redacts sensitive headers (Authorization, Cookie, X-API-Key, etc.) by default when `include_headers=True` (Story 4.51). This prevents accidental credential leakage in logs.
+  - Use `additional_redact_headers` to add custom headers to the default list
+  - Use `allow_headers` for allowlist mode (only log specified headers)
+  - Use `disable_default_redactions=True` to opt out (emits warning)
+
 ## [0.5.1] - 2026-01-21
 
 ### Added

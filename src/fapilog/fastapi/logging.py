@@ -12,12 +12,36 @@ from starlette.responses import Response
 
 from ..core.errors import request_id_var
 
+DEFAULT_REDACT_HEADERS = frozenset(
+    {
+        "authorization",
+        "cookie",
+        "set-cookie",
+        "x-api-key",
+        "x-auth-token",
+        "x-csrf-token",
+        "x-forwarded-authorization",
+        "proxy-authorization",
+        "www-authenticate",
+    }
+)
+"""Headers redacted by default when include_headers=True.
+
+These headers commonly contain authentication tokens, session identifiers,
+or other sensitive data that should not appear in logs.
+"""
+
 
 class LoggingMiddleware(BaseHTTPMiddleware):
     """Request/response logging for FastAPI/Starlette apps.
 
     Logs a completion event with method, path, status, latency_ms, and correlation_id.
     Errors are logged with request_failed and re-raised for FastAPI to handle.
+
+    Security: When ``include_headers=True``, sensitive headers (Authorization, Cookie,
+    etc.) are redacted by default. See ``DEFAULT_REDACT_HEADERS`` for the full list.
+    Use ``additional_redact_headers`` to add custom headers, ``allow_headers`` for
+    an explicit allowlist, or ``disable_default_redactions=True`` to opt out (with warning).
     """
 
     def __init__(
@@ -29,6 +53,9 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         sample_rate: float = 1.0,
         include_headers: bool = False,
         redact_headers: Iterable[str] | None = None,
+        additional_redact_headers: Iterable[str] | None = None,
+        allow_headers: Iterable[str] | None = None,
+        disable_default_redactions: bool = False,
         log_errors_on_skip: bool = True,
     ) -> None:
         super().__init__(app)
@@ -37,8 +64,33 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         self._logger_lock = asyncio.Lock()
         self._sample_rate = float(sample_rate)
         self._include_headers = bool(include_headers)
-        self._redact_headers = {h.lower() for h in (redact_headers or [])}
         self._log_errors_on_skip = bool(log_errors_on_skip)
+
+        # Allowlist mode: only log specified headers
+        if allow_headers is not None:
+            self._allow_headers: set[str] | None = {h.lower() for h in allow_headers}
+            self._redact_headers: set[str] = set()
+        else:
+            self._allow_headers = None
+            # Build effective redaction set
+            if disable_default_redactions:
+                import warnings
+
+                warnings.warn(
+                    "Default header redactions disabled. Sensitive headers may be logged.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+                base: set[str] = set()
+            elif redact_headers is not None:
+                base = {h.lower() for h in redact_headers}
+            else:
+                base = set(DEFAULT_REDACT_HEADERS)
+
+            if additional_redact_headers is not None:
+                base.update(h.lower() for h in additional_redact_headers)
+
+            self._redact_headers = base
 
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
@@ -165,7 +217,11 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 headers = {}
                 for key, value in request.headers.items():
                     lk = key.lower()
-                    if lk in self._redact_headers:
+                    if self._allow_headers is not None:
+                        # Allowlist mode: only include specified headers
+                        if lk in self._allow_headers:
+                            headers[lk] = value
+                    elif lk in self._redact_headers:
                         headers[lk] = "***"
                     else:
                         headers[lk] = value
@@ -227,4 +283,4 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 pass
 
 
-__all__ = ["LoggingMiddleware"]
+__all__ = ["LoggingMiddleware", "DEFAULT_REDACT_HEADERS"]

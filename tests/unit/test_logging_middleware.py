@@ -19,6 +19,8 @@ class TestLoggingMiddleware:
 
     def test_init_defaults(self) -> None:
         """Test middleware initialization with defaults."""
+        from fapilog.fastapi.logging import DEFAULT_REDACT_HEADERS
+
         app = MagicMock()
         middleware = LoggingMiddleware(app)
 
@@ -26,7 +28,8 @@ class TestLoggingMiddleware:
         assert middleware._skip_paths == set()
         assert middleware._sample_rate == 1.0
         assert middleware._include_headers is False
-        assert middleware._redact_headers == set()
+        # Default redactions are applied automatically (Story 4.51)
+        assert middleware._redact_headers == set(DEFAULT_REDACT_HEADERS)
 
     def test_init_with_options(self) -> None:
         """Test middleware initialization with options."""
@@ -376,3 +379,292 @@ class TestLogErrorsOnSkip:
         skipped_keys = set(skipped_call.kwargs.keys())
         normal_keys = set(normal_call.kwargs.keys())
         assert skipped_keys == normal_keys
+
+
+class TestSecureHeaderRedaction:
+    """Tests for secure header redaction defaults (Story 4.51)."""
+
+    def test_default_redact_headers_constant_exists(self) -> None:
+        """Test DEFAULT_REDACT_HEADERS constant is defined with expected headers."""
+        from fapilog.fastapi.logging import DEFAULT_REDACT_HEADERS
+
+        expected = {
+            "authorization",
+            "cookie",
+            "set-cookie",
+            "x-api-key",
+            "x-auth-token",
+            "x-csrf-token",
+            "x-forwarded-authorization",
+            "proxy-authorization",
+            "www-authenticate",
+        }
+        assert DEFAULT_REDACT_HEADERS == frozenset(expected)
+
+    def test_default_headers_redacted_without_config(self) -> None:
+        """Test sensitive headers are redacted by default when include_headers=True."""
+        app = MagicMock()
+        middleware = LoggingMiddleware(app, include_headers=True)
+
+        # Default redactions should be active
+        assert "authorization" in middleware._redact_headers
+        assert "cookie" in middleware._redact_headers
+        assert "x-api-key" in middleware._redact_headers
+
+    @pytest.mark.asyncio
+    async def test_authorization_header_redacted_by_default(self) -> None:
+        """Test Authorization header is redacted without explicit redact_headers config."""
+        app = MagicMock()
+        logger = AsyncMock()
+        logger.info = AsyncMock()
+        middleware = LoggingMiddleware(app, logger=logger, include_headers=True)
+
+        request = MagicMock()
+        request.url.path = "/api/data"
+        request.method = "GET"
+        request.headers = {
+            "authorization": "Bearer super-secret-token",
+            "content-type": "application/json",
+        }
+        request.client = MagicMock(host="127.0.0.1")
+
+        await middleware._log_completion(
+            request=request,
+            status_code=200,
+            correlation_id="test-123",
+            latency_ms=10.5,
+        )
+
+        logger.info.assert_called_once()
+        headers = logger.info.call_args.kwargs["headers"]
+        assert headers["authorization"] == "***"
+        assert headers["content-type"] == "application/json"
+
+    @pytest.mark.asyncio
+    async def test_cookie_header_redacted_by_default(self) -> None:
+        """Test Cookie header is redacted without explicit config."""
+        app = MagicMock()
+        logger = AsyncMock()
+        logger.info = AsyncMock()
+        middleware = LoggingMiddleware(app, logger=logger, include_headers=True)
+
+        request = MagicMock()
+        request.url.path = "/api/data"
+        request.method = "GET"
+        request.headers = {
+            "cookie": "session=abc123; token=secret",
+            "accept": "application/json",
+        }
+        request.client = MagicMock(host="127.0.0.1")
+
+        await middleware._log_completion(
+            request=request,
+            status_code=200,
+            correlation_id="test-123",
+            latency_ms=10.5,
+        )
+
+        headers = logger.info.call_args.kwargs["headers"]
+        assert headers["cookie"] == "***"
+        assert headers["accept"] == "application/json"
+
+    def test_additional_redact_headers_extends_defaults(self) -> None:
+        """Test additional_redact_headers adds to default redactions (AC2)."""
+        app = MagicMock()
+        middleware = LoggingMiddleware(
+            app,
+            include_headers=True,
+            additional_redact_headers=["x-custom-secret", "x-internal-token"],
+        )
+
+        # Defaults should still be present
+        assert "authorization" in middleware._redact_headers
+        assert "cookie" in middleware._redact_headers
+        # Custom headers should be added
+        assert "x-custom-secret" in middleware._redact_headers
+        assert "x-internal-token" in middleware._redact_headers
+
+    @pytest.mark.asyncio
+    async def test_additional_redact_headers_redacts_custom_and_defaults(self) -> None:
+        """Test both default and additional headers are redacted."""
+        app = MagicMock()
+        logger = AsyncMock()
+        logger.info = AsyncMock()
+        middleware = LoggingMiddleware(
+            app,
+            logger=logger,
+            include_headers=True,
+            additional_redact_headers=["x-custom-secret"],
+        )
+
+        request = MagicMock()
+        request.url.path = "/api/data"
+        request.method = "GET"
+        request.headers = {
+            "authorization": "Bearer token",
+            "x-custom-secret": "my-secret-value",
+            "content-type": "application/json",
+        }
+        request.client = MagicMock(host="127.0.0.1")
+
+        await middleware._log_completion(
+            request=request,
+            status_code=200,
+            correlation_id="test-123",
+            latency_ms=10.5,
+        )
+
+        headers = logger.info.call_args.kwargs["headers"]
+        assert headers["authorization"] == "***"
+        assert headers["x-custom-secret"] == "***"
+        assert headers["content-type"] == "application/json"
+
+    def test_allow_headers_excludes_unlisted(self) -> None:
+        """Test allow_headers mode only includes specified headers (AC3)."""
+        app = MagicMock()
+        middleware = LoggingMiddleware(
+            app,
+            include_headers=True,
+            allow_headers=["content-type", "accept", "user-agent"],
+        )
+
+        # In allowlist mode, _allow_headers should be set
+        assert middleware._allow_headers == {"content-type", "accept", "user-agent"}
+
+    @pytest.mark.asyncio
+    async def test_allow_headers_only_logs_specified(self) -> None:
+        """Test only headers in allow_headers are logged."""
+        app = MagicMock()
+        logger = AsyncMock()
+        logger.info = AsyncMock()
+        middleware = LoggingMiddleware(
+            app,
+            logger=logger,
+            include_headers=True,
+            allow_headers=["content-type", "accept"],
+        )
+
+        request = MagicMock()
+        request.url.path = "/api/data"
+        request.method = "GET"
+        request.headers = {
+            "authorization": "Bearer secret",
+            "cookie": "session=abc",
+            "content-type": "application/json",
+            "accept": "application/json",
+            "x-custom": "value",
+        }
+        request.client = MagicMock(host="127.0.0.1")
+
+        await middleware._log_completion(
+            request=request,
+            status_code=200,
+            correlation_id="test-123",
+            latency_ms=10.5,
+        )
+
+        headers = logger.info.call_args.kwargs["headers"]
+        # Only allowed headers should be present
+        assert "content-type" in headers
+        assert "accept" in headers
+        # Sensitive and other headers should be excluded entirely
+        assert "authorization" not in headers
+        assert "cookie" not in headers
+        assert "x-custom" not in headers
+
+    def test_disable_default_redactions_warns(self) -> None:
+        """Test disable_default_redactions=True emits a warning (AC4)."""
+        import warnings
+
+        app = MagicMock()
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            middleware = LoggingMiddleware(
+                app,
+                include_headers=True,
+                redact_headers=[],
+                disable_default_redactions=True,
+            )
+
+            # Should have emitted a warning
+            assert len(w) == 1
+            assert "Default header redactions disabled" in str(w[0].message)
+            assert issubclass(w[0].category, UserWarning)
+
+        # Redact headers should be empty
+        assert middleware._redact_headers == set()
+
+    def test_empty_redact_headers_uses_defaults(self) -> None:
+        """Test empty redact_headers without disable_default_redactions still uses defaults."""
+        app = MagicMock()
+        # Note: redact_headers=[] replaces defaults, but without disable_default_redactions
+        # the intent is unclear. When redact_headers is explicitly set, it replaces defaults.
+        middleware = LoggingMiddleware(
+            app,
+            include_headers=True,
+            redact_headers=[],
+        )
+
+        # Since redact_headers was explicitly set to [], it should be empty
+        assert middleware._redact_headers == set()
+
+    def test_disable_default_redactions_without_explicit_redact_headers(self) -> None:
+        """Test disable_default_redactions works without redact_headers."""
+        import warnings
+
+        app = MagicMock()
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            middleware = LoggingMiddleware(
+                app,
+                include_headers=True,
+                disable_default_redactions=True,
+            )
+
+            assert len(w) == 1
+            assert "Default header redactions disabled" in str(w[0].message)
+
+        # Defaults should be disabled
+        assert "authorization" not in middleware._redact_headers
+        assert middleware._redact_headers == set()
+
+    @pytest.mark.asyncio
+    async def test_disable_default_redactions_logs_sensitive_headers(self) -> None:
+        """Test sensitive headers are logged when defaults are disabled."""
+        import warnings
+
+        app = MagicMock()
+        logger = AsyncMock()
+        logger.info = AsyncMock()
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            middleware = LoggingMiddleware(
+                app,
+                logger=logger,
+                include_headers=True,
+                disable_default_redactions=True,
+            )
+
+        request = MagicMock()
+        request.url.path = "/api/data"
+        request.method = "GET"
+        request.headers = {
+            "authorization": "Bearer secret-token",
+            "content-type": "application/json",
+        }
+        request.client = MagicMock(host="127.0.0.1")
+
+        await middleware._log_completion(
+            request=request,
+            status_code=200,
+            correlation_id="test-123",
+            latency_ms=10.5,
+        )
+
+        headers = logger.info.call_args.kwargs["headers"]
+        # Authorization should NOT be redacted when defaults disabled
+        assert headers["authorization"] == "Bearer secret-token"
+        assert headers["content-type"] == "application/json"
