@@ -399,3 +399,4 @@ def order_view(request, order_id):
 - [Redacting Secrets and PII](redacting-secrets-pii.md) - Automatic PII redaction for compliance
 - [Exception Logging with Request Context](exception-logging-request-context.md) - More patterns for error logging
 - [FastAPI JSON Logging](fastapi-json-logging.md) - First-class FastAPI integration for comparison
+- [Why Fapilog?](../why-fapilog.md) - How fapilog compares to other logging libraries

@@ -1,6 +1,6 @@
 # Cookbook
 
-Focused, SEO-friendly guides that solve specific problems. Each recipe addresses a common search query with copy-pasteable solutions.
+Practical solutions to common logging problems. Each recipe is self-contained with copy-pasteable code.
 
 ```{toctree}
 :maxdepth: 1
@@ -20,16 +20,11 @@ graceful-shutdown-flush
 exception-logging-request-context
 ```
 
-## Quick Links
+## Getting Started with Fapilog
 
-- [FastAPI JSON Logging](fastapi-json-logging.md) - Unified JSON output for app and Uvicorn access logs
-- [FastAPI request_id Logging](fastapi-request-id-logging.md) - Correlation ID middleware that works with async
-- [Django Structured JSON Logging](django-structured-logging.md) - Correlation IDs and JSON logging for Django
-- [Non-blocking Async Logging](non-blocking-async-logging.md) - Protect latency with backpressure modes
-- [Dev + Prod Logging Config](dev-prod-logging-config.md) - Single config that adapts to environment
-- [Redacting Secrets and PII](redacting-secrets-pii.md) - Secure defaults and custom redaction patterns
-- [Safe Request/Response Logging](safe-request-response-logging.md) - Body logging without hanging or breaking streaming
-- [Skipping Health/Metrics Endpoints](skip-noisy-endpoints.md) - Reduce log noise from health checks
-- [Log Sampling and Rate Limiting](log-sampling-rate-limiting.md) - Control log volume during traffic spikes
-- [Graceful Shutdown & Flushing Logs](graceful-shutdown-flush.md) - Don't lose logs on deploy
-- [Exception Logging with Request Context](exception-logging-request-context.md) - Correlate errors with requests
+New to fapilog? Start here:
+
+- [Why Fapilog?](../why-fapilog.md) - Is fapilog right for your project?
+- [Quickstart](../getting-started/quickstart.md) - Install and run in 2 minutes
+- [Core Concepts](../core-concepts/index.md) - How the async pipeline works
+- [Comparisons](../comparisons.md) - fapilog vs structlog, loguru, stdlib

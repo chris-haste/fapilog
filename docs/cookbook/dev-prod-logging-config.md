@@ -185,3 +185,4 @@ gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker  # JSON output, INFO lev
 - [FastAPI JSON Logging](fastapi-json-logging.md) - Detailed JSON output configuration
 - [Environment Variables](../user-guide/environment-variables.md) - All configuration options
 - [Configuration](../user-guide/configuration.md) - Settings hierarchy and precedence
+- [Why Fapilog?](../why-fapilog.md) - How fapilog compares to other logging libraries

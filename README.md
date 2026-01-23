@@ -377,6 +377,12 @@ Fapilog features an extensible plugin ecosystem:
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
+## Support
+
+If fapilog is useful to you, consider giving it a star on GitHub — it helps others discover the library.
+
+[![Star on GitHub](https://img.shields.io/github/stars/chris-haste/fapilog?style=social)](https://github.com/chris-haste/fapilog)
+
 ## 📄 License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.

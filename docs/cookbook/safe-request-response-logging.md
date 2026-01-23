@@ -237,3 +237,4 @@ await logger.debug("request_body", body=body_str)
 
 - [Redacting Secrets and PII](redacting-secrets-pii.md) - Complete redaction configuration
 - [Non-blocking Async Logging](non-blocking-async-logging.md) - Backpressure and queue management
+- [Why Fapilog?](../why-fapilog.md) - How fapilog compares to other logging libraries

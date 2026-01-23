@@ -162,3 +162,4 @@ async def get_order(order_id: str, logger=Depends(get_request_logger)):
 
 - [FastAPI JSON Logging](fastapi-json-logging.md) - Structured logging setup
 - [FastAPI request_id Logging](fastapi-request-id-logging.md) - Correlation IDs
+- [Why Fapilog?](../why-fapilog.md) - How fapilog compares to other logging libraries
