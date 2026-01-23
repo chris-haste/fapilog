@@ -552,6 +552,58 @@ class LoggerBuilder:
         )
         return self
 
+    def with_atexit_drain(
+        self,
+        *,
+        enabled: bool = True,
+        timeout: str | float = "2s",
+    ) -> LoggerBuilder:
+        """Configure atexit handler for graceful shutdown.
+
+        When enabled, pending logs are drained on normal process exit.
+
+        Args:
+            enabled: Enable atexit drain handler (default: True)
+            timeout: Maximum seconds to wait for drain ("2s" or 2.0)
+
+        Example:
+            >>> builder.with_atexit_drain(enabled=True, timeout="3s")
+        """
+        core = self._config.setdefault("core", {})
+        core["atexit_drain_enabled"] = enabled
+        core["atexit_drain_timeout_seconds"] = self._parse_duration(timeout)
+        return self
+
+    def with_signal_handlers(self, *, enabled: bool = True) -> LoggerBuilder:
+        """Configure signal handlers for graceful shutdown.
+
+        When enabled, SIGTERM and SIGINT trigger graceful log drain
+        before process termination.
+
+        Args:
+            enabled: Enable signal handlers (default: True)
+
+        Example:
+            >>> builder.with_signal_handlers(enabled=True)
+        """
+        self._config.setdefault("core", {})["signal_handler_enabled"] = enabled
+        return self
+
+    def with_flush_on_critical(self, *, enabled: bool = True) -> LoggerBuilder:
+        """Configure immediate flush for ERROR/CRITICAL logs.
+
+        When enabled, ERROR and CRITICAL logs bypass batching and are
+        flushed immediately to reduce log loss on abrupt shutdown.
+
+        Args:
+            enabled: Enable immediate flush for critical logs (default: True)
+
+        Example:
+            >>> builder.with_flush_on_critical(enabled=True)
+        """
+        self._config.setdefault("core", {})["flush_on_critical"] = enabled
+        return self
+
     def with_exceptions(
         self,
         *,

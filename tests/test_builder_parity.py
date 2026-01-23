@@ -81,6 +81,10 @@ BUILDER_TO_CORE_FIELDS: dict[str, list[str]] = {
     "with_app_name": ["app_name"],
     "with_strict_mode": ["strict_envelope_mode"],
     "with_unhandled_exception_capture": ["capture_unhandled_enabled"],
+    # Story 6.13: Graceful shutdown builder methods
+    "with_atexit_drain": ["atexit_drain_enabled", "atexit_drain_timeout_seconds"],
+    "with_signal_handlers": ["signal_handler_enabled"],
+    "with_flush_on_critical": ["flush_on_critical"],
 }
 
 # Mapping of add_* methods to sink types they cover

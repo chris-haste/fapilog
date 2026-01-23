@@ -191,6 +191,14 @@ class _LoggerMixin(_WorkerCountersMixin):
             return
         self._stop_flag = False
         self._started = True  # Mark that workers are being started (Story 10.29)
+
+        # Register with shutdown module for graceful drain (Story 6.13)
+        try:
+            from .shutdown import register_logger
+
+            register_logger(self)  # type: ignore[arg-type]
+        except Exception:
+            pass  # Fail-open: don't break startup if shutdown module fails
         try:
             # BOUND LOOP MODE: Use the caller's existing event loop
             loop = asyncio.get_running_loop()
