@@ -154,3 +154,4 @@ This adds the `exception` field with detailed traceback info:
 - [FastAPI request_id Logging](fastapi-request-id-logging.md) - How request context propagates
 - [Context Binding Reference](../api-reference/context-binding.md) - Manual context management
 - [Context Enrichment](../user-guide/context-enrichment.md) - How enrichers work
+- [Why Fapilog?](../why-fapilog.md) - How fapilog compares to other logging libraries

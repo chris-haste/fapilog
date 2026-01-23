@@ -133,3 +133,4 @@ The `ContextVarsEnricher` (enabled by default) reads this value and adds it to e
 - [FastAPI Logging Example](../examples/fastapi-logging.md) - More middleware options
 - [Context Binding Reference](../api-reference/context-binding.md) - Manual context management
 - [Context Enrichment](../user-guide/context-enrichment.md) - How enrichers work
+- [Why Fapilog?](../why-fapilog.md) - How fapilog compares to other logging libraries

@@ -92,3 +92,7 @@ appendices
 - **[Contributing](https://github.com/chris-haste/fapilog/blob/main/CONTRIBUTING.md)** - How to contribute to fapilog
 - **[Release Notes](release-notes.md)** - Changelog and upgrade guides
 - **[Appendices](appendices.md)** - Glossary, architecture diagrams, and license
+
+---
+
+If fapilog is useful to you, consider [giving it a star on GitHub](https://github.com/chris-haste/fapilog) — it helps others discover the library.

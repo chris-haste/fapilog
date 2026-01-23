@@ -309,3 +309,4 @@ logger = await (
 
 - [Redactors Reference](../user-guide/redactors.md) - Complete redactor documentation
 - [Configuration Reference](../user-guide/configuration.md) - All settings options
+- [Why Fapilog?](../why-fapilog.md) - How fapilog compares to other logging libraries
