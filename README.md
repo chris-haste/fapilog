@@ -48,9 +48,6 @@ pip install fapilog
 ```
 
 See the full guide at `docs/getting-started/installation.md` for extras and upgrade paths.
-[![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-green.svg)](https://docs.pydantic.dev/)
-
-**Async-first logging library for Python services**
 
 ## 🚀 Features (core)
 
