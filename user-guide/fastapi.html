@@ -217,7 +217,7 @@
         <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">,</span>
         <span class="n">skip_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;/health&quot;</span><span class="p">],</span>
         <span class="n">sample_rate</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-        <span class="n">redact_headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;authorization&quot;</span><span class="p">],</span>
+        <span class="n">include_headers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Sensitive headers redacted by default</span>
     <span class="p">)</span>
 <span class="p">)</span>
 
@@ -256,21 +256,54 @@
 <h3>Middleware options<a class="headerlink" href="#middleware-options" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">sample_rate</span></code> (default 1.0): apply probabilistic sampling to successful <code class="docutils literal notranslate"><span class="pre">request_completed</span></code> logs; errors are always logged.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">include_headers</span></code> (default False) + <code class="docutils literal notranslate"><span class="pre">redact_headers</span></code>: when enabled, include headers in the log metadata, masking any header names listed in <code class="docutils literal notranslate"><span class="pre">redact_headers</span></code> with <code class="docutils literal notranslate"><span class="pre">***</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">include_headers</span></code> (default False): include headers in log metadata. <strong>Security:</strong> Sensitive headers are redacted by default (see below).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">skip_paths</span></code>: list of paths to skip logging (e.g., health checks). See <a class="reference internal" href="../cookbook/skip-noisy-endpoints.html"><span class="std std-doc">Skipping Health/Metrics Endpoints</span></a> for patterns and best practices.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">log_errors_on_skip</span></code> (default True): when True, unhandled exceptions on skipped paths are logged at ERROR level. Set to False for complete silence on skipped paths.</p></li>
 </ul>
+<section id="header-redaction-security">
+<h4>Header redaction (security)<a class="headerlink" href="#header-redaction-security" title="Link to this heading"></a></h4>
+<p>When <code class="docutils literal notranslate"><span class="pre">include_headers=True</span></code>, the following headers are <strong>redacted by default</strong> to prevent accidental credential leakage:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">authorization</span></code>, <code class="docutils literal notranslate"><span class="pre">proxy-authorization</span></code>, <code class="docutils literal notranslate"><span class="pre">www-authenticate</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cookie</span></code>, <code class="docutils literal notranslate"><span class="pre">set-cookie</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">x-api-key</span></code>, <code class="docutils literal notranslate"><span class="pre">x-auth-token</span></code>, <code class="docutils literal notranslate"><span class="pre">x-csrf-token</span></code>, <code class="docutils literal notranslate"><span class="pre">x-forwarded-authorization</span></code></p></li>
+</ul>
+<p><strong>Extending defaults</strong> — add custom headers to the redaction list:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span>
+    <span class="n">LoggingMiddleware</span><span class="p">,</span>
+    <span class="n">include_headers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">additional_redact_headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;x-internal-token&quot;</span><span class="p">,</span> <span class="s2">&quot;x-secret-key&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Allowlist mode</strong> — only log specific headers (all others excluded):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span>
+    <span class="n">LoggingMiddleware</span><span class="p">,</span>
+    <span class="n">include_headers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">allow_headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;content-type&quot;</span><span class="p">,</span> <span class="s2">&quot;accept&quot;</span><span class="p">,</span> <span class="s2">&quot;user-agent&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Disabling defaults</strong> (not recommended):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span>
+    <span class="n">LoggingMiddleware</span><span class="p">,</span>
+    <span class="n">include_headers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">disable_default_redactions</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Emits a warning</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 <p>Example with options:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span>
     <span class="n">LoggingMiddleware</span><span class="p">,</span>
     <span class="n">sample_rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
     <span class="n">include_headers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">redact_headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;authorization&quot;</span><span class="p">,</span> <span class="s2">&quot;cookie&quot;</span><span class="p">],</span>
+    <span class="n">additional_redact_headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;x-custom-secret&quot;</span><span class="p">],</span>
     <span class="n">skip_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;/healthz&quot;</span><span class="p">],</span>
     <span class="n">log_errors_on_skip</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Still log crashes on health endpoints</span>
 <span class="p">)</span>
 </pre></div>
 </div>
+</section>
 </section>
 </section>
 <section id="dependency-based-logging">
