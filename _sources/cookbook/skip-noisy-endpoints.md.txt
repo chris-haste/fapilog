@@ -188,3 +188,4 @@ This setup:
 
 - [FastAPI Integration Guide](../user-guide/fastapi.md) - Complete middleware options
 - [Log Sampling and Rate Limiting](log-sampling-rate-limiting.md) - Sampling and rate limiting for traffic spikes
+- [Why Fapilog?](../why-fapilog.md) - How fapilog compares to other logging libraries

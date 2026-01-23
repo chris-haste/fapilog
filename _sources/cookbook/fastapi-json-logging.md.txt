@@ -150,3 +150,4 @@ logger = await get_async_logger(format="auto")
 - [FastAPI request_id Logging](fastapi-request-id-logging.md) - Correlation ID middleware
 - [Context Enrichment](../user-guide/context-enrichment.md) - Adding custom fields to all logs
 - [Redaction](../user-guide/redactors.md) - Masking sensitive data
+- [Why Fapilog?](../why-fapilog.md) - How fapilog compares to other logging libraries

@@ -206,7 +206,7 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="cookbook">
 <h1>Cookbook<a class="headerlink" href="#cookbook" title="Link to this heading"></a></h1>
-<p>Focused, SEO-friendly guides that solve specific problems. Each recipe addresses a common search query with copy-pasteable solutions.</p>
+<p>Practical solutions to common logging problems. Each recipe is self-contained with copy-pasteable code.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Cookbook</span></p>
 <ul>
@@ -223,20 +223,14 @@
 <li class="toctree-l1"><a class="reference internal" href="exception-logging-request-context.html">Exception logging in FastAPI with request_id + structured context</a></li>
 </ul>
 </div>
-<section id="quick-links">
-<h2>Quick Links<a class="headerlink" href="#quick-links" title="Link to this heading"></a></h2>
+<section id="getting-started-with-fapilog">
+<h2>Getting Started with Fapilog<a class="headerlink" href="#getting-started-with-fapilog" title="Link to this heading"></a></h2>
+<p>New to fapilog? Start here:</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="fastapi-json-logging.html"><span class="std std-doc">FastAPI JSON Logging</span></a> - Unified JSON output for app and Uvicorn access logs</p></li>
-<li><p><a class="reference internal" href="fastapi-request-id-logging.html"><span class="std std-doc">FastAPI request_id Logging</span></a> - Correlation ID middleware that works with async</p></li>
-<li><p><a class="reference internal" href="django-structured-logging.html"><span class="std std-doc">Django Structured JSON Logging</span></a> - Correlation IDs and JSON logging for Django</p></li>
-<li><p><a class="reference internal" href="non-blocking-async-logging.html"><span class="std std-doc">Non-blocking Async Logging</span></a> - Protect latency with backpressure modes</p></li>
-<li><p><a class="reference internal" href="dev-prod-logging-config.html"><span class="std std-doc">Dev + Prod Logging Config</span></a> - Single config that adapts to environment</p></li>
-<li><p><a class="reference internal" href="redacting-secrets-pii.html"><span class="std std-doc">Redacting Secrets and PII</span></a> - Secure defaults and custom redaction patterns</p></li>
-<li><p><a class="reference internal" href="safe-request-response-logging.html"><span class="std std-doc">Safe Request/Response Logging</span></a> - Body logging without hanging or breaking streaming</p></li>
-<li><p><a class="reference internal" href="skip-noisy-endpoints.html"><span class="std std-doc">Skipping Health/Metrics Endpoints</span></a> - Reduce log noise from health checks</p></li>
-<li><p><a class="reference internal" href="log-sampling-rate-limiting.html"><span class="std std-doc">Log Sampling and Rate Limiting</span></a> - Control log volume during traffic spikes</p></li>
-<li><p><a class="reference internal" href="graceful-shutdown-flush.html"><span class="std std-doc">Graceful Shutdown &amp; Flushing Logs</span></a> - Don’t lose logs on deploy</p></li>
-<li><p><a class="reference internal" href="exception-logging-request-context.html"><span class="std std-doc">Exception Logging with Request Context</span></a> - Correlate errors with requests</p></li>
+<li><p><a class="reference internal" href="../why-fapilog.html"><span class="std std-doc">Why Fapilog?</span></a> - Is fapilog right for your project?</p></li>
+<li><p><a class="reference internal" href="../getting-started/quickstart.html"><span class="std std-doc">Quickstart</span></a> - Install and run in 2 minutes</p></li>
+<li><p><a class="reference internal" href="../core-concepts/index.html"><span class="std std-doc">Core Concepts</span></a> - How the async pipeline works</p></li>
+<li><p><a class="reference internal" href="../comparisons.html"><span class="std std-doc">Comparisons</span></a> - fapilog vs structlog, loguru, stdlib</p></li>
 </ul>
 </section>
 </section>
@@ -253,7 +247,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on January 22, 2026.
+      <span class="lastupdated">Last updated on January 23, 2026.
       </span></p>
   </div>
 

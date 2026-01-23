@@ -202,3 +202,4 @@ async def shutdown():
 
 - [Non-blocking Async Logging](non-blocking-async-logging.md) - Backpressure and queue configuration
 - [Log Sampling and Rate Limiting](log-sampling-rate-limiting.md) - Control volume before it hits the queue
+- [Why Fapilog?](../why-fapilog.md) - How fapilog compares to other logging libraries
