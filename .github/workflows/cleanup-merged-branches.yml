@@ -71,8 +71,9 @@ jobs:
                 continue;
               }
 
-              const status = cmp.data.status;
-              const fullyMerged = (status === "ahead" || status === "identical");
+              // A branch is fully merged when it has no commits ahead of main
+              // (all its commits are contained in main)
+              const fullyMerged = (cmp.data.ahead_by === 0);
 
               if (!fullyMerged) {
                 skipped++;
