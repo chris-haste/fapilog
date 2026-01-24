@@ -787,6 +787,31 @@ class CoreSettings(BaseModel):
             "'none' writes unredacted (opt-in to legacy behavior)"
         ),
     )
+    # Graceful shutdown settings (Story 6.13)
+    atexit_drain_enabled: bool = Field(
+        default=True,
+        description=(
+            "Register atexit handler to drain pending logs on normal process exit"
+        ),
+    )
+    atexit_drain_timeout_seconds: float = Field(
+        default=2.0,
+        gt=0.0,
+        description=("Maximum seconds to wait for log drain during atexit handler"),
+    )
+    signal_handler_enabled: bool = Field(
+        default=True,
+        description=(
+            "Install signal handlers for SIGTERM/SIGINT to enable graceful drain"
+        ),
+    )
+    flush_on_critical: bool = Field(
+        default=False,
+        description=(
+            "Immediately flush ERROR and CRITICAL logs (bypass batching) "
+            "to reduce log loss on abrupt shutdown"
+        ),
+    )
 
     # Example of a field requiring async validation
     benchmark_file_path: str | None = Field(
