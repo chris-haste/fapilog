@@ -15,6 +15,19 @@
       "title": "App Name",
       "type": "string"
     },
+    "atexit_drain_enabled": {
+      "default": true,
+      "description": "Register atexit handler to drain pending logs on normal process exit",
+      "title": "Atexit Drain Enabled",
+      "type": "boolean"
+    },
+    "atexit_drain_timeout_seconds": {
+      "default": 2.0,
+      "description": "Maximum seconds to wait for log drain during atexit handler",
+      "exclusiveMinimum": 0.0,
+      "title": "Atexit Drain Timeout Seconds",
+      "type": "number"
+    },
     "backpressure_wait_ms": {
       "default": 50,
       "description": "Milliseconds to wait for queue space before dropping",
@@ -149,6 +162,12 @@
       "title": "Filters",
       "type": "array"
     },
+    "flush_on_critical": {
+      "default": false,
+      "description": "Immediately flush ERROR and CRITICAL logs (bypass batching) to reduce log loss on abrupt shutdown",
+      "title": "Flush On Critical",
+      "type": "boolean"
+    },
     "internal_logging_enabled": {
       "default": false,
       "description": "Emit DEBUG/WARN diagnostics for internal errors",
@@ -260,6 +279,12 @@
       "exclusiveMinimum": 0.0,
       "title": "Shutdown Timeout Seconds",
       "type": "number"
+    },
+    "signal_handler_enabled": {
+      "default": true,
+      "description": "Install signal handlers for SIGTERM/SIGINT to enable graceful drain",
+      "title": "Signal Handler Enabled",
+      "type": "boolean"
     },
     "sink_circuit_breaker_enabled": {
       "default": false,

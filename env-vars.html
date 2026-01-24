@@ -222,6 +222,16 @@
 <td><p>fapilog</p></td>
 <td><p>Logical application name</p></td>
 </tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__ATEXIT_DRAIN_ENABLED</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>True</p></td>
+<td><p>Register atexit handler to drain pending logs on normal process exit</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__ATEXIT_DRAIN_TIMEOUT_SECONDS</span></code></p></td>
+<td><p>float</p></td>
+<td><p>2.0</p></td>
+<td><p>Maximum seconds to wait for log drain during atexit handler</p></td>
+</tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__BACKPRESSURE_WAIT_MS</span></code></p></td>
 <td><p>int</p></td>
 <td><p>50</p></td>
@@ -312,70 +322,80 @@
 <td><p>PydanticUndefined</p></td>
 <td><p>Filter plugins to apply before enrichment (by name)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__INTERNAL_LOGGING_ENABLED</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__FLUSH_ON_CRITICAL</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><p>Immediately flush ERROR and CRITICAL logs (bypass batching) to reduce log loss on abrupt shutdown</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__INTERNAL_LOGGING_ENABLED</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Emit DEBUG/WARN diagnostics for internal errors</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__LOG_LEVEL</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__LOG_LEVEL</span></code></p></td>
 <td><p>Literal</p></td>
 <td><p>INFO</p></td>
 <td><p>Default log level</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__MAX_QUEUE_SIZE</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__MAX_QUEUE_SIZE</span></code></p></td>
 <td><p>int</p></td>
 <td><p>10000</p></td>
 <td><p>Maximum in-memory queue size for async processing</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__PROCESSORS</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__PROCESSORS</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Processor plugins to use (by name)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__REDACTION_MAX_DEPTH</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__REDACTION_MAX_DEPTH</span></code></p></td>
 <td><p>int</p></td>
 <td><p>None</p></td>
 <td><p>6</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__REDACTION_MAX_KEYS_SCANNED</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__REDACTION_MAX_KEYS_SCANNED</span></code></p></td>
 <td><p>int</p></td>
 <td><p>None</p></td>
 <td><p>5000</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__REDACTORS</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__REDACTORS</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Redactor plugins to use (by name); defaults to [‘url_credentials’] for secure defaults; set to [] to disable all redaction</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__REDACTORS_ORDER</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__REDACTORS_ORDER</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Ordered list of redactor plugin names to apply</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__RESOURCE_POOL_ACQUIRE_TIMEOUT_SECONDS</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__RESOURCE_POOL_ACQUIRE_TIMEOUT_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>2.0</p></td>
 <td><p>Default acquire timeout for pools</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__RESOURCE_POOL_MAX_SIZE</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__RESOURCE_POOL_MAX_SIZE</span></code></p></td>
 <td><p>int</p></td>
 <td><p>8</p></td>
 <td><p>Default max size for resource pools</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SENSITIVE_FIELDS_POLICY</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SENSITIVE_FIELDS_POLICY</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Optional list of dotted paths for sensitive fields policy; warning if no redactors configured</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SERIALIZE_IN_FLUSH</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SERIALIZE_IN_FLUSH</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>If True, pre-serialize envelopes once during flush and pass SerializedView to sinks that support write_serialized</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SHUTDOWN_TIMEOUT_SECONDS</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SHUTDOWN_TIMEOUT_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>3.0</p></td>
 <td><p>Maximum time to flush on shutdown signals</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SIGNAL_HANDLER_ENABLED</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>True</p></td>
+<td><p>Install signal handlers for SIGTERM/SIGINT to enable graceful drain</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SINKS</span></code></p></td>
 <td><p>list</p></td>
@@ -1263,7 +1283,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on January 23, 2026.
+      <span class="lastupdated">Last updated on January 24, 2026.
       </span></p>
   </div>
 

@@ -4,6 +4,8 @@
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
 | `FAPILOG_CORE__APP_NAME` | str | fapilog | Logical application name |
+| `FAPILOG_CORE__ATEXIT_DRAIN_ENABLED` | bool | True | Register atexit handler to drain pending logs on normal process exit |
+| `FAPILOG_CORE__ATEXIT_DRAIN_TIMEOUT_SECONDS` | float | 2.0 | Maximum seconds to wait for log drain during atexit handler |
 | `FAPILOG_CORE__BACKPRESSURE_WAIT_MS` | int | 50 | Milliseconds to wait for queue space before dropping |
 | `FAPILOG_CORE__BATCH_MAX_SIZE` | int | 256 | Maximum number of events per batch before a flush is triggered |
 | `FAPILOG_CORE__BATCH_TIMEOUT_SECONDS` | float | 0.25 | Maximum time to wait before flushing a partial batch |
@@ -22,6 +24,7 @@
 | `FAPILOG_CORE__EXCEPTIONS_MAX_STACK_CHARS` | int | 20000 | Maximum total characters for serialized stack string |
 | `FAPILOG_CORE__FALLBACK_REDACT_MODE` | Literal | minimal | Redaction mode for fallback stderr output: 'inherit' uses pipeline redactors, 'minimal' applies built-in sensitive field masking, 'none' writes unredacted (opt-in to legacy behavior) |
 | `FAPILOG_CORE__FILTERS` | list | PydanticUndefined | Filter plugins to apply before enrichment (by name) |
+| `FAPILOG_CORE__FLUSH_ON_CRITICAL` | bool | False | Immediately flush ERROR and CRITICAL logs (bypass batching) to reduce log loss on abrupt shutdown |
 | `FAPILOG_CORE__INTERNAL_LOGGING_ENABLED` | bool | False | Emit DEBUG/WARN diagnostics for internal errors |
 | `FAPILOG_CORE__LOG_LEVEL` | Literal | INFO | Default log level |
 | `FAPILOG_CORE__MAX_QUEUE_SIZE` | int | 10000 | Maximum in-memory queue size for async processing |
@@ -35,6 +38,7 @@
 | `FAPILOG_CORE__SENSITIVE_FIELDS_POLICY` | list | PydanticUndefined | Optional list of dotted paths for sensitive fields policy; warning if no redactors configured |
 | `FAPILOG_CORE__SERIALIZE_IN_FLUSH` | bool | False | If True, pre-serialize envelopes once during flush and pass SerializedView to sinks that support write_serialized |
 | `FAPILOG_CORE__SHUTDOWN_TIMEOUT_SECONDS` | float | 3.0 | Maximum time to flush on shutdown signals |
+| `FAPILOG_CORE__SIGNAL_HANDLER_ENABLED` | bool | True | Install signal handlers for SIGTERM/SIGINT to enable graceful drain |
 | `FAPILOG_CORE__SINKS` | list | PydanticUndefined | Sink plugins to use (by name); falls back to env-based default when empty |
 | `FAPILOG_CORE__SINK_CIRCUIT_BREAKER_ENABLED` | bool | False | Enable circuit breaker for sink fault isolation |
 | `FAPILOG_CORE__SINK_CIRCUIT_BREAKER_FAILURE_THRESHOLD` | int | 5 | Number of consecutive failures before opening circuit |
