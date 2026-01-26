@@ -7,9 +7,9 @@ name = "fapilog-audit"
 version = "0.1.0"
 description = "Audit trail and compliance add-on for fapilog"
 readme = "README.md"
-license = {text = "Apache-2.0"}
+license = "Apache-2.0"
 authors = [
-    {name = "Chris Haste", email = "chris@haste.dev"}
+    {name = "Chris Haste", email = "dev@fapilog.dev"}
 ]
 keywords = ["logging", "audit", "compliance", "tamper-evident", "enterprise"]
 classifiers = [
@@ -21,6 +21,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: System :: Logging",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]

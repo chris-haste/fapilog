@@ -7,12 +7,13 @@ name = "fapilog"
 dynamic = ["version"]
 description = "Async-first structured logging for Python services"
 readme = "README.md"
-license = {text = "Apache-2.0"}
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 authors = [
-    {name = "Chris Haste", email = "chris@haste.dev"}
+    {name = "Chris Haste", email = "dev@fapilog.dev"}
 ]
 maintainers = [
-    {name = "Chris Haste", email = "chris@haste.dev"}
+    {name = "Chris Haste", email = "dev@fapilog.dev"}
 ]
 keywords = ["logging", "async", "fastapi", "observability", "enterprise"]
 classifiers = [
@@ -24,6 +25,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: System :: Logging",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Framework :: FastAPI",
@@ -115,11 +118,12 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/chris-haste/fapilog"
-Documentation = "https://fapilog.readthedocs.io/"
+Homepage = "https://fapilog.dev"
+Documentation = "https://fapilog.readthedocs.io/en/stable/"
 Repository = "https://github.com/chris-haste/fapilog"
 "Bug Tracker" = "https://github.com/chris-haste/fapilog/issues"
 Discord = "https://discord.gg/gHaNsczWte"
+Changelog = "https://github.com/chris-haste/fapilog/blob/main/CHANGELOG.md"
 
 # [project.scripts]
 # fapilog = "fapilog.cli:main"  # CLI coming in future release

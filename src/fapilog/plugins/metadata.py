@@ -20,7 +20,7 @@ class PluginCompatibility(BaseModel):
         default=None,
         description="Maximum supported Fapilog version (None for no limit)",
     )
-    python_version: str = Field(default=">=3.8", description="Required Python version")
+    python_version: str = Field(default=">=3.10", description="Required Python version")
 
     @field_validator("min_fapilog_version", "max_fapilog_version")
     @classmethod

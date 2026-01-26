@@ -105,7 +105,7 @@ Custom styling is applied through:
 
 The documentation is automatically built and deployed via GitHub Actions:
 
-- **Build**: Runs on all Python versions (3.10-3.12)
+- **Build**: Runs on all Python versions (3.10-3.14)
 - **Validation**: Checks for broken links and build issues
 - **Deployment**: Automatically deploys to GitHub Pages on main branch
 - **Quality Checks**: Runs on pull requests
