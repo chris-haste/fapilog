@@ -20,7 +20,7 @@ Project maintainers are responsible for clarifying standards of acceptable behav
 
 ## Contact
 
-For conduct-related concerns, contact: **chris@fapilog.dev**
+For conduct-related concerns, contact: **conduct@fapilog.dev**
 
 ## Attribution
 
