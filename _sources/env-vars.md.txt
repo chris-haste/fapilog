@@ -29,6 +29,7 @@
 | `FAPILOG_CORE__LOG_LEVEL` | Literal | INFO | Default log level |
 | `FAPILOG_CORE__MAX_QUEUE_SIZE` | int | 10000 | Maximum in-memory queue size for async processing |
 | `FAPILOG_CORE__PROCESSORS` | list | PydanticUndefined | Processor plugins to use (by name) |
+| `FAPILOG_CORE__REDACTION_FAIL_MODE` | Literal | open | Behavior when _apply_redactors() catches an unexpected exception: 'open' passes original event (current behavior), 'closed' drops the event, 'warn' passes event but emits diagnostic warning |
 | `FAPILOG_CORE__REDACTION_MAX_DEPTH` | int | None | 6 | Optional max depth guardrail for nested redaction |
 | `FAPILOG_CORE__REDACTION_MAX_KEYS_SCANNED` | int | None | 5000 | Optional max keys scanned guardrail for redaction |
 | `FAPILOG_CORE__REDACTORS` | list | PydanticUndefined | Redactor plugins to use (by name); defaults to ['url_credentials'] for secure defaults; set to [] to disable all redaction |

@@ -45,6 +45,7 @@ This guide documents Settings groups and fields.
 | `core.sink_circuit_breaker_recovery_timeout_seconds` | float | 30.0 | Seconds to wait before probing a failed sink |
 | `core.sink_parallel_writes` | bool | False | Write to multiple sinks in parallel instead of sequentially |
 | `core.fallback_redact_mode` | Literal | minimal | Redaction mode for fallback stderr output: 'inherit' uses pipeline redactors, 'minimal' applies built-in sensitive field masking, 'none' writes unredacted (opt-in to legacy behavior) |
+| `core.redaction_fail_mode` | Literal | open | Behavior when _apply_redactors() catches an unexpected exception: 'open' passes original event (current behavior), 'closed' drops the event, 'warn' passes event but emits diagnostic warning |
 | `core.atexit_drain_enabled` | bool | True | Register atexit handler to drain pending logs on normal process exit |
 | `core.atexit_drain_timeout_seconds` | float | 2.0 | Maximum seconds to wait for log drain during atexit handler |
 | `core.signal_handler_enabled` | bool | True | Install signal handlers for SIGTERM/SIGINT to enable graceful drain |

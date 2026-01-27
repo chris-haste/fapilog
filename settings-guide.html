@@ -421,27 +421,32 @@
 <td><p>minimal</p></td>
 <td><p>Redaction mode for fallback stderr output: ‘inherit’ uses pipeline redactors, ‘minimal’ applies built-in sensitive field masking, ‘none’ writes unredacted (opt-in to legacy behavior)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.atexit_drain_enabled</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.redaction_fail_mode</span></code></p></td>
+<td><p>Literal</p></td>
+<td><p>open</p></td>
+<td><p>Behavior when _apply_redactors() catches an unexpected exception: ‘open’ passes original event (current behavior), ‘closed’ drops the event, ‘warn’ passes event but emits diagnostic warning</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.atexit_drain_enabled</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Register atexit handler to drain pending logs on normal process exit</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.atexit_drain_timeout_seconds</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.atexit_drain_timeout_seconds</span></code></p></td>
 <td><p>float</p></td>
 <td><p>2.0</p></td>
 <td><p>Maximum seconds to wait for log drain during atexit handler</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.signal_handler_enabled</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.signal_handler_enabled</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Install signal handlers for SIGTERM/SIGINT to enable graceful drain</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.flush_on_critical</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.flush_on_critical</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Immediately flush ERROR and CRITICAL logs (bypass batching) to reduce log loss on abrupt shutdown</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.benchmark_file_path</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.benchmark_file_path</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
