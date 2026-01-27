@@ -81,7 +81,7 @@ This page compares five Python logging libraries that developers most commonly e
 | **Concurrency model** | Background worker | Synchronous | Synchronous | Synchronous | Varies by exporter |
 | **Queue type** | Bounded async | None | None | Optional QueueHandler | Batch exporter |
 | **I/O model** | Non-blocking | Blocking | Blocking | Blocking | Depends on backend |
-| **Backpressure policies** | ✅ drop/wait/discard | ❌ | ❌ | ❌ | ❌ |
+| **Backpressure policies** | ✅ drop/wait | ❌ | ❌ | ❌ | ❌ |
 
 ### Async Support
 
