@@ -2,6 +2,45 @@
 
 Configure fapilog using presets for quick setup, environment variables, or the `Settings` class for full control.
 
+## Choosing an Approach
+
+| Situation | Recommended Approach | Why |
+|-----------|---------------------|-----|
+| **Just getting started** | `get_logger(preset="...")` | Zero config, sensible defaults |
+| **FastAPI app** | `setup_logging(preset="fastapi")` | Automatic middleware and request context |
+| **Writing new code** | `LoggerBuilder()` | IDE autocomplete, type safety, discoverable API |
+| **Config from env/files** | `Settings` + environment variables | 12-factor apps, Kubernetes, external config |
+| **Need compliance presets** | `LoggerBuilder().with_redaction(preset="GDPR_PII")` | One-liner GDPR, HIPAA, PCI-DSS protection |
+
+**Quick decision:**
+
+```
+Start here
+    │
+    ├── Want sensible defaults with minimal code?
+    │   └── Use presets: get_logger(preset="production")
+    │
+    ├── Want IDE autocomplete and type checking?
+    │   └── Use Builder: LoggerBuilder().with_preset("production").build()
+    │
+    └── Config comes from environment or external files?
+        └── Use Settings + env vars: FAPILOG_CORE__LOG_LEVEL=INFO
+```
+
+All approaches can be combined. For example, start with a preset and customize with the builder:
+
+```python
+from fapilog import LoggerBuilder
+
+logger = (
+    LoggerBuilder()
+    .with_preset("production")           # Start with production defaults
+    .with_redaction(preset="HIPAA_PHI")  # Add HIPAA compliance
+    .with_sampling(rate=0.1)             # Sample 10% of debug logs
+    .build()
+)
+```
+
 ## Configuration Presets (Recommended)
 
 Presets provide pre-configured settings for common use cases. Use a preset when you want quick, sensible defaults:

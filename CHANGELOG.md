@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-01-27
+
 ### Breaking Changes
 
 - **Unified Redaction API:** The following methods have been removed and consolidated into `with_redaction()`:
@@ -37,6 +39,14 @@ All notable changes to this project will be documented in this file. This change
 ### Changed
 
 - **`with_redaction()` is now additive by default:** Calling `with_redaction()` multiple times merges fields/patterns instead of replacing. Use `replace=True` to restore the previous overwrite behavior (Story 3.8).
+
+### Documentation
+
+- New dedicated `/redaction/` documentation section with presets reference, configuration guide, behavior documentation, and testing guide.
+- Added compliance redaction cookbook explaining what field-name matching covers and its limitations.
+- Updated enterprise documentation with compliance preset examples and cross-references.
+- Improved documentation navigation structure and fixed toctree cross-references.
+- Added configuration approach decision guide with comparison matrix (preset vs builder vs settings).
 
 ## [0.6.0] - 2026-01-26
 
