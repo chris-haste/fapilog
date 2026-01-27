@@ -117,6 +117,7 @@ Set the lifespan before the application starts.
 - Both `runtime_info` and `context_vars` enrichers for complete diagnostic data
 - Automatic redaction of: `password`, `api_key`, `token`, `secret`, `authorization`, `api_secret`, `private_key`, `ssn`, `credit_card`
 - `drop_on_full=False` ensures no log loss under pressure
+- Postgres sink: `create_table=False` (requires explicit table provisioning via migrations)
 
 **`serverless`** - Optimized for AWS Lambda, Google Cloud Run, Azure Functions:
 - Stdout-only output (no file sinks) — cloud providers capture stdout automatically

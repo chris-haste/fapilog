@@ -43,6 +43,24 @@ export FAPILOG_POSTGRES__PASSWORD=secret
 - Storage: `use_jsonb`, `include_raw_json`, `extract_fields`
 - Table management: `schema_name`, `table_name`, `create_table`
 
+### Auto Table Creation
+
+> **Warning:** By default, `create_table=True` causes the sink to execute DDL
+> (CREATE TABLE, CREATE INDEX) at startup. In production environments with
+> restricted database permissions or change management policies, set
+> `create_table=False` and provision tables via migrations or infrastructure-as-code.
+>
+> The `production` preset automatically sets `create_table=False`.
+
+| Setting | Default | Production Preset |
+|---------|---------|-------------------|
+| `create_table` | `True` | `False` |
+
+For production deployments, either:
+1. Use `preset="production"` which disables auto-creation
+2. Explicitly set `create_table=False` in your configuration
+3. Create tables via migrations before deploying the application
+
 Environment variable aliases:
 
 | Variable | Default |

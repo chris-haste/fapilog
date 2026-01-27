@@ -394,6 +394,7 @@
 <li><p>Both <code class="docutils literal notranslate"><span class="pre">runtime_info</span></code> and <code class="docutils literal notranslate"><span class="pre">context_vars</span></code> enrichers for complete diagnostic data</p></li>
 <li><p>Automatic redaction of: <code class="docutils literal notranslate"><span class="pre">password</span></code>, <code class="docutils literal notranslate"><span class="pre">api_key</span></code>, <code class="docutils literal notranslate"><span class="pre">token</span></code>, <code class="docutils literal notranslate"><span class="pre">secret</span></code>, <code class="docutils literal notranslate"><span class="pre">authorization</span></code>, <code class="docutils literal notranslate"><span class="pre">api_secret</span></code>, <code class="docutils literal notranslate"><span class="pre">private_key</span></code>, <code class="docutils literal notranslate"><span class="pre">ssn</span></code>, <code class="docutils literal notranslate"><span class="pre">credit_card</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">drop_on_full=False</span></code> ensures no log loss under pressure</p></li>
+<li><p>Postgres sink: <code class="docutils literal notranslate"><span class="pre">create_table=False</span></code> (requires explicit table provisioning via migrations)</p></li>
 </ul>
 <p><strong><code class="docutils literal notranslate"><span class="pre">serverless</span></code></strong> - Optimized for AWS Lambda, Google Cloud Run, Azure Functions:</p>
 <ul class="simple">
