@@ -46,6 +46,7 @@ All notable changes to this project will be documented in this file. This change
 - Added compliance redaction cookbook explaining what field-name matching covers and its limitations.
 - Updated enterprise documentation with compliance preset examples and cross-references.
 - Improved documentation navigation structure and fixed toctree cross-references.
+- Added configuration approach decision guide with comparison matrix (preset vs builder vs settings).
 
 ## [0.6.0] - 2026-01-26
 
