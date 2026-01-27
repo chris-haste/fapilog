@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file. This change
 ### Documentation
 
 - **Backpressure API documentation accuracy:** Fixed incorrect examples showing non-existent `policy="wait"` parameter and `discard_oldest` policy. Documentation now correctly shows actual `with_backpressure(wait_ms=..., drop_on_full=...)` API with behavior table explaining parameter combinations (Story 10.31).
+- **Architecture documentation accuracy:** Removed stale references to non-existent components (`ComplianceEngine`, `UniversalSettings`, `EventCategory`) and deleted outdated monolithic `docs/architecture.md` (Story 12.15).
 
 ## [0.7.0] - 2026-01-27
 
