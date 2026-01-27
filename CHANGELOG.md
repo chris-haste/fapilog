@@ -4,8 +4,11 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-01-26
+
 ### Added
 
+- **Graceful log drain on shutdown:** Loggers now automatically flush pending logs during application shutdown via `atexit` handlers (Story 6.13). This ensures logs are not lost when processes terminate.
 - **Regex ReDoS protection:** `RegexMaskRedactor` now validates patterns at config time to prevent catastrophic backtracking. Patterns with nested quantifiers, overlapping alternation, or wildcards in bounded repetition are rejected. Use `allow_unsafe_patterns=True` to bypass validation if needed (Story 4.50).
 
 ### Changed
@@ -14,6 +17,12 @@ All notable changes to this project will be documented in this file. This change
   - Use `additional_redact_headers` to add custom headers to the default list
   - Use `allow_headers` for allowlist mode (only log specified headers)
   - Use `disable_default_redactions=True` to opt out (emits warning)
+
+### Documentation
+
+- Added Django structured logging cookbook entry.
+- Added library comparison pages (why-fapilog, alternative library comparisons).
+- Added security audit findings as stories for tracking.
 
 ## [0.5.1] - 2026-01-21
 
