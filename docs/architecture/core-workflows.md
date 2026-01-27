@@ -12,9 +12,9 @@ sequenceDiagram
     participant Pipeline as AsyncPipeline
     participant Enricher as EnricherPlugins
     participant Processor as ProcessorPlugins
+    participant Redactor as RedactorPlugins
     participant Queue as AsyncQueue
     participant Sink as SinkPlugins
-    participant Compliance as ComplianceEngine
     participant Metrics as MetricsCollector
 
     Note over App, Metrics: High-Performance Async Logging Workflow
@@ -30,12 +30,10 @@ sequenceDiagram
         Pipeline->>Metrics: record_event_start()
     end
 
-    Pipeline->>Processor: process_event(enriched_event)
+    Pipeline->>Redactor: redact_event(enriched_event)
+    Redactor-->>Pipeline: redacted_event
 
-    alt Compliance Validation Required
-        Processor->>Compliance: validate_event(event)
-        Compliance-->>Processor: validated_event
-    end
+    Pipeline->>Processor: process_event(redacted_event)
 
     Processor->>Queue: enqueue(processed_event)
 
@@ -56,7 +54,6 @@ sequenceDiagram
 sequenceDiagram
     participant Container as AsyncLoggingContainer
     participant Registry as PluginRegistry
-    participant Compliance as ComplianceEngine
     participant Plugin as PluginInstance
     participant Pipeline as AsyncPipeline
 
@@ -67,59 +64,13 @@ sequenceDiagram
 
     loop For Each Plugin
         Registry->>Registry: get_plugin_metadata(name)
-
-        alt Enterprise Deployment
-            Registry->>Compliance: validate_plugin_compliance(metadata)
-            Compliance-->>Registry: compliance_result
-        end
-
-        alt Compliance Passed or Not Required
-            Registry->>Registry: load_plugin(metadata)
-            Registry->>Plugin: initialize(config)
-            Plugin-->>Registry: plugin_instance
-        end
+        Registry->>Registry: load_plugin(metadata)
+        Registry->>Plugin: initialize(config)
+        Plugin-->>Registry: plugin_instance
     end
 
     Registry->>Pipeline: register_plugins(loaded_plugins)
     Pipeline-->>Container: plugins_ready
-```
-
-## Enterprise Compliance and Audit Workflow
-
-```mermaid
-sequenceDiagram
-    participant Event as LogEvent
-    participant Compliance as ComplianceEngine
-    participant Audit as AuditLogger
-    participant Redaction as RedactionEngine
-    participant Validation as ValidationEngine
-    participant SIEM as External SIEM
-
-    Note over Event, SIEM: Enterprise Compliance and Audit Workflow
-
-    Event->>Compliance: validate_event(event)
-
-    alt PII Detection Required
-        Compliance->>Redaction: scan_for_pii(event)
-        Redaction-->>Compliance: redacted_event
-    end
-
-    Compliance->>Validation: validate_schema(event, standard)
-
-    alt Schema Validation Failed
-        Validation-->>Compliance: validation_error
-        Compliance->>Audit: log_compliance_violation(event, error)
-        Audit->>SIEM: send_compliance_alert(violation)
-    else Schema Valid
-        Validation-->>Compliance: validation_passed
-    end
-
-    alt Audit Trail Required
-        Compliance->>Audit: log_audit_event(event)
-        Audit->>Audit: create_immutable_record(event)
-    end
-
-    Compliance-->>Event: compliant_event
 ```
 
 ## High-Throughput Batch Processing Workflow

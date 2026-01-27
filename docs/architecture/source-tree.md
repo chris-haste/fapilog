@@ -4,14 +4,14 @@
 fapilog/
 ├── src/
 │   └── fapilog/
-│       ├── __init__.py                 # Public API: AsyncLogger, UniversalSettings
+│       ├── __init__.py                 # Public API: AsyncLogger, Settings
 │       ├── py.typed                    # Type information marker
 │       │
 │       ├── core/                       # Core async-first logging
 │       │   ├── __init__.py
 │       │   ├── logger.py               # AsyncLogger - main interface
-│       │   ├── events.py               # LogEvent, EventCategory, EventSeverity
-│       │   ├── settings.py             # UniversalSettings configuration
+│       │   ├── events.py               # LogEvent, EventSeverity
+│       │   ├── settings.py             # Settings configuration
 │       │   └── pipeline.py             # AsyncPipeline for event processing
 │       │
 │       ├── containers/                 # Perfect isolation (v2 excellence)
