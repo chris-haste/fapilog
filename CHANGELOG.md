@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file. This change
 
 - **Silent data loss in `write_serialized`:** Fixed correctness issue where HTTP, Webhook, Loki, CloudWatch, and PostgreSQL sinks silently replaced log data with placeholder values (e.g., `{"message": "fallback"}`) when deserialization failed. All sinks now raise `SinkWriteError` with diagnostics, enabling proper fallback and circuit breaker handling (Story 4.53).
 
+### Documentation
+
+- **Backpressure API documentation accuracy:** Fixed incorrect examples showing non-existent `policy="wait"` parameter and `discard_oldest` policy. Documentation now correctly shows actual `with_backpressure(wait_ms=..., drop_on_full=...)` API with behavior table explaining parameter combinations (Story 10.31).
+
 ## [0.7.0] - 2026-01-27
 
 ### Breaking Changes

@@ -372,7 +372,7 @@ Modern Python handler for Grafana Loki with compression and batching
 
 **Key Architectural Features:**
 - **Background worker:** Dedicated asyncio event loop in separate thread
-- **Queue with policies:** Configurable overflow behavior (drop, wait, discard oldest)
+- **Queue with policies:** Configurable overflow behavior (drop or wait)
 - **Batching:** Reduces I/O operations for high-throughput scenarios
 - **Non-blocking:** Main thread never waits for I/O
 
@@ -657,7 +657,7 @@ Different libraries use different terms for the same concepts:
 ## Unique Features Analysis
 
 ### Fapilog Unique Features
-1. **Backpressure policies:** Drop-on-full, wait, discard-oldest (NO competitor has this)
+1. **Backpressure policies:** Configurable drop/wait behavior (NO competitor has this)
 2. **Built-in redaction:** Field/regex/URL redaction out of the box
 3. **FastAPI middleware:** First-class FastAPI integration with request context
 4. **Sink routing:** Level-based routing to different sinks
