@@ -1,6 +1,6 @@
 # Plugin Development
 
-Learn how to create and use plugins to extend fapilog's capabilities.
+Extend fapilog to send logs anywhere, add context automatically, or mask custom secrets.
 
 ```{toctree}
 :maxdepth: 2
@@ -22,38 +22,38 @@ error-handling
 
 ## Overview
 
-fapilog provides a comprehensive plugin system that allows you to:
+Plugins let you customize fapilog without forking:
 
-- **Extend functionality** with custom sinks, processors, enrichers, redactors, and filters
-- **Customize behavior** for your specific use cases
-- **Integrate external systems** through plugin interfaces
-- **Maintain compatibility** through versioned plugin contracts
+- **Send logs anywhere** - Build a sink for your internal system, a new cloud provider, or a message queue
+- **Add context automatically** - Enrich every log with deployment info, feature flags, or tenant IDs
+- **Mask your secrets** - Create redactors for proprietary data formats or company-specific PII
+- **Control log volume** - Filter out noise, sample high-frequency events, or rate-limit by key
 
 ## Plugin Types
 
 ### [Sinks](sinks.md)
 
-Output destination management for logs and events.
-
-### [Processors](processors.md)
-
-Transform serialized log data (compression, encryption, format conversion).
+Send logs where you need them—your database, a message queue, a custom API, or a cloud service fapilog doesn't support yet.
 
 ### [Enrichers](enrichers.md)
 
-Data enrichment and augmentation.
-
-### [Filters](filters.md)
-
-Drop or reshape events before enrichment and processing pipelines.
+Add context to every log automatically. Examples: deployment version, feature flags, tenant ID, or Kubernetes pod info.
 
 ### [Redactors](redactors.md)
 
-Data redaction and masking utilities.
+Mask sensitive data before it reaches your sinks. Create patterns for company-specific secrets, custom PII formats, or proprietary data.
+
+### [Filters](filters.md)
+
+Control what gets logged. Drop debug logs in production, sample high-frequency events, or rate-limit noisy sources.
+
+### [Processors](processors.md)
+
+Transform logs before they're sent. Compress for cost savings, encrypt for compliance, or reformat for your aggregation tool.
 
 ### [Error Handling](error-handling.md)
 
-How to contain errors, emit diagnostics, and keep pipelines healthy.
+Handle plugin failures gracefully. Learn how to contain errors so a broken sink doesn't crash your app.
 
 ## Getting Started
 
