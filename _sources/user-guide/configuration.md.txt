@@ -334,6 +334,86 @@ settings = Settings(
 )
 ```
 
+## Shutdown Handler Installation
+
+Fapilog automatically installs signal handlers (SIGTERM/SIGINT) and atexit handlers for graceful shutdown. These handlers ensure pending logs are drained before process exit.
+
+### Lazy Installation (Default)
+
+Handlers are installed lazily on first logger start, not at module import time. This design:
+
+- Avoids conflicts with frameworks (FastAPI, Uvicorn, Gunicorn) that manage their own signal handlers
+- Follows library best practices by not modifying global state at import time
+- Allows opt-out before any handlers are installed
+
+```python
+import fapilog
+
+# No handlers installed yet - safe to configure framework handlers first
+logger = fapilog.get_logger()  # Handlers installed here
+```
+
+### Manual Installation
+
+For cases where you need handlers installed before creating a logger, use `install_shutdown_handlers()`:
+
+```python
+import fapilog
+
+# Explicitly install handlers early
+fapilog.install_shutdown_handlers()
+
+# Later, create loggers
+logger = fapilog.get_logger()
+```
+
+This function is idempotent - calling it multiple times has no effect after the first call.
+
+### Disabling Handlers
+
+To prevent handler installation entirely:
+
+```bash
+# Disable signal handlers (atexit still active)
+export FAPILOG_CORE__SIGNAL_HANDLER_ENABLED=false
+
+# Disable atexit drain (signal handlers still active)
+export FAPILOG_CORE__ATEXIT_DRAIN_ENABLED=false
+
+# Disable both
+export FAPILOG_CORE__SIGNAL_HANDLER_ENABLED=false
+export FAPILOG_CORE__ATEXIT_DRAIN_ENABLED=false
+```
+
+Or via code:
+
+```python
+from fapilog import Settings, get_logger
+
+settings = Settings(
+    core={
+        "signal_handler_enabled": False,
+        "atexit_drain_enabled": False,
+    }
+)
+logger = get_logger(settings=settings)
+```
+
+### Framework Integration
+
+When using fapilog with frameworks that manage their own shutdown:
+
+**FastAPI/Uvicorn**: The lazy installation works well because FastAPI's lifespan handlers run after fapilog handlers are installed. Use the `setup_logging()` lifespan for proper integration.
+
+**Gunicorn**: If you need to ensure fapilog handlers don't conflict, disable them and rely on Gunicorn's worker lifecycle:
+
+```python
+settings = Settings(core={"signal_handler_enabled": False})
+logger = get_logger(settings=settings)
+```
+
+**Testing**: The handlers are designed for test isolation. Each test can reset handler state if needed using internal APIs.
+
 ## Full reference
 
 See [Environment Variables](environment-variables.md) for the full matrix of env names and aliases (including short forms like `FAPILOG_CLOUDWATCH__REGION`).

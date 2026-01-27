@@ -623,6 +623,77 @@ interval settings and represent fixed intervals (not wall-clock boundaries).</p>
 </div>
 </section>
 </section>
+<section id="shutdown-handler-installation">
+<h2>Shutdown Handler Installation<a class="headerlink" href="#shutdown-handler-installation" title="Link to this heading"></a></h2>
+<p>Fapilog automatically installs signal handlers (SIGTERM/SIGINT) and atexit handlers for graceful shutdown. These handlers ensure pending logs are drained before process exit.</p>
+<section id="lazy-installation-default">
+<h3>Lazy Installation (Default)<a class="headerlink" href="#lazy-installation-default" title="Link to this heading"></a></h3>
+<p>Handlers are installed lazily on first logger start, not at module import time. This design:</p>
+<ul class="simple">
+<li><p>Avoids conflicts with frameworks (FastAPI, Uvicorn, Gunicorn) that manage their own signal handlers</p></li>
+<li><p>Follows library best practices by not modifying global state at import time</p></li>
+<li><p>Allows opt-out before any handlers are installed</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">fapilog</span>
+
+<span class="c1"># No handlers installed yet - safe to configure framework handlers first</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">fapilog</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span>  <span class="c1"># Handlers installed here</span>
+</pre></div>
+</div>
+</section>
+<section id="manual-installation">
+<h3>Manual Installation<a class="headerlink" href="#manual-installation" title="Link to this heading"></a></h3>
+<p>For cases where you need handlers installed before creating a logger, use <code class="docutils literal notranslate"><span class="pre">install_shutdown_handlers()</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">fapilog</span>
+
+<span class="c1"># Explicitly install handlers early</span>
+<span class="n">fapilog</span><span class="o">.</span><span class="n">install_shutdown_handlers</span><span class="p">()</span>
+
+<span class="c1"># Later, create loggers</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">fapilog</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This function is idempotent - calling it multiple times has no effect after the first call.</p>
+</section>
+<section id="disabling-handlers">
+<h3>Disabling Handlers<a class="headerlink" href="#disabling-handlers" title="Link to this heading"></a></h3>
+<p>To prevent handler installation entirely:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Disable signal handlers (atexit still active)</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__SIGNAL_HANDLER_ENABLED</span><span class="o">=</span><span class="nb">false</span>
+
+<span class="c1"># Disable atexit drain (signal handlers still active)</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__ATEXIT_DRAIN_ENABLED</span><span class="o">=</span><span class="nb">false</span>
+
+<span class="c1"># Disable both</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__SIGNAL_HANDLER_ENABLED</span><span class="o">=</span><span class="nb">false</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__ATEXIT_DRAIN_ENABLED</span><span class="o">=</span><span class="nb">false</span>
+</pre></div>
+</div>
+<p>Or via code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span><span class="p">,</span> <span class="n">get_logger</span>
+
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span>
+    <span class="n">core</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;signal_handler_enabled&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">&quot;atexit_drain_enabled&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="framework-integration">
+<h3>Framework Integration<a class="headerlink" href="#framework-integration" title="Link to this heading"></a></h3>
+<p>When using fapilog with frameworks that manage their own shutdown:</p>
+<p><strong>FastAPI/Uvicorn</strong>: The lazy installation works well because FastAPI’s lifespan handlers run after fapilog handlers are installed. Use the <code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code> lifespan for proper integration.</p>
+<p><strong>Gunicorn</strong>: If you need to ensure fapilog handlers don’t conflict, disable them and rely on Gunicorn’s worker lifecycle:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span><span class="n">core</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;signal_handler_enabled&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Testing</strong>: The handlers are designed for test isolation. Each test can reset handler state if needed using internal APIs.</p>
+</section>
+</section>
 <section id="full-reference">
 <h2>Full reference<a class="headerlink" href="#full-reference" title="Link to this heading"></a></h2>
 <p>See <a class="reference internal" href="environment-variables.html"><span class="std std-doc">Environment Variables</span></a> for the full matrix of env names and aliases (including short forms like <code class="docutils literal notranslate"><span class="pre">FAPILOG_CLOUDWATCH__REGION</span></code>).</p>
