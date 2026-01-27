@@ -1,6 +1,6 @@
 # Core Concepts
 
-Understand how fapilog works under the hood.
+Understand what fapilog does for you and how it keeps your app fast and reliable.
 
 ```{toctree}
 :maxdepth: 2
@@ -21,73 +21,80 @@ diagnostics-resilience
 
 fapilog is built around a few core concepts that make it fast, reliable, and developer-friendly:
 
-- **Pipeline Architecture** - How messages flow through the system
-- **Envelope** - The standardized log message format
-- **Context Binding** - How context flows through your application
-- **Batching & Backpressure** - Performance and resilience
-- **Redaction** - Security and compliance
-- **Sinks** - Where your logs go
-- **Metrics** - Observability and monitoring
-- **Diagnostics & Resilience** - Error handling and recovery
+- **Pipeline Architecture** - Why your log calls return immediately while I/O happens in the background
+- **Envelope** - How logs are structured so they're easy to query and alert on
+- **Context Binding** - How to add request_id once and see it in every log automatically
+- **Batching & Backpressure** - What happens during traffic spikes (you choose: drop or wait)
+- **Redaction** - How secrets stay out of your logs without extra code
+- **Sinks** - Send logs anywhere—stdout, files, CloudWatch, databases
+- **Metrics** - See queue depth and dropped logs before problems hit production
+- **Diagnostics & Resilience** - How fapilog recovers from errors without crashing your app
 
 ## Key Principles
 
 Fapilog isn't a thin wrapper over existing logging libraries—it's an async-first logging pipeline designed to keep your app responsive under slow or bursty log sinks, with backpressure policies, redaction, and first-class FastAPI integration built in.
 
-### 1. Async-First Design
+### 1. Your App Stays Fast
 
-Everything in fapilog is async by default. This means:
+Log calls return immediately—they never wait for disk or network I/O:
 
-- Logging never blocks your application
-- High throughput with minimal resource usage
-- Natural fit for modern Python applications
+- A slow CloudWatch API won't slow down your API responses
+- Traffic spikes don't cause thread stalls
+- Works the same whether you use `get_logger()` or `get_async_logger()`
 
-### 2. Zero-Copy Processing
+### 2. Memory-Efficient by Design
 
-Messages flow through the system without unnecessary copying:
+Fapilog processes logs without creating unnecessary copies:
 
-- Memory-efficient processing
-- Better performance under load
-- Reduced garbage collection pressure
+- Your app uses less memory per log entry
+- High-volume logging won't trigger GC pauses that hurt response times
+- You can log more without budgeting extra RAM
 
-### 3. Structured by Default
+### 3. Logs You Can Actually Query
 
-All logs are structured data:
+All logs are structured JSON by default:
 
-- Machine-readable JSON output
-- Easy integration with log aggregation systems
-- Consistent format across all outputs
+- Filter by request_id, user_id, or any field in your log aggregator
+- Build dashboards and alerts without parsing text
+- Same format everywhere—stdout, files, cloud sinks
 
-### 4. Plugin Architecture
+### 4. Extend Without Forking
 
-Extensible through plugins:
+Add functionality through plugins:
 
-- Custom sinks, processors, and enrichers
-- Easy integration with existing systems
-- Community-driven ecosystem
+- Send logs to any destination with custom sinks
+- Add context automatically with enrichers
+- Mask sensitive data with redactors
 
 ## Architecture Overview
+
+Your log call returns immediately. Everything after the queue happens in background workers:
 
 ```
 ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
 │ Application │───▶│   Context   │───▶│ Enrichers   │───▶│ Redactors   │
+│             │    │ (request_id │    │ (add host,  │    │ (mask       │
+│ log.info()  │    │  auto-added)│    │  version)   │    │  secrets)   │
 └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
-                                                              │
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐        │
-│    Sinks    │◀───│    Queue    │◀───│ Processors  │◀───────┘
-└─────────────┘    └─────────────┘    └─────────────┘
+      ↑                                                        │
+   Returns                                                     ↓
+  immediately    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+                 │    Sinks    │◀───│    Queue    │◀───│ Processors  │
+                 │ (CloudWatch,│    │ (buffer for │    │ (format,    │
+                 │  stdout...) │    │  slow sinks)│    │  compress)  │
+                 └─────────────┘    └─────────────┘    └─────────────┘
 ```
 
 ## What You'll Learn
 
-1. **[Pipeline Architecture](pipeline-architecture.md)** - How messages flow through the system
-2. **[Envelope](envelope.md)** - The standardized log message format
-3. **[Context Binding](context-binding.md)** - How context flows through your application
-4. **[Batching & Backpressure](batching-backpressure.md)** - Performance and resilience
-5. **[Redaction](redaction.md)** - Security and compliance
-6. **[Sinks](sinks.md)** - Where your logs go
-7. **[Metrics](metrics.md)** - Observability and monitoring
-8. **[Diagnostics & Resilience](diagnostics-resilience.md)** - Error handling and recovery
+1. **[Pipeline Architecture](pipeline-architecture.md)** - Why log calls never block your app
+2. **[Envelope](envelope.md)** - How logs are structured for easy querying
+3. **[Context Binding](context-binding.md)** - Add request_id once, see it everywhere
+4. **[Batching & Backpressure](batching-backpressure.md)** - Control what happens during traffic spikes
+5. **[Redaction](redaction.md)** - Keep secrets out of logs automatically
+6. **[Sinks](sinks.md)** - Send logs to stdout, files, CloudWatch, databases
+7. **[Metrics](metrics.md)** - Monitor queue health before problems hit
+8. **[Diagnostics & Resilience](diagnostics-resilience.md)** - How fapilog handles errors gracefully
 
 ## Next Steps
 
