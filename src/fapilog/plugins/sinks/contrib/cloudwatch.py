@@ -141,10 +141,23 @@ class CloudWatchSink(BatchingMixin):
 
     async def write_serialized(self, view: SerializedView) -> None:
         """Fast path for pre-serialized payloads."""
+        from ....core.errors import SinkWriteError
+
         try:
             message = bytes(view.data).decode("utf-8")
-        except Exception:
-            message = json.dumps({"raw": str(view.data)})
+        except UnicodeDecodeError as exc:
+            diagnostics.warn(
+                "cloudwatch-sink",
+                "write_serialized deserialization failed",
+                error=str(exc),
+                data_size=len(view.data),
+                _rate_limit_key="cloudwatch-sink-deserialize",
+            )
+            raise SinkWriteError(
+                f"Failed to deserialize payload in {self.name}.write_serialized",
+                sink_name=self.name,
+                cause=exc,
+            ) from exc
         if len(message.encode("utf-8")) > MAX_EVENT_SIZE_BYTES:
             self._emit_dropped(message_size=len(message.encode("utf-8")))
             return

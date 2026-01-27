@@ -148,17 +148,38 @@ class PostgresSink(BatchingMixin):
         await self._enqueue_for_batch(entry)
 
     async def write_serialized(self, view: SerializedView) -> None:
+        """Fast path for pre-serialized payloads."""
+        from ....core.errors import SinkWriteError
+
         try:
             payload = json.loads(bytes(view.data).decode("utf-8"))
-            if isinstance(payload, dict):
-                await self._enqueue_for_batch(payload)
-        except Exception as exc:
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
             diagnostics.warn(
                 "postgres-sink",
-                "failed to decode serialized payload",
+                "write_serialized deserialization failed",
                 error=str(exc),
-                _rate_limit_key="postgres-serialize",
+                data_size=len(view.data),
+                _rate_limit_key="postgres-sink-deserialize",
             )
+            raise SinkWriteError(
+                f"Failed to deserialize payload in {self.name}.write_serialized",
+                sink_name=self.name,
+                cause=exc,
+            ) from exc
+
+        if not isinstance(payload, dict):
+            diagnostics.warn(
+                "postgres-sink",
+                "write_serialized payload is not a dict",
+                payload_type=type(payload).__name__,
+                _rate_limit_key="postgres-sink-type",
+            )
+            raise SinkWriteError(
+                f"Payload must be a dict in {self.name}.write_serialized",
+                sink_name=self.name,
+            )
+
+        await self._enqueue_for_batch(payload)
 
     async def _send_batch(self, batch: list[dict[str, Any]]) -> None:
         if not batch or self._pool is None:

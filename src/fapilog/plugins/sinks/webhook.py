@@ -142,12 +142,25 @@ class WebhookSink(BatchingMixin):
         await self._enqueue_for_batch(entry)
 
     async def write_serialized(self, view: SerializedView) -> None:
-        try:
-            import json
+        """Fast path for pre-serialized payloads."""
+        from ...core.diagnostics import warn
+        from ...core.errors import SinkWriteError
 
+        try:
             data = json.loads(bytes(view.data))
-        except Exception:
-            data = {"message": "fallback"}
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            warn(
+                "webhook-sink",
+                "write_serialized deserialization failed",
+                error=str(exc),
+                data_size=len(view.data),
+                _rate_limit_key="webhook-sink-deserialize",
+            )
+            raise SinkWriteError(
+                f"Failed to deserialize payload in {self.name}.write_serialized",
+                sink_name=self.name,
+                cause=exc,
+            ) from exc
         await self.write(data)
 
     async def _send_batch(self, batch: list[dict[str, Any]]) -> None:
