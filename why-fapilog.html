@@ -287,23 +287,47 @@ log.info(&quot;msg&quot;) ──queue──→ │
 </div>
 <p><strong>In async contexts</strong>, both are non-blocking. <strong>In sync contexts</strong>, <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> may briefly wait (up to 50ms by default) for queue space before returning—still far faster than blocking on network I/O.</p>
 </section>
-<section id="backpressure-policies">
-<h3>2. Backpressure Policies<a class="headerlink" href="#backpressure-policies" title="Link to this heading"></a></h3>
-<p>What happens when logs arrive faster than they can be written? Most libraries either block (hurting latency) or silently drop logs (hurting reliability). Fapilog lets you choose:</p>
-<ul class="simple">
-<li><p><strong>drop</strong> - Discard new logs when queue is full (protect latency)</p></li>
-<li><p><strong>wait</strong> - Block until queue has space (protect durability)</p></li>
-<li><p><strong>discard_oldest</strong> - Drop oldest logs to make room (balance both)</p></li>
-</ul>
+<section id="backpressure-handling">
+<h3>2. Backpressure Handling<a class="headerlink" href="#backpressure-handling" title="Link to this heading"></a></h3>
+<p>What happens when logs arrive faster than they can be written? Most libraries either block (hurting latency) or silently drop logs (hurting reliability). Fapilog lets you configure the tradeoff:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
 
+<span class="c1"># Protect latency: wait briefly, then drop if still full</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">LoggerBuilder</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">with_backpressure</span><span class="p">(</span><span class="n">policy</span><span class="o">=</span><span class="s2">&quot;wait&quot;</span><span class="p">)</span>  <span class="c1"># Never lose logs</span>
+    <span class="o">.</span><span class="n">with_backpressure</span><span class="p">(</span><span class="n">wait_ms</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">drop_on_full</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="c1"># Protect durability: never lose logs (may block longer)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_backpressure</span><span class="p">(</span><span class="n">wait_ms</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">drop_on_full</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 </pre></div>
 </div>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Configuration</p></th>
+<th class="head"><p>Behavior</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">wait_ms=50,</span> <span class="pre">drop_on_full=True</span></code></p></td>
+<td><p>Wait up to 50ms for space, then drop (default)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">wait_ms=0,</span> <span class="pre">drop_on_full=True</span></code></p></td>
+<td><p>Drop immediately if queue full</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">wait_ms=0,</span> <span class="pre">drop_on_full=False</span></code></p></td>
+<td><p>Block indefinitely until space available</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">wait_ms=100,</span> <span class="pre">drop_on_full=False</span></code></p></td>
+<td><p>Wait 100ms, then block indefinitely</p></td>
+</tr>
+</tbody>
+</table>
 </section>
 <section id="built-in-redaction">
 <h3>3. Built-in Redaction<a class="headerlink" href="#built-in-redaction" title="Link to this heading"></a></h3>

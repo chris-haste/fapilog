@@ -58,23 +58,34 @@ await logger.info("Request processed")  # Enqueues and returns
 
 **In async contexts**, both are non-blocking. **In sync contexts**, `get_logger()` may briefly wait (up to 50ms by default) for queue space before returning—still far faster than blocking on network I/O.
 
-### 2. Backpressure Policies
+### 2. Backpressure Handling
 
-What happens when logs arrive faster than they can be written? Most libraries either block (hurting latency) or silently drop logs (hurting reliability). Fapilog lets you choose:
-
-- **drop** - Discard new logs when queue is full (protect latency)
-- **wait** - Block until queue has space (protect durability)
-- **discard_oldest** - Drop oldest logs to make room (balance both)
+What happens when logs arrive faster than they can be written? Most libraries either block (hurting latency) or silently drop logs (hurting reliability). Fapilog lets you configure the tradeoff:
 
 ```python
 from fapilog import LoggerBuilder
 
+# Protect latency: wait briefly, then drop if still full
 logger = (
     LoggerBuilder()
-    .with_backpressure(policy="wait")  # Never lose logs
+    .with_backpressure(wait_ms=50, drop_on_full=True)
+    .build()
+)
+
+# Protect durability: never lose logs (may block longer)
+logger = (
+    LoggerBuilder()
+    .with_backpressure(wait_ms=0, drop_on_full=False)
     .build()
 )
 ```
+
+| Configuration | Behavior |
+|--------------|----------|
+| `wait_ms=50, drop_on_full=True` | Wait up to 50ms for space, then drop (default) |
+| `wait_ms=0, drop_on_full=True` | Drop immediately if queue full |
+| `wait_ms=0, drop_on_full=False` | Block indefinitely until space available |
+| `wait_ms=100, drop_on_full=False` | Wait 100ms, then block indefinitely |
 
 ### 3. Built-in Redaction
 
