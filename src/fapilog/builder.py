@@ -178,15 +178,18 @@ class LoggerBuilder:
         *,
         fields: list[str] | None = None,
         patterns: list[str] | None = None,
+        replace: bool = False,
     ) -> LoggerBuilder:
         """Configure redaction.
 
-        Fields and patterns are additive - calling multiple times merges values.
-        This allows combining presets with custom fields.
+        By default, fields and patterns are additive - calling multiple times
+        merges values. This allows combining presets with custom fields.
+        Use `replace=True` to overwrite existing fields/patterns instead.
 
         Args:
             fields: Field names to redact (e.g., ["password", "ssn"])
             patterns: Regex patterns to redact (e.g., ["secret.*"])
+            replace: If True, replace existing fields/patterns instead of merging
         """
         redactors = self._config.setdefault("core", {}).setdefault("redactors", [])
         redactor_config = self._config.setdefault("redactor_config", {})
@@ -194,22 +197,28 @@ class LoggerBuilder:
         if fields:
             if "field_mask" not in redactors:
                 redactors.append("field_mask")
-            existing = redactor_config.setdefault("field_mask", {}).setdefault(
-                "fields_to_mask", []
-            )
-            for field in fields:
-                if field not in existing:
-                    existing.append(field)
+            if replace:
+                redactor_config.setdefault("field_mask", {})["fields_to_mask"] = fields
+            else:
+                existing = redactor_config.setdefault("field_mask", {}).setdefault(
+                    "fields_to_mask", []
+                )
+                for field in fields:
+                    if field not in existing:
+                        existing.append(field)
 
         if patterns:
             if "regex_mask" not in redactors:
                 redactors.append("regex_mask")
-            existing = redactor_config.setdefault("regex_mask", {}).setdefault(
-                "patterns", []
-            )
-            for pattern in patterns:
-                if pattern not in existing:
-                    existing.append(pattern)
+            if replace:
+                redactor_config.setdefault("regex_mask", {})["patterns"] = patterns
+            else:
+                existing = redactor_config.setdefault("regex_mask", {}).setdefault(
+                    "patterns", []
+                )
+                for pattern in patterns:
+                    if pattern not in existing:
+                        existing.append(pattern)
 
         return self
 

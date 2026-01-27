@@ -579,3 +579,42 @@ class TestRedactionBranches:
         redactors = builder._config.get("core", {}).get("redactors", [])
         # Should only have one field_mask entry
         assert redactors.count("field_mask") == 1
+
+    def test_with_redaction_additive_by_default(self):
+        """with_redaction() merges fields by default."""
+        from fapilog import LoggerBuilder
+
+        builder = (
+            LoggerBuilder()
+            .with_redaction(fields=["password"])
+            .with_redaction(fields=["ssn"])
+        )
+        fields = builder._config["redactor_config"]["field_mask"]["fields_to_mask"]
+        assert "password" in fields
+        assert "ssn" in fields
+
+    def test_with_redaction_replace_overwrites_fields(self):
+        """with_redaction(replace=True) replaces existing fields."""
+        from fapilog import LoggerBuilder
+
+        builder = (
+            LoggerBuilder()
+            .with_redaction(fields=["password", "email"])
+            .with_redaction(fields=["ssn"], replace=True)
+        )
+        fields = builder._config["redactor_config"]["field_mask"]["fields_to_mask"]
+        assert fields == ["ssn"]
+        assert "password" not in fields
+
+    def test_with_redaction_replace_overwrites_patterns(self):
+        """with_redaction(replace=True) replaces existing patterns."""
+        from fapilog import LoggerBuilder
+
+        builder = (
+            LoggerBuilder()
+            .with_redaction(patterns=["secret.*", "token.*"])
+            .with_redaction(patterns=["password.*"], replace=True)
+        )
+        patterns = builder._config["redactor_config"]["regex_mask"]["patterns"]
+        assert patterns == ["password.*"]
+        assert "secret.*" not in patterns
