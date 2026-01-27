@@ -30,14 +30,33 @@ Use fapilog if you're building:
 
 ### 1. True Async-First Architecture
 
-Most Python logging libraries are synchronous—they block your application while writing to disk or network. Fapilog uses a background worker with an async queue, so your API latency doesn't suffer when sinks are slow.
+Most Python logging libraries are synchronous—they block your application while writing to disk or network. **Both `get_logger()` and `get_async_logger()` use the same async background worker.** Log calls enqueue immediately; sink writes happen in parallel worker tasks.
+
+```
+Your code          Background worker
+    │                     │
+log.info("msg") ──queue──→ │
+    │ (returns)           ↓
+    │               serialize → enrich → write to sink
+    ↓
+(continues)
+```
+
+The difference between the two APIs is the calling convention, not the architecture:
 
 ```python
-from fapilog import get_async_logger
+# Sync API - for sync code or when you don't want to await
+from fapilog import get_logger
+logger = get_logger()
+logger.info("Request processed")  # Enqueues and returns
 
+# Async API - for async code with tighter event loop integration
+from fapilog import get_async_logger
 logger = await get_async_logger()
-await logger.info("Request processed")  # Returns immediately
+await logger.info("Request processed")  # Enqueues and returns
 ```
+
+**In async contexts**, both are non-blocking. **In sync contexts**, `get_logger()` may briefly wait (up to 50ms by default) for queue space before returning—still far faster than blocking on network I/O.
 
 ### 2. Backpressure Policies
 

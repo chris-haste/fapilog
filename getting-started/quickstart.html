@@ -209,7 +209,7 @@
 <h1>Quickstart Tutorial<a class="headerlink" href="#quickstart-tutorial" title="Link to this heading"></a></h1>
 <p>Get logging with fapilog in 2 minutes.</p>
 <blockquote>
-<div><p><strong>Choosing async vs sync:</strong> Async apps (FastAPI, asyncio workers) should use <code class="docutils literal notranslate"><span class="pre">async</span> <span class="pre">with</span> <span class="pre">runtime_async()</span></code> or <code class="docutils literal notranslate"><span class="pre">await</span> <span class="pre">get_async_logger()</span></code>. Sync apps should use <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> (or <code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">runtime()</span></code> for lifecycle).</p>
+<div><p><strong>Choosing async vs sync:</strong> Both <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> and <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> use the same async background worker—your log calls never block on I/O. The difference is the calling API: use <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> for sync code, <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> when you want <code class="docutils literal notranslate"><span class="pre">await</span></code> syntax in async code.</p>
 </div></blockquote>
 <section id="zero-config-logging">
 <h2>Zero-Config Logging<a class="headerlink" href="#zero-config-logging" title="Link to this heading"></a></h2>
@@ -279,7 +279,7 @@
 </section>
 <section id="async-logger-usage">
 <h2>Async Logger Usage<a class="headerlink" href="#async-logger-usage" title="Link to this heading"></a></h2>
-<p>For async applications, use the async logger for better performance:</p>
+<p>For async applications, use the async logger for native <code class="docutils literal notranslate"><span class="pre">await</span></code> syntax:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_async_logger</span><span class="p">,</span> <span class="n">runtime_async</span>
 
 <span class="c1"># Get an async logger</span>
@@ -335,11 +335,12 @@
 <h2>What Happens Automatically<a class="headerlink" href="#what-happens-automatically" title="Link to this heading"></a></h2>
 <p>When you call <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> or <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code>:</p>
 <ol class="arabic simple">
-<li><p><strong>Environment detection</strong> - Chooses best output format</p></li>
-<li><p><strong>Async setup</strong> - Configures non-blocking processing</p></li>
-<li><p><strong>Context binding</strong> - Sets up request correlation</p></li>
-<li><p><strong>Resource management</strong> - Handles memory and connections</p></li>
+<li><p><strong>Environment detection</strong> - Chooses best output format for your environment</p></li>
+<li><p><strong>Background worker startup</strong> - Creates async worker tasks for non-blocking I/O</p></li>
+<li><p><strong>Queue setup</strong> - Configures the buffer between your code and sink writes</p></li>
+<li><p><strong>Context binding</strong> - Sets up request correlation and context propagation</p></li>
 </ol>
+<p>Both functions create the same async processing pipeline. Your log calls enqueue immediately and return—actual sink I/O happens in background worker tasks.</p>
 </section>
 <section id="environment-variables">
 <h2>Environment Variables<a class="headerlink" href="#environment-variables" title="Link to this heading"></a></h2>

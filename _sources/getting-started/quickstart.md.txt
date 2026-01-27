@@ -2,7 +2,7 @@
 
 Get logging with fapilog in 2 minutes.
 
-> **Choosing async vs sync:** Async apps (FastAPI, asyncio workers) should use `async with runtime_async()` or `await get_async_logger()`. Sync apps should use `get_logger()` (or `with runtime()` for lifecycle).
+> **Choosing async vs sync:** Both `get_logger()` and `get_async_logger()` use the same async background worker—your log calls never block on I/O. The difference is the calling API: use `get_logger()` for sync code, `get_async_logger()` when you want `await` syntax in async code.
 
 ## Zero-Config Logging
 
@@ -79,7 +79,7 @@ if __name__ == "__main__":
 
 ## Async Logger Usage
 
-For async applications, use the async logger for better performance:
+For async applications, use the async logger for native `await` syntax:
 
 ```python
 from fapilog import get_async_logger, runtime_async
@@ -138,10 +138,12 @@ async def get_user(user_id: int, logger = Depends(get_logger)):
 
 When you call `get_logger()` or `get_async_logger()`:
 
-1. **Environment detection** - Chooses best output format
-2. **Async setup** - Configures non-blocking processing
-3. **Context binding** - Sets up request correlation
-4. **Resource management** - Handles memory and connections
+1. **Environment detection** - Chooses best output format for your environment
+2. **Background worker startup** - Creates async worker tasks for non-blocking I/O
+3. **Queue setup** - Configures the buffer between your code and sink writes
+4. **Context binding** - Sets up request correlation and context propagation
+
+Both functions create the same async processing pipeline. Your log calls enqueue immediately and return—actual sink I/O happens in background worker tasks.
 
 ## Environment Variables
 

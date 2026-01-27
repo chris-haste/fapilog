@@ -208,6 +208,9 @@
   <section class="tex2jax_ignore mathjax_ignore" id="non-blocking-logging-in-fastapi-protect-latency-under-slow-sinks">
 <h1>Non-blocking logging in FastAPI (protect latency under slow sinks)<a class="headerlink" href="#non-blocking-logging-in-fastapi-protect-latency-under-slow-sinks" title="Link to this heading"></a></h1>
 <p>Slow log sinks can stall your async application. When a network hiccup delays CloudWatch or your disk fills up, synchronous logging blocks the event loop, affecting every concurrent request. fapilog’s async pipeline with configurable backpressure lets you choose: drop logs to protect latency, or block to guarantee delivery.</p>
+<blockquote>
+<div><p><strong>Note:</strong> Both <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> and <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> use the same async background worker architecture described here. The non-blocking benefits apply to both APIs.</p>
+</div></blockquote>
 <section id="the-problem-slow-sinks-block-your-app">
 <h2>The Problem: Slow Sinks Block Your App<a class="headerlink" href="#the-problem-slow-sinks-block-your-app" title="Link to this heading"></a></h2>
 <p>In a traditional logging setup, each log call writes directly to the destination:</p>

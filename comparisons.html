@@ -546,7 +546,7 @@
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>Background worker runs in separate thread with asyncio loop</p></li>
+<li><p><strong>Both <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> and <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> use the same background worker</strong></p></li>
 <li><p>Bounded queue with configurable overflow policies</p></li>
 <li><p>Batching reduces I/O operations</p></li>
 </ul>

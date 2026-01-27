@@ -252,13 +252,29 @@
 <h2>What Makes Fapilog Different<a class="headerlink" href="#what-makes-fapilog-different" title="Link to this heading"></a></h2>
 <section id="true-async-first-architecture">
 <h3>1. True Async-First Architecture<a class="headerlink" href="#true-async-first-architecture" title="Link to this heading"></a></h3>
-<p>Most Python logging libraries are synchronous—they block your application while writing to disk or network. Fapilog uses a background worker with an async queue, so your API latency doesn’t suffer when sinks are slow.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_async_logger</span>
-
-<span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">()</span>
-<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Request processed&quot;</span><span class="p">)</span>  <span class="c1"># Returns immediately</span>
+<p>Most Python logging libraries are synchronous—they block your application while writing to disk or network. <strong>Both <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> and <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> use the same async background worker.</strong> Log calls enqueue immediately; sink writes happen in parallel worker tasks.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Your code          Background worker
+    │                     │
+log.info(&quot;msg&quot;) ──queue──→ │
+    │ (returns)           ↓
+    │               serialize → enrich → write to sink
+    ↓
+(continues)
 </pre></div>
 </div>
+<p>The difference between the two APIs is the calling convention, not the architecture:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Sync API - for sync code or when you don&#39;t want to await</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Request processed&quot;</span><span class="p">)</span>  <span class="c1"># Enqueues and returns</span>
+
+<span class="c1"># Async API - for async code with tighter event loop integration</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_async_logger</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">()</span>
+<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Request processed&quot;</span><span class="p">)</span>  <span class="c1"># Enqueues and returns</span>
+</pre></div>
+</div>
+<p><strong>In async contexts</strong>, both are non-blocking. <strong>In sync contexts</strong>, <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> may briefly wait (up to 50ms by default) for queue space before returning—still far faster than blocking on network I/O.</p>
 </section>
 <section id="backpressure-policies">
 <h3>2. Backpressure Policies<a class="headerlink" href="#backpressure-policies" title="Link to this heading"></a></h3>
