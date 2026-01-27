@@ -10,6 +10,7 @@ Practical usage patterns and configuration for fapilog.
 configuration
 builder-configuration
 environment-variables
+production-checklist
 using-logger
 context-enrichment
 rotating-file-sink
