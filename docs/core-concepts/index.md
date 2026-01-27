@@ -11,7 +11,6 @@ pipeline-architecture
 envelope
 context-binding
 batching-backpressure
-redaction
 sinks
 metrics
 diagnostics-resilience
@@ -91,7 +90,7 @@ Your log call returns immediately. Everything after the queue happens in backgro
 2. **[Envelope](envelope.md)** - How logs are structured for easy querying
 3. **[Context Binding](context-binding.md)** - Add request_id once, see it everywhere
 4. **[Batching & Backpressure](batching-backpressure.md)** - Control what happens during traffic spikes
-5. **[Redaction](redaction.md)** - Keep secrets out of logs automatically
+5. **[Redaction](../redaction/index.md)** - Keep secrets out of logs automatically
 6. **[Sinks](sinks.md)** - Send logs to stdout, files, CloudWatch, databases
 7. **[Metrics](metrics.md)** - Monitor queue health before problems hit
 8. **[Diagnostics & Resilience](diagnostics-resilience.md)** - How fapilog handles errors gracefully

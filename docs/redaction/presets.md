@@ -181,6 +181,7 @@ healthcare = get_presets_by_tag("healthcare")
 # ["HIPAA_PHI"]
 ```
 
+(complete-field-reference)=
 ## Complete Field Reference
 
 This section lists every field covered by each preset. Use Ctrl+F to search for specific field names.
