@@ -1,6 +1,6 @@
 # Redaction
 
-Mask sensitive data before it reaches sinks.
+Keep passwords, API keys, and other secrets out of your logs—automatically.
 
 ## Quick Start: Enable Full Redaction
 
@@ -16,13 +16,13 @@ logger.info("User login", password="secret123")  # password auto-redacted
 
 Without a preset, only URL credentials are stripped by default (e.g., `user:pass@host` becomes `***:***@host`).
 
-## Built-in redactors
+## What gets redacted
 
-| Redactor | What it masks | Default |
-|----------|---------------|---------|
-| **url-credentials** | `user:pass@` in URL strings | Yes |
-| **field-mask** | Configured fields (password, api_key, etc.) | Preset only |
-| **regex-mask** | Values matching sensitive patterns | Preset only |
+| What | Example | When |
+|------|---------|------|
+| **Passwords in URLs** | `https://user:secret@api.com` → `https://***:***@api.com` | Always (default) |
+| **Sensitive field names** | `password`, `api_key`, `token`, `secret`, `ssn`, `credit_card` | With `production`/`fastapi` preset |
+| **Patterns you define** | Custom regex for company-specific secrets | Manual configuration |
 
 ## Default behavior
 
@@ -99,10 +99,10 @@ export FAPILOG_CORE__REDACTION_MAX_DEPTH=8
 export FAPILOG_CORE__REDACTION_MAX_KEYS_SCANNED=5000
 ```
 
-## Usage notes
+## Important notes
 
-- Redactors run after enrichment, before sinks
-- Order is deterministic: field-mask → regex-mask → url-credentials
-- Disabling redactors allows sensitive fields to reach sinks unmasked
+- **Use a preset for production** - Without `production` or `fastapi` preset, only URL credentials are masked. Passwords and API keys in fields won't be redacted.
+- **Redaction happens before sinks** - Secrets are masked before logs leave your application, so they never reach CloudWatch, files, or any destination.
+- **Test your redaction** - Log a test event with sensitive fields and verify they're masked before deploying.
 
-See also: [plugins/redactors](../plugins/redactors.md) for implementation details.
+See also: [plugins/redactors](../plugins/redactors.md) for creating custom redactors.
