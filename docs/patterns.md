@@ -8,5 +8,4 @@ Reusable patterns for building sinks, processors, and enrichers.
 
 patterns/sdk-sinks
 patterns/http-sinks
-patterns/property-based-tests
 ```
