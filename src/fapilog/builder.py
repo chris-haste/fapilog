@@ -181,6 +181,9 @@ class LoggerBuilder:
     ) -> LoggerBuilder:
         """Configure redaction.
 
+        Fields and patterns are additive - calling multiple times merges values.
+        This allows combining presets with custom fields.
+
         Args:
             fields: Field names to redact (e.g., ["password", "ssn"])
             patterns: Regex patterns to redact (e.g., ["secret.*"])
@@ -191,12 +194,22 @@ class LoggerBuilder:
         if fields:
             if "field_mask" not in redactors:
                 redactors.append("field_mask")
-            redactor_config.setdefault("field_mask", {})["fields_to_mask"] = fields
+            existing = redactor_config.setdefault("field_mask", {}).setdefault(
+                "fields_to_mask", []
+            )
+            for field in fields:
+                if field not in existing:
+                    existing.append(field)
 
         if patterns:
             if "regex_mask" not in redactors:
                 redactors.append("regex_mask")
-            redactor_config.setdefault("regex_mask", {})["patterns"] = patterns
+            existing = redactor_config.setdefault("regex_mask", {}).setdefault(
+                "patterns", []
+            )
+            for pattern in patterns:
+                if pattern not in existing:
+                    existing.append(pattern)
 
         return self
 
@@ -876,6 +889,59 @@ class LoggerBuilder:
         core = self._config.setdefault("core", {})
         core["redaction_max_depth"] = max_depth
         core["redaction_max_keys_scanned"] = max_keys
+        return self
+
+    def with_redaction_preset(self, preset_name: str) -> LoggerBuilder:
+        """Apply a named redaction preset.
+
+        Presets are composable - calling multiple times merges fields.
+        Inheritance is resolved at config time (not runtime) for performance.
+        Custom fields from with_redaction() extend preset fields.
+
+        Args:
+            preset_name: Preset name (e.g., "GDPR_PII", "GDPR_PII_UK", "HIPAA_PHI")
+
+        Raises:
+            ValueError: If preset_name is not found.
+
+        Example:
+            >>> builder.with_redaction_preset("GDPR_PII")
+            >>> builder.with_redaction_preset("GDPR_PII_UK")  # Extends GDPR_PII
+            >>> builder.with_redaction_preset("GDPR_PII").with_redaction_preset("PCI_DSS")
+        """
+        from .redaction import resolve_preset_fields
+
+        # Resolve inheritance at config time (cached for performance)
+        fields, patterns = resolve_preset_fields(preset_name)
+
+        # Merge fields and patterns into existing config
+        redactors = self._config.setdefault("core", {}).setdefault("redactors", [])
+        redactor_config = self._config.setdefault("redactor_config", {})
+
+        # Enable field_mask if we have fields
+        if fields:
+            if "field_mask" not in redactors:
+                redactors.append("field_mask")
+            existing_fields = redactor_config.setdefault("field_mask", {}).setdefault(
+                "fields_to_mask", []
+            )
+            # Add with data. prefix for envelope structure
+            for field in fields:
+                prefixed = f"data.{field}"
+                if prefixed not in existing_fields:
+                    existing_fields.append(prefixed)
+
+        # Enable regex_mask if we have patterns
+        if patterns:
+            if "regex_mask" not in redactors:
+                redactors.append("regex_mask")
+            existing_patterns = redactor_config.setdefault("regex_mask", {}).setdefault(
+                "patterns", []
+            )
+            for pattern in patterns:
+                if pattern not in existing_patterns:
+                    existing_patterns.append(pattern)
+
         return self
 
     def configure_enricher(
