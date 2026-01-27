@@ -1,5 +1,15 @@
 # Redaction
 
+```{toctree}
+:maxdepth: 2
+:hidden:
+
+presets
+configuration
+behavior
+testing
+```
+
 Keep passwords, API keys, PII, and other sensitive data out of your logs.
 
 > **Disclaimer:** Redaction is provided as a best-effort mechanism to help protect sensitive data. It matches field names and patterns, not arbitrary field content. You are responsible for testing and verifying redaction meets your compliance requirements before production use. Fapilog and its maintainers accept no liability for data exposure resulting from misconfiguration, incomplete coverage, or reliance on redaction without adequate verification.
