@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="API Reference" href="api-reference/index.html" />
-    <link rel="prev" title="Exception logging in FastAPI with request_id + structured context" href="cookbook/exception-logging-request-context.html" />
+    <link rel="prev" title="Testing Redaction" href="redaction/testing.html" />
  
 
 
@@ -85,7 +85,6 @@
 <li class="toctree-l2"><a class="reference internal" href="user-guide/context-enrichment.html">Context Enrichment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/sink-routing.html">Sink routing by level</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user-guide/redactors.html">Redactors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/performance-tuning.html">Performance Tuning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/benchmarks.html">Performance Benchmarks</a></li>
@@ -94,13 +93,6 @@
 <li class="toctree-l2"><a class="reference internal" href="user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/testing-plugins.html">Testing Plugins</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/webhook-security.html">Webhook Security</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="redaction/index.html">Redaction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="redaction/presets.html">Redaction Presets</a></li>
-<li class="toctree-l2"><a class="reference internal" href="redaction/configuration.html">Redaction Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="redaction/behavior.html">Redaction Behavior</a></li>
-<li class="toctree-l2"><a class="reference internal" href="redaction/testing.html">Testing Redaction</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cookbook/index.html">Cookbook</a><ul>
@@ -118,20 +110,6 @@
 <li class="toctree-l2"><a class="reference internal" href="cookbook/exception-logging-request-context.html">Exception logging in FastAPI with request_id + structured context</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Enterprise Features</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api-reference/index.html">API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api-reference/top-level-functions.html">Top-Level Functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api-reference/builder.html">Builder API Reference</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api-reference/logger-methods.html">Logger Methods</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api-reference/context-binding.html">Context Binding</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api-reference/audit-trail.html">Audit Trail</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api-reference/configuration.html">Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api-reference/types.html">Types</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api-reference/plugins/index.html">Plugins</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api-reference/modules.html">API Modules</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples &amp; Recipes</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="examples/builder-configurations.html">Builder Configuration Examples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples/fastapi-logging.html">FastAPI Logging</a></li>
@@ -144,6 +122,27 @@
 <li class="toctree-l2"><a class="reference internal" href="examples/size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples/cloudwatch_logging/index.html">CloudWatch Logging (LocalStack)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples/cloud-sinks/index.html">Cloud Sink Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="redaction/index.html">Redaction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="redaction/presets.html">Redaction Presets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="redaction/configuration.html">Redaction Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="redaction/behavior.html">Redaction Behavior</a></li>
+<li class="toctree-l2"><a class="reference internal" href="redaction/testing.html">Testing Redaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Enterprise Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api-reference/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/top-level-functions.html">Top-Level Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/builder.html">Builder API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/logger-methods.html">Logger Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/audit-trail.html">Audit Trail</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/types.html">Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/plugins/index.html">Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference/modules.html">API Modules</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="plugins/index.html">Plugin Development</a><ul>
@@ -279,29 +278,37 @@
 <thead>
 <tr class="row-odd"><th class="head"><p>Framework</p></th>
 <th class="head"><p>Control areas this can help with</p></th>
+<th class="head"><p>Redaction Preset</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><strong>SOC2</strong></p></td>
 <td><p>Integrity checks, access logging, audit trails</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CREDENTIALS</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>HIPAA</strong></p></td>
 <td><p>PHI redaction, minimum necessary patterns, audit trails</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">HIPAA_PHI</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><strong>GDPR</strong></p></td>
 <td><p>PII redaction, data subject request support (application responsibility)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GDPR_PII</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>PCI-DSS</strong></p></td>
 <td><p>Access logging, audit trails (encryption and card data handling are your responsibility)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PCI_DSS</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><strong>ISO 27001</strong></p></td>
 <td><p>Security logging and integrity controls</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CREDENTIALS</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>SOX</strong></p></td>
 <td><p>Change/event logging with chain verification</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CREDENTIALS</span></code></p></td>
 </tr>
 </tbody>
 </table>
+<p>See <a class="reference internal" href="redaction/presets.html"><span class="std std-doc">Redaction Presets</span></a> for complete field lists covered by each preset.</p>
 </section>
 </section>
 <hr class="docutils" />
@@ -428,45 +435,65 @@
 </section>
 <section id="automatic-redaction">
 <h3>Automatic Redaction<a class="headerlink" href="#automatic-redaction" title="Link to this heading"></a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">url_credentials</span></code> redactor is enabled by default to scrub credentials from URLs. Additional redactors (<code class="docutils literal notranslate"><span class="pre">field_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code>) require explicit configuration or using a preset like <code class="docutils literal notranslate"><span class="pre">production</span></code> or <code class="docutils literal notranslate"><span class="pre">fastapi</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+<p>Fapilog provides compliance-focused redaction presets that automatically protect sensitive fields:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
 
-<span class="c1"># Default: only url_credentials redactor is enabled</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Connecting&quot;</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;https://user:secret@api.example.com/path&quot;</span><span class="p">)</span>
-<span class="c1"># Output: {&quot;url&quot;: &quot;https://api.example.com/path&quot;}  # credentials stripped</span>
+<span class="c1"># HIPAA: Protects PHI (18 identifier categories)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;HIPAA_PHI&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
 
-<span class="c1"># For field-based redaction, use a preset or explicit config</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>  <span class="c1"># enables all redactors</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User created&quot;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">&quot;secret123&quot;</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;sk-xxx&quot;</span><span class="p">)</span>
-<span class="c1"># Output: {&quot;password&quot;: &quot;***&quot;, &quot;api_key&quot;: &quot;***&quot;}</span>
+<span class="c1"># GDPR: Protects EU personal data</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;GDPR_PII&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+<span class="c1"># PCI-DSS: Protects cardholder data</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;PCI_DSS&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+<span class="c1"># Multiple regulations</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;HIPAA_PHI&quot;</span><span class="p">,</span> <span class="s2">&quot;PCI_DSS&quot;</span><span class="p">,</span> <span class="s2">&quot;CREDENTIALS&quot;</span><span class="p">])</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
 </pre></div>
 </div>
-<p><strong>Built-in Redactors:</strong></p>
+<p><strong>Compliance Presets:</strong></p>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p>Redactor</p></th>
+<tr class="row-odd"><th class="head"><p>Preset</p></th>
+<th class="head"><p>Regulation</p></th>
 <th class="head"><p>What It Protects</p></th>
-<th class="head"><p>Default</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">url-credentials</span></code></p></td>
-<td><p>Credentials in URLs (<code class="docutils literal notranslate"><span class="pre">user:pass&#64;host</span></code>)</p></td>
-<td><p>Enabled</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">HIPAA_PHI</span></code></p></td>
+<td><p>HIPAA</p></td>
+<td><p>MRN, SSN, DOB, contact info, 18 PHI identifiers</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">field-mask</span></code></p></td>
-<td><p>Named fields (password, secret, token, etc.)</p></td>
-<td><p>Requires preset or config</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">GDPR_PII</span></code></p></td>
+<td><p>GDPR</p></td>
+<td><p>Email, phone, name, IP, national IDs, 70+ fields</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">regex-mask</span></code></p></td>
-<td><p>Pattern-based detection (SSN, email, etc.)</p></td>
-<td><p>Requires preset or config</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">GDPR_PII_UK</span></code></p></td>
+<td><p>UK-GDPR</p></td>
+<td><p>All GDPR fields plus NHS number, NI number</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">PCI_DSS</span></code></p></td>
+<td><p>PCI-DSS</p></td>
+<td><p>Card numbers, CVV, expiry, cardholder name</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CCPA_PII</span></code></p></td>
+<td><p>CCPA</p></td>
+<td><p>California personal information</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CREDENTIALS</span></code></p></td>
+<td><p>N/A</p></td>
+<td><p>Passwords, API keys, tokens, secrets</p></td>
 </tr>
 </tbody>
 </table>
-<p>See <a class="reference internal" href="redaction/index.html"><span class="std std-doc">Redaction Documentation</span></a> for configuration details.</p>
+<p>See <a class="reference internal" href="redaction/presets.html"><span class="std std-doc">Redaction Presets</span></a> for complete field lists.</p>
+<blockquote>
+<div><p><strong>Important:</strong> Redaction matches field names, not field content. PII embedded in message strings is not redacted. See <a class="reference internal" href="cookbook/compliance-redaction.html"><span class="std std-doc">Compliance Redaction Cookbook</span></a> for what works and what doesn’t.</p>
+</div></blockquote>
 </section>
 </section>
 <hr class="docutils" />
@@ -615,23 +642,35 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">url_credentials</span></code> redactor</p></td>
 <td><p>Enabled by default</p></td>
 </tr>
-<tr class="row-odd"><td><p>PII/field redaction</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">field_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code> or explicit config</p></td>
+<tr class="row-odd"><td><p>HIPAA PHI redaction</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">HIPAA_PHI</span></code> preset</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_redaction(preset=&quot;HIPAA_PHI&quot;)</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>Access control</p></td>
+<tr class="row-even"><td><p>GDPR PII redaction</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GDPR_PII</span></code> preset</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_redaction(preset=&quot;GDPR_PII&quot;)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>PCI-DSS redaction</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PCI_DSS</span></code> preset</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_redaction(preset=&quot;PCI_DSS&quot;)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Credential redaction</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CREDENTIALS</span></code> preset</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_redaction(preset=&quot;CREDENTIALS&quot;)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Access control</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">AccessControlSettings</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">access_control.enabled=True</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>Retention policy</p></td>
+<tr class="row-even"><td><p>Retention policy</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">CompliancePolicy</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">retention_days=365</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>Security events</p></td>
+<tr class="row-odd"><td><p>Security events</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">AuditEventType</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">log_security_event()</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>Data classification</p></td>
+<tr class="row-even"><td><p>Data classification</p></td>
 <td><p>Event flags</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">contains_pii</span></code>, <code class="docutils literal notranslate"><span class="pre">data_classification</span></code></p></td>
 </tr>
@@ -642,8 +681,9 @@
 <section id="further-reading">
 <h2>Further Reading<a class="headerlink" href="#further-reading" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><a class="reference internal" href="redaction/index.html"><span class="std std-doc">Redaction</span></a> - PII/secret protection</p></li>
-<li><p><a class="reference internal" href="redaction/configuration.html"><span class="std std-doc">Redaction Configuration</span></a> - Redactor configuration</p></li>
+<li><p><a class="reference internal" href="redaction/presets.html"><span class="std std-doc">Redaction Presets</span></a> - Complete field lists for HIPAA, GDPR, PCI-DSS</p></li>
+<li><p><a class="reference internal" href="cookbook/compliance-redaction.html"><span class="std std-doc">Compliance Redaction Cookbook</span></a> - What works and what doesn’t</p></li>
+<li><p><a class="reference internal" href="redaction/configuration.html"><span class="std std-doc">Redaction Configuration</span></a> - Builder API and settings</p></li>
 <li><p><a class="reference internal" href="api-reference/configuration.html"><span class="std std-doc">API Reference: Configuration</span></a> - Settings reference</p></li>
 </ul>
 </section>
@@ -655,7 +695,7 @@
           
 <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer" style="position: relative;">
-        <a href="cookbook/exception-logging-request-context.html" class="btn btn-neutral float-left" title="Exception logging in FastAPI with request_id + structured context" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="redaction/testing.html" class="btn btn-neutral float-left" title="Testing Redaction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="api-reference/index.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
       <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 50%; margin-top: -0.5em;">
         <a href="https://fapilog.dev">www.fapilog.dev</a>

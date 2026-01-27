@@ -85,7 +85,6 @@
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/context-enrichment.html">Context Enrichment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/sink-routing.html">Sink routing by level</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/redactors.html">Redactors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/performance-tuning.html">Performance Tuning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/benchmarks.html">Performance Benchmarks</a></li>
@@ -94,13 +93,6 @@
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/testing-plugins.html">Testing Plugins</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/webhook-security.html">Webhook Security</a></li>
-</ul>
-</li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">Redaction</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="presets.html">Redaction Presets</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Redaction Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="behavior.html">Redaction Behavior</a></li>
-<li class="toctree-l2"><a class="reference internal" href="testing.html">Testing Redaction</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../cookbook/index.html">Cookbook</a><ul>
@@ -118,20 +110,6 @@
 <li class="toctree-l2"><a class="reference internal" href="../cookbook/exception-logging-request-context.html">Exception logging in FastAPI with request_id + structured context</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api-reference/index.html">API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../api-reference/top-level-functions.html">Top-Level Functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api-reference/builder.html">Builder API Reference</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api-reference/logger-methods.html">Logger Methods</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api-reference/context-binding.html">Context Binding</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api-reference/audit-trail.html">Audit Trail</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api-reference/configuration.html">Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api-reference/types.html">Types</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api-reference/plugins/index.html">Plugins</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api-reference/modules.html">API Modules</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples &amp; Recipes</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../examples/builder-configurations.html">Builder Configuration Examples</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/fastapi-logging.html">FastAPI Logging</a></li>
@@ -144,6 +122,27 @@
 <li class="toctree-l2"><a class="reference internal" href="../examples/size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/cloudwatch_logging/index.html">CloudWatch Logging (LocalStack)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/cloud-sinks/index.html">Cloud Sink Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Redaction</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="presets.html">Redaction Presets</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Redaction Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="behavior.html">Redaction Behavior</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing.html">Testing Redaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api-reference/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/top-level-functions.html">Top-Level Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/builder.html">Builder API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/logger-methods.html">Logger Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/audit-trail.html">Audit Trail</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/types.html">Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/plugins/index.html">Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/modules.html">API Modules</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugin Development</a><ul>
@@ -497,6 +496,53 @@
 <span class="p">)</span>
 </pre></div>
 </div>
+</section>
+<section id="regex-pattern-safety">
+<h2>Regex Pattern Safety<a class="headerlink" href="#regex-pattern-safety" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">regex-mask</span></code> redactor validates patterns at config time to prevent ReDoS (Regular Expression Denial of Service) attacks. Patterns with these constructs are rejected:</p>
+<ul class="simple">
+<li><p><strong>Nested quantifiers</strong>: <code class="docutils literal notranslate"><span class="pre">(a+)+</span></code>, <code class="docutils literal notranslate"><span class="pre">(a*)*</span></code>, <code class="docutils literal notranslate"><span class="pre">(a+)*</span></code></p></li>
+<li><p><strong>Alternation with quantifiers</strong>: <code class="docutils literal notranslate"><span class="pre">(a|aa)+</span></code>, <code class="docutils literal notranslate"><span class="pre">(foo|foobar)*</span></code></p></li>
+<li><p><strong>Wildcards in bounded repetition</strong>: <code class="docutils literal notranslate"><span class="pre">(.*a){10,}</span></code></p></li>
+</ul>
+<section id="safe-patterns">
+<h3>Safe Patterns<a class="headerlink" href="#safe-patterns" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># These are safe and accepted</span>
+<span class="n">patterns</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="sa">r</span><span class="s2">&quot;user\.email&quot;</span><span class="p">,</span>              <span class="c1"># Literal path</span>
+    <span class="sa">r</span><span class="s2">&quot;user\..*\.secret&quot;</span><span class="p">,</span>         <span class="c1"># Simple wildcard</span>
+    <span class="sa">r</span><span class="s2">&quot;request\.headers\.[^.]+&quot;</span><span class="p">,</span>  <span class="c1"># Character class</span>
+    <span class="sa">r</span><span class="s2">&quot;(password|secret|token)&quot;</span><span class="p">,</span>  <span class="c1"># Alternation without quantifier</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="patterns-to-avoid">
+<h3>Patterns to Avoid<a class="headerlink" href="#patterns-to-avoid" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># These are rejected by default</span>
+<span class="n">patterns</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="sa">r</span><span class="s2">&quot;(a+)+&quot;</span><span class="p">,</span>           <span class="c1"># Nested quantifiers - exponential backtracking</span>
+    <span class="sa">r</span><span class="s2">&quot;(a|aa)+&quot;</span><span class="p">,</span>         <span class="c1"># Overlapping alternation - exponential backtracking</span>
+    <span class="sa">r</span><span class="s2">&quot;(.*a){10,}&quot;</span><span class="p">,</span>      <span class="c1"># Wildcard in repetition - exponential backtracking</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="escape-hatch">
+<h3>Escape Hatch<a class="headerlink" href="#escape-hatch" title="Link to this heading"></a></h3>
+<p>If you understand the risks and need to use a pattern that triggers validation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.redaction</span><span class="w"> </span><span class="kn">import</span> <span class="n">RegexMaskConfig</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">RegexMaskConfig</span><span class="p">(</span>
+    <span class="n">patterns</span><span class="o">=</span><span class="p">[</span><span class="sa">r</span><span class="s2">&quot;(complex|pattern)+&quot;</span><span class="p">],</span>
+    <span class="n">allow_unsafe_patterns</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Bypasses ReDoS validation</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p><strong>Warning:</strong> Only use <code class="docutils literal notranslate"><span class="pre">allow_unsafe_patterns=True</span></code> if you’ve verified the pattern won’t cause catastrophic backtracking with your data.</p>
+</div></blockquote>
+</section>
 </section>
 <section id="related">
 <h2>Related<a class="headerlink" href="#related" title="Link to this heading"></a></h2>
