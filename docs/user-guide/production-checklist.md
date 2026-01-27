@@ -93,14 +93,23 @@ export FAPILOG_CORE__DROP_ON_FULL=true  # or false to wait
 - [ ] Verify shutdown handlers are installed (automatic with presets)
 
 ```python
-# Option 1: Context manager (recommended)
+# Option 1: Context manager (recommended for sync code)
 from fapilog import runtime
 
-with runtime(preset="production") as logger:
+with runtime() as logger:
     # application code
     pass  # Automatic drain on exit
 
-# Option 2: Manual drain
+# Option 2: Async context manager
+from fapilog import runtime_async
+
+async with runtime_async() as logger:
+    await logger.info("Processing...")
+    # Automatic drain on exit
+
+# Option 3: Manual drain
+logger = get_logger(preset="production")
+# ... application code ...
 await logger.drain()
 ```
 
