@@ -206,7 +206,7 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="plugin-development">
 <h1>Plugin Development<a class="headerlink" href="#plugin-development" title="Link to this heading"></a></h1>
-<p>Learn how to create and use plugins to extend fapilog’s capabilities.</p>
+<p>Extend fapilog to send logs anywhere, add context automatically, or mask custom secrets.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Plugin Development</span></p>
 <ul>
@@ -315,39 +315,39 @@
 </div>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
-<p>fapilog provides a comprehensive plugin system that allows you to:</p>
+<p>Plugins let you customize fapilog without forking:</p>
 <ul class="simple">
-<li><p><strong>Extend functionality</strong> with custom sinks, processors, enrichers, redactors, and filters</p></li>
-<li><p><strong>Customize behavior</strong> for your specific use cases</p></li>
-<li><p><strong>Integrate external systems</strong> through plugin interfaces</p></li>
-<li><p><strong>Maintain compatibility</strong> through versioned plugin contracts</p></li>
+<li><p><strong>Send logs anywhere</strong> - Build a sink for your internal system, a new cloud provider, or a message queue</p></li>
+<li><p><strong>Add context automatically</strong> - Enrich every log with deployment info, feature flags, or tenant IDs</p></li>
+<li><p><strong>Mask your secrets</strong> - Create redactors for proprietary data formats or company-specific PII</p></li>
+<li><p><strong>Control log volume</strong> - Filter out noise, sample high-frequency events, or rate-limit by key</p></li>
 </ul>
 </section>
 <section id="plugin-types">
 <h2>Plugin Types<a class="headerlink" href="#plugin-types" title="Link to this heading"></a></h2>
 <section id="sinks">
 <h3><a class="reference internal" href="sinks.html"><span class="std std-doc">Sinks</span></a><a class="headerlink" href="#sinks" title="Link to this heading"></a></h3>
-<p>Output destination management for logs and events.</p>
-</section>
-<section id="processors">
-<h3><a class="reference internal" href="processors.html"><span class="std std-doc">Processors</span></a><a class="headerlink" href="#processors" title="Link to this heading"></a></h3>
-<p>Transform serialized log data (compression, encryption, format conversion).</p>
+<p>Send logs where you need them—your database, a message queue, a custom API, or a cloud service fapilog doesn’t support yet.</p>
 </section>
 <section id="enrichers">
 <h3><a class="reference internal" href="enrichers.html"><span class="std std-doc">Enrichers</span></a><a class="headerlink" href="#enrichers" title="Link to this heading"></a></h3>
-<p>Data enrichment and augmentation.</p>
-</section>
-<section id="filters">
-<h3><a class="reference internal" href="filters.html"><span class="std std-doc">Filters</span></a><a class="headerlink" href="#filters" title="Link to this heading"></a></h3>
-<p>Drop or reshape events before enrichment and processing pipelines.</p>
+<p>Add context to every log automatically. Examples: deployment version, feature flags, tenant ID, or Kubernetes pod info.</p>
 </section>
 <section id="redactors">
 <h3><a class="reference internal" href="redactors.html"><span class="std std-doc">Redactors</span></a><a class="headerlink" href="#redactors" title="Link to this heading"></a></h3>
-<p>Data redaction and masking utilities.</p>
+<p>Mask sensitive data before it reaches your sinks. Create patterns for company-specific secrets, custom PII formats, or proprietary data.</p>
+</section>
+<section id="filters">
+<h3><a class="reference internal" href="filters.html"><span class="std std-doc">Filters</span></a><a class="headerlink" href="#filters" title="Link to this heading"></a></h3>
+<p>Control what gets logged. Drop debug logs in production, sample high-frequency events, or rate-limit noisy sources.</p>
+</section>
+<section id="processors">
+<h3><a class="reference internal" href="processors.html"><span class="std std-doc">Processors</span></a><a class="headerlink" href="#processors" title="Link to this heading"></a></h3>
+<p>Transform logs before they’re sent. Compress for cost savings, encrypt for compliance, or reformat for your aggregation tool.</p>
 </section>
 <section id="error-handling">
 <h3><a class="reference internal" href="error-handling.html"><span class="std std-doc">Error Handling</span></a><a class="headerlink" href="#error-handling" title="Link to this heading"></a></h3>
-<p>How to contain errors, emit diagnostics, and keep pipelines healthy.</p>
+<p>Handle plugin failures gracefully. Learn how to contain errors so a broken sink doesn’t crash your app.</p>
 </section>
 </section>
 <section id="getting-started">

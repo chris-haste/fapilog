@@ -207,7 +207,7 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="batching-backpressure">
 <h1>Batching &amp; Backpressure<a class="headerlink" href="#batching-backpressure" title="Link to this heading"></a></h1>
-<p>Control throughput and behavior under load with queue, batch, and backpressure settings.</p>
+<p>Control what happens when logs arrive faster than your sinks can handle them. You decide: drop logs to protect latency, or wait to guarantee delivery.</p>
 <section id="queue-and-batching">
 <h2>Queue and batching<a class="headerlink" href="#queue-and-batching" title="Link to this heading"></a></h2>
 <ul class="simple">
@@ -223,15 +223,30 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">core.drop_on_full</span></code> (env: <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__DROP_ON_FULL</span></code>): when True, drop after wait timeout; when False, keep waiting.</p></li>
 </ul>
 </section>
+<section id="when-to-tune">
+<h2>When to tune<a class="headerlink" href="#when-to-tune" title="Link to this heading"></a></h2>
+<p><strong>Favor throughput (never lose logs)</strong> if:</p>
+<ul class="simple">
+<li><p>You’re legally required to capture every log (PCI, HIPAA, SOC2)</p></li>
+<li><p>A traffic spike is acceptable as long as logs aren’t lost</p></li>
+<li><p>You have memory to spare for a larger queue</p></li>
+</ul>
+<p><strong>Favor low latency (protect response times)</strong> if:</p>
+<ul class="simple">
+<li><p>Your SLA is strict on request latency (e.g., &lt; 100ms p99)</p></li>
+<li><p>You can tolerate occasional log drops during extreme spikes</p></li>
+<li><p>Memory is constrained (edge deployments, serverless)</p></li>
+</ul>
+</section>
 <section id="tuning-examples">
 <h2>Tuning examples<a class="headerlink" href="#tuning-examples" title="Link to this heading"></a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Favor throughput, tolerate a bit more latency</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Favor throughput: never lose logs, tolerate brief latency during spikes</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__MAX_QUEUE_SIZE</span><span class="o">=</span><span class="m">20000</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__BATCH_MAX_SIZE</span><span class="o">=</span><span class="m">256</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__BATCH_TIMEOUT_SECONDS</span><span class="o">=</span><span class="m">0</span>.25
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__DROP_ON_FULL</span><span class="o">=</span><span class="nb">false</span>
 
-<span class="c1"># Favor low latency, bounded memory</span>
+<span class="c1"># Favor low latency: protect response times, accept occasional drops</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__MAX_QUEUE_SIZE</span><span class="o">=</span><span class="m">5000</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__BATCH_MAX_SIZE</span><span class="o">=</span><span class="m">64</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__BATCH_TIMEOUT_SECONDS</span><span class="o">=</span><span class="m">0</span>.1

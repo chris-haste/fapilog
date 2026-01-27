@@ -207,14 +207,15 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="context-binding">
 <h1>Context Binding<a class="headerlink" href="#context-binding" title="Link to this heading"></a></h1>
-<p>Attach request/task metadata to every log entry via a <code class="docutils literal notranslate"><span class="pre">ContextVar</span></code>.</p>
+<p>Add request_id, user_id, or any context once—it automatically appears in every log from that request. No need to pass context through your entire call stack.</p>
 <section id="how-it-works">
 <h2>How it works<a class="headerlink" href="#how-it-works" title="Link to this heading"></a></h2>
+<p>When you call <code class="docutils literal notranslate"><span class="pre">logger.bind(request_id=&quot;123&quot;,</span> <span class="pre">user_id=&quot;abc&quot;)</span></code>, that context automatically appears in every subsequent log from that request:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">logger.bind(key=value,</span> <span class="pre">...)</span></code> stores context in a <code class="docutils literal notranslate"><span class="pre">ContextVar</span></code> scoped to the current task/thread.</p></li>
-<li><p>Bound context is merged into each log call’s metadata.</p></li>
-<li><p>Child asyncio tasks inherit the parent context at creation time; each request should bind explicitly.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">logger.clear_context()</span></code> removes all bound values for the current task.</p></li>
+<li><p><strong>Bind once at the request boundary</strong> - typically in middleware or at the start of a handler</p></li>
+<li><p><strong>Every log includes it</strong> - no need to pass request_id as a parameter through 10 function calls</p></li>
+<li><p><strong>Each request gets its own context</strong> - one user’s logs won’t leak into another’s</p></li>
+<li><p><strong>Clear when done</strong> - <code class="docutils literal notranslate"><span class="pre">logger.clear_context()</span></code> removes bound values (optional, automatic with <code class="docutils literal notranslate"><span class="pre">runtime()</span></code>)</p></li>
 </ul>
 </section>
 <section id="sync-example">
@@ -246,12 +247,12 @@
 </pre></div>
 </div>
 </section>
-<section id="notes">
-<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading"></a></h2>
+<section id="tips">
+<h2>Tips<a class="headerlink" href="#tips" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Context is per-task; reuse the same logger instance within a request, and bind per request.</p></li>
-<li><p>Clearing context at request end prevents leakage across requests.</p></li>
-<li><p>You can toggle the built-in <code class="docutils literal notranslate"><span class="pre">context-vars</span></code> enricher if you need to disable automatic ContextVar capture.</p></li>
+<li><p><strong>Bind at the start of each request</strong> - In FastAPI, this happens automatically with <code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code>. In other frameworks, bind in your middleware.</p></li>
+<li><p><strong>Use <code class="docutils literal notranslate"><span class="pre">runtime()</span></code> or <code class="docutils literal notranslate"><span class="pre">runtime_async()</span></code></strong> - These context managers automatically clear context when the request ends, preventing leakage.</p></li>
+<li><p><strong>Common fields to bind</strong>: <code class="docutils literal notranslate"><span class="pre">request_id</span></code>, <code class="docutils literal notranslate"><span class="pre">user_id</span></code>, <code class="docutils literal notranslate"><span class="pre">tenant_id</span></code>, <code class="docutils literal notranslate"><span class="pre">trace_id</span></code>, <code class="docutils literal notranslate"><span class="pre">correlation_id</span></code></p></li>
 </ul>
 </section>
 </section>

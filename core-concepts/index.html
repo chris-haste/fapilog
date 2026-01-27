@@ -206,7 +206,7 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="core-concepts">
 <h1>Core Concepts<a class="headerlink" href="#core-concepts" title="Link to this heading"></a></h1>
-<p>Understand how fapilog works under the hood.</p>
+<p>Understand what fapilog does for you and how it keeps your app fast and reliable.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Core Concepts</span></p>
 <ul>
@@ -225,79 +225,85 @@
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
 <p>fapilog is built around a few core concepts that make it fast, reliable, and developer-friendly:</p>
 <ul class="simple">
-<li><p><strong>Pipeline Architecture</strong> - How messages flow through the system</p></li>
-<li><p><strong>Envelope</strong> - The standardized log message format</p></li>
-<li><p><strong>Context Binding</strong> - How context flows through your application</p></li>
-<li><p><strong>Batching &amp; Backpressure</strong> - Performance and resilience</p></li>
-<li><p><strong>Redaction</strong> - Security and compliance</p></li>
-<li><p><strong>Sinks</strong> - Where your logs go</p></li>
-<li><p><strong>Metrics</strong> - Observability and monitoring</p></li>
-<li><p><strong>Diagnostics &amp; Resilience</strong> - Error handling and recovery</p></li>
+<li><p><strong>Pipeline Architecture</strong> - Why your log calls return immediately while I/O happens in the background</p></li>
+<li><p><strong>Envelope</strong> - How logs are structured so they’re easy to query and alert on</p></li>
+<li><p><strong>Context Binding</strong> - How to add request_id once and see it in every log automatically</p></li>
+<li><p><strong>Batching &amp; Backpressure</strong> - What happens during traffic spikes (you choose: drop or wait)</p></li>
+<li><p><strong>Redaction</strong> - How secrets stay out of your logs without extra code</p></li>
+<li><p><strong>Sinks</strong> - Send logs anywhere—stdout, files, CloudWatch, databases</p></li>
+<li><p><strong>Metrics</strong> - See queue depth and dropped logs before problems hit production</p></li>
+<li><p><strong>Diagnostics &amp; Resilience</strong> - How fapilog recovers from errors without crashing your app</p></li>
 </ul>
 </section>
 <section id="key-principles">
 <h2>Key Principles<a class="headerlink" href="#key-principles" title="Link to this heading"></a></h2>
 <p>Fapilog isn’t a thin wrapper over existing logging libraries—it’s an async-first logging pipeline designed to keep your app responsive under slow or bursty log sinks, with backpressure policies, redaction, and first-class FastAPI integration built in.</p>
-<section id="async-first-design">
-<h3>1. Async-First Design<a class="headerlink" href="#async-first-design" title="Link to this heading"></a></h3>
-<p>Everything in fapilog is async by default. This means:</p>
+<section id="your-app-stays-fast">
+<h3>1. Your App Stays Fast<a class="headerlink" href="#your-app-stays-fast" title="Link to this heading"></a></h3>
+<p>Log calls return immediately—they never wait for disk or network I/O:</p>
 <ul class="simple">
-<li><p>Logging never blocks your application</p></li>
-<li><p>High throughput with minimal resource usage</p></li>
-<li><p>Natural fit for modern Python applications</p></li>
+<li><p>A slow CloudWatch API won’t slow down your API responses</p></li>
+<li><p>Traffic spikes don’t cause thread stalls</p></li>
+<li><p>Works the same whether you use <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> or <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code></p></li>
 </ul>
 </section>
-<section id="zero-copy-processing">
-<h3>2. Zero-Copy Processing<a class="headerlink" href="#zero-copy-processing" title="Link to this heading"></a></h3>
-<p>Messages flow through the system without unnecessary copying:</p>
+<section id="memory-efficient-by-design">
+<h3>2. Memory-Efficient by Design<a class="headerlink" href="#memory-efficient-by-design" title="Link to this heading"></a></h3>
+<p>Fapilog processes logs without creating unnecessary copies:</p>
 <ul class="simple">
-<li><p>Memory-efficient processing</p></li>
-<li><p>Better performance under load</p></li>
-<li><p>Reduced garbage collection pressure</p></li>
+<li><p>Your app uses less memory per log entry</p></li>
+<li><p>High-volume logging won’t trigger GC pauses that hurt response times</p></li>
+<li><p>You can log more without budgeting extra RAM</p></li>
 </ul>
 </section>
-<section id="structured-by-default">
-<h3>3. Structured by Default<a class="headerlink" href="#structured-by-default" title="Link to this heading"></a></h3>
-<p>All logs are structured data:</p>
+<section id="logs-you-can-actually-query">
+<h3>3. Logs You Can Actually Query<a class="headerlink" href="#logs-you-can-actually-query" title="Link to this heading"></a></h3>
+<p>All logs are structured JSON by default:</p>
 <ul class="simple">
-<li><p>Machine-readable JSON output</p></li>
-<li><p>Easy integration with log aggregation systems</p></li>
-<li><p>Consistent format across all outputs</p></li>
+<li><p>Filter by request_id, user_id, or any field in your log aggregator</p></li>
+<li><p>Build dashboards and alerts without parsing text</p></li>
+<li><p>Same format everywhere—stdout, files, cloud sinks</p></li>
 </ul>
 </section>
-<section id="plugin-architecture">
-<h3>4. Plugin Architecture<a class="headerlink" href="#plugin-architecture" title="Link to this heading"></a></h3>
-<p>Extensible through plugins:</p>
+<section id="extend-without-forking">
+<h3>4. Extend Without Forking<a class="headerlink" href="#extend-without-forking" title="Link to this heading"></a></h3>
+<p>Add functionality through plugins:</p>
 <ul class="simple">
-<li><p>Custom sinks, processors, and enrichers</p></li>
-<li><p>Easy integration with existing systems</p></li>
-<li><p>Community-driven ecosystem</p></li>
+<li><p>Send logs to any destination with custom sinks</p></li>
+<li><p>Add context automatically with enrichers</p></li>
+<li><p>Mask sensitive data with redactors</p></li>
 </ul>
 </section>
 </section>
 <section id="architecture-overview">
 <h2>Architecture Overview<a class="headerlink" href="#architecture-overview" title="Link to this heading"></a></h2>
+<p>Your log call returns immediately. Everything after the queue happens in background workers:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
 │ Application │───▶│   Context   │───▶│ Enrichers   │───▶│ Redactors   │
+│             │    │ (request_id │    │ (add host,  │    │ (mask       │
+│ log.info()  │    │  auto-added)│    │  version)   │    │  secrets)   │
 └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
-                                                              │
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐        │
-│    Sinks    │◀───│    Queue    │◀───│ Processors  │◀───────┘
-└─────────────┘    └─────────────┘    └─────────────┘
+      ↑                                                        │
+   Returns                                                     ↓
+  immediately    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+                 │    Sinks    │◀───│    Queue    │◀───│ Processors  │
+                 │ (CloudWatch,│    │ (buffer for │    │ (format,    │
+                 │  stdout...) │    │  slow sinks)│    │  compress)  │
+                 └─────────────┘    └─────────────┘    └─────────────┘
 </pre></div>
 </div>
 </section>
 <section id="what-youll-learn">
 <h2>What You’ll Learn<a class="headerlink" href="#what-youll-learn" title="Link to this heading"></a></h2>
 <ol class="arabic simple">
-<li><p><strong><a class="reference internal" href="pipeline-architecture.html"><span class="std std-doc">Pipeline Architecture</span></a></strong> - How messages flow through the system</p></li>
-<li><p><strong><a class="reference internal" href="envelope.html"><span class="std std-doc">Envelope</span></a></strong> - The standardized log message format</p></li>
-<li><p><strong><a class="reference internal" href="context-binding.html"><span class="std std-doc">Context Binding</span></a></strong> - How context flows through your application</p></li>
-<li><p><strong><a class="reference internal" href="batching-backpressure.html"><span class="std std-doc">Batching &amp; Backpressure</span></a></strong> - Performance and resilience</p></li>
-<li><p><strong><a class="reference internal" href="redaction.html"><span class="std std-doc">Redaction</span></a></strong> - Security and compliance</p></li>
-<li><p><strong><a class="reference internal" href="sinks.html"><span class="std std-doc">Sinks</span></a></strong> - Where your logs go</p></li>
-<li><p><strong><a class="reference internal" href="metrics.html"><span class="std std-doc">Metrics</span></a></strong> - Observability and monitoring</p></li>
-<li><p><strong><a class="reference internal" href="diagnostics-resilience.html"><span class="std std-doc">Diagnostics &amp; Resilience</span></a></strong> - Error handling and recovery</p></li>
+<li><p><strong><a class="reference internal" href="pipeline-architecture.html"><span class="std std-doc">Pipeline Architecture</span></a></strong> - Why log calls never block your app</p></li>
+<li><p><strong><a class="reference internal" href="envelope.html"><span class="std std-doc">Envelope</span></a></strong> - How logs are structured for easy querying</p></li>
+<li><p><strong><a class="reference internal" href="context-binding.html"><span class="std std-doc">Context Binding</span></a></strong> - Add request_id once, see it everywhere</p></li>
+<li><p><strong><a class="reference internal" href="batching-backpressure.html"><span class="std std-doc">Batching &amp; Backpressure</span></a></strong> - Control what happens during traffic spikes</p></li>
+<li><p><strong><a class="reference internal" href="redaction.html"><span class="std std-doc">Redaction</span></a></strong> - Keep secrets out of logs automatically</p></li>
+<li><p><strong><a class="reference internal" href="sinks.html"><span class="std std-doc">Sinks</span></a></strong> - Send logs to stdout, files, CloudWatch, databases</p></li>
+<li><p><strong><a class="reference internal" href="metrics.html"><span class="std std-doc">Metrics</span></a></strong> - Monitor queue health before problems hit</p></li>
+<li><p><strong><a class="reference internal" href="diagnostics-resilience.html"><span class="std std-doc">Diagnostics &amp; Resilience</span></a></strong> - How fapilog handles errors gracefully</p></li>
 </ol>
 </section>
 <section id="next-steps">

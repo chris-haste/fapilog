@@ -207,7 +207,7 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="redaction">
 <h1>Redaction<a class="headerlink" href="#redaction" title="Link to this heading"></a></h1>
-<p>Mask sensitive data before it reaches sinks.</p>
+<p>Keep passwords, API keys, and other secrets out of your logs—automatically.</p>
 <section id="quick-start-enable-full-redaction">
 <h2>Quick Start: Enable Full Redaction<a class="headerlink" href="#quick-start-enable-full-redaction" title="Link to this heading"></a></h2>
 <p>Use the <code class="docutils literal notranslate"><span class="pre">production</span></code> or <code class="docutils literal notranslate"><span class="pre">fastapi</span></code> preset for automatic redaction of passwords, API keys, tokens, and other sensitive fields:</p>
@@ -220,27 +220,27 @@
 </div>
 <p>Without a preset, only URL credentials are stripped by default (e.g., <code class="docutils literal notranslate"><span class="pre">user:pass&#64;host</span></code> becomes <code class="docutils literal notranslate"><span class="pre">***:***&#64;host</span></code>).</p>
 </section>
-<section id="built-in-redactors">
-<h2>Built-in redactors<a class="headerlink" href="#built-in-redactors" title="Link to this heading"></a></h2>
+<section id="what-gets-redacted">
+<h2>What gets redacted<a class="headerlink" href="#what-gets-redacted" title="Link to this heading"></a></h2>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p>Redactor</p></th>
-<th class="head"><p>What it masks</p></th>
-<th class="head"><p>Default</p></th>
+<tr class="row-odd"><th class="head"><p>What</p></th>
+<th class="head"><p>Example</p></th>
+<th class="head"><p>When</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><strong>url-credentials</strong></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">user:pass&#64;</span></code> in URL strings</p></td>
-<td><p>Yes</p></td>
+<tr class="row-even"><td><p><strong>Passwords in URLs</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">https://user:secret&#64;api.com</span></code> → <code class="docutils literal notranslate"><span class="pre">https://***:***&#64;api.com</span></code></p></td>
+<td><p>Always (default)</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>field-mask</strong></p></td>
-<td><p>Configured fields (password, api_key, etc.)</p></td>
-<td><p>Preset only</p></td>
+<tr class="row-odd"><td><p><strong>Sensitive field names</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">password</span></code>, <code class="docutils literal notranslate"><span class="pre">api_key</span></code>, <code class="docutils literal notranslate"><span class="pre">token</span></code>, <code class="docutils literal notranslate"><span class="pre">secret</span></code>, <code class="docutils literal notranslate"><span class="pre">ssn</span></code>, <code class="docutils literal notranslate"><span class="pre">credit_card</span></code></p></td>
+<td><p>With <code class="docutils literal notranslate"><span class="pre">production</span></code>/<code class="docutils literal notranslate"><span class="pre">fastapi</span></code> preset</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>regex-mask</strong></p></td>
-<td><p>Values matching sensitive patterns</p></td>
-<td><p>Preset only</p></td>
+<tr class="row-even"><td><p><strong>Patterns you define</strong></p></td>
+<td><p>Custom regex for company-specific secrets</p></td>
+<td><p>Manual configuration</p></td>
 </tr>
 </tbody>
 </table>
@@ -318,14 +318,14 @@
 </pre></div>
 </div>
 </section>
-<section id="usage-notes">
-<h2>Usage notes<a class="headerlink" href="#usage-notes" title="Link to this heading"></a></h2>
+<section id="important-notes">
+<h2>Important notes<a class="headerlink" href="#important-notes" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Redactors run after enrichment, before sinks</p></li>
-<li><p>Order is deterministic: field-mask → regex-mask → url-credentials</p></li>
-<li><p>Disabling redactors allows sensitive fields to reach sinks unmasked</p></li>
+<li><p><strong>Use a preset for production</strong> - Without <code class="docutils literal notranslate"><span class="pre">production</span></code> or <code class="docutils literal notranslate"><span class="pre">fastapi</span></code> preset, only URL credentials are masked. Passwords and API keys in fields won’t be redacted.</p></li>
+<li><p><strong>Redaction happens before sinks</strong> - Secrets are masked before logs leave your application, so they never reach CloudWatch, files, or any destination.</p></li>
+<li><p><strong>Test your redaction</strong> - Log a test event with sensitive fields and verify they’re masked before deploying.</p></li>
 </ul>
-<p>See also: <a class="reference internal" href="../plugins/redactors.html"><span class="std std-doc">plugins/redactors</span></a> for implementation details.</p>
+<p>See also: <a class="reference internal" href="../plugins/redactors.html"><span class="std std-doc">plugins/redactors</span></a> for creating custom redactors.</p>
 </section>
 </section>
 
