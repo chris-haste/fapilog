@@ -156,6 +156,7 @@ class LoggerWorker:
         emit_processor_diagnostics: bool = False,
         counters: dict[str, int],
         redaction_fail_mode: Literal["open", "closed", "warn"] = "open",
+        enqueue_event: asyncio.Event | None = None,
     ) -> None:
         self._queue = queue
         self._batch_max_size = batch_max_size
@@ -179,6 +180,7 @@ class LoggerWorker:
         self._emit_processor_diagnostics = emit_processor_diagnostics
         self._counters = counters
         self._redaction_fail_mode = redaction_fail_mode
+        self._enqueue_event = enqueue_event
 
     async def run(self, *, in_thread_mode: bool = False) -> None:
         batch: list[dict[str, Any]] = []
@@ -224,7 +226,28 @@ class LoggerWorker:
                     next_flush_deadline = None
                     continue
 
-                await asyncio.sleep(0.001)
+                # Wait for enqueue signal or batch timeout
+                if self._enqueue_event is not None:
+                    timeout: float | None = None
+                    if next_flush_deadline is not None:
+                        timeout = max(0.0, next_flush_deadline - now)
+                    elif batch:
+                        timeout = self._batch_timeout_seconds
+                    else:
+                        # No batch pending, wait indefinitely for enqueue
+                        timeout = None
+
+                    try:
+                        await asyncio.wait_for(
+                            self._enqueue_event.wait(),
+                            timeout=timeout,
+                        )
+                        self._enqueue_event.clear()
+                    except asyncio.TimeoutError:
+                        pass  # Timeout expired, loop to check batch deadline
+                else:
+                    # Fallback to polling for backwards compatibility
+                    await asyncio.sleep(0.001)
         except asyncio.CancelledError:
             return
         except Exception as exc:  # pragma: no cover - defensive catch

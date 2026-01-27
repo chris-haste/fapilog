@@ -4,9 +4,15 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+### Changed
+
+- **Production preset disables Postgres auto-DDL:** The `production` preset now sets `create_table=False` for Postgres sink configuration, requiring explicit table provisioning via migrations. This prevents unexpected DDL execution in regulated environments (Story 10.32).
+- **Worker event-based wakeup:** The background worker loop now uses `asyncio.Event` signaling instead of fixed 1ms polling when an enqueue event is provided, reducing CPU wakeups when the queue is empty (Story 10.32).
+
 ### Fixed
 
 - **Silent data loss in `write_serialized`:** Fixed correctness issue where HTTP, Webhook, Loki, CloudWatch, and PostgreSQL sinks silently replaced log data with placeholder values (e.g., `{"message": "fallback"}`) when deserialization failed. All sinks now raise `SinkWriteError` with diagnostics, enabling proper fallback and circuit breaker handling (Story 4.53).
+- **Plugin metadata version default:** Changed `create_plugin_metadata()` default `min_fapilog_version` from `"3.0.0"` to `"0.1.0"`. The previous default was incorrect for a 0.x project and caused compatibility check failures for plugin authors (Story 10.32).
 
 ### Documentation
 

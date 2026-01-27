@@ -59,7 +59,15 @@ class PostgresSinkConfig(BaseModel):
     # Table settings
     table_name: str = Field(default="logs")
     schema_name: str = Field(default="public")
-    create_table: bool = Field(default=True)
+    create_table: bool = Field(
+        default=True,
+        description=(
+            "Auto-create table and indexes at startup. WARNING: In production "
+            "environments with restricted permissions or change management policies, "
+            "set to False and provision tables via migrations. The 'production' preset "
+            "sets this to False automatically."
+        ),
+    )
 
     # Connection pool settings
     min_pool_size: int = Field(default=2, ge=1)

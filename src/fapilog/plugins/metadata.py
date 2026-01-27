@@ -201,6 +201,6 @@ def create_plugin_metadata(
         entry_point=entry_point,
         description=description,
         author=author,
-        compatibility=PluginCompatibility(min_fapilog_version="3.0.0"),
+        compatibility=PluginCompatibility(min_fapilog_version="0.1.0"),
         **kwargs,
     )
