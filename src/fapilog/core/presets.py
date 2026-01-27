@@ -40,7 +40,10 @@ PRESETS: dict[str, dict[str, Any]] = {
                 "max_bytes": 52_428_800,
                 "max_files": 10,
                 "compress_rotated": True,
-            }
+            },
+            "postgres": {
+                "create_table": False,  # Require explicit table provisioning in production
+            },
         },
         "enricher_config": {
             "runtime_info": {},

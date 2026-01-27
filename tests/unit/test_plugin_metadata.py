@@ -433,7 +433,21 @@ class TestCreatePluginMetadata:
         assert metadata.entry_point == "my_plugin.main"
         assert metadata.description == ""
         assert metadata.author == ""
-        assert metadata.compatibility.min_fapilog_version == "3.0.0"
+
+    def test_create_uses_reasonable_version_default(self) -> None:
+        """Default min_fapilog_version is 0.1.0, not 3.0.0.
+
+        Story 10.32 AC4: The project is at version 0.x, so defaulting to 3.0.0
+        is incorrect and will cause compatibility check failures for plugin authors.
+        """
+        metadata = create_plugin_metadata(
+            name="test",
+            version="1.0.0",
+            plugin_type="sink",
+            entry_point="test:TestSink",
+        )
+        assert metadata.compatibility.min_fapilog_version != "3.0.0"
+        assert metadata.compatibility.min_fapilog_version == "0.1.0"
 
     def test_create_with_optional_fields(self) -> None:
         """Test creating metadata with optional fields."""

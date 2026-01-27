@@ -67,6 +67,17 @@ class TestPresetDefinitions:
         config = get_preset("production")
         assert config["core"]["sinks"] == ["stdout_json", "rotating_file"]
 
+    def test_production_preset_disables_postgres_create_table(self):
+        """Production preset disables Postgres auto table creation.
+
+        Story 10.32 AC2: In regulated environments, DDL execution at runtime
+        may violate change management policies. Production preset sets
+        create_table=False to require explicit table provisioning.
+        """
+        config = get_preset("production")
+        postgres_config = config.get("sink_config", {}).get("postgres", {})
+        assert postgres_config.get("create_table") is False
+
     def test_fastapi_preset_has_info_log_level(self):
         """FastAPI preset sets log level to INFO."""
         config = get_preset("fastapi")
