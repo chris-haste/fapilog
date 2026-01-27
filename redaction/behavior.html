@@ -1,0 +1,505 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redaction Behavior &mdash; fapilog latest documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=30646c52"></script>
+      <script src="../_static/custom.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Testing Redaction" href="testing.html" />
+    <link rel="prev" title="Redaction Configuration" href="configuration.html" />
+ 
+
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/redaction/behavior.html" />
+<meta name="robots" content="noindex, follow" />
+
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            fapilog
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/quickstart.html">Quickstart Tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/hello-world.html">Hello World Walkthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../why-fapilog.html">Why Fapilog?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../comparisons.html">Python Logging Library Comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core-concepts/index.html">Core Concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/pipeline-architecture.html">Pipeline Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/envelope.html">Envelope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/batching-backpressure.html">Batching &amp; Backpressure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/metrics.html">Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html">Diagnostics Resilience</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html#id1">Diagnostics &amp; Resilience</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide/index.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/builder-configuration.html">Configuring Fapilog with the Builder API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/settings-to-builder-migration.html">Migrating from Settings to Builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/environment-variables.html">Environment Variable Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/using-logger.html">Using the Logger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/context-enrichment.html">Context Enrichment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/sink-routing.html">Sink routing by level</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/performance-tuning.html">Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/benchmarks.html">Performance Benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/integration-guide.html">Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/fastapi.html">FastAPI / ASGI Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/testing-plugins.html">Testing Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/webhook-security.html">Webhook Security</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Redaction</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="presets.html">Redaction Presets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Redaction Configuration</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Redaction Behavior</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing.html">Testing Redaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../cookbook/index.html">Cookbook</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/fastapi-json-logging.html">FastAPI JSON logging to stdout (Uvicorn access logs included)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/fastapi-request-id-logging.html">FastAPI request_id logging (correlation ID middleware, concurrency-safe)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/django-structured-logging.html">Django Structured JSON Logging with Correlation IDs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/non-blocking-async-logging.html">Non-blocking logging in FastAPI (protect latency under slow sinks)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/dev-prod-logging-config.html">One FastAPI logging config for dev + prod (Uvicorn/Gunicorn)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/redacting-secrets-pii.html">Redacting secrets and PII in FastAPI logs (Authorization, tokens, fields)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/compliance-redaction.html">Compliance Redaction: What Works and What Doesn’t</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/safe-request-response-logging.html">Logging request/response bodies without hanging (safe patterns)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/skip-noisy-endpoints.html">Skipping health/metrics endpoints (noise reduction)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/log-sampling-rate-limiting.html">Log sampling and rate limiting for FastAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/graceful-shutdown-flush.html">Graceful shutdown &amp; flushing logs (don’t lose logs on deploy)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/exception-logging-request-context.html">Exception logging in FastAPI with request_id + structured context</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api-reference/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/top-level-functions.html">Top-Level Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/builder.html">Builder API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/logger-methods.html">Logger Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/audit-trail.html">Audit Trail</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/types.html">Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/plugins/index.html">Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/modules.html">API Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples &amp; Recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/builder-configurations.html">Builder Configuration Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/fastapi-logging.html">FastAPI Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cli-tools.html">Logging in Scripts/CLIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/redacting-secrets.html">Redacting Secrets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/structured-error-logging.html">Structured Error Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/kubernetes-file-sink.html">Kubernetes File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/prometheus-metrics.html">Prometheus Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloudwatch_logging/index.html">CloudWatch Logging (LocalStack)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloud-sinks/index.html">Cloud Sink Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugin Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/authoring.html">Authoring Fapilog Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/enrichers.html">Enrichers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/filters.html">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/processors.html">Processors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/testing.html">Plugin Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/configuration.html">Plugin Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/health-checks.html">Plugin Health Checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/error-handling.html">Plugin Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../patterns.html">Integration Patterns</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting/index.html">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/logs-dropped-under-load.html">Logs Dropped Under Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/destination-size-limits.html">Logs Rejected by Destination Size Limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/context-values-missing.html">Context Values Missing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/file-sink-not-rotating.html">File Sink Not Rotating</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/serialization-errors.html">Serialization Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/cloudwatch-sink.html">CloudWatch Sink Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/loki-sink.html">Loki Sink Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices.html">Appendices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../env-vars.html">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../settings-guide.html">Settings Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-guide.html">Schema Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-migration-v1.0-to-v1.1.html">Schema Migration Guide: v1.0 to v1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugin-guide.html">Plugin Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quality-signals.html">Quality Signals</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">fapilog</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Redaction</a></li>
+      <li class="breadcrumb-item active">Redaction Behavior</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/redaction/behavior.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="redaction-behavior">
+<h1>Redaction Behavior<a class="headerlink" href="#redaction-behavior" title="Link to this heading"></a></h1>
+<p>This page documents exactly what fapilog redacts, how the pipeline works, and known limitations.</p>
+<blockquote>
+<div><p><strong>Disclaimer:</strong> Redaction is provided as a best-effort mechanism to help protect sensitive data. It matches field names and patterns, not arbitrary field content. You are responsible for testing and verifying redaction meets your compliance requirements before production use. Fapilog and its maintainers accept no liability for data exposure.</p>
+</div></blockquote>
+<section id="what-gets-redacted">
+<h2>What Gets Redacted<a class="headerlink" href="#what-gets-redacted" title="Link to this heading"></a></h2>
+<section id="field-mask-redactor">
+<h3>Field Mask Redactor<a class="headerlink" href="#field-mask-redactor" title="Link to this heading"></a></h3>
+<p>Masks specific field paths under <code class="docutils literal notranslate"><span class="pre">data.*</span></code>. With production/fastapi/serverless presets, the <code class="docutils literal notranslate"><span class="pre">CREDENTIALS</span></code> preset fields are masked:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field Pattern</p></th>
+<th class="head"><p>Examples</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Passwords</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">data.password</span></code>, <code class="docutils literal notranslate"><span class="pre">data.passwd</span></code>, <code class="docutils literal notranslate"><span class="pre">data.pwd</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Secrets</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">data.secret</span></code>, <code class="docutils literal notranslate"><span class="pre">data.api_secret</span></code>, <code class="docutils literal notranslate"><span class="pre">data.client_secret</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Tokens</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">data.token</span></code>, <code class="docutils literal notranslate"><span class="pre">data.access_token</span></code>, <code class="docutils literal notranslate"><span class="pre">data.refresh_token</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>API Keys</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">data.api_key</span></code>, <code class="docutils literal notranslate"><span class="pre">data.apikey</span></code>, <code class="docutils literal notranslate"><span class="pre">data.api_token</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Private Keys</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">data.private_key</span></code>, <code class="docutils literal notranslate"><span class="pre">data.secret_key</span></code>, <code class="docutils literal notranslate"><span class="pre">data.signing_key</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Auth Headers</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">data.authorization</span></code>, <code class="docutils literal notranslate"><span class="pre">data.auth_header</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Sessions</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">data.session_id</span></code>, <code class="docutils literal notranslate"><span class="pre">data.session_token</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>OTP Codes</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">data.otp</span></code>, <code class="docutils literal notranslate"><span class="pre">data.mfa_code</span></code>, <code class="docutils literal notranslate"><span class="pre">data.verification_code</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Input</span>
+<span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;hunter2&quot;</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="s2">&quot;alice&quot;</span><span class="p">}}</span>
+
+<span class="c1"># Output</span>
+<span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;***&quot;</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="s2">&quot;alice&quot;</span><span class="p">}}</span>
+</pre></div>
+</div>
+</section>
+<section id="regex-mask-redactor">
+<h3>Regex Mask Redactor<a class="headerlink" href="#regex-mask-redactor" title="Link to this heading"></a></h3>
+<p>Matches any field path (at any nesting level) containing sensitive keywords:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Pattern</p></th>
+<th class="head"><p>Matches</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">.*password.*</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">user.password</span></code>, <code class="docutils literal notranslate"><span class="pre">auth.password_hash</span></code>, etc.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">.*passwd.*</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">old_passwd</span></code>, <code class="docutils literal notranslate"><span class="pre">metadata.passwd</span></code>, etc.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">.*secret.*</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">client_secret</span></code>, <code class="docutils literal notranslate"><span class="pre">secret_key</span></code>, etc.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">.*token.*</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">access_token</span></code>, <code class="docutils literal notranslate"><span class="pre">refresh_token</span></code>, etc.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">.*api.?key.*</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">api_key</span></code>, <code class="docutils literal notranslate"><span class="pre">apikey</span></code>, <code class="docutils literal notranslate"><span class="pre">api-key</span></code>, etc.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">.*private.?key.*</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">private_key</span></code>, <code class="docutils literal notranslate"><span class="pre">privatekey</span></code>, etc.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">.*auth.*</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">authorization</span></code>, <code class="docutils literal notranslate"><span class="pre">auth_header</span></code>, etc.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">.*otp.*</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">otp</span></code>, <code class="docutils literal notranslate"><span class="pre">totp_code</span></code>, etc.</p></td>
+</tr>
+</tbody>
+</table>
+<p>All patterns are case-insensitive.</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Input (field path: request.body.user_password)</span>
+<span class="p">{</span><span class="s2">&quot;request&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;user_password&quot;</span><span class="p">:</span> <span class="s2">&quot;secret123&quot;</span><span class="p">}}}</span>
+
+<span class="c1"># Output</span>
+<span class="p">{</span><span class="s2">&quot;request&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;user_password&quot;</span><span class="p">:</span> <span class="s2">&quot;***&quot;</span><span class="p">}}}</span>
+</pre></div>
+</div>
+</section>
+<section id="url-credentials-redactor">
+<h3>URL Credentials Redactor<a class="headerlink" href="#url-credentials-redactor" title="Link to this heading"></a></h3>
+<p>Strips userinfo (username:password) from URLs in string values:</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Input</span>
+<span class="p">{</span><span class="s2">&quot;endpoint&quot;</span><span class="p">:</span> <span class="s2">&quot;https://user:pass@api.example.com/v1&quot;</span><span class="p">}</span>
+
+<span class="c1"># Output</span>
+<span class="p">{</span><span class="s2">&quot;endpoint&quot;</span><span class="p">:</span> <span class="s2">&quot;https://***:***@api.example.com/v1&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="what-does-not-get-redacted">
+<h2>What Does NOT Get Redacted<a class="headerlink" href="#what-does-not-get-redacted" title="Link to this heading"></a></h2>
+<section id="pii-in-message-strings">
+<h3>PII in Message Strings<a class="headerlink" href="#pii-in-message-strings" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ❌ NOT redacted - PII in message</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;User email: </span><span class="si">{</span><span class="n">email</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="c1"># Output: {&quot;message&quot;: &quot;User email: john@example.com&quot;}</span>
+
+<span class="c1"># ✅ Redacted - PII in named field</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User&quot;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="n">email</span><span class="p">)</span>
+<span class="c1"># Output: {&quot;data&quot;: {&quot;email&quot;: &quot;***&quot;}}</span>
+</pre></div>
+</div>
+</section>
+<section id="arbitrarily-named-fields">
+<h3>Arbitrarily-Named Fields<a class="headerlink" href="#arbitrarily-named-fields" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ❌ NOT redacted - field name doesn&#39;t match</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Contact&quot;</span><span class="p">,</span> <span class="n">customer_contact</span><span class="o">=</span><span class="s2">&quot;john@example.com&quot;</span><span class="p">)</span>
+<span class="c1"># Output: {&quot;data&quot;: {&quot;customer_contact&quot;: &quot;john@example.com&quot;}}</span>
+
+<span class="c1"># ✅ Redacted - recognized field name</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Contact&quot;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="s2">&quot;john@example.com&quot;</span><span class="p">)</span>
+<span class="c1"># Output: {&quot;data&quot;: {&quot;email&quot;: &quot;***&quot;}}</span>
+</pre></div>
+</div>
+</section>
+<section id="serialized-json-strings">
+<h3>Serialized JSON Strings<a class="headerlink" href="#serialized-json-strings" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ❌ NOT redacted - JSON as string</span>
+<span class="n">payload</span> <span class="o">=</span> <span class="s1">&#39;{&quot;email&quot;: &quot;john@example.com&quot;}&#39;</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Data&quot;</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="n">payload</span><span class="p">)</span>
+<span class="c1"># Output: {&quot;data&quot;: {&quot;payload&quot;: &quot;{\&quot;email\&quot;: \&quot;john@example.com\&quot;}&quot;}}</span>
+
+<span class="c1"># ✅ Redacted - pass as dict</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Data&quot;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="s2">&quot;john@example.com&quot;</span><span class="p">)</span>
+<span class="c1"># Output: {&quot;data&quot;: {&quot;email&quot;: &quot;***&quot;}}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="pipeline-order">
+<h2>Pipeline Order<a class="headerlink" href="#pipeline-order" title="Link to this heading"></a></h2>
+<p>Redaction runs in the logger worker loop before envelope serialization:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Log Event → Enrichers → Redactors → Serialization → Sinks
+</pre></div>
+</div>
+<p>Redactors execute in order:</p>
+<ol class="arabic simple">
+<li><p><strong>field_mask</strong> - Exact path matching first</p></li>
+<li><p><strong>regex_mask</strong> - Pattern matching second</p></li>
+<li><p><strong>url_credentials</strong> - URL sanitization last</p></li>
+</ol>
+<p>This order ensures explicit masking takes precedence, followed by broader patterns, then URL cleanup.</p>
+</section>
+<section id="guardrails">
+<h2>Guardrails<a class="headerlink" href="#guardrails" title="Link to this heading"></a></h2>
+<p>Redaction includes safety limits to prevent performance issues with deeply nested or large objects:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_depth</span></code></p></td>
+<td><p>16</p></td>
+<td><p>Maximum nesting level to traverse</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max_keys_scanned</span></code></p></td>
+<td><p>1000</p></td>
+<td><p>Maximum keys to examine per event</p></td>
+</tr>
+</tbody>
+</table>
+<p>If limits are exceeded:</p>
+<ul class="simple">
+<li><p>A diagnostic warning is emitted</p></li>
+<li><p>Remaining fields are not scanned</p></li>
+<li><p>Best-effort redaction is applied to already-scanned fields</p></li>
+</ul>
+<p>Configure via builder:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">],</span> <span class="n">max_depth</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">max_keys</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="failure-handling">
+<h2>Failure Handling<a class="headerlink" href="#failure-handling" title="Link to this heading"></a></h2>
+<p>Redactors never raise exceptions upstream. If redaction fails:</p>
+<ul class="simple">
+<li><p>The original value is preserved (fail-open by default)</p></li>
+<li><p>A diagnostic entry is recorded with <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">redactor,</span> <span class="pre">reason</span> <span class="pre">}</span></code></p></li>
+<li><p>Logging continues</p></li>
+</ul>
+<p>To fail-closed (block logging on redaction failure):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">],</span> <span class="n">block_on_failure</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="nested-objects-and-arrays">
+<h2>Nested Objects and Arrays<a class="headerlink" href="#nested-objects-and-arrays" title="Link to this heading"></a></h2>
+<p>Redaction traverses nested structures:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Nested objects - redacted</span>
+<span class="p">{</span><span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;profile&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="s2">&quot;x@y.com&quot;</span><span class="p">}}}</span>
+<span class="c1"># → {&quot;user&quot;: {&quot;profile&quot;: {&quot;email&quot;: &quot;***&quot;}}}</span>
+
+<span class="c1"># Arrays - each element checked</span>
+<span class="p">{</span><span class="s2">&quot;users&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="s2">&quot;a@b.com&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="s2">&quot;c@d.com&quot;</span><span class="p">}]}</span>
+<span class="c1"># → {&quot;users&quot;: [{&quot;email&quot;: &quot;***&quot;}, {&quot;email&quot;: &quot;***&quot;}]}</span>
+</pre></div>
+</div>
+<p>Wildcard patterns in field paths:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;users[*].email&quot;</span><span class="p">])</span>  <span class="c1"># All emails in users array</span>
+<span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;data.*.secret&quot;</span><span class="p">])</span>   <span class="c1"># Any secret under data</span>
+</pre></div>
+</div>
+</section>
+<section id="deterministic-behavior">
+<h2>Deterministic Behavior<a class="headerlink" href="#deterministic-behavior" title="Link to this heading"></a></h2>
+<p>For the same input and configuration:</p>
+<ul class="simple">
+<li><p>Redaction is deterministic</p></li>
+<li><p>Field order is preserved</p></li>
+<li><p>Mask string is consistent</p></li>
+</ul>
+<p>This ensures logs are predictable and testable.</p>
+</section>
+<section id="related">
+<h2>Related<a class="headerlink" href="#related" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="presets.html"><span class="std std-doc">Presets Reference</span></a> - Complete field lists</p></li>
+<li><p><a class="reference internal" href="configuration.html"><span class="std std-doc">Configuration</span></a> - How to configure</p></li>
+<li><p><a class="reference internal" href="testing.html"><span class="std std-doc">Testing</span></a> - Verify redaction in CI</p></li>
+<li><p><a class="reference internal" href="../cookbook/compliance-redaction.html"><span class="std std-doc">Compliance Cookbook</span></a> - What works and what doesn’t</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          
+<footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer" style="position: relative;">
+        <a href="configuration.html" class="btn btn-neutral float-left" title="Redaction Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="testing.html" class="btn btn-neutral float-right" title="Testing Redaction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+      <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 50%; margin-top: -0.5em;">
+        <a href="https://fapilog.dev">www.fapilog.dev</a>
+      </div>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Chris Haste.
+      <span class="lastupdated">Last updated on January 27, 2026.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

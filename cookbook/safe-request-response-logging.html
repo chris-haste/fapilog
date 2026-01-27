@@ -26,7 +26,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Skipping health/metrics endpoints (noise reduction)" href="skip-noisy-endpoints.html" />
-    <link rel="prev" title="Redacting secrets and PII in FastAPI logs (Authorization, tokens, fields)" href="redacting-secrets-pii.html" />
+    <link rel="prev" title="Compliance Redaction: What Works and What Doesn’t" href="compliance-redaction.html" />
  
 
 
@@ -70,7 +70,6 @@
 <li class="toctree-l2"><a class="reference internal" href="../core-concepts/envelope.html">Envelope</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../core-concepts/context-binding.html">Context Binding</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../core-concepts/batching-backpressure.html">Batching &amp; Backpressure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../core-concepts/redaction.html">Redaction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../core-concepts/sinks.html">Sinks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../core-concepts/metrics.html">Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html">Diagnostics Resilience</a></li>
@@ -87,7 +86,6 @@
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/sink-routing.html">Sink routing by level</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/redactors.html">Redactors</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../user-guide/redaction-guarantee.html">Redaction Guarantee</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/performance-tuning.html">Performance Tuning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/benchmarks.html">Performance Benchmarks</a></li>
@@ -98,6 +96,13 @@
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/webhook-security.html">Webhook Security</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../redaction/index.html">Redaction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/presets.html">Redaction Presets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/configuration.html">Redaction Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/behavior.html">Redaction Behavior</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/testing.html">Testing Redaction</a></li>
+</ul>
+</li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Cookbook</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="fastapi-json-logging.html">FastAPI JSON logging to stdout (Uvicorn access logs included)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fastapi-request-id-logging.html">FastAPI request_id logging (correlation ID middleware, concurrency-safe)</a></li>
@@ -105,6 +110,7 @@
 <li class="toctree-l2"><a class="reference internal" href="non-blocking-async-logging.html">Non-blocking logging in FastAPI (protect latency under slow sinks)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dev-prod-logging-config.html">One FastAPI logging config for dev + prod (Uvicorn/Gunicorn)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="redacting-secrets-pii.html">Redacting secrets and PII in FastAPI logs (Authorization, tokens, fields)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compliance-redaction.html">Compliance Redaction: What Works and What Doesn’t</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Logging request/response bodies without hanging (safe patterns)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skip-noisy-endpoints.html">Skipping health/metrics endpoints (noise reduction)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="log-sampling-rate-limiting.html">Log sampling and rate limiting for FastAPI</a></li>
@@ -173,7 +179,6 @@
 <li class="toctree-l2"><a class="reference internal" href="../schema-guide.html">Schema Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../schema-migration-v1.0-to-v1.1.html">Schema Migration Guide: v1.0 to v1.1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../plugin-guide.html">Plugin Catalog</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../redaction-guarantees.html">Redaction Guarantees</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../quality-signals.html">Quality Signals</a></li>
 </ul>
@@ -466,7 +471,7 @@
           
 <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer" style="position: relative;">
-        <a href="redacting-secrets-pii.html" class="btn btn-neutral float-left" title="Redacting secrets and PII in FastAPI logs (Authorization, tokens, fields)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="compliance-redaction.html" class="btn btn-neutral float-left" title="Compliance Redaction: What Works and What Doesn’t" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="skip-noisy-endpoints.html" class="btn btn-neutral float-right" title="Skipping health/metrics endpoints (noise reduction)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
       <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 50%; margin-top: -0.5em;">
         <a href="https://fapilog.dev">www.fapilog.dev</a>

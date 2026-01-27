@@ -1,0 +1,590 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compliance Redaction: What Works and What Doesn’t &mdash; fapilog latest documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=30646c52"></script>
+      <script src="../_static/custom.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Logging request/response bodies without hanging (safe patterns)" href="safe-request-response-logging.html" />
+    <link rel="prev" title="Redacting secrets and PII in FastAPI logs (Authorization, tokens, fields)" href="redacting-secrets-pii.html" />
+ 
+
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/cookbook/compliance-redaction.html" />
+<meta name="robots" content="noindex, follow" />
+
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            fapilog
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/quickstart.html">Quickstart Tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/hello-world.html">Hello World Walkthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../why-fapilog.html">Why Fapilog?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../comparisons.html">Python Logging Library Comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core-concepts/index.html">Core Concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/pipeline-architecture.html">Pipeline Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/envelope.html">Envelope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/batching-backpressure.html">Batching &amp; Backpressure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/metrics.html">Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html">Diagnostics Resilience</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html#id1">Diagnostics &amp; Resilience</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide/index.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/builder-configuration.html">Configuring Fapilog with the Builder API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/settings-to-builder-migration.html">Migrating from Settings to Builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/environment-variables.html">Environment Variable Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/using-logger.html">Using the Logger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/context-enrichment.html">Context Enrichment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/sink-routing.html">Sink routing by level</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/performance-tuning.html">Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/benchmarks.html">Performance Benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/integration-guide.html">Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/fastapi.html">FastAPI / ASGI Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/testing-plugins.html">Testing Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/webhook-security.html">Webhook Security</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../redaction/index.html">Redaction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/presets.html">Redaction Presets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/configuration.html">Redaction Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/behavior.html">Redaction Behavior</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/testing.html">Testing Redaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Cookbook</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="fastapi-json-logging.html">FastAPI JSON logging to stdout (Uvicorn access logs included)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fastapi-request-id-logging.html">FastAPI request_id logging (correlation ID middleware, concurrency-safe)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="django-structured-logging.html">Django Structured JSON Logging with Correlation IDs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="non-blocking-async-logging.html">Non-blocking logging in FastAPI (protect latency under slow sinks)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dev-prod-logging-config.html">One FastAPI logging config for dev + prod (Uvicorn/Gunicorn)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="redacting-secrets-pii.html">Redacting secrets and PII in FastAPI logs (Authorization, tokens, fields)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Compliance Redaction: What Works and What Doesn’t</a></li>
+<li class="toctree-l2"><a class="reference internal" href="safe-request-response-logging.html">Logging request/response bodies without hanging (safe patterns)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="skip-noisy-endpoints.html">Skipping health/metrics endpoints (noise reduction)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log-sampling-rate-limiting.html">Log sampling and rate limiting for FastAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="graceful-shutdown-flush.html">Graceful shutdown &amp; flushing logs (don’t lose logs on deploy)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exception-logging-request-context.html">Exception logging in FastAPI with request_id + structured context</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api-reference/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/top-level-functions.html">Top-Level Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/builder.html">Builder API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/logger-methods.html">Logger Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/audit-trail.html">Audit Trail</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/types.html">Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/plugins/index.html">Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/modules.html">API Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples &amp; Recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/builder-configurations.html">Builder Configuration Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/fastapi-logging.html">FastAPI Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cli-tools.html">Logging in Scripts/CLIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/redacting-secrets.html">Redacting Secrets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/structured-error-logging.html">Structured Error Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/kubernetes-file-sink.html">Kubernetes File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/prometheus-metrics.html">Prometheus Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloudwatch_logging/index.html">CloudWatch Logging (LocalStack)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloud-sinks/index.html">Cloud Sink Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugin Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/authoring.html">Authoring Fapilog Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/enrichers.html">Enrichers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/filters.html">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/processors.html">Processors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/testing.html">Plugin Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/configuration.html">Plugin Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/health-checks.html">Plugin Health Checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/error-handling.html">Plugin Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../patterns.html">Integration Patterns</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting/index.html">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/logs-dropped-under-load.html">Logs Dropped Under Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/destination-size-limits.html">Logs Rejected by Destination Size Limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/context-values-missing.html">Context Values Missing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/file-sink-not-rotating.html">File Sink Not Rotating</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/serialization-errors.html">Serialization Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/cloudwatch-sink.html">CloudWatch Sink Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/loki-sink.html">Loki Sink Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices.html">Appendices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../env-vars.html">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../settings-guide.html">Settings Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-guide.html">Schema Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-migration-v1.0-to-v1.1.html">Schema Migration Guide: v1.0 to v1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugin-guide.html">Plugin Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quality-signals.html">Quality Signals</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">fapilog</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Cookbook</a></li>
+      <li class="breadcrumb-item active">Compliance Redaction: What Works and What Doesn’t</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/cookbook/compliance-redaction.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="compliance-redaction-what-works-and-what-doesnt">
+<h1>Compliance Redaction: What Works and What Doesn’t<a class="headerlink" href="#compliance-redaction-what-works-and-what-doesnt" title="Link to this heading"></a></h1>
+<p>This guide explains how to use compliance presets effectively and avoid common pitfalls that lead to data exposure.</p>
+<blockquote>
+<div><p><strong>Key insight:</strong> Fapilog redacts based on <strong>field names</strong>, not field content. Understanding this is critical for compliance.</p>
+</div></blockquote>
+<section id="the-golden-rule">
+<h2>The Golden Rule<a class="headerlink" href="#the-golden-rule" title="Link to this heading"></a></h2>
+<p><strong>Redaction works on structured data with predictable field names.</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;GDPR_PII&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+<span class="c1"># ✅ WORKS: Named fields are redacted</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User signup&quot;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="s2">&quot;john@example.com&quot;</span><span class="p">,</span> <span class="n">phone</span><span class="o">=</span><span class="s2">&quot;+1-555-1234&quot;</span><span class="p">)</span>
+<span class="c1"># Output: {&quot;data&quot;: {&quot;email&quot;: &quot;***&quot;, &quot;phone&quot;: &quot;***&quot;}}</span>
+
+<span class="c1"># ❌ FAILS: PII buried in a string is NOT redacted</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;User signed up: john@example.com, phone: +1-555-1234&quot;</span><span class="p">)</span>
+<span class="c1"># Output: {&quot;message&quot;: &quot;User signed up: john@example.com, phone: +1-555-1234&quot;}</span>
+</pre></div>
+</div>
+</section>
+<section id="what-gets-redacted">
+<h2>What Gets Redacted<a class="headerlink" href="#what-gets-redacted" title="Link to this heading"></a></h2>
+<p>Redaction matches <strong>field names</strong> (and paths) against preset definitions:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Scenario</p></th>
+<th class="head"><p>Redacted?</p></th>
+<th class="head"><p>Why</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">email=&quot;john&#64;example.com&quot;</span></code></p></td>
+<td><p>✅ Yes</p></td>
+<td><p>Field name <code class="docutils literal notranslate"><span class="pre">email</span></code> matches GDPR_PII</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">user_email=&quot;john&#64;example.com&quot;</span></code></p></td>
+<td><p>✅ Yes</p></td>
+<td><p>Pattern <code class="docutils literal notranslate"><span class="pre">.*email.*</span></code> matches</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">contact={&quot;email&quot;:</span> <span class="pre">&quot;john&#64;example.com&quot;}</span></code></p></td>
+<td><p>✅ Yes</p></td>
+<td><p>Nested path <code class="docutils literal notranslate"><span class="pre">contact.email</span></code> matches</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">message=&quot;Email:</span> <span class="pre">john&#64;example.com&quot;</span></code></p></td>
+<td><p>❌ No</p></td>
+<td><p>Content scanning not performed</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">notes=&quot;Call</span> <span class="pre">john&#64;example.com&quot;</span></code></p></td>
+<td><p>❌ No</p></td>
+<td><p>Field name <code class="docutils literal notranslate"><span class="pre">notes</span></code> doesn’t match</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">data=&quot;SSN:</span> <span class="pre">123-45-6789&quot;</span></code></p></td>
+<td><p>❌ No</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">data</span></code> is a generic field name</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="what-does-not-get-redacted">
+<h2>What Does NOT Get Redacted<a class="headerlink" href="#what-does-not-get-redacted" title="Link to this heading"></a></h2>
+<section id="pii-in-message-strings">
+<h3>1. PII in Message Strings<a class="headerlink" href="#pii-in-message-strings" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ❌ BAD: PII in the message string</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing order for </span><span class="si">{</span><span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="c1"># Output: {&quot;message&quot;: &quot;Processing order for john@example.com&quot;}</span>
+
+<span class="c1"># ✅ GOOD: PII in named fields</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Processing order&quot;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">)</span>
+<span class="c1"># Output: {&quot;message&quot;: &quot;Processing order&quot;, &quot;data&quot;: {&quot;email&quot;: &quot;***&quot;}}</span>
+</pre></div>
+</div>
+</section>
+<section id="pii-in-arbitrarily-named-fields">
+<h3>2. PII in Arbitrarily-Named Fields<a class="headerlink" href="#pii-in-arbitrarily-named-fields" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ❌ BAD: Field name doesn&#39;t match any preset pattern</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Support ticket&quot;</span><span class="p">,</span> <span class="n">customer_contact</span><span class="o">=</span><span class="s2">&quot;john@example.com&quot;</span><span class="p">)</span>
+<span class="c1"># Output: {&quot;data&quot;: {&quot;customer_contact&quot;: &quot;john@example.com&quot;}}</span>
+
+<span class="c1"># ✅ GOOD: Use recognized field names</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Support ticket&quot;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="s2">&quot;john@example.com&quot;</span><span class="p">)</span>
+<span class="c1"># Output: {&quot;data&quot;: {&quot;email&quot;: &quot;***&quot;}}</span>
+
+<span class="c1"># ✅ ALSO GOOD: Add custom fields to cover your domain</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;GDPR_PII&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;customer_contact&quot;</span><span class="p">])</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="pii-in-serialized-objects">
+<h3>3. PII in Serialized Objects<a class="headerlink" href="#pii-in-serialized-objects" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ❌ BAD: Serialized JSON string</span>
+<span class="n">user_json</span> <span class="o">=</span> <span class="s1">&#39;{&quot;email&quot;: &quot;john@example.com&quot;, &quot;ssn&quot;: &quot;123-45-6789&quot;}&#39;</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User data&quot;</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="n">user_json</span><span class="p">)</span>
+<span class="c1"># Output: {&quot;data&quot;: {&quot;payload&quot;: &quot;{\&quot;email\&quot;: \&quot;john@example.com\&quot;, ...}&quot;}}</span>
+
+<span class="c1"># ✅ GOOD: Pass as dict, not string</span>
+<span class="n">user_data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="s2">&quot;john@example.com&quot;</span><span class="p">,</span> <span class="s2">&quot;ssn&quot;</span><span class="p">:</span> <span class="s2">&quot;123-45-6789&quot;</span><span class="p">}</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User data&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">user_data</span><span class="p">)</span>
+<span class="c1"># Output: {&quot;data&quot;: {&quot;email&quot;: &quot;***&quot;, &quot;ssn&quot;: &quot;***&quot;}}</span>
+</pre></div>
+</div>
+</section>
+<section id="pii-in-exception-messages">
+<h3>4. PII in Exception Messages<a class="headerlink" href="#pii-in-exception-messages" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ❌ BAD: PII in exception message</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">process_user</span><span class="p">(</span><span class="n">email</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed for user </span><span class="si">{</span><span class="n">email</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="c1"># Output: {&quot;message&quot;: &quot;Failed for user john@example.com: ...&quot;}</span>
+
+<span class="c1"># ✅ GOOD: PII in structured field</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">process_user</span><span class="p">(</span><span class="n">email</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;User processing failed&quot;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="n">email</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+<span class="c1"># Output: {&quot;data&quot;: {&quot;email&quot;: &quot;***&quot;, &quot;error&quot;: &quot;...&quot;}}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="structuring-logs-for-compliance">
+<h2>Structuring Logs for Compliance<a class="headerlink" href="#structuring-logs-for-compliance" title="Link to this heading"></a></h2>
+<section id="use-named-fields-for-all-pii">
+<h3>Use Named Fields for All PII<a class="headerlink" href="#use-named-fields-for-all-pii" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Instead of this:</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;User </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">email</span><span class="si">}</span><span class="s2">) logged in from </span><span class="si">{</span><span class="n">ip</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Do this:</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User logged in&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="n">email</span><span class="p">,</span> <span class="n">ip_address</span><span class="o">=</span><span class="n">ip</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="use-context-for-request-scoped-pii">
+<h3>Use Context for Request-Scoped PII<a class="headerlink" href="#use-context-for-request-scoped-pii" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;GDPR_PII&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+<span class="c1"># Bind user context once</span>
+<span class="n">request_logger</span> <span class="o">=</span> <span class="n">logger</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span>
+    <span class="n">email</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span>
+    <span class="n">ip_address</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># All subsequent logs have PII in named fields (and redacted)</span>
+<span class="n">request_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Viewing dashboard&quot;</span><span class="p">)</span>
+<span class="n">request_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Updated settings&quot;</span><span class="p">,</span> <span class="n">setting</span><span class="o">=</span><span class="s2">&quot;theme&quot;</span><span class="p">)</span>
+<span class="n">request_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Rate limit approaching&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="pass-objects-not-strings">
+<h3>Pass Objects, Not Strings<a class="headerlink" href="#pass-objects-not-strings" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ❌ Avoid string interpolation</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Order </span><span class="si">{</span><span class="n">order</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> for </span><span class="si">{</span><span class="n">order</span><span class="o">.</span><span class="n">customer_email</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># ✅ Pass structured data</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Order placed&quot;</span><span class="p">,</span> <span class="n">order_id</span><span class="o">=</span><span class="n">order</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="n">order</span><span class="o">.</span><span class="n">customer_email</span><span class="p">)</span>
+
+<span class="c1"># ✅ Or unpack relevant fields</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Order placed&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">order</span><span class="o">.</span><span class="n">to_log_dict</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="testing-your-redaction">
+<h2>Testing Your Redaction<a class="headerlink" href="#testing-your-redaction" title="Link to this heading"></a></h2>
+<p>Before deploying, verify PII is actually redacted:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.testing</span><span class="w"> </span><span class="kn">import</span> <span class="n">capture_logs</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">asyncio</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_email_redacted_in_named_field</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Email in named field should be redacted.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">capture_logs</span><span class="p">()</span> <span class="k">as</span> <span class="n">logs</span><span class="p">:</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="p">(</span>
+            <span class="n">LoggerBuilder</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;GDPR_PII&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">build_async</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;signup&quot;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="s2">&quot;test@example.com&quot;</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="s2">&quot;test@example.com&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">logs</span><span class="o">.</span><span class="n">text</span>
+    <span class="k">assert</span> <span class="s2">&quot;***&quot;</span> <span class="ow">in</span> <span class="n">logs</span><span class="o">.</span><span class="n">text</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">asyncio</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_email_in_message_NOT_redacted</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Email in message string is NOT redacted - this is expected behavior.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">capture_logs</span><span class="p">()</span> <span class="k">as</span> <span class="n">logs</span><span class="p">:</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="p">(</span>
+            <span class="n">LoggerBuilder</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;GDPR_PII&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">build_async</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="c1"># This is the WRONG way to log PII</span>
+        <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User email: test@example.com&quot;</span><span class="p">)</span>
+
+    <span class="c1"># PII IS exposed - this test documents the limitation</span>
+    <span class="k">assert</span> <span class="s2">&quot;test@example.com&quot;</span> <span class="ow">in</span> <span class="n">logs</span><span class="o">.</span><span class="n">text</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">asyncio</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_custom_field_requires_explicit_config</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Custom field names need explicit configuration.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">capture_logs</span><span class="p">()</span> <span class="k">as</span> <span class="n">logs</span><span class="p">:</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="p">(</span>
+            <span class="n">LoggerBuilder</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;GDPR_PII&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;customer_contact&quot;</span><span class="p">])</span>  <span class="c1"># Add custom field</span>
+            <span class="o">.</span><span class="n">build_async</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;ticket&quot;</span><span class="p">,</span> <span class="n">customer_contact</span><span class="o">=</span><span class="s2">&quot;test@example.com&quot;</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="s2">&quot;test@example.com&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">logs</span><span class="o">.</span><span class="n">text</span>
+</pre></div>
+</div>
+</section>
+<section id="compliance-checklist">
+<h2>Compliance Checklist<a class="headerlink" href="#compliance-checklist" title="Link to this heading"></a></h2>
+<p>Before going to production with compliance redaction:</p>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> <strong>Audit your logging calls</strong> - Search codebase for f-strings and <code class="docutils literal notranslate"><span class="pre">.format()</span></code> in log calls</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> <strong>Use structured fields</strong> - All PII should be in named fields, not message strings</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> <strong>Add domain-specific fields</strong> - Extend presets with your custom field names</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> <strong>Test redaction</strong> - Write tests that verify PII is masked</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> <strong>Review preset coverage</strong> - Check <a class="reference internal" href="../redaction/presets.html"><span class="std std-doc">Presets Reference</span></a> for what’s covered</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> <strong>Document gaps</strong> - Note any PII that can’t be redacted (e.g., user-generated content)</p></li>
+</ul>
+</section>
+<section id="common-patterns-by-regulation">
+<h2>Common Patterns by Regulation<a class="headerlink" href="#common-patterns-by-regulation" title="Link to this heading"></a></h2>
+<section id="gdpr-eu">
+<h3>GDPR (EU)<a class="headerlink" href="#gdpr-eu" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;GDPR_PII&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;customer_id&quot;</span><span class="p">,</span> <span class="s2">&quot;account_ref&quot;</span><span class="p">])</span>  <span class="c1"># Your domain fields</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="c1"># Always use named fields for Article 4 personal data</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+    <span class="s2">&quot;Data subject request&quot;</span><span class="p">,</span>
+    <span class="n">email</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span>           <span class="c1"># Redacted</span>
+    <span class="n">name</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">full_name</span><span class="p">,</span>        <span class="c1"># Redacted</span>
+    <span class="n">ip_address</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">ip</span><span class="p">,</span>      <span class="c1"># Redacted</span>
+    <span class="n">request_type</span><span class="o">=</span><span class="s2">&quot;erasure&quot;</span><span class="p">,</span>     <span class="c1"># Not PII, preserved</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="hipaa-us-healthcare">
+<h3>HIPAA (US Healthcare)<a class="headerlink" href="#hipaa-us-healthcare" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;HIPAA_PHI&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;chart_number&quot;</span><span class="p">,</span> <span class="s2">&quot;room_number&quot;</span><span class="p">])</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="c1"># All 18 PHI identifiers should be in named fields</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+    <span class="s2">&quot;Patient admission&quot;</span><span class="p">,</span>
+    <span class="n">mrn</span><span class="o">=</span><span class="n">patient</span><span class="o">.</span><span class="n">medical_record_number</span><span class="p">,</span>  <span class="c1"># Redacted</span>
+    <span class="n">dob</span><span class="o">=</span><span class="n">patient</span><span class="o">.</span><span class="n">date_of_birth</span><span class="p">,</span>          <span class="c1"># Redacted</span>
+    <span class="n">ssn</span><span class="o">=</span><span class="n">patient</span><span class="o">.</span><span class="n">ssn</span><span class="p">,</span>                    <span class="c1"># Redacted</span>
+    <span class="n">admission_type</span><span class="o">=</span><span class="s2">&quot;emergency&quot;</span><span class="p">,</span>         <span class="c1"># Not PHI, preserved</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="pci-dss-payment-cards">
+<h3>PCI-DSS (Payment Cards)<a class="headerlink" href="#pci-dss-payment-cards" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;PCI_DSS&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="c1"># Never log full card numbers, but if you must log payment events:</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+    <span class="s2">&quot;Payment processed&quot;</span><span class="p">,</span>
+    <span class="n">card_number</span><span class="o">=</span><span class="n">card</span><span class="o">.</span><span class="n">pan</span><span class="p">,</span>        <span class="c1"># Redacted (but don&#39;t log this!)</span>
+    <span class="n">cardholder</span><span class="o">=</span><span class="n">card</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>        <span class="c1"># Redacted</span>
+    <span class="n">amount</span><span class="o">=</span><span class="n">transaction</span><span class="o">.</span><span class="n">amount</span><span class="p">,</span>   <span class="c1"># Not cardholder data, preserved</span>
+    <span class="n">last_four</span><span class="o">=</span><span class="n">card</span><span class="o">.</span><span class="n">pan</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:],</span>     <span class="c1"># Consider if this is acceptable</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Do</p></th>
+<th class="head"><p>Don’t</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Use named fields for PII</p></td>
+<td><p>Embed PII in message strings</p></td>
+</tr>
+<tr class="row-odd"><td><p>Pass dicts, not JSON strings</p></td>
+<td><p>Serialize objects before logging</p></td>
+</tr>
+<tr class="row-even"><td><p>Bind PII to context</p></td>
+<td><p>Interpolate PII in f-strings</p></td>
+</tr>
+<tr class="row-odd"><td><p>Extend presets with your fields</p></td>
+<td><p>Assume all field names are covered</p></td>
+</tr>
+<tr class="row-even"><td><p>Test redaction in CI</p></td>
+<td><p>Deploy without verification</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="related">
+<h2>Related<a class="headerlink" href="#related" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="../redaction/presets.html"><span class="std std-doc">Redaction Presets</span></a> - Complete field reference</p></li>
+<li><p><a class="reference internal" href="../redaction/behavior.html"><span class="std std-doc">Redaction Behavior</span></a> - Configuration details</p></li>
+<li><p><a class="reference internal" href="redacting-secrets-pii.html"><span class="std std-doc">Redacting Secrets</span></a> - Authentication secrets</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          
+<footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer" style="position: relative;">
+        <a href="redacting-secrets-pii.html" class="btn btn-neutral float-left" title="Redacting secrets and PII in FastAPI logs (Authorization, tokens, fields)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="safe-request-response-logging.html" class="btn btn-neutral float-right" title="Logging request/response bodies without hanging (safe patterns)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+      <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 50%; margin-top: -0.5em;">
+        <a href="https://fapilog.dev">www.fapilog.dev</a>
+      </div>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Chris Haste.
+      <span class="lastupdated">Last updated on January 27, 2026.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

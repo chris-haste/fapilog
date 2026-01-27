@@ -13,6 +13,7 @@ django-structured-logging
 non-blocking-async-logging
 dev-prod-logging-config
 redacting-secrets-pii
+compliance-redaction
 safe-request-response-logging
 skip-noisy-endpoints
 log-sampling-rate-limiting

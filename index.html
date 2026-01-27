@@ -69,7 +69,6 @@
 <li class="toctree-l2"><a class="reference internal" href="core-concepts/envelope.html">Envelope</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core-concepts/context-binding.html">Context Binding</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core-concepts/batching-backpressure.html">Batching &amp; Backpressure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core-concepts/redaction.html">Redaction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core-concepts/sinks.html">Sinks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core-concepts/metrics.html">Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core-concepts/diagnostics-resilience.html">Diagnostics Resilience</a></li>
@@ -86,7 +85,6 @@
 <li class="toctree-l2"><a class="reference internal" href="user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/sink-routing.html">Sink routing by level</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/redactors.html">Redactors</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user-guide/redaction-guarantee.html">Redaction Guarantee</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/performance-tuning.html">Performance Tuning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/benchmarks.html">Performance Benchmarks</a></li>
@@ -97,6 +95,13 @@
 <li class="toctree-l2"><a class="reference internal" href="user-guide/webhook-security.html">Webhook Security</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="redaction/index.html">Redaction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="redaction/presets.html">Redaction Presets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="redaction/configuration.html">Redaction Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="redaction/behavior.html">Redaction Behavior</a></li>
+<li class="toctree-l2"><a class="reference internal" href="redaction/testing.html">Testing Redaction</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="cookbook/index.html">Cookbook</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="cookbook/fastapi-json-logging.html">FastAPI JSON logging to stdout (Uvicorn access logs included)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cookbook/fastapi-request-id-logging.html">FastAPI request_id logging (correlation ID middleware, concurrency-safe)</a></li>
@@ -104,6 +109,7 @@
 <li class="toctree-l2"><a class="reference internal" href="cookbook/non-blocking-async-logging.html">Non-blocking logging in FastAPI (protect latency under slow sinks)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cookbook/dev-prod-logging-config.html">One FastAPI logging config for dev + prod (Uvicorn/Gunicorn)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cookbook/redacting-secrets-pii.html">Redacting secrets and PII in FastAPI logs (Authorization, tokens, fields)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cookbook/compliance-redaction.html">Compliance Redaction: What Works and What Doesn’t</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cookbook/safe-request-response-logging.html">Logging request/response bodies without hanging (safe patterns)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cookbook/skip-noisy-endpoints.html">Skipping health/metrics endpoints (noise reduction)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cookbook/log-sampling-rate-limiting.html">Log sampling and rate limiting for FastAPI</a></li>
@@ -172,7 +178,6 @@
 <li class="toctree-l2"><a class="reference internal" href="schema-guide.html">Schema Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="schema-migration-v1.0-to-v1.1.html">Schema Migration Guide: v1.0 to v1.1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plugin-guide.html">Plugin Catalog</a></li>
-<li class="toctree-l2"><a class="reference internal" href="redaction-guarantees.html">Redaction Guarantees</a></li>
 <li class="toctree-l2"><a class="reference internal" href="security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quality-signals.html">Quality Signals</a></li>
 </ul>
@@ -272,7 +277,6 @@
 <li class="toctree-l2"><a class="reference internal" href="core-concepts/envelope.html">Envelope</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core-concepts/context-binding.html">Context Binding</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core-concepts/batching-backpressure.html">Batching &amp; Backpressure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="core-concepts/redaction.html">Redaction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core-concepts/sinks.html">Sinks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core-concepts/metrics.html">Metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core-concepts/diagnostics-resilience.html">Diagnostics Resilience</a></li>
@@ -289,7 +293,6 @@
 <li class="toctree-l2"><a class="reference internal" href="user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/sink-routing.html">Sink routing by level</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/redactors.html">Redactors</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user-guide/redaction-guarantee.html">Redaction Guarantee</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/performance-tuning.html">Performance Tuning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/benchmarks.html">Performance Benchmarks</a></li>
@@ -300,6 +303,7 @@
 <li class="toctree-l2"><a class="reference internal" href="user-guide/webhook-security.html">Webhook Security</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="redaction/index.html">Redaction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cookbook/index.html">Cookbook</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="cookbook/fastapi-json-logging.html">FastAPI JSON logging to stdout (Uvicorn access logs included)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cookbook/fastapi-request-id-logging.html">FastAPI request_id logging (correlation ID middleware, concurrency-safe)</a></li>
@@ -307,6 +311,7 @@
 <li class="toctree-l2"><a class="reference internal" href="cookbook/non-blocking-async-logging.html">Non-blocking logging in FastAPI (protect latency under slow sinks)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cookbook/dev-prod-logging-config.html">One FastAPI logging config for dev + prod (Uvicorn/Gunicorn)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cookbook/redacting-secrets-pii.html">Redacting secrets and PII in FastAPI logs (Authorization, tokens, fields)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cookbook/compliance-redaction.html">Compliance Redaction: What Works and What Doesn’t</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cookbook/safe-request-response-logging.html">Logging request/response bodies without hanging (safe patterns)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cookbook/skip-noisy-endpoints.html">Skipping health/metrics endpoints (noise reduction)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cookbook/log-sampling-rate-limiting.html">Log sampling and rate limiting for FastAPI</a></li>
@@ -375,7 +380,6 @@
 <li class="toctree-l2"><a class="reference internal" href="schema-guide.html">Schema Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="schema-migration-v1.0-to-v1.1.html">Schema Migration Guide: v1.0 to v1.1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plugin-guide.html">Plugin Catalog</a></li>
-<li class="toctree-l2"><a class="reference internal" href="redaction-guarantees.html">Redaction Guarantees</a></li>
 <li class="toctree-l2"><a class="reference internal" href="security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quality-signals.html">Quality Signals</a></li>
 </ul>
@@ -387,8 +391,9 @@
 <li><p><strong><a class="reference internal" href="getting-started/index.html"><span class="std std-doc">Getting Started</span></a></strong> - Installation and quickstart</p></li>
 <li><p><strong><a class="reference internal" href="core-concepts/index.html"><span class="std std-doc">Core Concepts</span></a></strong> - Understanding the architecture</p></li>
 <li><p><strong><a class="reference internal" href="user-guide/index.html"><span class="std std-doc">User Guide</span></a></strong> - Practical usage and configuration</p></li>
+<li><p><strong><a class="reference internal" href="redaction/index.html"><span class="std std-doc">Redaction</span></a></strong> - Protect sensitive data (GDPR, HIPAA, PCI-DSS)</p></li>
 <li><p><strong><a class="reference internal" href="cookbook/index.html"><span class="std std-doc">Cookbook</span></a></strong> - Focused recipes for common problems</p></li>
-<li><p><strong><a class="reference internal" href="enterprise.html"><span class="std std-doc">Enterprise Features</span></a></strong> - Compliance, audit trails, and security (see the new tamper/KMS guide under Enterprise)</p></li>
+<li><p><strong><a class="reference internal" href="enterprise.html"><span class="std std-doc">Enterprise Features</span></a></strong> - Compliance, audit trails, and security</p></li>
 </ul>
 <p><strong>Reference:</strong></p>
 <ul class="simple">

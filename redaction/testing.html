@@ -1,0 +1,539 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Testing Redaction &mdash; fapilog latest documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=30646c52"></script>
+      <script src="../_static/custom.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Cookbook" href="../cookbook/index.html" />
+    <link rel="prev" title="Redaction Behavior" href="behavior.html" />
+ 
+
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/redaction/testing.html" />
+<meta name="robots" content="noindex, follow" />
+
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            fapilog
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/quickstart.html">Quickstart Tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/hello-world.html">Hello World Walkthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../why-fapilog.html">Why Fapilog?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../comparisons.html">Python Logging Library Comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core-concepts/index.html">Core Concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/pipeline-architecture.html">Pipeline Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/envelope.html">Envelope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/batching-backpressure.html">Batching &amp; Backpressure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/metrics.html">Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html">Diagnostics Resilience</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html#id1">Diagnostics &amp; Resilience</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide/index.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/builder-configuration.html">Configuring Fapilog with the Builder API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/settings-to-builder-migration.html">Migrating from Settings to Builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/environment-variables.html">Environment Variable Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/using-logger.html">Using the Logger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/context-enrichment.html">Context Enrichment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/sink-routing.html">Sink routing by level</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/performance-tuning.html">Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/benchmarks.html">Performance Benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/integration-guide.html">Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/fastapi.html">FastAPI / ASGI Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/testing-plugins.html">Testing Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/webhook-security.html">Webhook Security</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Redaction</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="presets.html">Redaction Presets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Redaction Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="behavior.html">Redaction Behavior</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Testing Redaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../cookbook/index.html">Cookbook</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/fastapi-json-logging.html">FastAPI JSON logging to stdout (Uvicorn access logs included)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/fastapi-request-id-logging.html">FastAPI request_id logging (correlation ID middleware, concurrency-safe)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/django-structured-logging.html">Django Structured JSON Logging with Correlation IDs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/non-blocking-async-logging.html">Non-blocking logging in FastAPI (protect latency under slow sinks)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/dev-prod-logging-config.html">One FastAPI logging config for dev + prod (Uvicorn/Gunicorn)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/redacting-secrets-pii.html">Redacting secrets and PII in FastAPI logs (Authorization, tokens, fields)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/compliance-redaction.html">Compliance Redaction: What Works and What Doesn’t</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/safe-request-response-logging.html">Logging request/response bodies without hanging (safe patterns)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/skip-noisy-endpoints.html">Skipping health/metrics endpoints (noise reduction)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/log-sampling-rate-limiting.html">Log sampling and rate limiting for FastAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/graceful-shutdown-flush.html">Graceful shutdown &amp; flushing logs (don’t lose logs on deploy)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/exception-logging-request-context.html">Exception logging in FastAPI with request_id + structured context</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api-reference/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/top-level-functions.html">Top-Level Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/builder.html">Builder API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/logger-methods.html">Logger Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/audit-trail.html">Audit Trail</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/types.html">Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/plugins/index.html">Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/modules.html">API Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples &amp; Recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/builder-configurations.html">Builder Configuration Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/fastapi-logging.html">FastAPI Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cli-tools.html">Logging in Scripts/CLIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/redacting-secrets.html">Redacting Secrets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/structured-error-logging.html">Structured Error Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/kubernetes-file-sink.html">Kubernetes File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/prometheus-metrics.html">Prometheus Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloudwatch_logging/index.html">CloudWatch Logging (LocalStack)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloud-sinks/index.html">Cloud Sink Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugin Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/authoring.html">Authoring Fapilog Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/enrichers.html">Enrichers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/filters.html">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/processors.html">Processors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/testing.html">Plugin Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/configuration.html">Plugin Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/health-checks.html">Plugin Health Checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/error-handling.html">Plugin Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../patterns.html">Integration Patterns</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting/index.html">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/logs-dropped-under-load.html">Logs Dropped Under Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/destination-size-limits.html">Logs Rejected by Destination Size Limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/context-values-missing.html">Context Values Missing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/file-sink-not-rotating.html">File Sink Not Rotating</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/serialization-errors.html">Serialization Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/cloudwatch-sink.html">CloudWatch Sink Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/loki-sink.html">Loki Sink Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices.html">Appendices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../env-vars.html">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../settings-guide.html">Settings Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-guide.html">Schema Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-migration-v1.0-to-v1.1.html">Schema Migration Guide: v1.0 to v1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugin-guide.html">Plugin Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quality-signals.html">Quality Signals</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">fapilog</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Redaction</a></li>
+      <li class="breadcrumb-item active">Testing Redaction</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/redaction/testing.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="testing-redaction">
+<h1>Testing Redaction<a class="headerlink" href="#testing-redaction" title="Link to this heading"></a></h1>
+<p>How to verify that sensitive data is actually redacted before deploying to production.</p>
+<section id="basic-verification">
+<h2>Basic Verification<a class="headerlink" href="#basic-verification" title="Link to this heading"></a></h2>
+<p>Use <code class="docutils literal notranslate"><span class="pre">capture_logs</span></code> to test redaction:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.testing</span><span class="w"> </span><span class="kn">import</span> <span class="n">capture_logs</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">asyncio</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_password_is_redacted</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Verify password fields are masked in log output.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">capture_logs</span><span class="p">()</span> <span class="k">as</span> <span class="n">logs</span><span class="p">:</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="p">(</span>
+            <span class="n">LoggerBuilder</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">])</span>
+            <span class="o">.</span><span class="n">build_async</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Login attempt&quot;</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">&quot;hunter2&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Password value should not appear</span>
+    <span class="k">assert</span> <span class="s2">&quot;hunter2&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">logs</span><span class="o">.</span><span class="n">text</span>
+    <span class="c1"># Mask should appear instead</span>
+    <span class="k">assert</span> <span class="s2">&quot;***&quot;</span> <span class="ow">in</span> <span class="n">logs</span><span class="o">.</span><span class="n">text</span>
+    <span class="c1"># Non-sensitive data preserved</span>
+    <span class="k">assert</span> <span class="s2">&quot;alice&quot;</span> <span class="ow">in</span> <span class="n">logs</span><span class="o">.</span><span class="n">text</span>
+</pre></div>
+</div>
+</section>
+<section id="testing-preset-coverage">
+<h2>Testing Preset Coverage<a class="headerlink" href="#testing-preset-coverage" title="Link to this heading"></a></h2>
+<p>Verify compliance presets cover expected fields:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">asyncio</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_gdpr_preset_redacts_email</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;GDPR preset should redact email addresses.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">capture_logs</span><span class="p">()</span> <span class="k">as</span> <span class="n">logs</span><span class="p">:</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="p">(</span>
+            <span class="n">LoggerBuilder</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;GDPR_PII&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">build_async</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User signup&quot;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="s2">&quot;test@example.com&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;John Doe&quot;</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="s2">&quot;test@example.com&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">logs</span><span class="o">.</span><span class="n">text</span>
+    <span class="k">assert</span> <span class="s2">&quot;John Doe&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">logs</span><span class="o">.</span><span class="n">text</span>  <span class="c1"># name is also PII</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">asyncio</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_hipaa_preset_redacts_mrn</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;HIPAA preset should redact medical record numbers.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">capture_logs</span><span class="p">()</span> <span class="k">as</span> <span class="n">logs</span><span class="p">:</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="p">(</span>
+            <span class="n">LoggerBuilder</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;HIPAA_PHI&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">build_async</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Patient visit&quot;</span><span class="p">,</span> <span class="n">mrn</span><span class="o">=</span><span class="s2">&quot;MRN-12345&quot;</span><span class="p">,</span> <span class="n">ssn</span><span class="o">=</span><span class="s2">&quot;123-45-6789&quot;</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="s2">&quot;MRN-12345&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">logs</span><span class="o">.</span><span class="n">text</span>
+    <span class="k">assert</span> <span class="s2">&quot;123-45-6789&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">logs</span><span class="o">.</span><span class="n">text</span>
+</pre></div>
+</div>
+</section>
+<section id="testing-pattern-matching">
+<h2>Testing Pattern Matching<a class="headerlink" href="#testing-pattern-matching" title="Link to this heading"></a></h2>
+<p>Verify regex patterns catch variations:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">asyncio</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_pattern_catches_variations</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Pattern should catch password variations.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">capture_logs</span><span class="p">()</span> <span class="k">as</span> <span class="n">logs</span><span class="p">:</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="p">(</span>
+            <span class="n">LoggerBuilder</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">patterns</span><span class="o">=</span><span class="p">[</span><span class="sa">r</span><span class="s2">&quot;(?i).*password.*&quot;</span><span class="p">])</span>
+            <span class="o">.</span><span class="n">build_async</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;Auth data&quot;</span><span class="p">,</span>
+            <span class="n">user_password</span><span class="o">=</span><span class="s2">&quot;secret1&quot;</span><span class="p">,</span>
+            <span class="n">password_hash</span><span class="o">=</span><span class="s2">&quot;abc123&quot;</span><span class="p">,</span>
+            <span class="n">old_passwd</span><span class="o">=</span><span class="s2">&quot;secret2&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">assert</span> <span class="s2">&quot;secret1&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">logs</span><span class="o">.</span><span class="n">text</span>
+    <span class="k">assert</span> <span class="s2">&quot;abc123&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">logs</span><span class="o">.</span><span class="n">text</span>
+    <span class="c1"># Note: &quot;passwd&quot; doesn&#39;t match &quot;password&quot; pattern</span>
+    <span class="c1"># Add separate pattern if needed</span>
+</pre></div>
+</div>
+</section>
+<section id="testing-url-credential-stripping">
+<h2>Testing URL Credential Stripping<a class="headerlink" href="#testing-url-credential-stripping" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">asyncio</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_url_credentials_stripped</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;URL credentials should be stripped by default.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">capture_logs</span><span class="p">()</span> <span class="k">as</span> <span class="n">logs</span><span class="p">:</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">build_async</span><span class="p">()</span>
+        <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;Database connection&quot;</span><span class="p">,</span>
+            <span class="n">url</span><span class="o">=</span><span class="s2">&quot;postgres://admin:supersecret@db.example.com/app&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Credentials stripped</span>
+    <span class="k">assert</span> <span class="s2">&quot;supersecret&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">logs</span><span class="o">.</span><span class="n">text</span>
+    <span class="k">assert</span> <span class="s2">&quot;admin:&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">logs</span><span class="o">.</span><span class="n">text</span>
+    <span class="c1"># Host preserved</span>
+    <span class="k">assert</span> <span class="s2">&quot;db.example.com&quot;</span> <span class="ow">in</span> <span class="n">logs</span><span class="o">.</span><span class="n">text</span>
+</pre></div>
+</div>
+</section>
+<section id="testing-limitations">
+<h2>Testing Limitations<a class="headerlink" href="#testing-limitations" title="Link to this heading"></a></h2>
+<p>Document expected behavior for unsupported scenarios:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">asyncio</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_message_string_not_redacted</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;PII in message string is NOT redacted - this is expected.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">capture_logs</span><span class="p">()</span> <span class="k">as</span> <span class="n">logs</span><span class="p">:</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="p">(</span>
+            <span class="n">LoggerBuilder</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;GDPR_PII&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">build_async</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="c1"># WRONG way to log PII</span>
+        <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User email: test@example.com&quot;</span><span class="p">)</span>
+
+    <span class="c1"># PII IS exposed - this test documents the limitation</span>
+    <span class="k">assert</span> <span class="s2">&quot;test@example.com&quot;</span> <span class="ow">in</span> <span class="n">logs</span><span class="o">.</span><span class="n">text</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">asyncio</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_arbitrary_field_name_not_redacted</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Arbitrary field names are NOT redacted unless configured.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">capture_logs</span><span class="p">()</span> <span class="k">as</span> <span class="n">logs</span><span class="p">:</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="p">(</span>
+            <span class="n">LoggerBuilder</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;GDPR_PII&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">build_async</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="c1"># Field name &quot;customer_contact&quot; not in GDPR preset</span>
+        <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Ticket&quot;</span><span class="p">,</span> <span class="n">customer_contact</span><span class="o">=</span><span class="s2">&quot;test@example.com&quot;</span><span class="p">)</span>
+
+    <span class="c1"># NOT redacted - field name doesn&#39;t match</span>
+    <span class="k">assert</span> <span class="s2">&quot;test@example.com&quot;</span> <span class="ow">in</span> <span class="n">logs</span><span class="o">.</span><span class="n">text</span>
+</pre></div>
+</div>
+</section>
+<section id="ci-cd-verification">
+<h2>CI/CD Verification<a class="headerlink" href="#ci-cd-verification" title="Link to this heading"></a></h2>
+<section id="forbidden-patterns-test">
+<h3>Forbidden Patterns Test<a class="headerlink" href="#forbidden-patterns-test" title="Link to this heading"></a></h3>
+<p>Fail CI if sensitive patterns appear in logs:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+
+<span class="n">FORBIDDEN_PATTERNS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="sa">r</span><span class="s2">&quot;\b[A-Za-z0-9]{32,}\b&quot;</span><span class="p">,</span>      <span class="c1"># Long tokens</span>
+    <span class="sa">r</span><span class="s2">&quot;\b\d</span><span class="si">{3}</span><span class="s2">-\d</span><span class="si">{2}</span><span class="s2">-\d</span><span class="si">{4}</span><span class="s2">\b&quot;</span><span class="p">,</span>     <span class="c1"># SSN format</span>
+    <span class="sa">r</span><span class="s2">&quot;password\s*[:=]\s*\S+&quot;</span><span class="p">,</span>     <span class="c1"># password=value</span>
+    <span class="sa">r</span><span class="s2">&quot;[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+&quot;</span><span class="p">,</span>  <span class="c1"># Email addresses</span>
+<span class="p">]</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">asyncio</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_no_sensitive_patterns_in_logs</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fail if any forbidden pattern appears in log output.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">capture_logs</span><span class="p">()</span> <span class="k">as</span> <span class="n">logs</span><span class="p">:</span>
+        <span class="c1"># Run your application code here</span>
+        <span class="c1"># ...</span>
+        <span class="k">pass</span>
+
+    <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">FORBIDDEN_PATTERNS</span><span class="p">:</span>
+        <span class="n">matches</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">logs</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="n">matches</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Sensitive pattern found: </span><span class="si">{</span><span class="n">pattern</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">matches</span><span class="si">}</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="production-config-verification">
+<h3>Production Config Verification<a class="headerlink" href="#production-config-verification" title="Link to this heading"></a></h3>
+<p>Verify production configuration is correct:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_production_preset_enables_redaction</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Production preset should have all redactors enabled.&quot;&quot;&quot;</span>
+    <span class="n">builder</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">_config</span>
+
+    <span class="c1"># Verify redactors are configured</span>
+    <span class="k">assert</span> <span class="s2">&quot;field_mask&quot;</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;core&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;redactors&quot;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="k">assert</span> <span class="s2">&quot;regex_mask&quot;</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;core&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;redactors&quot;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="k">assert</span> <span class="s2">&quot;url_credentials&quot;</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;core&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;redactors&quot;</span><span class="p">,</span> <span class="p">[])</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="audit-testing">
+<h2>Audit Testing<a class="headerlink" href="#audit-testing" title="Link to this heading"></a></h2>
+<p>Generate evidence for compliance audits:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_gdpr_preset_field_coverage</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Document all fields covered by GDPR preset for audit.&quot;&quot;&quot;</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="o">.</span><span class="n">get_redaction_preset_info</span><span class="p">(</span><span class="s2">&quot;GDPR_PII&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Verify required categories are covered</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;fields&quot;</span><span class="p">])</span>
+
+    <span class="c1"># Contact info</span>
+    <span class="k">assert</span> <span class="s2">&quot;email&quot;</span> <span class="ow">in</span> <span class="n">fields</span>
+    <span class="k">assert</span> <span class="s2">&quot;phone&quot;</span> <span class="ow">in</span> <span class="n">fields</span>
+    <span class="k">assert</span> <span class="s2">&quot;address&quot;</span> <span class="ow">in</span> <span class="n">fields</span>
+
+    <span class="c1"># Personal identifiers</span>
+    <span class="k">assert</span> <span class="s2">&quot;name&quot;</span> <span class="ow">in</span> <span class="n">fields</span>
+    <span class="k">assert</span> <span class="s2">&quot;dob&quot;</span> <span class="ow">in</span> <span class="n">fields</span>
+
+    <span class="c1"># Online identifiers</span>
+    <span class="k">assert</span> <span class="s2">&quot;ip_address&quot;</span> <span class="ow">in</span> <span class="n">fields</span>
+    <span class="k">assert</span> <span class="s2">&quot;cookie_id&quot;</span> <span class="ow">in</span> <span class="n">fields</span>
+
+    <span class="c1"># Print for audit documentation</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">GDPR_PII covers </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span><span class="si">}</span><span class="s2"> fields:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">fields</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">field</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="integration-testing">
+<h2>Integration Testing<a class="headerlink" href="#integration-testing" title="Link to this heading"></a></h2>
+<p>Test redaction with actual sinks:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">asyncio</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_file_sink_receives_redacted_data</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Verify redacted data reaches file sink.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmpdir</span><span class="p">:</span>
+        <span class="n">log_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;app.log&quot;</span>
+
+        <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="p">(</span>
+            <span class="n">LoggerBuilder</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;CREDENTIALS&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="n">directory</span><span class="o">=</span><span class="n">tmpdir</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;app.log&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">build_async</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Auth event&quot;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">&quot;secret123&quot;</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="s2">&quot;alice&quot;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
+
+        <span class="c1"># Read and verify file contents</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">log_file</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
+        <span class="n">log_entry</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">content</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+        <span class="k">assert</span> <span class="n">log_entry</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="s2">&quot;password&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;***&quot;</span>
+        <span class="k">assert</span> <span class="n">log_entry</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="s2">&quot;user&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;alice&quot;</span>
+        <span class="k">assert</span> <span class="s2">&quot;secret123&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">content</span>
+</pre></div>
+</div>
+</section>
+<section id="checklist">
+<h2>Checklist<a class="headerlink" href="#checklist" title="Link to this heading"></a></h2>
+<p>Before deploying:</p>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Test each preset you use covers expected fields</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Test custom fields are redacted</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Test patterns catch expected variations</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Document known limitations (message strings, arbitrary fields)</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Add forbidden pattern tests to CI</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Verify production config enables redaction</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Generate audit evidence for compliance</p></li>
+</ul>
+</section>
+<section id="related">
+<h2>Related<a class="headerlink" href="#related" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="presets.html"><span class="std std-doc">Presets Reference</span></a> - Complete field lists</p></li>
+<li><p><a class="reference internal" href="behavior.html"><span class="std std-doc">Behavior</span></a> - What gets redacted and when</p></li>
+<li><p><a class="reference internal" href="../cookbook/compliance-redaction.html"><span class="std std-doc">Compliance Cookbook</span></a> - What works and what doesn’t</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          
+<footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer" style="position: relative;">
+        <a href="behavior.html" class="btn btn-neutral float-left" title="Redaction Behavior" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../cookbook/index.html" class="btn btn-neutral float-right" title="Cookbook" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+      <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 50%; margin-top: -0.5em;">
+        <a href="https://fapilog.dev">www.fapilog.dev</a>
+      </div>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Chris Haste.
+      <span class="lastupdated">Last updated on January 27, 2026.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
