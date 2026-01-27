@@ -9,10 +9,10 @@ Based on the architectural patterns, tech stack, and data models defined above, 
 **Key Interfaces:**
 
 - `async def info(message: str, **kwargs) -> None` - Async logging methods
-- `async def create(settings: UniversalSettings) -> AsyncLogger` - Factory method
+- `async def create(settings: Settings) -> AsyncLogger` - Factory method
 - `async def shutdown() -> None` - Graceful resource cleanup
 
-**Dependencies:** UniversalSettings, AsyncLoggingContainer, LogEvent pipeline  
+**Dependencies:** Settings, AsyncLoggingContainer, LogEvent pipeline
 **Technology Stack:** Python asyncio, Pydantic v2 for validation, zero-copy event creation
 
 ## AsyncLoggingContainer
@@ -21,11 +21,11 @@ Based on the architectural patterns, tech stack, and data models defined above, 
 
 **Key Interfaces:**
 
-- `async def create_logger(settings: UniversalSettings) -> AsyncLogger` - Logger factory
+- `async def create_logger(settings: Settings) -> AsyncLogger` - Logger factory
 - `async def load_plugins() -> None` - Dynamic plugin loading and validation
 - `async def get_metrics() -> ContainerMetrics` - Performance monitoring
 
-**Dependencies:** PluginRegistry, MetricsCollector, ComplianceEngine  
+**Dependencies:** PluginRegistry, MetricsCollector
 **Technology Stack:** asyncio context management, importlib.metadata for plugin discovery
 
 ## AsyncPipeline
@@ -50,23 +50,9 @@ Based on the architectural patterns, tech stack, and data models defined above, 
 
 - `async def discover_plugins() -> List[PluginMetadata]` - Plugin discovery
 - `async def load_plugin(metadata: PluginMetadata) -> Plugin` - Safe plugin loading
-- `async def validate_plugin_compliance(plugin: Plugin) -> bool` - Enterprise validation
 
-**Dependencies:** PluginMetadata, ComplianceEngine, PluginMarketplace  
+**Dependencies:** PluginMetadata
 **Technology Stack:** importlib.metadata, setuptools entry points (multi-group: `fapilog.sinks`, `fapilog.processors`, `fapilog.enrichers`, `fapilog.redactors`, `fapilog.alerting`), async validation
-
-## ComplianceEngine
-
-**Responsibility:** Enterprise compliance validation and enforcement for PCI-DSS, HIPAA, SOX standards
-
-**Key Interfaces:**
-
-- `async def validate_event(event: LogEvent) -> LogEvent` - Event compliance validation
-- `async def redact_sensitive_data(event: LogEvent) -> LogEvent` - PII redaction
-- `async def audit_log_access(user: str, action: str) -> None` - Audit trail creation
-
-**Dependencies:** UniversalSettings, ComplianceStandard enums, audit storage  
-**Technology Stack:** Pydantic v2 validation, structured audit logging, async compliance checks
 
 ## MetricsCollector
 
@@ -102,7 +88,7 @@ Based on the architectural patterns, tech stack, and data models defined above, 
 
 - `class FapilogMiddleware` - ASGI middleware for request-scoped logging with correlation ID propagation
 - `async def get_logger() -> AsyncLogger` - FastAPI dependency for logger injection
-- `def register_fapilog_lifecycle(app: FastAPI, settings: UniversalSettings) -> None` - Lifecycle hook registration
+- `def register_fapilog_lifecycle(app: FastAPI, settings: Settings) -> None` - Lifecycle hook registration
 - `class FapilogExceptionHandler` - Optional exception logging integration
 - `def fapilog_test_fixture() -> AsyncLogger` - Test fixture for FastAPI applications
 
@@ -135,14 +121,13 @@ graph TB
     end
 
     subgraph "Enterprise Features"
-        COMPLIANCE["ComplianceEngine"]
         METRICS["MetricsCollector"]
         QUEUE["AsyncQueue"]
     end
 
     subgraph "Data Models"
         EVENT["LogEvent"]
-        SETTINGS["UniversalSettings"]
+        SETTINGS["Settings"]
         METADATA["PluginMetadata"]
     end
 
@@ -156,18 +141,15 @@ graph TB
 
     REGISTRY --> METADATA
 
-    PIPELINE --> COMPLIANCE
     PIPELINE --> METRICS
 
     LOGGER --> EVENT
     CONTAINER --> SETTINGS
 
-    COMPLIANCE --> EVENT
     METRICS --> EVENT
     QUEUE --> EVENT
 
     style CONTAINER fill:#e1f5fe
     style PIPELINE fill:#f3e5f5
-    style COMPLIANCE fill:#fff3e0
     style EVENT fill:#e8f5e8
 ```

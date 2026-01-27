@@ -38,7 +38,7 @@ Key Implementation Priorities:
 4. Ensure container isolation prevents cross-contamination
 5. Build developer-first simplicity with enterprise plugin extensibility
 
-Architecture Document: docs/architecture.md
+Architecture Document: docs/architecture/index.md
 Coding Standards: Section 13 contains mandatory patterns for AI agents
 Performance Targets: 500K-2M events/second with <1ms latency
 Plugin Strategy: Standard Python entry points with PyPI distribution
