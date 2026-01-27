@@ -49,14 +49,16 @@ policy = CompliancePolicy(
 
 ### Example control mappings (non-exhaustive)
 
-| Framework | Control areas this can help with |
-|-----------|----------------------------------|
-| **SOC2** | Integrity checks, access logging, audit trails |
-| **HIPAA** | PHI redaction, minimum necessary patterns, audit trails |
-| **GDPR** | PII redaction, data subject request support (application responsibility) |
-| **PCI-DSS** | Access logging, audit trails (encryption and card data handling are your responsibility) |
-| **ISO 27001** | Security logging and integrity controls |
-| **SOX** | Change/event logging with chain verification |
+| Framework | Control areas this can help with | Redaction Preset |
+|-----------|----------------------------------|------------------|
+| **SOC2** | Integrity checks, access logging, audit trails | `CREDENTIALS` |
+| **HIPAA** | PHI redaction, minimum necessary patterns, audit trails | `HIPAA_PHI` |
+| **GDPR** | PII redaction, data subject request support (application responsibility) | `GDPR_PII` |
+| **PCI-DSS** | Access logging, audit trails (encryption and card data handling are your responsibility) | `PCI_DSS` |
+| **ISO 27001** | Security logging and integrity controls | `CREDENTIALS` |
+| **SOX** | Change/event logging with chain verification | `CREDENTIALS` |
+
+See [Redaction Presets](redaction/presets.md) for complete field lists covered by each preset.
 
 ---
 
@@ -170,32 +172,42 @@ await audit.log_data_access(
 
 ### Automatic Redaction
 
-The `url_credentials` redactor is enabled by default to scrub credentials from URLs. Additional redactors (`field_mask`, `regex_mask`) require explicit configuration or using a preset like `production` or `fastapi`:
+Fapilog provides compliance-focused redaction presets that automatically protect sensitive fields:
 
 ```python
-from fapilog import get_logger
+from fapilog import LoggerBuilder
 
-# Default: only url_credentials redactor is enabled
-logger = get_logger()
-logger.info("Connecting", url="https://user:secret@api.example.com/path")
-# Output: {"url": "https://api.example.com/path"}  # credentials stripped
+# HIPAA: Protects PHI (18 identifier categories)
+logger = LoggerBuilder().with_redaction(preset="HIPAA_PHI").build()
 
-# For field-based redaction, use a preset or explicit config
-from fapilog import get_logger
-logger = get_logger(preset="production")  # enables all redactors
-logger.info("User created", password="secret123", api_key="sk-xxx")
-# Output: {"password": "***", "api_key": "***"}
+# GDPR: Protects EU personal data
+logger = LoggerBuilder().with_redaction(preset="GDPR_PII").build()
+
+# PCI-DSS: Protects cardholder data
+logger = LoggerBuilder().with_redaction(preset="PCI_DSS").build()
+
+# Multiple regulations
+logger = (
+    LoggerBuilder()
+    .with_redaction(preset=["HIPAA_PHI", "PCI_DSS", "CREDENTIALS"])
+    .build()
+)
 ```
 
-**Built-in Redactors:**
+**Compliance Presets:**
 
-| Redactor | What It Protects | Default |
-|----------|-----------------|---------|
-| `url-credentials` | Credentials in URLs (`user:pass@host`) | Enabled |
-| `field-mask` | Named fields (password, secret, token, etc.) | Requires preset or config |
-| `regex-mask` | Pattern-based detection (SSN, email, etc.) | Requires preset or config |
+| Preset | Regulation | What It Protects |
+|--------|------------|------------------|
+| `HIPAA_PHI` | HIPAA | MRN, SSN, DOB, contact info, 18 PHI identifiers |
+| `GDPR_PII` | GDPR | Email, phone, name, IP, national IDs, 70+ fields |
+| `GDPR_PII_UK` | UK-GDPR | All GDPR fields plus NHS number, NI number |
+| `PCI_DSS` | PCI-DSS | Card numbers, CVV, expiry, cardholder name |
+| `CCPA_PII` | CCPA | California personal information |
+| `CREDENTIALS` | N/A | Passwords, API keys, tokens, secrets |
 
-See [Redaction Documentation](redaction/index.md) for configuration details.
+See [Redaction Presets](redaction/presets.md) for complete field lists.
+
+> **Important:** Redaction matches field names, not field content. PII embedded in message strings is not redacted. See [Compliance Redaction Cookbook](cookbook/compliance-redaction.md) for what works and what doesn't.
 
 ---
 
@@ -345,7 +357,10 @@ Fapilog's JSON output integrates with standard log aggregators:
 | Audit trail | `AuditTrail` | `CompliancePolicy.enabled=True` |
 | Log integrity | Hash chains | Automatic (sequence + checksum) |
 | URL credential protection | `url_credentials` redactor | Enabled by default |
-| PII/field redaction | `field_mask`, `regex_mask` | `preset="production"` or explicit config |
+| HIPAA PHI redaction | `HIPAA_PHI` preset | `.with_redaction(preset="HIPAA_PHI")` |
+| GDPR PII redaction | `GDPR_PII` preset | `.with_redaction(preset="GDPR_PII")` |
+| PCI-DSS redaction | `PCI_DSS` preset | `.with_redaction(preset="PCI_DSS")` |
+| Credential redaction | `CREDENTIALS` preset | `.with_redaction(preset="CREDENTIALS")` |
 | Access control | `AccessControlSettings` | `access_control.enabled=True` |
 | Retention policy | `CompliancePolicy` | `retention_days=365` |
 | Security events | `AuditEventType` | `log_security_event()` |
@@ -355,6 +370,7 @@ Fapilog's JSON output integrates with standard log aggregators:
 
 ## Further Reading
 
-- [Redaction](redaction/index.md) - PII/secret protection
-- [Redaction Configuration](redaction/configuration.md) - Redactor configuration
+- [Redaction Presets](redaction/presets.md) - Complete field lists for HIPAA, GDPR, PCI-DSS
+- [Compliance Redaction Cookbook](cookbook/compliance-redaction.md) - What works and what doesn't
+- [Redaction Configuration](redaction/configuration.md) - Builder API and settings
 - [API Reference: Configuration](api-reference/configuration.md) - Settings reference

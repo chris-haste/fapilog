@@ -62,11 +62,11 @@ why-fapilog
 comparisons
 core-concepts/index
 user-guide/index
-redaction/index
 cookbook/index
+examples/index
+redaction/index
 enterprise
 api-reference/index
-examples/index
 plugins/index
 troubleshooting/index
 faq
@@ -78,8 +78,12 @@ appendices
 - **[Getting Started](getting-started/index.md)** - Installation and quickstart
 - **[Core Concepts](core-concepts/index.md)** - Understanding the architecture
 - **[User Guide](user-guide/index.md)** - Practical usage and configuration
-- **[Redaction](redaction/index.md)** - Protect sensitive data (GDPR, HIPAA, PCI-DSS)
 - **[Cookbook](cookbook/index.md)** - Focused recipes for common problems
+- **[Examples](examples/index.md)** - Real-world usage patterns
+
+**Production Ready:**
+
+- **[Redaction](redaction/index.md)** - Protect sensitive data (GDPR, HIPAA, PCI-DSS)
 - **[Enterprise Features](enterprise.md)** - Compliance, audit trails, and security
 
 **Reference:**

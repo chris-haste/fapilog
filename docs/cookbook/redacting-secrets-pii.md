@@ -349,5 +349,5 @@ logger = await (
 ## Going Deeper
 
 - [Redaction Presets](../redaction/presets.md) - Full preset documentation
-- [Redactors Reference](../user-guide/redactors.md) - Complete redactor documentation
+- [Redaction Configuration](../redaction/configuration.md) - Complete redaction configuration
 - [Configuration Reference](../user-guide/configuration.md) - All settings options

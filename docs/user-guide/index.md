@@ -15,7 +15,6 @@ using-logger
 context-enrichment
 rotating-file-sink
 sink-routing
-redactors
 graceful-shutdown
 performance-tuning
 benchmarks
@@ -35,10 +34,11 @@ The User Guide covers everything you need to know to use fapilog effectively in 
 - **Using the Logger** - Logging methods, extra fields, exceptions
 - **Context Enrichment** - Adding business context and correlation
 - **Rotating File Sink** - File logging with rotation and retention
-- **Redactors** - Data masking and security
 - **Graceful Shutdown** - Proper cleanup and resource management
 - **Performance Tuning** - Optimizing for your use case
 - **Integration Guide** - FastAPI, Docker, Kubernetes
+
+For data masking and security, see the dedicated [Redaction](../redaction/index.md) section.
 
 ## Quick Reference
 
@@ -101,10 +101,11 @@ export FAPILOG_CORE__MAX_QUEUE_SIZE=8192
 2. **[Using the Logger](using-logger.md)** - All logging methods, extra fields, and exception handling
 3. **[Context Enrichment](context-enrichment.md)** - Adding business context and correlation IDs
 4. **[Rotating File Sink](rotating-file-sink.md)** - File logging with automatic rotation and compression
-5. **[Redactors](redactors.md)** - Configuring data masking and security
-6. **[Graceful Shutdown](graceful-shutdown.md)** - Proper cleanup with `runtime()` / `runtime_async()`
-7. **[Performance Tuning](performance-tuning.md)** - Queue sizes, batching, and optimization
-8. **[Integration Guide](integration-guide.md)** - FastAPI, Docker, Kubernetes, and more
+5. **[Graceful Shutdown](graceful-shutdown.md)** - Proper cleanup with `runtime()` / `runtime_async()`
+6. **[Performance Tuning](performance-tuning.md)** - Queue sizes, batching, and optimization
+7. **[Integration Guide](integration-guide.md)** - FastAPI, Docker, Kubernetes, and more
+
+For data masking and security, see the [Redaction](../redaction/index.md) documentation.
 
 ## Common Patterns
 

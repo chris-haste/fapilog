@@ -215,6 +215,52 @@ logger = (
 )
 ```
 
+## Regex Pattern Safety
+
+The `regex-mask` redactor validates patterns at config time to prevent ReDoS (Regular Expression Denial of Service) attacks. Patterns with these constructs are rejected:
+
+- **Nested quantifiers**: `(a+)+`, `(a*)*`, `(a+)*`
+- **Alternation with quantifiers**: `(a|aa)+`, `(foo|foobar)*`
+- **Wildcards in bounded repetition**: `(.*a){10,}`
+
+### Safe Patterns
+
+```python
+# These are safe and accepted
+patterns = [
+    r"user\.email",              # Literal path
+    r"user\..*\.secret",         # Simple wildcard
+    r"request\.headers\.[^.]+",  # Character class
+    r"(password|secret|token)",  # Alternation without quantifier
+]
+```
+
+### Patterns to Avoid
+
+```python
+# These are rejected by default
+patterns = [
+    r"(a+)+",           # Nested quantifiers - exponential backtracking
+    r"(a|aa)+",         # Overlapping alternation - exponential backtracking
+    r"(.*a){10,}",      # Wildcard in repetition - exponential backtracking
+]
+```
+
+### Escape Hatch
+
+If you understand the risks and need to use a pattern that triggers validation:
+
+```python
+from fapilog.redaction import RegexMaskConfig
+
+config = RegexMaskConfig(
+    patterns=[r"(complex|pattern)+"],
+    allow_unsafe_patterns=True,  # Bypasses ReDoS validation
+)
+```
+
+> **Warning:** Only use `allow_unsafe_patterns=True` if you've verified the pattern won't cause catastrophic backtracking with your data.
+
 ## Related
 
 - [Presets Reference](presets.md) - Complete field lists
