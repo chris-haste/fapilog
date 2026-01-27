@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+### Added
+
+- **Composable redaction presets:** One-liner compliance protection via `with_redaction_preset("GDPR_PII")`. Includes presets for GDPR, CCPA, HIPAA, and PCI-DSS with inheritance support and metadata filtering (Story 3.8).
+
 ## [0.6.0] - 2026-01-26
 
 ### Added
