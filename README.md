@@ -383,8 +383,9 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ## 🔗 Links
 
+- [Website](https://fapilog.dev)
 - [GitHub Repository](https://github.com/chris-haste/fapilog)
-- [Documentation](https://fapilog.readthedocs.io/)
+- [Documentation](https://fapilog.readthedocs.io/en/stable/)
 
 ---
 
