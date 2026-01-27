@@ -9,7 +9,6 @@ Practical usage patterns and configuration for fapilog.
 
 configuration
 builder-configuration
-../guides/settings-to-builder-migration
 environment-variables
 using-logger
 context-enrichment
@@ -24,6 +23,8 @@ reliability-defaults
 testing-plugins
 webhook-security
 ```
+
+**Migration Guide:** [Settings to Builder Migration](../guides/settings-to-builder-migration.md) - Migrate from Settings-based to Builder-based configuration.
 
 ## Overview
 
