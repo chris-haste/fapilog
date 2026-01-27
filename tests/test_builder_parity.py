@@ -85,6 +85,8 @@ BUILDER_TO_CORE_FIELDS: dict[str, list[str]] = {
     "with_atexit_drain": ["atexit_drain_enabled", "atexit_drain_timeout_seconds"],
     "with_signal_handlers": ["signal_handler_enabled"],
     "with_flush_on_critical": ["flush_on_critical"],
+    # Story 4.54: Redaction fail mode
+    "with_fallback_redaction": ["fallback_redact_mode", "redaction_fail_mode"],
 }
 
 # Mapping of add_* methods to sink types they cover
@@ -117,7 +119,6 @@ EXCLUDED_CORE_FIELDS: set[str] = {
     "resource_pool_acquire_timeout_seconds",  # Story 10.26: with_resource_pool()
     "redaction_max_depth",  # Story 10.26: with_redaction_guardrails()
     "redaction_max_keys_scanned",  # Story 10.26: with_redaction_guardrails()
-    "fallback_redact_mode",  # Story 10.26: with_fallback_redaction()
 }
 
 # Sinks intentionally excluded (covered via other mechanisms)
