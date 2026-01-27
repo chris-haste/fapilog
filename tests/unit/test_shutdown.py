@@ -437,7 +437,12 @@ class TestInstallSignalHandlers:
 
     def test_signal_handlers_skipped_when_disabled(self) -> None:
         """Signal handlers should not be installed when disabled in settings."""
-        from fapilog.core.shutdown import _install_signal_handlers
+        from fapilog.core.shutdown import (
+            _reset_handler_state,
+            install_shutdown_handlers,
+        )
+
+        _reset_handler_state()
 
         with patch("fapilog.core.shutdown._get_shutdown_settings") as mock_settings:
             mock_settings.return_value = {
@@ -446,7 +451,11 @@ class TestInstallSignalHandlers:
                 "signal_handler_enabled": False,
             }
 
-            # Call the function
-            _install_signal_handlers()
+            with patch(
+                "fapilog.core.shutdown._do_install_signal_handlers"
+            ) as mock_install:
+                # Call the function
+                install_shutdown_handlers()
 
-            # Function should return early, no error
+                # Signal handlers should not be installed when disabled
+                mock_install.assert_not_called()
