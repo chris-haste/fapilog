@@ -74,4 +74,4 @@ Register via entry points using the `fapilog.redactors` group in your package me
 ## Integration Order
 
 At runtime the effective order is: Enricher → Redactor → Processor → Sink.
-Redaction occurs pre-serialization. See also Redaction Guarantees for policy and guardrails: [docs/redaction-guarantees.md](../redaction-guarantees.md)
+Redaction occurs pre-serialization. See [Redaction Behavior](../redaction/behavior.md) for policy and guardrails.

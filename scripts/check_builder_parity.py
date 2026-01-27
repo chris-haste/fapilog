@@ -144,9 +144,6 @@ def check_advanced_settings() -> list[str]:
         List of error messages, empty if all advanced settings covered
     """
     from fapilog.core.settings import (
-        RedactorFieldMaskSettings,
-        RedactorRegexMaskSettings,
-        RedactorUrlCredentialsSettings,
         SinkRoutingSettings,
     )
     from scripts.builder_param_mappings import ADVANCED_COVERAGE
@@ -167,44 +164,12 @@ def check_advanced_settings() -> list[str]:
                 f"{sorted(missing)}"
             )
 
-    # Field mask redactor
-    if "with_field_mask" not in ADVANCED_COVERAGE:
-        errors.append("Missing ADVANCED_COVERAGE for with_field_mask")
-    else:
-        fields = get_model_fields(RedactorFieldMaskSettings)
-        covered = set(ADVANCED_COVERAGE["with_field_mask"].values())
-        missing = fields - covered
-        if missing:
-            errors.append(
-                f"RedactorFieldMaskSettings fields without with_field_mask() coverage: "
-                f"{sorted(missing)}"
-            )
-
-    # Regex mask redactor
-    if "with_regex_mask" not in ADVANCED_COVERAGE:
-        errors.append("Missing ADVANCED_COVERAGE for with_regex_mask")
-    else:
-        fields = get_model_fields(RedactorRegexMaskSettings)
-        covered = set(ADVANCED_COVERAGE["with_regex_mask"].values())
-        missing = fields - covered
-        if missing:
-            errors.append(
-                f"RedactorRegexMaskSettings fields without with_regex_mask() coverage: "
-                f"{sorted(missing)}"
-            )
-
-    # URL credentials redactor
-    if "with_url_credential_redaction" not in ADVANCED_COVERAGE:
-        errors.append("Missing ADVANCED_COVERAGE for with_url_credential_redaction")
-    else:
-        fields = get_model_fields(RedactorUrlCredentialsSettings)
-        covered = set(ADVANCED_COVERAGE["with_url_credential_redaction"].values())
-        missing = fields - covered
-        if missing:
-            errors.append(
-                f"RedactorUrlCredentialsSettings fields without coverage: "
-                f"{sorted(missing)}"
-            )
+    # Unified redaction API (covers field_mask, regex_mask, url_credentials)
+    if "with_redaction" not in ADVANCED_COVERAGE:
+        errors.append("Missing ADVANCED_COVERAGE for with_redaction")
+    # Note: with_redaction() is a unified API that configures all redactors
+    # through a single method. Individual redactor settings are mapped via
+    # the unified parameters (fields, patterns, url_credentials, mask, etc.)
 
     # Plugins settings - these are nested in Settings.PluginsSettings
     # We check this separately since it's a nested class

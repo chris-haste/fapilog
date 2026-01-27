@@ -171,22 +171,19 @@ ADVANCED_COVERAGE: dict[str, dict[str, str]] = {
         "fallback": "fallback_sinks",
         "overlap": "overlap",
     },
-    "with_field_mask": {
+    # Unified redaction API covers all redaction functionality
+    "with_redaction": {
+        "preset": "(resolves to fields_to_mask, patterns)",
         "fields": "fields_to_mask",
-        "mask": "mask_string",
-        "block_on_failure": "block_on_unredactable",
-        "max_depth": "max_depth",
-        "max_keys": "max_keys_scanned",
-    },
-    "with_regex_mask": {
         "patterns": "patterns",
         "mask": "mask_string",
+        "url_credentials": "(url_credentials redactor)",
+        "url_max_length": "max_string_length",
         "block_on_failure": "block_on_unredactable",
-        "max_depth": "max_depth",
-        "max_keys": "max_keys_scanned",
-    },
-    "with_url_credential_redaction": {
-        "max_string_length": "max_string_length",
+        "max_depth": "redaction_max_depth",
+        "max_keys": "redaction_max_keys_scanned",
+        "auto_prefix": "(applies data. prefix to fields)",
+        "replace": "(controls additive vs replace behavior)",
     },
     "with_plugins": {
         "enabled": "enabled",

@@ -606,8 +606,32 @@ def _prepare_logger(
     # Apply preset if provided
     if preset is not None:
         from .core.presets import get_preset
+        from .redaction import resolve_preset_fields
 
         preset_config = get_preset(preset)
+
+        # Apply CREDENTIALS redaction preset for security-focused presets
+        if preset in ("production", "fastapi", "serverless"):
+            credentials_fields, credentials_patterns = resolve_preset_fields(
+                "CREDENTIALS"
+            )
+            # Add fields with data. prefix
+            prefixed_fields = [f"data.{f}" for f in credentials_fields]
+
+            # Merge into preset config
+            redactor_config = preset_config.setdefault("redactor_config", {})
+            field_mask_config = redactor_config.setdefault("field_mask", {})
+            existing_fields = field_mask_config.setdefault("fields_to_mask", [])
+            for f in prefixed_fields:
+                if f not in existing_fields:
+                    existing_fields.append(f)
+
+            regex_mask_config = redactor_config.setdefault("regex_mask", {})
+            existing_patterns = regex_mask_config.setdefault("patterns", [])
+            for p in credentials_patterns:
+                if p not in existing_patterns:
+                    existing_patterns.append(p)
+
         settings = _Settings(**preset_config)
 
     cfg_source = settings or _Settings()

@@ -16,6 +16,63 @@ class LoggerBuilder:
     a logger via get_logger() on build().
     """
 
+    @staticmethod
+    def list_redaction_presets() -> list[str]:
+        """List all available redaction preset names.
+
+        Returns:
+            Sorted list of preset names (e.g., ["CCPA_PII", "CREDENTIALS", ...]).
+
+        Example:
+            >>> LoggerBuilder.list_redaction_presets()
+            ['CCPA_PII', 'CONTACT_INFO', 'CREDENTIALS', ...]
+        """
+        from .redaction import list_redaction_presets
+
+        return list_redaction_presets()
+
+    @staticmethod
+    def get_redaction_preset_info(name: str) -> dict[str, Any]:
+        """Get detailed information about a redaction preset.
+
+        Args:
+            name: The preset name (e.g., "GDPR_PII", "HIPAA_PHI").
+
+        Returns:
+            Dictionary with preset metadata:
+            - name: Preset name
+            - description: Human-readable description
+            - fields: List of field names to redact
+            - patterns: List of regex patterns
+            - extends: List of parent preset names
+            - regulation: Compliance regulation (if applicable)
+            - region: Geographic region (if applicable)
+            - tags: List of tags for filtering
+
+        Raises:
+            ValueError: If the preset name is not found.
+
+        Example:
+            >>> info = LoggerBuilder.get_redaction_preset_info("GDPR_PII")
+            >>> print(info["description"])
+            GDPR Article 4 personal data identifiers
+        """
+        from .redaction import get_redaction_preset, resolve_preset_fields
+
+        preset = get_redaction_preset(name)
+        resolved_fields, resolved_patterns = resolve_preset_fields(name)
+
+        return {
+            "name": preset.name,
+            "description": preset.description,
+            "fields": sorted(resolved_fields),
+            "patterns": sorted(resolved_patterns),
+            "extends": list(preset.extends),
+            "regulation": preset.regulation,
+            "region": preset.region,
+            "tags": list(preset.tags),
+        }
+
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._name: str | None = None
@@ -38,8 +95,11 @@ class LoggerBuilder:
         Preset is applied first, then subsequent methods override.
         Only one preset can be applied.
 
+        For production, fastapi, and serverless presets, the CREDENTIALS
+        redaction preset is automatically applied for secure defaults.
+
         Args:
-            preset: Preset name (dev, production, fastapi, minimal)
+            preset: Preset name (dev, production, fastapi, minimal, serverless)
 
         Raises:
             ValueError: If a preset is already set
@@ -49,6 +109,11 @@ class LoggerBuilder:
                 f"Preset already set to '{self._preset}'. Cannot apply '{preset}'."
             )
         self._preset = preset
+
+        # Apply CREDENTIALS redaction preset for security-focused presets
+        if preset in ("production", "fastapi", "serverless"):
+            self.with_redaction(preset="CREDENTIALS")
+
         return self
 
     def add_file(
@@ -176,27 +241,136 @@ class LoggerBuilder:
     def with_redaction(
         self,
         *,
+        preset: str | list[str] | None = None,
         fields: list[str] | None = None,
         patterns: list[str] | None = None,
+        mask: str = "***",
+        url_credentials: bool | None = None,
+        url_max_length: int = 4096,
+        block_on_failure: bool = False,
+        max_depth: int | None = None,
+        max_keys: int | None = None,
+        auto_prefix: bool = True,
+        replace: bool = False,
     ) -> LoggerBuilder:
-        """Configure redaction.
+        """Configure redaction with unified API.
+
+        This is the single entry point for all redaction configuration.
+        By default, fields and patterns are additive - calling multiple times
+        merges values. Use `replace=True` to overwrite instead.
 
         Args:
-            fields: Field names to redact (e.g., ["password", "ssn"])
-            patterns: Regex patterns to redact (e.g., ["secret.*"])
+            preset: Redaction preset name(s) to apply (e.g., "GDPR_PII", "CREDENTIALS").
+                   Can be a single string or list of strings for multiple presets.
+            fields: Field names to redact (e.g., ["password", "ssn"]).
+            patterns: Regex patterns to match against field paths.
+            mask: Replacement string for redacted values (default: "***").
+            url_credentials: Enable URL credential redaction (True/False/None).
+                            None means no change to current setting.
+            url_max_length: Max string length for URL parsing (default: 4096).
+            block_on_failure: Block log entry if redaction fails (default: False).
+            max_depth: Maximum nested depth for redaction scanning.
+            max_keys: Maximum keys to scan during redaction.
+            auto_prefix: If True (default), adds "data." prefix to simple field
+                        names without dots (e.g., "password" -> "data.password").
+            replace: If True, replace existing fields/patterns instead of merging.
+
+        Returns:
+            Self for method chaining.
+
+        Example:
+            >>> # Apply preset with custom fields
+            >>> builder.with_redaction(preset="GDPR_PII", fields=["custom_field"])
+            >>>
+            >>> # Multiple presets
+            >>> builder.with_redaction(preset=["GDPR_PII", "PCI_DSS"])
+            >>>
+            >>> # Custom patterns with URL credential redaction
+            >>> builder.with_redaction(
+            ...     patterns=["(?i).*secret.*"],
+            ...     url_credentials=True,
+            ...     max_depth=10,
+            ... )
         """
+        from .redaction import resolve_preset_fields
+
         redactors = self._config.setdefault("core", {}).setdefault("redactors", [])
         redactor_config = self._config.setdefault("redactor_config", {})
 
+        # Collect all fields and patterns
+        all_fields: list[str] = []
+        all_patterns: list[str] = []
+
+        # Handle preset(s) - preset fields always get data. prefix
+        if preset is not None:
+            preset_list = [preset] if isinstance(preset, str) else preset
+            for preset_name in preset_list:
+                resolved_fields, resolved_patterns = resolve_preset_fields(preset_name)
+                # Preset fields always get data. prefix for envelope structure
+                for field in resolved_fields:
+                    all_fields.append(f"data.{field}")
+                all_patterns.extend(resolved_patterns)
+
+        # Handle custom fields with auto-prefix
         if fields:
+            for field in fields:
+                if auto_prefix and "." not in field:
+                    all_fields.append(f"data.{field}")
+                else:
+                    all_fields.append(field)
+
+        # Handle custom patterns
+        if patterns:
+            all_patterns.extend(patterns)
+
+        # Apply fields
+        if all_fields:
             if "field_mask" not in redactors:
                 redactors.append("field_mask")
-            redactor_config.setdefault("field_mask", {})["fields_to_mask"] = fields
+            field_mask_config = redactor_config.setdefault("field_mask", {})
+            field_mask_config["mask_string"] = mask
+            field_mask_config["block_on_unredactable"] = block_on_failure
 
-        if patterns:
+            if replace:
+                field_mask_config["fields_to_mask"] = list(dict.fromkeys(all_fields))
+            else:
+                existing = field_mask_config.setdefault("fields_to_mask", [])
+                for f in all_fields:
+                    if f not in existing:
+                        existing.append(f)
+
+        # Apply patterns
+        if all_patterns:
             if "regex_mask" not in redactors:
                 redactors.append("regex_mask")
-            redactor_config.setdefault("regex_mask", {})["patterns"] = patterns
+            regex_mask_config = redactor_config.setdefault("regex_mask", {})
+            regex_mask_config["mask_string"] = mask
+            regex_mask_config["block_on_unredactable"] = block_on_failure
+
+            if replace:
+                regex_mask_config["patterns"] = list(dict.fromkeys(all_patterns))
+            else:
+                existing = regex_mask_config.setdefault("patterns", [])
+                for p in all_patterns:
+                    if p not in existing:
+                        existing.append(p)
+
+        # Handle URL credential redaction
+        if url_credentials is True:
+            if "url_credentials" not in redactors:
+                redactors.append("url_credentials")
+            url_config = redactor_config.setdefault("url_credentials", {})
+            url_config["max_string_length"] = url_max_length
+        elif url_credentials is False:
+            if "url_credentials" in redactors:
+                redactors.remove("url_credentials")
+
+        # Handle guardrails (max_depth and max_keys)
+        core = self._config.setdefault("core", {})
+        if max_depth is not None:
+            core["redaction_max_depth"] = max_depth
+        if max_keys is not None:
+            core["redaction_max_keys_scanned"] = max_keys
 
         return self
 
@@ -753,129 +927,6 @@ class LoggerBuilder:
             routing_config["fallback_sinks"] = fallback
 
         self._config["sink_routing"] = routing_config
-        return self
-
-    def with_field_mask(
-        self,
-        fields: list[str],
-        *,
-        mask: str = "***",
-        block_on_failure: bool = False,
-        max_depth: int = 16,
-        max_keys: int = 1000,
-    ) -> LoggerBuilder:
-        """Configure field-based redaction.
-
-        Args:
-            fields: Field paths to mask (e.g., ["password", "user.ssn"])
-            mask: Replacement string (default: "***")
-            block_on_failure: Block log entry if redaction fails (default: False)
-            max_depth: Maximum nested depth to scan (default: 16)
-            max_keys: Maximum keys to scan (default: 1000)
-
-        Example:
-            >>> builder.with_field_mask(["password", "api_key"], mask="[REDACTED]")
-        """
-        redactors = self._config.setdefault("core", {}).setdefault("redactors", [])
-        if "field_mask" not in redactors:
-            redactors.append("field_mask")
-
-        redactor_config = self._config.setdefault("redactor_config", {})
-        redactor_config["field_mask"] = {
-            "fields_to_mask": fields,
-            "mask_string": mask,
-            "block_on_unredactable": block_on_failure,
-            "max_depth": max_depth,
-            "max_keys_scanned": max_keys,
-        }
-        return self
-
-    def with_regex_mask(
-        self,
-        patterns: list[str],
-        *,
-        mask: str = "***",
-        block_on_failure: bool = False,
-        max_depth: int = 16,
-        max_keys: int = 1000,
-    ) -> LoggerBuilder:
-        """Configure regex-based field path redaction.
-
-        Note: Patterns match field PATHS (e.g., "context.password"),
-        not field content. Use patterns like "(?i).*password.*".
-
-        Args:
-            patterns: Regex patterns to match against field paths
-            mask: Replacement string (default: "***")
-            block_on_failure: Block log entry if redaction fails (default: False)
-            max_depth: Maximum nested depth to scan (default: 16)
-            max_keys: Maximum keys to scan (default: 1000)
-
-        Example:
-            >>> builder.with_regex_mask(["(?i).*password.*", "(?i).*secret.*"])
-        """
-        redactors = self._config.setdefault("core", {}).setdefault("redactors", [])
-        if "regex_mask" not in redactors:
-            redactors.append("regex_mask")
-
-        redactor_config = self._config.setdefault("redactor_config", {})
-        redactor_config["regex_mask"] = {
-            "patterns": patterns,
-            "mask_string": mask,
-            "block_on_unredactable": block_on_failure,
-            "max_depth": max_depth,
-            "max_keys_scanned": max_keys,
-        }
-        return self
-
-    def with_url_credential_redaction(
-        self,
-        *,
-        enabled: bool = True,
-        max_string_length: int = 4096,
-    ) -> LoggerBuilder:
-        """Configure URL credential redaction.
-
-        Scrubs credentials from URLs like "https://user:pass@host/..."
-
-        Args:
-            enabled: Enable URL credential redaction (default: True)
-            max_string_length: Max string length to parse (default: 4096)
-
-        Example:
-            >>> builder.with_url_credential_redaction(max_string_length=8192)
-        """
-        redactors = self._config.setdefault("core", {}).setdefault("redactors", [])
-        if enabled and "url_credentials" not in redactors:
-            redactors.append("url_credentials")
-        elif not enabled and "url_credentials" in redactors:
-            redactors.remove("url_credentials")
-
-        if enabled:
-            redactor_config = self._config.setdefault("redactor_config", {})
-            redactor_config["url_credentials"] = {
-                "max_string_length": max_string_length,
-            }
-        return self
-
-    def with_redaction_guardrails(
-        self,
-        *,
-        max_depth: int = 6,
-        max_keys: int = 5000,
-    ) -> LoggerBuilder:
-        """Configure global redaction guardrails.
-
-        Args:
-            max_depth: Maximum nested depth for redaction (default: 6)
-            max_keys: Maximum keys scanned during redaction (default: 5000)
-
-        Example:
-            >>> builder.with_redaction_guardrails(max_depth=10, max_keys=10000)
-        """
-        core = self._config.setdefault("core", {})
-        core["redaction_max_depth"] = max_depth
-        core["redaction_max_keys_scanned"] = max_keys
         return self
 
     def configure_enricher(

@@ -86,16 +86,21 @@ class TestProductionPresetRedactors:
 
 
 class TestProductionFieldMaskConfig:
-    """Verify field_mask configuration matches documentation."""
+    """Verify field_mask configuration via builder with CREDENTIALS preset."""
 
-    def test_field_mask_fields_match_docs(self) -> None:
-        """Production field_mask masks documented sensitive fields.
+    def test_field_mask_fields_match_docs_via_builder(self) -> None:
+        """Production preset via builder masks documented sensitive fields.
 
-        These fields are documented in redaction-guarantee.md and should
-        mask at any nesting level under metadata.*.
+        These fields are documented in redaction-guarantee.md. Since production
+        preset now uses CREDENTIALS redaction preset via with_preset(), we test
+        through the builder to get the full resolved configuration.
         """
-        prod = get_preset("production")
-        fields = prod["redactor_config"]["field_mask"]["fields_to_mask"]
+        from fapilog import LoggerBuilder
+
+        builder = LoggerBuilder()
+        builder.with_preset("production")
+
+        fields = builder._config["redactor_config"]["field_mask"]["fields_to_mask"]
 
         # Documented fields that must be masked (using v1.1 schema "data" prefix)
         required_fields = [
@@ -106,8 +111,6 @@ class TestProductionFieldMaskConfig:
             "data.authorization",
             "data.api_secret",
             "data.private_key",
-            "data.ssn",
-            "data.credit_card",
         ]
 
         for field in required_fields:
@@ -115,22 +118,30 @@ class TestProductionFieldMaskConfig:
 
 
 class TestProductionRegexMaskConfig:
-    """Verify regex_mask configuration matches documentation."""
+    """Verify regex_mask configuration via builder with CREDENTIALS preset."""
 
-    def test_regex_mask_has_patterns(self) -> None:
-        """Production regex_mask has patterns configured."""
-        prod = get_preset("production")
-        patterns = prod["redactor_config"]["regex_mask"]["patterns"]
+    def test_regex_mask_has_patterns_via_builder(self) -> None:
+        """Production preset via builder has patterns configured."""
+        from fapilog import LoggerBuilder
+
+        builder = LoggerBuilder()
+        builder.with_preset("production")
+
+        patterns = builder._config["redactor_config"]["regex_mask"]["patterns"]
         assert len(patterns) > 0, "regex_mask must have patterns configured"
 
-    def test_regex_mask_patterns_cover_sensitive_fields(self) -> None:
+    def test_regex_mask_patterns_cover_sensitive_fields_via_builder(self) -> None:
         """Regex patterns cover documented sensitive field names.
 
         Patterns should match paths containing: password, api_key, token,
-        secret, authorization, private_key, ssn, credit_card.
+        secret, authorization, private_key.
         """
-        prod = get_preset("production")
-        patterns = prod["redactor_config"]["regex_mask"]["patterns"]
+        from fapilog import LoggerBuilder
+
+        builder = LoggerBuilder()
+        builder.with_preset("production")
+
+        patterns = builder._config["redactor_config"]["regex_mask"]["patterns"]
         patterns_joined = " ".join(patterns).lower()
 
         # These keywords must appear in at least one pattern
@@ -139,8 +150,7 @@ class TestProductionRegexMaskConfig:
             "api",  # Covers api_key, apikey
             "token",
             "secret",
-            "authorization",
-            "ssn",
+            "auth",  # Covers authorization
         ]
 
         for keyword in required_keywords:

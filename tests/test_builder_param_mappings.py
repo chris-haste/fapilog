@@ -128,9 +128,7 @@ class TestAdvancedCoverageMapping:
 
         expected_methods = [
             "with_routing",
-            "with_field_mask",
-            "with_regex_mask",
-            "with_url_credential_redaction",
+            "with_redaction",  # Unified API replaces field_mask, regex_mask, etc.
             "with_plugins",
         ]
         for method in expected_methods:

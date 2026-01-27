@@ -33,32 +33,31 @@ fapilog ships with three built-in redactors:
 | Redactor | Enabled by Default | What It Does |
 |----------|-------------------|--------------|
 | `url_credentials` | Yes | Strips `user:pass@` from URLs |
-| `field_mask` | No | Masks specific field names |
-| `regex_mask` | No | Masks fields matching regex patterns |
+| `field_mask` | No (Yes with preset) | Masks specific field names |
+| `regex_mask` | No (Yes with preset) | Masks fields matching regex patterns |
 
 The default configuration prioritizes safety without being overly aggressive. URL credentials are the most common accidental leak, so they're handled automatically.
 
-### Fallback Protection
+### Full Protection with Presets
 
-Even if no redactors are configured, fapilog's fallback stderr sink applies minimal redaction for these sensitive field names:
+The `production`, `fastapi`, and `serverless` presets automatically apply the `CREDENTIALS` redaction preset, which masks:
 
-- `password`, `passwd`, `secret`, `token`
-- `api_key`, `apikey`, `api_secret`, `apisecret`
-- `authorization`, `auth`, `credential`, `credentials`
-- `private_key`, `privatekey`, `access_token`, `refresh_token`
-
-This ensures sensitive data doesn't leak to stderr even in error scenarios.
+- Passwords: `password`, `passwd`, `pwd`
+- API keys: `api_key`, `apikey`, `api_token`
+- Tokens: `token`, `access_token`, `refresh_token`, `auth_token`
+- Secrets: `secret`, `api_secret`, `client_secret`, `private_key`
+- Auth headers: `authorization`, `auth_header`
 
 ## Adding Field-Based Redaction
 
-To redact specific fields by name, enable the `field_mask` redactor:
+To redact specific fields by name, use `with_redaction()`:
 
 ```python
 from fapilog import LoggerBuilder
 
 logger = await (
     LoggerBuilder()
-    .with_field_mask(
+    .with_redaction(
         fields=["password", "ssn", "credit_card", "user.api_key"],
         mask="[REDACTED]",
     )
@@ -72,6 +71,22 @@ await logger.info("User signup", password="hunter2", email="user@example.com")
 {"message": "User signup", "password": "[REDACTED]", "email": "user@example.com"}
 ```
 
+### Auto-Prefix Behavior
+
+By default, simple field names (without dots) are automatically prefixed with `data.` to match the log envelope structure:
+
+```python
+# These are equivalent:
+.with_redaction(fields=["password"])           # Auto-prefixed to data.password
+.with_redaction(fields=["data.password"], auto_prefix=False)
+```
+
+To disable auto-prefixing:
+
+```python
+.with_redaction(fields=["password"], auto_prefix=False)
+```
+
 ### Nested Field Paths
 
 Field paths support dot notation for nested objects:
@@ -79,7 +94,7 @@ Field paths support dot notation for nested objects:
 ```python
 logger = await (
     LoggerBuilder()
-    .with_field_mask(fields=["user.password", "config.api_key"])
+    .with_redaction(fields=["user.password", "config.api_key"], auto_prefix=False)
     .build_async()
 )
 
@@ -91,18 +106,6 @@ await logger.info(
 # user.password and config.api_key are masked; other fields preserved
 ```
 
-### Wildcard Support
-
-Use `*` to match all keys at a level:
-
-```python
-logger = await (
-    LoggerBuilder()
-    .with_field_mask(fields=["headers.*", "users[*].password"])
-    .build_async()
-)
-```
-
 ## Adding Pattern-Based Redaction
 
 For dynamic field names or broader matching, use regex patterns:
@@ -110,7 +113,7 @@ For dynamic field names or broader matching, use regex patterns:
 ```python
 logger = await (
     LoggerBuilder()
-    .with_regex_mask(
+    .with_redaction(
         patterns=[
             r"(?i).*password.*",     # Any field containing "password"
             r"(?i).*secret.*",       # Any field containing "secret"
@@ -124,19 +127,67 @@ logger = await (
 
 Patterns match against the full dot-path of fields (e.g., `context.auth_token`), not field values.
 
-## Combining Multiple Redactors
+## Using Compliance Presets
 
-Redactors run in sequence. Combine them for layered protection:
+For regulation compliance, use built-in redaction presets:
+
+```python
+from fapilog import LoggerBuilder
+
+# GDPR compliance
+logger = await (
+    LoggerBuilder()
+    .with_redaction(preset="GDPR_PII")
+    .build_async()
+)
+
+# HIPAA compliance
+logger = await (
+    LoggerBuilder()
+    .with_redaction(preset="HIPAA_PHI")
+    .build_async()
+)
+
+# Multiple regulations
+logger = await (
+    LoggerBuilder()
+    .with_redaction(preset=["GDPR_PII", "PCI_DSS"])
+    .build_async()
+)
+```
+
+Available presets:
+- `GDPR_PII` - EU GDPR personal data
+- `GDPR_PII_UK` - UK GDPR (includes NHS numbers, NI numbers)
+- `CCPA_PII` - California Consumer Privacy Act
+- `HIPAA_PHI` - HIPAA Protected Health Information
+- `PCI_DSS` - Payment card data
+- `CREDENTIALS` - Authentication secrets
+
+### Discovering Presets
+
+```python
+from fapilog import LoggerBuilder
+
+# List all available presets
+presets = LoggerBuilder.list_redaction_presets()
+print(presets)  # ['CCPA_PII', 'CREDENTIALS', 'GDPR_PII', ...]
+
+# Get preset details
+info = LoggerBuilder.get_redaction_preset_info("GDPR_PII")
+print(info["description"])  # "GDPR Article 4 personal data identifiers"
+print(info["fields"][:5])   # ['email', 'phone', 'name', ...]
+```
+
+## Combining Presets with Custom Fields
+
+Presets and custom fields are additive:
 
 ```python
 logger = await (
     LoggerBuilder()
-    # Exact field names you know about
-    .with_field_mask(fields=["password", "ssn", "credit_card"])
-    # Catch-all patterns for fields you might have missed
-    .with_regex_mask(patterns=[r"(?i).*secret.*", r"(?i).*key.*"])
-    # URL credentials (enabled by default, but explicit here)
-    .with_url_credential_redaction()
+    .with_redaction(preset="GDPR_PII")
+    .with_redaction(fields=["internal_user_id", "employee_badge"])
     .build_async()
 )
 ```
@@ -191,7 +242,7 @@ async def test_password_is_redacted():
     async with capture_logs() as logs:
         logger = await (
             LoggerBuilder()
-            .with_field_mask(fields=["password"])
+            .with_redaction(fields=["password"])
             .build_async()
         )
         await logger.info("Login attempt", username="alice", password="hunter2")
@@ -208,7 +259,7 @@ async def test_ssn_pattern_redacted():
     async with capture_logs() as logs:
         logger = await (
             LoggerBuilder()
-            .with_regex_mask(patterns=[r"(?i).*ssn.*"])
+            .with_redaction(patterns=[r"(?i).*ssn.*"])
             .build_async()
         )
         await logger.info("User data", user_ssn="123-45-6789")
@@ -268,7 +319,7 @@ from fapilog import LoggerBuilder
 
 logger = await (
     LoggerBuilder()
-    .with_field_mask(fields=["password"])
+    .with_redaction(fields=["password"])
     .with_diagnostics(enabled=True)
     .build_async()
 )
@@ -285,28 +336,18 @@ Redactors have built-in limits to prevent performance issues with deeply nested 
 | `max_depth` | 16 | Maximum nesting level to traverse |
 | `max_keys_scanned` | 1000 | Maximum keys to examine |
 
-Configure these if you have deeply nested structures:
+Configure these via `with_redaction()`:
 
 ```python
 logger = await (
     LoggerBuilder()
-    .with_field_mask(fields=["password"], max_depth=32, max_keys=5000)
-    .build_async()
-)
-```
-
-Or globally:
-
-```python
-logger = await (
-    LoggerBuilder()
-    .with_redaction_guardrails(max_depth=32, max_keys=10000)
+    .with_redaction(fields=["password"], max_depth=32, max_keys=5000)
     .build_async()
 )
 ```
 
 ## Going Deeper
 
+- [Redaction Presets](../redaction/presets.md) - Full preset documentation
 - [Redactors Reference](../user-guide/redactors.md) - Complete redactor documentation
 - [Configuration Reference](../user-guide/configuration.md) - All settings options
-- [Why Fapilog?](../why-fapilog.md) - How fapilog compares to other logging libraries

@@ -420,9 +420,10 @@ class TestCurrentBuilderFunctionality:
         builder = LoggerBuilder()
         builder.with_redaction(fields=["password", "secret"])
         assert "field_mask" in builder._config["core"]["redactors"]
+        # Fields are auto-prefixed with data. by default
         assert builder._config["redactor_config"]["field_mask"]["fields_to_mask"] == [
-            "password",
-            "secret",
+            "data.password",
+            "data.secret",
         ]
 
     def test_with_redaction_enables_regex_mask(self) -> None:
