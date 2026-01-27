@@ -17,8 +17,9 @@ testing
 configuration
 health-checks
 error-handling
-../patterns
 ```
+
+See also: [Integration Patterns](../patterns.md) for reusable sink and processor patterns.
 
 ## Overview
 

@@ -79,7 +79,6 @@
 <li class="toctree-l1"><a class="reference internal" href="user-guide/index.html">User Guide</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/configuration.html">Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/builder-configuration.html">Configuring Fapilog with the Builder API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="guides/settings-to-builder-migration.html">Migrating from Settings to Builder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/environment-variables.html">Environment Variable Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/using-logger.html">Using the Logger</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/context-enrichment.html">Context Enrichment</a></li>
@@ -157,7 +156,11 @@
 <li class="toctree-l2"><a class="reference internal" href="plugins/configuration.html">Plugin Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plugins/health-checks.html">Plugin Health Checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plugins/error-handling.html">Plugin Error Handling</a></li>
-<li class="toctree-l2"><a class="reference internal" href="patterns.html">Integration Patterns</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="patterns.html">Integration Patterns</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="patterns/sdk-sinks.html">Building SDK-Based Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="patterns/http-sinks.html">Building HTTP-Based Sinks</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="troubleshooting/index.html">Troubleshooting</a><ul>
@@ -180,6 +183,10 @@
 <li class="toctree-l2"><a class="reference internal" href="plugin-guide.html">Plugin Catalog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quality-signals.html">Quality Signals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/settings-to-builder-migration.html">Migrating from Settings to Builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/migration-file-rotation.html">Migration Guide: Simplified Rotating File Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/tenacity-integration.html">Tenacity Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="addons/tamper-evident-logging.html">Tamper-Evident Logging Add-on (Optional)</a></li>
 </ul>
 </li>
 </ul>
@@ -245,6 +252,41 @@
 <li class="toctree-l2"><a class="reference internal" href="quality-signals.html#test-coverage-current-snapshot">Test coverage (current snapshot)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quality-signals.html#how-to-reproduce-locally">How to reproduce locally</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quality-signals.html#reliability-defaults">Reliability defaults</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="guides/settings-to-builder-migration.html">Migrating from Settings to Builder</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="guides/settings-to-builder-migration.html#when-to-migrate">When to Migrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/settings-to-builder-migration.html#quick-conversion-reference">Quick Conversion Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/settings-to-builder-migration.html#step-by-step-migration">Step-by-Step Migration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/settings-to-builder-migration.html#handling-presets">Handling Presets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/settings-to-builder-migration.html#migration-tips">Migration Tips</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/settings-to-builder-migration.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="guides/migration-file-rotation.html">Migration Guide: Simplified Rotating File Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="guides/migration-file-rotation.html#before-verbose-configuration">Before (Verbose Configuration)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/migration-file-rotation.html#after-convenience-factory">After (Convenience Factory)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/migration-file-rotation.html#notes">Notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/migration-file-rotation.html#settings-alternative">Settings Alternative</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="guides/tenacity-integration.html">Tenacity Integration Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="guides/tenacity-integration.html#the-retrycallable-protocol">The <code class="docutils literal notranslate"><span class="pre">RetryCallable</span></code> protocol</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/tenacity-integration.html#adapting-tenacity">Adapting Tenacity</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="addons/tamper-evident-logging.html">Tamper-Evident Logging Add-on (Optional)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="addons/tamper-evident-logging.html#packaging-and-opt-in">Packaging and Opt-in</a></li>
+<li class="toctree-l2"><a class="reference internal" href="addons/tamper-evident-logging.html#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="addons/tamper-evident-logging.html#threat-model-goals">Threat Model Goals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="addons/tamper-evident-logging.html#crypto-and-canonicalization">Crypto and Canonicalization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="addons/tamper-evident-logging.html#write-path-components-addon">Write Path Components (addon)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="addons/tamper-evident-logging.html#manifest-format-json">Manifest Format (JSON)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="addons/tamper-evident-logging.html#verification-components-addon">Verification Components (addon)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="addons/tamper-evident-logging.html#config-knobs-addon">Config Knobs (addon)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="addons/tamper-evident-logging.html#durability-and-performance">Durability and Performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="addons/tamper-evident-logging.html#remote-transport-extension-optional">Remote Transport Extension (optional)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="addons/tamper-evident-logging.html#testing-plan-addon">Testing Plan (addon)</a></li>
 </ul>
 </li>
 </ul>

@@ -13,6 +13,10 @@ schema-migration-v1.0-to-v1.1
 plugin-guide
 security-operator-workflows
 quality-signals
+guides/settings-to-builder-migration
+guides/migration-file-rotation
+guides/tenacity-integration
+addons/tamper-evident-logging
 ```
 
 ## Overview

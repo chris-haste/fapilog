@@ -25,6 +25,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Migrating from Settings to Builder" href="guides/settings-to-builder-migration.html" />
     <link rel="prev" title="Security Remediation &amp; Approval Workflows" href="security-operator-workflows.html" />
  
 
@@ -78,7 +79,6 @@
 <li class="toctree-l1"><a class="reference internal" href="user-guide/index.html">User Guide</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/configuration.html">Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/builder-configuration.html">Configuring Fapilog with the Builder API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="guides/settings-to-builder-migration.html">Migrating from Settings to Builder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/environment-variables.html">Environment Variable Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/using-logger.html">Using the Logger</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/context-enrichment.html">Context Enrichment</a></li>
@@ -156,7 +156,11 @@
 <li class="toctree-l2"><a class="reference internal" href="plugins/configuration.html">Plugin Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plugins/health-checks.html">Plugin Health Checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plugins/error-handling.html">Plugin Error Handling</a></li>
-<li class="toctree-l2"><a class="reference internal" href="patterns.html">Integration Patterns</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="patterns.html">Integration Patterns</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="patterns/sdk-sinks.html">Building SDK-Based Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="patterns/http-sinks.html">Building HTTP-Based Sinks</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="troubleshooting/index.html">Troubleshooting</a><ul>
@@ -179,6 +183,10 @@
 <li class="toctree-l2"><a class="reference internal" href="plugin-guide.html">Plugin Catalog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Quality Signals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/settings-to-builder-migration.html">Migrating from Settings to Builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/migration-file-rotation.html">Migration Guide: Simplified Rotating File Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/tenacity-integration.html">Tenacity Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="addons/tamper-evident-logging.html">Tamper-Evident Logging Add-on (Optional)</a></li>
 </ul>
 </li>
 </ul>
@@ -237,6 +245,7 @@ python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> <
 <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer" style="position: relative;">
         <a href="security-operator-workflows.html" class="btn btn-neutral float-left" title="Security Remediation &amp; Approval Workflows" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="guides/settings-to-builder-migration.html" class="btn btn-neutral float-right" title="Migrating from Settings to Builder" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
       <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 50%; margin-top: -0.5em;">
         <a href="https://fapilog.dev">www.fapilog.dev</a>
       </div>
