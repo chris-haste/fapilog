@@ -122,3 +122,44 @@ When to implement:
 - Performance or allocation reduction is important
 
 If `write_serialized` is absent, fapilog automatically calls `write()` instead. The `SerializedView` wrapper exposes a memoryview via `data` and `__bytes__` for convenience; treat it as read-only.
+
+### Error handling in write_serialized
+
+**Important:** `write_serialized` must handle deserialization errors correctly to avoid silent data loss. Never replace invalid data with placeholder values like `{"message": "fallback"}`.
+
+**Required pattern:**
+
+```python
+import json
+from fapilog.core.diagnostics import warn
+from fapilog.core.errors import SinkWriteError
+from fapilog.core.serialization import SerializedView
+
+async def write_serialized(self, view: SerializedView) -> None:
+    """Fast path for pre-serialized payloads."""
+    try:
+        data = json.loads(bytes(view.data))
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        warn(
+            f"{self.name}-sink",
+            "write_serialized deserialization failed",
+            error=str(exc),
+            data_size=len(view.data),
+            _rate_limit_key=f"{self.name}-sink-deserialize",
+        )
+        raise SinkWriteError(
+            f"Failed to deserialize payload in {self.name}.write_serialized",
+            sink_name=self.name,
+            cause=exc,
+        ) from exc
+    await self.write(data)
+```
+
+**Key requirements:**
+
+1. **Catch specific exceptions** - Use `json.JSONDecodeError` and `UnicodeDecodeError`, not bare `except Exception:`
+2. **Emit diagnostics** - Call `diagnostics.warn()` with context (sink name, error, data size)
+3. **Raise SinkWriteError** - Signal failure to the core for fallback/circuit breaker handling
+4. **Chain the cause** - Use `from exc` to preserve the original exception
+
+See [Plugin Error Handling](error-handling.md) for more details on `SinkWriteError` and failure signaling.
