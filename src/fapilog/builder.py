@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import copy
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
     from .core.logger import AsyncLoggerFacade, SyncLoggerFacade
@@ -893,6 +893,35 @@ class LoggerBuilder:
             >>> builder.with_unhandled_exception_capture(enabled=True)
         """
         self._config.setdefault("core", {})["capture_unhandled_enabled"] = enabled
+        return self
+
+    def with_fallback_redaction(
+        self,
+        *,
+        fallback_mode: Literal["inherit", "minimal", "none"] = "minimal",
+        fail_mode: Literal["open", "closed", "warn"] = "open",
+    ) -> LoggerBuilder:
+        """Configure redaction behavior for fallback and failure scenarios.
+
+        Args:
+            fallback_mode: How to redact payloads on stderr fallback.
+                - "minimal": Apply built-in sensitive field masking (default)
+                - "inherit": Use pipeline redactors (requires pipeline context)
+                - "none": No redaction (opt-in to legacy behavior)
+            fail_mode: Behavior when redaction pipeline throws exceptions.
+                - "open": Pass original event through (default)
+                - "closed": Drop event entirely
+                - "warn": Pass event through but emit diagnostic warning
+
+        Example:
+            >>> builder.with_fallback_redaction(
+            ...     fallback_mode="minimal",
+            ...     fail_mode="warn",
+            ... )
+        """
+        core = self._config.setdefault("core", {})
+        core["fallback_redact_mode"] = fallback_mode
+        core["redaction_fail_mode"] = fail_mode
         return self
 
     def with_routing(

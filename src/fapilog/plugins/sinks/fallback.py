@@ -67,6 +67,22 @@ def _sink_name(sink: Any) -> str:
     return getattr(sink, "name", type(sink).__name__)
 
 
+def _extract_bytes(payload: Any) -> bytes:
+    """Extract raw bytes from various payload types.
+
+    Handles SerializedView, memoryview, bytes, bytearray, and falls back
+    to UTF-8 encoding for string types.
+    """
+    if hasattr(payload, "data"):
+        data = getattr(payload, "data", b"")
+        return bytes(data) if isinstance(data, memoryview) else data
+    if isinstance(payload, memoryview):
+        return bytes(payload)
+    if isinstance(payload, (bytes, bytearray)):
+        return bytes(payload)
+    return str(payload).encode("utf-8")
+
+
 def _serialize_entry(entry: dict[str, Any]) -> str:
     try:
         return json.dumps(entry, separators=(",", ":"), default=str)
@@ -106,15 +122,40 @@ def _write_to_stderr(
         payload: The payload to write.
         serialized: Whether the payload is already serialized.
         redact_mode: Redaction mode - "minimal" (default), "inherit", or "none".
+
+    For serialized payloads with redact_mode="minimal", attempts to:
+    1. Deserialize the JSON payload
+    2. Apply minimal redaction if it's a dict
+    3. Re-serialize for output
+
+    Falls back to raw output with diagnostic warning if JSON parsing fails.
     """
-    # Apply redaction for dict payloads when not serialized
-    if not serialized and isinstance(payload, dict):
+    # Handle serialized payloads with minimal redaction (Story 4.54)
+    if serialized and redact_mode == "minimal":
+        try:
+            data = _extract_bytes(payload)
+            parsed = json.loads(data)
+            if isinstance(parsed, dict):
+                parsed = minimal_redact(parsed)
+            text = json.dumps(parsed, separators=(",", ":"), default=str)
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            diagnostics.warn(
+                "fallback",
+                "serialized payload not valid JSON, writing raw",
+                error=str(exc),
+                _rate_limit_key="fallback_json_error",
+            )
+            text = _format_payload(payload, serialized=True)
+    elif not serialized and isinstance(payload, dict):
+        # Apply redaction for dict payloads when not serialized
         if redact_mode == "minimal":
             payload = minimal_redact(payload)
         # "inherit" mode is handled at a higher level (requires pipeline context)
         # "none" mode passes through without redaction
+        text = _format_payload(payload, serialized=False)
+    else:
+        text = _format_payload(payload, serialized=serialized)
 
-    text = _format_payload(payload, serialized=serialized)
     if not text.endswith("\n"):
         text += "\n"
     sys.stderr.write(text)
@@ -231,4 +272,5 @@ class FallbackSink:
 _VULTURE_USED: tuple[object, ...] = (
     FallbackSink,
     handle_sink_write_failure,
+    _extract_bytes,
 )

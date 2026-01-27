@@ -28,6 +28,7 @@ PRESETS: dict[str, dict[str, Any]] = {
             "log_level": "INFO",
             "batch_max_size": 100,
             "drop_on_full": False,
+            "redaction_fail_mode": "warn",
             "sinks": ["stdout_json", "rotating_file"],
             "enrichers": ["runtime_info", "context_vars"],
             "redactors": ["field_mask", "regex_mask", "url_credentials"],
@@ -59,6 +60,7 @@ PRESETS: dict[str, dict[str, Any]] = {
         "core": {
             "log_level": "INFO",
             "batch_max_size": 50,
+            "redaction_fail_mode": "warn",
             "sinks": ["stdout_json"],
             "enrichers": ["context_vars"],
             "redactors": ["field_mask", "regex_mask", "url_credentials"],
@@ -85,6 +87,7 @@ PRESETS: dict[str, dict[str, Any]] = {
             "log_level": "INFO",
             "batch_max_size": 25,  # Smaller batches for short-lived functions
             "drop_on_full": True,  # Don't block in time-constrained environments
+            "redaction_fail_mode": "warn",
             "sinks": ["stdout_json"],  # Stdout only, captured by cloud provider
             "enrichers": ["runtime_info", "context_vars"],
             "redactors": ["field_mask", "regex_mask", "url_credentials"],

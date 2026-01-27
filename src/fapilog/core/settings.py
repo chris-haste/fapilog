@@ -787,6 +787,16 @@ class CoreSettings(BaseModel):
             "'none' writes unredacted (opt-in to legacy behavior)"
         ),
     )
+    # Redaction fail mode (Story 4.54)
+    redaction_fail_mode: Literal["open", "closed", "warn"] = Field(
+        default="open",
+        description=(
+            "Behavior when _apply_redactors() catches an unexpected exception: "
+            "'open' passes original event (current behavior), "
+            "'closed' drops the event, "
+            "'warn' passes event but emits diagnostic warning"
+        ),
+    )
     # Graceful shutdown settings (Story 6.13)
     atexit_drain_enabled: bool = Field(
         default=True,

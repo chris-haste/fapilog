@@ -148,15 +148,56 @@ logger = (
 
 ## Failure Handling
 
-Redactors never raise exceptions upstream. If redaction fails:
-- The original value is preserved (fail-open by default)
-- A diagnostic entry is recorded with `{ redactor, reason }`
-- Logging continues
+Fapilog provides multiple layers of redaction failure protection:
 
-To fail-closed (block logging on redaction failure):
+### Redaction Settings Relationship
+
+| Setting | Scope | Purpose | Default |
+|---------|-------|---------|---------|
+| `redactor_config.*.block_on_unredactable` | Per-redactor | Block when redactor can't process a value | `False` |
+| `core.fallback_redact_mode` | Fallback sink | How to redact payloads on stderr fallback | `"minimal"` |
+| `core.redaction_fail_mode` | Global pipeline | What to do when `_apply_redactors()` throws | `"open"` |
+
+### Per-Redactor Behavior (`block_on_unredactable`)
+
+Individual redactors can block on unparseable values:
 ```python
-.with_redaction(fields=["password"], block_on_failure=True)
+.with_redaction(fields=["password"], block_on_unredactable=True)
 ```
+
+When a redactor encounters a value it cannot process:
+- `False` (default): Original value preserved, diagnostic warning emitted
+- `True`: Log event is dropped, diagnostic warning emitted
+
+### Global Pipeline Behavior (`redaction_fail_mode`)
+
+Controls what happens when the entire redaction pipeline fails unexpectedly:
+
+```python
+# Production/FastAPI/Serverless presets default to "warn"
+Settings(preset="production")  # redaction_fail_mode="warn"
+
+# Explicit configuration
+Settings(core=CoreSettings(redaction_fail_mode="closed"))
+```
+
+| Mode | Behavior | Use Case |
+|------|----------|----------|
+| `"open"` | Pass original event through | Development, debugging |
+| `"warn"` | Pass event through + emit diagnostic | Production (default) |
+| `"closed"` | Drop event entirely | High-security compliance |
+
+### Fallback Redaction (`fallback_redact_mode`)
+
+When a sink fails and falls back to stderr, this controls redaction:
+
+| Mode | Behavior |
+|------|----------|
+| `"minimal"` | Apply built-in sensitive field masking (default) |
+| `"inherit"` | Use pipeline redactors (requires pipeline context) |
+| `"none"` | No redaction (opt-in to legacy behavior, emits warning) |
+
+For serialized payloads, `"minimal"` mode deserializes, redacts, and re-serializes. If JSON parsing fails, raw output is written with a diagnostic warning.
 
 ## Nested Objects and Arrays
 

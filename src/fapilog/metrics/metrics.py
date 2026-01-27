@@ -111,6 +111,7 @@ class MetricsCollector:
         self._g_rate_limit_keys: Any | None = None
         self._c_size_guard_truncated: Any | None = None
         self._c_size_guard_dropped: Any | None = None
+        self._c_redaction_exceptions: Any | None = None
 
         if self._enabled:
             # Minimal metric set; names align with conventional Prometheus
@@ -244,6 +245,11 @@ class MetricsCollector:
                 "Total number of payloads dropped by size_guard",
                 registry=self._registry,
             )
+            self._c_redaction_exceptions = Counter(
+                "fapilog_redaction_exceptions_total",
+                "Total number of redaction pipeline exceptions",
+                registry=self._registry,
+            )
 
     @property
     def is_enabled(self) -> bool:
@@ -333,6 +339,13 @@ class MetricsCollector:
             return
         if self._c_size_guard_dropped is not None:
             self._c_size_guard_dropped.inc(count)
+
+    async def record_redaction_exception(self, count: int = 1) -> None:
+        """Record redaction pipeline exceptions for monitoring."""
+        if not self._enabled:
+            return
+        if self._c_redaction_exceptions is not None:
+            self._c_redaction_exceptions.inc(count)
 
     async def record_sink_error(
         self, *, sink: str | None = None, count: int = 1
