@@ -546,8 +546,8 @@
 </pre></div>
 </div>
 <ul class="simple">
-<li><p><strong>Both <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> and <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> use the same background worker</strong></p></li>
-<li><p>Bounded queue with configurable overflow policies</p></li>
+<li><p><strong>Log calls never block on I/O</strong> - both sync and async APIs write to background workers</p></li>
+<li><p>Bounded queue with configurable overflow policies (slow sinks won’t stall your app)</p></li>
 <li><p>Batching reduces I/O operations</p></li>
 </ul>
 </section>

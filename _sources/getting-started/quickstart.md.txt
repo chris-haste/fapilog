@@ -2,7 +2,7 @@
 
 Get logging with fapilog in 2 minutes.
 
-> **Choosing async vs sync:** Both `get_logger()` and `get_async_logger()` use the same async background worker—your log calls never block on I/O. The difference is the calling API: use `get_logger()` for sync code, `get_async_logger()` when you want `await` syntax in async code.
+> **Choosing async vs sync:** Your log calls never block on I/O—both `get_logger()` and `get_async_logger()` write to background workers. A slow sink won't stall your app. The only difference is the calling API: use `get_logger()` for sync code, `get_async_logger()` when you want `await` syntax.
 
 ## Zero-Config Logging
 
@@ -143,7 +143,7 @@ When you call `get_logger()` or `get_async_logger()`:
 3. **Queue setup** - Configures the buffer between your code and sink writes
 4. **Context binding** - Sets up request correlation and context propagation
 
-Both functions create the same async processing pipeline. Your log calls enqueue immediately and return—actual sink I/O happens in background worker tasks.
+Your log calls enqueue and return immediately—actual sink I/O happens in background workers. A slow disk or network sink won't affect your application's response time.
 
 ## Environment Variables
 

@@ -252,7 +252,7 @@
 <h2>What Makes Fapilog Different<a class="headerlink" href="#what-makes-fapilog-different" title="Link to this heading"></a></h2>
 <section id="true-async-first-architecture">
 <h3>1. True Async-First Architecture<a class="headerlink" href="#true-async-first-architecture" title="Link to this heading"></a></h3>
-<p>Most Python logging libraries are synchronous—they block your application while writing to disk or network. <strong>Both <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> and <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> use the same async background worker.</strong> Log calls enqueue immediately; sink writes happen in parallel worker tasks.</p>
+<p>Most Python logging libraries are synchronous—they block your application while writing to disk or network. <strong>With fapilog, your log calls never block on I/O.</strong> Whether you use <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> in sync code or <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> in async code, the actual writes happen in background workers. A slow CloudWatch API or full disk won’t stall your request handlers.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Your code          Background worker
     │                     │
 log.info(&quot;msg&quot;) ──queue──→ │

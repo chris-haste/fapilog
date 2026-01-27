@@ -2,7 +2,7 @@
 
 Slow log sinks can stall your async application. When a network hiccup delays CloudWatch or your disk fills up, synchronous logging blocks the event loop, affecting every concurrent request. fapilog's async pipeline with configurable backpressure lets you choose: drop logs to protect latency, or block to guarantee delivery.
 
-> **Note:** Both `get_logger()` and `get_async_logger()` use the same async background worker architecture described here. The non-blocking benefits apply to both APIs.
+> **Note:** Whether you use `get_logger()` in sync code or `get_async_logger()` in async code, your log calls never block on I/O. The non-blocking benefits described here apply to both APIs.
 
 ## The Problem: Slow Sinks Block Your App
 

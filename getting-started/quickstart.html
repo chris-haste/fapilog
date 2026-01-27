@@ -209,7 +209,7 @@
 <h1>Quickstart Tutorial<a class="headerlink" href="#quickstart-tutorial" title="Link to this heading"></a></h1>
 <p>Get logging with fapilog in 2 minutes.</p>
 <blockquote>
-<div><p><strong>Choosing async vs sync:</strong> Both <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> and <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> use the same async background worker—your log calls never block on I/O. The difference is the calling API: use <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> for sync code, <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> when you want <code class="docutils literal notranslate"><span class="pre">await</span></code> syntax in async code.</p>
+<div><p><strong>Choosing async vs sync:</strong> Your log calls never block on I/O—both <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> and <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> write to background workers. A slow sink won’t stall your app. The only difference is the calling API: use <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> for sync code, <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> when you want <code class="docutils literal notranslate"><span class="pre">await</span></code> syntax.</p>
 </div></blockquote>
 <section id="zero-config-logging">
 <h2>Zero-Config Logging<a class="headerlink" href="#zero-config-logging" title="Link to this heading"></a></h2>
@@ -340,7 +340,7 @@
 <li><p><strong>Queue setup</strong> - Configures the buffer between your code and sink writes</p></li>
 <li><p><strong>Context binding</strong> - Sets up request correlation and context propagation</p></li>
 </ol>
-<p>Both functions create the same async processing pipeline. Your log calls enqueue immediately and return—actual sink I/O happens in background worker tasks.</p>
+<p>Your log calls enqueue and return immediately—actual sink I/O happens in background workers. A slow disk or network sink won’t affect your application’s response time.</p>
 </section>
 <section id="environment-variables">
 <h2>Environment Variables<a class="headerlink" href="#environment-variables" title="Link to this heading"></a></h2>

@@ -30,7 +30,7 @@ Use fapilog if you're building:
 
 ### 1. True Async-First Architecture
 
-Most Python logging libraries are synchronous—they block your application while writing to disk or network. **Both `get_logger()` and `get_async_logger()` use the same async background worker.** Log calls enqueue immediately; sink writes happen in parallel worker tasks.
+Most Python logging libraries are synchronous—they block your application while writing to disk or network. **With fapilog, your log calls never block on I/O.** Whether you use `get_logger()` in sync code or `get_async_logger()` in async code, the actual writes happen in background workers. A slow CloudWatch API or full disk won't stall your request handlers.
 
 ```
 Your code          Background worker
