@@ -259,6 +259,7 @@ htmlcov/
 
 # Claude Code (workflow-specific, not relevant to library users)
 .claude/
+CLAUDE.md
 
 # Codex commands
 .codex/
