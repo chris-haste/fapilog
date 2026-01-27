@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import time
-from typing import Any, Awaitable, Callable
+from typing import Any, Awaitable, Callable, Literal
 
 from ..metrics.metrics import MetricsCollector, plugin_timer
 from ..plugins.enrichers import BaseEnricher, enrich_parallel
@@ -155,6 +155,7 @@ class LoggerWorker:
         emit_redactor_diagnostics: bool,
         emit_processor_diagnostics: bool = False,
         counters: dict[str, int],
+        redaction_fail_mode: Literal["open", "closed", "warn"] = "open",
     ) -> None:
         self._queue = queue
         self._batch_max_size = batch_max_size
@@ -177,6 +178,7 @@ class LoggerWorker:
         self._emit_redactor_diagnostics = emit_redactor_diagnostics
         self._emit_processor_diagnostics = emit_processor_diagnostics
         self._counters = counters
+        self._redaction_fail_mode = redaction_fail_mode
 
     async def run(self, *, in_thread_mode: bool = False) -> None:
         batch: list[dict[str, Any]] = []
@@ -269,7 +271,14 @@ class LoggerWorker:
                 # Stage 2: ENRICHERS - add contextual data
                 entry = await self._apply_enrichers(filtered)
                 # Stage 3: REDACTORS - mask sensitive data (including enriched fields)
-                entry = await self._apply_redactors(entry)
+                redacted = await self._apply_redactors(entry)
+                if redacted is None:
+                    # Event dropped by fail-closed mode
+                    self._counters["dropped"] += 1
+                    if self._metrics is not None:
+                        await self._metrics.record_events_dropped(1)
+                    continue
+                entry = redacted
                 if self._serialize_in_flush and self._sink_write_serialized is not None:
                     view, drop_entry = await self._try_serialize(entry)
                     if drop_entry:
@@ -352,26 +361,54 @@ class LoggerWorker:
                     pass
             return entry
 
-    async def _apply_redactors(self, entry: dict[str, Any]) -> dict[str, Any]:
+    async def _apply_redactors(self, entry: dict[str, Any]) -> dict[str, Any] | None:
         """Apply redactors to mask sensitive data in log event.
 
         Pipeline Stage 3: Runs after enrichers so redactors can mask
         both original fields AND enriched fields (e.g., request context
         that may contain PII).
 
-        On error: Returns original entry unchanged (fail-safe).
+        Behavior on error depends on redaction_fail_mode:
+        - "open": Returns original entry unchanged (fail-safe, default)
+        - "closed": Returns None to signal event should be dropped
+        - "warn": Returns original entry but emits diagnostic warning
         """
         redactors = self._redactors_getter()
         if not redactors:
             return entry
         try:
             return await redact_in_order(entry, redactors, metrics=self._metrics)
-        except Exception:
-            if self._emit_redactor_diagnostics:
+        except Exception as exc:
+            # Record metric for all fail modes
+            if self._metrics:
+                await self._metrics.record_redaction_exception()
+
+            fail_mode = self._redaction_fail_mode
+
+            if fail_mode == "closed":
                 try:
-                    warn("redactor", "redaction error", _rate_limit_key="redact")
+                    warn(
+                        "redactor",
+                        "dropping event due to redaction exception",
+                        error=str(exc),
+                        _rate_limit_key="redaction_exception",
+                    )
                 except Exception:
                     pass
+                return None  # Signal to drop event
+
+            if fail_mode == "warn":
+                try:
+                    warn(
+                        "redactor",
+                        "redaction exception, passing original",
+                        error=str(exc),
+                        _rate_limit_key="redaction_exception",
+                    )
+                except Exception:
+                    pass
+
+            # "open" mode or fallback: return original entry
             return entry
 
     async def _apply_processors(self, view: SerializedView) -> SerializedView:

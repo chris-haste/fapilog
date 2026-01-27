@@ -201,6 +201,17 @@
       "title": "Processors",
       "type": "array"
     },
+    "redaction_fail_mode": {
+      "default": "open",
+      "description": "Behavior when _apply_redactors() catches an unexpected exception: 'open' passes original event (current behavior), 'closed' drops the event, 'warn' passes event but emits diagnostic warning",
+      "enum": [
+        "open",
+        "closed",
+        "warn"
+      ],
+      "title": "Redaction Fail Mode",
+      "type": "string"
+    },
     "redaction_max_depth": {
       "anyOf": [
         {

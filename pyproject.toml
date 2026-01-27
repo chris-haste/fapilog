@@ -568,6 +568,7 @@ ignore_names = [
   "record_flush",
   "set_queue_high_watermark",
   "record_sink_error",
+  "record_redaction_exception",
   # Redactors helper used via runtime wiring
   "redact_in_order",
   # Core redactor plugin symbols referenced by tests/runtime
