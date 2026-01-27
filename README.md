@@ -19,12 +19,12 @@ Fapilog isn't a thin wrapper over existing logging libraries—it's an async-fir
 
 ## Why fapilog?
 
-- **Non‑blocking under slow sinks**: Background worker, queue, and batching keep your app responsive when disk/network collectors slow down.
-- **Predictable under bursts**: Configurable backpressure and policy‑driven drops prevent thread stalls during spikes.
-- **Service-ready JSON logging**: Structured events, context binding (request/user IDs), exception serialization, graceful shutdown & drain.
-- **Security & compliance guardrails**: Redaction stages (field/regex/url), error de-duplication, and safe failure behavior.
-- **FastAPI integration**: Simple request context propagation and consistent logs across web handlers and background tasks.
-- **Operational visibility**: Optional metrics for queue depth, drops, and flush latency.
+- **Your app speed doesn't depend on your log destination**: Even if logs go to a slow S3 bucket or flaky network, your API responses stay fast.
+- **Predictable behavior under load**: You decide what happens during traffic spikes—drop logs gracefully or wait briefly. No random thread stalls.
+- **No lost logs on shutdown**: Graceful drain ensures those final logs make it to storage before your container stops.
+- **Secrets stay out of logs automatically**: Passwords, API keys, and tokens are redacted by default with production presets.
+- **Request tracking without boilerplate**: Bind a request ID once and it appears in every log—no need to pass it through your call stack.
+- **See what's happening in production**: Optional metrics show queue depth, dropped logs, and flush latency so you can tune before problems hit.
 - **Pre-1.0 stability**: Core logger and FastAPI middleware APIs are stable within minor versions; see [Stability](#stability) for details.
 
 **[Read more →](https://docs.fapilog.dev/en/latest/why-fapilog.html)** | **[Compare with structlog, loguru, and others →](https://docs.fapilog.dev/en/latest/comparisons.html)**
@@ -51,12 +51,12 @@ See the full guide at `docs/getting-started/installation.md` for extras and upgr
 
 ## 🚀 Features (core)
 
-- Async-first architecture (background worker, non-blocking enqueue)
-- Auto console output (pretty in TTY, JSON when piped)
-- Plugin-friendly (enrichers, redactors, processors, sinks)
-- Context binding and exception serialization
-- Guardrails: redaction stages, error de-duplication
-- Level-based sink routing (fan out only the levels you want to each sink)
+- **Log calls never block on I/O** — your app stays fast even with slow sinks
+- **Smart console output** — pretty in terminal, JSON when piped to files or tools
+- **Extend without forking** — add enrichers, redactors, processors, or custom sinks
+- **Context flows automatically** — bind request_id once, see it in every log
+- **Secrets masked by default** — passwords and API keys don't leak to logs
+- **Route logs by level** — send errors to your database, info to stdout
 
 ## 🎯 Quick Start
 
@@ -104,12 +104,12 @@ await logger.info("Request handled", request_id="abc-123")
 logger = get_logger(preset="minimal")
 ```
 
-| Preset | Log Level | File Logging | Redaction | Batch Size | Use Case |
-|--------|-----------|--------------|-----------|------------|----------|
-| `dev` | DEBUG | No | No | 1 (immediate) | Local development |
-| `production` | INFO | Yes (50MB rotation) | Yes (9 fields) | 100 | Production deployments |
-| `fastapi` | INFO | No | Yes (9 fields) | 50 | FastAPI/async apps |
-| `minimal` | INFO | No | No | Default | Backwards compatible |
+| Preset | Log Level | File Logging | Redaction | Batch Size | When to use |
+|--------|-----------|--------------|-----------|------------|-------------|
+| `dev` | DEBUG | No | No | 1 (immediate) | See every log instantly while debugging locally |
+| `production` | INFO | Yes (50MB rotation) | Yes (9 fields) | 100 | Never lose logs, automatically mask secrets |
+| `fastapi` | INFO | No | Yes (9 fields) | 50 | Async apps where you want redaction without file overhead |
+| `minimal` | INFO | No | No | Default | Migrating from another logger—start here |
 
 > **Security Note:** By default, only URL credentials (`user:pass@host`) are stripped. For full field redaction (passwords, API keys, tokens), use a preset like `production`/`fastapi` or configure redactors manually. See [redaction docs](docs/core-concepts/redaction.md).
 
@@ -206,7 +206,7 @@ Fapilog is pre-1.0 but actively used in production. What this means:
 
 ## 🏗️ Architecture
 
-Fapilog uses a true async-first pipeline architecture:
+Your log calls return immediately. Everything else happens in the background:
 
 ```text
 ┌─────────────┐    ┌──────────────┐    ┌──────────────┐    ┌─────────────┐    ┌──────────────┐    ┌─────────────┐
@@ -216,6 +216,10 @@ Fapilog uses a true async-first pipeline architecture:
 │ log.error() │    │ Trace IDs    │    │ PII removal  │    │ Validation  │    │ Batching     │    │ HTTP/Custom │
 |             |    │ User data    │    │ Policy checks│    │ Transform   │    │ Overflow     │    │             │
 └─────────────┘    └──────────────┘    └──────────────┘    └─────────────┘    └──────────────┘    └─────────────┘
+     ↑                                                                                                  ↑
+     │                                                                                                  │
+  Returns                                                                              Slow sinks don't
+  immediately                                                                          affect your app
 ```
 
 See Redactors documentation: [docs/plugins/redactors.md](docs/plugins/redactors.md)
@@ -308,35 +312,28 @@ Apps will not crash; these logs are for development visibility.
 
 ## 🔌 Plugin Ecosystem
 
-Fapilog features an extensible plugin ecosystem:
+Send logs anywhere, enrich them automatically, and filter what you don't need:
 
-### **Sink Plugins**
+### **Sinks** — Send logs where you need them
 
-- **Console**: `stdout_json` (JSON lines) and `stdout_pretty` (human-readable)
-- **File**: `rotating_file` with size/time rotation, compression, retention
-- **HTTP**: `http` and `webhook` sinks with retry, batching, and HMAC signing
-- **Cloud**: `cloudwatch` (AWS, requires `boto3`), `loki` (Grafana)
-- **Database**: `postgres` (requires `asyncpg`)
-- **Routing**: `routing` for level-based fan-out
+- **Console**: JSON for machines, pretty output for humans
+- **File**: Auto-rotating logs with compression and retention policies
+- **HTTP/Webhook**: Send to any endpoint with retry, batching, and HMAC signing
+- **Cloud**: CloudWatch (AWS), Loki (Grafana) — no custom integration needed
+- **Database**: PostgreSQL for queryable log storage
+- **Routing**: Split by level — errors to one place, info to another
 
-### **Processor Plugins**
+### **Enrichers** — Add context without boilerplate
 
-- Size guarding and truncation
-- Zero-copy optimization for high throughput
-- Custom transformation pipelines
+- **Runtime info**: Service name, version, host, PID added automatically
+- **Request context**: request_id, user_id flow through without passing them around
+- **Kubernetes**: Pod, namespace, node info from K8s downward API
 
-### **Enricher Plugins**
+### **Filters** — Control log volume and cost
 
-- `runtime_info`: service, env, version, host, pid, python version
-- `context_vars`: request_id, user_id from ContextVar
-- `kubernetes`: pod, namespace, node from K8s downward API
-
-### **Filter Plugins**
-
-- `level`: drop events below threshold
-- `sampling`, `adaptive_sampling`, `trace_sampling`: probabilistic filtering
-- `rate_limit`: token bucket limiter (per-key optional)
-- `first_occurrence`: track unique message patterns
+- **Level filtering**: Drop DEBUG in production
+- **Sampling**: Log 10% of successes, 100% of errors
+- **Rate limiting**: Prevent log floods from crashing your aggregator
 
 ## 🧩 Extensions & Roadmap
 

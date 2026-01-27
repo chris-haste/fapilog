@@ -136,8 +136,8 @@ This page compares five Python logging libraries that developers most commonly e
 Log Event → Enrichment → Redaction → Processing → Queue → Background Worker → Sinks
 ```
 
-- **Both `get_logger()` and `get_async_logger()` use the same background worker**
-- Bounded queue with configurable overflow policies
+- **Log calls never block on I/O** - both sync and async APIs write to background workers
+- Bounded queue with configurable overflow policies (slow sinks won't stall your app)
 - Batching reduces I/O operations
 
 ### structlog
