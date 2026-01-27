@@ -140,3 +140,12 @@ repos:
         files: ^src/fapilog/(builder|core/settings)\.py$
         stages: [pre-commit]
         description: "Ensure all Settings fields have corresponding builder methods"
+
+      - id: redaction-preset-docs
+        name: Check Redaction Preset Documentation
+        entry: python scripts/check_redaction_preset_docs.py
+        language: system
+        pass_filenames: false
+        files: ^(src/fapilog/redaction/presets\.py|docs/redaction/presets\.md)$
+        stages: [pre-commit]
+        description: "Ensure redaction preset docs match source definitions"
