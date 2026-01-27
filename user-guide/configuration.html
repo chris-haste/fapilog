@@ -219,6 +219,64 @@
   <section class="tex2jax_ignore mathjax_ignore" id="configuration">
 <h1>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h1>
 <p>Configure fapilog using presets for quick setup, environment variables, or the <code class="docutils literal notranslate"><span class="pre">Settings</span></code> class for full control.</p>
+<section id="choosing-an-approach">
+<h2>Choosing an Approach<a class="headerlink" href="#choosing-an-approach" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Situation</p></th>
+<th class="head"><p>Recommended Approach</p></th>
+<th class="head"><p>Why</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Just getting started</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">get_logger(preset=&quot;...&quot;)</span></code></p></td>
+<td><p>Zero config, sensible defaults</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>FastAPI app</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">setup_logging(preset=&quot;fastapi&quot;)</span></code></p></td>
+<td><p>Automatic middleware and request context</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Writing new code</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LoggerBuilder()</span></code></p></td>
+<td><p>IDE autocomplete, type safety, discoverable API</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Config from env/files</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Settings</span></code> + environment variables</p></td>
+<td><p>12-factor apps, Kubernetes, external config</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Need compliance presets</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LoggerBuilder().with_redaction(preset=&quot;GDPR_PII&quot;)</span></code></p></td>
+<td><p>One-liner GDPR, HIPAA, PCI-DSS protection</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Quick decision:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Start here
+    │
+    ├── Want sensible defaults with minimal code?
+    │   └── Use presets: get_logger(preset=&quot;production&quot;)
+    │
+    ├── Want IDE autocomplete and type checking?
+    │   └── Use Builder: LoggerBuilder().with_preset(&quot;production&quot;).build()
+    │
+    └── Config comes from environment or external files?
+        └── Use Settings + env vars: FAPILOG_CORE__LOG_LEVEL=INFO
+</pre></div>
+</div>
+<p>All approaches can be combined. For example, start with a preset and customize with the builder:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>           <span class="c1"># Start with production defaults</span>
+    <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;HIPAA_PHI&quot;</span><span class="p">)</span>  <span class="c1"># Add HIPAA compliance</span>
+    <span class="o">.</span><span class="n">with_sampling</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>             <span class="c1"># Sample 10% of debug logs</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
 <section id="configuration-presets-recommended">
 <h2>Configuration Presets (Recommended)<a class="headerlink" href="#configuration-presets-recommended" title="Link to this heading"></a></h2>
 <p>Presets provide pre-configured settings for common use cases. Use a preset when you want quick, sensible defaults:</p>

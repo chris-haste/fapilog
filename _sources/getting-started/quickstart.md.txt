@@ -164,9 +164,25 @@ Need the full matrix of supported env vars and short aliases? See [Environment V
 
 ## Next Steps
 
+**Ready to customize?** Choose your configuration approach:
+
+```python
+# Option 1: Presets - sensible defaults, minimal code
+logger = get_logger(preset="production")
+
+# Option 2: Builder - IDE autocomplete, full control
+from fapilog import LoggerBuilder
+logger = LoggerBuilder().with_preset("production").with_redaction(preset="GDPR_PII").build()
+```
+
+See [Configuration](../user-guide/configuration.md) for guidance on which approach fits your needs.
+
+**Learn more:**
+
 - **[Hello World](hello-world.md)** - Complete walkthrough with examples
+- **[Configuration](../user-guide/configuration.md)** - Presets, Builder, and Settings comparison
 - **[Core Concepts](../core-concepts/index.md)** - Understand the architecture
-- **[User Guide](../user-guide/index.md)** - Practical usage patterns
+- **[Cookbook](../cookbook/index.md)** - Recipes for common patterns
 
 ---
 

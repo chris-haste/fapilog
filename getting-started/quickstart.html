@@ -370,10 +370,22 @@
 </section>
 <section id="next-steps">
 <h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<p><strong>Ready to customize?</strong> Choose your configuration approach:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Option 1: Presets - sensible defaults, minimal code</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+
+<span class="c1"># Option 2: Builder - IDE autocomplete, full control</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;GDPR_PII&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="../user-guide/configuration.html"><span class="std std-doc">Configuration</span></a> for guidance on which approach fits your needs.</p>
+<p><strong>Learn more:</strong></p>
 <ul class="simple">
 <li><p><strong><a class="reference internal" href="hello-world.html"><span class="std std-doc">Hello World</span></a></strong> - Complete walkthrough with examples</p></li>
+<li><p><strong><a class="reference internal" href="../user-guide/configuration.html"><span class="std std-doc">Configuration</span></a></strong> - Presets, Builder, and Settings comparison</p></li>
 <li><p><strong><a class="reference internal" href="../core-concepts/index.html"><span class="std std-doc">Core Concepts</span></a></strong> - Understand the architecture</p></li>
-<li><p><strong><a class="reference internal" href="../user-guide/index.html"><span class="std std-doc">User Guide</span></a></strong> - Practical usage patterns</p></li>
+<li><p><strong><a class="reference internal" href="../cookbook/index.html"><span class="std std-doc">Cookbook</span></a></strong> - Recipes for common patterns</p></li>
 </ul>
 <hr class="docutils" />
 <p><em>You’re now logging with fapilog! Ready for more? Try the <a class="reference internal" href="hello-world.html"><span class="std std-doc">Hello World</span></a> walkthrough.</em></p>
