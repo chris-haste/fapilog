@@ -15,7 +15,7 @@ class TestSinglePresetRedaction:
 
         logger = (
             LoggerBuilder()
-            .with_redaction_preset("CONTACT_INFO")
+            .with_redaction(preset="CONTACT_INFO")
             .with_level("INFO")
             .build()
         )
@@ -34,7 +34,7 @@ class TestSinglePresetRedaction:
         from fapilog import LoggerBuilder
 
         builder = LoggerBuilder()
-        builder.with_redaction_preset("GDPR_PII")
+        builder.with_redaction(preset="GDPR_PII")
 
         # Verify configuration was set up correctly
         redactor_config = builder._config.get("redactor_config", {})
@@ -49,7 +49,7 @@ class TestSinglePresetRedaction:
         from fapilog import LoggerBuilder
 
         builder = LoggerBuilder()
-        builder.with_redaction_preset("HIPAA_PHI")
+        builder.with_redaction(preset="HIPAA_PHI")
 
         redactor_config = builder._config.get("redactor_config", {})
         field_mask_config = redactor_config.get("field_mask", {})
@@ -64,7 +64,7 @@ class TestSinglePresetRedaction:
         from fapilog import LoggerBuilder
 
         builder = LoggerBuilder()
-        builder.with_redaction_preset("PCI_DSS")
+        builder.with_redaction(preset="PCI_DSS")
 
         redactor_config = builder._config.get("redactor_config", {})
         field_mask_config = redactor_config.get("field_mask", {})
@@ -84,7 +84,7 @@ class TestInheritedPresetRedaction:
 
         builder = LoggerBuilder()
         # GDPR_PII_UK extends GDPR_PII which extends CONTACT_INFO
-        builder.with_redaction_preset("GDPR_PII_UK")
+        builder.with_redaction(preset="GDPR_PII_UK")
 
         redactor_config = builder._config.get("redactor_config", {})
         field_mask_config = redactor_config.get("field_mask", {})
@@ -103,7 +103,7 @@ class TestInheritedPresetRedaction:
         from fapilog import LoggerBuilder
 
         builder = LoggerBuilder()
-        builder.with_redaction_preset("GDPR_PII_UK")
+        builder.with_redaction(preset="GDPR_PII_UK")
 
         redactor_config = builder._config.get("redactor_config", {})
         field_mask_config = redactor_config.get("field_mask", {})
@@ -124,8 +124,7 @@ class TestMultiplePresetsComposable:
         from fapilog import LoggerBuilder
 
         builder = LoggerBuilder()
-        builder.with_redaction_preset("GDPR_PII")
-        builder.with_redaction_preset("PCI_DSS")
+        builder.with_redaction(preset=["GDPR_PII", "PCI_DSS"])
 
         redactor_config = builder._config.get("redactor_config", {})
         field_mask_config = redactor_config.get("field_mask", {})
@@ -147,7 +146,7 @@ class TestCustomFieldsExtendPreset:
         from fapilog import LoggerBuilder
 
         builder = LoggerBuilder()
-        builder.with_redaction_preset("GDPR_PII")
+        builder.with_redaction(preset="GDPR_PII")
         builder.with_redaction(fields=["patient_id", "mrn"])
 
         redactor_config = builder._config.get("redactor_config", {})
@@ -157,9 +156,9 @@ class TestCustomFieldsExtendPreset:
         # From preset
         assert "data.email" in fields_to_mask
 
-        # Custom fields (without data. prefix since with_redaction doesn't add it)
-        assert "patient_id" in fields_to_mask
-        assert "mrn" in fields_to_mask
+        # Custom fields (with auto-prefix)
+        assert "data.patient_id" in fields_to_mask
+        assert "data.mrn" in fields_to_mask
 
 
 class TestPresetWithEnvironmentPreset:
@@ -172,7 +171,7 @@ class TestPresetWithEnvironmentPreset:
 
         builder = LoggerBuilder()
         builder.with_preset("production")
-        builder.with_redaction_preset("HIPAA_PHI")
+        builder.with_redaction(preset="HIPAA_PHI")
 
         # Verify both production redactors and HIPAA fields are present
         redactors = builder._config.get("core", {}).get("redactors", [])
@@ -184,3 +183,53 @@ class TestPresetWithEnvironmentPreset:
 
         # HIPAA fields
         assert "data.mrn" in fields_to_mask
+
+        # CREDENTIALS preset should also be applied from production
+        assert "data.password" in fields_to_mask
+
+    @pytest.mark.asyncio
+    async def test_production_preset_applies_credentials(self) -> None:
+        """Production preset automatically applies CREDENTIALS redaction preset."""
+        from fapilog import LoggerBuilder
+
+        builder = LoggerBuilder()
+        builder.with_preset("production")
+
+        redactor_config = builder._config.get("redactor_config", {})
+        field_mask_config = redactor_config.get("field_mask", {})
+        fields_to_mask = field_mask_config.get("fields_to_mask", [])
+
+        # From CREDENTIALS preset (automatically applied)
+        assert "data.password" in fields_to_mask
+        assert "data.api_key" in fields_to_mask
+        assert "data.token" in fields_to_mask
+
+    @pytest.mark.asyncio
+    async def test_fastapi_preset_applies_credentials(self) -> None:
+        """FastAPI preset automatically applies CREDENTIALS redaction preset."""
+        from fapilog import LoggerBuilder
+
+        builder = LoggerBuilder()
+        builder.with_preset("fastapi")
+
+        redactor_config = builder._config.get("redactor_config", {})
+        field_mask_config = redactor_config.get("field_mask", {})
+        fields_to_mask = field_mask_config.get("fields_to_mask", [])
+
+        # From CREDENTIALS preset (automatically applied)
+        assert "data.password" in fields_to_mask
+
+    @pytest.mark.asyncio
+    async def test_serverless_preset_applies_credentials(self) -> None:
+        """Serverless preset automatically applies CREDENTIALS redaction preset."""
+        from fapilog import LoggerBuilder
+
+        builder = LoggerBuilder()
+        builder.with_preset("serverless")
+
+        redactor_config = builder._config.get("redactor_config", {})
+        field_mask_config = redactor_config.get("field_mask", {})
+        fields_to_mask = field_mask_config.get("fields_to_mask", [])
+
+        # From CREDENTIALS preset (automatically applied)
+        assert "data.password" in fields_to_mask

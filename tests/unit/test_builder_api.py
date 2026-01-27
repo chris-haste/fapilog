@@ -581,7 +581,7 @@ class TestRedactionBranches:
         assert redactors.count("field_mask") == 1
 
     def test_with_redaction_additive_by_default(self):
-        """with_redaction() merges fields by default."""
+        """with_redaction() merges fields by default (with auto-prefix)."""
         from fapilog import LoggerBuilder
 
         builder = (
@@ -590,8 +590,9 @@ class TestRedactionBranches:
             .with_redaction(fields=["ssn"])
         )
         fields = builder._config["redactor_config"]["field_mask"]["fields_to_mask"]
-        assert "password" in fields
-        assert "ssn" in fields
+        # Fields are auto-prefixed with data.
+        assert "data.password" in fields
+        assert "data.ssn" in fields
 
     def test_with_redaction_replace_overwrites_fields(self):
         """with_redaction(replace=True) replaces existing fields."""
@@ -603,8 +604,9 @@ class TestRedactionBranches:
             .with_redaction(fields=["ssn"], replace=True)
         )
         fields = builder._config["redactor_config"]["field_mask"]["fields_to_mask"]
-        assert fields == ["ssn"]
-        assert "password" not in fields
+        # After replace, only the new field remains (with auto-prefix)
+        assert fields == ["data.ssn"]
+        assert "data.password" not in fields
 
     def test_with_redaction_replace_overwrites_patterns(self):
         """with_redaction(replace=True) replaces existing patterns."""

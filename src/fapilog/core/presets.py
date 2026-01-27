@@ -46,35 +46,14 @@ PRESETS: dict[str, dict[str, Any]] = {
             "context_vars": {},
         },
         "redactor_config": {
-            "field_mask": {
-                "fields_to_mask": [
-                    "data.password",
-                    "data.api_key",
-                    "data.token",
-                    "data.secret",
-                    "data.authorization",
-                    "data.api_secret",
-                    "data.private_key",
-                    "data.ssn",
-                    "data.credit_card",
-                ],
-            },
-            "regex_mask": {
-                "patterns": [
-                    r"(?i).*password.*",
-                    r"(?i).*passwd.*",
-                    r"(?i).*api[_-]?key.*",
-                    r"(?i).*apikey.*",
-                    r"(?i).*secret.*",
-                    r"(?i).*token.*",
-                    r"(?i).*authorization.*",
-                    r"(?i).*private[_-]?key.*",
-                    r"(?i).*ssn.*",
-                    r"(?i).*credit[_-]?card.*",
-                ],
-            },
+            # Minimal config - CREDENTIALS preset applied automatically
+            # via with_preset("production") -> with_redaction(preset="CREDENTIALS")
+            "field_mask": {},
+            "regex_mask": {},
             "url_credentials": {},
         },
+        # Marker for automatic CREDENTIALS preset application
+        "_apply_credentials_preset": True,
     },
     "fastapi": {
         "core": {
@@ -88,35 +67,13 @@ PRESETS: dict[str, dict[str, Any]] = {
             "context_vars": {},
         },
         "redactor_config": {
-            "field_mask": {
-                "fields_to_mask": [
-                    "data.password",
-                    "data.api_key",
-                    "data.token",
-                    "data.secret",
-                    "data.authorization",
-                    "data.api_secret",
-                    "data.private_key",
-                    "data.ssn",
-                    "data.credit_card",
-                ],
-            },
-            "regex_mask": {
-                "patterns": [
-                    r"(?i).*password.*",
-                    r"(?i).*passwd.*",
-                    r"(?i).*api[_-]?key.*",
-                    r"(?i).*apikey.*",
-                    r"(?i).*secret.*",
-                    r"(?i).*token.*",
-                    r"(?i).*authorization.*",
-                    r"(?i).*private[_-]?key.*",
-                    r"(?i).*ssn.*",
-                    r"(?i).*credit[_-]?card.*",
-                ],
-            },
+            # Minimal config - CREDENTIALS preset applied automatically
+            # via with_preset("fastapi") -> with_redaction(preset="CREDENTIALS")
+            "field_mask": {},
+            "regex_mask": {},
             "url_credentials": {},
         },
+        "_apply_credentials_preset": True,
     },
     "minimal": {
         "core": {
@@ -137,35 +94,13 @@ PRESETS: dict[str, dict[str, Any]] = {
             "context_vars": {},
         },
         "redactor_config": {
-            "field_mask": {
-                "fields_to_mask": [
-                    "data.password",
-                    "data.api_key",
-                    "data.token",
-                    "data.secret",
-                    "data.authorization",
-                    "data.api_secret",
-                    "data.private_key",
-                    "data.ssn",
-                    "data.credit_card",
-                ],
-            },
-            "regex_mask": {
-                "patterns": [
-                    r"(?i).*password.*",
-                    r"(?i).*passwd.*",
-                    r"(?i).*api[_-]?key.*",
-                    r"(?i).*apikey.*",
-                    r"(?i).*secret.*",
-                    r"(?i).*token.*",
-                    r"(?i).*authorization.*",
-                    r"(?i).*private[_-]?key.*",
-                    r"(?i).*ssn.*",
-                    r"(?i).*credit[_-]?card.*",
-                ],
-            },
+            # Minimal config - CREDENTIALS preset applied automatically
+            # via with_preset("serverless") -> with_redaction(preset="CREDENTIALS")
+            "field_mask": {},
+            "regex_mask": {},
             "url_credentials": {},
         },
+        "_apply_credentials_preset": True,
     },
 }
 

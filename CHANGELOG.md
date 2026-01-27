@@ -4,9 +4,35 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+### Breaking Changes
+
+- **Unified Redaction API:** The following methods have been removed and consolidated into `with_redaction()`:
+  - `with_field_mask()` - use `with_redaction(fields=[...], mask="...")`
+  - `with_regex_mask()` - use `with_redaction(patterns=[...], mask="...")`
+  - `with_url_credential_redaction()` - use `with_redaction(url_credentials=True)`
+  - `with_redaction_guardrails()` - use `with_redaction(max_depth=..., max_keys=...)`
+  - `with_redaction_preset()` - use `with_redaction(preset="...")`
+
+  **Migration guide:**
+  ```python
+  # Old                                    # New
+  .with_field_mask(["password"])          .with_redaction(fields=["password"])
+  .with_regex_mask([".*secret.*"])        .with_redaction(patterns=[".*secret.*"])
+  .with_url_credential_redaction()        .with_redaction(url_credentials=True)
+  .with_redaction_guardrails(max_depth=10).with_redaction(max_depth=10)
+  .with_redaction_preset("GDPR_PII")      .with_redaction(preset="GDPR_PII")
+  ```
+
+- **Auto-prefix for field names:** `with_redaction(fields=["password"])` now automatically adds the `data.` prefix for simple field names (no dots). Use `auto_prefix=False` to disable. This ensures fields are correctly matched in the log envelope structure.
+
+- **Production/FastAPI/Serverless presets now apply CREDENTIALS preset:** Security-focused presets (`production`, `fastapi`, `serverless`) automatically apply the `CREDENTIALS` redaction preset for comprehensive secret protection. Custom credential fields are no longer hardcoded in these presets.
+
 ### Added
 
-- **Composable redaction presets:** One-liner compliance protection via `with_redaction_preset("GDPR_PII")`. Includes presets for GDPR, CCPA, HIPAA, and PCI-DSS with inheritance support and metadata filtering (Story 3.8).
+- **Unified `with_redaction()` API:** Single method for all redaction configuration with preset support, URL credentials, guardrails, and custom fields/patterns (Story 3.8).
+- **Preset discovery methods:** `LoggerBuilder.list_redaction_presets()` and `LoggerBuilder.get_redaction_preset_info(name)` for discovering available redaction presets.
+- **Multiple preset support:** `with_redaction(preset=["GDPR_PII", "PCI_DSS"])` applies multiple presets in one call.
+- **Composable redaction presets:** One-liner compliance protection via `with_redaction(preset="GDPR_PII")`. Includes presets for GDPR, CCPA, HIPAA, PCI-DSS, and CREDENTIALS with inheritance support and metadata filtering (Story 3.8).
 
 ### Changed
 

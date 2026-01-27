@@ -55,14 +55,17 @@ class TestWithRouting:
         assert builder._config["sink_routing"]["overlap"] is False
 
 
-class TestWithFieldMask:
-    """Tests for with_field_mask() method."""
+class TestUnifiedRedactionAPI:
+    """Tests for unified with_redaction() API."""
 
-    def test_with_field_mask_basic(self) -> None:
-        """with_field_mask() configures field-based redaction."""
+    def test_with_redaction_fields_basic(self) -> None:
+        """with_redaction(fields=...) configures field-based redaction."""
         builder = LoggerBuilder()
 
-        result = builder.with_field_mask(fields=["password", "ssn", "credit_card"])
+        result = builder.with_redaction(
+            fields=["password", "ssn", "credit_card"],
+            auto_prefix=False,
+        )
 
         assert result is builder  # Returns self for chaining
         assert "field_mask" in builder._config["core"]["redactors"]
@@ -73,35 +76,36 @@ class TestWithFieldMask:
         ]
         assert builder._config["redactor_config"]["field_mask"]["mask_string"] == "***"
 
-    def test_with_field_mask_custom_options(self) -> None:
-        """with_field_mask() accepts custom mask and options."""
+    def test_with_redaction_auto_prefix(self) -> None:
+        """with_redaction() auto-prefixes simple field names with data."""
         builder = LoggerBuilder()
 
-        builder.with_field_mask(
+        builder.with_redaction(fields=["password", "context.user_id"])
+
+        fields = builder._config["redactor_config"]["field_mask"]["fields_to_mask"]
+        assert "data.password" in fields  # Auto-prefixed
+        assert "context.user_id" in fields  # Already has dot, not prefixed
+
+    def test_with_redaction_custom_mask(self) -> None:
+        """with_redaction() accepts custom mask and options."""
+        builder = LoggerBuilder()
+
+        builder.with_redaction(
             fields=["password"],
             mask="[REDACTED]",
             block_on_failure=True,
-            max_depth=10,
-            max_keys=500,
         )
 
         config = builder._config["redactor_config"]["field_mask"]
         assert config["mask_string"] == "[REDACTED]"
         assert config["block_on_unredactable"] is True
-        assert config["max_depth"] == 10
-        assert config["max_keys_scanned"] == 500
 
-
-class TestWithRegexMask:
-    """Tests for with_regex_mask() method."""
-
-    def test_with_regex_mask(self) -> None:
-        """with_regex_mask() configures regex-based field path redaction."""
+    def test_with_redaction_patterns(self) -> None:
+        """with_redaction(patterns=...) configures regex-based redaction."""
         builder = LoggerBuilder()
 
-        result = builder.with_regex_mask(
+        result = builder.with_redaction(
             patterns=[r"(?i).*secret.*", r"(?i).*token.*"],
-            mask="***",
         )
 
         assert result is builder  # Returns self for chaining
@@ -109,49 +113,61 @@ class TestWithRegexMask:
         config = builder._config["redactor_config"]["regex_mask"]
         assert config["patterns"] == [r"(?i).*secret.*", r"(?i).*token.*"]
         assert config["mask_string"] == "***"
-        assert config["block_on_unredactable"] is False  # Default
-        assert config["max_depth"] == 16  # Default
-        assert config["max_keys_scanned"] == 1000  # Default
 
-
-class TestWithUrlCredentialRedaction:
-    """Tests for with_url_credential_redaction() method."""
-
-    def test_with_url_credential_redaction_enable(self) -> None:
-        """with_url_credential_redaction() enables URL credential scrubbing."""
+    def test_with_redaction_url_credentials_enable(self) -> None:
+        """with_redaction(url_credentials=True) enables URL credential scrubbing."""
         builder = LoggerBuilder()
 
-        result = builder.with_url_credential_redaction(max_string_length=8192)
+        result = builder.with_redaction(url_credentials=True, url_max_length=8192)
 
         assert result is builder  # Returns self for chaining
         assert "url_credentials" in builder._config["core"]["redactors"]
         config = builder._config["redactor_config"]["url_credentials"]
         assert config["max_string_length"] == 8192
 
-    def test_with_url_credential_redaction_disable(self) -> None:
-        """with_url_credential_redaction(enabled=False) disables the redactor."""
+    def test_with_redaction_url_credentials_disable(self) -> None:
+        """with_redaction(url_credentials=False) disables URL credential scrubbing."""
         builder = LoggerBuilder()
 
         # Enable first, then disable
-        builder.with_url_credential_redaction(enabled=True)
+        builder.with_redaction(url_credentials=True)
         assert "url_credentials" in builder._config["core"]["redactors"]
 
-        builder.with_url_credential_redaction(enabled=False)
+        builder.with_redaction(url_credentials=False)
         assert "url_credentials" not in builder._config["core"]["redactors"]
 
-
-class TestWithRedactionGuardrails:
-    """Tests for with_redaction_guardrails() method."""
-
     def test_with_redaction_guardrails(self) -> None:
-        """with_redaction_guardrails() sets global redaction limits."""
+        """with_redaction(max_depth=..., max_keys=...) sets global limits."""
         builder = LoggerBuilder()
 
-        result = builder.with_redaction_guardrails(max_depth=10, max_keys=10000)
+        result = builder.with_redaction(max_depth=10, max_keys=10000)
 
         assert result is builder  # Returns self for chaining
         assert builder._config["core"]["redaction_max_depth"] == 10
         assert builder._config["core"]["redaction_max_keys_scanned"] == 10000
+
+    def test_with_redaction_preset_single(self) -> None:
+        """with_redaction(preset=...) applies a single preset."""
+        builder = LoggerBuilder()
+
+        result = builder.with_redaction(preset="GDPR_PII")
+
+        assert result is builder
+        assert "field_mask" in builder._config["core"]["redactors"]
+        fields = builder._config["redactor_config"]["field_mask"]["fields_to_mask"]
+        assert "data.email" in fields
+
+    def test_with_redaction_preset_multiple(self) -> None:
+        """with_redaction(preset=[...]) applies multiple presets."""
+        builder = LoggerBuilder()
+
+        builder.with_redaction(preset=["GDPR_PII", "PCI_DSS"])
+
+        fields = builder._config["redactor_config"]["field_mask"]["fields_to_mask"]
+        # From GDPR_PII
+        assert "data.email" in fields
+        # From PCI_DSS
+        assert "data.card_number" in fields
 
 
 class TestConfigureEnricher:
@@ -227,7 +243,7 @@ class TestAdvancedFeaturesChainable:
         """All advanced features integrate with basic builder methods."""
         builder = LoggerBuilder()
 
-        # Chain all methods together
+        # Chain all methods together using unified API
         result = (
             builder.with_level("INFO")
             .with_preset("production")
@@ -237,10 +253,12 @@ class TestAdvancedFeaturesChainable:
                 rules=[{"levels": ["ERROR"], "sinks": ["stdout_json"]}],
                 fallback=["rotating_file"],
             )
-            .with_field_mask(fields=["password"])
-            .with_regex_mask(patterns=["(?i).*secret.*"])
-            .with_url_credential_redaction()
-            .with_redaction_guardrails(max_depth=8)
+            .with_redaction(
+                fields=["custom_password"],
+                patterns=["(?i).*secret.*"],
+                url_credentials=True,
+                max_depth=8,
+            )
             .configure_enricher("runtime_info", service="test-api")
             .with_plugins(allowlist=["rotating_file", "stdout_json"])
             .with_circuit_breaker(enabled=True)
@@ -266,3 +284,38 @@ class TestAdvancedFeaturesChainable:
             "stdout_json",
         ]
         assert builder._config["core"]["sink_circuit_breaker_enabled"] is True
+
+
+class TestStaticDiscoveryMethods:
+    """Tests for static discovery methods on LoggerBuilder."""
+
+    def test_list_redaction_presets(self) -> None:
+        """list_redaction_presets() returns sorted list of preset names."""
+        presets = LoggerBuilder.list_redaction_presets()
+
+        assert isinstance(presets, list)
+        assert "GDPR_PII" in presets
+        assert "HIPAA_PHI" in presets
+        assert "PCI_DSS" in presets
+        assert "CREDENTIALS" in presets
+        # Verify sorted
+        assert presets == sorted(presets)
+
+    def test_get_redaction_preset_info(self) -> None:
+        """get_redaction_preset_info() returns preset metadata."""
+        info = LoggerBuilder.get_redaction_preset_info("GDPR_PII")
+
+        assert info["name"] == "GDPR_PII"
+        assert "GDPR" in info["description"]
+        assert "email" in info["fields"]
+        assert len(info["patterns"]) > 0
+        assert info["regulation"] == "GDPR"
+        assert info["region"] == "EU"
+        assert "gdpr" in info["tags"]
+
+    def test_get_redaction_preset_info_unknown_raises(self) -> None:
+        """get_redaction_preset_info() raises ValueError for unknown preset."""
+        import pytest
+
+        with pytest.raises(ValueError, match="Unknown redaction preset"):
+            LoggerBuilder.get_redaction_preset_info("NONEXISTENT")

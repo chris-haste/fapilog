@@ -195,7 +195,7 @@ logger.info("User created", password="secret123", api_key="sk-xxx")
 | `field-mask` | Named fields (password, secret, token, etc.) | Requires preset or config |
 | `regex-mask` | Pattern-based detection (SSN, email, etc.) | Requires preset or config |
 
-See [Redaction Guarantees](redaction-guarantees.md) for configuration details.
+See [Redaction Documentation](redaction/index.md) for configuration details.
 
 ---
 
@@ -355,6 +355,6 @@ Fapilog's JSON output integrates with standard log aggregators:
 
 ## Further Reading
 
-- [Redaction Guarantees](redaction-guarantees.md) - PII/secret protection
-- [Core Concepts: Redaction](core-concepts/redaction.md) - Redactor configuration
+- [Redaction](redaction/index.md) - PII/secret protection
+- [Redaction Configuration](redaction/configuration.md) - Redactor configuration
 - [API Reference: Configuration](api-reference/configuration.md) - Settings reference

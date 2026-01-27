@@ -42,19 +42,15 @@ class TestPresetDefinitions:
         assert config["sink_config"]["rotating_file"]["compress_rotated"] is True
 
     def test_production_preset_enables_redaction(self):
-        """Production preset enables field mask redactor."""
+        """Production preset has redactor config structure (fields applied by builder)."""
         config = get_preset("production")
-        assert config["redactor_config"]["field_mask"]["fields_to_mask"] == [
-            "data.password",
-            "data.api_key",
-            "data.token",
-            "data.secret",
-            "data.authorization",
-            "data.api_secret",
-            "data.private_key",
-            "data.ssn",
-            "data.credit_card",
-        ]
+        # Production preset has redactor config, but actual fields come from
+        # CREDENTIALS preset via with_preset("production") -> with_redaction(preset="CREDENTIALS")
+        assert "field_mask" in config["redactor_config"]
+        assert "regex_mask" in config["redactor_config"]
+        assert "url_credentials" in config["redactor_config"]
+        # Marker for automatic CREDENTIALS preset application
+        assert config.get("_apply_credentials_preset") is True
 
     def test_production_preset_has_batch_size_100(self):
         """Production preset uses batch size 100 for throughput."""
