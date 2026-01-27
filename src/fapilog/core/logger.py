@@ -193,9 +193,11 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._started = True  # Mark that workers are being started (Story 10.29)
 
         # Register with shutdown module for graceful drain (Story 6.13)
+        # Also trigger lazy handler installation (Story 4.55)
         try:
-            from .shutdown import register_logger
+            from .shutdown import install_shutdown_handlers, register_logger
 
+            install_shutdown_handlers()  # Lazy install on first logger start
             register_logger(self)  # type: ignore[arg-type]
         except Exception:
             pass  # Fail-open: don't break startup if shutdown module fails

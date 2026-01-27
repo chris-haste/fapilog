@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import signal
+import warnings
 from typing import Any
 
 from .diagnostics import warn
@@ -12,9 +13,20 @@ def install_signal_handlers(
 ) -> None:
     """Install SIGINT/SIGTERM handlers to drain the logger gracefully.
 
+    .. deprecated:: 0.8.0
+        Use :func:`fapilog.install_shutdown_handlers` instead.
+        This function will be removed in version 1.0.0.
+
     Safe no-op on platforms without signal support (e.g., Windows for SIGTERM)
     or in non-main threads.
     """
+    warnings.warn(
+        "install_signal_handlers() is deprecated. "
+        "Use fapilog.install_shutdown_handlers() instead. "
+        "Handlers are now installed automatically on first logger start.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
     try:
         loop = asyncio.get_event_loop()

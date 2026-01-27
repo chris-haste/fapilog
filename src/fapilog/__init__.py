@@ -34,6 +34,7 @@ from .core.logger import DrainResult
 from .core.logger import SyncLoggerFacade as _SyncLoggerFacade
 from .core.presets import list_presets
 from .core.settings import Settings as _Settings
+from .core.shutdown import install_shutdown_handlers
 from .metrics.metrics import MetricsCollector as _MetricsCollector
 from .plugins import loader as _loader
 from .plugins.enrichers import BaseEnricher as _BaseEnricher
@@ -59,6 +60,7 @@ __all__ = [
     "sinks",
     "get_cached_loggers",
     "clear_logger_cache",
+    "install_shutdown_handlers",
     "__version__",
     "VERSION",
 ]
