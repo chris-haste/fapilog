@@ -35,20 +35,24 @@ def extract_fields_from_docs(docs_path: Path) -> dict[str, set[str]]:
     content = docs_path.read_text()
     preset_fields: dict[str, set[str]] = {}
 
-    # Find each preset section (#### PRESET_NAME)
-    # and extract fields from the following code block
-    preset_pattern = re.compile(
-        r"####\s+(\w+)\s*\n"  # Preset heading
-        r"(?:.*?\n)*?"  # Skip description lines
-        r"```\n"  # Start of code block
-        r"(.*?)"  # Field content
-        r"\n```",  # End of code block
-        re.DOTALL,
-    )
+    # Find each preset section (#### PRESET_NAME) and its code block
+    # Use a two-step approach to avoid ReDoS with nested quantifiers
+    heading_pattern = re.compile(r"####\s+(\w+)\s*\n")
+    code_block_pattern = re.compile(r"```\n([^`]+)\n```")
 
-    for match in preset_pattern.finditer(content):
-        preset_name = match.group(1)
-        field_block = match.group(2)
+    # Find all headings and their positions
+    headings = [(m.group(1), m.end()) for m in heading_pattern.finditer(content)]
+
+    for i, (preset_name, start_pos) in enumerate(headings):
+        # Search for code block between this heading and the next
+        end_pos = headings[i + 1][1] if i + 1 < len(headings) else len(content)
+        section = content[start_pos:end_pos]
+
+        code_match = code_block_pattern.search(section)
+        if not code_match:
+            continue
+
+        field_block = code_match.group(1)
 
         # Parse fields from the block (comma or newline separated)
         fields = set()
