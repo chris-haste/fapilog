@@ -68,6 +68,7 @@ redaction/index
 enterprise
 api-reference/index
 plugins/index
+patterns
 troubleshooting/index
 faq
 appendices
