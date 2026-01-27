@@ -368,21 +368,22 @@ async def test_basic_auth_configured(monkeypatch) -> None:
 
 
 @pytest.mark.asyncio
-async def test_write_serialized_with_invalid_bytes(
+async def test_write_serialized_raises_on_invalid_bytes(
     fake_client: FakeAsyncClient,
 ) -> None:
-    """write_serialized should handle non-UTF8 bytes gracefully."""
+    """write_serialized should raise SinkWriteError on non-UTF8 bytes (Story 4.53)."""
+    from fapilog.core.errors import SinkWriteError
+
     sink = LokiSink(LokiSinkConfig(url="http://loki", batch_size=1))
     await sink.start()
     # Create a view with invalid UTF-8 bytes
     view = loki.SerializedView(data=b"\xff\xfe invalid utf8")
-    await sink.write_serialized(view)
+    with pytest.raises(SinkWriteError) as exc_info:
+        await sink.write_serialized(view)
     await sink.stop()
 
-    assert fake_client.posts
-    # Should have fallen back to JSON encoding the raw data
-    values = fake_client.posts[0]["json"]["streams"][0]["values"]
-    assert len(values) == 1
+    assert exc_info.value.context.plugin_name == "loki"
+    assert isinstance(exc_info.value.__cause__, UnicodeDecodeError)
 
 
 @pytest.mark.asyncio

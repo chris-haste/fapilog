@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from typing import Any
 from unittest.mock import patch
 
@@ -117,7 +118,10 @@ async def test_webhook_sink_exception_health() -> None:
 
 
 @pytest.mark.asyncio
-async def test_webhook_sink_serialized_fallback_and_metrics() -> None:
+async def test_webhook_sink_serialized_raises_on_invalid_json() -> None:
+    """write_serialized should raise SinkWriteError on invalid JSON (Story 4.53)."""
+    from fapilog.core.errors import SinkWriteError
+
     pool = _StubPool([httpx.Response(200, json={"ok": True})])
     metrics = MetricsCollector(enabled=True)
     sink = WebhookSink(
@@ -131,10 +135,12 @@ async def test_webhook_sink_serialized_fallback_and_metrics() -> None:
             self.data = memoryview(data)
 
     await sink.start()
-    await sink.write_serialized(_BadView(b"not-json"))
+    with pytest.raises(SinkWriteError) as exc_info:
+        await sink.write_serialized(_BadView(b"not-json"))
     await sink.stop()
 
-    assert pool.calls and metrics._state.events_processed == 1  # type: ignore[attr-defined]
+    assert exc_info.value.context.plugin_name == "webhook"
+    assert isinstance(exc_info.value.__cause__, json.JSONDecodeError)
 
 
 @pytest.mark.asyncio

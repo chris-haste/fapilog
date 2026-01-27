@@ -347,36 +347,43 @@ class TestEdgeCases:
         assert fake_asyncpg.connection.executemany_calls == []
 
     @pytest.mark.asyncio
-    async def test_write_serialized_with_invalid_json(
+    async def test_write_serialized_raises_on_invalid_json(
         self, fake_asyncpg: FakePool
     ) -> None:
-        """Invalid JSON in write_serialized should be handled gracefully."""
+        """Invalid JSON in write_serialized should raise SinkWriteError (Story 4.53)."""
+        from fapilog.core.errors import SinkWriteError
+
         sink = PostgresSink(PostgresSinkConfig(batch_size=1))
         await sink.start()
 
-        # Invalid JSON - should not raise
+        # Invalid JSON - should raise SinkWriteError
         view = postgres.SerializedView(data=b"not valid json {{{")
-        await sink.write_serialized(view)
+        with pytest.raises(SinkWriteError) as exc_info:
+            await sink.write_serialized(view)
         await sink.stop()
 
-        # No data should have been inserted
-        assert fake_asyncpg.connection.executemany_calls == []
+        assert exc_info.value.context.plugin_name == "postgres"
+        assert isinstance(exc_info.value.__cause__, json.JSONDecodeError)
 
     @pytest.mark.asyncio
-    async def test_write_serialized_with_non_dict_json(
+    async def test_write_serialized_raises_on_non_dict_json(
         self, fake_asyncpg: FakePool
     ) -> None:
-        """Non-dict JSON payloads should be ignored."""
+        """Non-dict JSON payloads should raise SinkWriteError (Story 4.53)."""
+        from fapilog.core.errors import SinkWriteError
+
         sink = PostgresSink(PostgresSinkConfig(batch_size=1))
         await sink.start()
 
-        # Valid JSON but not a dict
+        # Valid JSON but not a dict - should raise SinkWriteError
         view = postgres.SerializedView(data=b'["array", "not", "dict"]')
-        await sink.write_serialized(view)
+        with pytest.raises(SinkWriteError) as exc_info:
+            await sink.write_serialized(view)
         await sink.stop()
 
-        # No data should have been inserted
-        assert fake_asyncpg.connection.executemany_calls == []
+        assert exc_info.value.context.plugin_name == "postgres"
+        # No cause for type mismatch (not a deserialization error)
+        assert "dict" in str(exc_info.value).lower()
 
     def test_prepare_row_with_missing_fields(self) -> None:
         """Missing fields should use defaults."""

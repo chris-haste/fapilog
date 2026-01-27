@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+### Fixed
+
+- **Silent data loss in `write_serialized`:** Fixed correctness issue where HTTP, Webhook, Loki, CloudWatch, and PostgreSQL sinks silently replaced log data with placeholder values (e.g., `{"message": "fallback"}`) when deserialization failed. All sinks now raise `SinkWriteError` with diagnostics, enabling proper fallback and circuit breaker handling (Story 4.53).
+
 ## [0.7.0] - 2026-01-27
 
 ### Breaking Changes
