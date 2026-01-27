@@ -209,7 +209,7 @@ Before going to production with compliance redaction:
 - [ ] **Use structured fields** - All PII should be in named fields, not message strings
 - [ ] **Add domain-specific fields** - Extend presets with your custom field names
 - [ ] **Test redaction** - Write tests that verify PII is masked
-- [ ] **Review preset coverage** - Check [Complete Field Reference](../redaction/presets.md#complete-field-reference) for what's covered
+- [ ] **Review preset coverage** - Check [Presets Reference](../redaction/presets.md) for what's covered
 - [ ] **Document gaps** - Note any PII that can't be redacted (e.g., user-generated content)
 
 ## Common Patterns by Regulation
