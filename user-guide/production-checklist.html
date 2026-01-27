@@ -7,7 +7,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Integration Guide &mdash; fapilog latest documentation</title>
+  <title>Production Checklist &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -25,12 +25,12 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="FastAPI / ASGI Integration" href="fastapi.html" />
-    <link rel="prev" title="Performance Benchmarks" href="benchmarks.html" />
+    <link rel="next" title="Using the Logger" href="using-logger.html" />
+    <link rel="prev" title="Environment Variable Configuration" href="environment-variables.html" />
  
 
 
-<link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/integration-guide.html" />
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/production-checklist.html" />
 <meta name="robots" content="noindex, follow" />
 
 
@@ -80,7 +80,7 @@
 <li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="builder-configuration.html">Configuring Fapilog with the Builder API</a></li>
 <li class="toctree-l2"><a class="reference internal" href="environment-variables.html">Environment Variable Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="production-checklist.html">Production Checklist</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Production Checklist</a></li>
 <li class="toctree-l2"><a class="reference internal" href="using-logger.html">Using the Logger</a></li>
 <li class="toctree-l2"><a class="reference internal" href="context-enrichment.html">Context Enrichment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rotating-file-sink.html">Rotating File Sink</a></li>
@@ -88,7 +88,7 @@
 <li class="toctree-l2"><a class="reference internal" href="graceful-shutdown.html">Graceful Shutdown</a></li>
 <li class="toctree-l2"><a class="reference internal" href="performance-tuning.html">Performance Tuning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="benchmarks.html">Performance Benchmarks</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration-guide.html">Integration Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fastapi.html">FastAPI / ASGI Integration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
 <li class="toctree-l2"><a class="reference internal" href="testing-plugins.html">Testing Plugins</a></li>
@@ -207,9 +207,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="index.html">User Guide</a></li>
-      <li class="breadcrumb-item active">Integration Guide</li>
+      <li class="breadcrumb-item active">Production Checklist</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/user-guide/integration-guide.md.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/user-guide/production-checklist.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -217,59 +217,185 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="integration-guide">
-<h1>Integration Guide<a class="headerlink" href="#integration-guide" title="Link to this heading"></a></h1>
-<p>Patterns for common application types.</p>
-<p><strong>See also:</strong> <a class="reference internal" href="../cookbook/dev-prod-logging-config.html"><span class="std std-doc">One FastAPI config for dev + prod</span></a> - Single configuration that adapts to environment automatically.</p>
-<section id="fastapi-async-web">
-<h2>FastAPI / async web<a class="headerlink" href="#fastapi-async-web" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">Depends</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_async_logger</span>
-
-<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
-
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">logger_dep</span><span class="p">():</span>
-    <span class="k">return</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">(</span><span class="s2">&quot;request&quot;</span><span class="p">)</span>
-
-<span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/items/</span><span class="si">{item_id}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">logger</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">logger_dep</span><span class="p">)):</span>
-    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;fetch&quot;</span><span class="p">,</span> <span class="n">item_id</span><span class="o">=</span><span class="n">item_id</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;item_id&quot;</span><span class="p">:</span> <span class="n">item_id</span><span class="p">}</span>
+  <section class="tex2jax_ignore mathjax_ignore" id="production-checklist">
+<h1>Production Checklist<a class="headerlink" href="#production-checklist" title="Link to this heading"></a></h1>
+<p>Pre-deployment checklist for fapilog in production environments.</p>
+<section id="choose-your-configuration-approach">
+<h2>1. Choose Your Configuration Approach<a class="headerlink" href="#choose-your-configuration-approach" title="Link to this heading"></a></h2>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> <strong>Preset</strong> or <strong>Auto-detect</strong> or <strong>Custom Settings</strong>?</p></li>
+</ul>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Approach</p></th>
+<th class="head"><p>When to Use</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code></p></td>
+<td><p>General backend services</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">preset=&quot;fastapi&quot;</span></code></p></td>
+<td><p>FastAPI applications</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">preset=&quot;serverless&quot;</span></code></p></td>
+<td><p>AWS Lambda, Cloud Functions</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">auto_detect=True</span></code></p></td>
+<td><p>Let fapilog detect environment</p></td>
+</tr>
+<tr class="row-even"><td><p>Custom <code class="docutils literal notranslate"><span class="pre">Settings()</span></code></p></td>
+<td><p>Fine-grained control needed</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><p>See: <a class="reference internal" href="configuration.html"><span class="std std-doc">Configuration</span></a></p>
+</div></blockquote>
+</section>
+<section id="enable-observability">
+<h2>2. Enable Observability<a class="headerlink" href="#enable-observability" title="Link to this heading"></a></h2>
+<section id="metrics">
+<h3>Metrics<a class="headerlink" href="#metrics" title="Link to this heading"></a></h3>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Enable metrics collection</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Configure metrics export (application-level)</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__ENABLE_METRICS</span><span class="o">=</span><span class="nb">true</span>
 </pre></div>
 </div>
+<p>Fapilog records events submitted/dropped, queue high-watermark, backpressure waits, and flush latency. Expose these via your preferred exporter.</p>
+<blockquote>
+<div><p>See: <a class="reference internal" href="../core-concepts/metrics.html"><span class="std std-doc">Metrics</span></a></p>
+</div></blockquote>
 </section>
-<section id="cli-scripts">
-<h2>CLI / scripts<a class="headerlink" href="#cli-scripts" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">runtime</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-    <span class="k">with</span> <span class="n">runtime</span><span class="p">()</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;job started&quot;</span><span class="p">)</span>
-        <span class="c1"># ... work ...</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;job done&quot;</span><span class="p">)</span>
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">main</span><span class="p">()</span>
+<section id="diagnostics">
+<h3>Diagnostics<a class="headerlink" href="#diagnostics" title="Link to this heading"></a></h3>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Understand diagnostics output location (stderr by default)</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Consider enabling internal logging for debugging</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__INTERNAL_LOGGING_ENABLED</span><span class="o">=</span><span class="nb">true</span>
 </pre></div>
 </div>
+<p>Diagnostics emit warnings for worker errors, sink errors, backpressure drops, and serialization issues.</p>
+<blockquote>
+<div><p>See: <a class="reference internal" href="../core-concepts/diagnostics-resilience.html"><span class="std std-doc">Diagnostics &amp; Resilience</span></a></p>
+</div></blockquote>
 </section>
-<section id="batch-processing">
-<h2>Batch processing<a class="headerlink" href="#batch-processing" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+</section>
+<section id="validate-redaction">
+<h2>3. Validate Redaction<a class="headerlink" href="#validate-redaction" title="Link to this heading"></a></h2>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Review what gets redacted vs what doesn’t</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Test redaction with production-like data</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Decide on <code class="docutils literal notranslate"><span class="pre">redaction_fail_mode</span></code> (warn vs closed)</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Test redaction before deployment</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Test&quot;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">&quot;secret123&quot;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="s2">&quot;user@example.com&quot;</span><span class="p">)</span>
+<span class="c1"># Verify output shows: password=&quot;***&quot;, email=&quot;***&quot;</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p><strong>Warning:</strong> Redaction is pattern-based, not content-aware.
+PII in message strings is NOT redacted.</p>
+</div></blockquote>
+<blockquote>
+<div><p>See: <a class="reference internal" href="../redaction/behavior.html"><span class="std std-doc">Redaction Behavior</span></a>, <a class="reference internal" href="../redaction/testing.html"><span class="std std-doc">Testing Redaction</span></a></p>
+</div></blockquote>
+</section>
+<section id="configure-backpressure">
+<h2>4. Configure Backpressure<a class="headerlink" href="#configure-backpressure" title="Link to this heading"></a></h2>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Size queue for expected burst load</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Decide drop vs wait behavior</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Monitor for dropped events</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># High-throughput settings</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__MAX_QUEUE_SIZE</span><span class="o">=</span><span class="m">20000</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__BATCH_MAX_SIZE</span><span class="o">=</span><span class="m">256</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__DROP_ON_FULL</span><span class="o">=</span><span class="nb">true</span><span class="w">  </span><span class="c1"># or false to wait</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p>See: <a class="reference internal" href="../troubleshooting/logs-dropped-under-load.html"><span class="std std-doc">Troubleshooting Dropped Logs</span></a></p>
+</div></blockquote>
+</section>
+<section id="sink-configuration">
+<h2>5. Sink Configuration<a class="headerlink" href="#sink-configuration" title="Link to this heading"></a></h2>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Configure production sinks (file, HTTP, cloud)</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Verify sink credentials/endpoints</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Test sink connectivity</p></li>
+</ul>
+<blockquote>
+<div><p>See: <a class="reference internal" href="../plugins/sinks/cloudwatch.html"><span class="std std-doc">CloudWatch</span></a>, <a class="reference internal" href="../plugins/sinks/loki.html"><span class="std std-doc">Loki</span></a>, <a class="reference internal" href="../plugins/sinks/postgres.html"><span class="std std-doc">PostgreSQL</span></a></p>
+</div></blockquote>
+</section>
+<section id="graceful-shutdown">
+<h2>6. Graceful Shutdown<a class="headerlink" href="#graceful-shutdown" title="Link to this heading"></a></h2>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Ensure application calls <code class="docutils literal notranslate"><span class="pre">logger.drain()</span></code> or uses context manager</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Verify shutdown handlers are installed (automatic with presets)</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Option 1: Context manager (recommended for sync code)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">runtime</span>
+
+<span class="k">with</span> <span class="n">runtime</span><span class="p">()</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
+    <span class="c1"># application code</span>
+    <span class="k">pass</span>  <span class="c1"># Automatic drain on exit</span>
+
+<span class="c1"># Option 2: Async context manager</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">runtime_async</span>
 
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">process_items</span><span class="p">(</span><span class="n">items</span><span class="p">):</span>
-    <span class="k">async</span> <span class="k">with</span> <span class="n">runtime_async</span><span class="p">()</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
-            <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;item&quot;</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">item</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">with</span> <span class="n">runtime_async</span><span class="p">()</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Processing...&quot;</span><span class="p">)</span>
+    <span class="c1"># Automatic drain on exit</span>
 
-<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">process_items</span><span class="p">([</span><span class="o">...</span><span class="p">]))</span>
+<span class="c1"># Option 3: Manual drain</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+<span class="c1"># ... application code ...</span>
+<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">drain</span><span class="p">()</span>
 </pre></div>
 </div>
+<blockquote>
+<div><p>See: <a class="reference internal" href="graceful-shutdown.html"><span class="std std-doc">Graceful Shutdown</span></a></p>
+</div></blockquote>
 </section>
-<section id="mixed-sync-async">
-<h2>Mixed sync/async<a class="headerlink" href="#mixed-sync-async" title="Link to this heading"></a></h2>
-<p>For apps with both sync and async parts, prefer async loggers in async contexts and keep sync logging in sync threads. Avoid sharing the same logger across event loops; create per-loop loggers as needed.</p>
+<section id="quick-validation-script">
+<h2>Quick Validation Script<a class="headerlink" href="#quick-validation-script" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;Run this script to validate production readiness.&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_async_logger</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">validate_production_config</span><span class="p">():</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Test basic logging</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Production validation test&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Test redaction</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Redaction test&quot;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">&quot;SHOULD_BE_MASKED&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Test error logging</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Test exception&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Exception test&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Drain and report</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">drain</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validation complete: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">events_flushed</span><span class="si">}</span><span class="s2"> events flushed&quot;</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">validate_production_config</span><span class="p">())</span>
+</pre></div>
+</div>
 </section>
 </section>
 
@@ -279,8 +405,8 @@
           
 <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer" style="position: relative;">
-        <a href="benchmarks.html" class="btn btn-neutral float-left" title="Performance Benchmarks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="fastapi.html" class="btn btn-neutral float-right" title="FastAPI / ASGI Integration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="environment-variables.html" class="btn btn-neutral float-left" title="Environment Variable Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="using-logger.html" class="btn btn-neutral float-right" title="Using the Logger" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
       <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 50%; margin-top: -0.5em;">
         <a href="https://fapilog.dev">www.fapilog.dev</a>
       </div>
