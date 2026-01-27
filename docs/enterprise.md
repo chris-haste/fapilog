@@ -52,9 +52,9 @@ policy = CompliancePolicy(
 | Framework | Control areas this can help with | Redaction Preset |
 |-----------|----------------------------------|------------------|
 | **SOC2** | Integrity checks, access logging, audit trails | `CREDENTIALS` |
-| **HIPAA** | PHI redaction, minimum necessary patterns, audit trails | [`HIPAA_PHI`](redaction/presets.md#hipaa_phi) |
-| **GDPR** | PII redaction, data subject request support (application responsibility) | [`GDPR_PII`](redaction/presets.md#gdpr_pii) |
-| **PCI-DSS** | Access logging, audit trails (encryption and card data handling are your responsibility) | [`PCI_DSS`](redaction/presets.md#pci_dss) |
+| **HIPAA** | PHI redaction, minimum necessary patterns, audit trails | `HIPAA_PHI` |
+| **GDPR** | PII redaction, data subject request support (application responsibility) | `GDPR_PII` |
+| **PCI-DSS** | Access logging, audit trails (encryption and card data handling are your responsibility) | `PCI_DSS` |
 | **ISO 27001** | Security logging and integrity controls | `CREDENTIALS` |
 | **SOX** | Change/event logging with chain verification | `CREDENTIALS` |
 
