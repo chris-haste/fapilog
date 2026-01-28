@@ -241,6 +241,177 @@ class TestRunChecks:
         assert exit_code == 0  # Skipped files don't cause failure
 
 
+class TestAsyncUsageValidation:
+    """Tests for async logger usage validation in code blocks."""
+
+    def test_detects_await_with_sync_logger(self, tmp_path: Path) -> None:
+        """Detects incorrect await usage with get_logger() (sync logger)."""
+        from check_doc_accuracy import check_async_usage
+
+        doc_file = tmp_path / "test.md"
+        doc_file.write_text("""
+# Example
+
+```python
+from fapilog import get_logger
+
+logger = get_logger()
+
+async def my_func():
+    await logger.info("test")
+```
+""")
+
+        result = check_async_usage(doc_file)
+
+        assert result.passed is False
+        assert len(result.errors) == 1
+        assert "await" in result.errors[0].lower()
+        assert "get_logger" in result.errors[0]
+
+    def test_passes_sync_logger_without_await(self, tmp_path: Path) -> None:
+        """Passes when sync logger is used without await."""
+        from check_doc_accuracy import check_async_usage
+
+        doc_file = tmp_path / "test.md"
+        doc_file.write_text("""
+# Example
+
+```python
+from fapilog import get_logger
+
+logger = get_logger()
+
+async def my_func():
+    logger.info("test")  # Correct: no await on sync logger
+```
+""")
+
+        result = check_async_usage(doc_file)
+
+        assert result.passed is True
+        assert result.errors == []
+
+    def test_passes_async_logger_with_await(self, tmp_path: Path) -> None:
+        """Passes when async logger is used with await."""
+        from check_doc_accuracy import check_async_usage
+
+        doc_file = tmp_path / "test.md"
+        doc_file.write_text("""
+# Example
+
+```python
+from fapilog import get_async_logger
+
+async def my_func():
+    logger = await get_async_logger()
+    await logger.info("test")  # Correct: await on async logger
+```
+""")
+
+        result = check_async_usage(doc_file)
+
+        assert result.passed is True
+        assert result.errors == []
+
+    def test_passes_runtime_async_with_await(self, tmp_path: Path) -> None:
+        """Passes when runtime_async is used with await."""
+        from check_doc_accuracy import check_async_usage
+
+        doc_file = tmp_path / "test.md"
+        doc_file.write_text("""
+# Example
+
+```python
+from fapilog import runtime_async
+
+async def process_items(items):
+    async with runtime_async() as logger:
+        await logger.info("Batch started")
+```
+""")
+
+        result = check_async_usage(doc_file)
+
+        assert result.passed is True
+        assert result.errors == []
+
+    def test_detects_module_level_await(self, tmp_path: Path) -> None:
+        """Detects await at module level (outside async function)."""
+        from check_doc_accuracy import check_async_usage
+
+        doc_file = tmp_path / "test.md"
+        doc_file.write_text("""
+# Example
+
+```python
+from fapilog import get_async_logger
+
+logger = await get_async_logger()  # Wrong: await at module level
+```
+""")
+
+        result = check_async_usage(doc_file)
+
+        assert result.passed is False
+        assert len(result.errors) == 1
+        assert (
+            "module level" in result.errors[0].lower()
+            or "outside" in result.errors[0].lower()
+        )
+
+    def test_skips_non_python_blocks(self, tmp_path: Path) -> None:
+        """Skips non-Python code blocks."""
+        from check_doc_accuracy import check_async_usage
+
+        doc_file = tmp_path / "test.md"
+        doc_file.write_text("""
+# Example
+
+```bash
+export FAPILOG_CORE__LOG_LEVEL=DEBUG
+```
+
+```json
+{"level": "INFO"}
+```
+""")
+
+        result = check_async_usage(doc_file)
+
+        assert result.passed is True
+        assert result.errors == []
+
+    def test_handles_multiple_code_blocks(self, tmp_path: Path) -> None:
+        """Checks all Python code blocks in a document."""
+        from check_doc_accuracy import check_async_usage
+
+        doc_file = tmp_path / "test.md"
+        doc_file.write_text("""
+# First Example
+
+```python
+from fapilog import get_logger
+logger = get_logger()
+logger.info("ok")  # Correct
+```
+
+# Second Example
+
+```python
+from fapilog import get_logger
+logger = get_logger()
+async def bad():
+    await logger.info("wrong")  # Wrong
+```
+""")
+
+        result = check_async_usage(doc_file)
+
+        assert result.passed is False
+        assert len(result.errors) == 1  # Only second block has the error
+
+
 class TestMain:
     """Tests for main entry point."""
 

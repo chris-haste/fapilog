@@ -12,10 +12,11 @@ export FAPILOG_FILTER_CONFIG__SAMPLING__CONFIG__SAMPLE_RATE=0.2
 ```python
 from fapilog import get_async_logger
 
-logger = await get_async_logger()
-await logger.debug("expensive debug payload", detail="...")
-await logger.info("high-volume event")
-# Sampling applies only to DEBUG/INFO; WARN/ERROR always pass.
+async def log_with_sampling():
+    logger = await get_async_logger()
+    await logger.debug("expensive debug payload", detail="...")
+    await logger.info("high-volume event")
+    # Sampling applies only to DEBUG/INFO; WARN/ERROR always pass.
 ```
 
 ## Adaptive sampling (target EPS)
