@@ -36,6 +36,155 @@ class CheckResult:
 
 
 # =============================================================================
+# CODE BLOCK EXTRACTION
+# =============================================================================
+
+
+def extract_python_blocks(content: str) -> list[str]:
+    """Extract Python code blocks from markdown content.
+
+    Args:
+        content: Markdown content to parse.
+
+    Returns:
+        List of Python code block contents (without fence markers).
+    """
+    # Match ```python or ``` python (with optional space)
+    pattern = r"```(?:python|py)\s*\n(.*?)```"
+    matches = re.findall(pattern, content, re.DOTALL | re.IGNORECASE)
+    return matches
+
+
+# =============================================================================
+# ASYNC USAGE VALIDATION
+# =============================================================================
+
+
+def check_async_usage(file_path: Path) -> CheckResult:
+    """Check for incorrect async logger usage in Python code blocks.
+
+    Validates:
+    1. get_logger() (sync) should NOT be used with await
+    2. get_async_logger() should be used with await
+    3. await should not appear at module level (outside async functions)
+
+    Args:
+        file_path: Path to the markdown file to check.
+
+    Returns:
+        CheckResult with any detected async usage errors.
+    """
+    if not file_path.exists():
+        return CheckResult(name=str(file_path), passed=True, skipped=True)
+
+    content = file_path.read_text()
+    code_blocks = extract_python_blocks(content)
+    errors: list[str] = []
+
+    for i, block in enumerate(code_blocks, 1):
+        block_errors = _check_block_async_usage(block, i)
+        errors.extend(block_errors)
+
+    return CheckResult(
+        name=f"async_usage:{file_path}",
+        passed=len(errors) == 0,
+        errors=errors,
+    )
+
+
+def _check_block_async_usage(code: str, block_num: int) -> list[str]:
+    """Check a single code block for async usage issues.
+
+    Args:
+        code: Python code content.
+        block_num: Block number for error reporting.
+
+    Returns:
+        List of error messages.
+    """
+    errors: list[str] = []
+    lines = code.split("\n")
+
+    # Track state
+    uses_sync_logger = False
+    uses_async_logger = False
+    uses_runtime_async = False
+
+    # Detect logger type from imports and assignments (skip comments)
+    for line in lines:
+        stripped = line.strip()
+        # Skip comments
+        if stripped.startswith("#"):
+            continue
+        # Remove inline comments for detection
+        code_part = stripped.split("#")[0].strip()
+        # Check imports
+        if "get_logger" in code_part and "get_async_logger" not in code_part:
+            uses_sync_logger = True
+        if "get_async_logger" in code_part:
+            uses_async_logger = True
+        if "runtime_async" in code_part:
+            uses_runtime_async = True
+
+    # Track indentation to determine if we're inside an async function
+    # Module level = 0 indentation, inside function = indented
+    async_def_indent: int | None = None  # Indent level where async def was declared
+
+    for line_num, line in enumerate(lines, 1):
+        stripped = line.strip()
+        if not stripped:
+            continue
+
+        # Skip comment-only lines
+        if stripped.startswith("#"):
+            continue
+
+        # Remove inline comments for analysis
+        code_part = stripped.split("#")[0].strip()
+        if not code_part:
+            continue
+
+        # Calculate current indentation (number of leading spaces)
+        current_indent = len(line) - len(line.lstrip())
+
+        # Track async def declarations
+        if code_part.startswith("async def ") or code_part.startswith(
+            "@asynccontextmanager"
+        ):
+            async_def_indent = current_indent
+        elif code_part.startswith("def ") and async_def_indent is not None:
+            # Regular def at same or lower indent exits async context
+            if current_indent <= async_def_indent:
+                async_def_indent = None
+
+        # Check if we're inside an async function (indented more than async def)
+        in_async_context = (
+            async_def_indent is not None and current_indent > async_def_indent
+        )
+
+        # Check for await at module level (outside async context)
+        if "await " in code_part and not in_async_context:
+            # Special case: await inside "async with" on same line is OK
+            if not code_part.startswith("async with "):
+                errors.append(
+                    f"Block {block_num}, line {line_num}: "
+                    f"'await' used outside async context (module level await)"
+                )
+
+        # Check for await on sync logger
+        if uses_sync_logger and not uses_async_logger and not uses_runtime_async:
+            # Look for await logger.<method>
+            if re.search(r"await\s+logger\.", code_part):
+                errors.append(
+                    f"Block {block_num}, line {line_num}: "
+                    f"'await' used with sync logger from get_logger() - "
+                    f"either remove 'await' or use get_async_logger()"
+                )
+
+    return errors
+
+
+# =============================================================================
 # DOCUMENTATION FILE CHECKS
 # =============================================================================
 # Verify documentation files exist and contain required content/disclaimers.
@@ -209,6 +358,36 @@ def check_external_plugins_disabled_default() -> CheckResult:
     )
 
 
+def check_example_async_usage() -> CheckResult:
+    """Validate async logger usage in all example documentation files.
+
+    Checks docs/examples/*.md for:
+    - get_logger() (sync) used incorrectly with await
+    - await used at module level outside async context
+    """
+    examples_dir = Path("docs/examples")
+    if not examples_dir.exists():
+        return CheckResult(
+            name="Example async usage validation",
+            passed=True,
+            skipped=True,
+        )
+
+    all_errors: list[str] = []
+
+    for md_file in sorted(examples_dir.glob("**/*.md")):
+        result = check_async_usage(md_file)
+        if not result.passed:
+            for error in result.errors:
+                all_errors.append(f"{md_file.name}: {error}")
+
+    return CheckResult(
+        name="Example async usage validation",
+        passed=len(all_errors) == 0,
+        errors=all_errors,
+    )
+
+
 # =============================================================================
 # MAIN EXECUTION
 # =============================================================================
@@ -217,6 +396,7 @@ CODE_CHECKS: list[Callable[[], CheckResult]] = [
     check_settings_defaults,
     check_webhook_signature_default,
     check_external_plugins_disabled_default,
+    check_example_async_usage,
 ]
 
 

@@ -194,13 +194,13 @@ async def risky_operation():
         # Attempt operation
         result = await perform_operation()
 
-        await logger.info("Operation successful", operation="risky_operation", result=result)
+        logger.info("Operation successful", operation="risky_operation", result=result)
 
         return result
 
     except ValueError as e:
         # Handle specific error type
-        await logger.warning(
+        logger.warning(
             "Operation failed with invalid input",
             operation="risky_operation",
             error_type="ValueError",
@@ -211,7 +211,7 @@ async def risky_operation():
 
     except Exception as e:
         # Handle unexpected errors
-        await logger.error(
+        logger.error(
             "Operation failed unexpectedly",
             exc_info=True,
             operation="risky_operation",
