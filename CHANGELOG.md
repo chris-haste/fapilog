@@ -38,6 +38,7 @@ All notable changes to this project will be documented in this file. This change
 
 ### Added
 
+- **FastAPI middleware `require_logger` parameter:** `LoggingMiddleware` now accepts `require_logger=True` to fail fast with a clear error if no logger is in `app.state`. This avoids latency spikes from lazy logger creation on cold-start requests. Default is `False` for backward compatibility (Story 12.24).
 - **Fallback sink raw output hardening:** When JSON parsing fails for serialized payloads on the fallback path, fapilog now applies keyword scrubbing to mask common secret patterns (`password=`, `token=`, `api_key=`, `authorization:`) before writing to stderr. Optional truncation via `core.fallback_raw_max_bytes` limits output size. Scrubbing is enabled by default; set `FAPILOG_CORE__FALLBACK_SCRUB_RAW=false` to disable for debugging (Story 4.59).
 
 ### Fixed

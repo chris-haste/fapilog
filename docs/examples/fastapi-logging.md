@@ -6,15 +6,39 @@ Request-scoped logging with dependency injection and automatic correlation.
 
 ```python
 from fastapi import FastAPI
-from fapilog.fastapi import RequestContextMiddleware, LoggingMiddleware
+from fapilog.fastapi import setup_logging, RequestContextMiddleware, LoggingMiddleware
 
 app = FastAPI()
+
+# Initialize logger in app.state (recommended)
+setup_logging(app)
 
 # Sets request_id for correlation (from X-Request-ID header or UUID)
 app.add_middleware(RequestContextMiddleware)
 
 # Logs request completion with method, path, status, latency_ms
-app.add_middleware(LoggingMiddleware)
+# Use require_logger=True to fail fast if logger not initialized
+app.add_middleware(LoggingMiddleware, require_logger=True)
+```
+
+## Production Pattern
+
+For production, use `require_logger=True` to catch initialization issues early:
+
+```python
+from fastapi import FastAPI
+from fapilog.fastapi import setup_logging, LoggingMiddleware
+
+app = FastAPI()
+setup_logging(app)  # Sets app.state.fapilog_logger
+app.add_middleware(LoggingMiddleware, require_logger=True)
+```
+
+This avoids latency spikes from lazy logger creation on cold-start requests. If you forget to call `setup_logging()`, the middleware raises a clear error:
+
+```
+RuntimeError: LoggingMiddleware requires logger in app.state.
+Call setup_logging(app) before adding middleware, or pass logger= parameter.
 ```
 
 ## Request-Scoped Logger
