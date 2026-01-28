@@ -234,10 +234,11 @@
 </div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_async_logger</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">()</span>
-<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;expensive debug payload&quot;</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>
-<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;high-volume event&quot;</span><span class="p">)</span>
-<span class="c1"># Sampling applies only to DEBUG/INFO; WARN/ERROR always pass.</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">log_with_sampling</span><span class="p">():</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">()</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;expensive debug payload&quot;</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;high-volume event&quot;</span><span class="p">)</span>
+    <span class="c1"># Sampling applies only to DEBUG/INFO; WARN/ERROR always pass.</span>
 </pre></div>
 </div>
 </section>

@@ -44,10 +44,10 @@ from fastapi import FastAPI, Request
 from fapilog import get_async_logger
 
 app = FastAPI()
-logger = await get_async_logger("api")
 
 @app.middleware("http")
 async def bind_http_context(request: Request, call_next):
+    logger = await get_async_logger("api")
     with logger.bind(http_method=request.method, http_path=request.url.path):
         return await call_next(request)
 ```

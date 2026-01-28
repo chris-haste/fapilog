@@ -427,13 +427,13 @@
         <span class="c1"># Attempt operation</span>
         <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">perform_operation</span><span class="p">()</span>
 
-        <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Operation successful&quot;</span><span class="p">,</span> <span class="n">operation</span><span class="o">=</span><span class="s2">&quot;risky_operation&quot;</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="n">result</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Operation successful&quot;</span><span class="p">,</span> <span class="n">operation</span><span class="o">=</span><span class="s2">&quot;risky_operation&quot;</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="n">result</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">result</span>
 
     <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="c1"># Handle specific error type</span>
-        <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
             <span class="s2">&quot;Operation failed with invalid input&quot;</span><span class="p">,</span>
             <span class="n">operation</span><span class="o">=</span><span class="s2">&quot;risky_operation&quot;</span><span class="p">,</span>
             <span class="n">error_type</span><span class="o">=</span><span class="s2">&quot;ValueError&quot;</span><span class="p">,</span>
@@ -444,7 +444,7 @@
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="c1"># Handle unexpected errors</span>
-        <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
             <span class="s2">&quot;Operation failed unexpectedly&quot;</span><span class="p">,</span>
             <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">operation</span><span class="o">=</span><span class="s2">&quot;risky_operation&quot;</span><span class="p">,</span>
