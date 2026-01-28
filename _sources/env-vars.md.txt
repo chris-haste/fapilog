@@ -81,7 +81,7 @@
 | `FAPILOG_OBSERVABILITY__ALERTING__MIN_SEVERITY` | Literal | ERROR | Minimum alert severity to emit (filter threshold) |
 | `FAPILOG_OBSERVABILITY__LOGGING__FORMAT` | Literal | json | Output format for logs (machine-friendly JSON or text) |
 | `FAPILOG_OBSERVABILITY__LOGGING__INCLUDE_CORRELATION` | bool | True | Include correlation IDs and trace/span metadata in logs |
-| `FAPILOG_OBSERVABILITY__LOGGING__SAMPLING_RATE` | float | 1.0 | Log sampling probability in range 0.0–1.0 |
+| `FAPILOG_OBSERVABILITY__LOGGING__SAMPLING_RATE` | float | 1.0 | DEPRECATED: Use core.filters=['sampling'] with filter_config.sampling instead. Log sampling probability in range 0.0–1.0. |
 | `FAPILOG_OBSERVABILITY__METRICS__ENABLED` | bool | False | Enable internal metrics collection/export |
 | `FAPILOG_OBSERVABILITY__METRICS__EXPORTER` | Literal | prometheus | Metrics exporter to use ('prometheus' or 'none') |
 | `FAPILOG_OBSERVABILITY__METRICS__PORT` | int | 8000 | TCP port for metrics exporter |

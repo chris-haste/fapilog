@@ -2,6 +2,20 @@
 
 Sampling reduces log volume by selectively keeping or dropping log events. Fapilog provides two sampling strategies optimized for different use cases.
 
+## Quick Start (Recommended)
+
+Use the builder API for the simplest setup:
+
+```python
+from fapilog import LoggerBuilder
+
+# Probabilistic sampling - keep ~10% of logs
+logger = LoggerBuilder().with_sampling(rate=0.1).build()
+
+# Trace-based sampling - consistent per trace
+logger = LoggerBuilder().with_trace_sampling(rate=0.1).build()
+```
+
 ## When to Use Sampling
 
 Sampling is useful when:
@@ -124,7 +138,7 @@ logger = (
 
 When an event lacks a trace ID, `TraceSamplingFilter` falls back to probabilistic sampling for that event.
 
-## Comparison
+## Comparison: Which Strategy to Use?
 
 | Aspect | `SamplingFilter` | `TraceSamplingFilter` |
 |--------|------------------|----------------------|
@@ -134,6 +148,38 @@ When an event lacks a trace ID, `TraceSamplingFilter` falls back to probabilisti
 | Error handling | Sampled like other events | Always kept (configurable) |
 | Use case | Volume reduction | Distributed tracing |
 | Overhead | Minimal | Hash computation |
+
+## Configuration via Settings
+
+For Settings-based configuration instead of the builder:
+
+```python
+from fapilog import Settings
+from fapilog.core import CoreSettings
+from fapilog.core.filters import FilterConfigSettings, SamplingFilterSettings
+
+settings = Settings(
+    core=CoreSettings(filters=["sampling"]),
+    filter_config=FilterConfigSettings(
+        sampling=SamplingFilterSettings(rate=0.1)
+    )
+)
+```
+
+## Configuration via Environment Variables
+
+```bash
+# Enable sampling filter
+export FAPILOG_CORE__FILTERS='["sampling"]'
+
+# Set sampling rate
+export FAPILOG_FILTER_CONFIG__SAMPLING__RATE=0.1
+
+# For trace-based sampling
+export FAPILOG_CORE__FILTERS='["trace_sampling"]'
+export FAPILOG_FILTER_CONFIG__TRACE_SAMPLING__RATE=0.1
+export FAPILOG_FILTER_CONFIG__TRACE_SAMPLING__TRACE_ID_FIELD="trace_id"
+```
 
 ## Operational Considerations
 
@@ -174,6 +220,70 @@ Filter order matters—events are processed sequentially through the filter pipe
 3. **Keep errors**: Use `TraceSamplingFilter` or configure level-based exceptions
 4. **Document your rate**: Team members debugging production need to know sampling is active
 5. **Consider per-service rates**: High-traffic services may need lower rates than low-traffic ones
+
+## Deprecated: `observability.logging.sampling_rate`
+
+> **Deprecated since v0.6.0**: The `observability.logging.sampling_rate` setting is deprecated. Use filter-based sampling instead.
+
+The legacy `observability.logging.sampling_rate` setting still works but emits a deprecation warning at runtime. Migrate to filter-based sampling for the recommended approach.
+
+### Migration Guide
+
+**Before (deprecated):**
+
+```python
+from fapilog import Settings, get_logger
+from fapilog.core.observability import ObservabilitySettings, LoggingSettings
+
+# Deprecated - will emit warning
+settings = Settings(
+    observability=ObservabilitySettings(
+        logging=LoggingSettings(sampling_rate=0.1)
+    )
+)
+logger = get_logger(settings=settings)
+```
+
+**After (recommended):**
+
+```python
+from fapilog import LoggerBuilder
+
+# Using builder API
+logger = LoggerBuilder().with_sampling(rate=0.1).build()
+```
+
+Or via Settings:
+
+```python
+from fapilog import Settings
+from fapilog.core import CoreSettings
+from fapilog.core.filters import FilterConfigSettings, SamplingFilterSettings
+
+settings = Settings(
+    core=CoreSettings(filters=["sampling"]),
+    filter_config=FilterConfigSettings(
+        sampling=SamplingFilterSettings(rate=0.1)
+    )
+)
+```
+
+### Behavioral Differences
+
+| Aspect | Legacy (`sampling_rate`) | Filter-based |
+|--------|-------------------------|--------------|
+| Application point | Inline during log call | In filter pipeline |
+| Efficiency | Less efficient | More efficient |
+| Level overrides | Not supported | Supported via `TraceSamplingFilter` |
+| Configurability | Single rate only | Full filter options |
+| Future support | Will be removed | Long-term supported |
+
+### Why Migrate?
+
+- **Performance**: Filter-based sampling is more efficient
+- **Flexibility**: Access to trace-based sampling, level overrides, and seeds
+- **Consistency**: Unified configuration with other filters
+- **Future-proof**: Legacy setting will be removed in a future major version
 
 ## Related
 

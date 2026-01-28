@@ -227,6 +227,19 @@
   <section class="tex2jax_ignore mathjax_ignore" id="sampling-strategies">
 <h1>Sampling Strategies<a class="headerlink" href="#sampling-strategies" title="Link to this heading"></a></h1>
 <p>Sampling reduces log volume by selectively keeping or dropping log events. Fapilog provides two sampling strategies optimized for different use cases.</p>
+<section id="quick-start-recommended">
+<h2>Quick Start (Recommended)<a class="headerlink" href="#quick-start-recommended" title="Link to this heading"></a></h2>
+<p>Use the builder API for the simplest setup:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="c1"># Probabilistic sampling - keep ~10% of logs</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_sampling</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+<span class="c1"># Trace-based sampling - consistent per trace</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_trace_sampling</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
 <section id="when-to-use-sampling">
 <h2>When to Use Sampling<a class="headerlink" href="#when-to-use-sampling" title="Link to this heading"></a></h2>
 <p>Sampling is useful when:</p>
@@ -390,8 +403,8 @@
 <p>When an event lacks a trace ID, <code class="docutils literal notranslate"><span class="pre">TraceSamplingFilter</span></code> falls back to probabilistic sampling for that event.</p>
 </section>
 </section>
-<section id="comparison">
-<h2>Comparison<a class="headerlink" href="#comparison" title="Link to this heading"></a></h2>
+<section id="comparison-which-strategy-to-use">
+<h2>Comparison: Which Strategy to Use?<a class="headerlink" href="#comparison-which-strategy-to-use" title="Link to this heading"></a></h2>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Aspect</p></th>
@@ -426,6 +439,37 @@
 </tr>
 </tbody>
 </table>
+</section>
+<section id="configuration-via-settings">
+<h2>Configuration via Settings<a class="headerlink" href="#configuration-via-settings" title="Link to this heading"></a></h2>
+<p>For Settings-based configuration instead of the builder:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreSettings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.filters</span><span class="w"> </span><span class="kn">import</span> <span class="n">FilterConfigSettings</span><span class="p">,</span> <span class="n">SamplingFilterSettings</span>
+
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span>
+    <span class="n">core</span><span class="o">=</span><span class="n">CoreSettings</span><span class="p">(</span><span class="n">filters</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sampling&quot;</span><span class="p">]),</span>
+    <span class="n">filter_config</span><span class="o">=</span><span class="n">FilterConfigSettings</span><span class="p">(</span>
+        <span class="n">sampling</span><span class="o">=</span><span class="n">SamplingFilterSettings</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="configuration-via-environment-variables">
+<h2>Configuration via Environment Variables<a class="headerlink" href="#configuration-via-environment-variables" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Enable sampling filter</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__FILTERS</span><span class="o">=</span><span class="s1">&#39;[&quot;sampling&quot;]&#39;</span>
+
+<span class="c1"># Set sampling rate</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILTER_CONFIG__SAMPLING__RATE</span><span class="o">=</span><span class="m">0</span>.1
+
+<span class="c1"># For trace-based sampling</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__FILTERS</span><span class="o">=</span><span class="s1">&#39;[&quot;trace_sampling&quot;]&#39;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILTER_CONFIG__TRACE_SAMPLING__RATE</span><span class="o">=</span><span class="m">0</span>.1
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_FILTER_CONFIG__TRACE_SAMPLING__TRACE_ID_FIELD</span><span class="o">=</span><span class="s2">&quot;trace_id&quot;</span>
+</pre></div>
+</div>
 </section>
 <section id="operational-considerations">
 <h2>Operational Considerations<a class="headerlink" href="#operational-considerations" title="Link to this heading"></a></h2>
@@ -464,6 +508,91 @@
 <li><p><strong>Document your rate</strong>: Team members debugging production need to know sampling is active</p></li>
 <li><p><strong>Consider per-service rates</strong>: High-traffic services may need lower rates than low-traffic ones</p></li>
 </ol>
+</section>
+</section>
+<section id="deprecated-observability-logging-sampling-rate">
+<h2>Deprecated: <code class="docutils literal notranslate"><span class="pre">observability.logging.sampling_rate</span></code><a class="headerlink" href="#deprecated-observability-logging-sampling-rate" title="Link to this heading"></a></h2>
+<blockquote>
+<div><p><strong>Deprecated since v0.6.0</strong>: The <code class="docutils literal notranslate"><span class="pre">observability.logging.sampling_rate</span></code> setting is deprecated. Use filter-based sampling instead.</p>
+</div></blockquote>
+<p>The legacy <code class="docutils literal notranslate"><span class="pre">observability.logging.sampling_rate</span></code> setting still works but emits a deprecation warning at runtime. Migrate to filter-based sampling for the recommended approach.</p>
+<section id="migration-guide">
+<h3>Migration Guide<a class="headerlink" href="#migration-guide" title="Link to this heading"></a></h3>
+<p><strong>Before (deprecated):</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span><span class="p">,</span> <span class="n">get_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.observability</span><span class="w"> </span><span class="kn">import</span> <span class="n">ObservabilitySettings</span><span class="p">,</span> <span class="n">LoggingSettings</span>
+
+<span class="c1"># Deprecated - will emit warning</span>
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span>
+    <span class="n">observability</span><span class="o">=</span><span class="n">ObservabilitySettings</span><span class="p">(</span>
+        <span class="n">logging</span><span class="o">=</span><span class="n">LoggingSettings</span><span class="p">(</span><span class="n">sampling_rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>After (recommended):</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="c1"># Using builder API</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_sampling</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Or via Settings:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreSettings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.filters</span><span class="w"> </span><span class="kn">import</span> <span class="n">FilterConfigSettings</span><span class="p">,</span> <span class="n">SamplingFilterSettings</span>
+
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span>
+    <span class="n">core</span><span class="o">=</span><span class="n">CoreSettings</span><span class="p">(</span><span class="n">filters</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sampling&quot;</span><span class="p">]),</span>
+    <span class="n">filter_config</span><span class="o">=</span><span class="n">FilterConfigSettings</span><span class="p">(</span>
+        <span class="n">sampling</span><span class="o">=</span><span class="n">SamplingFilterSettings</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="behavioral-differences">
+<h3>Behavioral Differences<a class="headerlink" href="#behavioral-differences" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Aspect</p></th>
+<th class="head"><p>Legacy (<code class="docutils literal notranslate"><span class="pre">sampling_rate</span></code>)</p></th>
+<th class="head"><p>Filter-based</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Application point</p></td>
+<td><p>Inline during log call</p></td>
+<td><p>In filter pipeline</p></td>
+</tr>
+<tr class="row-odd"><td><p>Efficiency</p></td>
+<td><p>Less efficient</p></td>
+<td><p>More efficient</p></td>
+</tr>
+<tr class="row-even"><td><p>Level overrides</p></td>
+<td><p>Not supported</p></td>
+<td><p>Supported via <code class="docutils literal notranslate"><span class="pre">TraceSamplingFilter</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Configurability</p></td>
+<td><p>Single rate only</p></td>
+<td><p>Full filter options</p></td>
+</tr>
+<tr class="row-even"><td><p>Future support</p></td>
+<td><p>Will be removed</p></td>
+<td><p>Long-term supported</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="why-migrate">
+<h3>Why Migrate?<a class="headerlink" href="#why-migrate" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Performance</strong>: Filter-based sampling is more efficient</p></li>
+<li><p><strong>Flexibility</strong>: Access to trace-based sampling, level overrides, and seeds</p></li>
+<li><p><strong>Consistency</strong>: Unified configuration with other filters</p></li>
+<li><p><strong>Future-proof</strong>: Legacy setting will be removed in a future major version</p></li>
+</ul>
 </section>
 </section>
 <section id="related">
