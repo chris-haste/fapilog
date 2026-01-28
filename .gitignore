@@ -272,3 +272,4 @@ todo.txt
 
 # Development process artifacts (kept locally, not in repo)
 docs/stories/
+docs/audits/audit-prompt.md

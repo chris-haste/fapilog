@@ -111,7 +111,7 @@ logger = get_logger(preset="minimal")
 | `fastapi` | INFO | No | Yes (9 fields) | 50 | Async apps where you want redaction without file overhead |
 | `minimal` | INFO | No | No | Default | Migrating from another logger—start here |
 
-> **Security Note:** By default, only URL credentials (`user:pass@host`) are stripped. For full field redaction (passwords, API keys, tokens), use a preset like `production`/`fastapi` or configure redactors manually. See [redaction docs](docs/core-concepts/redaction.md).
+> **Security Note:** By default, only URL credentials (`user:pass@host`) are stripped. For full field redaction (passwords, API keys, tokens), use a preset like `production`/`fastapi` or configure redactors manually. See [redaction docs](docs/redaction/index.md).
 
 See [docs/user-guide/configuration.md](docs/user-guide/configuration.md) for full preset details.
 
