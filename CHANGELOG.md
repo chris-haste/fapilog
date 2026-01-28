@@ -54,6 +54,7 @@ All notable changes to this project will be documented in this file. This change
 - **Production checklist documentation:** Added consolidated pre-deployment checklist covering preset selection, metrics, diagnostics, redaction validation, backpressure tuning, and graceful shutdown (Story 12.16).
 - **stdlib bridge documentation:** Added user guide for `enable_stdlib_bridge()` with API reference, common use cases, Django/Celery integration examples, level mapping, and troubleshooting (Story 12.18).
 - **Redaction guardrails documentation:** Documented two-level guardrail system (core pipeline vs per-redactor), precedence rules ("more restrictive wins"), and added CI validation for per-redactor defaults (Story 4.60).
+- **Unified sampling documentation:** Restructured sampling docs to emphasize filter-based approach as recommended, added deprecation section for `observability.logging.sampling_rate`, migration guide, strategy comparison table, and environment variable configuration (Story 10.35).
 
 ## [0.7.0] - 2026-01-27
 

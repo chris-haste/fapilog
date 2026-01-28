@@ -119,7 +119,7 @@ This guide documents Settings groups and fields.
 |-------|------|---------|-------------|
 | `observability.logging.format` | Literal | json | Output format for logs (machine-friendly JSON or text) |
 | `observability.logging.include_correlation` | bool | True | Include correlation IDs and trace/span metadata in logs |
-| `observability.logging.sampling_rate` | float | 1.0 | Log sampling probability in range 0.0–1.0 |
+| `observability.logging.sampling_rate` | float | 1.0 | DEPRECATED: Use core.filters=['sampling'] with filter_config.sampling instead. Log sampling probability in range 0.0–1.0. |
 
 ### observability.alerting
 
