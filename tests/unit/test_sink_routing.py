@@ -634,6 +634,195 @@ async def test_routing_sink_plugin_write_error_contained(
     await sink.write({"level": "ERROR", "message": "test"})
 
 
+# --- Story 4.56: Routing Sink Failure Visibility ---
+
+
+@pytest.mark.asyncio
+async def test_child_sink_failure_emits_diagnostics(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """AC1: When a child sink's write() raises, emit a rate-limited diagnostic warning."""
+    from fapilog.core import diagnostics
+    from fapilog.plugins.sinks.routing import RoutingSink, RoutingSinkConfig
+
+    class FailingWriteSink:
+        name = "audit_db"
+
+        async def start(self) -> None:
+            pass
+
+        async def write(self, entry: dict) -> None:
+            raise ValueError("Connection refused")
+
+    def fake_load_plugin(group: str, name: str, config: Any):
+        return FailingWriteSink()
+
+    monkeypatch.setattr(
+        "fapilog.plugins.sinks.routing.loader.load_plugin", fake_load_plugin
+    )
+
+    # Capture diagnostics output
+    captured: list[dict[str, Any]] = []
+    diagnostics.set_writer_for_tests(captured.append)
+    diagnostics.configure_diagnostics(enabled=True)
+    diagnostics._reset_for_tests()
+
+    sink = RoutingSink(RoutingSinkConfig(routes={"ERROR": ["audit_db"]}))
+    await sink.start()
+    await sink.write({"level": "ERROR", "message": "critical event"})
+
+    # Verify diagnostics emitted with required fields
+    assert len(captured) == 1
+    diag = captured[0]
+    assert diag["component"] == "routing-sink"
+    assert diag["message"] == "child sink write failed"
+    assert diag["sink"] == "audit_db"
+    assert diag["error"] == "ValueError"
+    assert diag["level"] == "WARN"
+
+
+@pytest.mark.asyncio
+async def test_other_sinks_receive_events_after_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """AC3: Child sink failures don't propagate; other sinks still receive events."""
+    from fapilog.core import diagnostics
+    from fapilog.plugins.sinks.routing import RoutingSink, RoutingSinkConfig
+
+    class FailingWriteSink:
+        name = "sink_a"
+
+        async def start(self) -> None:
+            pass
+
+        async def write(self, entry: dict) -> None:
+            raise RuntimeError("Sink A failed")
+
+    class SuccessWriteSink:
+        name = "sink_b"
+
+        def __init__(self) -> None:
+            self.received: list[dict] = []
+
+        async def start(self) -> None:
+            pass
+
+        async def write(self, entry: dict) -> None:
+            self.received.append(entry)
+
+    sink_a = FailingWriteSink()
+    sink_b = SuccessWriteSink()
+    sinks_by_name = {"sink_a": sink_a, "sink_b": sink_b}
+
+    def fake_load_plugin(group: str, name: str, config: Any):
+        return sinks_by_name[name]
+
+    monkeypatch.setattr(
+        "fapilog.plugins.sinks.routing.loader.load_plugin", fake_load_plugin
+    )
+
+    # Silence diagnostics for this test
+    diagnostics.configure_diagnostics(enabled=False)
+
+    sink = RoutingSink(RoutingSinkConfig(routes={"ERROR": ["sink_a", "sink_b"]}))
+    await sink.start()
+
+    # sink_a fails, but sink_b should still receive the event
+    await sink.write({"level": "ERROR", "message": "test"})
+
+    assert len(sink_b.received) == 1
+    assert sink_b.received[0]["message"] == "test"
+
+
+@pytest.mark.asyncio
+async def test_child_sink_failure_rate_limited(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """AC4: Diagnostic warnings are rate-limited per child sink to prevent log storms."""
+    from fapilog.core import diagnostics
+    from fapilog.plugins.sinks.routing import RoutingSink, RoutingSinkConfig
+
+    class FailingWriteSink:
+        name = "flaky_sink"
+
+        async def start(self) -> None:
+            pass
+
+        async def write(self, entry: dict) -> None:
+            raise RuntimeError("Intermittent failure")
+
+    def fake_load_plugin(group: str, name: str, config: Any):
+        return FailingWriteSink()
+
+    monkeypatch.setattr(
+        "fapilog.plugins.sinks.routing.loader.load_plugin", fake_load_plugin
+    )
+
+    # Capture diagnostics output
+    captured: list[dict[str, Any]] = []
+    diagnostics.set_writer_for_tests(captured.append)
+    diagnostics.configure_diagnostics(enabled=True)
+    diagnostics._reset_for_tests()
+
+    sink = RoutingSink(RoutingSinkConfig(routes={"ERROR": ["flaky_sink"]}))
+    await sink.start()
+
+    # 100 consecutive failures - rate limiter should suppress most
+    for _ in range(100):
+        await sink.write({"level": "ERROR", "message": "failing"})
+
+    # Rate limiter: capacity=5, refill=5/sec. Since writes happen instantly,
+    # we expect only ~5 diagnostics (initial bucket capacity)
+    assert len(captured) <= 10  # Allow small margin
+    assert len(captured) >= 1  # At least one emitted  # noqa: WA002
+
+
+@pytest.mark.asyncio
+async def test_metrics_incremented_on_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """AC2: When metrics are enabled, increment sink error counter on failure."""
+    from unittest.mock import AsyncMock
+
+    from fapilog.core import diagnostics
+    from fapilog.metrics.metrics import MetricsCollector
+    from fapilog.plugins.sinks.routing import RoutingSink, RoutingSinkConfig
+
+    class FailingWriteSink:
+        name = "metrics_sink"
+
+        async def start(self) -> None:
+            pass
+
+        async def write(self, entry: dict) -> None:
+            raise RuntimeError("Write failed")
+
+    def fake_load_plugin(group: str, name: str, config: Any):
+        return FailingWriteSink()
+
+    monkeypatch.setattr(
+        "fapilog.plugins.sinks.routing.loader.load_plugin", fake_load_plugin
+    )
+
+    # Silence diagnostics
+    diagnostics.configure_diagnostics(enabled=False)
+
+    # Create mock metrics collector with mocked record_sink_error
+    metrics = MetricsCollector(enabled=False)
+    mock_record_sink_error = AsyncMock()
+    monkeypatch.setattr(metrics, "record_sink_error", mock_record_sink_error)
+
+    sink = RoutingSink(
+        RoutingSinkConfig(routes={"ERROR": ["metrics_sink"]}),
+        metrics=metrics,
+    )
+    await sink.start()
+    await sink.write({"level": "ERROR", "message": "test"})
+
+    # Verify metrics recorded
+    mock_record_sink_error.assert_awaited_once_with(sink="metrics_sink")
+
+
 @pytest.mark.asyncio
 async def test_routing_sink_plugin_stop_error_contained(
     monkeypatch: pytest.MonkeyPatch,

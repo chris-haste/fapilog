@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ...core import diagnostics
 from .. import loader
 from ..utils import normalize_plugin_name
+
+if TYPE_CHECKING:  # pragma: no cover
+    from ...metrics.metrics import MetricsCollector
 
 
 @dataclass
@@ -27,9 +30,12 @@ class RoutingSink:
     def __init__(
         self,
         config: RoutingSinkConfig | None = None,
+        *,
+        metrics: MetricsCollector | None = None,
         **kwargs: Any,
     ) -> None:
         self._config = config or RoutingSinkConfig(**kwargs)
+        self._metrics = metrics
         self._sinks: dict[str, Any] = {}
         self._level_to_sinks: dict[str, list[Any]] = {}
         self._fallback: list[Any] = []
@@ -98,11 +104,19 @@ class RoutingSink:
                 await self._write_one(sink, entry)
 
     async def _write_one(self, sink: Any, entry: dict[str, Any]) -> None:
+        sink_name = getattr(sink, "name", type(sink).__name__)
         try:
             await sink.write(entry)
-        except Exception:
-            # Contain downstream errors
-            pass
+        except Exception as exc:
+            diagnostics.warn(
+                "routing-sink",
+                "child sink write failed",
+                sink=sink_name,
+                error=type(exc).__name__,
+                _rate_limit_key=f"routing-{sink_name}",
+            )
+            if self._metrics is not None:
+                await self._metrics.record_sink_error(sink=sink_name)
 
     async def health_check(self) -> bool:
         if not self._sinks:
