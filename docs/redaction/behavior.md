@@ -144,19 +144,42 @@ Redactors execute in order:
 
 This order ensures explicit masking takes precedence, followed by broader patterns, then URL cleanup.
 
+(guardrails)=
 ## Guardrails
 
-Redaction includes safety limits to prevent performance issues with deeply nested or large objects:
+Redaction includes safety limits to prevent performance issues with deeply nested or large objects. There are two levels of guardrails: **core pipeline guardrails** that apply globally, and **per-redactor guardrails** that each redactor can configure.
+
+### Core Pipeline Guardrails
+
+These settings apply as outer limits across all redactors:
 
 | Setting | Default | Purpose |
 |---------|---------|---------|
-| `max_depth` | 16 | Maximum nesting level to traverse |
-| `max_keys_scanned` | 1000 | Maximum keys to examine per event |
+| `core.redaction_max_depth` | 6 | Maximum nesting level for all redactors |
+| `core.redaction_max_keys_scanned` | 5000 | Maximum keys scanned across all redactors |
 
-If limits are exceeded:
-- A diagnostic warning is emitted
-- Remaining fields are not scanned
-- Best-effort redaction is applied to already-scanned fields
+Configure via builder:
+```python
+logger = (
+    LoggerBuilder()
+    .with_core(redaction_max_depth=8, redaction_max_keys_scanned=10000)
+    .build()
+)
+```
+
+Or via settings:
+```python
+Settings(core=CoreSettings(redaction_max_depth=8, redaction_max_keys_scanned=10000))
+```
+
+### Per-Redactor Guardrails
+
+Each redactor has its own guardrails (used when less restrictive than core):
+
+| Setting | Default | Purpose |
+|---------|---------|---------|
+| `max_depth` | 16 | Per-redactor traversal limit |
+| `max_keys_scanned` | 1000 | Per-redactor key limit |
 
 Configure via builder:
 ```python
@@ -166,6 +189,25 @@ logger = (
     .build()
 )
 ```
+
+### Guardrail Precedence
+
+The **more restrictive** value always applies:
+
+| Core Setting | Plugin Setting | Effective Value |
+|--------------|----------------|-----------------|
+| `max_depth=6` | `max_depth=16` | 6 (core wins) |
+| `max_depth=20` | `max_depth=5` | 5 (plugin wins) |
+| `max_depth=None` | `max_depth=16` | 16 (plugin default) |
+
+This ensures that core guardrails act as hard limits that cannot be exceeded by individual redactor configurations.
+
+### Guardrail Behavior
+
+If limits are exceeded:
+- A diagnostic warning is emitted
+- Remaining fields are not scanned
+- Best-effort redaction is applied to already-scanned fields
 
 ## Failure Handling
 
