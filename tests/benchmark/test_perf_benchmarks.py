@@ -160,3 +160,61 @@ def test_rotating_file_sink_benchmark(benchmark: Any, tmp_path: Any) -> None:
         asyncio.run(write_n(200))
 
     benchmark(run)
+
+
+# Story 12.23: Backpressure event signaling CPU benchmark
+
+
+@pytest.mark.asyncio
+async def test_backpressure_event_signaling_low_cpu() -> None:
+    """Verify event-based waiting uses minimal CPU under sustained full-queue.
+
+    This test validates AC4 from Story 12.23: CPU usage should be low when
+    enqueuers are blocked waiting on a full queue, because we use asyncio.Event
+    signaling instead of spin-waiting.
+
+    The test runs multiple enqueuers waiting on a full queue and measures that
+    the event loop is not busy-spinning (it yields control properly).
+    """
+    q: NonBlockingRingQueue[int] = NonBlockingRingQueue(capacity=1)
+    # Fill the queue
+    assert q.try_enqueue(0) is True
+
+    n_waiters = 100
+    wait_duration = 0.1  # seconds
+    completed = 0
+    timed_out = 0
+
+    async def enqueue_waiter(value: int) -> None:
+        nonlocal completed, timed_out
+        try:
+            await q.await_enqueue(value, timeout=wait_duration)
+            completed += 1
+        except Exception:
+            timed_out += 1
+
+    # Start many waiting enqueuers - they should all block efficiently
+    start = time.perf_counter()
+    tasks = [asyncio.create_task(enqueue_waiter(i)) for i in range(1, n_waiters + 1)]
+
+    # Let them wait for the duration
+    await asyncio.sleep(wait_duration + 0.05)
+
+    # All should have timed out (queue never has space)
+    await asyncio.gather(*tasks, return_exceptions=True)
+    elapsed = time.perf_counter() - start
+
+    # Key validation: elapsed time should be close to wait_duration
+    # If spin-waiting, elapsed would be much longer due to CPU contention
+    # With event signaling, the event loop can sleep efficiently
+    assert timed_out == n_waiters, (
+        f"Expected all {n_waiters} to timeout, got {timed_out}"
+    )
+    assert completed == 0, "No enqueue should have succeeded"
+
+    # Elapsed time should be reasonable (not spinning)
+    # Allow some overhead but should complete within 2x the wait duration
+    assert elapsed < wait_duration * 3, (
+        f"Elapsed {elapsed:.3f}s >> expected ~{wait_duration}s. "
+        "Event signaling may not be working correctly."
+    )

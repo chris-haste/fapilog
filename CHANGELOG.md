@@ -33,6 +33,7 @@ All notable changes to this project will be documented in this file. This change
 
 - **Production preset disables Postgres auto-DDL:** The `production` preset now sets `create_table=False` for Postgres sink configuration, requiring explicit table provisioning via migrations. This prevents unexpected DDL execution in regulated environments (Story 10.32).
 - **Worker event-based wakeup:** The background worker loop now uses `asyncio.Event` signaling instead of fixed 1ms polling when an enqueue event is provided, reducing CPU wakeups when the queue is empty (Story 10.32).
+- **Backpressure event-based signaling:** `NonBlockingRingQueue.await_enqueue()` and `await_dequeue()` now use `asyncio.Event` signaling instead of spin-wait loops, reducing CPU usage under sustained backpressure. The `yield_every` parameter has been removed (Story 12.23).
 - **Doc accuracy CI now fails on missing critical files:** The `scripts/check_doc_accuracy.py` script now fails when required documentation files are missing, instead of silently skipping them. This prevents security-sensitive documentation from drifting without CI catching it.
 
 ### Added
