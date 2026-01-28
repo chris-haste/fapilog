@@ -316,6 +316,7 @@ Before creating a release tag, perform a dry-run:
 - [ ] Type checking passes (`hatch run typecheck:typecheck`)
 - [ ] Version bumped in `pyproject.toml`
 - [ ] CHANGELOG.md updated with new version section
+- [ ] Update SECURITY.md supported versions table
 - [ ] Changes committed and pushed to main
 - [ ] Tag created and pushed
 - [ ] GitHub Actions workflow completed successfully

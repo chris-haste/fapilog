@@ -6,8 +6,15 @@ The following versions of fapilog are currently supported with security updates:
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.3.x   | :white_check_mark: |
-| < 0.3   | :x:                |
+| 0.7.x   | :white_check_mark: |
+| 0.6.x   | :white_check_mark: |
+| < 0.6   | :x:                |
+
+## Version Support Policy
+
+- **Current release (0.7.x)**: Full security support
+- **Previous minor (0.6.x)**: Security fixes only, 6 months after next minor release
+- **Older versions**: No support, upgrade recommended
 
 ## Reporting a Vulnerability
 
