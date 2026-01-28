@@ -491,7 +491,7 @@ Masks specific field paths under `data.*`. With production/fastapi/serverless pr
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;warn&quot;</span></code> (default)</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;warn&quot;</span></code></p></td>
 <td><p>Emit diagnostic, continue with partial redaction</p></td>
 <td><p>Development, debugging</p></td>
 </tr>
@@ -499,13 +499,13 @@ Masks specific field paths under `data.*`. With production/fastapi/serverless pr
 <td><p>Emit diagnostic, drop the entire event</p></td>
 <td><p>High-security compliance</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;replace_subtree&quot;</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;replace_subtree&quot;</span></code> (default)</p></td>
 <td><p>Emit diagnostic, replace unscanned subtree with mask</p></td>
 <td><p>Balanced security/availability</p></td>
 </tr>
 </tbody>
 </table>
-<p>Configure via settings:</p>
+<p>To opt into fail-open behavior for debugging:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.redactors.field_mask</span><span class="w"> </span><span class="kn">import</span> <span class="n">FieldMaskConfig</span>
 
 <span class="n">Settings</span><span class="p">(</span>
@@ -513,7 +513,7 @@ Masks specific field paths under `data.*`. With production/fastapi/serverless pr
         <span class="n">field_mask</span><span class="o">=</span><span class="n">FieldMaskConfig</span><span class="p">(</span>
             <span class="n">fields_to_mask</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">],</span>
             <span class="n">max_depth</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-            <span class="n">on_guardrail_exceeded</span><span class="o">=</span><span class="s2">&quot;replace_subtree&quot;</span><span class="p">,</span>
+            <span class="n">on_guardrail_exceeded</span><span class="o">=</span><span class="s2">&quot;warn&quot;</span><span class="p">,</span>  <span class="c1"># Fail-open for debugging</span>
         <span class="p">)</span>
     <span class="p">)</span>
 <span class="p">)</span>
@@ -570,23 +570,34 @@ Masks specific field paths under `data.*`. With production/fastapi/serverless pr
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">redactor_config.*.block_on_unredactable</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">redactor_config.field_mask.block_on_unredactable</span></code></p></td>
 <td><p>Per-redactor</p></td>
-<td><p>Block when redactor can’t process a value</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Drop event when redactor can’t process a value</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.fallback_redact_mode</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">redactor_config.field_mask.on_guardrail_exceeded</span></code></p></td>
+<td><p>Per-redactor</p></td>
+<td><p>Behavior when depth/keys guardrails hit</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;replace_subtree&quot;</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.fallback_redact_mode</span></code></p></td>
 <td><p>Fallback sink</p></td>
 <td><p>How to redact payloads on stderr fallback</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&quot;minimal&quot;</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.redaction_fail_mode</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.redaction_fail_mode</span></code></p></td>
 <td><p>Global pipeline</p></td>
 <td><p>What to do when <code class="docutils literal notranslate"><span class="pre">_apply_redactors()</span></code> throws</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&quot;open&quot;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;warn&quot;</span></code></p></td>
 </tr>
 </tbody>
 </table>
+<p>All redaction settings default to <strong>fail-closed</strong> behavior to prevent PII leakage. To opt into fail-open behavior for debugging, explicitly set:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">block_on_unredactable=False</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">on_guardrail_exceeded=&quot;warn&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">redaction_fail_mode=&quot;open&quot;</span></code></p></li>
+</ul>
 </section>
 <section id="per-redactor-behavior-block-on-unredactable">
 <h3>Per-Redactor Behavior (<code class="docutils literal notranslate"><span class="pre">block_on_unredactable</span></code>)<a class="headerlink" href="#per-redactor-behavior-block-on-unredactable" title="Link to this heading"></a></h3>
@@ -596,8 +607,8 @@ Masks specific field paths under `data.*`. With production/fastapi/serverless pr
 </div>
 <p>When a redactor encounters a value it cannot process:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">False</span></code> (default): Original value preserved, diagnostic warning emitted</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">True</span></code>: Log event is dropped, diagnostic warning emitted</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">True</span></code> (default): Log event is dropped, diagnostic warning emitted</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">False</span></code>: Original value preserved, diagnostic warning emitted</p></li>
 </ul>
 </section>
 <section id="global-pipeline-behavior-redaction-fail-mode">

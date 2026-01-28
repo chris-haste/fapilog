@@ -215,8 +215,8 @@
       "type": "array"
     },
     "redaction_fail_mode": {
-      "default": "open",
-      "description": "Behavior when _apply_redactors() catches an unexpected exception: 'open' passes original event (current behavior), 'closed' drops the event, 'warn' passes event but emits diagnostic warning",
+      "default": "warn",
+      "description": "Behavior when _apply_redactors() catches an unexpected exception: 'open' passes original event, 'closed' drops the event, 'warn' (default) passes event but emits diagnostic warning",
       "enum": [
         "open",
         "closed",

@@ -430,8 +430,8 @@
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.redaction_fail_mode</span></code></p></td>
 <td><p>Literal</p></td>
-<td><p>open</p></td>
-<td><p>Behavior when _apply_redactors() catches an unexpected exception: ‘open’ passes original event (current behavior), ‘closed’ drops the event, ‘warn’ passes event but emits diagnostic warning</p></td>
+<td><p>warn</p></td>
+<td><p>Behavior when _apply_redactors() catches an unexpected exception: ‘open’ passes original event, ‘closed’ drops the event, ‘warn’ (default) passes event but emits diagnostic warning</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.atexit_drain_enabled</span></code></p></td>
 <td><p>bool</p></td>
