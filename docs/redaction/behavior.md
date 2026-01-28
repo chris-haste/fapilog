@@ -7,19 +7,19 @@ This page documents exactly what fapilog redacts, how the pipeline works, and kn
 ```{important}
 **Redaction Failure Behavior**
 
-By default (`redaction_fail_mode="open"`), if the redaction pipeline encounters an unexpected error, the original log event passes through **unredacted**. For production systems handling sensitive data, explicitly set the failure mode:
+By default (`redaction_fail_mode="warn"`), if the redaction pipeline encounters an unexpected error, the original log event passes through and a diagnostic warning is emitted. For high-security systems handling sensitive data:
 
-- `"warn"` (recommended for production): Pass event through + emit diagnostic warning
 - `"closed"` (high-security): Drop the event entirely rather than risk data exposure
+- `"open"` (debugging only): Pass event through silently without warning
 
 Configure via builder:
    ```python
-   logger = LoggerBuilder().with_fallback_redaction(fail_mode="warn").build()
+   logger = LoggerBuilder().with_fallback_redaction(fail_mode="closed").build()
    ```
 
 Or via settings:
    ```python
-   Settings(core=CoreSettings(redaction_fail_mode="warn"))
+   Settings(core=CoreSettings(redaction_fail_mode="closed"))
    ```
 
 See [Reliability Defaults](../user-guide/reliability-defaults.md) for related production settings.

@@ -155,7 +155,7 @@ class LoggerWorker:
         emit_redactor_diagnostics: bool,
         emit_processor_diagnostics: bool = False,
         counters: dict[str, int],
-        redaction_fail_mode: Literal["open", "closed", "warn"] = "open",
+        redaction_fail_mode: Literal["open", "closed", "warn"] = "warn",
         enqueue_event: asyncio.Event | None = None,
     ) -> None:
         self._queue = queue
