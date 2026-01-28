@@ -50,6 +50,8 @@ This guide documents Settings groups and fields.
 | `core.atexit_drain_timeout_seconds` | float | 2.0 | Maximum seconds to wait for log drain during atexit handler |
 | `core.signal_handler_enabled` | bool | True | Install signal handlers for SIGTERM/SIGINT to enable graceful drain |
 | `core.flush_on_critical` | bool | False | Immediately flush ERROR and CRITICAL logs (bypass batching) to reduce log loss on abrupt shutdown |
+| `core.emit_drop_summary` | bool | False | Emit summary log events when events are dropped due to backpressure or deduplicated due to error dedupe window |
+| `core.drop_summary_window_seconds` | float | 60.0 | Window in seconds for aggregating drop/dedupe summary events. Summaries are emitted at most once per window. |
 | `core.benchmark_file_path` | str | None | — | Optional path used by performance benchmarks |
 
 ## security

@@ -77,6 +77,7 @@ BUILDER_TO_CORE_FIELDS: dict[str, list[str]] = {
     "with_parallel_sink_writes": ["sink_parallel_writes"],
     "with_metrics": ["enable_metrics"],
     "with_error_deduplication": ["error_dedupe_window_seconds"],
+    "with_drop_summary": ["emit_drop_summary", "drop_summary_window_seconds"],
     "with_diagnostics": ["internal_logging_enabled", "diagnostics_output"],
     "with_app_name": ["app_name"],
     "with_strict_mode": ["strict_envelope_mode"],

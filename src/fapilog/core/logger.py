@@ -95,6 +95,8 @@ class _LoggerMixin(_WorkerCountersMixin):
         serialize_in_flush: bool = False,
         num_workers: int = 1,
         level_gate: int | None = None,
+        emit_drop_summary: bool = False,
+        drop_summary_window_seconds: float = 60.0,
     ) -> None:
         self._name = name or "root"
         self._queue = NonBlockingRingQueue[dict[str, Any]](capacity=queue_capacity)
@@ -135,6 +137,12 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._error_dedupe: dict[str, tuple[float, int]] = {}
         self._drained: bool = False  # Track if drain() was called (Story 10.29)
         self._started: bool = False  # Track if workers were started (Story 10.29)
+
+        # Drop/dedupe summary visibility (Story 12.20)
+        self._emit_drop_summary = bool(emit_drop_summary)
+        self._drop_summary_window_seconds = float(drop_summary_window_seconds)
+        self._drop_count_since_summary: int = 0
+        self._last_drop_summary_time: float = 0.0
 
         # Cache settings values at init to avoid per-call overhead (Story 1.23, 1.25)
         self._cached_sampling_rate: float = 1.0
@@ -336,6 +344,11 @@ class _LoggerMixin(_WorkerCountersMixin):
                                 )
                             except Exception:
                                 pass
+                            # Emit dedupe summary event if enabled (Story 12.20)
+                            if self._emit_drop_summary:
+                                self._schedule_dedupe_summary_emission(
+                                    message, count, window
+                                )
                         self._error_dedupe[message] = (now, 0)
         except Exception:
             pass
@@ -393,6 +406,142 @@ class _LoggerMixin(_WorkerCountersMixin):
             await self._metrics.record_events_submitted(count)
         except Exception:
             pass
+
+    def _record_drop_for_summary(self, count: int = 1) -> None:
+        """Track drop for summary emission (Story 12.20).
+
+        Called when events are dropped due to backpressure.
+        If emit_drop_summary is enabled and the window has elapsed,
+        schedules emission of a summary event.
+        """
+        if not self._emit_drop_summary:
+            return
+
+        self._drop_count_since_summary += count
+
+        # Check if window elapsed
+        now = time.monotonic()
+        if now - self._last_drop_summary_time >= self._drop_summary_window_seconds:
+            # Schedule summary emission
+            self._schedule_drop_summary_emission()
+
+    def _schedule_drop_summary_emission(self) -> None:
+        """Schedule emission of drop summary event."""
+        if self._drop_count_since_summary == 0:
+            return
+
+        dropped_count = self._drop_count_since_summary
+        window = self._drop_summary_window_seconds
+
+        # Reset counters before scheduling to avoid double-counting
+        self._drop_count_since_summary = 0
+        self._last_drop_summary_time = time.monotonic()
+
+        loop = self._worker_loop
+        if loop is not None:
+            try:
+                asyncio.run_coroutine_threadsafe(
+                    self._emit_drop_summary_event(dropped_count, window),
+                    loop,
+                )
+            except Exception:
+                pass
+
+    async def _emit_drop_summary_event(
+        self, dropped_count: int, window_seconds: float
+    ) -> None:
+        """Emit a drop summary event directly to sink, bypassing queue.
+
+        The event is marked with _fapilog_internal: True to bypass dedupe
+        and be identifiable in logs. We write directly to sink because
+        when drops are happening the queue is typically full.
+        """
+        from .envelope import build_envelope
+
+        payload = cast(
+            dict[str, Any],
+            build_envelope(
+                level="WARNING",
+                message="Events dropped due to backpressure",
+                extra={
+                    "dropped_count": dropped_count,
+                    "window_seconds": window_seconds,
+                    "_fapilog_internal": True,
+                },
+                logger_name=self._name,
+            ),
+        )
+
+        # Write directly to sink, bypassing the queue (which is likely full)
+        try:
+            await self._sink_write(payload)
+        except Exception:
+            pass  # Best-effort; don't let summary emission crash the logger
+
+    async def _record_drop_for_summary_async(self, count: int = 1) -> None:
+        """Async version of drop tracking for summary emission (Story 12.20)."""
+        if not self._emit_drop_summary:
+            return
+
+        self._drop_count_since_summary += count
+
+        # Check if window elapsed
+        now = time.monotonic()
+        if now - self._last_drop_summary_time >= self._drop_summary_window_seconds:
+            # Emit summary directly (we're already async)
+            if self._drop_count_since_summary > 0:
+                dropped_count = self._drop_count_since_summary
+                window = self._drop_summary_window_seconds
+                self._drop_count_since_summary = 0
+                self._last_drop_summary_time = now
+                await self._emit_drop_summary_event(dropped_count, window)
+
+    def _schedule_dedupe_summary_emission(
+        self, error_message: str, suppressed_count: int, window_seconds: float
+    ) -> None:
+        """Schedule emission of dedupe summary event (Story 12.20)."""
+        loop = self._worker_loop
+        if loop is not None:
+            try:
+                asyncio.run_coroutine_threadsafe(
+                    self._emit_dedupe_summary_event(
+                        error_message, suppressed_count, window_seconds
+                    ),
+                    loop,
+                )
+            except Exception:
+                pass
+
+    async def _emit_dedupe_summary_event(
+        self, error_message: str, suppressed_count: int, window_seconds: float
+    ) -> None:
+        """Emit a dedupe summary event directly to sink.
+
+        The event is marked with _fapilog_internal: True to bypass dedupe
+        and be identifiable in logs.
+        """
+        from .envelope import build_envelope
+
+        payload = cast(
+            dict[str, Any],
+            build_envelope(
+                level="INFO",
+                message="Errors deduplicated",
+                extra={
+                    "error_message": error_message,
+                    "suppressed_count": suppressed_count,
+                    "window_seconds": window_seconds,
+                    "_fapilog_internal": True,
+                },
+                logger_name=self._name,
+            ),
+        )
+
+        # Write directly to sink
+        try:
+            await self._sink_write(payload)
+        except Exception:
+            pass  # Best-effort
 
     def _make_worker(self) -> LoggerWorker:
         # Use cached strict_envelope_mode to avoid Settings() on hot path (Story 1.25)
@@ -676,6 +825,8 @@ class SyncLoggerFacade(_LoggerMixin):
         serialize_in_flush: bool = False,
         num_workers: int = 1,
         level_gate: int | None = None,
+        emit_drop_summary: bool = False,
+        drop_summary_window_seconds: float = 60.0,
     ) -> None:
         self._common_init(
             name=name,
@@ -696,6 +847,8 @@ class SyncLoggerFacade(_LoggerMixin):
             serialize_in_flush=serialize_in_flush,
             num_workers=num_workers,
             level_gate=level_gate,
+            emit_drop_summary=emit_drop_summary,
+            drop_summary_window_seconds=drop_summary_window_seconds,
         )
 
     def start(self) -> None:
@@ -804,6 +957,7 @@ class SyncLoggerFacade(_LoggerMixin):
                     self._queue_high_watermark = qsize
             else:
                 self._dropped += 1
+                self._record_drop_for_summary(1)
                 # Throttled WARN for backpressure drop on same-thread path
                 try:
                     from .diagnostics import warn
@@ -840,6 +994,7 @@ class SyncLoggerFacade(_LoggerMixin):
                 ok = fut.result(timeout=result_timeout)
                 if not ok:
                     self._dropped += 1
+                    self._record_drop_for_summary(1)
                     # Throttled WARN for backpressure drop on cross-thread path
                     try:
                         from .diagnostics import warn
@@ -855,6 +1010,7 @@ class SyncLoggerFacade(_LoggerMixin):
                         pass
             except Exception:
                 self._dropped += 1
+                self._record_drop_for_summary(1)
                 try:
                     from .diagnostics import warn
 
@@ -982,6 +1138,8 @@ class AsyncLoggerFacade(_LoggerMixin):
         serialize_in_flush: bool = False,
         num_workers: int = 1,
         level_gate: int | None = None,
+        emit_drop_summary: bool = False,
+        drop_summary_window_seconds: float = 60.0,
     ) -> None:
         self._common_init(
             name=name,
@@ -1002,6 +1160,8 @@ class AsyncLoggerFacade(_LoggerMixin):
             serialize_in_flush=serialize_in_flush,
             num_workers=num_workers,
             level_gate=level_gate,
+            emit_drop_summary=emit_drop_summary,
+            drop_summary_window_seconds=drop_summary_window_seconds,
         )
 
     async def start_async(self) -> None:
@@ -1098,6 +1258,7 @@ class AsyncLoggerFacade(_LoggerMixin):
         )
         if not ok:
             self._dropped += 1
+            await self._record_drop_for_summary_async(1)
             # Throttled WARN for backpressure drop on async path
             try:
                 from .diagnostics import warn

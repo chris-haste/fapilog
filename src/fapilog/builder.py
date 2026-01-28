@@ -839,6 +839,34 @@ class LoggerBuilder:
         )
         return self
 
+    def with_drop_summary(
+        self,
+        *,
+        enabled: bool = True,
+        window_seconds: float = 60.0,
+    ) -> LoggerBuilder:
+        """Configure drop/dedupe visibility summaries.
+
+        When enabled, periodic summary events are logged when events are:
+        - Dropped due to backpressure (queue full)
+        - Deduplicated due to error dedupe window
+
+        Summary events are marked with `_fapilog_internal: True` and bypass
+        the dedupe filter to prevent infinite loops.
+
+        Args:
+            enabled: Emit drop/dedupe summary events (default: True)
+            window_seconds: Aggregation window in seconds (default: 60.0, min: 1.0)
+
+        Example:
+            >>> builder.with_drop_summary()  # Enable with defaults
+            >>> builder.with_drop_summary(window_seconds=30.0)  # Custom window
+        """
+        core = self._config.setdefault("core", {})
+        core["emit_drop_summary"] = enabled
+        core["drop_summary_window_seconds"] = window_seconds
+        return self
+
     def with_diagnostics(
         self,
         *,
