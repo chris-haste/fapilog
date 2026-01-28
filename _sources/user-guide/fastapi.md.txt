@@ -1,5 +1,7 @@
 # FastAPI / ASGI Integration
 
+For a complete, production-ready example with health checks, metrics, and graceful shutdown, see the [FastAPI Production Template](https://github.com/chris-haste/fapilog/tree/main/examples/fastapi_production).
+
 ## One-liner setup
 
 ```python
