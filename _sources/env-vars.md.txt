@@ -15,6 +15,8 @@
 | `FAPILOG_CORE__DEFAULT_BOUND_CONTEXT` | dict | PydanticUndefined | Default bound context applied at logger creation when enabled |
 | `FAPILOG_CORE__DIAGNOSTICS_OUTPUT` | Literal | stderr | Output stream for internal diagnostics: stderr (default, Unix convention) or stdout (backward compat) |
 | `FAPILOG_CORE__DROP_ON_FULL` | bool | True | If True, drop events after backpressure_wait_ms elapses when queue is full |
+| `FAPILOG_CORE__DROP_SUMMARY_WINDOW_SECONDS` | float | 60.0 | Window in seconds for aggregating drop/dedupe summary events. Summaries are emitted at most once per window. |
+| `FAPILOG_CORE__EMIT_DROP_SUMMARY` | bool | False | Emit summary log events when events are dropped due to backpressure or deduplicated due to error dedupe window |
 | `FAPILOG_CORE__ENABLE_METRICS` | bool | False | Enable Prometheus-compatible metrics |
 | `FAPILOG_CORE__ENABLE_REDACTORS` | bool | True | Enable redactors stage between enrichers and sink emission |
 | `FAPILOG_CORE__ENRICHERS` | list | PydanticUndefined | Enricher plugins to use (by name) |

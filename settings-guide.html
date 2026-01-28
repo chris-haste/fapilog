@@ -452,6 +452,16 @@
 <td><p>False</p></td>
 <td><p>Immediately flush ERROR and CRITICAL logs (bypass batching) to reduce log loss on abrupt shutdown</p></td>
 </tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.emit_drop_summary</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><p>Emit summary log events when events are dropped due to backpressure or deduplicated due to error dedupe window</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.drop_summary_window_seconds</span></code></p></td>
+<td><p>float</p></td>
+<td><p>60.0</p></td>
+<td><p>Window in seconds for aggregating drop/dedupe summary events. Summaries are emitted at most once per window.</p></td>
+</tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.benchmark_file_path</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>

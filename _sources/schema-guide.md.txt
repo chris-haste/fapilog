@@ -96,6 +96,19 @@
       "title": "Drop On Full",
       "type": "boolean"
     },
+    "drop_summary_window_seconds": {
+      "default": 60.0,
+      "description": "Window in seconds for aggregating drop/dedupe summary events. Summaries are emitted at most once per window.",
+      "minimum": 1.0,
+      "title": "Drop Summary Window Seconds",
+      "type": "number"
+    },
+    "emit_drop_summary": {
+      "default": false,
+      "description": "Emit summary log events when events are dropped due to backpressure or deduplicated due to error dedupe window",
+      "title": "Emit Drop Summary",
+      "type": "boolean"
+    },
     "enable_metrics": {
       "default": false,
       "description": "Enable Prometheus-compatible metrics",

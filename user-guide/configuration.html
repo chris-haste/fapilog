@@ -569,6 +569,38 @@ interval settings and represent fixed intervals (not wall-clock boundaries).</p>
 <li><p><strong>Metrics</strong>: set <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__ENABLE_METRICS=true</span></code> to record internal metrics.</p></li>
 </ul>
 </section>
+<section id="drop-and-dedupe-visibility">
+<h2>Drop and Dedupe Visibility<a class="headerlink" href="#drop-and-dedupe-visibility" title="Link to this heading"></a></h2>
+<p>When <code class="docutils literal notranslate"><span class="pre">drop_on_full=True</span></code> (the default), events may be dropped during queue backpressure. Similarly, error deduplication (<code class="docutils literal notranslate"><span class="pre">error_dedupe_window_seconds</span></code>) suppresses duplicate ERROR/CRITICAL messages. By default, these events are silently handled.</p>
+<p>Enable <code class="docutils literal notranslate"><span class="pre">emit_drop_summary</span></code> to receive visibility into dropped and deduplicated events:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_drop_summary</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">window_seconds</span><span class="o">=</span><span class="mf">60.0</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Or via environment variables:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__EMIT_DROP_SUMMARY</span><span class="o">=</span><span class="nb">true</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__DROP_SUMMARY_WINDOW_SECONDS</span><span class="o">=</span><span class="m">60</span>
+</pre></div>
+</div>
+<p>When enabled:</p>
+<ul class="simple">
+<li><p><strong>Drop summaries</strong>: Emitted when events are dropped due to backpressure. Contains <code class="docutils literal notranslate"><span class="pre">dropped_count</span></code> and <code class="docutils literal notranslate"><span class="pre">window_seconds</span></code>.</p></li>
+<li><p><strong>Dedupe summaries</strong>: Emitted when error deduplication window expires with suppressed messages. Contains <code class="docutils literal notranslate"><span class="pre">error_message</span></code>, <code class="docutils literal notranslate"><span class="pre">suppressed_count</span></code>, and <code class="docutils literal notranslate"><span class="pre">window_seconds</span></code>.</p></li>
+</ul>
+<p>Summary events are:</p>
+<ul class="simple">
+<li><p>Level <code class="docutils literal notranslate"><span class="pre">WARNING</span></code> (drops) or <code class="docutils literal notranslate"><span class="pre">INFO</span></code> (dedupe)</p></li>
+<li><p>Marked with <code class="docutils literal notranslate"><span class="pre">data._fapilog_internal:</span> <span class="pre">True</span></code> for filtering</p></li>
+<li><p>Rate-limited by <code class="docutils literal notranslate"><span class="pre">drop_summary_window_seconds</span></code> (default: 60s, minimum: 1s)</p></li>
+<li><p>Written directly to sinks, bypassing the queue</p></li>
+</ul>
+<p>This feature is disabled by default to maintain backwards compatibility.</p>
+</section>
 <section id="deprecated-setting-legacy-sampling">
 <h2>Deprecated setting: legacy sampling<a class="headerlink" href="#deprecated-setting-legacy-sampling" title="Link to this heading"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">observability.logging.sampling_rate</span></code> is deprecated and now raises a <code class="docutils literal notranslate"><span class="pre">DeprecationWarning</span></code>. Move to filter-based sampling to avoid double-sampling and to unlock sampling metrics:</p>

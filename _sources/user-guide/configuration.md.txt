@@ -266,6 +266,43 @@ interval settings and represent fixed intervals (not wall-clock boundaries).
 - **HTTP sink**: set `FAPILOG_HTTP__ENDPOINT` and optional timeout/retry envs.
 - **Metrics**: set `FAPILOG_CORE__ENABLE_METRICS=true` to record internal metrics.
 
+## Drop and Dedupe Visibility
+
+When `drop_on_full=True` (the default), events may be dropped during queue backpressure. Similarly, error deduplication (`error_dedupe_window_seconds`) suppresses duplicate ERROR/CRITICAL messages. By default, these events are silently handled.
+
+Enable `emit_drop_summary` to receive visibility into dropped and deduplicated events:
+
+```python
+from fapilog import LoggerBuilder
+
+logger = (
+    LoggerBuilder()
+    .with_drop_summary(enabled=True, window_seconds=60.0)
+    .build()
+)
+```
+
+Or via environment variables:
+
+```bash
+export FAPILOG_CORE__EMIT_DROP_SUMMARY=true
+export FAPILOG_CORE__DROP_SUMMARY_WINDOW_SECONDS=60
+```
+
+When enabled:
+
+- **Drop summaries**: Emitted when events are dropped due to backpressure. Contains `dropped_count` and `window_seconds`.
+- **Dedupe summaries**: Emitted when error deduplication window expires with suppressed messages. Contains `error_message`, `suppressed_count`, and `window_seconds`.
+
+Summary events are:
+
+- Level `WARNING` (drops) or `INFO` (dedupe)
+- Marked with `data._fapilog_internal: True` for filtering
+- Rate-limited by `drop_summary_window_seconds` (default: 60s, minimum: 1s)
+- Written directly to sinks, bypassing the queue
+
+This feature is disabled by default to maintain backwards compatibility.
+
 ## Deprecated setting: legacy sampling
 
 `observability.logging.sampling_rate` is deprecated and now raises a `DeprecationWarning`. Move to filter-based sampling to avoid double-sampling and to unlock sampling metrics:

@@ -294,6 +294,16 @@
 <td><p>True</p></td>
 <td><p>If True, drop events after backpressure_wait_ms elapses when queue is full</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__DROP_SUMMARY_WINDOW_SECONDS</span></code></p></td>
+<td><p>float</p></td>
+<td><p>60.0</p></td>
+<td><p>Window in seconds for aggregating drop/dedupe summary events. Summaries are emitted at most once per window.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__EMIT_DROP_SUMMARY</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>False</p></td>
+<td><p>Emit summary log events when events are dropped due to backpressure or deduplicated due to error dedupe window</p></td>
+</tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__ENABLE_METRICS</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
