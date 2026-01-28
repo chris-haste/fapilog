@@ -57,9 +57,11 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         allow_headers: Iterable[str] | None = None,
         disable_default_redactions: bool = False,
         log_errors_on_skip: bool = True,
+        require_logger: bool = False,
     ) -> None:
         super().__init__(app)
         self._logger = logger
+        self._require_logger = require_logger
         self._skip_paths = set(skip_paths or [])
         self._logger_lock = asyncio.Lock()
         self._sample_rate = float(sample_rate)
@@ -185,6 +187,15 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             return self._logger
         if self._logger is not None:
             return self._logger
+
+        if self._require_logger:
+            raise RuntimeError(
+                "LoggingMiddleware requires logger in app.state. "
+                "Call setup_logging(app) before adding middleware, "
+                "or pass logger= parameter. "
+                "See: https://fapilog.readthedocs.io/en/latest/examples/fastapi-logging.html"
+            )
+
         async with self._logger_lock:
             if self._logger is None:
                 from .. import get_async_logger
@@ -236,6 +247,9 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 user_agent=request.headers.get("user-agent"),
                 headers=headers,
             )
+        except RuntimeError:
+            # Re-raise RuntimeError (e.g., from require_logger)
+            raise
         except Exception:  # pragma: no cover - diagnostics only
             # Diagnostics best-effort
             try:
@@ -270,6 +284,9 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 error_type=type(exc).__name__,
                 error=str(exc),
             )
+        except RuntimeError:
+            # Re-raise RuntimeError (e.g., from require_logger)
+            raise
         except Exception:  # pragma: no cover - diagnostics only
             try:
                 from ..core import diagnostics as _diag

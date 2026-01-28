@@ -312,3 +312,112 @@ class TestLogErrorsOnSkip:
         assert resp.status_code == 503
         # HTTPExceptions are handled by FastAPI, not logged as errors on skipped paths
         assert all(e["metadata"].get("path") != "/health" for e in logger.events)
+
+
+class TestRequireLogger:
+    """Integration tests for require_logger feature (Story 12.24)."""
+
+    def test_require_logger_raises_without_state(self):
+        """require_logger=True raises RuntimeError if no logger in app.state."""
+        app = FastAPI()
+        app.add_middleware(LoggingMiddleware, require_logger=True)
+
+        @app.get("/ok")
+        async def ok() -> dict[str, str]:
+            return {"ok": "yes"}
+
+        client = TestClient(app, raise_server_exceptions=False)
+        resp = client.get("/ok")
+
+        # Expect 500 because middleware raises RuntimeError
+        assert resp.status_code == 500
+
+    def test_require_logger_works_with_injected_logger(self):
+        """require_logger=True works when logger is passed directly."""
+        logger = _StubAsyncLogger()
+        app = FastAPI()
+        app.add_middleware(LoggingMiddleware, logger=logger, require_logger=True)
+
+        @app.get("/ok")
+        async def ok() -> dict[str, str]:
+            return {"ok": "yes"}
+
+        client = TestClient(app)
+        resp = client.get("/ok")
+
+        assert resp.status_code == 200
+        assert any(
+            e["message"] == "request_completed" and e["metadata"].get("path") == "/ok"
+            for e in logger.events
+        )
+
+    def test_require_logger_works_with_app_state(self):
+        """require_logger=True works when logger is in app.state."""
+        logger = _StubAsyncLogger()
+        app = FastAPI()
+        app.state.fapilog_logger = logger
+        app.add_middleware(LoggingMiddleware, require_logger=True)
+
+        @app.get("/ok")
+        async def ok() -> dict[str, str]:
+            return {"ok": "yes"}
+
+        client = TestClient(app)
+        resp = client.get("/ok")
+
+        assert resp.status_code == 200
+        assert any(
+            e["message"] == "request_completed" and e["metadata"].get("path") == "/ok"
+            for e in logger.events
+        )
+
+    def test_default_lazy_creation_preserved(self, monkeypatch):
+        """Default behavior (require_logger=False) preserves lazy creation."""
+        events: list[dict[str, Any]] = []
+
+        class DummyLogger:
+            async def info(self, message: str, **metadata: Any) -> None:
+                events.append({"message": message, "metadata": metadata})
+
+            async def error(self, message: str, **metadata: Any) -> None:
+                events.append({"message": message, "metadata": metadata})
+
+        async def fake_get_async_logger(name: str | None = None, *, settings=None):
+            return DummyLogger()
+
+        monkeypatch.setattr("fapilog.get_async_logger", fake_get_async_logger)
+
+        app = FastAPI()
+        # require_logger defaults to False - lazy creation still works
+        app.add_middleware(LoggingMiddleware)
+
+        @app.get("/ok")
+        async def ok() -> dict[str, str]:
+            return {"ok": "yes"}
+
+        client = TestClient(app)
+        resp = client.get("/ok")
+
+        assert resp.status_code == 200
+        assert any(e["message"] == "request_completed" for e in events)
+
+    def test_error_message_helpful(self):
+        """Error message includes clear instructions for fixing the issue."""
+        import pytest
+
+        app = FastAPI()
+        app.add_middleware(LoggingMiddleware, require_logger=True)
+
+        @app.get("/ok")
+        async def ok() -> dict[str, str]:
+            return {"ok": "yes"}
+
+        client = TestClient(app, raise_server_exceptions=True)
+        with pytest.raises(RuntimeError) as exc_info:
+            client.get("/ok")
+
+        error_msg = str(exc_info.value)
+        # Error message should explain what's missing and how to fix it
+        assert "app.state" in error_msg
+        assert "setup_logging" in error_msg
+        assert "logger=" in error_msg
