@@ -239,6 +239,20 @@
 <li><p>Sink errors</p></li>
 </ul>
 </section>
+<section id="system-metrics">
+<h2>System Metrics<a class="headerlink" href="#system-metrics" title="Link to this heading"></a></h2>
+<p>System metrics (CPU usage, memory, disk I/O) are provided by the <code class="docutils literal notranslate"><span class="pre">runtime_info</span></code> enricher when the <code class="docutils literal notranslate"><span class="pre">system</span></code> extra is installed.</p>
+<blockquote>
+<div><p><strong>Platform Note:</strong> System metrics require <code class="docutils literal notranslate"><span class="pre">psutil</span></code>, which is only installed on Linux and macOS. On Windows, system metrics fields will not be populated.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Linux/macOS - psutil installed, system metrics available</span>
+pip<span class="w"> </span>install<span class="w"> </span>fapilog<span class="o">[</span>system<span class="o">]</span>
+
+<span class="c1"># Windows - psutil not installed, system metrics unavailable</span>
+pip<span class="w"> </span>install<span class="w"> </span>fapilog<span class="o">[</span>system<span class="o">]</span><span class="w">  </span><span class="c1"># Installs fapilog but not psutil</span>
+</pre></div>
+</div>
+</div></blockquote>
+</section>
 <section id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span><span class="p">,</span> <span class="n">get_logger</span>

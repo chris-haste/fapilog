@@ -26,7 +26,7 @@ pip install fapilog[fastapi]
 # Metrics exporter (Prometheus client)
 pip install fapilog[metrics]
 
-# System metrics helpers
+# System metrics helpers (Linux/macOS only)
 pip install fapilog[system]
 
 # MQTT integration (reserved)
@@ -38,6 +38,23 @@ pip install fapilog[dev]
 # All extras
 pip install fapilog[all]
 ```
+
+## Optional Extras
+
+| Extra | Description | Platform |
+|-------|-------------|----------|
+| `fastapi` | FastAPI integration | All |
+| `http` | HTTP sink support | All |
+| `aws` | CloudWatch sink | All |
+| `metrics` | Prometheus metrics | All |
+| `system` | System metrics (CPU, memory) | Linux, macOS only |
+| `postgres` | PostgreSQL sink | All |
+| `mqtt` | MQTT integration | All |
+| `dev` | Development tools | All |
+| `docs` | Documentation tools | All |
+
+> **Note:** The `system` extra requires `psutil`, which is excluded on Windows.
+> System metrics enrichers will not function on Windows platforms.
 
 ### From Source
 
