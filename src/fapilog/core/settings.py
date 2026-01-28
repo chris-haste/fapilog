@@ -822,6 +822,22 @@ class CoreSettings(BaseModel):
             "to reduce log loss on abrupt shutdown"
         ),
     )
+    # Drop/dedupe visibility (Story 12.20)
+    emit_drop_summary: bool = Field(
+        default=False,
+        description=(
+            "Emit summary log events when events are dropped due to backpressure "
+            "or deduplicated due to error dedupe window"
+        ),
+    )
+    drop_summary_window_seconds: float = Field(
+        default=60.0,
+        ge=1.0,
+        description=(
+            "Window in seconds for aggregating drop/dedupe summary events. "
+            "Summaries are emitted at most once per window."
+        ),
+    )
 
     # Example of a field requiring async validation
     benchmark_file_path: str | None = Field(
