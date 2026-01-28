@@ -388,6 +388,46 @@ def check_example_async_usage() -> CheckResult:
     )
 
 
+def check_field_mask_defaults() -> CheckResult:
+    """Verify FieldMaskConfig per-redactor guardrail defaults match documentation.
+
+    Checks that docs/redaction/behavior.md accurately documents:
+    - max_depth=16 (per-redactor default)
+    - max_keys_scanned=1000 (per-redactor default)
+    """
+    errors: list[str] = []
+
+    try:
+        from fapilog.plugins.redactors.field_mask import FieldMaskConfig
+
+        # Documented per-redactor defaults in behavior.md
+        expected_defaults = [
+            ("max_depth", 16),
+            ("max_keys_scanned", 1000),
+        ]
+
+        for field_name, expected_value in expected_defaults:
+            if field_name not in FieldMaskConfig.model_fields:
+                errors.append(f"FieldMaskConfig.{field_name} not found in model fields")
+                continue
+
+            actual_default = FieldMaskConfig.model_fields[field_name].default
+            if actual_default != expected_value:
+                errors.append(
+                    f"FieldMaskConfig.{field_name}: "
+                    f"documented={expected_value}, actual={actual_default}"
+                )
+
+    except ImportError as e:
+        errors.append(f"Could not import FieldMaskConfig: {e}")
+
+    return CheckResult(
+        name="FieldMaskConfig per-redactor guardrail defaults",
+        passed=len(errors) == 0,
+        errors=errors,
+    )
+
+
 # =============================================================================
 # MAIN EXECUTION
 # =============================================================================
@@ -397,6 +437,7 @@ CODE_CHECKS: list[Callable[[], CheckResult]] = [
     check_webhook_signature_default,
     check_external_plugins_disabled_default,
     check_example_async_usage,
+    check_field_mask_defaults,
 ]
 
 
