@@ -14,12 +14,17 @@ All notable changes to this project will be documented in this file. This change
 - **Silent data loss in `write_serialized`:** Fixed correctness issue where HTTP, Webhook, Loki, CloudWatch, and PostgreSQL sinks silently replaced log data with placeholder values (e.g., `{"message": "fallback"}`) when deserialization failed. All sinks now raise `SinkWriteError` with diagnostics, enabling proper fallback and circuit breaker handling (Story 4.53).
 - **Plugin metadata version default:** Changed `create_plugin_metadata()` default `min_fapilog_version` from `"3.0.0"` to `"0.1.0"`. The previous default was incorrect for a 0.x project and caused compatibility check failures for plugin authors (Story 10.32).
 
+### Added
+
+- **Known-good dependency constraints file:** Added `constraints.txt` with pinned versions for security-conscious production deployments. Install with `pip install fapilog -c constraints.txt` (Story 12.22).
+
 ### Documentation
 
 - **Backpressure API documentation accuracy:** Fixed incorrect examples showing non-existent `policy="wait"` parameter and `discard_oldest` policy. Documentation now correctly shows actual `with_backpressure(wait_ms=..., drop_on_full=...)` API with behavior table explaining parameter combinations (Story 10.31).
 - **Architecture documentation accuracy:** Removed stale references to non-existent components (`ComplianceEngine`, `UniversalSettings`, `EventCategory`) and deleted outdated monolithic `docs/architecture.md` (Story 12.15).
 - **Production checklist documentation:** Added consolidated pre-deployment checklist covering preset selection, metrics, diagnostics, redaction validation, backpressure tuning, and graceful shutdown (Story 12.16).
 - **stdlib bridge documentation:** Added user guide for `enable_stdlib_bridge()` with API reference, common use cases, Django/Celery integration examples, level mapping, and troubleshooting (Story 12.18).
+- **Production installation guide:** Added documentation for using constraints file to pin dependencies to tested versions (Story 12.22).
 
 ## [0.7.0] - 2026-01-27
 
