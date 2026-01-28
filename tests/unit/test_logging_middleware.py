@@ -668,3 +668,122 @@ class TestSecureHeaderRedaction:
         # Authorization should NOT be redacted when defaults disabled
         assert headers["authorization"] == "Bearer secret-token"
         assert headers["content-type"] == "application/json"
+
+
+class TestRequireLogger:
+    """Unit tests for require_logger feature (Story 12.24)."""
+
+    def test_init_require_logger_defaults_false(self) -> None:
+        """Test require_logger defaults to False."""
+        app = MagicMock()
+        middleware = LoggingMiddleware(app)
+        assert middleware._require_logger is False
+
+    def test_init_require_logger_explicit_true(self) -> None:
+        """Test require_logger can be set to True."""
+        app = MagicMock()
+        middleware = LoggingMiddleware(app, require_logger=True)
+        assert middleware._require_logger is True
+
+    @pytest.mark.asyncio
+    async def test_get_logger_raises_when_require_logger_and_no_logger(self) -> None:
+        """Test _get_logger raises RuntimeError when require_logger=True and no logger available."""
+        app = MagicMock()
+        middleware = LoggingMiddleware(app, require_logger=True)
+
+        request = MagicMock()
+        request.app = SimpleNamespace(state=SimpleNamespace())
+
+        with pytest.raises(RuntimeError) as exc_info:
+            await middleware._get_logger(request)
+
+        error_msg = str(exc_info.value)
+        assert "app.state" in error_msg
+        assert "setup_logging" in error_msg
+        assert "logger=" in error_msg
+
+    @pytest.mark.asyncio
+    async def test_get_logger_works_with_require_logger_and_injected_logger(
+        self,
+    ) -> None:
+        """Test _get_logger works when require_logger=True and logger is injected."""
+        app = MagicMock()
+        logger = AsyncMock()
+        middleware = LoggingMiddleware(app, logger=logger, require_logger=True)
+
+        request = MagicMock()
+        request.app = SimpleNamespace(state=SimpleNamespace())
+
+        result = await middleware._get_logger(request)
+        assert result is logger
+
+    @pytest.mark.asyncio
+    async def test_get_logger_works_with_require_logger_and_app_state(self) -> None:
+        """Test _get_logger works when require_logger=True and logger is in app.state."""
+        app = MagicMock()
+        logger = AsyncMock()
+        middleware = LoggingMiddleware(app, require_logger=True)
+
+        request = MagicMock()
+        request.app = SimpleNamespace(state=SimpleNamespace(fapilog_logger=logger))
+
+        result = await middleware._get_logger(request)
+        assert result is logger
+
+    @pytest.mark.asyncio
+    async def test_get_logger_lazy_creation_when_require_logger_false(
+        self, monkeypatch
+    ) -> None:
+        """Test _get_logger creates logger lazily when require_logger=False (default)."""
+        logger = AsyncMock()
+
+        async def fake_get_async_logger(name: str | None = None, *, preset=None):
+            return logger
+
+        monkeypatch.setattr("fapilog.get_async_logger", fake_get_async_logger)
+
+        app = MagicMock()
+        middleware = LoggingMiddleware(app)  # require_logger=False by default
+
+        request = MagicMock()
+        request.app = SimpleNamespace(state=SimpleNamespace())
+
+        result = await middleware._get_logger(request)
+        assert result is logger
+
+    @pytest.mark.asyncio
+    async def test_log_completion_reraises_runtime_error(self) -> None:
+        """Test _log_completion re-raises RuntimeError from _get_logger."""
+        app = MagicMock()
+        middleware = LoggingMiddleware(app, require_logger=True)
+
+        request = MagicMock()
+        request.app = SimpleNamespace(state=SimpleNamespace())
+        request.url.path = "/test"
+
+        with pytest.raises(RuntimeError, match="app.state"):
+            await middleware._log_completion(
+                request=request,
+                status_code=200,
+                correlation_id="test-123",
+                latency_ms=10.5,
+            )
+
+    @pytest.mark.asyncio
+    async def test_log_error_reraises_runtime_error(self) -> None:
+        """Test _log_error re-raises RuntimeError from _get_logger."""
+        app = MagicMock()
+        middleware = LoggingMiddleware(app, require_logger=True)
+
+        request = MagicMock()
+        request.app = SimpleNamespace(state=SimpleNamespace())
+        request.url.path = "/test"
+
+        with pytest.raises(RuntimeError, match="app.state"):
+            await middleware._log_error(
+                request=request,
+                status_code=500,
+                correlation_id="test-123",
+                latency_ms=10.5,
+                exc=ValueError("test error"),
+            )
