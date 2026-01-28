@@ -98,8 +98,11 @@ class LoggerBuilder:
         For production, fastapi, and serverless presets, the CREDENTIALS
         redaction preset is automatically applied for secure defaults.
 
+        For the hardened preset, HIPAA_PHI, PCI_DSS, and CREDENTIALS redaction
+        presets are applied for maximum security coverage.
+
         Args:
-            preset: Preset name (dev, production, fastapi, minimal, serverless)
+            preset: Preset name (dev, production, fastapi, minimal, serverless, hardened)
 
         Raises:
             ValueError: If a preset is already set
@@ -113,6 +116,10 @@ class LoggerBuilder:
         # Apply CREDENTIALS redaction preset for security-focused presets
         if preset in ("production", "fastapi", "serverless"):
             self.with_redaction(preset="CREDENTIALS")
+
+        # Apply comprehensive redaction presets for hardened mode
+        if preset == "hardened":
+            self.with_redaction(preset=["HIPAA_PHI", "PCI_DSS", "CREDENTIALS"])
 
         return self
 

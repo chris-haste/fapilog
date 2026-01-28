@@ -80,6 +80,38 @@ class TestPresetSupport:
         with pytest.raises(ValueError, match="[Pp]reset already set"):
             builder.with_preset("production")
 
+    def test_hardened_preset_creates_logger(self):
+        """Story 3.10: with_preset("hardened") creates working logger."""
+        from fapilog import LoggerBuilder
+
+        logger = LoggerBuilder().with_preset("hardened").build()
+        assert callable(logger.info)
+
+    def test_hardened_preset_applies_multiple_redaction_presets(self):
+        """Story 3.10: hardened preset applies HIPAA, PCI-DSS, CREDENTIALS."""
+        from fapilog import LoggerBuilder
+
+        builder = LoggerBuilder().with_preset("hardened")
+        # The builder should have applied multiple redaction presets
+        config = builder._config
+
+        # Check redactor_config has field_mask with fields from all presets
+        redactor_config = config.get("redactor_config", {})
+        field_mask_config = redactor_config.get("field_mask", {})
+        fields = field_mask_config.get("fields_to_mask", [])
+
+        # CREDENTIALS fields
+        assert "data.password" in fields, "Should have CREDENTIALS fields"
+        assert "data.api_key" in fields, "Should have CREDENTIALS fields"
+
+        # PCI_DSS fields
+        assert "data.card_number" in fields, "Should have PCI_DSS fields"
+        assert "data.cvv" in fields, "Should have PCI_DSS fields"
+
+        # HIPAA_PHI fields (extends US_GOVERNMENT_IDS which has ssn)
+        assert "data.ssn" in fields, "Should have HIPAA fields"
+        assert "data.mrn" in fields, "Should have HIPAA fields"
+
 
 class TestFileSink:
     """Test file sink configuration."""

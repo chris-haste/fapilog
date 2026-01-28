@@ -202,12 +202,105 @@ class TestPresetDefinitions:
         assert "runtime_info" in config["core"]["enrichers"]
         assert "context_vars" in config["core"]["enrichers"]
 
+    # Story 3.10: Hardened Preset Tests
+
+    def test_hardened_preset_exists(self):
+        """Hardened preset is available via get_preset.
+
+        Story 3.10 AC1: Preset available via get_logger(preset="hardened").
+        """
+        config = get_preset("hardened")
+        assert "core" in config
+
+    def test_hardened_preset_has_info_log_level(self):
+        """Hardened preset sets log level to INFO."""
+        config = get_preset("hardened")
+        assert config["core"]["log_level"] == "INFO"
+
+    def test_hardened_preset_fail_closed_redaction(self):
+        """Hardened preset uses fail-closed redaction mode.
+
+        Story 3.10 AC2: Drop events if redaction fails.
+        """
+        config = get_preset("hardened")
+        assert config["core"]["redaction_fail_mode"] == "closed"
+
+    def test_hardened_preset_strict_envelope_mode(self):
+        """Hardened preset enables strict envelope mode.
+
+        Story 3.10 AC3: Reject malformed envelopes.
+        """
+        config = get_preset("hardened")
+        assert config["core"]["strict_envelope_mode"] is True
+
+    def test_hardened_preset_fallback_inherit(self):
+        """Hardened preset uses inherit mode for fallback redaction.
+
+        Story 3.10 AC4: Full redaction on fallback sink output.
+        """
+        config = get_preset("hardened")
+        assert config["core"]["fallback_redact_mode"] == "inherit"
+
+    def test_hardened_preset_no_drop_on_full(self):
+        """Hardened preset does not drop logs under pressure.
+
+        Story 3.10 AC5: Never lose logs due to queue pressure.
+        """
+        config = get_preset("hardened")
+        assert config["core"]["drop_on_full"] is False
+
+    def test_hardened_preset_enables_fallback_scrub_raw(self):
+        """Hardened preset scrubs raw fallback output."""
+        config = get_preset("hardened")
+        assert config["core"]["fallback_scrub_raw"] is True
+
+    def test_hardened_preset_uses_stdout_and_file_sinks(self):
+        """Hardened preset uses stdout_json and rotating_file sinks."""
+        config = get_preset("hardened")
+        assert config["core"]["sinks"] == ["stdout_json", "rotating_file"]
+
+    def test_hardened_preset_has_redaction_presets_marker(self):
+        """Hardened preset has marker for multiple redaction presets.
+
+        Story 3.10 AC6: Apply HIPAA, PCI-DSS, and CREDENTIALS presets.
+        """
+        config = get_preset("hardened")
+        # Legacy marker for CREDENTIALS
+        assert config.get("_apply_credentials_preset") is True
+        # New marker for additional presets
+        assert "_apply_redaction_presets" in config
+        assert "HIPAA_PHI" in config["_apply_redaction_presets"]
+        assert "PCI_DSS" in config["_apply_redaction_presets"]
+
+    def test_hardened_preset_configures_file_rotation(self):
+        """Hardened preset configures file rotation like production."""
+        config = get_preset("hardened")
+        assert config["sink_config"]["rotating_file"]["max_bytes"] == 52_428_800
+        assert config["sink_config"]["rotating_file"]["max_files"] == 10
+        assert config["sink_config"]["rotating_file"]["compress_rotated"] is True
+
+    def test_hardened_preset_disables_postgres_create_table(self):
+        """Hardened preset disables Postgres auto table creation."""
+        config = get_preset("hardened")
+        postgres_config = config.get("sink_config", {}).get("postgres", {})
+        assert postgres_config.get("create_table") is False
+
+    def test_hardened_preset_creates_valid_settings(self):
+        """Hardened preset can be converted to Settings."""
+        config = get_preset("hardened")
+        settings = Settings(**config)
+        assert settings.core.log_level == "INFO"
+        assert settings.core.redaction_fail_mode == "closed"
+        assert settings.core.strict_envelope_mode is True
+        assert settings.core.fallback_redact_mode == "inherit"
+        assert settings.core.drop_on_full is False
+
 
 class TestPresetValidation:
     """Test preset name validation."""
 
     @pytest.mark.parametrize(
-        "name", ["dev", "production", "fastapi", "minimal", "serverless"]
+        "name", ["dev", "production", "fastapi", "minimal", "serverless", "hardened"]
     )
     def test_valid_presets_accepted(self, name: str):
         """All valid preset names are accepted without raising."""
@@ -232,7 +325,7 @@ class TestPresetValidation:
         """Error message includes list of valid presets."""
         with pytest.raises(
             ValueError,
-            match="Valid presets: dev, fastapi, minimal, production, serverless",
+            match="Valid presets: dev, fastapi, hardened, minimal, production, serverless",
         ):
             validate_preset("invalid")
 
@@ -275,7 +368,7 @@ class TestPresetToSettings:
         assert settings.core.drop_on_full is True
 
     @pytest.mark.parametrize(
-        "name", ["dev", "production", "fastapi", "minimal", "serverless"]
+        "name", ["dev", "production", "fastapi", "minimal", "serverless", "hardened"]
     )
     def test_all_presets_create_valid_settings(self, name: str):
         """All presets produce valid Settings objects with core config."""
@@ -287,10 +380,17 @@ class TestPresetToSettings:
 class TestPresetList:
     """Test preset listing."""
 
-    def test_list_presets_returns_all_five(self):
-        """list_presets returns all five preset names."""
+    def test_list_presets_returns_all_six(self):
+        """list_presets returns all six preset names."""
         presets = list_presets()
-        assert set(presets) == {"dev", "production", "fastapi", "minimal", "serverless"}
+        assert set(presets) == {
+            "dev",
+            "production",
+            "fastapi",
+            "minimal",
+            "serverless",
+            "hardened",
+        }
 
     def test_list_presets_is_sorted(self):
         """list_presets returns sorted list."""
