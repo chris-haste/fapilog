@@ -1,0 +1,332 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plugin Development &mdash; fapilog latest documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=30646c52"></script>
+      <script src="../_static/custom.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Plugin Author Quickstart" href="quickstart.html" />
+    <link rel="prev" title="Plugin Error Handling" href="../plugins/error-handling.html" />
+ 
+
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/plugin-development/index.html" />
+<meta name="robots" content="noindex, follow" />
+
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            fapilog
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/quickstart.html">Quickstart Tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/hello-world.html">Hello World Walkthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../why-fapilog.html">Why Fapilog?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../comparisons.html">Python Logging Library Comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core-concepts/index.html">Core Concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/pipeline-architecture.html">Pipeline Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/envelope.html">Envelope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/batching-backpressure.html">Batching &amp; Backpressure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/metrics.html">Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html">Diagnostics Resilience</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html#id1">Diagnostics &amp; Resilience</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide/index.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/builder-configuration.html">Configuring Fapilog with the Builder API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/environment-variables.html">Environment Variable Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/production-checklist.html">Production Checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/using-logger.html">Using the Logger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/context-enrichment.html">Context Enrichment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/sink-routing.html">Sink routing by level</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/performance-tuning.html">Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/benchmarks.html">Performance Benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/integration-guide.html">Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/stdlib-bridge.html">stdlib Logging Bridge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/fastapi.html">FastAPI / ASGI Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/testing-plugins.html">Testing Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/webhook-security.html">Webhook Security</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../cookbook/index.html">Cookbook</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/fastapi-json-logging.html">FastAPI JSON logging to stdout (Uvicorn access logs included)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/fastapi-request-id-logging.html">FastAPI request_id logging (correlation ID middleware, concurrency-safe)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/django-structured-logging.html">Django Structured JSON Logging with Correlation IDs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/non-blocking-async-logging.html">Non-blocking logging in FastAPI (protect latency under slow sinks)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/dev-prod-logging-config.html">One FastAPI logging config for dev + prod (Uvicorn/Gunicorn)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/redacting-secrets-pii.html">Redacting secrets and PII in FastAPI logs (Authorization, tokens, fields)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/compliance-redaction.html">Compliance Redaction: What Works and What Doesn’t</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/safe-request-response-logging.html">Logging request/response bodies without hanging (safe patterns)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/skip-noisy-endpoints.html">Skipping health/metrics endpoints (noise reduction)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/log-sampling-rate-limiting.html">Log sampling and rate limiting for FastAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/graceful-shutdown-flush.html">Graceful shutdown &amp; flushing logs (don’t lose logs on deploy)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/exception-logging-request-context.html">Exception logging in FastAPI with request_id + structured context</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples &amp; Recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/builder-configurations.html">Builder Configuration Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/fastapi-logging.html">FastAPI Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cli-tools.html">Logging in Scripts/CLIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/redacting-secrets.html">Redacting Secrets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/structured-error-logging.html">Structured Error Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/kubernetes-file-sink.html">Kubernetes File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/prometheus-metrics.html">Prometheus Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloudwatch_logging/index.html">CloudWatch Logging (LocalStack)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloud-sinks/index.html">Cloud Sink Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../redaction/index.html">Redaction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/presets.html">Redaction Presets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/configuration.html">Redaction Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/behavior.html">Redaction Behavior</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/testing.html">Testing Redaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api-reference/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/top-level-functions.html">Top-Level Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/builder.html">Builder API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/logger-methods.html">Logger Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/audit-trail.html">Audit Trail</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/types.html">Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/plugins/index.html">Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/modules.html">API Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugin Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/authoring.html">Authoring Fapilog Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/enrichers.html">Enrichers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/filters.html">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/processors.html">Processors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/testing.html">Plugin Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/configuration.html">Plugin Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/health-checks.html">Plugin Health Checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/error-handling.html">Plugin Error Handling</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Plugin Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html">Plugin Author Quickstart</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../patterns.html">Integration Patterns</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../patterns/sdk-sinks.html">Building SDK-Based Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../patterns/http-sinks.html">Building HTTP-Based Sinks</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting/index.html">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/logs-dropped-under-load.html">Logs Dropped Under Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/destination-size-limits.html">Logs Rejected by Destination Size Limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/context-values-missing.html">Context Values Missing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/file-sink-not-rotating.html">File Sink Not Rotating</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/serialization-errors.html">Serialization Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/cloudwatch-sink.html">CloudWatch Sink Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/loki-sink.html">Loki Sink Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices.html">Appendices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../env-vars.html">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../settings-guide.html">Settings Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-guide.html">Schema Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-migration-v1.0-to-v1.1.html">Schema Migration Guide: v1.0 to v1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugin-guide.html">Plugin Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quality-signals.html">Quality Signals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/settings-to-builder-migration.html">Migrating from Settings to Builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/migration-file-rotation.html">Migration Guide: Simplified Rotating File Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/tenacity-integration.html">Tenacity Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../addons/tamper-evident-logging.html">Tamper-Evident Logging Add-on (Optional)</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">fapilog</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Plugin Development</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/plugin-development/index.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="plugin-development">
+<h1>Plugin Development<a class="headerlink" href="#plugin-development" title="Link to this heading"></a></h1>
+<p>Create custom plugins to extend fapilog’s capabilities.</p>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Plugin Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Plugin Author Quickstart</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#minimal-sink-plugin">Minimal Sink Plugin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#registering-via-entry-points">Registering via Entry Points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#plugin-validation-modes">Plugin Validation Modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#plugin-protocols">Plugin Protocols</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#security-considerations">Security Considerations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#testing-your-plugin">Testing Your Plugin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#example-http-webhook-sink">Example: HTTP Webhook Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#example-sampling-filter">Example: Sampling Filter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#plugin-metadata-optional">Plugin Metadata (Optional)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h2>
+<p><strong>New to plugin development?</strong> Start with the <a class="reference internal" href="quickstart.html"><span class="std std-doc">Quickstart Guide</span></a> to create your first plugin in 10 minutes.</p>
+</section>
+<section id="plugin-types">
+<h2>Plugin Types<a class="headerlink" href="#plugin-types" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Type</p></th>
+<th class="head"><p>Purpose</p></th>
+<th class="head"><p>Use Case</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="../plugins/sinks.html"><span class="std std-doc">Sink</span></a></p></td>
+<td><p>Output destinations</p></td>
+<td><p>Send logs to custom endpoints</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../plugins/enrichers.html"><span class="std std-doc">Enricher</span></a></p></td>
+<td><p>Add context</p></td>
+<td><p>Inject metadata automatically</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../plugins/redactors.html"><span class="std std-doc">Redactor</span></a></p></td>
+<td><p>Mask data</p></td>
+<td><p>Protect sensitive information</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../plugins/filters.html"><span class="std std-doc">Filter</span></a></p></td>
+<td><p>Control flow</p></td>
+<td><p>Sample or drop events</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../plugins/processors.html"><span class="std std-doc">Processor</span></a></p></td>
+<td><p>Transform data</p></td>
+<td><p>Compress or encrypt payloads</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="resources">
+<h2>Resources<a class="headerlink" href="#resources" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong><a class="reference internal" href="quickstart.html"><span class="std std-doc">Quickstart</span></a></strong> - Create your first plugin</p></li>
+<li><p><strong><a class="reference internal" href="../plugins/authoring.html"><span class="std std-doc">Plugin Authoring</span></a></strong> - Detailed development guide</p></li>
+<li><p><strong><a class="reference internal" href="../plugins/testing.html"><span class="std std-doc">Testing Plugins</span></a></strong> - Validation and fixtures</p></li>
+<li><p><strong><a class="reference internal" href="../plugin-guide.html"><span class="std std-doc">Plugin Catalog</span></a></strong> - Built-in reference implementations</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          
+<footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer" style="position: relative;">
+        <a href="../plugins/error-handling.html" class="btn btn-neutral float-left" title="Plugin Error Handling" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="quickstart.html" class="btn btn-neutral float-right" title="Plugin Author Quickstart" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+      <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 50%; margin-top: -0.5em;">
+        <a href="https://fapilog.dev">www.fapilog.dev</a>
+      </div>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Chris Haste.
+      <span class="lastupdated">Last updated on January 28, 2026.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -68,6 +68,7 @@ redaction/index
 enterprise
 api-reference/index
 plugins/index
+plugin-development/index
 patterns
 troubleshooting/index
 faq
