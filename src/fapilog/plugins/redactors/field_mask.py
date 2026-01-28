@@ -13,10 +13,12 @@ class FieldMaskConfig(BaseModel):
 
     fields_to_mask: list[str] = Field(default_factory=list)
     mask_string: str = "***"
-    block_on_unredactable: bool = False
+    block_on_unredactable: bool = True
     max_depth: int = Field(default=16, ge=1)
     max_keys_scanned: int = Field(default=1000, ge=1)
-    on_guardrail_exceeded: Literal["warn", "drop", "replace_subtree"] = "warn"
+    on_guardrail_exceeded: Literal["warn", "drop", "replace_subtree"] = (
+        "replace_subtree"
+    )
 
 
 class FieldMaskRedactor:
@@ -299,10 +301,10 @@ PLUGIN_METADATA = {
     "default_config": {
         "fields_to_mask": [],
         "mask_string": "***",
-        "block_on_unredactable": False,
+        "block_on_unredactable": True,
         "max_depth": 16,
         "max_keys_scanned": 1000,
-        "on_guardrail_exceeded": "warn",
+        "on_guardrail_exceeded": "replace_subtree",
     },
     "api_version": "1.0",
 }

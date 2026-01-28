@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+### Breaking Changes
+
+- **Redaction defaults changed to fail-closed:** All redaction settings now default to fail-closed behavior to prevent PII leakage (Story 4.61):
+  - `on_guardrail_exceeded`: `"warn"` → `"replace_subtree"` (masks unscanned subtrees instead of passing through)
+  - `block_on_unredactable`: `False` → `True` (drops events when configured fields can't be redacted)
+  - `redaction_fail_mode`: `"open"` → `"warn"` (emits diagnostic on redaction exceptions)
+
+  **Migration guide:** To restore previous fail-open behavior for debugging:
+  ```python
+  from fapilog import Settings
+  from fapilog.core.settings import CoreSettings
+  from fapilog.core.config import RedactorConfig
+  from fapilog.plugins.redactors.field_mask import FieldMaskConfig
+
+  Settings(
+      core=CoreSettings(redaction_fail_mode="open"),
+      redactor_config=RedactorConfig(
+          field_mask=FieldMaskConfig(
+              block_on_unredactable=False,
+              on_guardrail_exceeded="warn",
+          )
+      )
+  )
+  ```
+
 ### Changed
 
 - **Production preset disables Postgres auto-DDL:** The `production` preset now sets `create_table=False` for Postgres sink configuration, requiring explicit table provisioning via migrations. This prevents unexpected DDL execution in regulated environments (Story 10.32).

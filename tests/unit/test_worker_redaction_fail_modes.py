@@ -16,10 +16,10 @@ from fapilog.core.settings import CoreSettings
 class TestRedactionFailModeSetting:
     """AC1: Global redaction fail mode setting."""
 
-    def test_default_is_open(self) -> None:
-        """Base default for redaction_fail_mode is 'open'."""
+    def test_default_is_warn(self) -> None:
+        """Base default for redaction_fail_mode is 'warn' (fail-closed, Story 4.61)."""
         settings = CoreSettings()
-        assert settings.redaction_fail_mode == "open"
+        assert settings.redaction_fail_mode == "warn"
 
     def test_builder_with_fallback_redaction_sets_fail_mode(self) -> None:
         """Builder with_fallback_redaction sets redaction_fail_mode."""
