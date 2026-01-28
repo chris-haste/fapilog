@@ -97,9 +97,10 @@ Set the lifespan before the application starts.
 | Preset | Log Level | Sinks | File Rotation | Redaction | Enrichers | Batch Size |
 |--------|-----------|-------|---------------|-----------|-----------|------------|
 | `dev` | DEBUG | stdout_pretty | No | No | runtime_info, context_vars | 1 (immediate) |
-| `production` | INFO | stdout_json + file | 50MB × 10 files | Yes (9 fields) | runtime_info, context_vars | 100 |
-| `serverless` | INFO | stdout_json | No | Yes (9 fields) | runtime_info, context_vars | 25 |
-| `fastapi` | INFO | stdout_json | No | Yes (9 fields) | context_vars only | 50 |
+| `production` | INFO | stdout_json + file | 50MB × 10 files | Yes (CREDENTIALS) | runtime_info, context_vars | 100 |
+| `hardened` | INFO | stdout_json + file | 50MB × 10 files | Yes (HIPAA + PCI + CREDENTIALS) | runtime_info, context_vars | 100 |
+| `serverless` | INFO | stdout_json | No | Yes (CREDENTIALS) | runtime_info, context_vars | 25 |
+| `fastapi` | INFO | stdout_json | No | Yes (CREDENTIALS) | context_vars only | 50 |
 | `minimal` | INFO | stdout_json | No | No | runtime_info, context_vars | 256 (default) |
 
 ### Preset Details
@@ -130,7 +131,18 @@ Set the lifespan before the application starts.
 - `context_vars` enricher only (excludes `runtime_info` for reduced overhead in high-throughput scenarios)
 - Container-friendly stdout JSON output
 - Balanced batch size for latency/throughput tradeoff
-- Automatic redaction of: `password`, `api_key`, `token`, `secret`, `authorization`, `api_secret`, `private_key`, `ssn`, `credit_card`
+- Automatic redaction of CREDENTIALS preset fields
+
+**`hardened`** - Maximum security for regulated environments (HIPAA, PCI-DSS, financial services):
+- All strict security settings enabled:
+  - `redaction_fail_mode="closed"` - drops events if redaction fails (fail-closed)
+  - `strict_envelope_mode=True` - rejects malformed envelopes
+  - `fallback_redact_mode="inherit"` - full redaction on fallback output
+  - `drop_on_full=False` - never drops logs under queue pressure
+- Comprehensive redaction coverage from HIPAA_PHI, PCI_DSS, and CREDENTIALS presets
+- File rotation: `./logs/fapilog-*.log`, 50MB max, 10 files retained, gzip compressed
+- Both `runtime_info` and `context_vars` enrichers for complete diagnostics
+- **Trade-off**: May drop logs if redactors fail or envelopes are malformed (security over availability)
 
 **`minimal`** - Matches `get_logger()` with no arguments:
 - Use for explicit preset selection while maintaining backwards compatibility

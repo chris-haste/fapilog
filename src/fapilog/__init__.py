@@ -612,13 +612,24 @@ def _prepare_logger(
 
         preset_config = get_preset(preset)
 
-        # Apply CREDENTIALS redaction preset for security-focused presets
-        if preset in ("production", "fastapi", "serverless"):
-            credentials_fields, credentials_patterns = resolve_preset_fields(
-                "CREDENTIALS"
+        # Collect redaction presets to apply
+        redaction_presets_to_apply: list[str] = []
+
+        # Handle legacy _apply_credentials_preset marker
+        if preset_config.pop("_apply_credentials_preset", False):
+            redaction_presets_to_apply.append("CREDENTIALS")
+
+        # Handle new _apply_redaction_presets list
+        additional_presets = preset_config.pop("_apply_redaction_presets", [])
+        redaction_presets_to_apply.extend(additional_presets)
+
+        # Apply all collected redaction presets
+        for redaction_preset_name in redaction_presets_to_apply:
+            preset_fields, preset_patterns = resolve_preset_fields(
+                redaction_preset_name
             )
             # Add fields with data. prefix
-            prefixed_fields = [f"data.{f}" for f in credentials_fields]
+            prefixed_fields = [f"data.{f}" for f in preset_fields]
 
             # Merge into preset config
             redactor_config = preset_config.setdefault("redactor_config", {})
@@ -630,7 +641,7 @@ def _prepare_logger(
 
             regex_mask_config = redactor_config.setdefault("regex_mask", {})
             existing_patterns = regex_mask_config.setdefault("patterns", [])
-            for p in credentials_patterns:
+            for p in preset_patterns:
                 if p not in existing_patterns:
                     existing_patterns.append(p)
 

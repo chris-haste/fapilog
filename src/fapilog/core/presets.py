@@ -108,6 +108,45 @@ PRESETS: dict[str, dict[str, Any]] = {
         },
         "_apply_credentials_preset": True,
     },
+    "hardened": {
+        "core": {
+            "log_level": "INFO",
+            "batch_max_size": 100,
+            "drop_on_full": False,  # Never lose logs
+            "redaction_fail_mode": "closed",  # Drop event if redaction fails
+            "strict_envelope_mode": True,  # Reject malformed envelopes
+            "fallback_redact_mode": "inherit",  # Full redaction on fallback
+            "fallback_scrub_raw": True,  # Scrub raw output
+            "sinks": ["stdout_json", "rotating_file"],
+            "enrichers": ["runtime_info", "context_vars"],
+            "redactors": ["field_mask", "regex_mask", "url_credentials"],
+        },
+        "sink_config": {
+            "rotating_file": {
+                "directory": "./logs",
+                "filename_prefix": "fapilog",
+                "max_bytes": 52_428_800,  # 50 MB
+                "max_files": 10,
+                "compress_rotated": True,
+            },
+            "postgres": {
+                "create_table": False,  # Require explicit provisioning
+            },
+        },
+        "enricher_config": {
+            "runtime_info": {},
+            "context_vars": {},
+        },
+        "redactor_config": {
+            "field_mask": {},
+            "regex_mask": {},
+            "url_credentials": {},
+        },
+        # Marker for automatic CREDENTIALS preset application
+        "_apply_credentials_preset": True,
+        # Additional presets for hardened mode (HIPAA + PCI-DSS)
+        "_apply_redaction_presets": ["HIPAA_PHI", "PCI_DSS"],
+    },
 }
 
 
