@@ -269,3 +269,6 @@ todo.txt
 
 # Debug artifacts
 .issue_*.json
+
+# Development process artifacts (kept locally, not in repo)
+docs/stories/
