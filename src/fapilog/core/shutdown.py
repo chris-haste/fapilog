@@ -177,13 +177,34 @@ def _signal_handler(signum: int, _frame: FrameType | None) -> None:
         sys.exit(128 + signum)
 
 
+def _has_running_event_loop() -> bool:
+    """Check if there's already a running event loop.
+
+    When running under ASGI servers (uvicorn, hypercorn, etc.), there's already
+    an event loop and the server handles shutdown through lifespan. Installing
+    our own signal handlers would interfere with the server's shutdown sequence.
+    """
+    try:
+        loop = asyncio.get_running_loop()
+        return loop.is_running()
+    except RuntimeError:
+        return False
+
+
 def _do_install_signal_handlers() -> None:
     """Install signal handlers for graceful shutdown.
 
     Internal function - use install_shutdown_handlers() instead.
-    Only installs if enabled in settings and not on Windows (SIGTERM unavailable).
+    Only installs if enabled in settings, not on Windows (SIGTERM unavailable),
+    and not when running under an ASGI server (which handles shutdown via lifespan).
     """
     global _original_sigterm_handler, _original_sigint_handler
+
+    # Skip signal handler installation when running under ASGI servers.
+    # These servers (uvicorn, hypercorn, etc.) manage shutdown through lifespan
+    # and installing our handlers would interfere with their shutdown sequence.
+    if _has_running_event_loop():
+        return
 
     try:
         # SIGINT is available on all platforms

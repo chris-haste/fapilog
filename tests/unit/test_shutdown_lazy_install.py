@@ -253,6 +253,87 @@ class TestResetHandlerState:
                 assert result2 is True
 
 
+class TestEventLoopDetection:
+    """Tests for ASGI server compatibility (Story 12.17).
+
+    When running under ASGI servers (uvicorn, hypercorn), signal handlers
+    should NOT be installed because the server manages shutdown via lifespan.
+    """
+
+    def test_has_running_event_loop_returns_false_when_no_loop(self) -> None:
+        """_has_running_event_loop returns False when no loop is running."""
+        from fapilog.core import shutdown
+
+        # Outside of async context, should return False
+        assert shutdown._has_running_event_loop() is False
+
+    def test_has_running_event_loop_returns_true_in_async_context(self) -> None:
+        """_has_running_event_loop returns True inside async context."""
+        import asyncio
+
+        from fapilog.core import shutdown
+
+        async def check() -> bool:
+            # Check from inside the async context where loop IS running
+            return shutdown._has_running_event_loop()
+
+        # asyncio.run() creates a loop and runs check() inside it
+        # The function should return True when called from within
+        assert asyncio.run(check()) is True
+
+    def test_signal_handlers_skipped_when_event_loop_running(self) -> None:
+        """Signal handlers should not be installed when event loop is running."""
+        import asyncio
+        import signal
+
+        from fapilog.core import shutdown
+
+        shutdown._reset_handler_state()
+
+        async def test_in_loop() -> None:
+            # Store original handler
+            original = signal.getsignal(signal.SIGINT)
+
+            # Install handlers while loop is running
+            with patch.object(shutdown, "atexit"):
+                shutdown.install_shutdown_handlers()
+
+            # Signal handler should NOT have been changed
+            current = signal.getsignal(signal.SIGINT)
+            assert current == original, (
+                "Signal handler was changed despite running loop"
+            )
+
+        asyncio.run(test_in_loop())
+
+    def test_signal_handlers_installed_when_no_event_loop(self) -> None:
+        """Signal handlers should be installed when no event loop is running."""
+        import signal
+
+        from fapilog.core import shutdown
+
+        shutdown._reset_handler_state()
+
+        # Set a known handler first to detect changes
+        def dummy_handler(sig: int, frame: object) -> None:
+            pass
+
+        original = signal.signal(signal.SIGINT, dummy_handler)
+
+        try:
+            with patch.object(shutdown, "atexit"):
+                shutdown.install_shutdown_handlers()
+
+            # Signal handler SHOULD have been changed from dummy
+            current = signal.getsignal(signal.SIGINT)
+            assert current != dummy_handler, "Signal handler was not installed"
+            assert current == shutdown._signal_handler
+        finally:
+            # Restore original handler
+            signal.signal(signal.SIGINT, original)
+            shutdown._reset_handler_state()
+
+
 class TestThreadSafety:
     """Tests for thread-safe installation."""
 
