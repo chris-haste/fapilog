@@ -187,8 +187,8 @@ from fapilog import LoggerBuilder
 logger = (
     LoggerBuilder()
     .with_preset("production")
-    .with_drop_on_full(False)           # Wait rather than drop under pressure
-    .with_redaction_fail_mode("warn")   # Log warning if redaction fails
+    .with_backpressure(drop_on_full=False)      # Wait rather than drop under pressure
+    .with_fallback_redaction(fail_mode="warn")  # Log warning if redaction fails
     .build()
 )
 ```

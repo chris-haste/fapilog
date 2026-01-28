@@ -159,8 +159,8 @@ Sampling filters can be combined with other filters in the pipeline:
 ```python
 logger = (
     LoggerBuilder()
-    .with_level_filter("INFO")        # First: drop DEBUG
-    .with_sampling(rate=0.5)          # Then: sample remaining
+    .with_level("INFO")           # First: drop DEBUG
+    .with_sampling(rate=0.5)      # Then: sample remaining
     .build()
 )
 ```

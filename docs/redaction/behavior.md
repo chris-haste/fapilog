@@ -14,7 +14,7 @@ By default (`redaction_fail_mode="open"`), if the redaction pipeline encounters 
 
 Configure via builder:
    ```python
-   logger = LoggerBuilder().with_redaction_fail_mode("warn").build()
+   logger = LoggerBuilder().with_fallback_redaction(fail_mode="warn").build()
    ```
 
 Or via settings:
