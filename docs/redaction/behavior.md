@@ -4,6 +4,27 @@ This page documents exactly what fapilog redacts, how the pipeline works, and kn
 
 > **Disclaimer:** Redaction is provided as a best-effort mechanism to help protect sensitive data. It matches field names and patterns, not arbitrary field content. You are responsible for testing and verifying redaction meets your compliance requirements before production use. Fapilog and its maintainers accept no liability for data exposure.
 
+```{important}
+**Redaction Failure Behavior**
+
+By default (`redaction_fail_mode="open"`), if the redaction pipeline encounters an unexpected error, the original log event passes through **unredacted**. For production systems handling sensitive data, explicitly set the failure mode:
+
+- `"warn"` (recommended for production): Pass event through + emit diagnostic warning
+- `"closed"` (high-security): Drop the event entirely rather than risk data exposure
+
+Configure via builder:
+   ```python
+   logger = LoggerBuilder().with_redaction_fail_mode("warn").build()
+   ```
+
+Or via settings:
+   ```python
+   Settings(core=CoreSettings(redaction_fail_mode="warn"))
+   ```
+
+See [Reliability Defaults](../user-guide/reliability-defaults.md) for related production settings.
+```
+
 ## What Gets Redacted
 
 ### Field Mask Redactor
