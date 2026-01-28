@@ -928,6 +928,8 @@ class LoggerBuilder:
         *,
         fallback_mode: Literal["inherit", "minimal", "none"] = "minimal",
         fail_mode: Literal["open", "closed", "warn"] = "open",
+        scrub_raw: bool = True,
+        raw_max_bytes: int | None = None,
     ) -> LoggerBuilder:
         """Configure redaction behavior for fallback and failure scenarios.
 
@@ -940,16 +942,25 @@ class LoggerBuilder:
                 - "open": Pass original event through (default)
                 - "closed": Drop event entirely
                 - "warn": Pass event through but emit diagnostic warning
+            scrub_raw: Apply keyword scrubbing to raw (non-JSON) fallback output.
+                Masks patterns like password=, token=, api_key= (default: True).
+            raw_max_bytes: Optional byte limit for raw fallback output. Payloads
+                exceeding this are truncated with '[truncated]' marker.
 
         Example:
             >>> builder.with_fallback_redaction(
             ...     fallback_mode="minimal",
             ...     fail_mode="warn",
+            ...     scrub_raw=True,
+            ...     raw_max_bytes=1000,
             ... )
         """
         core = self._config.setdefault("core", {})
         core["fallback_redact_mode"] = fallback_mode
         core["redaction_fail_mode"] = fail_mode
+        core["fallback_scrub_raw"] = scrub_raw
+        if raw_max_bytes is not None:
+            core["fallback_raw_max_bytes"] = raw_max_bytes
         return self
 
     def with_routing(

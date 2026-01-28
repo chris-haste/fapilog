@@ -197,3 +197,209 @@ class TestExtractBytesHelper:
 
         result = _extract_bytes("test string")
         assert result == b"test string"
+
+
+class TestRawOutputScrubbing:
+    """Story 4.59: Fallback Sink Raw Output Hardening.
+
+    When JSON parsing fails for serialized payloads, apply keyword scrubbing
+    and optional truncation before writing to stderr.
+    """
+
+    @pytest.fixture
+    def capture_stderr(self) -> io.StringIO:
+        """Capture stderr output."""
+        return io.StringIO()
+
+    def test_raw_output_scrubs_password_patterns(
+        self, capture_stderr: io.StringIO
+    ) -> None:
+        """AC1: Raw fallback output scrubs password=value patterns."""
+        from fapilog.core.serialization import SerializedView
+        from fapilog.plugins.sinks.fallback import _write_to_stderr
+
+        # Invalid JSON containing password pattern
+        payload = SerializedView(data=b"login failed: password=hunter2&user=alice")
+
+        with patch.object(sys, "stderr", capture_stderr):
+            _write_to_stderr(payload, serialized=True, redact_mode="minimal")
+
+        output = capture_stderr.getvalue()
+        assert "hunter2" not in output
+        assert "password=***" in output
+        assert "alice" in output  # Non-sensitive value preserved
+
+    def test_raw_output_scrubs_token_patterns(
+        self, capture_stderr: io.StringIO
+    ) -> None:
+        """AC1: Raw fallback output scrubs token/api_key/secret patterns."""
+        from fapilog.core.serialization import SerializedView
+        from fapilog.plugins.sinks.fallback import _write_to_stderr
+
+        # Invalid JSON containing various secret patterns
+        payload = SerializedView(
+            data=b"token=abc123 api_key:sk_live_xyz secret=mysecret auth:bearer123"
+        )
+
+        with patch.object(sys, "stderr", capture_stderr):
+            _write_to_stderr(payload, serialized=True, redact_mode="minimal")
+
+        output = capture_stderr.getvalue()
+        assert "abc123" not in output
+        assert "sk_live_xyz" not in output
+        assert "mysecret" not in output
+        assert "bearer123" not in output
+        assert "token=***" in output
+        assert "api_key:***" in output
+
+    def test_raw_output_truncation(self, capture_stderr: io.StringIO) -> None:
+        """AC2: Unparseable payloads truncated when fallback_raw_max_bytes set."""
+        from fapilog.core.serialization import SerializedView
+        from fapilog.plugins.sinks.fallback import _write_to_stderr
+
+        # Create a large invalid JSON payload (5KB)
+        large_content = b"x" * 5000
+        payload = SerializedView(data=large_content)
+
+        with patch.object(sys, "stderr", capture_stderr):
+            _write_to_stderr(
+                payload,
+                serialized=True,
+                redact_mode="minimal",
+                fallback_raw_max_bytes=1000,
+            )
+
+        output = capture_stderr.getvalue()
+        # Should be truncated with marker
+        assert "[truncated]" in output
+        # Actual content should be limited (1000 bytes + truncation marker + newline)
+        assert len(output) < 1100
+
+    def test_scrub_disabled_via_setting(self, capture_stderr: io.StringIO) -> None:
+        """AC4: Scrubbing can be disabled for debugging."""
+        from fapilog.core.serialization import SerializedView
+        from fapilog.plugins.sinks.fallback import _write_to_stderr
+
+        # Invalid JSON with password
+        payload = SerializedView(data=b"debug: password=hunter2")
+
+        with patch.object(sys, "stderr", capture_stderr):
+            _write_to_stderr(
+                payload,
+                serialized=True,
+                redact_mode="minimal",
+                fallback_scrub_raw=False,
+            )
+
+        output = capture_stderr.getvalue()
+        # With scrubbing disabled, secret should be present
+        assert "hunter2" in output
+
+    def test_diagnostic_includes_scrub_info(self, capture_stderr: io.StringIO) -> None:
+        """AC5: Diagnostic warning includes scrubbed/truncated/original_size info."""
+        from fapilog.core.serialization import SerializedView
+        from fapilog.plugins.sinks.fallback import _write_to_stderr
+
+        payload = SerializedView(data=b"password=secret123 " + b"x" * 2000)
+        warn_kwargs: dict[str, Any] = {}
+
+        def capture_warn(*args: Any, **kwargs: Any) -> None:
+            nonlocal warn_kwargs
+            warn_kwargs = kwargs
+
+        with patch.object(sys, "stderr", capture_stderr):
+            from fapilog.core import diagnostics
+
+            with patch.object(diagnostics, "warn", capture_warn):
+                _write_to_stderr(
+                    payload,
+                    serialized=True,
+                    redact_mode="minimal",
+                    fallback_raw_max_bytes=1000,
+                )
+
+        # Diagnostic should include scrub/truncate info
+        assert warn_kwargs.get("scrubbed") is True
+        assert warn_kwargs.get("truncated") is True
+        assert warn_kwargs.get("original_size") > 0
+
+
+class TestFallbackScrubPatterns:
+    """Test FALLBACK_SCRUB_PATTERNS regex patterns directly."""
+
+    def test_patterns_exist(self) -> None:
+        """FALLBACK_SCRUB_PATTERNS is defined in defaults."""
+        from fapilog.core.defaults import FALLBACK_SCRUB_PATTERNS
+
+        assert len(FALLBACK_SCRUB_PATTERNS) > 0
+
+    def test_password_pattern_variants(self) -> None:
+        """Password pattern handles various formats."""
+        from fapilog.plugins.sinks.fallback import _scrub_raw
+
+        test_cases = [
+            ("password=secret", "password=***"),
+            ("passwd=secret", "passwd=***"),
+            ("pwd:secret", "pwd:***"),
+            ("PASSWORD=Secret123", "PASSWORD=***"),
+        ]
+        for input_text, expected in test_cases:
+            result = _scrub_raw(input_text)
+            assert expected in result, f"Failed for {input_text}"
+
+    def test_token_pattern_variants(self) -> None:
+        """Token/key patterns handle various formats."""
+        from fapilog.plugins.sinks.fallback import _scrub_raw
+
+        test_cases = [
+            ("token=abc123", "token=***"),
+            ("api_key: xyz", "api_key: ***"),  # Separator whitespace preserved
+            ("apikey=key123", "apikey=***"),
+            ("secret=mysecret", "secret=***"),
+        ]
+        for input_text, expected in test_cases:
+            result = _scrub_raw(input_text)
+            assert expected in result, f"Failed for {input_text}"
+
+    def test_authorization_pattern(self) -> None:
+        """Authorization header pattern is scrubbed."""
+        from fapilog.plugins.sinks.fallback import _scrub_raw
+
+        result = _scrub_raw("authorization: Bearer eyJ123")
+        assert "eyJ123" not in result
+        assert "authorization:" in result.lower()
+
+
+class TestCoreSettingsFallbackRaw:
+    """Test fallback raw output settings in CoreSettings."""
+
+    def test_fallback_scrub_raw_default_true(self) -> None:
+        """AC3: Default settings have fallback_scrub_raw=True."""
+        from fapilog.core.settings import CoreSettings
+
+        settings = CoreSettings()
+        assert settings.fallback_scrub_raw is True
+
+    def test_fallback_raw_max_bytes_default_none(self) -> None:
+        """Default settings have fallback_raw_max_bytes=None (no truncation)."""
+        from fapilog.core.settings import CoreSettings
+
+        settings = CoreSettings()
+        assert settings.fallback_raw_max_bytes is None
+
+    def test_fallback_scrub_raw_env_override(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """AC4: Can disable scrubbing via environment variable."""
+        from fapilog.core.settings import Settings
+
+        monkeypatch.setenv("FAPILOG_CORE__FALLBACK_SCRUB_RAW", "false")
+        settings = Settings()
+        assert settings.core.fallback_scrub_raw is False
+
+    def test_fallback_raw_max_bytes_configurable(self) -> None:
+        """fallback_raw_max_bytes can be configured."""
+        from fapilog.core.settings import CoreSettings
+
+        settings = CoreSettings(fallback_raw_max_bytes=1000)
+        assert settings.fallback_raw_max_bytes == 1000

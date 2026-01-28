@@ -24,7 +24,9 @@
 | `FAPILOG_CORE__EXCEPTIONS_ENABLED` | bool | True | Enable structured exception serialization for log calls |
 | `FAPILOG_CORE__EXCEPTIONS_MAX_FRAMES` | int | 10 | Maximum number of stack frames to capture for exceptions |
 | `FAPILOG_CORE__EXCEPTIONS_MAX_STACK_CHARS` | int | 20000 | Maximum total characters for serialized stack string |
+| `FAPILOG_CORE__FALLBACK_RAW_MAX_BYTES` | int | None | — | Optional limit for raw fallback output bytes; payloads exceeding this are truncated with '[truncated]' marker |
 | `FAPILOG_CORE__FALLBACK_REDACT_MODE` | Literal | minimal | Redaction mode for fallback stderr output: 'inherit' uses pipeline redactors, 'minimal' applies built-in sensitive field masking, 'none' writes unredacted (opt-in to legacy behavior) |
+| `FAPILOG_CORE__FALLBACK_SCRUB_RAW` | bool | True | Apply keyword scrubbing to raw (non-JSON) fallback output; set to False for debugging when raw output is needed |
 | `FAPILOG_CORE__FILTERS` | list | PydanticUndefined | Filter plugins to apply before enrichment (by name) |
 | `FAPILOG_CORE__FLUSH_ON_CRITICAL` | bool | False | Immediately flush ERROR and CRITICAL logs (bypass batching) to reduce log loss on abrupt shutdown |
 | `FAPILOG_CORE__INTERNAL_LOGGING_ENABLED` | bool | False | Emit DEBUG/WARN diagnostics for internal errors |

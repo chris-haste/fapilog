@@ -156,6 +156,20 @@
       "title": "Exceptions Max Stack Chars",
       "type": "integer"
     },
+    "fallback_raw_max_bytes": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional limit for raw fallback output bytes; payloads exceeding this are truncated with '[truncated]' marker",
+      "title": "Fallback Raw Max Bytes"
+    },
     "fallback_redact_mode": {
       "default": "minimal",
       "description": "Redaction mode for fallback stderr output: 'inherit' uses pipeline redactors, 'minimal' applies built-in sensitive field masking, 'none' writes unredacted (opt-in to legacy behavior)",
@@ -166,6 +180,12 @@
       ],
       "title": "Fallback Redact Mode",
       "type": "string"
+    },
+    "fallback_scrub_raw": {
+      "default": true,
+      "description": "Apply keyword scrubbing to raw (non-JSON) fallback output; set to False for debugging when raw output is needed",
+      "title": "Fallback Scrub Raw",
+      "type": "boolean"
     },
     "filters": {
       "description": "Filter plugins to apply before enrichment (by name)",

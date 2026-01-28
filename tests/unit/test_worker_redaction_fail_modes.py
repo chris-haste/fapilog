@@ -41,6 +41,26 @@ class TestRedactionFailModeSetting:
         assert builder._config["core"]["fallback_redact_mode"] == "none"
         assert builder._config["core"]["redaction_fail_mode"] == "warn"
 
+    def test_builder_with_fallback_redaction_sets_raw_hardening(self) -> None:
+        """Builder with_fallback_redaction sets raw output hardening params (Story 4.59)."""
+        from fapilog.builder import LoggerBuilder
+
+        builder = LoggerBuilder()
+        builder.with_fallback_redaction(scrub_raw=False, raw_max_bytes=1000)
+
+        assert builder._config["core"]["fallback_scrub_raw"] is False
+        assert builder._config["core"]["fallback_raw_max_bytes"] == 1000
+
+    def test_builder_with_fallback_redaction_raw_max_bytes_omitted(self) -> None:
+        """raw_max_bytes not set when None (default)."""
+        from fapilog.builder import LoggerBuilder
+
+        builder = LoggerBuilder()
+        builder.with_fallback_redaction()
+
+        assert builder._config["core"]["fallback_scrub_raw"] is True
+        assert "fallback_raw_max_bytes" not in builder._config["core"]
+
     def test_explicit_closed(self) -> None:
         """Can set redaction_fail_mode to 'closed'."""
         settings = CoreSettings(redaction_fail_mode="closed")

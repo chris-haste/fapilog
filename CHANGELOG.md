@@ -35,6 +35,10 @@ All notable changes to this project will be documented in this file. This change
 - **Worker event-based wakeup:** The background worker loop now uses `asyncio.Event` signaling instead of fixed 1ms polling when an enqueue event is provided, reducing CPU wakeups when the queue is empty (Story 10.32).
 - **Doc accuracy CI now fails on missing critical files:** The `scripts/check_doc_accuracy.py` script now fails when required documentation files are missing, instead of silently skipping them. This prevents security-sensitive documentation from drifting without CI catching it.
 
+### Added
+
+- **Fallback sink raw output hardening:** When JSON parsing fails for serialized payloads on the fallback path, fapilog now applies keyword scrubbing to mask common secret patterns (`password=`, `token=`, `api_key=`, `authorization:`) before writing to stderr. Optional truncation via `core.fallback_raw_max_bytes` limits output size. Scrubbing is enabled by default; set `FAPILOG_CORE__FALLBACK_SCRUB_RAW=false` to disable for debugging (Story 4.59).
+
 ### Fixed
 
 - **Core redaction guardrails now functional:** The `redaction_max_depth` and `redaction_max_keys_scanned` settings in `CoreSettings` were previously defined but never applied (dead code). They are now passed to `FieldMaskRedactor` and `RegexMaskRedactor` during initialization and act as outer limits that override per-redactor settings when more restrictive (Story 4.57).

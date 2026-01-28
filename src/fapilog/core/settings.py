@@ -838,6 +838,22 @@ class CoreSettings(BaseModel):
             "Summaries are emitted at most once per window."
         ),
     )
+    # Fallback raw output hardening (Story 4.59)
+    fallback_scrub_raw: bool = Field(
+        default=True,
+        description=(
+            "Apply keyword scrubbing to raw (non-JSON) fallback output; "
+            "set to False for debugging when raw output is needed"
+        ),
+    )
+    fallback_raw_max_bytes: int | None = Field(
+        default=None,
+        ge=1,
+        description=(
+            "Optional limit for raw fallback output bytes; "
+            "payloads exceeding this are truncated with '[truncated]' marker"
+        ),
+    )
 
     # Example of a field requiring async validation
     benchmark_file_path: str | None = Field(

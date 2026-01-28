@@ -33,6 +33,21 @@ This is intentional—blocking on the same thread would cause a deadlock since t
 
 See {ref}`guardrails` for complete details on how core and per-redactor guardrails interact, and [Redaction Behavior](../redaction/behavior.md) for what's redacted and **failure mode configuration** for production systems.
 
+### Fallback raw output hardening
+
+When the fallback sink cannot parse a serialized payload as JSON (e.g., binary data or malformed content), it writes raw bytes to stderr. This "safety net" path now includes additional protections:
+
+- **Keyword scrubbing** (default enabled): Applies regex patterns to mask common secret formats like `password=value`, `token=value`, `api_key=value`, and `authorization: Bearer token` before output.
+- **Optional truncation**: Set `core.fallback_raw_max_bytes` to limit raw output size, useful for preventing large payloads from flooding stderr.
+- **Diagnostic metadata**: The warning includes `scrubbed`, `truncated`, and `original_size` fields for observability.
+
+Settings:
+- `core.fallback_scrub_raw=True` (default): Apply keyword scrubbing to raw fallback output
+- `core.fallback_raw_max_bytes=None` (default): No truncation; set to a byte limit to truncate large payloads
+- Set `FAPILOG_CORE__FALLBACK_SCRUB_RAW=false` to disable scrubbing for debugging
+
+**Trade-offs**: Regex scrubbing targets key=value patterns and may not catch all sensitive data in arbitrary formats. For full PII protection, ensure JSON serialization succeeds or configure explicit redactors.
+
 ## Exceptions and diagnostics
 - Exceptions serialized by default: `core.exceptions_enabled=True`
 - Internal diagnostics are off by default: enable with `FAPILOG_CORE__INTERNAL_LOGGING_ENABLED=true` to see worker/sink warnings.
