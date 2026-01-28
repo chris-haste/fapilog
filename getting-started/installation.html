@@ -460,6 +460,38 @@ pip<span class="w"> </span>install<span class="w"> </span>fapilog
 </div>
 </section>
 </section>
+<section id="production-installation">
+<h2>Production Installation<a class="headerlink" href="#production-installation" title="Link to this heading"></a></h2>
+<p>For production deployments, we recommend using our constraints file to pin
+dependencies to tested versions:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Download constraints for your fapilog version</span>
+curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/chris-haste/fapilog/v0.7.0/constraints.txt
+
+<span class="c1"># Install with constraints</span>
+pip<span class="w"> </span>install<span class="w"> </span>fapilog<span class="w"> </span>-c<span class="w"> </span>constraints.txt
+
+<span class="c1"># Or with extras</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;fapilog[fastapi]&quot;</span><span class="w"> </span>-c<span class="w"> </span>constraints.txt
+</pre></div>
+</div>
+<section id="why-use-constraints">
+<h3>Why Use Constraints?<a class="headerlink" href="#why-use-constraints" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Supply chain security</strong>: Pin to versions we’ve tested</p></li>
+<li><p><strong>Reproducibility</strong>: Same versions across environments</p></li>
+<li><p><strong>Stability</strong>: Avoid unexpected behavior from dependency updates</p></li>
+</ul>
+</section>
+<section id="updating-constraints">
+<h3>Updating Constraints<a class="headerlink" href="#updating-constraints" title="Link to this heading"></a></h3>
+<p>Check for updated constraints when upgrading fapilog:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get constraints for new version</span>
+curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/chris-haste/fapilog/v0.8.0/constraints.txt
+pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>fapilog<span class="w"> </span>-c<span class="w"> </span>constraints.txt
+</pre></div>
+</div>
+</section>
+</section>
 <section id="next-steps">
 <h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
 <ul class="simple">
