@@ -165,9 +165,15 @@ def validate_fapilog_compatibility(plugin_metadata: PluginMetadata) -> bool:
 
         return True
 
-    except Exception:
-        # Be permissive on version parsing failures to avoid blocking plugin loading
-        return True
+    except Exception as exc:
+        from ..core import diagnostics
+
+        diagnostics.warn(
+            "plugins",
+            "Plugin compatibility check failed, treating as incompatible",
+            error=str(exc),
+        )
+        return False
 
 
 def create_plugin_metadata(

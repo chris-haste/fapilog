@@ -25,8 +25,7 @@ class SamplingFilter:
     ) -> None:
         cfg = parse_plugin_config(SamplingFilterConfig, config, **kwargs)
         self._rate = cfg.sample_rate
-        if cfg.seed is not None:
-            random.seed(cfg.seed)
+        self._rng = random.Random(cfg.seed)
 
     async def start(self) -> None:
         return None
@@ -39,7 +38,7 @@ class SamplingFilter:
             return event
         if self._rate <= 0.0:
             return None
-        return event if random.random() < self._rate else None
+        return event if self._rng.random() < self._rate else None
 
     @property
     def current_sample_rate(self) -> float:

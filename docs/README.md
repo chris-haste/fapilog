@@ -204,9 +204,9 @@ Before committing documentation changes:
 
 ### Project Resources
 
-- [fapilog Repository](https://github.com/your-username/fapilog)
-- [Issue Tracker](https://github.com/your-username/fapilog/issues)
-- [Discussions](https://github.com/your-username/fapilog/discussions)
+- [fapilog Repository](https://github.com/chris-haste/fapilog)
+- [Issue Tracker](https://github.com/chris-haste/fapilog/issues)
+- [Discussions](https://github.com/chris-haste/fapilog/discussions)
 
 ---
 

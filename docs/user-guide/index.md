@@ -15,6 +15,7 @@ using-logger
 context-enrichment
 rotating-file-sink
 sink-routing
+sampling
 graceful-shutdown
 performance-tuning
 benchmarks

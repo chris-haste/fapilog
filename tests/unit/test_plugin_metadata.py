@@ -380,8 +380,10 @@ class TestValidateFapilogCompatibility:
 
     @patch("fapilog.plugins.metadata.importlib.metadata.version")
     @patch("fapilog.__version__", "invalid-version-string")
-    def test_version_parsing_error_permissive(self, mock_version: Any) -> None:
-        """Test version parsing error returns True (permissive)."""
+    def test_version_parsing_error_returns_false_and_warns(
+        self, mock_version: Any
+    ) -> None:
+        """Test version parsing error returns False and emits diagnostic warning."""
         mock_version.side_effect = Exception("Version not found")
 
         metadata = PluginMetadata(
@@ -393,8 +395,33 @@ class TestValidateFapilogCompatibility:
             entry_point="test_plugin.main",
             compatibility=PluginCompatibility(min_fapilog_version="3.0.0"),
         )
-        # Should return True on errors (permissive fallback behavior)
-        assert validate_fapilog_compatibility(metadata) is True
+
+        warnings: list[dict[str, Any]] = []
+
+        def capture_warning(payload: dict[str, Any]) -> None:
+            warnings.append(payload)
+
+        from fapilog.core import diagnostics
+
+        original_writer = diagnostics._writer
+        original_enabled = diagnostics._internal_logging_enabled
+        diagnostics.set_writer_for_tests(capture_warning)
+        diagnostics.configure_diagnostics(True)
+        diagnostics._reset_for_tests()
+
+        try:
+            # Should return False on errors (fail-safe behavior)
+            result = validate_fapilog_compatibility(metadata)
+            assert result is False
+
+            # Should emit a diagnostic warning
+            assert len(warnings) == 1
+            assert warnings[0]["component"] == "plugins"
+            assert "compatibility check failed" in warnings[0]["message"].lower()
+            assert "error" in warnings[0]
+        finally:
+            diagnostics._writer = original_writer
+            diagnostics._internal_logging_enabled = original_enabled
 
     @patch("fapilog.plugins.metadata.importlib.metadata.version")
     def test_fallback_to_local_version(self, mock_version: Any) -> None:
