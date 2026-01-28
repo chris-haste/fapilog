@@ -4,10 +4,15 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+### Breaking Changes
+
+- **Removed deprecated `SignatureMode.HEADER` from webhook sink:** The insecure `header` signature mode that sent secrets in plain `X-Webhook-Secret` headers has been removed. All webhook authentication now uses HMAC-SHA256 signatures via `X-Fapilog-Signature-256`. This was flagged as a security risk in the v0.7.0 audit. If you were explicitly using `signature_mode="header"`, remove that parameter to use the secure default.
+
 ### Changed
 
 - **Production preset disables Postgres auto-DDL:** The `production` preset now sets `create_table=False` for Postgres sink configuration, requiring explicit table provisioning via migrations. This prevents unexpected DDL execution in regulated environments (Story 10.32).
 - **Worker event-based wakeup:** The background worker loop now uses `asyncio.Event` signaling instead of fixed 1ms polling when an enqueue event is provided, reducing CPU wakeups when the queue is empty (Story 10.32).
+- **Doc accuracy CI now fails on missing critical files:** The `scripts/check_doc_accuracy.py` script now fails when required documentation files are missing, instead of silently skipping them. This prevents security-sensitive documentation from drifting without CI catching it.
 
 ### Fixed
 
