@@ -238,8 +238,6 @@ exclude_patterns = [
     "README.md",
     "ci-configuration.md",
     "milestones.md",
-    "v3-migration-plan.md",
-    "v2-excellence-preservation.md",
     "architecture.md",
     "architecture-diagrams.md",
     "contributing.md",
