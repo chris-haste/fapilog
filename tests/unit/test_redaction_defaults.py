@@ -227,3 +227,48 @@ class TestPresetConsistency:
             f"Preset mismatch - update docs if presets changed. "
             f"Expected: {expected_presets}, Got: {actual_presets}"
         )
+
+
+class TestFailClosedDefaults:
+    """Verify fail-closed defaults for redaction security.
+
+    Story 4.61: Redaction should fail-closed by default to prevent PII leaks.
+    """
+
+    def test_on_guardrail_exceeded_default_is_replace_subtree(self) -> None:
+        """AC1: FieldMaskConfig.on_guardrail_exceeded defaults to replace_subtree.
+
+        When guardrails are exceeded, unscanned data should be masked (not passed through).
+        """
+        from fapilog.plugins.redactors.field_mask import FieldMaskConfig
+
+        config = FieldMaskConfig(fields_to_mask=["password"])
+        assert config.on_guardrail_exceeded == "replace_subtree"
+
+    def test_block_on_unredactable_default_is_true(self) -> None:
+        """AC2: FieldMaskConfig.block_on_unredactable defaults to True.
+
+        If a configured field can't be redacted, the event should be dropped.
+        """
+        from fapilog.plugins.redactors.field_mask import FieldMaskConfig
+
+        config = FieldMaskConfig(fields_to_mask=["password"])
+        assert config.block_on_unredactable is True
+
+    def test_redaction_fail_mode_default_is_warn(self) -> None:
+        """AC3: CoreSettings.redaction_fail_mode defaults to warn.
+
+        On redaction exceptions, emit diagnostic (don't silently pass through).
+        """
+        settings = Settings()
+        assert settings.core.redaction_fail_mode == "warn"
+
+    def test_plugin_metadata_defaults_are_fail_closed(self) -> None:
+        """PLUGIN_METADATA default_config should match fail-closed defaults."""
+        from typing import Any, cast
+
+        from fapilog.plugins.redactors.field_mask import PLUGIN_METADATA
+
+        defaults = cast(dict[str, Any], PLUGIN_METADATA["default_config"])
+        assert defaults["on_guardrail_exceeded"] == "replace_subtree"
+        assert defaults["block_on_unredactable"] is True

@@ -208,11 +208,11 @@ The FieldMaskRedactor supports configurable behavior when guardrails are exceede
 
 | Mode | Behavior | Use Case |
 |------|----------|----------|
-| `"warn"` (default) | Emit diagnostic, continue with partial redaction | Development, debugging |
+| `"warn"` | Emit diagnostic, continue with partial redaction | Development, debugging |
 | `"drop"` | Emit diagnostic, drop the entire event | High-security compliance |
-| `"replace_subtree"` | Emit diagnostic, replace unscanned subtree with mask | Balanced security/availability |
+| `"replace_subtree"` (default) | Emit diagnostic, replace unscanned subtree with mask | Balanced security/availability |
 
-Configure via settings:
+To opt into fail-open behavior for debugging:
 ```python
 from fapilog.plugins.redactors.field_mask import FieldMaskConfig
 
@@ -221,7 +221,7 @@ Settings(
         field_mask=FieldMaskConfig(
             fields_to_mask=["password"],
             max_depth=4,
-            on_guardrail_exceeded="replace_subtree",
+            on_guardrail_exceeded="warn",  # Fail-open for debugging
         )
     )
 )
@@ -253,9 +253,15 @@ Fapilog provides multiple layers of redaction failure protection:
 
 | Setting | Scope | Purpose | Default |
 |---------|-------|---------|---------|
-| `redactor_config.*.block_on_unredactable` | Per-redactor | Block when redactor can't process a value | `False` |
+| `redactor_config.field_mask.block_on_unredactable` | Per-redactor | Drop event when redactor can't process a value | `True` |
+| `redactor_config.field_mask.on_guardrail_exceeded` | Per-redactor | Behavior when depth/keys guardrails hit | `"replace_subtree"` |
 | `core.fallback_redact_mode` | Fallback sink | How to redact payloads on stderr fallback | `"minimal"` |
-| `core.redaction_fail_mode` | Global pipeline | What to do when `_apply_redactors()` throws | `"open"` |
+| `core.redaction_fail_mode` | Global pipeline | What to do when `_apply_redactors()` throws | `"warn"` |
+
+All redaction settings default to **fail-closed** behavior to prevent PII leakage. To opt into fail-open behavior for debugging, explicitly set:
+- `block_on_unredactable=False`
+- `on_guardrail_exceeded="warn"`
+- `redaction_fail_mode="open"`
 
 ### Per-Redactor Behavior (`block_on_unredactable`)
 

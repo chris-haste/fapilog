@@ -65,9 +65,9 @@ async def test_numeric_index_ignored_on_dict() -> None:
 @pytest.mark.asyncio
 async def test_on_guardrail_exceeded_config_option() -> None:
     """AC1: Config accepts on_guardrail_exceeded with valid modes."""
-    # Default is "warn"
+    # Default is "replace_subtree" (fail-closed, Story 4.61)
     config = FieldMaskConfig(fields_to_mask=["password"])
-    assert config.on_guardrail_exceeded == "warn"
+    assert config.on_guardrail_exceeded == "replace_subtree"
 
     # Explicit modes
     for mode in ("warn", "drop", "replace_subtree"):

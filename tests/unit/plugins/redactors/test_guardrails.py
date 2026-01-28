@@ -23,10 +23,12 @@ class TestFieldMaskGuardrails:
     async def test_core_max_depth_overrides_plugin_when_more_restrictive(self) -> None:
         """Core max_depth=3 should override plugin default of 16."""
         # Plugin default is max_depth=16, but core says max_depth=3
+        # Use on_guardrail_exceeded="warn" to test guardrail limits (not masking behavior)
         redactor = FieldMaskRedactor(
             config=FieldMaskConfig(
                 fields_to_mask=["level1.level2.level3.level4.secret"],
                 max_depth=16,  # Plugin setting
+                on_guardrail_exceeded="warn",  # Test limit behavior, not masking
             ),
             core_max_depth=3,  # Core override - more restrictive
         )
@@ -53,6 +55,7 @@ class TestFieldMaskGuardrails:
             config=FieldMaskConfig(
                 fields_to_mask=["level1.level2.level3.secret"],
                 max_depth=2,  # Plugin setting - more restrictive
+                on_guardrail_exceeded="warn",  # Test limit behavior, not masking
             ),
             core_max_depth=20,  # Core allows more depth
         )
@@ -71,6 +74,7 @@ class TestFieldMaskGuardrails:
             config=FieldMaskConfig(
                 fields_to_mask=["data.*.secret"],
                 max_keys_scanned=1000,  # Plugin setting
+                on_guardrail_exceeded="warn",  # Test limit behavior, not masking
             ),
             core_max_keys_scanned=5,  # Core override - more restrictive
         )
@@ -115,6 +119,7 @@ class TestFieldMaskGuardrails:
                 fields_to_mask=["a.b.c.d.e.secret"],
                 max_depth=20,
                 max_keys_scanned=10000,
+                on_guardrail_exceeded="warn",  # Test limit behavior, not masking
             ),
             core_max_depth=4,
             core_max_keys_scanned=10,
