@@ -1,113 +1,3 @@
-# Story 12.18: stdlib Bridge User Documentation
-
-**Status:** Complete
-**Priority:** Medium
-**Depends on:** None
-
----
-
-## Context / Background
-
-An external audit (GPT-5.2 assessment, 2026-01-27) identified:
-
-> "Provide compatibility guidance for integrating with stdlib logging and common frameworks (Django, Celery), with recipes that are executed in CI."
-> Evidence: stdlib_bridge exists (repo tree shows /src/fapilog/core/stdlib_bridge.py), but I didn't audit docs coverage for it.
-
-The `enable_stdlib_bridge()` function exists in `src/fapilog/core/stdlib_bridge.py` and provides:
-- Bridging stdlib `logging` to fapilog's async pipeline
-- Loop prevention for fapilog's internal logs
-- Level mapping from stdlib to fapilog
-
-However, this functionality is not documented in user-facing docs. Users who want to:
-- Capture third-party library logs (requests, sqlalchemy, etc.)
-- Migrate gradually from stdlib logging
-- Use fapilog with frameworks that use stdlib logging
-
-...have no documentation to guide them.
-
----
-
-## Scope (In / Out)
-
-### In Scope
-
-- Create `docs/user-guide/stdlib-bridge.md` documentation
-- Document `enable_stdlib_bridge()` API and options
-- Provide examples for common use cases (Django, Celery, third-party libs)
-- Add to docs navigation
-
-### Out of Scope
-
-- Creating new stdlib bridge features
-- Full Django/Celery integration guides (separate stories)
-- Testing stdlib bridge in CI (could be follow-up)
-
----
-
-## Acceptance Criteria
-
-### AC1: Documentation exists
-
-**Description:** User-facing documentation for stdlib bridge is created.
-
-**Validation:**
-```bash
-test -f docs/user-guide/stdlib-bridge.md
-```
-
-### AC2: API documented
-
-**Description:** Document explains `enable_stdlib_bridge()` parameters and behavior.
-
-**Validation:**
-```bash
-grep -i "enable_stdlib_bridge" docs/user-guide/stdlib-bridge.md
-grep -i "level\|capture_warnings\|target_loggers" docs/user-guide/stdlib-bridge.md
-```
-
-### AC3: Basic example provided
-
-**Description:** Document includes a working example of enabling the bridge.
-
-**Validation:**
-```bash
-grep -A10 "```python" docs/user-guide/stdlib-bridge.md | grep -i "enable_stdlib_bridge"
-```
-
-### AC4: Third-party library example
-
-**Description:** Document shows how to capture logs from third-party libraries.
-
-**Validation:**
-```bash
-grep -i "requests\|sqlalchemy\|urllib3\|third.party\|library" docs/user-guide/stdlib-bridge.md
-```
-
-### AC5: Framework guidance
-
-**Description:** Document mentions Django/Celery integration patterns.
-
-**Validation:**
-```bash
-grep -i "django\|celery\|framework" docs/user-guide/stdlib-bridge.md
-```
-
-### AC6: Added to navigation
-
-**Description:** Document is accessible from docs navigation.
-
-**Validation:**
-```bash
-grep -i "stdlib\|bridge" docs/user-guide/index.md
-```
-
----
-
-## Implementation Notes
-
-### Document Structure
-
-```markdown
 # stdlib Logging Bridge
 
 Capture Python's standard library `logging` output in fapilog's structured pipeline.
@@ -115,6 +5,7 @@ Capture Python's standard library `logging` output in fapilog's structured pipel
 ## Overview
 
 Many Python libraries use the standard `logging` module. The stdlib bridge lets you:
+
 - Capture third-party library logs in fapilog's structured format
 - Migrate gradually from stdlib to fapilog
 - Unify all application logs in a single pipeline
@@ -218,6 +109,7 @@ Django uses stdlib logging extensively. To unify with fapilog:
 
 ```python
 # settings.py or apps.py
+import logging
 import fapilog
 from fapilog.core.stdlib_bridge import enable_stdlib_bridge
 
@@ -241,6 +133,7 @@ Celery workers use stdlib logging for task execution:
 
 ```python
 # celery.py or tasks.py
+import logging
 from celery.signals import worker_process_init
 import fapilog
 from fapilog.core.stdlib_bridge import enable_stdlib_bridge
@@ -308,6 +201,7 @@ enable_stdlib_bridge(logger, logger_namespace_prefix="myapp.fapilog")
 ### Duplicate Logs
 
 If you see duplicate logs:
+
 ```python
 # Remove existing handlers when enabling bridge
 enable_stdlib_bridge(logger, remove_existing_handlers=True)
@@ -316,83 +210,8 @@ enable_stdlib_bridge(logger, remove_existing_handlers=True)
 ### Import Errors
 
 If `enable_stdlib_bridge` is not found:
+
 ```python
 # Full import path
 from fapilog.core.stdlib_bridge import enable_stdlib_bridge
 ```
-```
-
----
-
-## Tasks
-
-- [ ] Create `docs/user-guide/stdlib-bridge.md`
-- [ ] Add to `docs/user-guide/index.md` navigation
-- [ ] Verify code examples are accurate
-- [ ] Run docs build
-
----
-
-## Definition of Done
-
-### Code Complete
-
-- [x] Documentation created
-- [x] All sections complete
-- [x] Added to navigation
-
-### Quality Assurance
-
-- [x] Docs build passes
-- [x] Code examples tested
-- [x] API matches actual implementation
-
-### Documentation
-
-- [x] CHANGELOG updated
-
----
-
-## Related Stories
-
-- **Origin:** GPT-5.2 External Audit (2026-01-27)
-- **Follow-up:** Django integration cookbook
-- **Follow-up:** Celery integration cookbook
-
----
-
-## Code Review
-
-**Date:** 2026-01-27
-**Reviewer:** Claude
-**Verdict:** OK to PR
-
-### Summary
-
-Reviewed stdlib bridge user documentation with API reference, common use cases, Django/Celery integration examples, and troubleshooting guide.
-
-### AC Verification
-
-| Criterion | Evidence |
-|-----------|----------|
-| AC1: Documentation exists | `docs/user-guide/stdlib-bridge.md` - new 217-line file |
-| AC2: API documented | `stdlib-bridge.md:32-61` - full signature + parameter table |
-| AC3: Basic example | `stdlib-bridge.md:14-27` - Quick Start section |
-| AC4: Third-party library example | `stdlib-bridge.md:71-82` - requests/sqlalchemy example |
-| AC5: Framework guidance | `stdlib-bridge.md:94-140` - Django and Celery sections |
-| AC6: Added to navigation | `index.md:22` - added to toctree |
-
-### Quality Gates
-
-- [x] Docs build passes
-- [x] API matches implementation (`stdlib_bridge.py:245-256`)
-- [x] Level mapping matches code (`stdlib_bridge.py:203-213`)
-- [x] CHANGELOG updated
-
----
-
-## Change Log
-
-| Date | Change | Author |
-|------|--------|--------|
-| 2026-01-27 | Initial draft from audit findings | Claude |
