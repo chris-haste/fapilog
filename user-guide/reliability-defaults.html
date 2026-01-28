@@ -262,6 +262,22 @@
 <li><p>Guardrails: <code class="docutils literal notranslate"><span class="pre">core.redaction_max_depth=6</span></code>, <code class="docutils literal notranslate"><span class="pre">core.redaction_max_keys_scanned=5000</span></code></p></li>
 </ul>
 <p>See <a class="reference internal" href="../redaction/behavior.html#guardrails"><span class="std std-ref">Guardrails</span></a> for complete details on how core and per-redactor guardrails interact, and <a class="reference internal" href="../redaction/behavior.html"><span class="std std-doc">Redaction Behavior</span></a> for what’s redacted and <strong>failure mode configuration</strong> for production systems.</p>
+<section id="fallback-raw-output-hardening">
+<h3>Fallback raw output hardening<a class="headerlink" href="#fallback-raw-output-hardening" title="Link to this heading"></a></h3>
+<p>When the fallback sink cannot parse a serialized payload as JSON (e.g., binary data or malformed content), it writes raw bytes to stderr. This “safety net” path now includes additional protections:</p>
+<ul class="simple">
+<li><p><strong>Keyword scrubbing</strong> (default enabled): Applies regex patterns to mask common secret formats like <code class="docutils literal notranslate"><span class="pre">password=value</span></code>, <code class="docutils literal notranslate"><span class="pre">token=value</span></code>, <code class="docutils literal notranslate"><span class="pre">api_key=value</span></code>, and <code class="docutils literal notranslate"><span class="pre">authorization:</span> <span class="pre">Bearer</span> <span class="pre">token</span></code> before output.</p></li>
+<li><p><strong>Optional truncation</strong>: Set <code class="docutils literal notranslate"><span class="pre">core.fallback_raw_max_bytes</span></code> to limit raw output size, useful for preventing large payloads from flooding stderr.</p></li>
+<li><p><strong>Diagnostic metadata</strong>: The warning includes <code class="docutils literal notranslate"><span class="pre">scrubbed</span></code>, <code class="docutils literal notranslate"><span class="pre">truncated</span></code>, and <code class="docutils literal notranslate"><span class="pre">original_size</span></code> fields for observability.</p></li>
+</ul>
+<p>Settings:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">core.fallback_scrub_raw=True</span></code> (default): Apply keyword scrubbing to raw fallback output</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">core.fallback_raw_max_bytes=None</span></code> (default): No truncation; set to a byte limit to truncate large payloads</p></li>
+<li><p>Set <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__FALLBACK_SCRUB_RAW=false</span></code> to disable scrubbing for debugging</p></li>
+</ul>
+<p><strong>Trade-offs</strong>: Regex scrubbing targets key=value patterns and may not catch all sensitive data in arbitrary formats. For full PII protection, ensure JSON serialization succeeds or configure explicit redactors.</p>
+</section>
 </section>
 <section id="exceptions-and-diagnostics">
 <h2>Exceptions and diagnostics<a class="headerlink" href="#exceptions-and-diagnostics" title="Link to this heading"></a></h2>

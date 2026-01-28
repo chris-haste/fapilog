@@ -340,10 +340,20 @@
 <td><p>20000</p></td>
 <td><p>Maximum total characters for serialized stack string</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__FALLBACK_REDACT_MODE</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__FALLBACK_RAW_MAX_BYTES</span></code></p></td>
+<td><p>int</p></td>
+<td><p>None</p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__FALLBACK_REDACT_MODE</span></code></p></td>
 <td><p>Literal</p></td>
 <td><p>minimal</p></td>
 <td><p>Redaction mode for fallback stderr output: ‘inherit’ uses pipeline redactors, ‘minimal’ applies built-in sensitive field masking, ‘none’ writes unredacted (opt-in to legacy behavior)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__FALLBACK_SCRUB_RAW</span></code></p></td>
+<td><p>bool</p></td>
+<td><p>True</p></td>
+<td><p>Apply keyword scrubbing to raw (non-JSON) fallback output; set to False for debugging when raw output is needed</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__FILTERS</span></code></p></td>
 <td><p>list</p></td>
