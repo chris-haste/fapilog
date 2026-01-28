@@ -183,6 +183,38 @@ source venv/bin/activate
 pip install fapilog
 ```
 
+## Production Installation
+
+For production deployments, we recommend using our constraints file to pin
+dependencies to tested versions:
+
+```bash
+# Download constraints for your fapilog version
+curl -O https://raw.githubusercontent.com/chris-haste/fapilog/v0.7.0/constraints.txt
+
+# Install with constraints
+pip install fapilog -c constraints.txt
+
+# Or with extras
+pip install "fapilog[fastapi]" -c constraints.txt
+```
+
+### Why Use Constraints?
+
+- **Supply chain security**: Pin to versions we've tested
+- **Reproducibility**: Same versions across environments
+- **Stability**: Avoid unexpected behavior from dependency updates
+
+### Updating Constraints
+
+Check for updated constraints when upgrading fapilog:
+
+```bash
+# Get constraints for new version
+curl -O https://raw.githubusercontent.com/chris-haste/fapilog/v0.8.0/constraints.txt
+pip install --upgrade fapilog -c constraints.txt
+```
+
 ## Next Steps
 
 - **[Quickstart](quickstart.md)** - Start logging in 2 minutes
