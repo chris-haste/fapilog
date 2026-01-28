@@ -1,6 +1,7 @@
 """Tests for redaction fail mode behavior in LoggerWorker.
 
 Story 4.54: Redaction Fail-Closed Mode and Fallback Hardening
+Story 4.61: Align Worker Redaction Fail Mode Default with Settings
 """
 
 from __future__ import annotations
@@ -11,6 +12,28 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from fapilog.core.settings import CoreSettings
+
+
+class TestRedactionFailModeDefaultAlignment:
+    """Story 4.61: Worker and Settings defaults must be aligned."""
+
+    def test_worker_redaction_fail_mode_matches_settings(self) -> None:
+        """Regression test: LoggerWorker default must match CoreSettings default.
+
+        Story 4.61 AC1/AC3: Prevents silent security regression from default drift.
+        """
+        import inspect
+
+        from fapilog.core.worker import LoggerWorker
+
+        worker_sig = inspect.signature(LoggerWorker.__init__)
+        worker_default = worker_sig.parameters["redaction_fail_mode"].default
+        settings_default = CoreSettings.model_fields["redaction_fail_mode"].default
+
+        assert worker_default == settings_default, (
+            f"LoggerWorker.redaction_fail_mode default ({worker_default}) "
+            f"must match CoreSettings default ({settings_default})"
+        )
 
 
 class TestRedactionFailModeSetting:
