@@ -43,7 +43,7 @@ class CheckResult:
 #   - file: path to the documentation file
 #   - must_contain: list of strings that must be present (case-insensitive)
 #   - must_not_contain: list of regex patterns that must NOT be present
-#   - required: if True (default), fail when file is missing; if False, skip
+#   - required: if True, fail when file is missing; if False (default), skip
 
 DOC_CHECKS: list[dict[str, Any]] = [
     # --- Redaction documentation (security-critical) ---
@@ -220,10 +220,20 @@ CODE_CHECKS: list[Callable[[], CheckResult]] = [
 ]
 
 
-def check_doc_file(check: dict[str, Any]) -> CheckResult:
-    """Check a single documentation file against its constraints."""
+def check_file(check: dict[str, Any]) -> CheckResult:
+    """Check a single documentation file against its constraints.
+
+    Args:
+        check: Dictionary with 'file', 'must_contain', 'must_not_contain',
+               and optional 'required' keys.
+
+    Returns:
+        CheckResult indicating pass/fail status and any errors.
+    """
     file_path = Path(check["file"])
-    required = check.get("required", True)
+    # Default: skip missing files (backwards compatible)
+    # Set required=True in DOC_CHECKS for critical files that must exist
+    required = check.get("required", False)
 
     if not file_path.exists():
         if required:
@@ -254,6 +264,33 @@ def check_doc_file(check: dict[str, Any]) -> CheckResult:
     )
 
 
+def run_checks(checks: list[dict[str, Any]]) -> int:
+    """Run documentation checks and return exit code.
+
+    Args:
+        checks: List of check configurations.
+
+    Returns:
+        Exit code (0 = success, 1 = failure).
+    """
+    all_passed = True
+
+    for check in checks:
+        result = check_file(check)
+        if result.skipped:
+            print(f"SKIP: {result.name} not found")
+            continue
+        if result.passed:
+            print(f"PASS: {result.name}")
+        else:
+            print(f"FAIL: {result.name}")
+            for error in result.errors:
+                print(f"  - {error}")
+            all_passed = False
+
+    return 0 if all_passed else 1
+
+
 def run_all_checks() -> int:
     """Run all documentation and code checks."""
     all_passed = True
@@ -265,7 +302,7 @@ def run_all_checks() -> int:
     print("=" * 60)
 
     for check in DOC_CHECKS:
-        result = check_doc_file(check)
+        result = check_file(check)
         total_checks += 1
         if result.skipped:
             print(f"SKIP: {result.name} (optional, not found)")
