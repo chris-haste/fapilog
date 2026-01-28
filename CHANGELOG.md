@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file. This change
 
 ### Fixed
 
+- **Core redaction guardrails now functional:** The `redaction_max_depth` and `redaction_max_keys_scanned` settings in `CoreSettings` were previously defined but never applied (dead code). They are now passed to `FieldMaskRedactor` and `RegexMaskRedactor` during initialization and act as outer limits that override per-redactor settings when more restrictive (Story 4.57).
 - **Silent data loss in `write_serialized`:** Fixed correctness issue where HTTP, Webhook, Loki, CloudWatch, and PostgreSQL sinks silently replaced log data with placeholder values (e.g., `{"message": "fallback"}`) when deserialization failed. All sinks now raise `SinkWriteError` with diagnostics, enabling proper fallback and circuit breaker handling (Story 4.53).
 - **Plugin metadata version default:** Changed `create_plugin_metadata()` default `min_fapilog_version` from `"3.0.0"` to `"0.1.0"`. The previous default was incorrect for a 0.x project and caused compatibility check failures for plugin authors (Story 10.32).
 

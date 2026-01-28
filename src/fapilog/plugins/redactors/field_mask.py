@@ -22,7 +22,12 @@ class FieldMaskRedactor:
     name = "field_mask"
 
     def __init__(
-        self, *, config: FieldMaskConfig | dict | None = None, **kwargs: Any
+        self,
+        *,
+        config: FieldMaskConfig | dict | None = None,
+        core_max_depth: int | None = None,
+        core_max_keys_scanned: int | None = None,
+        **kwargs: Any,
     ) -> None:
         cfg = parse_plugin_config(FieldMaskConfig, config, **kwargs)
         # Normalize
@@ -32,8 +37,21 @@ class FieldMaskRedactor:
         ]
         self._mask = str(cfg.mask_string)
         self._block = bool(cfg.block_on_unredactable)
-        self._max_depth = int(cfg.max_depth)
-        self._max_scanned = int(cfg.max_keys_scanned)
+
+        # Apply "more restrictive wins" logic for guardrails
+        # Core guardrails override plugin settings when more restrictive
+        plugin_depth = int(cfg.max_depth)
+        plugin_scanned = int(cfg.max_keys_scanned)
+
+        if core_max_depth is not None:
+            self._max_depth = min(plugin_depth, core_max_depth)
+        else:
+            self._max_depth = plugin_depth
+
+        if core_max_keys_scanned is not None:
+            self._max_scanned = min(plugin_scanned, core_max_keys_scanned)
+        else:
+            self._max_scanned = plugin_scanned
 
     async def start(self) -> None:  # pragma: no cover - optional
         return None

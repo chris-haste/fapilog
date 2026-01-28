@@ -193,11 +193,30 @@ def _redactor_configs(settings: _Settings) -> dict[str, dict[str, _Any]]:
 
     Returns:
         Dictionary mapping redactor names to their configuration dictionaries.
+
+    Note:
+        Core guardrails (redaction_max_depth, redaction_max_keys_scanned) are
+        passed to redactors that support them. These act as outer limits that
+        override per-redactor settings when more restrictive.
     """
     rcfg = settings.redactor_config
+    core = settings.core
+
+    # Core guardrails to pass to redactors (None means no core override)
+    core_max_depth = core.redaction_max_depth
+    core_max_keys = core.redaction_max_keys_scanned
+
     cfg: dict[str, dict[str, _Any]] = {
-        "field_mask": {"config": _FieldMaskConfig(**rcfg.field_mask.model_dump())},
-        "regex_mask": {"config": _RegexMaskConfig(**rcfg.regex_mask.model_dump())},
+        "field_mask": {
+            "config": _FieldMaskConfig(**rcfg.field_mask.model_dump()),
+            "core_max_depth": core_max_depth,
+            "core_max_keys_scanned": core_max_keys,
+        },
+        "regex_mask": {
+            "config": _RegexMaskConfig(**rcfg.regex_mask.model_dump()),
+            "core_max_depth": core_max_depth,
+            "core_max_keys_scanned": core_max_keys,
+        },
         "url_credentials": {
             "config": _UrlCredentialsConfig(**rcfg.url_credentials.model_dump())
         },
