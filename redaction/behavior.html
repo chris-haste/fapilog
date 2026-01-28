@@ -387,8 +387,45 @@ Masks specific field paths under `data.*`. With production/fastapi/serverless pr
 <p>This order ensures explicit masking takes precedence, followed by broader patterns, then URL cleanup.</p>
 </section>
 <section id="guardrails">
-<h2>Guardrails<a class="headerlink" href="#guardrails" title="Link to this heading"></a></h2>
-<p>Redaction includes safety limits to prevent performance issues with deeply nested or large objects:</p>
+<span id="id1"></span><h2>Guardrails<a class="headerlink" href="#guardrails" title="Link to this heading"></a></h2>
+<p>Redaction includes safety limits to prevent performance issues with deeply nested or large objects. There are two levels of guardrails: <strong>core pipeline guardrails</strong> that apply globally, and <strong>per-redactor guardrails</strong> that each redactor can configure.</p>
+<section id="core-pipeline-guardrails">
+<h3>Core Pipeline Guardrails<a class="headerlink" href="#core-pipeline-guardrails" title="Link to this heading"></a></h3>
+<p>These settings apply as outer limits across all redactors:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.redaction_max_depth</span></code></p></td>
+<td><p>6</p></td>
+<td><p>Maximum nesting level for all redactors</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.redaction_max_keys_scanned</span></code></p></td>
+<td><p>5000</p></td>
+<td><p>Maximum keys scanned across all redactors</p></td>
+</tr>
+</tbody>
+</table>
+<p>Configure via builder:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_core</span><span class="p">(</span><span class="n">redaction_max_depth</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">redaction_max_keys_scanned</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Or via settings:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Settings</span><span class="p">(</span><span class="n">core</span><span class="o">=</span><span class="n">CoreSettings</span><span class="p">(</span><span class="n">redaction_max_depth</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">redaction_max_keys_scanned</span><span class="o">=</span><span class="mi">10000</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="per-redactor-guardrails">
+<h3>Per-Redactor Guardrails<a class="headerlink" href="#per-redactor-guardrails" title="Link to this heading"></a></h3>
+<p>Each redactor has its own guardrails (used when less restrictive than core):</p>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Setting</p></th>
@@ -399,20 +436,14 @@ Masks specific field paths under `data.*`. With production/fastapi/serverless pr
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_depth</span></code></p></td>
 <td><p>16</p></td>
-<td><p>Maximum nesting level to traverse</p></td>
+<td><p>Per-redactor traversal limit</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max_keys_scanned</span></code></p></td>
 <td><p>1000</p></td>
-<td><p>Maximum keys to examine per event</p></td>
+<td><p>Per-redactor key limit</p></td>
 </tr>
 </tbody>
 </table>
-<p>If limits are exceeded:</p>
-<ul class="simple">
-<li><p>A diagnostic warning is emitted</p></li>
-<li><p>Remaining fields are not scanned</p></li>
-<li><p>Best-effort redaction is applied to already-scanned fields</p></li>
-</ul>
 <p>Configure via builder:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">LoggerBuilder</span><span class="p">()</span>
@@ -421,6 +452,43 @@ Masks specific field paths under `data.*`. With production/fastapi/serverless pr
 <span class="p">)</span>
 </pre></div>
 </div>
+</section>
+<section id="guardrail-precedence">
+<h3>Guardrail Precedence<a class="headerlink" href="#guardrail-precedence" title="Link to this heading"></a></h3>
+<p>The <strong>more restrictive</strong> value always applies:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Core Setting</p></th>
+<th class="head"><p>Plugin Setting</p></th>
+<th class="head"><p>Effective Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_depth=6</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">max_depth=16</span></code></p></td>
+<td><p>6 (core wins)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max_depth=20</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">max_depth=5</span></code></p></td>
+<td><p>5 (plugin wins)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_depth=None</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">max_depth=16</span></code></p></td>
+<td><p>16 (plugin default)</p></td>
+</tr>
+</tbody>
+</table>
+<p>This ensures that core guardrails act as hard limits that cannot be exceeded by individual redactor configurations.</p>
+</section>
+<section id="guardrail-behavior">
+<h3>Guardrail Behavior<a class="headerlink" href="#guardrail-behavior" title="Link to this heading"></a></h3>
+<p>If limits are exceeded:</p>
+<ul class="simple">
+<li><p>A diagnostic warning is emitted</p></li>
+<li><p>Remaining fields are not scanned</p></li>
+<li><p>Best-effort redaction is applied to already-scanned fields</p></li>
+</ul>
+</section>
 </section>
 <section id="failure-handling">
 <h2>Failure Handling<a class="headerlink" href="#failure-handling" title="Link to this heading"></a></h2>
