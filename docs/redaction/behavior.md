@@ -271,8 +271,8 @@ Individual redactors can block on unparseable values:
 ```
 
 When a redactor encounters a value it cannot process:
-- `False` (default): Original value preserved, diagnostic warning emitted
-- `True`: Log event is dropped, diagnostic warning emitted
+- `True` (default): Log event is dropped, diagnostic warning emitted
+- `False`: Original value preserved, diagnostic warning emitted
 
 ### Global Pipeline Behavior (`redaction_fail_mode`)
 
