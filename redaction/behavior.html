@@ -480,14 +480,80 @@ Masks specific field paths under `data.*`. With production/fastapi/serverless pr
 </table>
 <p>This ensures that core guardrails act as hard limits that cannot be exceeded by individual redactor configurations.</p>
 </section>
-<section id="guardrail-behavior">
-<h3>Guardrail Behavior<a class="headerlink" href="#guardrail-behavior" title="Link to this heading"></a></h3>
-<p>If limits are exceeded:</p>
-<ul class="simple">
-<li><p>A diagnostic warning is emitted</p></li>
-<li><p>Remaining fields are not scanned</p></li>
-<li><p>Best-effort redaction is applied to already-scanned fields</p></li>
-</ul>
+<section id="guardrail-behavior-on-guardrail-exceeded">
+<h3>Guardrail Behavior (<code class="docutils literal notranslate"><span class="pre">on_guardrail_exceeded</span></code>)<a class="headerlink" href="#guardrail-behavior-on-guardrail-exceeded" title="Link to this heading"></a></h3>
+<p>The FieldMaskRedactor supports configurable behavior when guardrails are exceeded via the <code class="docutils literal notranslate"><span class="pre">on_guardrail_exceeded</span></code> option:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Mode</p></th>
+<th class="head"><p>Behavior</p></th>
+<th class="head"><p>Use Case</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;warn&quot;</span></code> (default)</p></td>
+<td><p>Emit diagnostic, continue with partial redaction</p></td>
+<td><p>Development, debugging</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;drop&quot;</span></code></p></td>
+<td><p>Emit diagnostic, drop the entire event</p></td>
+<td><p>High-security compliance</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;replace_subtree&quot;</span></code></p></td>
+<td><p>Emit diagnostic, replace unscanned subtree with mask</p></td>
+<td><p>Balanced security/availability</p></td>
+</tr>
+</tbody>
+</table>
+<p>Configure via settings:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.redactors.field_mask</span><span class="w"> </span><span class="kn">import</span> <span class="n">FieldMaskConfig</span>
+
+<span class="n">Settings</span><span class="p">(</span>
+    <span class="n">redactor_config</span><span class="o">=</span><span class="n">RedactorConfig</span><span class="p">(</span>
+        <span class="n">field_mask</span><span class="o">=</span><span class="n">FieldMaskConfig</span><span class="p">(</span>
+            <span class="n">fields_to_mask</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">],</span>
+            <span class="n">max_depth</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+            <span class="n">on_guardrail_exceeded</span><span class="o">=</span><span class="s2">&quot;replace_subtree&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Trade-offs:</strong></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Mode</p></th>
+<th class="head"><p>Security</p></th>
+<th class="head"><p>Availability</p></th>
+<th class="head"><p>Data Loss</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;warn&quot;</span></code></p></td>
+<td><p>Low (unredacted data may leak)</p></td>
+<td><p>High (events pass through)</p></td>
+<td><p>None</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;drop&quot;</span></code></p></td>
+<td><p>High (no unredacted data)</p></td>
+<td><p>Low (events dropped)</p></td>
+<td><p>Full event</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;replace_subtree&quot;</span></code></p></td>
+<td><p>Medium (subtree masked)</p></td>
+<td><p>Medium (event preserved)</p></td>
+<td><p>Subtree only</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example with <code class="docutils literal notranslate"><span class="pre">replace_subtree</span></code>:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Event with depth exceeding max_depth=2</span>
+<span class="n">event</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;level1&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;level2&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;level3&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;secret&quot;</span><span class="p">}}}}</span>
+
+<span class="c1"># Result: unscanned subtree replaced with mask</span>
+<span class="p">{</span><span class="s2">&quot;level1&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;level2&quot;</span><span class="p">:</span> <span class="s2">&quot;***&quot;</span><span class="p">}}</span>
+</pre></div>
+</div>
 </section>
 </section>
 <section id="failure-handling">
