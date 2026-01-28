@@ -19,6 +19,7 @@ graceful-shutdown
 performance-tuning
 benchmarks
 integration-guide
+stdlib-bridge
 fastapi
 reliability-defaults
 testing-plugins

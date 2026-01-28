@@ -87,6 +87,7 @@
 <li class="toctree-l2"><a class="reference internal" href="user-guide/performance-tuning.html">Performance Tuning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/benchmarks.html">Performance Benchmarks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/integration-guide.html">Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user-guide/stdlib-bridge.html">stdlib Logging Bridge</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/fastapi.html">FastAPI / ASGI Integration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
 <li class="toctree-l2"><a class="reference internal" href="user-guide/testing-plugins.html">Testing Plugins</a></li>
@@ -239,6 +240,7 @@
 <li><p><strong>Backpressure API documentation accuracy:</strong> Fixed incorrect examples showing non-existent <code class="docutils literal notranslate"><span class="pre">policy=&quot;wait&quot;</span></code> parameter and <code class="docutils literal notranslate"><span class="pre">discard_oldest</span></code> policy. Documentation now correctly shows actual <code class="docutils literal notranslate"><span class="pre">with_backpressure(wait_ms=...,</span> <span class="pre">drop_on_full=...)</span></code> API with behavior table explaining parameter combinations (Story 10.31).</p></li>
 <li><p><strong>Architecture documentation accuracy:</strong> Removed stale references to non-existent components (<code class="docutils literal notranslate"><span class="pre">ComplianceEngine</span></code>, <code class="docutils literal notranslate"><span class="pre">UniversalSettings</span></code>, <code class="docutils literal notranslate"><span class="pre">EventCategory</span></code>) and deleted outdated monolithic <code class="docutils literal notranslate"><span class="pre">docs/architecture.md</span></code> (Story 12.15).</p></li>
 <li><p><strong>Production checklist documentation:</strong> Added consolidated pre-deployment checklist covering preset selection, metrics, diagnostics, redaction validation, backpressure tuning, and graceful shutdown (Story 12.16).</p></li>
+<li><p><strong>stdlib bridge documentation:</strong> Added user guide for <code class="docutils literal notranslate"><span class="pre">enable_stdlib_bridge()</span></code> with API reference, common use cases, Django/Celery integration examples, level mapping, and troubleshooting (Story 12.18).</p></li>
 </ul>
 </section>
 </section>
