@@ -372,7 +372,12 @@
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>To add compliance presets:</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">hardened</span></code> preset applies comprehensive redaction from HIPAA_PHI, PCI_DSS, and CREDENTIALS presets:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Maximum security for regulated environments</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;hardened&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To add compliance presets to other environment presets:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">LoggerBuilder</span><span class="p">()</span>
     <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>  <span class="c1"># Includes CREDENTIALS</span>

@@ -88,7 +88,14 @@ from fapilog import get_logger
 logger = get_logger(preset="production")
 ```
 
-To add compliance presets:
+The `hardened` preset applies comprehensive redaction from HIPAA_PHI, PCI_DSS, and CREDENTIALS presets:
+
+```python
+# Maximum security for regulated environments
+logger = get_logger(preset="hardened")
+```
+
+To add compliance presets to other environment presets:
 
 ```python
 logger = (

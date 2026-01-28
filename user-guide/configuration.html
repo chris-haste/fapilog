@@ -353,27 +353,35 @@
 <td><p>INFO</p></td>
 <td><p>stdout_json + file</p></td>
 <td><p>50MB × 10 files</p></td>
-<td><p>Yes (9 fields)</p></td>
+<td><p>Yes (CREDENTIALS)</p></td>
 <td><p>runtime_info, context_vars</p></td>
 <td><p>100</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
+<td><p>INFO</p></td>
+<td><p>stdout_json + file</p></td>
+<td><p>50MB × 10 files</p></td>
+<td><p>Yes (HIPAA + PCI + CREDENTIALS)</p></td>
+<td><p>runtime_info, context_vars</p></td>
+<td><p>100</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
 <td><p>INFO</p></td>
 <td><p>stdout_json</p></td>
 <td><p>No</p></td>
-<td><p>Yes (9 fields)</p></td>
+<td><p>Yes (CREDENTIALS)</p></td>
 <td><p>runtime_info, context_vars</p></td>
 <td><p>25</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
 <td><p>INFO</p></td>
 <td><p>stdout_json</p></td>
 <td><p>No</p></td>
-<td><p>Yes (9 fields)</p></td>
+<td><p>Yes (CREDENTIALS)</p></td>
 <td><p>context_vars only</p></td>
 <td><p>50</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
 <td><p>INFO</p></td>
 <td><p>stdout_json</p></td>
 <td><p>No</p></td>
@@ -416,7 +424,22 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">context_vars</span></code> enricher only (excludes <code class="docutils literal notranslate"><span class="pre">runtime_info</span></code> for reduced overhead in high-throughput scenarios)</p></li>
 <li><p>Container-friendly stdout JSON output</p></li>
 <li><p>Balanced batch size for latency/throughput tradeoff</p></li>
-<li><p>Automatic redaction of: <code class="docutils literal notranslate"><span class="pre">password</span></code>, <code class="docutils literal notranslate"><span class="pre">api_key</span></code>, <code class="docutils literal notranslate"><span class="pre">token</span></code>, <code class="docutils literal notranslate"><span class="pre">secret</span></code>, <code class="docutils literal notranslate"><span class="pre">authorization</span></code>, <code class="docutils literal notranslate"><span class="pre">api_secret</span></code>, <code class="docutils literal notranslate"><span class="pre">private_key</span></code>, <code class="docutils literal notranslate"><span class="pre">ssn</span></code>, <code class="docutils literal notranslate"><span class="pre">credit_card</span></code></p></li>
+<li><p>Automatic redaction of CREDENTIALS preset fields</p></li>
+</ul>
+<p><strong><code class="docutils literal notranslate"><span class="pre">hardened</span></code></strong> - Maximum security for regulated environments (HIPAA, PCI-DSS, financial services):</p>
+<ul class="simple">
+<li><p>All strict security settings enabled:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">redaction_fail_mode=&quot;closed&quot;</span></code> - drops events if redaction fails (fail-closed)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">strict_envelope_mode=True</span></code> - rejects malformed envelopes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fallback_redact_mode=&quot;inherit&quot;</span></code> - full redaction on fallback output</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">drop_on_full=False</span></code> - never drops logs under queue pressure</p></li>
+</ul>
+</li>
+<li><p>Comprehensive redaction coverage from HIPAA_PHI, PCI_DSS, and CREDENTIALS presets</p></li>
+<li><p>File rotation: <code class="docutils literal notranslate"><span class="pre">./logs/fapilog-*.log</span></code>, 50MB max, 10 files retained, gzip compressed</p></li>
+<li><p>Both <code class="docutils literal notranslate"><span class="pre">runtime_info</span></code> and <code class="docutils literal notranslate"><span class="pre">context_vars</span></code> enrichers for complete diagnostics</p></li>
+<li><p><strong>Trade-off</strong>: May drop logs if redactors fail or envelopes are malformed (security over availability)</p></li>
 </ul>
 <p><strong><code class="docutils literal notranslate"><span class="pre">minimal</span></code></strong> - Matches <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> with no arguments:</p>
 <ul class="simple">
