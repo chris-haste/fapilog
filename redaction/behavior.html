@@ -85,6 +85,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/context-enrichment.html">Context Enrichment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/sink-routing.html">Sink routing by level</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/sampling.html">Sampling Strategies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/performance-tuning.html">Performance Tuning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/benchmarks.html">Performance Benchmarks</a></li>
@@ -228,55 +229,53 @@
 <blockquote>
 <div><p><strong>Disclaimer:</strong> Redaction is provided as a best-effort mechanism to help protect sensitive data. It matches field names and patterns, not arbitrary field content. You are responsible for testing and verifying redaction meets your compliance requirements before production use. Fapilog and its maintainers accept no liability for data exposure.</p>
 </div></blockquote>
-<section id="what-gets-redacted">
-<h2>What Gets Redacted<a class="headerlink" href="#what-gets-redacted" title="Link to this heading"></a></h2>
-<section id="field-mask-redactor">
-<h3>Field Mask Redactor<a class="headerlink" href="#field-mask-redactor" title="Link to this heading"></a></h3>
-<p>Masks specific field paths under <code class="docutils literal notranslate"><span class="pre">data.*</span></code>. With production/fastapi/serverless presets, the <code class="docutils literal notranslate"><span class="pre">CREDENTIALS</span></code> preset fields are masked:</p>
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Field Pattern</p></th>
-<th class="head"><p>Examples</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>Passwords</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">data.password</span></code>, <code class="docutils literal notranslate"><span class="pre">data.passwd</span></code>, <code class="docutils literal notranslate"><span class="pre">data.pwd</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p>Secrets</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">data.secret</span></code>, <code class="docutils literal notranslate"><span class="pre">data.api_secret</span></code>, <code class="docutils literal notranslate"><span class="pre">data.client_secret</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p>Tokens</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">data.token</span></code>, <code class="docutils literal notranslate"><span class="pre">data.access_token</span></code>, <code class="docutils literal notranslate"><span class="pre">data.refresh_token</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p>API Keys</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">data.api_key</span></code>, <code class="docutils literal notranslate"><span class="pre">data.apikey</span></code>, <code class="docutils literal notranslate"><span class="pre">data.api_token</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p>Private Keys</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">data.private_key</span></code>, <code class="docutils literal notranslate"><span class="pre">data.secret_key</span></code>, <code class="docutils literal notranslate"><span class="pre">data.signing_key</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p>Auth Headers</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">data.authorization</span></code>, <code class="docutils literal notranslate"><span class="pre">data.auth_header</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p>Sessions</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">data.session_id</span></code>, <code class="docutils literal notranslate"><span class="pre">data.session_token</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p>OTP Codes</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">data.otp</span></code>, <code class="docutils literal notranslate"><span class="pre">data.mfa_code</span></code>, <code class="docutils literal notranslate"><span class="pre">data.verification_code</span></code></p></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Example:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Input</span>
-<span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;hunter2&quot;</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="s2">&quot;alice&quot;</span><span class="p">}}</span>
-
-<span class="c1"># Output</span>
-<span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="s2">&quot;***&quot;</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="s2">&quot;alice&quot;</span><span class="p">}}</span>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p><strong>Redaction Failure Behavior</strong></p>
+<p>By default (<code class="docutils literal notranslate"><span class="pre">redaction_fail_mode=&quot;open&quot;</span></code>), if the redaction pipeline encounters an unexpected error, the original log event passes through <strong>unredacted</strong>. For production systems handling sensitive data, explicitly set the failure mode:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;warn&quot;</span></code> (recommended for production): Pass event through + emit diagnostic warning</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;closed&quot;</span></code> (high-security): Drop the event entirely rather than risk data exposure</p></li>
+</ul>
+<p>Configure via builder:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_fallback_redaction</span><span class="p">(</span><span class="n">fail_mode</span><span class="o">=</span><span class="s2">&quot;warn&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
 </pre></div>
 </div>
-</section>
+</div>
+<p>Or via settings:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Settings</span><span class="p">(</span><span class="n">core</span><span class="o">=</span><span class="n">CoreSettings</span><span class="p">(</span><span class="n">redaction_fail_mode</span><span class="o">=</span><span class="s2">&quot;warn&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="../user-guide/reliability-defaults.html"><span class="std std-doc">Reliability Defaults</span></a> for related production settings.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>
+## What Gets Redacted
+
+### Field Mask Redactor
+
+Masks specific field paths under `data.*`. With production/fastapi/serverless presets, the `CREDENTIALS` preset fields are masked:
+
+| Field Pattern | Examples |
+|---------------|----------|
+| Passwords | `data.password`, `data.passwd`, `data.pwd` |
+| Secrets | `data.secret`, `data.api_secret`, `data.client_secret` |
+| Tokens | `data.token`, `data.access_token`, `data.refresh_token` |
+| API Keys | `data.api_key`, `data.apikey`, `data.api_token` |
+| Private Keys | `data.private_key`, `data.secret_key`, `data.signing_key` |
+| Auth Headers | `data.authorization`, `data.auth_header` |
+| Sessions | `data.session_id`, `data.session_token` |
+| OTP Codes | `data.otp`, `data.mfa_code`, `data.verification_code` |
+
+**Example:**
+```python
+# Input
+{&quot;data&quot;: {&quot;password&quot;: &quot;hunter2&quot;, &quot;user&quot;: &quot;alice&quot;}}
+
+# Output
+{&quot;data&quot;: {&quot;password&quot;: &quot;***&quot;, &quot;user&quot;: &quot;alice&quot;}}
+</pre></div>
+</div>
 <section id="regex-mask-redactor">
-<h3>Regex Mask Redactor<a class="headerlink" href="#regex-mask-redactor" title="Link to this heading"></a></h3>
+<h2>Regex Mask Redactor<a class="headerlink" href="#regex-mask-redactor" title="Link to this heading"></a></h2>
 <p>Matches any field path (at any nesting level) containing sensitive keywords:</p>
 <table class="docutils align-default">
 <thead>
@@ -322,7 +321,7 @@
 </div>
 </section>
 <section id="url-credentials-redactor">
-<h3>URL Credentials Redactor<a class="headerlink" href="#url-credentials-redactor" title="Link to this heading"></a></h3>
+<h2>URL Credentials Redactor<a class="headerlink" href="#url-credentials-redactor" title="Link to this heading"></a></h2>
 <p>Strips userinfo (username:password) from URLs in string values:</p>
 <p><strong>Example:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Input</span>
@@ -332,7 +331,6 @@
 <span class="p">{</span><span class="s2">&quot;endpoint&quot;</span><span class="p">:</span> <span class="s2">&quot;https://***:***@api.example.com/v1&quot;</span><span class="p">}</span>
 </pre></div>
 </div>
-</section>
 </section>
 <section id="what-does-not-get-redacted">
 <h2>What Does NOT Get Redacted<a class="headerlink" href="#what-does-not-get-redacted" title="Link to this heading"></a></h2>

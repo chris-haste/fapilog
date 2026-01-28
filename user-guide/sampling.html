@@ -7,7 +7,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sink routing by level &mdash; fapilog latest documentation</title>
+  <title>Sampling Strategies &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -25,12 +25,12 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Sampling Strategies" href="sampling.html" />
-    <link rel="prev" title="Rotating File Sink" href="rotating-file-sink.html" />
+    <link rel="next" title="Graceful Shutdown" href="graceful-shutdown.html" />
+    <link rel="prev" title="Sink routing by level" href="sink-routing.html" />
  
 
 
-<link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/sink-routing.html" />
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/sampling.html" />
 <meta name="robots" content="noindex, follow" />
 
 
@@ -84,8 +84,8 @@
 <li class="toctree-l2"><a class="reference internal" href="using-logger.html">Using the Logger</a></li>
 <li class="toctree-l2"><a class="reference internal" href="context-enrichment.html">Context Enrichment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rotating-file-sink.html">Rotating File Sink</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Sink routing by level</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sampling.html">Sampling Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sink-routing.html">Sink routing by level</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Sampling Strategies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="graceful-shutdown.html">Graceful Shutdown</a></li>
 <li class="toctree-l2"><a class="reference internal" href="performance-tuning.html">Performance Tuning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="benchmarks.html">Performance Benchmarks</a></li>
@@ -213,9 +213,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="index.html">User Guide</a></li>
-      <li class="breadcrumb-item active">Sink routing by level</li>
+      <li class="breadcrumb-item active">Sampling Strategies</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/user-guide/sink-routing.md.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/user-guide/sampling.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -223,98 +223,254 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="sink-routing-by-level">
-<h1>Sink routing by level<a class="headerlink" href="#sink-routing-by-level" title="Link to this heading"></a></h1>
-<p>Route different log levels to different sinks for cost control, compliance, and targeted alerting.</p>
-<section id="quick-start-settings">
-<h2>Quick start (settings)<a class="headerlink" href="#quick-start-settings" title="Link to this heading"></a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_SINK_ROUTING__ENABLED</span><span class="o">=</span><span class="nb">true</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_SINK_ROUTING__RULES</span><span class="o">=</span><span class="s1">&#39;[</span>
-<span class="s1">  {&quot;levels&quot;: [&quot;ERROR&quot;, &quot;CRITICAL&quot;], &quot;sinks&quot;: [&quot;postgres&quot;]},</span>
-<span class="s1">  {&quot;levels&quot;: [&quot;DEBUG&quot;, &quot;INFO&quot;, &quot;WARNING&quot;], &quot;sinks&quot;: [&quot;stdout_json&quot;]}</span>
-<span class="s1">]&#39;</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_SINK_ROUTING__FALLBACK_SINKS</span><span class="o">=</span><span class="s1">&#39;[&quot;rotating_file&quot;]&#39;</span>
-</pre></div>
-</div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">runtime</span>
-
-<span class="k">with</span> <span class="n">runtime</span><span class="p">()</span> <span class="k">as</span> <span class="n">log</span><span class="p">:</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Stored in postgres&quot;</span><span class="p">)</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Goes to stdout&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="configuration-schema">
-<h2>Configuration schema<a class="headerlink" href="#configuration-schema" title="Link to this heading"></a></h2>
+  <section class="tex2jax_ignore mathjax_ignore" id="sampling-strategies">
+<h1>Sampling Strategies<a class="headerlink" href="#sampling-strategies" title="Link to this heading"></a></h1>
+<p>Sampling reduces log volume by selectively keeping or dropping log events. Fapilog provides two sampling strategies optimized for different use cases.</p>
+<section id="when-to-use-sampling">
+<h2>When to Use Sampling<a class="headerlink" href="#when-to-use-sampling" title="Link to this heading"></a></h2>
+<p>Sampling is useful when:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">enabled</span></code>: turn routing on (defaults to fanout when false)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">rules</span></code>: list of <code class="docutils literal notranslate"><span class="pre">{levels:</span> <span class="pre">[...],</span> <span class="pre">sinks:</span> <span class="pre">[...]}</span></code>; levels are case-insensitive</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">overlap</span></code>: when true, multiple rules can apply; when false, first match wins</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">fallback_sinks</span></code>: used when no rule matches (empty drops unmatched events)</p></li>
+<li><p><strong>High-volume services</strong> generate more logs than your storage/budget allows</p></li>
+<li><p><strong>Development/staging</strong> environments don’t need every log</p></li>
+<li><p><strong>Cost optimization</strong> for cloud logging services that charge per volume</p></li>
 </ul>
-<section id="yaml-configuration">
-<h3>YAML configuration<a class="headerlink" href="#yaml-configuration" title="Link to this heading"></a></h3>
-<p>If loading settings from a YAML file:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">sink_routing</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="w">  </span><span class="nt">overlap</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">levels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">ERROR</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">CRITICAL</span><span class="p p-Indicator">]</span>
-<span class="w">      </span><span class="nt">sinks</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">postgres</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">webhook</span><span class="p p-Indicator">]</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">levels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">INFO</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">WARNING</span><span class="p p-Indicator">]</span>
-<span class="w">      </span><span class="nt">sinks</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">stdout_json</span><span class="p p-Indicator">]</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">levels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">DEBUG</span><span class="p p-Indicator">]</span>
-<span class="w">      </span><span class="nt">sinks</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">rotating_file</span><span class="p p-Indicator">]</span>
-<span class="w">  </span><span class="nt">fallback_sinks</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rotating_file</span>
+<p>Sampling is <strong>not recommended</strong> when:</p>
+<ul class="simple">
+<li><p><strong>Compliance requirements</strong> mandate complete audit trails</p></li>
+<li><p><strong>Debugging production issues</strong> where you need full context</p></li>
+<li><p><strong>Low-volume services</strong> where storage cost is minimal</p></li>
+</ul>
+</section>
+<section id="probabilistic-sampling-samplingfilter">
+<h2>Probabilistic Sampling (<code class="docutils literal notranslate"><span class="pre">SamplingFilter</span></code>)<a class="headerlink" href="#probabilistic-sampling-samplingfilter" title="Link to this heading"></a></h2>
+<p>Randomly samples events at a configured rate. Each log event has an independent probability of being kept.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_sampling</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>  <span class="c1"># Keep ~10% of logs</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
 </pre></div>
 </div>
+<section id="configuration-options">
+<h3>Configuration Options<a class="headerlink" href="#configuration-options" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></td>
+<td><p>float</p></td>
+<td><p>1.0</p></td>
+<td><p>Probability of keeping each event (0.0-1.0)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">seed</span></code></p></td>
+<td><p>int</p></td>
+<td><p>None</p></td>
+<td><p>RNG seed for reproducible sampling</p></td>
+</tr>
+</tbody>
+</table>
 </section>
-<section id="programmatic-example">
-<h3>Programmatic example<a class="headerlink" href="#programmatic-example" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span><span class="p">,</span> <span class="n">get_logger</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">RoutingRule</span>
+<section id="characteristics">
+<h3>Characteristics<a class="headerlink" href="#characteristics" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Independent decisions</strong>: Each event is evaluated independently</p></li>
+<li><p><strong>Statistically representative</strong>: Over time, sampled logs reflect the overall distribution</p></li>
+<li><p><strong>Simple and fast</strong>: Minimal overhead per event</p></li>
+<li><p><strong>Non-deterministic</strong>: The same trace may have some events kept and others dropped</p></li>
+</ul>
+</section>
+<section id="when-to-use">
+<h3>When to Use<a class="headerlink" href="#when-to-use" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>General log volume reduction</p></li>
+<li><p>Development/test environments</p></li>
+<li><p>When you don’t need complete traces</p></li>
+</ul>
+</section>
+<section id="seed-behavior-and-determinism">
+<h3>Seed Behavior and Determinism<a class="headerlink" href="#seed-behavior-and-determinism" title="Link to this heading"></a></h3>
+<p>When <code class="docutils literal notranslate"><span class="pre">seed</span></code> is provided, sampling becomes reproducible:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Two loggers with the same seed produce identical sampling decisions</span>
+<span class="n">logger1</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_sampling</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="n">logger2</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_sampling</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
 
-<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">()</span>
-<span class="n">settings</span><span class="o">.</span><span class="n">sink_routing</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="n">settings</span><span class="o">.</span><span class="n">sink_routing</span><span class="o">.</span><span class="n">rules</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">RoutingRule</span><span class="p">(</span><span class="n">levels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">],</span> <span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;postgres&quot;</span><span class="p">,</span> <span class="s2">&quot;webhook&quot;</span><span class="p">]),</span>
-    <span class="n">RoutingRule</span><span class="p">(</span><span class="n">levels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span> <span class="s2">&quot;WARNING&quot;</span><span class="p">],</span> <span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;stdout_json&quot;</span><span class="p">]),</span>
-<span class="p">]</span>
-<span class="n">settings</span><span class="o">.</span><span class="n">sink_routing</span><span class="o">.</span><span class="n">fallback_sinks</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;rotating_file&quot;</span><span class="p">]</span>
-
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
+<span class="c1"># Same sequence of keep/drop decisions</span>
 </pre></div>
 </div>
+<p>Each <code class="docutils literal notranslate"><span class="pre">SamplingFilter</span></code> instance maintains its own RNG state. Creating multiple filters with the same seed produces identical sequences independently—they don’t interfere with each other.</p>
+<p>Without a seed, sampling uses system randomness and is non-reproducible across runs.</p>
 </section>
 </section>
-<section id="routingsink-plugin">
-<h2>RoutingSink plugin<a class="headerlink" href="#routingsink-plugin" title="Link to this heading"></a></h2>
-<p>For manual composition without touching global settings:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.sinks.routing</span><span class="w"> </span><span class="kn">import</span> <span class="n">RoutingSink</span><span class="p">,</span> <span class="n">RoutingSinkConfig</span>
+<section id="trace-based-sampling-tracesamplingfilter">
+<h2>Trace-Based Sampling (<code class="docutils literal notranslate"><span class="pre">TraceSamplingFilter</span></code>)<a class="headerlink" href="#trace-based-sampling-tracesamplingfilter" title="Link to this heading"></a></h2>
+<p>Samples consistently by trace ID, ensuring all events in a trace are either kept or dropped together.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
 
-<span class="n">routing_sink</span> <span class="o">=</span> <span class="n">RoutingSink</span><span class="p">(</span>
-    <span class="n">RoutingSinkConfig</span><span class="p">(</span>
-        <span class="n">routes</span><span class="o">=</span><span class="p">{</span>
-            <span class="s2">&quot;ERROR&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;postgres&quot;</span><span class="p">],</span>
-            <span class="s2">&quot;CRITICAL&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;postgres&quot;</span><span class="p">,</span> <span class="s2">&quot;webhook&quot;</span><span class="p">],</span>
-            <span class="s2">&quot;INFO&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;stdout_json&quot;</span><span class="p">],</span>
-            <span class="s2">&quot;*&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;rotating_file&quot;</span><span class="p">],</span>  <span class="c1"># fallback</span>
-        <span class="p">},</span>
-        <span class="n">sink_configs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;postgres&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;table_name&quot;</span><span class="p">:</span> <span class="s2">&quot;errors_only&quot;</span><span class="p">}},</span>
-        <span class="n">parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_trace_sampling</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">trace_id_field</span><span class="o">=</span><span class="s2">&quot;trace_id&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<section id="id1">
+<h3>Configuration Options<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rate</span></code></p></td>
+<td><p>float</p></td>
+<td><p>0.1</p></td>
+<td><p>Probability of keeping each trace (0.0-1.0)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">trace_id_field</span></code></p></td>
+<td><p>str</p></td>
+<td><p>“trace_id”</p></td>
+<td><p>Field name containing the trace identifier</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">always_pass_levels</span></code></p></td>
+<td><p>list</p></td>
+<td><p>[“ERROR”, “CRITICAL”]</p></td>
+<td><p>Levels that bypass sampling</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id2">
+<h3>Characteristics<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Trace-consistent</strong>: All events with the same trace ID get the same decision</p></li>
+<li><p><strong>Deterministic per trace</strong>: Given the same trace ID, the decision is always the same</p></li>
+<li><p><strong>Error preservation</strong>: ERROR and CRITICAL logs are always kept by default</p></li>
+<li><p><strong>Hash-based</strong>: Uses MD5 hash of trace ID for consistent distribution</p></li>
+</ul>
+</section>
+<section id="id3">
+<h3>When to Use<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Distributed tracing environments</p></li>
+<li><p>When you need complete request context</p></li>
+<li><p>Debugging scenarios where partial traces are useless</p></li>
+</ul>
+</section>
+<section id="always-pass-levels">
+<h3>Always-Pass Levels<a class="headerlink" href="#always-pass-levels" title="Link to this heading"></a></h3>
+<p>By default, ERROR and CRITICAL logs bypass sampling entirely:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ERROR logs always pass, even if trace is sampled out</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Database connection failed&quot;</span><span class="p">,</span> <span class="n">trace_id</span><span class="o">=</span><span class="s2">&quot;abc123&quot;</span><span class="p">)</span>
+
+<span class="c1"># Customize which levels always pass</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_trace_sampling</span><span class="p">(</span>
+        <span class="n">rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+        <span class="n">always_pass_levels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">,</span> <span class="s2">&quot;WARNING&quot;</span><span class="p">]</span>
     <span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 </pre></div>
 </div>
 </section>
-<section id="tips">
-<h2>Tips<a class="headerlink" href="#tips" title="Link to this heading"></a></h2>
+<section id="events-without-trace-id">
+<h3>Events Without Trace ID<a class="headerlink" href="#events-without-trace-id" title="Link to this heading"></a></h3>
+<p>When an event lacks a trace ID, <code class="docutils literal notranslate"><span class="pre">TraceSamplingFilter</span></code> falls back to probabilistic sampling for that event.</p>
+</section>
+</section>
+<section id="comparison">
+<h2>Comparison<a class="headerlink" href="#comparison" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Aspect</p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">SamplingFilter</span></code></p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">TraceSamplingFilter</span></code></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Decision unit</p></td>
+<td><p>Per event</p></td>
+<td><p>Per trace</p></td>
+</tr>
+<tr class="row-odd"><td><p>Determinism</p></td>
+<td><p>Optional (with seed)</p></td>
+<td><p>Always (by trace ID)</p></td>
+</tr>
+<tr class="row-even"><td><p>Trace completeness</p></td>
+<td><p>No guarantee</p></td>
+<td><p>All or nothing</p></td>
+</tr>
+<tr class="row-odd"><td><p>Error handling</p></td>
+<td><p>Sampled like other events</p></td>
+<td><p>Always kept (configurable)</p></td>
+</tr>
+<tr class="row-even"><td><p>Use case</p></td>
+<td><p>Volume reduction</p></td>
+<td><p>Distributed tracing</p></td>
+</tr>
+<tr class="row-odd"><td><p>Overhead</p></td>
+<td><p>Minimal</p></td>
+<td><p>Hash computation</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="operational-considerations">
+<h2>Operational Considerations<a class="headerlink" href="#operational-considerations" title="Link to this heading"></a></h2>
+<section id="monitoring-sampled-volume">
+<h3>Monitoring Sampled Volume<a class="headerlink" href="#monitoring-sampled-volume" title="Link to this heading"></a></h3>
+<p>Enable metrics to track sampling behavior:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_sampling</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_metrics</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Monitor <code class="docutils literal notranslate"><span class="pre">fapilog_events_filtered_total</span></code> to verify sampling is working as expected.</p>
+</section>
+<section id="combining-with-other-filters">
+<h3>Combining with Other Filters<a class="headerlink" href="#combining-with-other-filters" title="Link to this heading"></a></h3>
+<p>Sampling filters can be combined with other filters in the pipeline:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_level</span><span class="p">(</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>           <span class="c1"># First: drop DEBUG</span>
+    <span class="o">.</span><span class="n">with_sampling</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>      <span class="c1"># Then: sample remaining</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Filter order matters—events are processed sequentially through the filter pipeline.</p>
+</section>
+<section id="production-recommendations">
+<h3>Production Recommendations<a class="headerlink" href="#production-recommendations" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>Start conservative</strong>: Begin with higher sample rates (0.5+) and decrease based on observed volume</p></li>
+<li><p><strong>Monitor dropped events</strong>: Use metrics to track filter behavior</p></li>
+<li><p><strong>Keep errors</strong>: Use <code class="docutils literal notranslate"><span class="pre">TraceSamplingFilter</span></code> or configure level-based exceptions</p></li>
+<li><p><strong>Document your rate</strong>: Team members debugging production need to know sampling is active</p></li>
+<li><p><strong>Consider per-service rates</strong>: High-traffic services may need lower rates than low-traffic ones</p></li>
+</ol>
+</section>
+</section>
+<section id="related">
+<h2>Related<a class="headerlink" href="#related" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Keep rule lists small; routing is O(1) per event.</p></li>
-<li><p>Use overlap=true to send errors to multiple sinks (e.g., DB + webhook).</p></li>
-<li><p>Provide fallback_sinks to avoid accidental drops when rules change.</p></li>
-<li><p>Routing respects sink circuit breakers; open circuits are skipped automatically.</p></li>
+<li><p><a class="reference internal" href="reliability-defaults.html"><span class="std std-doc">Reliability Defaults</span></a> - Drop policies and backpressure</p></li>
+<li><p><a class="reference internal" href="performance-tuning.html"><span class="std std-doc">Performance Tuning</span></a> - Optimizing high-throughput logging</p></li>
+<li><p><a class="reference internal" href="configuration.html"><span class="std std-doc">Configuration</span></a> - Builder API reference</p></li>
 </ul>
 </section>
 </section>
@@ -325,8 +481,8 @@
           
 <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer" style="position: relative;">
-        <a href="rotating-file-sink.html" class="btn btn-neutral float-left" title="Rotating File Sink" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="sampling.html" class="btn btn-neutral float-right" title="Sampling Strategies" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="sink-routing.html" class="btn btn-neutral float-left" title="Sink routing by level" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="graceful-shutdown.html" class="btn btn-neutral float-right" title="Graceful Shutdown" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
       <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 50%; margin-top: -0.5em;">
         <a href="https://fapilog.dev">www.fapilog.dev</a>
       </div>

@@ -31,7 +31,7 @@ This is intentional—blocking on the same thread would cause a deadlock since t
 - Order when active: `field-mask` → `regex-mask` → `url-credentials`
 - Guardrails: `core.redaction_max_depth=6`, `core.redaction_max_keys_scanned=5000`
 
-See [Redaction Behavior](../redaction/behavior.md) for complete details on what's redacted.
+See [Redaction Behavior](../redaction/behavior.md) for complete details on what's redacted, including **failure mode configuration** for production systems.
 
 ## Exceptions and diagnostics
 - Exceptions serialized by default: `core.exceptions_enabled=True`

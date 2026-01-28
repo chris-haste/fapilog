@@ -177,6 +177,31 @@ logger = LoggerBuilder().with_preset("production").with_redaction(preset="GDPR_P
 
 See [Configuration](../user-guide/configuration.md) for guidance on which approach fits your needs.
 
+## Minimal Production Configuration
+
+For production deployments, explicitly configure drop policy and redaction failure handling:
+
+```python
+from fapilog import LoggerBuilder
+
+logger = (
+    LoggerBuilder()
+    .with_preset("production")
+    .with_backpressure(drop_on_full=False)      # Wait rather than drop under pressure
+    .with_fallback_redaction(fail_mode="warn")  # Log warning if redaction fails
+    .build()
+)
+```
+
+Or via environment variables:
+
+```bash
+export FAPILOG_CORE__DROP_ON_FULL=false
+export FAPILOG_CORE__REDACTION_FAIL_MODE=warn
+```
+
+See [Reliability Defaults](../user-guide/reliability-defaults.md) for the complete production checklist.
+
 **Learn more:**
 
 - **[Hello World](hello-world.md)** - Complete walkthrough with examples

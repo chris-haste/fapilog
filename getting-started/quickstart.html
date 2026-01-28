@@ -85,6 +85,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/context-enrichment.html">Context Enrichment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/sink-routing.html">Sink routing by level</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/sampling.html">Sampling Strategies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/performance-tuning.html">Performance Tuning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/benchmarks.html">Performance Benchmarks</a></li>
@@ -386,6 +387,27 @@
 </pre></div>
 </div>
 <p>See <a class="reference internal" href="../user-guide/configuration.html"><span class="std std-doc">Configuration</span></a> for guidance on which approach fits your needs.</p>
+</section>
+<section id="minimal-production-configuration">
+<h2>Minimal Production Configuration<a class="headerlink" href="#minimal-production-configuration" title="Link to this heading"></a></h2>
+<p>For production deployments, explicitly configure drop policy and redaction failure handling:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_backpressure</span><span class="p">(</span><span class="n">drop_on_full</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>      <span class="c1"># Wait rather than drop under pressure</span>
+    <span class="o">.</span><span class="n">with_fallback_redaction</span><span class="p">(</span><span class="n">fail_mode</span><span class="o">=</span><span class="s2">&quot;warn&quot;</span><span class="p">)</span>  <span class="c1"># Log warning if redaction fails</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Or via environment variables:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__DROP_ON_FULL</span><span class="o">=</span><span class="nb">false</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__REDACTION_FAIL_MODE</span><span class="o">=</span>warn
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="../user-guide/reliability-defaults.html"><span class="std std-doc">Reliability Defaults</span></a> for the complete production checklist.</p>
 <p><strong>Learn more:</strong></p>
 <ul class="simple">
 <li><p><strong><a class="reference internal" href="hello-world.html"><span class="std std-doc">Hello World</span></a></strong> - Complete walkthrough with examples</p></li>
