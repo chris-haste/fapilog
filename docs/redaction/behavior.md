@@ -202,12 +202,48 @@ The **more restrictive** value always applies:
 
 This ensures that core guardrails act as hard limits that cannot be exceeded by individual redactor configurations.
 
-### Guardrail Behavior
+### Guardrail Behavior (`on_guardrail_exceeded`)
 
-If limits are exceeded:
-- A diagnostic warning is emitted
-- Remaining fields are not scanned
-- Best-effort redaction is applied to already-scanned fields
+The FieldMaskRedactor supports configurable behavior when guardrails are exceeded via the `on_guardrail_exceeded` option:
+
+| Mode | Behavior | Use Case |
+|------|----------|----------|
+| `"warn"` (default) | Emit diagnostic, continue with partial redaction | Development, debugging |
+| `"drop"` | Emit diagnostic, drop the entire event | High-security compliance |
+| `"replace_subtree"` | Emit diagnostic, replace unscanned subtree with mask | Balanced security/availability |
+
+Configure via settings:
+```python
+from fapilog.plugins.redactors.field_mask import FieldMaskConfig
+
+Settings(
+    redactor_config=RedactorConfig(
+        field_mask=FieldMaskConfig(
+            fields_to_mask=["password"],
+            max_depth=4,
+            on_guardrail_exceeded="replace_subtree",
+        )
+    )
+)
+```
+
+**Trade-offs:**
+
+| Mode | Security | Availability | Data Loss |
+|------|----------|--------------|-----------|
+| `"warn"` | Low (unredacted data may leak) | High (events pass through) | None |
+| `"drop"` | High (no unredacted data) | Low (events dropped) | Full event |
+| `"replace_subtree"` | Medium (subtree masked) | Medium (event preserved) | Subtree only |
+
+**Example with `replace_subtree`:**
+
+```python
+# Event with depth exceeding max_depth=2
+event = {"level1": {"level2": {"level3": {"password": "secret"}}}}
+
+# Result: unscanned subtree replaced with mask
+{"level1": {"level2": "***"}}
+```
 
 ## Failure Handling
 

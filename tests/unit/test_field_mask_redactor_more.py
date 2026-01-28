@@ -56,6 +56,7 @@ async def test_masks_non_string_values_to_mask_string() -> None:
     )
     evt = {"a": {"b": 123}}
     out = await r.redact(evt)
+    assert out is not None  # noqa: WA003
     assert out["a"]["b"] == "XXX"
     assert isinstance(out["a"]["b"], str)
 
@@ -74,6 +75,7 @@ async def test_masks_within_nested_lists() -> None:
         ]
     }
     out = await r.redact(evt)
+    assert out is not None  # noqa: WA003
     assert out["users"][0]["email"] == "***"
     assert out["users"][1]["profile"]["email"] == "***"
 
@@ -92,6 +94,7 @@ async def test_masks_with_numeric_index_in_lists() -> None:
         ]
     }
     out = await r.redact(evt)
+    assert out is not None  # noqa: WA003
     assert out["users"][0]["profile"]["email"] == "u0@example.com"
     assert out["users"][1]["profile"]["email"] == "***"
 
@@ -159,6 +162,7 @@ async def test_field_mask_redactor_accepts_dict_config_and_coerces() -> None:
         config={"fields_to_mask": ["secret"], "max_depth": "8", "mask_string": "XX"}
     )
     out = await r.redact({"secret": "value"})
+    assert out is not None  # noqa: WA003
     assert out["secret"] == "XX"
 
 
