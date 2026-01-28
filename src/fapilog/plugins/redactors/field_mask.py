@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -16,6 +16,7 @@ class FieldMaskConfig(BaseModel):
     block_on_unredactable: bool = False
     max_depth: int = Field(default=16, ge=1)
     max_keys_scanned: int = Field(default=1000, ge=1)
+    on_guardrail_exceeded: Literal["warn", "drop", "replace_subtree"] = "warn"
 
 
 class FieldMaskRedactor:
@@ -53,21 +54,27 @@ class FieldMaskRedactor:
         else:
             self._max_scanned = plugin_scanned
 
+        self._on_guardrail_exceeded = cfg.on_guardrail_exceeded
+
     async def start(self) -> None:  # pragma: no cover - optional
         return None
 
     async def stop(self) -> None:  # pragma: no cover - optional
         return None
 
-    async def redact(self, event: dict) -> dict:
+    async def redact(self, event: dict) -> dict | None:
         # Work on a shallow copy of the root; mutate nested containers in place
         root: dict[str, Any] = dict(event)
         for path in self._fields:
-            self._apply_mask(root, path)
+            guardrail_hit = self._apply_mask(root, path)
+            if guardrail_hit and self._on_guardrail_exceeded == "drop":
+                return None
         return root
 
-    def _apply_mask(self, root: dict[str, Any], path: list[str]) -> None:
+    def _apply_mask(self, root: dict[str, Any], path: list[str]) -> bool:
+        """Apply mask to path in root. Returns True if guardrail was hit."""
         scanned = 0
+        guardrail_hit = False
 
         def mask_scalar(value: Any) -> Any:
             # Idempotence: do not double-mask
@@ -75,20 +82,39 @@ class FieldMaskRedactor:
                 return value
             return self._mask
 
-        def _traverse(container: Any, seg_idx: int, depth: int) -> None:
-            nonlocal scanned
+        def _handle_guardrail(
+            parent: dict | list | None, parent_key: str | int | None, reason: str
+        ) -> None:
+            nonlocal guardrail_hit
+            diagnostics.warn(
+                "redactor",
+                reason,
+                path=".".join(path),
+            )
+            guardrail_hit = True
+            if (
+                self._on_guardrail_exceeded == "replace_subtree"
+                and parent is not None
+                and parent_key is not None
+            ):
+                parent[parent_key] = self._mask  # type: ignore[index]
+
+        def _traverse(
+            container: Any,
+            seg_idx: int,
+            depth: int,
+            parent: dict | list | None = None,
+            parent_key: str | int | None = None,
+        ) -> None:
+            nonlocal scanned, guardrail_hit
             if depth > self._max_depth:
-                diagnostics.warn(
-                    "redactor",
-                    "max depth exceeded during redaction",
-                    path=".".join(path),
+                _handle_guardrail(
+                    parent, parent_key, "max depth exceeded during redaction"
                 )
                 return
             if scanned > self._max_scanned:
-                diagnostics.warn(
-                    "redactor",
-                    "max keys scanned exceeded during redaction",
-                    path=".".join(path),
+                _handle_guardrail(
+                    parent, parent_key, "max keys scanned exceeded during redaction"
                 )
                 return
 
@@ -116,7 +142,7 @@ class FieldMaskRedactor:
                                     )
                             continue
                         if isinstance(v, (dict, list)):
-                            _traverse(v, seg_idx + 1, depth + 1)
+                            _traverse(v, seg_idx + 1, depth + 1, container, k)
                     return
                 # Support dict key with wildcard suffix, e.g., "users[*]"
                 if key.endswith("[*]") and len(key) > 3:
@@ -145,7 +171,13 @@ class FieldMaskRedactor:
                         else:
                             # Descend into list under base_key
                             if isinstance(nxt_candidate, (list, dict)):
-                                _traverse(nxt_candidate, seg_idx + 1, depth + 1)
+                                _traverse(
+                                    nxt_candidate,
+                                    seg_idx + 1,
+                                    depth + 1,
+                                    container,
+                                    base_key,
+                                )
                             return
                 # Numeric index semantics if key is int string
                 if key.isdigit():
@@ -170,7 +202,16 @@ class FieldMaskRedactor:
                 else:
                     nxt = container.get(key)
                     if isinstance(nxt, (dict, list)):
-                        _traverse(nxt, seg_idx + 1, depth + 1)
+                        # Check depth BEFORE recursing - if next level would exceed, replace
+                        # current container (not the child we're about to enter)
+                        if depth + 1 > self._max_depth:
+                            _handle_guardrail(
+                                parent,
+                                parent_key,
+                                "max depth exceeded during redaction",
+                            )
+                            return
+                        _traverse(nxt, seg_idx + 1, depth + 1, container, key)
                     else:
                         # Non-container encountered before terminal
                         if self._block:
@@ -184,21 +225,23 @@ class FieldMaskRedactor:
             elif isinstance(container, list):
                 # Apply traversal to each element for this segment
                 if key in ("*", "[*]"):
-                    for item in container:
+                    for i, item in enumerate(container):
                         scanned += 1
-                        _traverse(item, seg_idx + 1, depth + 1)
+                        _traverse(item, seg_idx + 1, depth + 1, container, i)
                     return
                 # Numeric index if provided
                 if key.isdigit():
                     idx = int(key)
                     if 0 <= idx < len(container):
                         scanned += 1
-                        _traverse(container[idx], seg_idx + 1, depth + 1)
+                        _traverse(
+                            container[idx], seg_idx + 1, depth + 1, container, idx
+                        )
                     return
                 # Default: propagate same index level for all items
-                for item in container:
+                for i, item in enumerate(container):
                     scanned += 1
-                    _traverse(item, seg_idx, depth + 1)
+                    _traverse(item, seg_idx, depth + 1, container, i)
             else:
                 # Primitive encountered mid-path
                 if self._block:
@@ -210,6 +253,7 @@ class FieldMaskRedactor:
                     )
 
         _traverse(root, 0, 0)
+        return guardrail_hit
 
     async def health_check(self) -> bool:
         """Verify redactor configuration is valid.
@@ -245,6 +289,10 @@ PLUGIN_METADATA = {
             "block_on_unredactable": {"type": "boolean"},
             "max_depth": {"type": "integer"},
             "max_keys_scanned": {"type": "integer"},
+            "on_guardrail_exceeded": {
+                "type": "string",
+                "enum": ["warn", "drop", "replace_subtree"],
+            },
         },
         "required": ["fields_to_mask"],
     },
@@ -254,6 +302,7 @@ PLUGIN_METADATA = {
         "block_on_unredactable": False,
         "max_depth": 16,
         "max_keys_scanned": 1000,
+        "on_guardrail_exceeded": "warn",
     },
     "api_version": "1.0",
 }
