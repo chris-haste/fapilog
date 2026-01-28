@@ -1,0 +1,2002 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuration Reference &mdash; fapilog latest documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=30646c52"></script>
+      <script src="../_static/custom.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Types" href="types.html" />
+    <link rel="prev" title="Configuration" href="configuration.html" />
+ 
+
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/api-reference/configuration-map.html" />
+<meta name="robots" content="noindex, follow" />
+
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            fapilog
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/quickstart.html">Quickstart Tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/hello-world.html">Hello World Walkthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../why-fapilog.html">Why Fapilog?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../comparisons.html">Python Logging Library Comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core-concepts/index.html">Core Concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/pipeline-architecture.html">Pipeline Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/envelope.html">Envelope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/batching-backpressure.html">Batching &amp; Backpressure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/metrics.html">Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html">Diagnostics Resilience</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html#id1">Diagnostics &amp; Resilience</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../user-guide/index.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/builder-configuration.html">Configuring Fapilog with the Builder API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/environment-variables.html">Environment Variable Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/production-checklist.html">Production Checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/using-logger.html">Using the Logger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/context-enrichment.html">Context Enrichment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/sink-routing.html">Sink routing by level</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/sampling.html">Sampling Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/performance-tuning.html">Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/benchmarks.html">Performance Benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/integration-guide.html">Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/stdlib-bridge.html">stdlib Logging Bridge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/fastapi.html">FastAPI / ASGI Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/testing-plugins.html">Testing Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/webhook-security.html">Webhook Security</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../cookbook/index.html">Cookbook</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/fastapi-json-logging.html">FastAPI JSON logging to stdout (Uvicorn access logs included)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/fastapi-request-id-logging.html">FastAPI request_id logging (correlation ID middleware, concurrency-safe)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/django-structured-logging.html">Django Structured JSON Logging with Correlation IDs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/non-blocking-async-logging.html">Non-blocking logging in FastAPI (protect latency under slow sinks)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/dev-prod-logging-config.html">One FastAPI logging config for dev + prod (Uvicorn/Gunicorn)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/redacting-secrets-pii.html">Redacting secrets and PII in FastAPI logs (Authorization, tokens, fields)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/compliance-redaction.html">Compliance Redaction: What Works and What Doesn’t</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/safe-request-response-logging.html">Logging request/response bodies without hanging (safe patterns)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/skip-noisy-endpoints.html">Skipping health/metrics endpoints (noise reduction)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/log-sampling-rate-limiting.html">Log sampling and rate limiting for FastAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/graceful-shutdown-flush.html">Graceful shutdown &amp; flushing logs (don’t lose logs on deploy)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/exception-logging-request-context.html">Exception logging in FastAPI with request_id + structured context</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples &amp; Recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/builder-configurations.html">Builder Configuration Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/fastapi-logging.html">FastAPI Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cli-tools.html">Logging in Scripts/CLIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/redacting-secrets.html">Redacting Secrets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/structured-error-logging.html">Structured Error Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/kubernetes-file-sink.html">Kubernetes File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/prometheus-metrics.html">Prometheus Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloudwatch_logging/index.html">CloudWatch Logging (LocalStack)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloud-sinks/index.html">Cloud Sink Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../redaction/index.html">Redaction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/presets.html">Redaction Presets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/configuration.html">Redaction Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/behavior.html">Redaction Behavior</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/testing.html">Testing Redaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="top-level-functions.html">Top-Level Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="builder.html">Builder API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logger-methods.html">Logger Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="audit-trail.html">Audit Trail</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Configuration Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="types.html">Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugins/index.html">Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lifecycle-results.html">Lifecycle &amp; Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html">API Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugin Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/authoring.html">Authoring Fapilog Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/enrichers.html">Enrichers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/filters.html">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/processors.html">Processors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/testing.html">Plugin Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/configuration.html">Plugin Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/health-checks.html">Plugin Health Checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/error-handling.html">Plugin Error Handling</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../plugin-development/index.html">Plugin Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../plugin-development/quickstart.html">Plugin Author Quickstart</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../patterns.html">Integration Patterns</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../patterns/sdk-sinks.html">Building SDK-Based Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../patterns/http-sinks.html">Building HTTP-Based Sinks</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting/index.html">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/logs-dropped-under-load.html">Logs Dropped Under Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/destination-size-limits.html">Logs Rejected by Destination Size Limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/context-values-missing.html">Context Values Missing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/file-sink-not-rotating.html">File Sink Not Rotating</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/serialization-errors.html">Serialization Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/cloudwatch-sink.html">CloudWatch Sink Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/loki-sink.html">Loki Sink Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices.html">Appendices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../env-vars.html">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../settings-guide.html">Settings Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-guide.html">Schema Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-migration-v1.0-to-v1.1.html">Schema Migration Guide: v1.0 to v1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugin-guide.html">Plugin Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quality-signals.html">Quality Signals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/settings-to-builder-migration.html">Migrating from Settings to Builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/migration-file-rotation.html">Migration Guide: Simplified Rotating File Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/tenacity-integration.html">Tenacity Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../addons/tamper-evident-logging.html">Tamper-Evident Logging Add-on (Optional)</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">fapilog</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">API Reference</a></li>
+      <li class="breadcrumb-item active">Configuration Reference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api-reference/configuration-map.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="configuration-reference">
+<h1>Configuration Reference<a class="headerlink" href="#configuration-reference" title="Link to this heading"></a></h1>
+<p>Quick reference for all fapilog settings with their environment variable names and builder API equivalents.</p>
+<p><strong>Looking for a specific setting?</strong> Use <code class="docutils literal notranslate"><span class="pre">Ctrl+F</span></code> / <code class="docutils literal notranslate"><span class="pre">Cmd+F</span></code> to search by name.</p>
+<section id="environment-variable-naming">
+<h2>Environment Variable Naming<a class="headerlink" href="#environment-variable-naming" title="Link to this heading"></a></h2>
+<p>Pattern: <code class="docutils literal notranslate"><span class="pre">FAPILOG_&lt;SECTION&gt;__&lt;SETTING&gt;</span></code></p>
+<ul class="simple">
+<li><p>Use double underscore (<code class="docutils literal notranslate"><span class="pre">__</span></code>) to separate nested levels</p></li>
+<li><p>All uppercase</p></li>
+<li><p>Examples:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">core.log_level</span></code> → <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__LOG_LEVEL</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sink_config.rotating_file.max_bytes</span></code> → <code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_BYTES</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filter_config.sampling.sample_rate</span></code> → <code class="docutils literal notranslate"><span class="pre">FAPILOG_FILTER_CONFIG__SAMPLING__SAMPLE_RATE</span></code></p></li>
+</ul>
+</li>
+</ul>
+<p><strong>Type conversion:</strong> Environment variables are strings. Fapilog automatically converts:</p>
+<ul class="simple">
+<li><p>Booleans: <code class="docutils literal notranslate"><span class="pre">true</span></code>, <code class="docutils literal notranslate"><span class="pre">false</span></code>, <code class="docutils literal notranslate"><span class="pre">1</span></code>, <code class="docutils literal notranslate"><span class="pre">0</span></code>, <code class="docutils literal notranslate"><span class="pre">yes</span></code>, <code class="docutils literal notranslate"><span class="pre">no</span></code>, <code class="docutils literal notranslate"><span class="pre">on</span></code>, <code class="docutils literal notranslate"><span class="pre">off</span></code></p></li>
+<li><p>Integers: <code class="docutils literal notranslate"><span class="pre">100</span></code>, <code class="docutils literal notranslate"><span class="pre">10000</span></code></p></li>
+<li><p>Floats: <code class="docutils literal notranslate"><span class="pre">0.5</span></code>, <code class="docutils literal notranslate"><span class="pre">1.0</span></code></p></li>
+<li><p>Durations: <code class="docutils literal notranslate"><span class="pre">5s</span></code>, <code class="docutils literal notranslate"><span class="pre">1m</span></code>, <code class="docutils literal notranslate"><span class="pre">30s</span></code>, <code class="docutils literal notranslate"><span class="pre">daily</span></code>, <code class="docutils literal notranslate"><span class="pre">hourly</span></code></p></li>
+<li><p>Sizes: <code class="docutils literal notranslate"><span class="pre">10</span> <span class="pre">MB</span></code>, <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">GB</span></code>, <code class="docutils literal notranslate"><span class="pre">256</span> <span class="pre">KB</span></code></p></li>
+<li><p>Lists: <code class="docutils literal notranslate"><span class="pre">[&quot;a&quot;,</span> <span class="pre">&quot;b&quot;]</span></code> (JSON) or <code class="docutils literal notranslate"><span class="pre">a,b,c</span></code> (CSV)</p></li>
+<li><p>Dicts: <code class="docutils literal notranslate"><span class="pre">{&quot;key&quot;:</span> <span class="pre">&quot;value&quot;}</span></code> (JSON only)</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="core-settings">
+<h2>Core Settings<a class="headerlink" href="#core-settings" title="Link to this heading"></a></h2>
+<p>Settings path: <code class="docutils literal notranslate"><span class="pre">core.*</span></code></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.app_name</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__APP_NAME</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_app_name(&quot;name&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;fapilog&quot;</span></code></p></td>
+<td><p>Logical application name</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.log_level</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__LOG_LEVEL</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_level(&quot;INFO&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;INFO&quot;</span></code></p></td>
+<td><p>Default log level (DEBUG, INFO, WARNING, ERROR)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.max_queue_size</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__MAX_QUEUE_SIZE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_queue_size(10000)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">10000</span></code></p></td>
+<td><p>Maximum in-memory queue size</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.batch_max_size</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__BATCH_MAX_SIZE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_batch_size(256)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">256</span></code></p></td>
+<td><p>Maximum events per batch</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.batch_timeout_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__BATCH_TIMEOUT_SECONDS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_batch_timeout(&quot;0.25s&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.25</span></code></p></td>
+<td><p>Max time before flushing partial batch</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.backpressure_wait_ms</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__BACKPRESSURE_WAIT_MS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_backpressure(wait_ms=50)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">50</span></code></p></td>
+<td><p>Milliseconds to wait for queue space</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.drop_on_full</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__DROP_ON_FULL</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_backpressure(drop_on_full=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Drop events when queue is full after wait</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.enable_metrics</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__ENABLE_METRICS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_metrics(enabled=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Enable Prometheus-compatible metrics</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.worker_count</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__WORKER_COUNT</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_workers(count=1)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+<td><p>Number of worker tasks for flush processing</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.shutdown_timeout_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SHUTDOWN_TIMEOUT_SECONDS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_shutdown_timeout(&quot;3s&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">3.0</span></code></p></td>
+<td><p>Maximum time to flush on shutdown</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.error_dedupe_window_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__ERROR_DEDUPE_WINDOW_SECONDS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_error_deduplication(5.0)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">5.0</span></code></p></td>
+<td><p>Seconds to suppress duplicate ERROR logs</p></td>
+</tr>
+</tbody>
+</table>
+<section id="context-and-diagnostics">
+<h3>Context and Diagnostics<a class="headerlink" href="#context-and-diagnostics" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.context_binding_enabled</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__CONTEXT_BINDING_ENABLED</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Enable per-task bound context</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.default_bound_context</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__DEFAULT_BOUND_CONTEXT</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_context(**kwargs)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{}</span></code></p></td>
+<td><p>Default bound context at logger creation</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.internal_logging_enabled</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__INTERNAL_LOGGING_ENABLED</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_diagnostics(enabled=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Emit DEBUG/WARN diagnostics for internal errors</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.diagnostics_output</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__DIAGNOSTICS_OUTPUT</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_diagnostics(output=&quot;stderr&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;stderr&quot;</span></code></p></td>
+<td><p>Output stream: stderr or stdout</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="exception-handling">
+<h3>Exception Handling<a class="headerlink" href="#exception-handling" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.exceptions_enabled</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__EXCEPTIONS_ENABLED</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_exceptions(enabled=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Enable structured exception serialization</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.exceptions_max_frames</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__EXCEPTIONS_MAX_FRAMES</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_exceptions(max_frames=10)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">10</span></code></p></td>
+<td><p>Maximum stack frames to capture</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.exceptions_max_stack_chars</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__EXCEPTIONS_MAX_STACK_CHARS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_exceptions(max_stack_chars=20000)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">20000</span></code></p></td>
+<td><p>Maximum total characters for stack string</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.capture_unhandled_enabled</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__CAPTURE_UNHANDLED_ENABLED</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_unhandled_exception_capture(True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Install unhandled exception hooks</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="graceful-shutdown">
+<h3>Graceful Shutdown<a class="headerlink" href="#graceful-shutdown" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.atexit_drain_enabled</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__ATEXIT_DRAIN_ENABLED</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_atexit_drain(enabled=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Register atexit handler for log drain</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.atexit_drain_timeout_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__ATEXIT_DRAIN_TIMEOUT_SECONDS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_atexit_drain(timeout=&quot;2s&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2.0</span></code></p></td>
+<td><p>Maximum seconds for atexit drain</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.signal_handler_enabled</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SIGNAL_HANDLER_ENABLED</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_signal_handlers(enabled=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Install SIGTERM/SIGINT handlers</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.flush_on_critical</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__FLUSH_ON_CRITICAL</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_flush_on_critical(enabled=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Immediately flush ERROR/CRITICAL logs</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="circuit-breaker">
+<h3>Circuit Breaker<a class="headerlink" href="#circuit-breaker" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.sink_circuit_breaker_enabled</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SINK_CIRCUIT_BREAKER_ENABLED</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_circuit_breaker(enabled=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Enable circuit breaker for sinks</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.sink_circuit_breaker_failure_threshold</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SINK_CIRCUIT_BREAKER_FAILURE_THRESHOLD</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_circuit_breaker(failure_threshold=5)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">5</span></code></p></td>
+<td><p>Consecutive failures before opening</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.sink_circuit_breaker_recovery_timeout_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SINK_CIRCUIT_BREAKER_RECOVERY_TIMEOUT_SECONDS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_circuit_breaker(recovery_timeout=&quot;30s&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">30.0</span></code></p></td>
+<td><p>Seconds before probing failed sink</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.sink_parallel_writes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SINK_PARALLEL_WRITES</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_parallel_sink_writes(True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Write to sinks in parallel</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="redaction-settings">
+<h3>Redaction Settings<a class="headerlink" href="#redaction-settings" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.enable_redactors</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__ENABLE_REDACTORS</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Enable redactors stage</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.redactors</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__REDACTORS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_redaction(...)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[&quot;url_credentials&quot;]</span></code></p></td>
+<td><p>Redactor plugins to use</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.redactors_order</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__REDACTORS_ORDER</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[&quot;field-mask&quot;,</span> <span class="pre">&quot;regex-mask&quot;,</span> <span class="pre">&quot;url-credentials&quot;]</span></code></p></td>
+<td><p>Order of redactor application</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.redaction_max_depth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__REDACTION_MAX_DEPTH</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_redaction(max_depth=6)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">6</span></code></p></td>
+<td><p>Max nested depth for redaction</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.redaction_max_keys_scanned</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__REDACTION_MAX_KEYS_SCANNED</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_redaction(max_keys=5000)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">5000</span></code></p></td>
+<td><p>Max keys scanned during redaction</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.fallback_redact_mode</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__FALLBACK_REDACT_MODE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_fallback_redaction(fallback_mode=&quot;minimal&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;minimal&quot;</span></code></p></td>
+<td><p>Redaction mode for fallback: inherit, minimal, none</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.redaction_fail_mode</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__REDACTION_FAIL_MODE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_fallback_redaction(fail_mode=&quot;warn&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;warn&quot;</span></code></p></td>
+<td><p>Behavior on redaction failure: open, closed, warn</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.fallback_scrub_raw</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__FALLBACK_SCRUB_RAW</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_fallback_redaction(scrub_raw=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Apply keyword scrubbing to raw fallback</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.fallback_raw_max_bytes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__FALLBACK_RAW_MAX_BYTES</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_fallback_redaction(raw_max_bytes=1000)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Optional byte limit for raw fallback</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="drop-dedupe-visibility">
+<h3>Drop/Dedupe Visibility<a class="headerlink" href="#drop-dedupe-visibility" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.emit_drop_summary</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__EMIT_DROP_SUMMARY</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_drop_summary(enabled=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Emit summary when events dropped</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.drop_summary_window_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__DROP_SUMMARY_WINDOW_SECONDS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_drop_summary(window_seconds=60)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">60.0</span></code></p></td>
+<td><p>Window for aggregating summaries</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="plugin-selection">
+<h3>Plugin Selection<a class="headerlink" href="#plugin-selection" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.sinks</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SINKS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_file()</span></code>, <code class="docutils literal notranslate"><span class="pre">.add_stdout()</span></code>, etc.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[]</span></code></p></td>
+<td><p>Sink plugins to use</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.enrichers</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__ENRICHERS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_enrichers(...)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[&quot;runtime_info&quot;,</span> <span class="pre">&quot;context_vars&quot;]</span></code></p></td>
+<td><p>Enricher plugins to use</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.filters</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__FILTERS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_filters(...)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[]</span></code></p></td>
+<td><p>Filter plugins to apply</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.processors</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__PROCESSORS</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[]</span></code></p></td>
+<td><p>Processor plugins to use</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="advanced">
+<h3>Advanced<a class="headerlink" href="#advanced" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.strict_envelope_mode</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__STRICT_ENVELOPE_MODE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_strict_mode(True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Drop on envelope serialization failure</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.serialize_in_flush</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SERIALIZE_IN_FLUSH</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Pre-serialize envelopes in flush</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.resource_pool_max_size</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__RESOURCE_POOL_MAX_SIZE</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">8</span></code></p></td>
+<td><p>Default max size for resource pools</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.resource_pool_acquire_timeout_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__RESOURCE_POOL_ACQUIRE_TIMEOUT_SECONDS</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2.0</span></code></p></td>
+<td><p>Default acquire timeout for pools</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.sensitive_fields_policy</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SENSITIVE_FIELDS_POLICY</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[]</span></code></p></td>
+<td><p>Optional list for sensitive fields warning</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<hr class="docutils" />
+<section id="sink-settings">
+<h2>Sink Settings<a class="headerlink" href="#sink-settings" title="Link to this heading"></a></h2>
+<section id="rotating-file-sink">
+<h3>Rotating File Sink<a class="headerlink" href="#rotating-file-sink" title="Link to this heading"></a></h3>
+<p>Settings path: <code class="docutils literal notranslate"><span class="pre">sink_config.rotating_file.*</span></code></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.rotating_file.directory</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__DIRECTORY</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_file(directory=&quot;...&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Log directory</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.rotating_file.filename_prefix</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__FILENAME_PREFIX</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;fapilog&quot;</span></code></p></td>
+<td><p>Filename prefix</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.rotating_file.mode</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__MODE</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;json&quot;</span></code></p></td>
+<td><p>Output format: json or text</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.rotating_file.max_bytes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_BYTES</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_file(max_bytes=&quot;10</span> <span class="pre">MB&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">10485760</span></code></p></td>
+<td><p>Max bytes before rotation</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.rotating_file.interval_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__INTERVAL_SECONDS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_file(interval=&quot;daily&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Rotation interval (hourly, daily, etc.)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.rotating_file.max_files</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_FILES</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_file(max_files=10)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Max rotated files to keep</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.rotating_file.max_total_bytes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_TOTAL_BYTES</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Max total bytes across all files</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.rotating_file.compress_rotated</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__COMPRESS_ROTATED</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_file(compress=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Compress rotated files with gzip</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="http-sink">
+<h3>HTTP Sink<a class="headerlink" href="#http-sink" title="Link to this heading"></a></h3>
+<p>Settings path: <code class="docutils literal notranslate"><span class="pre">sink_config.http.*</span></code> or <code class="docutils literal notranslate"><span class="pre">http.*</span></code></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">http.endpoint</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_HTTP__ENDPOINT</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_http(endpoint=&quot;...&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>HTTP endpoint URL</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">http.headers</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_HTTP__HEADERS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_http(headers={...})</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{}</span></code></p></td>
+<td><p>Default headers</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">http.headers_json</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_HTTP__HEADERS_JSON</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>JSON-encoded headers map</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">http.timeout_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_HTTP__TIMEOUT_SECONDS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_http(timeout=&quot;30s&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">5.0</span></code></p></td>
+<td><p>Request timeout</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">http.retry_max_attempts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_HTTP__RETRY_MAX_ATTEMPTS</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Max retry attempts</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">http.retry_backoff_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_HTTP__RETRY_BACKOFF_SECONDS</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Base backoff between retries</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">http.batch_size</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_HTTP__BATCH_SIZE</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+<td><p>Events per HTTP request</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">http.batch_timeout_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_HTTP__BATCH_TIMEOUT_SECONDS</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">5.0</span></code></p></td>
+<td><p>Max seconds before flush</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">http.batch_format</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_HTTP__BATCH_FORMAT</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;array&quot;</span></code></p></td>
+<td><p>Format: array, ndjson, wrapped</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">http.batch_wrapper_key</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_HTTP__BATCH_WRAPPER_KEY</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;logs&quot;</span></code></p></td>
+<td><p>Wrapper key when format=wrapped</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="webhook-sink">
+<h3>Webhook Sink<a class="headerlink" href="#webhook-sink" title="Link to this heading"></a></h3>
+<p>Settings path: <code class="docutils literal notranslate"><span class="pre">sink_config.webhook.*</span></code></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.webhook.endpoint</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__ENDPOINT</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_webhook(endpoint=&quot;...&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Webhook destination URL</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.webhook.secret</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__SECRET</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_webhook(secret=&quot;...&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Shared secret for signing</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.webhook.headers</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__HEADERS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_webhook(headers={...})</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{}</span></code></p></td>
+<td><p>Additional HTTP headers</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.webhook.timeout_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__TIMEOUT_SECONDS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_webhook(timeout=&quot;5s&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">5.0</span></code></p></td>
+<td><p>Request timeout</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.webhook.retry_max_attempts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__RETRY_MAX_ATTEMPTS</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Max retry attempts</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.webhook.retry_backoff_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__RETRY_BACKOFF_SECONDS</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Backoff between retries</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.webhook.batch_size</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__BATCH_SIZE</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+<td><p>Events per request</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.webhook.batch_timeout_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__BATCH_TIMEOUT_SECONDS</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">5.0</span></code></p></td>
+<td><p>Max seconds before flush</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="cloudwatch-sink">
+<h3>CloudWatch Sink<a class="headerlink" href="#cloudwatch-sink" title="Link to this heading"></a></h3>
+<p>Settings path: <code class="docutils literal notranslate"><span class="pre">sink_config.cloudwatch.*</span></code></p>
+<p>Short env var aliases are available (e.g., <code class="docutils literal notranslate"><span class="pre">FAPILOG_CLOUDWATCH__REGION</span></code>).</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.cloudwatch.log_group_name</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CLOUDWATCH__LOG_GROUP_NAME</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_cloudwatch(log_group=&quot;...&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;/fapilog/default&quot;</span></code></p></td>
+<td><p>CloudWatch log group name</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.cloudwatch.log_stream_name</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CLOUDWATCH__LOG_STREAM_NAME</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_cloudwatch(stream=&quot;...&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Log stream name</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.cloudwatch.region</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CLOUDWATCH__REGION</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_cloudwatch(region=&quot;...&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>AWS region</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.cloudwatch.endpoint_url</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CLOUDWATCH__ENDPOINT_URL</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_cloudwatch(endpoint_url=&quot;...&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Custom endpoint (LocalStack)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.cloudwatch.create_log_group</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CLOUDWATCH__CREATE_LOG_GROUP</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_cloudwatch(create_group=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Create log group if missing</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.cloudwatch.create_log_stream</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CLOUDWATCH__CREATE_LOG_STREAM</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_cloudwatch(create_stream=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Create log stream if missing</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.cloudwatch.batch_size</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CLOUDWATCH__BATCH_SIZE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_cloudwatch(batch_size=100)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">100</span></code></p></td>
+<td><p>Events per batch</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.cloudwatch.batch_timeout_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CLOUDWATCH__BATCH_TIMEOUT_SECONDS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_cloudwatch(batch_timeout=&quot;5s&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">5.0</span></code></p></td>
+<td><p>Max seconds before flush</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.cloudwatch.max_retries</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CLOUDWATCH__MAX_RETRIES</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_cloudwatch(max_retries=3)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">3</span></code></p></td>
+<td><p>Max retries for PutLogEvents</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.cloudwatch.retry_base_delay</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CLOUDWATCH__RETRY_BASE_DELAY</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_cloudwatch(retry_delay=0.5)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.5</span></code></p></td>
+<td><p>Base delay for backoff</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.cloudwatch.circuit_breaker_enabled</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CLOUDWATCH__CIRCUIT_BREAKER_ENABLED</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_cloudwatch(circuit_breaker=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Enable circuit breaker</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.cloudwatch.circuit_breaker_threshold</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CLOUDWATCH__CIRCUIT_BREAKER_THRESHOLD</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_cloudwatch(circuit_breaker_threshold=5)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">5</span></code></p></td>
+<td><p>Failures before opening</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="loki-sink">
+<h3>Loki Sink<a class="headerlink" href="#loki-sink" title="Link to this heading"></a></h3>
+<p>Settings path: <code class="docutils literal notranslate"><span class="pre">sink_config.loki.*</span></code></p>
+<p>Short env var aliases are available (e.g., <code class="docutils literal notranslate"><span class="pre">FAPILOG_LOKI__URL</span></code>).</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.loki.url</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_LOKI__URL</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_loki(url=&quot;...&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;http://localhost:3100&quot;</span></code></p></td>
+<td><p>Loki push endpoint</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.loki.tenant_id</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_LOKI__TENANT_ID</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_loki(tenant_id=&quot;...&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Multi-tenant identifier</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.loki.labels</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_LOKI__LABELS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_loki(labels={...})</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{&quot;service&quot;:</span> <span class="pre">&quot;fapilog&quot;}</span></code></p></td>
+<td><p>Static labels for streams</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.loki.label_keys</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_LOKI__LABEL_KEYS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_loki(label_keys=[...])</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[&quot;level&quot;]</span></code></p></td>
+<td><p>Event keys to promote to labels</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.loki.batch_size</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_LOKI__BATCH_SIZE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_loki(batch_size=100)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">100</span></code></p></td>
+<td><p>Events per batch</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.loki.batch_timeout_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_LOKI__BATCH_TIMEOUT_SECONDS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_loki(batch_timeout=&quot;5s&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">5.0</span></code></p></td>
+<td><p>Max seconds before flush</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.loki.timeout_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_LOKI__TIMEOUT_SECONDS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_loki(timeout=&quot;10s&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">10.0</span></code></p></td>
+<td><p>HTTP timeout</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.loki.max_retries</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_LOKI__MAX_RETRIES</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_loki(max_retries=3)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">3</span></code></p></td>
+<td><p>Max retries on failure</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.loki.retry_base_delay</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_LOKI__RETRY_BASE_DELAY</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_loki(retry_delay=0.5)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.5</span></code></p></td>
+<td><p>Base delay for backoff</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.loki.auth_username</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_LOKI__AUTH_USERNAME</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_loki(auth_username=&quot;...&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Basic auth username</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.loki.auth_password</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_LOKI__AUTH_PASSWORD</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_loki(auth_password=&quot;...&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Basic auth password</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.loki.auth_token</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_LOKI__AUTH_TOKEN</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_loki(auth_token=&quot;...&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Bearer token</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.loki.circuit_breaker_enabled</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_LOKI__CIRCUIT_BREAKER_ENABLED</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_loki(circuit_breaker=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Enable circuit breaker</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.loki.circuit_breaker_threshold</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_LOKI__CIRCUIT_BREAKER_THRESHOLD</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_loki(circuit_breaker_threshold=5)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">5</span></code></p></td>
+<td><p>Failures before opening</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="postgresql-sink">
+<h3>PostgreSQL Sink<a class="headerlink" href="#postgresql-sink" title="Link to this heading"></a></h3>
+<p>Settings path: <code class="docutils literal notranslate"><span class="pre">sink_config.postgres.*</span></code></p>
+<p>Short env var aliases are available (e.g., <code class="docutils literal notranslate"><span class="pre">FAPILOG_POSTGRES__HOST</span></code>).</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.postgres.dsn</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_POSTGRES__DSN</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_postgres(dsn=&quot;...&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Full connection string</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.postgres.host</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_POSTGRES__HOST</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_postgres(host=&quot;...&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;localhost&quot;</span></code></p></td>
+<td><p>Database host</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.postgres.port</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_POSTGRES__PORT</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_postgres(port=5432)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">5432</span></code></p></td>
+<td><p>Database port</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.postgres.database</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_POSTGRES__DATABASE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_postgres(database=&quot;...&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;fapilog&quot;</span></code></p></td>
+<td><p>Database name</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.postgres.user</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_POSTGRES__USER</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_postgres(user=&quot;...&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;fapilog&quot;</span></code></p></td>
+<td><p>Username</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.postgres.password</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_POSTGRES__PASSWORD</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_postgres(password=&quot;...&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Password</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.postgres.table_name</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_POSTGRES__TABLE_NAME</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_postgres(table=&quot;...&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;logs&quot;</span></code></p></td>
+<td><p>Target table</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.postgres.schema_name</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_POSTGRES__SCHEMA_NAME</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_postgres(schema=&quot;...&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;public&quot;</span></code></p></td>
+<td><p>Database schema</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.postgres.create_table</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_POSTGRES__CREATE_TABLE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_postgres(create_table=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Auto-create table</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.postgres.min_pool_size</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_POSTGRES__MIN_POOL_SIZE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_postgres(min_pool=2)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2</span></code></p></td>
+<td><p>Minimum pool connections</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.postgres.max_pool_size</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_POSTGRES__MAX_POOL_SIZE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_postgres(max_pool=10)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">10</span></code></p></td>
+<td><p>Maximum pool connections</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.postgres.pool_acquire_timeout</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_POSTGRES__POOL_ACQUIRE_TIMEOUT</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_postgres(pool_acquire_timeout=&quot;10s&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">10.0</span></code></p></td>
+<td><p>Pool acquire timeout</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.postgres.batch_size</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_POSTGRES__BATCH_SIZE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_postgres(batch_size=100)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">100</span></code></p></td>
+<td><p>Events per batch</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.postgres.batch_timeout_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_POSTGRES__BATCH_TIMEOUT_SECONDS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_postgres(batch_timeout=&quot;5s&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">5.0</span></code></p></td>
+<td><p>Max seconds before flush</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.postgres.max_retries</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_POSTGRES__MAX_RETRIES</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_postgres(max_retries=3)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">3</span></code></p></td>
+<td><p>Max retries</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.postgres.retry_base_delay</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_POSTGRES__RETRY_BASE_DELAY</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_postgres(retry_delay=0.5)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.5</span></code></p></td>
+<td><p>Base delay for backoff</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.postgres.circuit_breaker_enabled</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_POSTGRES__CIRCUIT_BREAKER_ENABLED</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_postgres(circuit_breaker=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Enable circuit breaker</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.postgres.circuit_breaker_threshold</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_POSTGRES__CIRCUIT_BREAKER_THRESHOLD</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_postgres(circuit_breaker_threshold=5)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">5</span></code></p></td>
+<td><p>Failures before opening</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.postgres.use_jsonb</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_POSTGRES__USE_JSONB</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_postgres(use_jsonb=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Use JSONB column type</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.postgres.include_raw_json</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_POSTGRES__INCLUDE_RAW_JSON</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_postgres(include_raw_json=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Store full event JSON</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.postgres.extract_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_POSTGRES__EXTRACT_FIELDS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.add_postgres(extract_fields=[...])</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[&quot;timestamp&quot;,</span> <span class="pre">&quot;level&quot;,</span> <span class="pre">...]</span></code></p></td>
+<td><p>Fields to promote to columns</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="sealed-sink-tamper-evident">
+<h3>Sealed Sink (Tamper-Evident)<a class="headerlink" href="#sealed-sink-tamper-evident" title="Link to this heading"></a></h3>
+<p>Settings path: <code class="docutils literal notranslate"><span class="pre">sink_config.sealed.*</span></code></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.sealed.inner_sink</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__INNER_SINK</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;rotating_file&quot;</span></code></p></td>
+<td><p>Inner sink to wrap</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.sealed.inner_config</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__INNER_CONFIG</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{}</span></code></p></td>
+<td><p>Inner sink configuration</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.sealed.manifest_path</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__MANIFEST_PATH</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Manifest directory</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.sealed.sign_manifests</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__SIGN_MANIFESTS</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Sign manifests when keys available</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.sealed.key_id</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__KEY_ID</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Signing key identifier</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.sealed.key_provider</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__KEY_PROVIDER</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;env&quot;</span></code></p></td>
+<td><p>Key provider for signing</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.sealed.chain_state_path</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__CHAIN_STATE_PATH</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Chain state directory</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.sealed.rotate_chain</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__ROTATE_CHAIN</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Reset chain on rotation</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.sealed.fsync_on_write</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__FSYNC_ON_WRITE</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Fsync on every write</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.sealed.fsync_on_rotate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__FSYNC_ON_ROTATE</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Fsync after rotation</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.sealed.compress_rotated</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__COMPRESS_ROTATED</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Compress rotated files</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_config.sealed.use_kms_signing</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__USE_KMS_SIGNING</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Sign via external KMS</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<hr class="docutils" />
+<section id="sink-routing">
+<h2>Sink Routing<a class="headerlink" href="#sink-routing" title="Link to this heading"></a></h2>
+<p>Settings path: <code class="docutils literal notranslate"><span class="pre">sink_routing.*</span></code></p>
+<p>Short env var aliases are available (e.g., <code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_ROUTING__ENABLED</span></code>).</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_routing.enabled</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_ROUTING__ENABLED</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_routing(rules=[...])</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Enable level-based routing</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_routing.rules</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_ROUTING__RULES</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_routing(rules=[...])</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[]</span></code></p></td>
+<td><p>Routing rules in priority order</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sink_routing.overlap</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_ROUTING__OVERLAP</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_routing(overlap=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Allow multiple rule matches</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sink_routing.fallback_sinks</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_ROUTING__FALLBACK_SINKS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_routing(fallback=[...])</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[]</span></code></p></td>
+<td><p>Sinks when no rules match</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Routing rules format:</strong></p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span><span class="nt">&quot;levels&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;CRITICAL&quot;</span><span class="p">],</span><span class="w"> </span><span class="nt">&quot;sinks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;cloudwatch&quot;</span><span class="p">]},</span>
+<span class="w">  </span><span class="p">{</span><span class="nt">&quot;levels&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;DEBUG&quot;</span><span class="p">],</span><span class="w"> </span><span class="nt">&quot;sinks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">]}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="id1">
+<h2>Redaction Settings<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<section id="field-mask-redactor">
+<h3>Field Mask Redactor<a class="headerlink" href="#field-mask-redactor" title="Link to this heading"></a></h3>
+<p>Settings path: <code class="docutils literal notranslate"><span class="pre">redactor_config.field_mask.*</span></code></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">redactor_config.field_mask.fields_to_mask</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_REDACTOR_CONFIG__FIELD_MASK__FIELDS_TO_MASK</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_redaction(fields=[...])</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[]</span></code></p></td>
+<td><p>Field names to mask</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">redactor_config.field_mask.mask_string</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_REDACTOR_CONFIG__FIELD_MASK__MASK_STRING</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_redaction(mask=&quot;***&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;***&quot;</span></code></p></td>
+<td><p>Replacement string</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">redactor_config.field_mask.block_on_unredactable</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_REDACTOR_CONFIG__FIELD_MASK__BLOCK_ON_UNREDACTABLE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_redaction(block_on_failure=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Block if redaction fails</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">redactor_config.field_mask.max_depth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_REDACTOR_CONFIG__FIELD_MASK__MAX_DEPTH</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">16</span></code></p></td>
+<td><p>Max nested depth</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">redactor_config.field_mask.max_keys_scanned</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_REDACTOR_CONFIG__FIELD_MASK__MAX_KEYS_SCANNED</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1000</span></code></p></td>
+<td><p>Max keys to scan</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="regex-mask-redactor">
+<h3>Regex Mask Redactor<a class="headerlink" href="#regex-mask-redactor" title="Link to this heading"></a></h3>
+<p>Settings path: <code class="docutils literal notranslate"><span class="pre">redactor_config.regex_mask.*</span></code></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">redactor_config.regex_mask.patterns</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_REDACTOR_CONFIG__REGEX_MASK__PATTERNS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_redaction(patterns=[...])</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[]</span></code></p></td>
+<td><p>Regex patterns to mask</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">redactor_config.regex_mask.mask_string</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_REDACTOR_CONFIG__REGEX_MASK__MASK_STRING</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_redaction(mask=&quot;***&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;***&quot;</span></code></p></td>
+<td><p>Replacement string</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">redactor_config.regex_mask.block_on_unredactable</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_REDACTOR_CONFIG__REGEX_MASK__BLOCK_ON_UNREDACTABLE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_redaction(block_on_failure=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Block if redaction fails</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">redactor_config.regex_mask.max_depth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_REDACTOR_CONFIG__REGEX_MASK__MAX_DEPTH</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">16</span></code></p></td>
+<td><p>Max nested depth</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">redactor_config.regex_mask.max_keys_scanned</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_REDACTOR_CONFIG__REGEX_MASK__MAX_KEYS_SCANNED</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1000</span></code></p></td>
+<td><p>Max keys to scan</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="url-credentials-redactor">
+<h3>URL Credentials Redactor<a class="headerlink" href="#url-credentials-redactor" title="Link to this heading"></a></h3>
+<p>Settings path: <code class="docutils literal notranslate"><span class="pre">redactor_config.url_credentials.*</span></code></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">redactor_config.url_credentials.max_string_length</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_REDACTOR_CONFIG__URL_CREDENTIALS__MAX_STRING_LENGTH</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_redaction(url_max_length=4096)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">4096</span></code></p></td>
+<td><p>Max string length to parse</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Redaction presets:</strong> For compliance-ready redaction, see the <a class="reference internal" href="../redaction/presets.html"><span class="std std-doc">Redaction Presets</span></a> documentation covering GDPR_PII, HIPAA_PHI, PCI_DSS, CREDENTIALS, and more.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="filter-settings">
+<h2>Filter Settings<a class="headerlink" href="#filter-settings" title="Link to this heading"></a></h2>
+<section id="sampling-filter">
+<h3>Sampling Filter<a class="headerlink" href="#sampling-filter" title="Link to this heading"></a></h3>
+<p>Settings path: <code class="docutils literal notranslate"><span class="pre">filter_config.sampling.*</span></code></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">filter_config.sampling.sample_rate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_FILTER_CONFIG__SAMPLING__SAMPLE_RATE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_sampling(rate=0.1)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.0</span></code></p></td>
+<td><p>Sample rate 0.0-1.0</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">filter_config.sampling.seed</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_FILTER_CONFIG__SAMPLING__SEED</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_sampling(seed=42)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Random seed for reproducibility</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="adaptive-sampling-filter">
+<h3>Adaptive Sampling Filter<a class="headerlink" href="#adaptive-sampling-filter" title="Link to this heading"></a></h3>
+<p>Settings path: <code class="docutils literal notranslate"><span class="pre">filter_config.adaptive_sampling.*</span></code></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">filter_config.adaptive_sampling.min_rate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_FILTER_CONFIG__ADAPTIVE_SAMPLING__MIN_RATE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_adaptive_sampling(min_rate=0.01)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.01</span></code></p></td>
+<td><p>Minimum sample rate</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">filter_config.adaptive_sampling.max_rate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_FILTER_CONFIG__ADAPTIVE_SAMPLING__MAX_RATE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_adaptive_sampling(max_rate=1.0)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.0</span></code></p></td>
+<td><p>Maximum sample rate</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">filter_config.adaptive_sampling.target_events_per_sec</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_FILTER_CONFIG__ADAPTIVE_SAMPLING__TARGET_EVENTS_PER_SEC</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_adaptive_sampling(target_events_per_sec=1000)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1000.0</span></code></p></td>
+<td><p>Target throughput</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">filter_config.adaptive_sampling.window_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_FILTER_CONFIG__ADAPTIVE_SAMPLING__WINDOW_SECONDS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_adaptive_sampling(window_seconds=60)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">60.0</span></code></p></td>
+<td><p>Measurement window</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="trace-sampling-filter">
+<h3>Trace Sampling Filter<a class="headerlink" href="#trace-sampling-filter" title="Link to this heading"></a></h3>
+<p>Settings path: <code class="docutils literal notranslate"><span class="pre">filter_config.trace_sampling.*</span></code></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">filter_config.trace_sampling.default_rate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_FILTER_CONFIG__TRACE_SAMPLING__DEFAULT_RATE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_trace_sampling(default_rate=0.1)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.0</span></code></p></td>
+<td><p>Default rate when no trace context</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">filter_config.trace_sampling.honor_upstream</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_FILTER_CONFIG__TRACE_SAMPLING__HONOR_UPSTREAM</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_trace_sampling(honor_upstream=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Honor upstream decisions</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="rate-limit-filter">
+<h3>Rate Limit Filter<a class="headerlink" href="#rate-limit-filter" title="Link to this heading"></a></h3>
+<p>Settings path: <code class="docutils literal notranslate"><span class="pre">filter_config.rate_limit.*</span></code></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">filter_config.rate_limit.capacity</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_FILTER_CONFIG__RATE_LIMIT__CAPACITY</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_rate_limit(capacity=10)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">10</span></code></p></td>
+<td><p>Token bucket capacity</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">filter_config.rate_limit.refill_rate_per_sec</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_FILTER_CONFIG__RATE_LIMIT__REFILL_RATE_PER_SEC</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_rate_limit(refill_rate=5.0)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">5.0</span></code></p></td>
+<td><p>Tokens per second</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">filter_config.rate_limit.key_field</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_FILTER_CONFIG__RATE_LIMIT__KEY_FIELD</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_rate_limit(key_field=&quot;...&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Field for partitioning</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">filter_config.rate_limit.max_keys</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_FILTER_CONFIG__RATE_LIMIT__MAX_KEYS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_rate_limit(max_keys=10000)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">10000</span></code></p></td>
+<td><p>Max buckets</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">filter_config.rate_limit.overflow_action</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_FILTER_CONFIG__RATE_LIMIT__OVERFLOW_ACTION</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_rate_limit(overflow_action=&quot;drop&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;drop&quot;</span></code></p></td>
+<td><p>Action: drop or mark</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="first-occurrence-filter">
+<h3>First Occurrence Filter<a class="headerlink" href="#first-occurrence-filter" title="Link to this heading"></a></h3>
+<p>Settings path: <code class="docutils literal notranslate"><span class="pre">filter_config.first_occurrence.*</span></code></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">filter_config.first_occurrence.window_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_FILTER_CONFIG__FIRST_OCCURRENCE__WINDOW_SECONDS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_first_occurrence(window_seconds=300)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">300.0</span></code></p></td>
+<td><p>Dedup window</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">filter_config.first_occurrence.max_entries</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_FILTER_CONFIG__FIRST_OCCURRENCE__MAX_ENTRIES</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_first_occurrence(max_entries=10000)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">10000</span></code></p></td>
+<td><p>Max tracked messages</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">filter_config.first_occurrence.key_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_FILTER_CONFIG__FIRST_OCCURRENCE__KEY_FIELDS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_first_occurrence(key_fields=[...])</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Fields for dedup key</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<hr class="docutils" />
+<section id="processor-settings">
+<h2>Processor Settings<a class="headerlink" href="#processor-settings" title="Link to this heading"></a></h2>
+<section id="size-guard-processor">
+<h3>Size Guard Processor<a class="headerlink" href="#size-guard-processor" title="Link to this heading"></a></h3>
+<p>Settings path: <code class="docutils literal notranslate"><span class="pre">processor_config.size_guard.*</span></code></p>
+<p>Short env var aliases are available (e.g., <code class="docutils literal notranslate"><span class="pre">FAPILOG_SIZE_GUARD__MAX_BYTES</span></code>).</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">processor_config.size_guard.max_bytes</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SIZE_GUARD__MAX_BYTES</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_size_guard(max_bytes=&quot;256</span> <span class="pre">KB&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">256000</span></code></p></td>
+<td><p>Maximum payload size</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">processor_config.size_guard.action</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SIZE_GUARD__ACTION</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_size_guard(action=&quot;truncate&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;truncate&quot;</span></code></p></td>
+<td><p>Action: truncate, drop, warn</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">processor_config.size_guard.preserve_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SIZE_GUARD__PRESERVE_FIELDS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_size_guard(preserve_fields=[...])</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[&quot;level&quot;,</span> <span class="pre">&quot;timestamp&quot;,</span> <span class="pre">...]</span></code></p></td>
+<td><p>Fields to never remove</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<hr class="docutils" />
+<section id="observability-settings">
+<h2>Observability Settings<a class="headerlink" href="#observability-settings" title="Link to this heading"></a></h2>
+<p>Settings path: <code class="docutils literal notranslate"><span class="pre">observability.*</span></code></p>
+<section id="monitoring">
+<h3>Monitoring<a class="headerlink" href="#monitoring" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">observability.monitoring.enabled</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_OBSERVABILITY__MONITORING__ENABLED</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Enable health/monitoring</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">observability.monitoring.endpoint</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_OBSERVABILITY__MONITORING__ENDPOINT</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Monitoring endpoint URL</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="metrics">
+<h3>Metrics<a class="headerlink" href="#metrics" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">observability.metrics.enabled</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_OBSERVABILITY__METRICS__ENABLED</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Enable metrics collection</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">observability.metrics.exporter</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_OBSERVABILITY__METRICS__EXPORTER</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;prometheus&quot;</span></code></p></td>
+<td><p>Exporter: prometheus or none</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">observability.metrics.port</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_OBSERVABILITY__METRICS__PORT</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">8000</span></code></p></td>
+<td><p>Metrics exporter port</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="tracing">
+<h3>Tracing<a class="headerlink" href="#tracing" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">observability.tracing.enabled</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_OBSERVABILITY__TRACING__ENABLED</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Enable distributed tracing</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">observability.tracing.provider</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_OBSERVABILITY__TRACING__PROVIDER</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;otel&quot;</span></code></p></td>
+<td><p>Provider: otel or none</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">observability.tracing.sampling_rate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_OBSERVABILITY__TRACING__SAMPLING_RATE</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.1</span></code></p></td>
+<td><p>Trace sampling rate 0.0-1.0</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="logging">
+<h3>Logging<a class="headerlink" href="#logging" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">observability.logging.format</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_OBSERVABILITY__LOGGING__FORMAT</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;json&quot;</span></code></p></td>
+<td><p>Output format: json or text</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">observability.logging.include_correlation</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_OBSERVABILITY__LOGGING__INCLUDE_CORRELATION</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Include correlation IDs</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">observability.logging.sampling_rate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_OBSERVABILITY__LOGGING__SAMPLING_RATE</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.0</span></code></p></td>
+<td><p>Log sampling rate (deprecated)</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="alerting">
+<h3>Alerting<a class="headerlink" href="#alerting" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">observability.alerting.enabled</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_OBSERVABILITY__ALERTING__ENABLED</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Enable alerting</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">observability.alerting.min_severity</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_OBSERVABILITY__ALERTING__MIN_SEVERITY</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;ERROR&quot;</span></code></p></td>
+<td><p>Minimum alert severity</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<hr class="docutils" />
+<section id="plugin-settings">
+<h2>Plugin Settings<a class="headerlink" href="#plugin-settings" title="Link to this heading"></a></h2>
+<p>Settings path: <code class="docutils literal notranslate"><span class="pre">plugins.*</span></code></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plugins.enabled</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_PLUGINS__ENABLED</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_plugins(enabled=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Enable plugin loading</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plugins.allow_external</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_PLUGINS__ALLOW_EXTERNAL</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_plugins(allow_external=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Allow entry point plugins</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plugins.allowlist</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_PLUGINS__ALLOWLIST</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_plugins(allowlist=[...])</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[]</span></code></p></td>
+<td><p>Only allow these plugins</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plugins.denylist</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_PLUGINS__DENYLIST</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_plugins(denylist=[...])</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[]</span></code></p></td>
+<td><p>Block these plugins</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plugins.validation_mode</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_PLUGINS__VALIDATION_MODE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_plugins(validation_mode=&quot;warn&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;disabled&quot;</span></code></p></td>
+<td><p>Mode: disabled, warn, strict</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<hr class="docutils" />
+<section id="enricher-settings">
+<h2>Enricher Settings<a class="headerlink" href="#enricher-settings" title="Link to this heading"></a></h2>
+<section id="integrity-enricher-tamper-evident">
+<h3>Integrity Enricher (Tamper-Evident)<a class="headerlink" href="#integrity-enricher-tamper-evident" title="Link to this heading"></a></h3>
+<p>Settings path: <code class="docutils literal notranslate"><span class="pre">enricher_config.integrity.*</span></code></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">enricher_config.integrity.algorithm</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ENRICHER_CONFIG__INTEGRITY__ALGORITHM</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;sha256&quot;</span></code></p></td>
+<td><p>MAC algorithm: sha256 or ed25519</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">enricher_config.integrity.key_id</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ENRICHER_CONFIG__INTEGRITY__KEY_ID</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Key identifier</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">enricher_config.integrity.key_provider</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ENRICHER_CONFIG__INTEGRITY__KEY_PROVIDER</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;env&quot;</span></code></p></td>
+<td><p>Key provider</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">enricher_config.integrity.chain_state_path</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ENRICHER_CONFIG__INTEGRITY__CHAIN_STATE_PATH</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Chain state directory</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">enricher_config.integrity.rotate_chain</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ENRICHER_CONFIG__INTEGRITY__ROTATE_CHAIN</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Reset chain after rotation</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">enricher_config.integrity.use_kms_signing</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ENRICHER_CONFIG__INTEGRITY__USE_KMS_SIGNING</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Sign via KMS provider</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<hr class="docutils" />
+<section id="see-also">
+<h2>See Also<a class="headerlink" href="#see-also" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="../user-guide/configuration.html"><span class="std std-doc">Configuration Guide</span></a> - Detailed configuration guide with examples</p></li>
+<li><p><a class="reference internal" href="../user-guide/environment-variables.html"><span class="std std-doc">Environment Variables</span></a> - Full env var reference</p></li>
+<li><p><a class="reference internal" href="builder.html"><span class="std std-doc">Builder API</span></a> - LoggerBuilder API reference</p></li>
+<li><p><a class="reference internal" href="../redaction/presets.html"><span class="std std-doc">Redaction Presets</span></a> - Compliance-ready redaction presets</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          
+<footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer" style="position: relative;">
+        <a href="configuration.html" class="btn btn-neutral float-left" title="Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="types.html" class="btn btn-neutral float-right" title="Types" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+      <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 50%; margin-top: -0.5em;">
+        <a href="https://fapilog.dev">www.fapilog.dev</a>
+      </div>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Chris Haste.
+      <span class="lastupdated">Last updated on January 28, 2026.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

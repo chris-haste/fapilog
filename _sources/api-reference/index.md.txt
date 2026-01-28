@@ -13,6 +13,7 @@ logger-methods
 context-binding
 audit-trail
 configuration
+configuration-map
 types
 plugins/index
 lifecycle-results
@@ -28,6 +29,7 @@ The API Reference is organized by functionality to help you quickly find what yo
 - **Logger Methods** (`logger-methods`) - All available logging methods
 - **Context Binding** (`context-binding`) - Request context and correlation
 - **Configuration** (`configuration`) - Settings and environment configuration
+- **Configuration Map** (`configuration-map`) - Complete reference: setting → env var → builder method
 - **Types** (`types`) - Reusable size/duration types
 - **Plugins** (`plugins/index`) - Extensible sinks, enrichers, redactors, and processors
 - **Lifecycle & Results** (`lifecycle-results`) - Runtime management and results
