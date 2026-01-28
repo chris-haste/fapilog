@@ -229,15 +229,36 @@
 <section id="basic-setup-with-middleware">
 <h2>Basic Setup with Middleware<a class="headerlink" href="#basic-setup-with-middleware" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">RequestContextMiddleware</span><span class="p">,</span> <span class="n">LoggingMiddleware</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span><span class="p">,</span> <span class="n">RequestContextMiddleware</span><span class="p">,</span> <span class="n">LoggingMiddleware</span>
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+
+<span class="c1"># Initialize logger in app.state (recommended)</span>
+<span class="n">setup_logging</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
 
 <span class="c1"># Sets request_id for correlation (from X-Request-ID header or UUID)</span>
 <span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span><span class="n">RequestContextMiddleware</span><span class="p">)</span>
 
 <span class="c1"># Logs request completion with method, path, status, latency_ms</span>
-<span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span><span class="n">LoggingMiddleware</span><span class="p">)</span>
+<span class="c1"># Use require_logger=True to fail fast if logger not initialized</span>
+<span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span><span class="n">LoggingMiddleware</span><span class="p">,</span> <span class="n">require_logger</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="production-pattern">
+<h2>Production Pattern<a class="headerlink" href="#production-pattern" title="Link to this heading"></a></h2>
+<p>For production, use <code class="docutils literal notranslate"><span class="pre">require_logger=True</span></code> to catch initialization issues early:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span><span class="p">,</span> <span class="n">LoggingMiddleware</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+<span class="n">setup_logging</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>  <span class="c1"># Sets app.state.fapilog_logger</span>
+<span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span><span class="n">LoggingMiddleware</span><span class="p">,</span> <span class="n">require_logger</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This avoids latency spikes from lazy logger creation on cold-start requests. If you forget to call <code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code>, the middleware raises a clear error:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ne">RuntimeError</span><span class="p">:</span> <span class="n">LoggingMiddleware</span> <span class="n">requires</span> <span class="n">logger</span> <span class="ow">in</span> <span class="n">app</span><span class="o">.</span><span class="n">state</span><span class="o">.</span>
+<span class="n">Call</span> <span class="n">setup_logging</span><span class="p">(</span><span class="n">app</span><span class="p">)</span> <span class="n">before</span> <span class="n">adding</span> <span class="n">middleware</span><span class="p">,</span> <span class="ow">or</span> <span class="k">pass</span> <span class="n">logger</span><span class="o">=</span> <span class="n">parameter</span><span class="o">.</span>
 </pre></div>
 </div>
 </section>
