@@ -5,13 +5,34 @@ import sys
 from typing import Any, Literal
 
 from ...core import diagnostics
-from ...core.defaults import FALLBACK_SENSITIVE_FIELDS, should_fallback_sink
+from ...core.defaults import (
+    FALLBACK_SCRUB_PATTERNS,
+    FALLBACK_SENSITIVE_FIELDS,
+    should_fallback_sink,
+)
 
 # Type alias for redact mode
 RedactMode = Literal["inherit", "minimal", "none"]
 
 # Prevent stack overflow on pathological input
 _MAX_REDACT_DEPTH = 32
+
+
+def _scrub_raw(text: str) -> str:
+    """Apply regex scrubbing to raw text for common secret patterns.
+
+    Used when JSON parsing fails and we must write raw bytes to stderr.
+    Complements minimal_redact() which handles parsed JSON dicts.
+
+    Args:
+        text: The raw text to scrub.
+
+    Returns:
+        Text with common secret patterns (password=, token=, etc.) masked.
+    """
+    for pattern, replacement in FALLBACK_SCRUB_PATTERNS:
+        text = pattern.sub(replacement, text)
+    return text
 
 
 def _redact_list(items: list[Any], *, _depth: int) -> list[Any]:
@@ -115,6 +136,8 @@ def _write_to_stderr(
     *,
     serialized: bool,
     redact_mode: RedactMode = "minimal",
+    fallback_scrub_raw: bool = True,
+    fallback_raw_max_bytes: int | None = None,
 ) -> None:
     """Write payload to stderr with optional redaction.
 
@@ -122,6 +145,8 @@ def _write_to_stderr(
         payload: The payload to write.
         serialized: Whether the payload is already serialized.
         redact_mode: Redaction mode - "minimal" (default), "inherit", or "none".
+        fallback_scrub_raw: Apply keyword scrubbing to raw output (Story 4.59).
+        fallback_raw_max_bytes: Optional byte limit for raw output truncation.
 
     For serialized payloads with redact_mode="minimal", attempts to:
     1. Deserialize the JSON payload
@@ -129,6 +154,7 @@ def _write_to_stderr(
     3. Re-serialize for output
 
     Falls back to raw output with diagnostic warning if JSON parsing fails.
+    When raw fallback is used, applies keyword scrubbing and optional truncation.
     """
     # Handle serialized payloads with minimal redaction (Story 4.54)
     if serialized and redact_mode == "minimal":
@@ -139,13 +165,32 @@ def _write_to_stderr(
                 parsed = minimal_redact(parsed)
             text = json.dumps(parsed, separators=(",", ":"), default=str)
         except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            # Raw fallback path - apply scrubbing and truncation (Story 4.59)
+            text = _format_payload(payload, serialized=True)
+            original_size = len(text.encode("utf-8", errors="replace"))
+            scrubbed = False
+            truncated = False
+
+            if fallback_scrub_raw:
+                text = _scrub_raw(text)
+                scrubbed = True
+
+            if (
+                fallback_raw_max_bytes is not None
+                and len(text) > fallback_raw_max_bytes
+            ):
+                text = text[:fallback_raw_max_bytes] + "[truncated]"
+                truncated = True
+
             diagnostics.warn(
                 "fallback",
                 "serialized payload not valid JSON, writing raw",
                 error=str(exc),
+                scrubbed=scrubbed,
+                truncated=truncated,
+                original_size=original_size,
                 _rate_limit_key="fallback_json_error",
             )
-            text = _format_payload(payload, serialized=True)
     elif not serialized and isinstance(payload, dict):
         # Apply redaction for dict payloads when not serialized
         if redact_mode == "minimal":
@@ -273,4 +318,5 @@ _VULTURE_USED: tuple[object, ...] = (
     FallbackSink,
     handle_sink_write_failure,
     _extract_bytes,
+    _scrub_raw,
 )

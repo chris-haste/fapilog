@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import sys
 from typing import Iterable
 
@@ -67,3 +68,18 @@ def is_tty_environment() -> bool:
 def should_fallback_sink(primary_failed: bool) -> bool:
     """Return True when a sink write failure should trigger fallback."""
     return bool(primary_failed)
+
+
+# Regex patterns for scrubbing secrets from raw (non-JSON) fallback output (Story 4.59)
+# Complements FALLBACK_SENSITIVE_FIELDS which handles parseable JSON field names.
+# Each pattern captures the key and separator, then replaces the value with ***.
+# Value pattern [^\s&;]+ matches up to whitespace or common delimiters (& for URLs, ; for headers).
+FALLBACK_SCRUB_PATTERNS: list[tuple[re.Pattern[str], str]] = [
+    (re.compile(r"(password|passwd|pwd)(\s*[=:]\s*)[^\s&;]+", re.I), r"\1\2***"),
+    (
+        re.compile(r"(token|api_key|apikey|secret)(\s*[=:]\s*)[^\s&;]+", re.I),
+        r"\1\2***",
+    ),
+    # Authorization headers may have spaces (e.g., "Bearer token"), match to end or delimiter
+    (re.compile(r"(authorization|auth)(\s*[=:]\s*)[^\n&;]+", re.I), r"\1\2***"),
+]

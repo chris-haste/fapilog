@@ -52,6 +52,8 @@ This guide documents Settings groups and fields.
 | `core.flush_on_critical` | bool | False | Immediately flush ERROR and CRITICAL logs (bypass batching) to reduce log loss on abrupt shutdown |
 | `core.emit_drop_summary` | bool | False | Emit summary log events when events are dropped due to backpressure or deduplicated due to error dedupe window |
 | `core.drop_summary_window_seconds` | float | 60.0 | Window in seconds for aggregating drop/dedupe summary events. Summaries are emitted at most once per window. |
+| `core.fallback_scrub_raw` | bool | True | Apply keyword scrubbing to raw (non-JSON) fallback output; set to False for debugging when raw output is needed |
+| `core.fallback_raw_max_bytes` | int | None | — | Optional limit for raw fallback output bytes; payloads exceeding this are truncated with '[truncated]' marker |
 | `core.benchmark_file_path` | str | None | — | Optional path used by performance benchmarks |
 
 ## security
