@@ -27,10 +27,11 @@ class BackpressurePolicy(str, Enum):
 
 
 class NonBlockingRingQueue(Generic[T]):
-    """Asyncio-only non-blocking ring queue based on deque with capacity.
+    """Asyncio-only bounded queue with event-based signaling.
 
     - Provides try/await variants for enqueue/dequeue
-    - No locks; relies on single-threaded event loop semantics
+    - Uses asyncio.Event for efficient waiting (no spin-wait)
+    - Relies on single-threaded event loop semantics
     - Fairness is best-effort; optimized for low overhead
     """
 
@@ -39,6 +40,12 @@ class NonBlockingRingQueue(Generic[T]):
             raise ValueError("capacity must be > 0")
         self._capacity = int(capacity)
         self._dq: deque[T] = deque()
+        # Event signaling for efficient waiting
+        self._space_available = asyncio.Event()
+        self._data_available = asyncio.Event()
+        # Initially: space is available, data is not
+        self._space_available.set()
+        self._data_available.clear()
 
     @property
     def capacity(self) -> int:
@@ -57,58 +64,120 @@ class NonBlockingRingQueue(Generic[T]):
         if self.is_full():
             return False
         self._dq.append(item)
+        # Signal that data is available for dequeuers
+        self._data_available.set()
+        # If queue is now full, clear space_available
+        if self.is_full():
+            self._space_available.clear()
         return True
 
     def try_dequeue(self) -> tuple[bool, T | None]:
         if self.is_empty():
             return False, None
-        return True, self._dq.popleft()
+        item = self._dq.popleft()
+        # Signal that space is available for enqueuers
+        self._space_available.set()
+        # If queue is now empty, clear data_available
+        if self.is_empty():
+            self._data_available.clear()
+        return True, item
 
     async def await_enqueue(
         self,
         item: T,
         *,
-        yield_every: int = 8,
         timeout: float | None = None,
     ) -> None:
-        spins = 0
-        start: float | None = None
-        if timeout is not None:
-            start = asyncio.get_event_loop().time()
-        while not self.try_enqueue(item):
+        """Enqueue item, waiting for space if queue is full.
+
+        Args:
+            item: The item to enqueue.
+            timeout: Maximum time to wait in seconds, or None for no timeout.
+
+        Raises:
+            TimeoutError: If timeout expires before space becomes available.
+        """
+        # Fast path: try to enqueue immediately
+        if self.try_enqueue(item):
+            return
+
+        # Slow path: wait for space to become available
+        start = asyncio.get_event_loop().time() if timeout is not None else None
+
+        while True:
+            # Calculate remaining timeout
+            remaining: float | None = None
             if timeout is not None and start is not None:
-                now = asyncio.get_event_loop().time()
-                if (now - start) >= timeout:
+                elapsed = asyncio.get_event_loop().time() - start
+                remaining = timeout - elapsed
+                if remaining <= 0:
                     from .errors import TimeoutError
 
                     raise TimeoutError("Timed out waiting to enqueue")
-            spins += 1
-            if (spins % yield_every) == 0:
-                await asyncio.sleep(0)
+
+            # Wait for signal that space is available
+            try:
+                await asyncio.wait_for(self._space_available.wait(), timeout=remaining)
+            except asyncio.TimeoutError:
+                from .errors import TimeoutError
+
+                raise TimeoutError("Timed out waiting to enqueue") from None
+
+            # Try to enqueue after wakeup (may fail if another waiter got there first)
+            if self.try_enqueue(item):
+                return
+            # If full again, clear the event and retry
+            self._space_available.clear()
 
     async def await_dequeue(
         self,
         *,
-        yield_every: int = 8,
         timeout: float | None = None,
     ) -> T:
-        spins = 0
-        start: float | None = None
-        if timeout is not None:
-            start = asyncio.get_event_loop().time()
+        """Dequeue item, waiting for data if queue is empty.
+
+        Args:
+            timeout: Maximum time to wait in seconds, or None for no timeout.
+
+        Returns:
+            The dequeued item.
+
+        Raises:
+            TimeoutError: If timeout expires before data becomes available.
+        """
+        # Fast path: try to dequeue immediately
+        ok, item = self.try_dequeue()
+        if ok:
+            return item  # type: ignore[return-value]
+
+        # Slow path: wait for data to become available
+        start = asyncio.get_event_loop().time() if timeout is not None else None
+
         while True:
-            ok, item = self.try_dequeue()
-            if ok:
-                return item  # type: ignore[return-value]
+            # Calculate remaining timeout
+            remaining: float | None = None
             if timeout is not None and start is not None:
-                now = asyncio.get_event_loop().time()
-                if (now - start) >= timeout:
+                elapsed = asyncio.get_event_loop().time() - start
+                remaining = timeout - elapsed
+                if remaining <= 0:
                     from .errors import TimeoutError
 
                     raise TimeoutError("Timed out waiting to dequeue")
-            spins += 1
-            if (spins % yield_every) == 0:
-                await asyncio.sleep(0)
+
+            # Wait for signal that data is available
+            try:
+                await asyncio.wait_for(self._data_available.wait(), timeout=remaining)
+            except asyncio.TimeoutError:
+                from .errors import TimeoutError
+
+                raise TimeoutError("Timed out waiting to dequeue") from None
+
+            # Try to dequeue after wakeup (may fail if another waiter got there first)
+            ok, item = self.try_dequeue()
+            if ok:
+                return item  # type: ignore[return-value]
+            # If empty again, clear the event and retry
+            self._data_available.clear()
 
 
 __all__ = ["BackpressurePolicy", "BackpressureError", "NonBlockingRingQueue"]
