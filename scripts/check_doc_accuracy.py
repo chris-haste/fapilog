@@ -2,12 +2,11 @@
 """Validate documentation accuracy for critical claims.
 
 This script checks that documentation accurately reflects code behavior,
-particularly for security-sensitive features, defaults, and guarantees.
+particularly for security-sensitive features and defaults.
 
 Checks are organized into categories:
 1. DOC_CHECKS: Verify documentation files exist and contain required content
 2. CODE_CHECKS: Verify documented defaults match actual code values
-3. BEHAVIOR_CHECKS: Verify documented behavioral claims match code patterns
 
 Usage:
     python scripts/check_doc_accuracy.py
@@ -168,16 +167,12 @@ def check_webhook_signature_default() -> CheckResult:
     try:
         from fapilog.plugins.sinks.webhook import SignatureMode, WebhookSinkConfig
 
-        # Check default signature mode
+        # Check default signature mode is HMAC (secure default)
         default_mode = WebhookSinkConfig.model_fields["signature_mode"].default
         if default_mode != SignatureMode.HMAC:
             errors.append(
                 f"WebhookSinkConfig.signature_mode: expected HMAC, got {default_mode}"
             )
-
-        # Verify HEADER mode no longer exists (removed for security)
-        if hasattr(SignatureMode, "HEADER"):
-            errors.append("SignatureMode.HEADER should be removed (security risk)")
 
     except ImportError as e:
         errors.append(f"Could not import webhook sink: {e}")
@@ -215,86 +210,6 @@ def check_external_plugins_disabled_default() -> CheckResult:
 
 
 # =============================================================================
-# BEHAVIORAL CHECKS
-# =============================================================================
-# Verify documented behavioral claims exist in the code.
-
-
-def check_same_thread_drop_behavior() -> CheckResult:
-    """Verify same-thread drop behavior is implemented (not just documented)."""
-    errors: list[str] = []
-
-    # Check that logger.py contains same-thread detection and drop logic
-    logger_path = Path("src/fapilog/core/logger.py")
-    if not logger_path.exists():
-        errors.append("src/fapilog/core/logger.py not found")
-    else:
-        content = logger_path.read_text()
-        # Should detect same-thread scenario
-        if "same" not in content.lower() or "thread" not in content.lower():
-            errors.append("logger.py should reference same-thread behavior")
-        # Should have immediate drop path
-        if "drop" not in content.lower():
-            errors.append("logger.py should have drop logic")
-
-    return CheckResult(
-        name="Same-thread drop behavior implemented",
-        passed=len(errors) == 0,
-        errors=errors,
-    )
-
-
-def check_graceful_shutdown_handler() -> CheckResult:
-    """Verify graceful shutdown handler is implemented."""
-    errors: list[str] = []
-
-    shutdown_path = Path("src/fapilog/core/shutdown.py")
-    if not shutdown_path.exists():
-        errors.append("src/fapilog/core/shutdown.py not found")
-    else:
-        content = shutdown_path.read_text()
-        # Should use atexit for graceful shutdown
-        if "atexit" not in content:
-            errors.append("shutdown.py should use atexit for graceful drain")
-        # Should handle signals
-        if "signal" not in content.lower():
-            errors.append("shutdown.py should handle signals")
-
-    return CheckResult(
-        name="Graceful shutdown handler implemented",
-        passed=len(errors) == 0,
-        errors=errors,
-    )
-
-
-def check_redos_protection() -> CheckResult:
-    """Verify ReDoS protection is implemented in regex redactor."""
-    errors: list[str] = []
-
-    regex_path = Path("src/fapilog/plugins/redactors/regex_mask.py")
-    if not regex_path.exists():
-        errors.append("src/fapilog/plugins/redactors/regex_mask.py not found")
-    else:
-        content = regex_path.read_text()
-        # Should have pattern validation
-        if "allow_unsafe_patterns" not in content:
-            errors.append(
-                "regex_mask.py should have allow_unsafe_patterns escape hatch"
-            )
-        # Should detect dangerous patterns
-        if "catastrophic" not in content.lower() and "redos" not in content.lower():
-            # Check for pattern validation logic
-            if "validate" not in content.lower():
-                errors.append("regex_mask.py should validate patterns for ReDoS")
-
-    return CheckResult(
-        name="ReDoS protection in regex redactor",
-        passed=len(errors) == 0,
-        errors=errors,
-    )
-
-
-# =============================================================================
 # MAIN EXECUTION
 # =============================================================================
 
@@ -302,9 +217,6 @@ CODE_CHECKS: list[Callable[[], CheckResult]] = [
     check_settings_defaults,
     check_webhook_signature_default,
     check_external_plugins_disabled_default,
-    check_same_thread_drop_behavior,
-    check_graceful_shutdown_handler,
-    check_redos_protection,
 ]
 
 

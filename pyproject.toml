@@ -439,8 +439,6 @@ ignore_names = [
     "record_failure",
     # Retry public API
     "get_stats",
-    # Webhook sink config (backwards compat field)
-    "signature_mode",
     # Cache async methods (public API)
     "aget",
     "aset",

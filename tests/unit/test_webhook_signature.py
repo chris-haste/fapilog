@@ -121,6 +121,47 @@ async def test_hmac_signature_in_header() -> None:
 
 
 @pytest.mark.asyncio
+async def test_header_mode_emits_deprecation_warning() -> None:
+    """Legacy header mode emits DeprecationWarning when secret is used."""
+    pool = _StubPool([httpx.Response(200)])
+    config = WebhookSinkConfig(
+        endpoint="https://hooks.example.com",
+        secret="my-secret",
+        signature_mode=SignatureMode.HEADER,  # Explicit opt-in to deprecated mode
+    )
+    sink = WebhookSink(config=config, pool=pool)  # type: ignore[arg-type]
+
+    await sink.start()
+    with pytest.warns(
+        DeprecationWarning,
+        match="X-Webhook-Secret header mode is deprecated",
+    ):
+        await sink.write({"test": "data"})
+    await sink.stop()
+
+
+@pytest.mark.asyncio
+async def test_header_mode_still_works() -> None:
+    """Legacy header mode still sends X-Webhook-Secret for backward compatibility."""
+    pool = _StubPool([httpx.Response(200)])
+    config = WebhookSinkConfig(
+        endpoint="https://hooks.example.com",
+        secret="my-secret",
+        signature_mode=SignatureMode.HEADER,
+    )
+    sink = WebhookSink(config=config, pool=pool)  # type: ignore[arg-type]
+
+    await sink.start()
+    with pytest.warns(DeprecationWarning):
+        await sink.write({"test": "data"})
+    await sink.stop()
+
+    _, _, headers = pool.calls[0]
+    assert headers.get("X-Webhook-Secret") == "my-secret"
+    assert "X-Fapilog-Signature-256" not in headers
+
+
+@pytest.mark.asyncio
 async def test_no_secret_no_signature() -> None:
     """When no secret is configured, no authentication headers are added."""
     pool = _StubPool([httpx.Response(200)])
@@ -180,6 +221,7 @@ async def test_hmac_mode_with_batching() -> None:
 
 def test_signature_mode_enum_values() -> None:
     """SignatureMode enum has expected values."""
+    assert SignatureMode.HEADER.value == "header"
     assert SignatureMode.HMAC.value == "hmac"
 
 

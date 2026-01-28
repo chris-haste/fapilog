@@ -4,10 +4,6 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
-### Breaking Changes
-
-- **Removed deprecated `SignatureMode.HEADER` from webhook sink:** The insecure `header` signature mode that sent secrets in plain `X-Webhook-Secret` headers has been removed. All webhook authentication now uses HMAC-SHA256 signatures via `X-Fapilog-Signature-256`. This was flagged as a security risk in the v0.7.0 audit. If you were explicitly using `signature_mode="header"`, remove that parameter to use the secure default.
-
 ### Changed
 
 - **Production preset disables Postgres auto-DDL:** The `production` preset now sets `create_table=False` for Postgres sink configuration, requiring explicit table provisioning via migrations. This prevents unexpected DDL execution in regulated environments (Story 10.32).
