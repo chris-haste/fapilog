@@ -212,20 +212,7 @@ The FieldMaskRedactor supports configurable behavior when guardrails are exceede
 | `"drop"` | Emit diagnostic, drop the entire event | High-security compliance |
 | `"replace_subtree"` | Emit diagnostic, replace unscanned subtree with mask | Balanced security/availability |
 
-Configure via builder:
-```python
-logger = (
-    LoggerBuilder()
-    .with_redaction(
-        fields=["password"],
-        max_depth=4,
-        on_guardrail_exceeded="replace_subtree",
-    )
-    .build()
-)
-```
-
-Or via settings:
+Configure via settings:
 ```python
 from fapilog.plugins.redactors.field_mask import FieldMaskConfig
 
