@@ -428,6 +428,54 @@ def check_field_mask_defaults() -> CheckResult:
     )
 
 
+def check_redaction_fail_mode_docs() -> CheckResult:
+    """Verify docs/redaction/behavior.md accurately documents redaction_fail_mode default.
+
+    Checks that:
+    1. The documented default matches CoreSettings.redaction_fail_mode default
+    2. Docs don't claim "default open" when actual default is different
+    """
+    errors: list[str] = []
+
+    try:
+        from fapilog.core.settings import CoreSettings
+
+        actual_default = CoreSettings.model_fields["redaction_fail_mode"].default
+
+        # Read the docs file
+        doc_path = Path("docs/redaction/behavior.md")
+        if not doc_path.exists():
+            errors.append("docs/redaction/behavior.md not found")
+            return CheckResult(
+                name="Redaction fail mode documentation",
+                passed=False,
+                errors=errors,
+            )
+
+        content = doc_path.read_text()
+
+        # Check for "By default" statements with wrong value
+        # Pattern: "By default (`redaction_fail_mode="X"`)"
+        default_pattern = r'[Bb]y default.*redaction_fail_mode\s*=\s*["\'](\w+)["\']'
+        matches = re.findall(default_pattern, content)
+
+        for documented_default in matches:
+            if documented_default != actual_default:
+                errors.append(
+                    f"docs/redaction/behavior.md claims default is '{documented_default}' "
+                    f"but CoreSettings default is '{actual_default}'"
+                )
+
+    except ImportError as e:
+        errors.append(f"Could not import settings: {e}")
+
+    return CheckResult(
+        name="Redaction fail mode documentation matches code",
+        passed=len(errors) == 0,
+        errors=errors,
+    )
+
+
 # =============================================================================
 # MAIN EXECUTION
 # =============================================================================
@@ -438,6 +486,7 @@ CODE_CHECKS: list[Callable[[], CheckResult]] = [
     check_external_plugins_disabled_default,
     check_example_async_usage,
     check_field_mask_defaults,
+    check_redaction_fail_mode_docs,
 ]
 
 
