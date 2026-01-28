@@ -604,7 +604,7 @@
         },
         "sampling_rate": {
           "default": 1.0,
-          "description": "Log sampling probability in range 0.0\u20131.0",
+          "description": "DEPRECATED: Use core.filters=['sampling'] with filter_config.sampling instead. Log sampling probability in range 0.0\u20131.0.",
           "maximum": 1.0,
           "minimum": 0.0,
           "title": "Sampling Rate",

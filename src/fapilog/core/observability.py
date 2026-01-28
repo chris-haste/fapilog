@@ -67,7 +67,10 @@ class LoggingSettings(BaseModel):
         default=1.0,
         ge=0.0,
         le=1.0,
-        description="Log sampling probability in range 0.0–1.0",
+        description=(
+            "DEPRECATED: Use core.filters=['sampling'] with filter_config.sampling "
+            "instead. Log sampling probability in range 0.0–1.0."
+        ),
     )
 
 
