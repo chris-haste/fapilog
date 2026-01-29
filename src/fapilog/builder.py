@@ -82,7 +82,7 @@ class LoggerBuilder:
         self._sinks: list[dict[str, Any]] = []
         self._reuse: bool = True
 
-    def with_name(self, name: str) -> LoggerBuilder:
+    def with_name(self, name: str) -> Self:
         """Set logger name."""
         self._name = name
         return self
@@ -107,12 +107,12 @@ class LoggerBuilder:
         self._reuse = enabled
         return self
 
-    def with_level(self, level: str) -> LoggerBuilder:
+    def with_level(self, level: str) -> Self:
         """Set log level (DEBUG, INFO, WARNING, ERROR)."""
         self._config.setdefault("core", {})["log_level"] = level.upper()
         return self
 
-    def with_preset(self, preset: str) -> LoggerBuilder:
+    def with_preset(self, preset: str) -> Self:
         """Apply preset configuration.
 
         Preset is applied first, then subsequent methods override.
@@ -154,7 +154,7 @@ class LoggerBuilder:
         interval: str | int | None = None,
         max_files: int | None = None,
         compress: bool = False,
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Add rotating file sink.
 
         Args:
@@ -187,9 +187,7 @@ class LoggerBuilder:
         self._sinks.append({"name": "rotating_file", "config": file_config})
         return self
 
-    def add_stdout(
-        self, *, format: str = "json", capture_mode: bool = False
-    ) -> LoggerBuilder:
+    def add_stdout(self, *, format: str = "json", capture_mode: bool = False) -> Self:
         """Add stdout sink.
 
         Args:
@@ -210,7 +208,7 @@ class LoggerBuilder:
         self._sinks.append(sink_entry)
         return self
 
-    def add_stdout_pretty(self) -> LoggerBuilder:
+    def add_stdout_pretty(self) -> Self:
         """Add pretty-formatted stdout sink (convenience method)."""
         return self.add_stdout(format="pretty")
 
@@ -220,7 +218,7 @@ class LoggerBuilder:
         *,
         timeout: str | float = "30s",
         headers: dict[str, str] | None = None,
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Add HTTP sink.
 
         Args:
@@ -252,7 +250,7 @@ class LoggerBuilder:
         secret: str | None = None,
         timeout: str | float = "5s",
         headers: dict[str, str] | None = None,
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Add webhook sink.
 
         Args:
@@ -295,7 +293,7 @@ class LoggerBuilder:
         max_keys: int | None = None,
         auto_prefix: bool = True,
         replace: bool = False,
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Configure redaction with unified API.
 
         This is the single entry point for all redaction configuration.
@@ -417,7 +415,7 @@ class LoggerBuilder:
 
         return self
 
-    def with_context(self, **kwargs: object) -> LoggerBuilder:
+    def with_context(self, **kwargs: object) -> Self:
         """Set default bound context fields for all log entries.
 
         Context fields are automatically included in every log entry from this
@@ -444,7 +442,7 @@ class LoggerBuilder:
         self._config.setdefault("core", {})["default_bound_context"] = kwargs
         return self
 
-    def with_enrichers(self, *enrichers: str) -> LoggerBuilder:
+    def with_enrichers(self, *enrichers: str) -> Self:
         """Enable enrichers by name.
 
         Args:
@@ -454,7 +452,7 @@ class LoggerBuilder:
         existing.extend(enrichers)
         return self
 
-    def with_filters(self, *filters: str) -> LoggerBuilder:
+    def with_filters(self, *filters: str) -> Self:
         """Enable filters by name.
 
         Args:
@@ -469,7 +467,7 @@ class LoggerBuilder:
         rate: float = 1.0,
         *,
         seed: int | None = None,
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Configure probabilistic sampling filter.
 
         Args:
@@ -498,7 +496,7 @@ class LoggerBuilder:
         *,
         target_events_per_sec: float = 1000.0,
         window_seconds: float = 60.0,
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Configure adaptive sampling based on event rate.
 
         Args:
@@ -529,7 +527,7 @@ class LoggerBuilder:
         default_rate: float = 1.0,
         *,
         honor_upstream: bool = True,
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Configure distributed trace-aware sampling.
 
         Args:
@@ -559,7 +557,7 @@ class LoggerBuilder:
         key_field: str | None = None,
         max_keys: int = 10000,
         overflow_action: str = "drop",
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Configure token bucket rate limiting filter.
 
         Args:
@@ -595,7 +593,7 @@ class LoggerBuilder:
         *,
         max_entries: int = 10000,
         key_fields: list[str] | None = None,
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Configure first-occurrence deduplication filter.
 
         Args:
@@ -627,7 +625,7 @@ class LoggerBuilder:
         *,
         action: str = "truncate",
         preserve_fields: list[str] | None = None,
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Configure payload size limiting processor.
 
         Args:
@@ -660,7 +658,7 @@ class LoggerBuilder:
 
         return self
 
-    def with_queue_size(self, size: int) -> LoggerBuilder:
+    def with_queue_size(self, size: int) -> Self:
         """Set max queue size.
 
         Args:
@@ -669,7 +667,7 @@ class LoggerBuilder:
         self._config.setdefault("core", {})["max_queue_size"] = size
         return self
 
-    def with_batch_size(self, size: int) -> LoggerBuilder:
+    def with_batch_size(self, size: int) -> Self:
         """Set batch max size.
 
         Args:
@@ -678,7 +676,7 @@ class LoggerBuilder:
         self._config.setdefault("core", {})["batch_max_size"] = size
         return self
 
-    def with_batch_timeout(self, timeout: str | float) -> LoggerBuilder:
+    def with_batch_timeout(self, timeout: str | float) -> Self:
         """Set batch timeout.
 
         Args:
@@ -722,7 +720,7 @@ class LoggerBuilder:
         enabled: bool = True,
         failure_threshold: int = 5,
         recovery_timeout: str | float = "30s",
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Configure sink circuit breaker for fault isolation.
 
         Args:
@@ -746,7 +744,7 @@ class LoggerBuilder:
         *,
         wait_ms: int = 50,
         drop_on_full: bool = True,
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Configure queue backpressure behavior.
 
         Args:
@@ -761,7 +759,7 @@ class LoggerBuilder:
         core["drop_on_full"] = drop_on_full
         return self
 
-    def with_workers(self, count: int = 1) -> LoggerBuilder:
+    def with_workers(self, count: int = 1) -> Self:
         """Set number of worker tasks for flush processing.
 
         Args:
@@ -773,7 +771,7 @@ class LoggerBuilder:
         self._config.setdefault("core", {})["worker_count"] = count
         return self
 
-    def with_shutdown_timeout(self, timeout: str | float = "3s") -> LoggerBuilder:
+    def with_shutdown_timeout(self, timeout: str | float = "3s") -> Self:
         """Set maximum time to flush on shutdown.
 
         Args:
@@ -792,7 +790,7 @@ class LoggerBuilder:
         *,
         enabled: bool = True,
         timeout: str | float = "2s",
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Configure atexit handler for graceful shutdown.
 
         When enabled, pending logs are drained on normal process exit.
@@ -809,7 +807,7 @@ class LoggerBuilder:
         core["atexit_drain_timeout_seconds"] = self._parse_duration(timeout)
         return self
 
-    def with_signal_handlers(self, *, enabled: bool = True) -> LoggerBuilder:
+    def with_signal_handlers(self, *, enabled: bool = True) -> Self:
         """Configure signal handlers for graceful shutdown.
 
         When enabled, SIGTERM and SIGINT trigger graceful log drain
@@ -824,7 +822,7 @@ class LoggerBuilder:
         self._config.setdefault("core", {})["signal_handler_enabled"] = enabled
         return self
 
-    def with_flush_on_critical(self, *, enabled: bool = True) -> LoggerBuilder:
+    def with_flush_on_critical(self, *, enabled: bool = True) -> Self:
         """Configure immediate flush for ERROR/CRITICAL logs.
 
         When enabled, ERROR and CRITICAL logs bypass batching and are
@@ -845,7 +843,7 @@ class LoggerBuilder:
         enabled: bool = True,
         max_frames: int = 10,
         max_stack_chars: int = 20000,
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Configure exception serialization.
 
         Args:
@@ -862,7 +860,7 @@ class LoggerBuilder:
         core["exceptions_max_stack_chars"] = max_stack_chars
         return self
 
-    def with_parallel_sink_writes(self, enabled: bool = True) -> LoggerBuilder:
+    def with_parallel_sink_writes(self, enabled: bool = True) -> Self:
         """Enable parallel writes to multiple sinks.
 
         Args:
@@ -874,7 +872,7 @@ class LoggerBuilder:
         self._config.setdefault("core", {})["sink_parallel_writes"] = enabled
         return self
 
-    def with_metrics(self, enabled: bool = True) -> LoggerBuilder:
+    def with_metrics(self, enabled: bool = True) -> Self:
         """Enable Prometheus-compatible metrics.
 
         Args:
@@ -886,7 +884,7 @@ class LoggerBuilder:
         self._config.setdefault("core", {})["enable_metrics"] = enabled
         return self
 
-    def with_error_deduplication(self, window_seconds: float = 5.0) -> LoggerBuilder:
+    def with_error_deduplication(self, window_seconds: float = 5.0) -> Self:
         """Configure error log deduplication.
 
         Args:
@@ -905,7 +903,7 @@ class LoggerBuilder:
         *,
         enabled: bool = True,
         window_seconds: float = 60.0,
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Configure drop/dedupe visibility summaries.
 
         When enabled, periodic summary events are logged when events are:
@@ -933,7 +931,7 @@ class LoggerBuilder:
         *,
         enabled: bool = True,
         output: str = "stderr",
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Configure internal diagnostics output.
 
         Args:
@@ -948,7 +946,7 @@ class LoggerBuilder:
         core["diagnostics_output"] = output
         return self
 
-    def with_app_name(self, name: str) -> LoggerBuilder:
+    def with_app_name(self, name: str) -> Self:
         """Set application name for log identification.
 
         Args:
@@ -960,7 +958,7 @@ class LoggerBuilder:
         self._config.setdefault("core", {})["app_name"] = name
         return self
 
-    def with_strict_mode(self, enabled: bool = True) -> LoggerBuilder:
+    def with_strict_mode(self, enabled: bool = True) -> Self:
         """Enable strict envelope mode (drop on serialization failure).
 
         Args:
@@ -972,7 +970,7 @@ class LoggerBuilder:
         self._config.setdefault("core", {})["strict_envelope_mode"] = enabled
         return self
 
-    def with_unhandled_exception_capture(self, enabled: bool = True) -> LoggerBuilder:
+    def with_unhandled_exception_capture(self, enabled: bool = True) -> Self:
         """Enable automatic capture of unhandled exceptions.
 
         Args:
@@ -991,7 +989,7 @@ class LoggerBuilder:
         fail_mode: Literal["open", "closed", "warn"] = "open",
         scrub_raw: bool = True,
         raw_max_bytes: int | None = None,
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Configure redaction behavior for fallback and failure scenarios.
 
         Args:
@@ -1030,7 +1028,7 @@ class LoggerBuilder:
         *,
         fallback: list[str] | None = None,
         overlap: bool = True,
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Configure level-based sink routing.
 
         Args:
@@ -1062,7 +1060,7 @@ class LoggerBuilder:
         self,
         name: str,
         **config: Any,
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Configure a specific enricher.
 
         Args:
@@ -1084,7 +1082,7 @@ class LoggerBuilder:
         allowlist: list[str] | None = None,
         denylist: list[str] | None = None,
         validation_mode: str = "disabled",
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Configure plugin loading behavior.
 
         Args:
@@ -1125,7 +1123,7 @@ class LoggerBuilder:
         create_stream: bool = True,
         circuit_breaker: bool = True,
         circuit_breaker_threshold: int = 5,
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Add AWS CloudWatch Logs sink.
 
         Args:
@@ -1184,7 +1182,7 @@ class LoggerBuilder:
         auth_token: str | None = None,
         circuit_breaker: bool = True,
         circuit_breaker_threshold: int = 5,
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Add Grafana Loki sink.
 
         Args:
@@ -1257,7 +1255,7 @@ class LoggerBuilder:
         extract_fields: list[str] | None = None,
         circuit_breaker: bool = True,
         circuit_breaker_threshold: int = 5,
-    ) -> LoggerBuilder:
+    ) -> Self:
         """Add PostgreSQL sink for structured log storage.
 
         Args:
