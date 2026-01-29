@@ -4,21 +4,23 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-01-29
+
 ### Added
 
-- **Stdout sink capture mode for testing:** `StdoutJsonSink` now accepts a `capture_mode=True` parameter that disables `os.writev()` optimization, allowing output to be captured via `sys.stdout` replacement in tests. The builder API also supports this: `add_stdout(capture_mode=True)`. See `docs/guides/testing.md` for usage patterns (Story 10.38).
-- **Duration parser supports milliseconds and decimals:** The duration string parser now accepts `ms` suffix for milliseconds (e.g., `"100ms"`) and decimal values with any unit (e.g., `"0.5s"`, `"1.5h"`). Error messages now list all valid formats. Builder methods like `with_circuit_breaker(recovery_timeout="500ms")` benefit automatically (Story 10.37).
-- **Doc-accuracy CI check for redaction_fail_mode:** The `scripts/check_doc_accuracy.py` script now validates that `docs/redaction/behavior.md` accurately documents the `redaction_fail_mode` default value from `CoreSettings`. This prevents documentation drift for security-sensitive settings (Story 4.62).
+- **Stdout sink capture mode for testing:** `StdoutJsonSink` now accepts a `capture_mode=True` parameter that disables `os.writev()` optimization, allowing output to be captured via `sys.stdout` replacement in tests. The builder API also supports this: `add_stdout(capture_mode=True)`. See `docs/guides/testing.md` for usage patterns.
+- **Duration parser supports milliseconds and decimals:** The duration string parser now accepts `ms` suffix for milliseconds (e.g., `"100ms"`) and decimal values with any unit (e.g., `"0.5s"`, `"1.5h"`). Error messages now list all valid formats. Builder methods like `with_circuit_breaker(recovery_timeout="500ms")` benefit automatically.
+- **Doc-accuracy CI check for redaction_fail_mode:** The `scripts/check_doc_accuracy.py` script now validates that `docs/redaction/behavior.md` accurately documents the `redaction_fail_mode` default value from `CoreSettings`. This prevents documentation drift for security-sensitive settings.
 
 ### Fixed
 
-- **Logger resource cleanup on drain:** Internal data structures (`_error_dedupe`, `_plugin_stats`, `_worker_tasks`, plugin lists) are now cleared after `stop_and_drain()` completes. This prevents memory leaks in long-running applications that create and destroy loggers (Story 4.63).
+- **Logger resource cleanup on drain:** Internal data structures (`_error_dedupe`, `_plugin_stats`, `_worker_tasks`, plugin lists) are now cleared after `stop_and_drain()` completes. This prevents memory leaks in long-running applications that create and destroy loggers.
 
 ## [0.8.0] - 2026-01-28
 
 ### Breaking Changes
 
-- **Redaction defaults changed to fail-closed:** All redaction settings now default to fail-closed behavior to prevent PII leakage (Story 4.61):
+- **Redaction defaults changed to fail-closed:** All redaction settings now default to fail-closed behavior to prevent PII leakage:
   - `on_guardrail_exceeded`: `"warn"` → `"replace_subtree"` (masks unscanned subtrees instead of passing through)
   - `block_on_unredactable`: `False` → `True` (drops events when configured fields can't be redacted)
   - `redaction_fail_mode`: `"open"` → `"warn"` (emits diagnostic on redaction exceptions)
@@ -43,30 +45,30 @@ All notable changes to this project will be documented in this file. This change
 
 ### Changed
 
-- **Production preset disables Postgres auto-DDL:** The `production` preset now sets `create_table=False` for Postgres sink configuration, requiring explicit table provisioning via migrations. This prevents unexpected DDL execution in regulated environments (Story 10.32).
-- **Worker event-based wakeup:** The background worker loop now uses `asyncio.Event` signaling instead of fixed 1ms polling when an enqueue event is provided, reducing CPU wakeups when the queue is empty (Story 10.32).
-- **Backpressure event-based signaling:** `NonBlockingRingQueue.await_enqueue()` and `await_dequeue()` now use `asyncio.Event` signaling instead of spin-wait loops, reducing CPU usage under sustained backpressure. The `yield_every` parameter has been removed (Story 12.23).
+- **Production preset disables Postgres auto-DDL:** The `production` preset now sets `create_table=False` for Postgres sink configuration, requiring explicit table provisioning via migrations. This prevents unexpected DDL execution in regulated environments.
+- **Worker event-based wakeup:** The background worker loop now uses `asyncio.Event` signaling instead of fixed 1ms polling when an enqueue event is provided, reducing CPU wakeups when the queue is empty.
+- **Backpressure event-based signaling:** `NonBlockingRingQueue.await_enqueue()` and `await_dequeue()` now use `asyncio.Event` signaling instead of spin-wait loops, reducing CPU usage under sustained backpressure. The `yield_every` parameter has been removed.
 - **Doc accuracy CI now fails on missing critical files:** The `scripts/check_doc_accuracy.py` script now fails when required documentation files are missing, instead of silently skipping them. This prevents security-sensitive documentation from drifting without CI catching it.
 
 ### Added
 
-- **FastAPI middleware `require_logger` parameter:** `LoggingMiddleware` now accepts `require_logger=True` to fail fast with a clear error if no logger is in `app.state`. This avoids latency spikes from lazy logger creation on cold-start requests. Default is `False` for backward compatibility (Story 12.24).
-- **Fallback sink raw output hardening:** When JSON parsing fails for serialized payloads on the fallback path, fapilog now applies keyword scrubbing to mask common secret patterns (`password=`, `token=`, `api_key=`, `authorization:`) before writing to stderr. Optional truncation via `core.fallback_raw_max_bytes` limits output size. Scrubbing is enabled by default; set `FAPILOG_CORE__FALLBACK_SCRUB_RAW=false` to disable for debugging (Story 4.59).
+- **FastAPI middleware `require_logger` parameter:** `LoggingMiddleware` now accepts `require_logger=True` to fail fast with a clear error if no logger is in `app.state`. This avoids latency spikes from lazy logger creation on cold-start requests. Default is `False` for backward compatibility.
+- **Fallback sink raw output hardening:** When JSON parsing fails for serialized payloads on the fallback path, fapilog now applies keyword scrubbing to mask common secret patterns (`password=`, `token=`, `api_key=`, `authorization:`) before writing to stderr. Optional truncation via `core.fallback_raw_max_bytes` limits output size. Scrubbing is enabled by default; set `FAPILOG_CORE__FALLBACK_SCRUB_RAW=false` to disable for debugging.
 
 ### Fixed
 
-- **Core redaction guardrails now functional:** The `redaction_max_depth` and `redaction_max_keys_scanned` settings in `CoreSettings` were previously defined but never applied (dead code). They are now passed to `FieldMaskRedactor` and `RegexMaskRedactor` during initialization and act as outer limits that override per-redactor settings when more restrictive (Story 4.57).
-- **Silent data loss in `write_serialized`:** Fixed correctness issue where HTTP, Webhook, Loki, CloudWatch, and PostgreSQL sinks silently replaced log data with placeholder values (e.g., `{"message": "fallback"}`) when deserialization failed. All sinks now raise `SinkWriteError` with diagnostics, enabling proper fallback and circuit breaker handling (Story 4.53).
-- **Plugin metadata version default:** Changed `create_plugin_metadata()` default `min_fapilog_version` from `"3.0.0"` to `"0.1.0"`. The previous default was incorrect for a 0.x project and caused compatibility check failures for plugin authors (Story 10.32).
+- **Core redaction guardrails now functional:** The `redaction_max_depth` and `redaction_max_keys_scanned` settings in `CoreSettings` were previously defined but never applied (dead code). They are now passed to `FieldMaskRedactor` and `RegexMaskRedactor` during initialization and act as outer limits that override per-redactor settings when more restrictive.
+- **Silent data loss in `write_serialized`:** Fixed correctness issue where HTTP, Webhook, Loki, CloudWatch, and PostgreSQL sinks silently replaced log data with placeholder values (e.g., `{"message": "fallback"}`) when deserialization failed. All sinks now raise `SinkWriteError` with diagnostics, enabling proper fallback and circuit breaker handling.
+- **Plugin metadata version default:** Changed `create_plugin_metadata()` default `min_fapilog_version` from `"3.0.0"` to `"0.1.0"`. The previous default was incorrect for a 0.x project and caused compatibility check failures for plugin authors.
 
 ### Documentation
 
-- **Backpressure API documentation accuracy:** Fixed incorrect examples showing non-existent `policy="wait"` parameter and `discard_oldest` policy. Documentation now correctly shows actual `with_backpressure(wait_ms=..., drop_on_full=...)` API with behavior table explaining parameter combinations (Story 10.31).
-- **Architecture documentation accuracy:** Removed stale references to non-existent components (`ComplianceEngine`, `UniversalSettings`, `EventCategory`) and deleted outdated monolithic `docs/architecture.md` (Story 12.15).
-- **Production checklist documentation:** Added consolidated pre-deployment checklist covering preset selection, metrics, diagnostics, redaction validation, backpressure tuning, and graceful shutdown (Story 12.16).
-- **stdlib bridge documentation:** Added user guide for `enable_stdlib_bridge()` with API reference, common use cases, Django/Celery integration examples, level mapping, and troubleshooting (Story 12.18).
-- **Redaction guardrails documentation:** Documented two-level guardrail system (core pipeline vs per-redactor), precedence rules ("more restrictive wins"), and added CI validation for per-redactor defaults (Story 4.60).
-- **Unified sampling documentation:** Restructured sampling docs to emphasize filter-based approach as recommended, added deprecation section for `observability.logging.sampling_rate`, migration guide, strategy comparison table, and environment variable configuration (Story 10.35).
+- **Backpressure API documentation accuracy:** Fixed incorrect examples showing non-existent `policy="wait"` parameter and `discard_oldest` policy. Documentation now correctly shows actual `with_backpressure(wait_ms=..., drop_on_full=...)` API with behavior table explaining parameter combinations.
+- **Architecture documentation accuracy:** Removed stale references to non-existent components (`ComplianceEngine`, `UniversalSettings`, `EventCategory`) and deleted outdated monolithic `docs/architecture.md`.
+- **Production checklist documentation:** Added consolidated pre-deployment checklist covering preset selection, metrics, diagnostics, redaction validation, backpressure tuning, and graceful shutdown.
+- **stdlib bridge documentation:** Added user guide for `enable_stdlib_bridge()` with API reference, common use cases, Django/Celery integration examples, level mapping, and troubleshooting.
+- **Redaction guardrails documentation:** Documented two-level guardrail system (core pipeline vs per-redactor), precedence rules ("more restrictive wins"), and added CI validation for per-redactor defaults.
+- **Unified sampling documentation:** Restructured sampling docs to emphasize filter-based approach as recommended, added deprecation section for `observability.logging.sampling_rate`, migration guide, strategy comparison table, and environment variable configuration.
 
 ## [0.7.0] - 2026-01-27
 
@@ -95,14 +97,14 @@ All notable changes to this project will be documented in this file. This change
 
 ### Added
 
-- **Unified `with_redaction()` API:** Single method for all redaction configuration with preset support, URL credentials, guardrails, and custom fields/patterns (Story 3.8).
+- **Unified `with_redaction()` API:** Single method for all redaction configuration with preset support, URL credentials, guardrails, and custom fields/patterns.
 - **Preset discovery methods:** `LoggerBuilder.list_redaction_presets()` and `LoggerBuilder.get_redaction_preset_info(name)` for discovering available redaction presets.
 - **Multiple preset support:** `with_redaction(preset=["GDPR_PII", "PCI_DSS"])` applies multiple presets in one call.
-- **Composable redaction presets:** One-liner compliance protection via `with_redaction(preset="GDPR_PII")`. Includes presets for GDPR, CCPA, HIPAA, PCI-DSS, and CREDENTIALS with inheritance support and metadata filtering (Story 3.8).
+- **Composable redaction presets:** One-liner compliance protection via `with_redaction(preset="GDPR_PII")`. Includes presets for GDPR, CCPA, HIPAA, PCI-DSS, and CREDENTIALS with inheritance support and metadata filtering.
 
 ### Changed
 
-- **`with_redaction()` is now additive by default:** Calling `with_redaction()` multiple times merges fields/patterns instead of replacing. Use `replace=True` to restore the previous overwrite behavior (Story 3.8).
+- **`with_redaction()` is now additive by default:** Calling `with_redaction()` multiple times merges fields/patterns instead of replacing. Use `replace=True` to restore the previous overwrite behavior.
 
 ### Documentation
 
@@ -116,12 +118,12 @@ All notable changes to this project will be documented in this file. This change
 
 ### Added
 
-- **Graceful log drain on shutdown:** Loggers now automatically flush pending logs during application shutdown via `atexit` handlers (Story 6.13). This ensures logs are not lost when processes terminate.
-- **Regex ReDoS protection:** `RegexMaskRedactor` now validates patterns at config time to prevent catastrophic backtracking. Patterns with nested quantifiers, overlapping alternation, or wildcards in bounded repetition are rejected. Use `allow_unsafe_patterns=True` to bypass validation if needed (Story 4.50).
+- **Graceful log drain on shutdown:** Loggers now automatically flush pending logs during application shutdown via `atexit` handlers. This ensures logs are not lost when processes terminate.
+- **Regex ReDoS protection:** `RegexMaskRedactor` now validates patterns at config time to prevent catastrophic backtracking. Patterns with nested quantifiers, overlapping alternation, or wildcards in bounded repetition are rejected. Use `allow_unsafe_patterns=True` to bypass validation if needed.
 
 ### Changed
 
-- **Secure header redaction by default:** `LoggingMiddleware` now redacts sensitive headers (Authorization, Cookie, X-API-Key, etc.) by default when `include_headers=True` (Story 4.51). This prevents accidental credential leakage in logs.
+- **Secure header redaction by default:** `LoggingMiddleware` now redacts sensitive headers (Authorization, Cookie, X-API-Key, etc.) by default when `include_headers=True`. This prevents accidental credential leakage in logs.
   - Use `additional_redact_headers` to add custom headers to the default list
   - Use `allow_headers` for allowlist mode (only log specified headers)
   - Use `disable_default_redactions=True` to opt out (emits warning)
@@ -136,7 +138,7 @@ All notable changes to this project will be documented in this file. This change
 
 ### Added
 
-- **FastAPI `log_errors_on_skip` parameter:** `LoggingMiddleware` and `setup_logging()` now accept `log_errors_on_skip` (default: True) to log unhandled exceptions on skipped paths (Story 1.32). This ensures visibility into crashes on health endpoints while still skipping routine success logs.
+- **FastAPI `log_errors_on_skip` parameter:** `LoggingMiddleware` and `setup_logging()` now accept `log_errors_on_skip` (default: True) to log unhandled exceptions on skipped paths. This ensures visibility into crashes on health endpoints while still skipping routine success logs.
 
 ### Documentation
 
@@ -163,7 +165,7 @@ All notable changes to this project will be documented in this file. This change
 
 ### Breaking Changes
 
-- **Logger instance caching enabled by default:** `get_logger()` and `get_async_logger()` now cache instances by name, matching stdlib `logging.getLogger()` behavior (Story 10.29). This prevents resource exhaustion from unbounded logger creation.
+- **Logger instance caching enabled by default:** `get_logger()` and `get_async_logger()` now cache instances by name, matching stdlib `logging.getLogger()` behavior. This prevents resource exhaustion from unbounded logger creation.
 
   **Migration:** Code that relied on fresh instances per call should add `reuse=False`:
 
@@ -193,34 +195,34 @@ All notable changes to this project will be documented in this file. This change
 
 ### Added
 
-- Logger instance caching: `get_logger()` and `get_async_logger()` now cache instances by name (like stdlib `logging.getLogger()`), preventing resource exhaustion from unbounded logger creation (Story 10.29).
+- Logger instance caching: `get_logger()` and `get_async_logger()` now cache instances by name (like stdlib `logging.getLogger()`), preventing resource exhaustion from unbounded logger creation.
 - `reuse` parameter for `get_logger()` and `get_async_logger()` to opt out of caching when needed (e.g., tests).
 - `get_cached_loggers()` function to inspect cached logger names and types.
 - `clear_logger_cache()` async function to drain and clear all cached loggers.
 - `ResourceWarning` emitted when loggers are garbage collected without being drained.
-- `serverless` preset for AWS Lambda, Google Cloud Run, and Azure Functions: stdout-only output, `drop_on_full=True`, smaller batch size (25), production-grade redaction (Story 10.30).
-- **Builder API parity with Settings** (Stories 10.22-10.27):
+- `serverless` preset for AWS Lambda, Google Cloud Run, and Azure Functions: stdout-only output, `drop_on_full=True`, smaller batch size (25), production-grade redaction.
+- **Builder API parity with Settings:**
   - Core settings: `with_level()`, `with_name()`, `with_queue_size()`, `with_workers()`, `with_drop_on_full()`, `with_strict_mode()`, `with_diagnostics()`
   - Cloud sinks: `with_cloudwatch()`, `with_loki()`, `with_postgres()`, `with_webhook()`
   - Filters: `with_level_filter()`, `with_sampling()`, `with_adaptive_sampling()`, `with_trace_sampling()`, `with_rate_limit()`, `with_error_deduplication()`
   - Processors: `with_size_guard()`
   - Advanced: `with_context()`, `with_enricher()`, `with_redactor()`, `with_field_mask()`, `with_regex_mask()`, `with_url_credentials_redactor()`, `with_debug()`
-- Builder API parity enforcement via CI to prevent configuration drift (Story 10.27).
+- Builder API parity enforcement via CI to prevent configuration drift.
 
 ### Documentation
 
-- Comprehensive builder API documentation with examples for all methods (Story 10.28).
+- Comprehensive builder API documentation with examples for all methods.
 - Logger caching documentation explaining lifecycle and cache management.
 
 ## [0.4.0] - 2026-01-19
 
 ### Breaking Changes
 
-- `fastapi` preset now enables redaction by default (`field_mask`, `regex_mask`, `url_credentials`), matching `production` preset security posture (Story 10.21). Use `dev` preset for debugging or explicitly set `redactors=[]` to disable.
-- Log schema v1.1 with semantic field groupings (`context`, `diagnostics`, `data`); `metadata` renamed to `data`, `correlation_id` moved to `context.correlation_id`, timestamp now RFC3339 string (Story 1.26). See `docs/schema-migration-v1.0-to-v1.1.md`.
-- Enrichers now return nested dicts targeting semantic groups (`{"diagnostics": {...}}`) instead of flat dicts; `enrich_parallel()` uses deep-merge; `LogEvent` model updated to v1.1 schema with `context`, `diagnostics`, `data` fields replacing `metadata`, `correlation_id`, `component` (Story 1.27).
-- Production preset now includes `regex_mask` redactor for broader secret protection; users may see additional fields masked (Story 4.47).
-- External plugins now blocked by default; use `plugins.allow_external=true` or `plugins.allowlist` for explicit opt-in (Story 3.5).
+- `fastapi` preset now enables redaction by default (`field_mask`, `regex_mask`, `url_credentials`), matching `production` preset security posture. Use `dev` preset for debugging or explicitly set `redactors=[]` to disable.
+- Log schema v1.1 with semantic field groupings (`context`, `diagnostics`, `data`); `metadata` renamed to `data`, `correlation_id` moved to `context.correlation_id`, timestamp now RFC3339 string. See `docs/schema-migration-v1.0-to-v1.1.md`.
+- Enrichers now return nested dicts targeting semantic groups (`{"diagnostics": {...}}`) instead of flat dicts; `enrich_parallel()` uses deep-merge; `LogEvent` model updated to v1.1 schema with `context`, `diagnostics`, `data` fields replacing `metadata`, `correlation_id`, `component`.
+- Production preset now includes `regex_mask` redactor for broader secret protection; users may see additional fields masked.
+- External plugins now blocked by default; use `plugins.allow_external=true` or `plugins.allowlist` for explicit opt-in.
 
 ### Added
 
@@ -229,7 +231,7 @@ All notable changes to this project will be documented in this file. This change
 - One-liner FastAPI setup helpers (`setup_logging`, `get_request_logger`) with lifespan support.
 - Default log-level selection based on TTY/CI when no preset or explicit log level is set.
 - Stderr fallback for sink write failures with optional diagnostics warnings.
-- `SinkWriteError` for sinks to signal write failures to the core pipeline; core now catches these errors (and `False` returns) to trigger fallback and circuit breaker behavior (Story 4.41).
+- `SinkWriteError` for sinks to signal write failures to the core pipeline; core now catches these errors (and `False` returns) to trigger fallback and circuit breaker behavior.
 - CI smoke test for benchmark script to catch future regressions.
 - CI timeout multiplier (`CI_TIMEOUT_MULTIPLIER`) with `get_test_timeout()` helper for timing-sensitive tests on slow CI runners.
 - `SECURITY.md` with vulnerability reporting guidance.
@@ -238,18 +240,18 @@ All notable changes to this project will be documented in this file. This change
 
 ### Changed
 
-- Serialization path cleanup - `serialize_envelope()` now trusts upstream v1.1 schema compliance and only fails for non-JSON-serializable objects; exception-driven fallback is now truly exceptional, not the normal path; `strict_envelope_mode` now works correctly (Story 1.28).
-- Internal diagnostics now write to stderr by default (Unix convention); add `core.diagnostics_output="stdout"` for backward compatibility (Story 6.11).
+- Serialization path cleanup - `serialize_envelope()` now trusts upstream v1.1 schema compliance and only fails for non-JSON-serializable objects; exception-driven fallback is now truly exceptional, not the normal path; `strict_envelope_mode` now works correctly.
+- Internal diagnostics now write to stderr by default (Unix convention); add `core.diagnostics_output="stdout"` for backward compatibility.
 - Updated built-in sinks (`stdout_json`, `stdout_pretty`, `rotating_file`, `audit`) to raise `SinkWriteError` instead of swallowing errors, enabling proper fallback handling.
 - Updated `BaseSink` protocol documentation to reflect the new error signaling contract.
-- Aligned ruff, black, and mypy target versions with `requires-python = ">=3.10"`; added pre-commit hook to enforce Python 3.10+ (Story 10.16).
+- Aligned ruff, black, and mypy target versions with `requires-python = ">=3.10"`; added pre-commit hook to enforce Python 3.10+.
 - Standardized Hypothesis property test settings: removed per-test `max_examples` overrides so all tests respect `HYPOTHESIS_MAX_EXAMPLES` env var.
 - Split large test files into focused modules: `test_error_handling.py` → 4 files, `test_high_performance_lru_cache.py` → 3 files, `test_logger_pipeline.py` → 3 files, `test_rotating_file_sink.py` → 3 files (total test count preserved at 1704).
 
 ### Fixed
 
-- Benchmark script key alignment in `derive_verdicts()` to match actual output keys from `benchmark()` (Story 10.11).
-- Strict mode serialization drops now correctly increment the `dropped` counter and record metrics; previously these drops were silently unaccounted (Story 1.24).
+- Benchmark script key alignment in `derive_verdicts()` to match actual output keys from `benchmark()`.
+- Strict mode serialization drops now correctly increment the `dropped` counter and record metrics; previously these drops were silently unaccounted.
 - Extras documentation accuracy: removed non-existent extras (enterprise, loki, cloud, siem), documented all real extras with descriptions.
 - Python version badge in README (3.8+ → 3.10+).
 - Plugin group documentation in architecture docs.
@@ -257,20 +259,20 @@ All notable changes to this project will be documented in this file. This change
 
 ### Security
 
-- WebhookSink now supports HMAC-SHA256 signatures (`signature_mode="hmac"`) instead of sending secrets in headers; legacy header mode emits deprecation warning (Story 4.42).
+- WebhookSink now supports HMAC-SHA256 signatures (`signature_mode="hmac"`) instead of sending secrets in headers; legacy header mode emits deprecation warning.
 - Bumped orjson minimum version to 3.9.15 (CVE-2024-27454 fix).
-- Fallback minimal redaction now recurses into lists, preventing secrets in arrays from leaking to stderr during sink failures (Story 4.48).
+- Fallback minimal redaction now recurses into lists, preventing secrets in arrays from leaking to stderr during sink failures.
 
 ### Performance
 
-- Cache sampling rate, filter config, and error dedupe window at logger initialization to avoid `Settings()` instantiation on every log call (Story 1.23).
+- Cache sampling rate, filter config, and error dedupe window at logger initialization to avoid `Settings()` instantiation on every log call.
 
 ### Documentation
 
-- Added performance benchmarks page with methodology, results, and reproduction instructions (Story 10.20).
-- Added `redaction-guarantee.md` documenting exact redaction behavior per preset; fixed inaccurate claims in `reliability-defaults.md` (Story 4.47).
-- Documented same-thread backpressure behavior where `drop_on_full=False` cannot be honored; enhanced diagnostic warning with `drop_on_full_setting` field (Story 1.19).
-- Added automated changelog generation with git-cliff and conventional commit linting via pre-commit hooks; release workflow now validates changelog entries match tagged version (Story 10.12).
+- Added performance benchmarks page with methodology, results, and reproduction instructions.
+- Added `redaction-guarantee.md` documenting exact redaction behavior per preset; fixed inaccurate claims in `reliability-defaults.md`.
+- Documented same-thread backpressure behavior where `drop_on_full=False` cannot be honored; enhanced diagnostic warning with `drop_on_full_setting` field.
+- Added automated changelog generation with git-cliff and conventional commit linting via pre-commit hooks; release workflow now validates changelog entries match tagged version.
 - Added CloudWatch sink size limit documentation comment.
 
 ## [0.3.5] - 2026-01-01
@@ -291,8 +293,8 @@ All notable changes to this project will be documented in this file. This change
 
 ### Added
 
-- Enterprise key management for tamper-evident plugin (Story 4.18).
-- Verification API and CLI for tamper-evident plugin (Story 4.17).
+- Enterprise key management for tamper-evident plugin.
+- Verification API and CLI for tamper-evident plugin.
 - Enterprise tamper-evident plugin stories and package scaffold.
 - Configurable worker count for logging pipeline.
 
