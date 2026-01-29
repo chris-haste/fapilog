@@ -16,6 +16,7 @@ SIZE_UNITS = {
 }
 
 DURATION_UNITS = {
+    "ms": 0.001,
     "s": 1,
     "m": 60,
     "h": 3600,
@@ -30,7 +31,7 @@ ROTATION_INTERVALS = {
 }
 
 SIZE_PATTERN = re.compile(r"^(\d+(?:\.\d+)?)\s*([kmgt]?b)$", re.IGNORECASE)
-DURATION_PATTERN = re.compile(r"^(\d+)\s*([smhdw])$", re.IGNORECASE)
+DURATION_PATTERN = re.compile(r"^(\d+(?:\.\d+)?)\s*(ms|[smhdw])$", re.IGNORECASE)
 
 
 def _strip_quotes(value: str) -> str:
@@ -113,11 +114,12 @@ def _parse_duration_value(
         keyword_hint = " or 'hourly', 'daily', 'weekly'" if allow_keywords else ""
         raise ValueError(
             f"Invalid duration format: '{raw_value}'. "
-            f"Use format like '5s', '10m', '1h', '7d'{keyword_hint}"
+            f"Valid formats: '30s', '5m', '1h', '7d', '2w', '100ms', '0.5s', "
+            f"or numeric seconds (e.g., 0.1){keyword_hint}"
         )
 
     number_str, unit_str = match.groups()
-    number = int(number_str)
+    number = float(number_str)
     multiplier = DURATION_UNITS[unit_str.lower()]
     result = number * multiplier
 

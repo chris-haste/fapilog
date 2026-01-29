@@ -216,6 +216,26 @@ class TestHttpSink:
         )
         assert callable(logger.info)
 
+    def test_add_http_with_milliseconds_timeout(self):
+        """add_http() accepts millisecond timeout strings (Story 10.37 AC5)."""
+        from fapilog import LoggerBuilder
+
+        logger = (
+            LoggerBuilder()
+            .add_http("https://logs.example.com", timeout="100ms")
+            .build()
+        )
+        assert callable(logger.info)
+
+    def test_add_http_with_decimal_timeout(self):
+        """add_http() accepts decimal timeout strings (Story 10.37 AC5)."""
+        from fapilog import LoggerBuilder
+
+        logger = (
+            LoggerBuilder().add_http("https://logs.example.com", timeout="0.5s").build()
+        )
+        assert callable(logger.info)
+
     def test_add_http_requires_endpoint(self):
         """add_http() validates that endpoint is required."""
         from fapilog import LoggerBuilder
