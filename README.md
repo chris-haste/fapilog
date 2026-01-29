@@ -1,5 +1,7 @@
 <p align="center">
-  <img src="https://fapilog.dev/fapilog-logo.png" alt="Fapilog Logo" width="200">
+  <a href="https://fapilog.dev">
+    <img src="https://fapilog.dev/fapilog-logo.png" alt="Fapilog Logo" width="200">
+  </a>
 </p>
 
 # Fapilog - Batteries-included, async-first logging for Python services
