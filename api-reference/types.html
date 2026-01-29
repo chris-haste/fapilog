@@ -248,15 +248,23 @@
 <p>Accepts:</p>
 <ul class="simple">
 <li><p>Numbers: raw seconds (e.g., <code class="docutils literal notranslate"><span class="pre">3600</span></code>, <code class="docutils literal notranslate"><span class="pre">0.25</span></code>)</p></li>
-<li><p>Strings: human-readable durations (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;5s&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;1h&quot;</span></code>)</p></li>
+<li><p>Strings: human-readable durations (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;5s&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;1h&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;100ms&quot;</span></code>)</p></li>
 </ul>
 <p>Formats:</p>
 <ul class="simple">
-<li><p>Units: <code class="docutils literal notranslate"><span class="pre">s</span></code>, <code class="docutils literal notranslate"><span class="pre">m</span></code>, <code class="docutils literal notranslate"><span class="pre">h</span></code>, <code class="docutils literal notranslate"><span class="pre">d</span></code>, <code class="docutils literal notranslate"><span class="pre">w</span></code> (case-insensitive)</p></li>
-<li><p>Optional whitespace: <code class="docutils literal notranslate"><span class="pre">&quot;5s&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;5</span> <span class="pre">s&quot;</span></code></p></li>
+<li><p>Units: <code class="docutils literal notranslate"><span class="pre">ms</span></code>, <code class="docutils literal notranslate"><span class="pre">s</span></code>, <code class="docutils literal notranslate"><span class="pre">m</span></code>, <code class="docutils literal notranslate"><span class="pre">h</span></code>, <code class="docutils literal notranslate"><span class="pre">d</span></code>, <code class="docutils literal notranslate"><span class="pre">w</span></code> (case-insensitive)</p></li>
+<li><p>Optional whitespace: <code class="docutils literal notranslate"><span class="pre">&quot;5s&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;5</span> <span class="pre">s&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;100</span> <span class="pre">ms&quot;</span></code></p></li>
+<li><p>Decimals with units: <code class="docutils literal notranslate"><span class="pre">&quot;0.5s&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;1.5h&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;2.5d&quot;</span></code></p></li>
 <li><p>Numeric strings (including decimals) are treated as raw seconds: <code class="docutils literal notranslate"><span class="pre">&quot;9.5&quot;</span></code></p></li>
-<li><p>Unit strings are integer-only (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;1.5h&quot;</span></code> is invalid; use <code class="docutils literal notranslate"><span class="pre">&quot;5400&quot;</span></code> instead)</p></li>
 </ul>
+<p>Examples:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">_parse_duration</span><span class="p">(</span><span class="s2">&quot;100ms&quot;</span><span class="p">)</span>   <span class="c1"># 0.1 seconds</span>
+<span class="n">_parse_duration</span><span class="p">(</span><span class="s2">&quot;500ms&quot;</span><span class="p">)</span>   <span class="c1"># 0.5 seconds</span>
+<span class="n">_parse_duration</span><span class="p">(</span><span class="s2">&quot;0.5s&quot;</span><span class="p">)</span>    <span class="c1"># 0.5 seconds</span>
+<span class="n">_parse_duration</span><span class="p">(</span><span class="s2">&quot;1.5h&quot;</span><span class="p">)</span>    <span class="c1"># 5400.0 seconds</span>
+<span class="n">_parse_duration</span><span class="p">(</span><span class="s2">&quot;2.5d&quot;</span><span class="p">)</span>    <span class="c1"># 216000.0 seconds</span>
+</pre></div>
+</div>
 </section>
 <section id="rotationdurationfield">
 <h2>RotationDurationField<a class="headerlink" href="#rotationdurationfield" title="Link to this heading"></a></h2>

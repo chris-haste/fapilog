@@ -229,6 +229,7 @@
 <section id="added">
 <h3>Added<a class="headerlink" href="#added" title="Link to this heading"></a></h3>
 <ul class="simple">
+<li><p><strong>Duration parser supports milliseconds and decimals:</strong> The duration string parser now accepts <code class="docutils literal notranslate"><span class="pre">ms</span></code> suffix for milliseconds (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;100ms&quot;</span></code>) and decimal values with any unit (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;0.5s&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;1.5h&quot;</span></code>). Error messages now list all valid formats. Builder methods like <code class="docutils literal notranslate"><span class="pre">with_circuit_breaker(recovery_timeout=&quot;500ms&quot;)</span></code> benefit automatically (Story 10.37).</p></li>
 <li><p><strong>Doc-accuracy CI check for redaction_fail_mode:</strong> The <code class="docutils literal notranslate"><span class="pre">scripts/check_doc_accuracy.py</span></code> script now validates that <code class="docutils literal notranslate"><span class="pre">docs/redaction/behavior.md</span></code> accurately documents the <code class="docutils literal notranslate"><span class="pre">redaction_fail_mode</span></code> default value from <code class="docutils literal notranslate"><span class="pre">CoreSettings</span></code>. This prevents documentation drift for security-sensitive settings (Story 4.62).</p></li>
 </ul>
 </section>
