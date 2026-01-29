@@ -7,6 +7,9 @@ All notable changes to this project will be documented in this file. This change
 ### Fixed
 
 - **Flatten `data={}` kwarg in envelope building:** When logging with `data={...}` (e.g., `logger.info("msg", data={"password": "secret"})`), the dict contents are now flattened into the envelope's `data` section instead of being nested under `data.data`. This fixes a security footgun where redaction rules for fields like `password` would fail silently because the actual path was `data.data.password`. Explicit kwargs override `data` dict values on collision. Non-dict `data` values are preserved as nested.
+### Documentation
+
+- **with_context() docstring documents field routing:** The `with_context()` builder method docstring now explains that known context fields (`request_id`, `user_id`, `tenant_id`, `trace_id`, `span_id`) are routed to `log.context` while custom fields go to `log.data`.
 
 ## [0.8.1] - 2026-01-29
 
