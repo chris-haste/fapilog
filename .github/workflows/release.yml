@@ -246,3 +246,70 @@ jobs:
         run: |
           TAG="${GITHUB_REF##*/}"
           gh release upload "$TAG" dist/*.whl dist/*.tar.gz --clobber
+
+  discord-announce:
+    name: Announce on Discord
+    runs-on: ubuntu-latest
+    needs: [build, github-release]
+    if: ${{ vars.DISCORD_ANNOUNCEMENTS_ENABLED == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract release notes
+        run: |
+          python scripts/extract_latest_changelog.py CHANGELOG.md RELEASE_NOTES.md
+
+      - name: Post to Discord
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_CHANNEL_ID: ${{ secrets.DISCORD_CHANNEL_ID }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          # Read release notes and format for Discord
+          NOTES=$(cat RELEASE_NOTES.md)
+
+          # Discord message limit is 2000 chars; truncate if needed
+          RELEASE_URL="https://github.com/${{ github.repository }}/releases/tag/v${VERSION}"
+          MAX_NOTES_LEN=1500
+
+          if [ ${#NOTES} -gt $MAX_NOTES_LEN ]; then
+            NOTES="${NOTES:0:$MAX_NOTES_LEN}..."$'\n\n'"[View full release notes](${RELEASE_URL})"
+          fi
+
+          # Build the message
+          MESSAGE="🚀 **Fapilog v${VERSION} Released**"$'\n\n'"${NOTES}"$'\n\n'"📦 \`pip install fapilog==${VERSION}\`"$'\n'"🔗 [GitHub Release](${RELEASE_URL})"
+
+          # Create JSON payload (escape for JSON)
+          PAYLOAD=$(jq -n --arg content "$MESSAGE" '{"content": $content}')
+
+          # Post to Discord
+          RESPONSE=$(curl -s -X POST \
+            "https://discord.com/api/v10/channels/${DISCORD_CHANNEL_ID}/messages" \
+            -H "Authorization: Bot ${DISCORD_BOT_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD")
+
+          # Extract message ID for crosspost
+          MESSAGE_ID=$(echo "$RESPONSE" | jq -r '.id')
+
+          if [ "$MESSAGE_ID" == "null" ] || [ -z "$MESSAGE_ID" ]; then
+            echo "Failed to post message to Discord:"
+            echo "$RESPONSE"
+            exit 1
+          fi
+
+          echo "Posted message ID: $MESSAGE_ID"
+
+          # Publish/crosspost the message (for announcement channels)
+          CROSSPOST_RESPONSE=$(curl -s -X POST \
+            "https://discord.com/api/v10/channels/${DISCORD_CHANNEL_ID}/messages/${MESSAGE_ID}/crosspost" \
+            -H "Authorization: Bot ${DISCORD_BOT_TOKEN}" \
+            -H "Content-Type: application/json")
+
+          # Check if crosspost succeeded (it's OK if it fails for non-announcement channels)
+          CROSSPOST_ID=$(echo "$CROSSPOST_RESPONSE" | jq -r '.id')
+          if [ "$CROSSPOST_ID" != "null" ] && [ -n "$CROSSPOST_ID" ]; then
+            echo "Message published to followers"
+          else
+            echo "Note: Message posted but not published (channel may not be an announcement channel)"
+          fi
