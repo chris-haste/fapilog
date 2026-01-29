@@ -960,3 +960,65 @@ async def test_thread_cleanup_timeout_warning(monkeypatch) -> None:
     ]
     assert len(timeout_warnings) == 1
     assert timeout_warnings[0]["component"] == "logger"
+
+
+@pytest.mark.asyncio
+async def test_partial_batch_failure_counts_correctly() -> None:
+    """Sink failure mid-batch should only count unprocessed events as dropped.
+
+    Story 10.39: This test verifies the fix for the counter race condition.
+    When a sink fails after some events in a batch have been processed,
+    only the remaining events should be counted as dropped, not the entire batch.
+
+    Previous bug: processed=N + dropped=batch_size for N<batch_size events,
+    violating the invariant processed + dropped <= batch_size.
+    """
+    processed_events: list[dict[str, Any]] = []
+    fail_after = 2  # Fail after processing 2 events
+
+    async def failing_after_n_sink(event: dict[str, Any]) -> None:
+        if len(processed_events) >= fail_after:
+            raise OSError("Sink failed mid-batch")
+        processed_events.append(dict(event))
+
+    queue: NonBlockingRingQueue[dict[str, Any]] = NonBlockingRingQueue(capacity=100)
+    counters: dict[str, int] = {"processed": 0, "dropped": 0}
+
+    # Pre-populate queue with 5 events
+    for i in range(5):
+        queue.try_enqueue({"message": f"event-{i}", "level": "INFO"})
+
+    worker_instance = LoggerWorker(
+        queue=queue,
+        batch_max_size=10,  # Large enough to process all at once
+        batch_timeout_seconds=0.01,
+        sink_write=failing_after_n_sink,
+        sink_write_serialized=None,
+        enrichers_getter=lambda: [],
+        redactors_getter=lambda: [],
+        metrics=None,
+        serialize_in_flush=False,
+        strict_envelope_mode_provider=lambda: False,
+        stop_flag=lambda: True,  # Stop immediately after drain
+        drained_event=None,
+        flush_event=None,
+        flush_done_event=None,
+        emit_enricher_diagnostics=False,
+        emit_redactor_diagnostics=False,
+        counters=counters,
+    )
+
+    await worker_instance.run()
+
+    # The sink should have processed 2 events before failing
+    assert len(processed_events) == 2
+
+    # Counters must maintain the invariant: processed + dropped == batch_size
+    # 2 events processed, 3 events dropped (5 - 2)
+    assert counters["processed"] == 2, (
+        f"Expected 2 processed, got {counters['processed']}"
+    )
+    assert counters["dropped"] == 3, f"Expected 3 dropped, got {counters['dropped']}"
+    assert counters["processed"] + counters["dropped"] == 5, (
+        f"Invariant violated: {counters['processed']} + {counters['dropped']} != 5"
+    )

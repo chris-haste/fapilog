@@ -285,6 +285,9 @@ class LoggerWorker:
         if not batch:
             return
         start = time.perf_counter()
+        batch_size = len(batch)
+        processed_in_batch = 0
+        dropped_in_batch = 0
         try:
             for entry in batch:
                 # Stage 1: FILTERS - drop unwanted events early
@@ -297,7 +300,7 @@ class LoggerWorker:
                 redacted = await self._apply_redactors(entry)
                 if redacted is None:
                     # Event dropped by fail-closed mode
-                    self._counters["dropped"] += 1
+                    dropped_in_batch += 1
                     if self._metrics is not None:
                         await self._metrics.record_events_dropped(1)
                     continue
@@ -305,7 +308,7 @@ class LoggerWorker:
                 if self._serialize_in_flush and self._sink_write_serialized is not None:
                     view, drop_entry = await self._try_serialize(entry)
                     if drop_entry:
-                        self._counters["dropped"] += 1
+                        dropped_in_batch += 1
                         if self._metrics is not None:
                             await self._metrics.record_events_dropped(1)
                         continue
@@ -315,21 +318,28 @@ class LoggerWorker:
                         try:
                             # Stage 5: SINK - write to destination
                             await self._sink_write_serialized(view)
-                            self._counters["processed"] += 1
+                            processed_in_batch += 1
                             continue
                         except Exception:
                             # Fall back to default path on serialized sink errors
                             pass
                 # Stage 5: SINK - write to destination (fallback or non-serialized path)
                 await self._sink_write(entry)
-                self._counters["processed"] += 1
+                processed_in_batch += 1
         except Exception as exc:
-            self._counters["dropped"] += len(batch)
+            # Only count events that weren't already processed or explicitly dropped
+            # as dropped. This maintains the invariant: processed + dropped <= submitted
+            remaining = batch_size - processed_in_batch - dropped_in_batch
+            dropped_in_batch += remaining
             if self._metrics is not None:
                 await self._record_sink_error()
             self._emit_sink_flush_error(exc)
         finally:
-            await self._record_flush_metrics(len(batch), time.perf_counter() - start)
+            # Atomically update shared counters at the end of batch processing
+            # to minimize the window for race conditions
+            self._counters["processed"] += processed_in_batch
+            self._counters["dropped"] += dropped_in_batch
+            await self._record_flush_metrics(batch_size, time.perf_counter() - start)
             batch.clear()
 
     def _drain_queue(self, batch: list[dict[str, Any]]) -> None:
