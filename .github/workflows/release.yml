@@ -265,22 +265,13 @@ jobs:
           DISCORD_CHANNEL_ID: ${{ secrets.DISCORD_CHANNEL_ID }}
           VERSION: ${{ needs.build.outputs.version }}
         run: |
-          # Read release notes and format for Discord
-          NOTES=$(cat RELEASE_NOTES.md)
-
-          # Discord message limit is 2000 chars; truncate if needed
           RELEASE_URL="https://github.com/${{ github.repository }}/releases/tag/v${VERSION}"
-          MAX_NOTES_LEN=1500
 
-          if [ ${#NOTES} -gt $MAX_NOTES_LEN ]; then
-            NOTES="${NOTES:0:$MAX_NOTES_LEN}..."$'\n\n'"[View full release notes](${RELEASE_URL})"
-          fi
+          # Generate embed payload
+          PAYLOAD=$(python scripts/format_discord_release.py RELEASE_NOTES.md "${VERSION}" "${RELEASE_URL}")
 
-          # Build the message
-          MESSAGE="🚀 **Fapilog v${VERSION} Released**"$'\n\n'"${NOTES}"$'\n\n'"📦 \`pip install fapilog==${VERSION}\`"$'\n'"🔗 [GitHub Release](${RELEASE_URL})"
-
-          # Create JSON payload (escape for JSON)
-          PAYLOAD=$(jq -n --arg content "$MESSAGE" '{"content": $content}')
+          echo "Payload:"
+          echo "$PAYLOAD" | jq .
 
           # Post to Discord
           RESPONSE=$(curl -s -X POST \
