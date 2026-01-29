@@ -28,6 +28,22 @@ class TestWithCircuitBreaker:
         core = builder._config["core"]
         assert core["sink_circuit_breaker_recovery_timeout_seconds"] == 30.0
 
+    def test_with_circuit_breaker_parses_milliseconds(self) -> None:
+        """with_circuit_breaker() parses millisecond duration strings (Story 10.37 AC5)."""
+        builder = LoggerBuilder()
+        builder.with_circuit_breaker(recovery_timeout="500ms")
+
+        core = builder._config["core"]
+        assert core["sink_circuit_breaker_recovery_timeout_seconds"] == 0.5
+
+    def test_with_circuit_breaker_parses_decimal_duration(self) -> None:
+        """with_circuit_breaker() parses decimal duration strings (Story 10.37 AC5)."""
+        builder = LoggerBuilder()
+        builder.with_circuit_breaker(recovery_timeout="1.5s")
+
+        core = builder._config["core"]
+        assert core["sink_circuit_breaker_recovery_timeout_seconds"] == 1.5
+
     def test_with_circuit_breaker_returns_self(self) -> None:
         """with_circuit_breaker() returns self for chaining."""
         builder = LoggerBuilder()

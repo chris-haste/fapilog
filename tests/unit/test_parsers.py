@@ -186,15 +186,38 @@ class TestParseDuration:
         with pytest.raises(ValueError, match="Invalid duration format"):
             _parse_duration("yearly")
 
-    def test_parse_duration_rejects_decimals(self) -> None:
-        """Decimal durations in strings are rejected."""
-        with pytest.raises(ValueError, match="Invalid duration format"):
-            _parse_duration("1.5h")
+    def test_parse_duration_decimal_seconds(self) -> None:
+        """Decimal seconds are accepted (AC2)."""
+        assert _parse_duration("0.5s") == 0.5
+        assert _parse_duration("1.5s") == 1.5
+        assert _parse_duration("0.25s") == 0.25
 
-        with pytest.raises(ValueError, match="Invalid duration format"):
-            _parse_duration("0.5m")
+    def test_parse_duration_decimal_minutes(self) -> None:
+        """Decimal minutes are accepted (AC2)."""
+        assert _parse_duration("0.25m") == 15.0  # 0.25 * 60
+        assert _parse_duration("1.5m") == 90.0  # 1.5 * 60
 
-        assert _parse_duration(1.5 * 3600) == 5400.0
+    def test_parse_duration_decimal_hours(self) -> None:
+        """Decimal hours are accepted (AC2)."""
+        assert _parse_duration("1.5h") == 5400.0  # 1.5 * 3600
+        assert _parse_duration("0.5h") == 1800.0  # 0.5 * 3600
+
+    def test_parse_duration_decimal_days(self) -> None:
+        """Decimal days are accepted (AC2)."""
+        assert _parse_duration("2.5d") == 216000.0  # 2.5 * 86400
+
+    def test_parse_duration_milliseconds(self) -> None:
+        """Milliseconds are accepted (AC1)."""
+        assert _parse_duration("100ms") == 0.1
+        assert _parse_duration("1ms") == 0.001
+        assert _parse_duration("1500ms") == 1.5
+        assert _parse_duration("100 ms") == 0.1  # with space
+        assert _parse_duration("1000MS") == 1.0  # case insensitive
+
+    def test_parse_duration_decimal_milliseconds(self) -> None:
+        """Decimal milliseconds are accepted."""
+        assert _parse_duration("0.5ms") == 0.0005
+        assert _parse_duration("1.5ms") == 0.0015
 
     def test_parse_duration_invalid_number(self) -> None:
         """Invalid number raises ValueError."""
@@ -210,9 +233,14 @@ class TestParseDuration:
             _parse_duration("-5s")
 
     def test_parse_duration_error_message_shows_valid_formats(self) -> None:
-        """Error message shows valid formats."""
-        with pytest.raises(ValueError, match="Use format like '5s', '10m', '1h', '7d'"):
+        """Error message shows valid formats including ms and decimals (AC3)."""
+        with pytest.raises(ValueError) as exc_info:
             _parse_duration("invalid")
+        error_msg = str(exc_info.value)
+        assert "ms" in error_msg  # mentions milliseconds
+        assert (
+            "0.5s" in error_msg or "decimal" in error_msg.lower()
+        )  # mentions decimals
 
 
 class TestParseRotationDuration:
@@ -233,6 +261,14 @@ class TestParseRotationDuration:
     def test_rotation_duration_accepts_units(self) -> None:
         """Unit durations are still accepted."""
         assert _parse_rotation_duration("5s") == 5.0
+
+    def test_rotation_duration_accepts_milliseconds(self) -> None:
+        """Milliseconds are accepted in rotation duration."""
+        assert _parse_rotation_duration("500ms") == 0.5
+
+    def test_rotation_duration_accepts_decimals(self) -> None:
+        """Decimal durations are accepted in rotation duration."""
+        assert _parse_rotation_duration("1.5h") == 5400.0
 
     def test_rotation_duration_error_message_mentions_keywords(self) -> None:
         """Error message includes keyword hint."""
@@ -262,3 +298,16 @@ class TestEdgeCases:
         """Zero duration works."""
         assert _parse_duration("0s") == 0.0
         assert _parse_duration(0) == 0.0
+
+    def test_parse_duration_backward_compatibility(self) -> None:
+        """All existing valid formats continue to work (AC4)."""
+        # Integer units (existing)
+        assert _parse_duration("30s") == 30.0
+        assert _parse_duration("5m") == 300.0
+        assert _parse_duration("1h") == 3600.0
+        assert _parse_duration("7d") == 604800.0
+        assert _parse_duration("2w") == 1209600.0
+        # Numeric passthrough (existing)
+        assert _parse_duration(0.1) == 0.1
+        assert _parse_duration("0.1") == 0.1
+        assert _parse_duration(30) == 30.0

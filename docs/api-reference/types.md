@@ -20,13 +20,22 @@ Formats:
 
 Accepts:
 - Numbers: raw seconds (e.g., `3600`, `0.25`)
-- Strings: human-readable durations (e.g., `"5s"`, `"1h"`)
+- Strings: human-readable durations (e.g., `"5s"`, `"1h"`, `"100ms"`)
 
 Formats:
-- Units: `s`, `m`, `h`, `d`, `w` (case-insensitive)
-- Optional whitespace: `"5s"`, `"5 s"`
+- Units: `ms`, `s`, `m`, `h`, `d`, `w` (case-insensitive)
+- Optional whitespace: `"5s"`, `"5 s"`, `"100 ms"`
+- Decimals with units: `"0.5s"`, `"1.5h"`, `"2.5d"`
 - Numeric strings (including decimals) are treated as raw seconds: `"9.5"`
-- Unit strings are integer-only (e.g., `"1.5h"` is invalid; use `"5400"` instead)
+
+Examples:
+```python
+_parse_duration("100ms")   # 0.1 seconds
+_parse_duration("500ms")   # 0.5 seconds
+_parse_duration("0.5s")    # 0.5 seconds
+_parse_duration("1.5h")    # 5400.0 seconds
+_parse_duration("2.5d")    # 216000.0 seconds
+```
 
 ## RotationDurationField
 
