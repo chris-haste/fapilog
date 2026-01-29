@@ -4,12 +4,24 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-01-29
+
+### Added
+
+- **Core - Add reuse() method to LoggerBuilder:** Expose reuse parameter for controlling logger caching behavior. Pass reuse through build() and build_async() to underlying functions. Enable test isolation by allowing non-cached logger instances.
+
+### Changed
+
+- **Core - Use Self return type for LoggerBuilder methods:** Change 44 builder methods from -> LoggerBuilder to -> Self. Enable correct type inference for AsyncLoggerBuilder chaining.
+
 ### Fixed
 
-- **Flatten `data={}` kwarg in envelope building:** When logging with `data={...}` (e.g., `logger.info("msg", data={"password": "secret"})`), the dict contents are now flattened into the envelope's `data` section instead of being nested under `data.data`. This fixes a security footgun where redaction rules for fields like `password` would fail silently because the actual path was `data.data.password`. Explicit kwargs override `data` dict values on collision. Non-dict `data` values are preserved as nested.
+- **Core - Flatten data={} kwarg in envelope building:** When logging with `data={...}` (e.g., `logger.info("msg", data={"password": "secret"})`), the dict contents are now flattened into the envelope's `data` section instead of being nested under `data.data`. This fixes a security footgun where redaction rules for fields like `password` would fail silently because the actual path was `data.data.password`. Explicit kwargs override `data` dict values on collision. Non-dict `data` values are preserved as nested.
+- **Core - Fix flaky thread mode drain counter test:** Track batch counters locally to prevent race condition. Accumulate processed/dropped counts within batch before updating shared counters. Only count unprocessed events as dropped when sink fails mid-batch.
+
 ### Documentation
 
-- **with_context() docstring documents field routing:** The `with_context()` builder method docstring now explains that known context fields (`request_id`, `user_id`, `tenant_id`, `trace_id`, `span_id`) are routed to `log.context` while custom fields go to `log.data`.
+- **Fapilog - Document field routing in with_context() docstring:** The `with_context()` builder method docstring now explains that known context fields (`request_id`, `user_id`, `tenant_id`, `trace_id`, `span_id`) are routed to `log.context` while custom fields go to `log.data`.
 
 ## [0.8.1] - 2026-01-29
 
