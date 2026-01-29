@@ -65,10 +65,7 @@ def build_embed(version: str, release_url: str, sections: dict[str, list[str]]) 
         "title": f"\U0001f680 Fapilog v{version} Released",
         "url": release_url,
         "color": EMBED_COLOR,
-        "author": {
-            "name": "fapilog.dev",
-            "url": LANDING_PAGE_URL,
-        },
+        "description": f"[fapilog.dev]({LANDING_PAGE_URL})",
         "fields": [],
     }
 
