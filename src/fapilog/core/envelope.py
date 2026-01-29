@@ -8,6 +8,7 @@ to improve maintainability and testability.
 from __future__ import annotations
 
 import sys
+from collections.abc import Mapping
 from datetime import datetime, timezone
 from types import TracebackType
 from typing import Any, cast
@@ -118,8 +119,28 @@ def build_envelope(
         for key, value in bound_context.items():
             if key not in _CONTEXT_FIELDS:
                 data[key] = value
+
+    # Flatten data={...} kwarg if present and is a dict-like mapping
+    # This allows the common pattern: logger.info("msg", data={"key": "val"})
+    # to flatten into the data section rather than nesting as data.data
+    data_dict_values: dict[str, Any] = {}
+    if extra and "data" in extra and isinstance(extra["data"], Mapping):
+        data_dict_values = dict(extra["data"])
+        # Remove "data" from extra so it's not processed again below
+        extra = {k: v for k, v in extra.items() if k != "data"}
+
+        # Route context fields from data dict to context section
+        for key in _CONTEXT_FIELDS:
+            if key in data_dict_values:
+                context[key] = data_dict_values.pop(key)
+
+        # Merge remaining data dict values into data (can be overridden by extra)
+        for key, value in data_dict_values.items():
+            data[key] = value
+
     if extra:
         # Non-context extra fields go to data (context fields already in context)
+        # These override data dict values on collision
         for key, value in extra.items():
             if key not in _CONTEXT_FIELDS:
                 data[key] = value
