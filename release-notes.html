@@ -232,6 +232,12 @@
 <li><p><strong>Doc-accuracy CI check for redaction_fail_mode:</strong> The <code class="docutils literal notranslate"><span class="pre">scripts/check_doc_accuracy.py</span></code> script now validates that <code class="docutils literal notranslate"><span class="pre">docs/redaction/behavior.md</span></code> accurately documents the <code class="docutils literal notranslate"><span class="pre">redaction_fail_mode</span></code> default value from <code class="docutils literal notranslate"><span class="pre">CoreSettings</span></code>. This prevents documentation drift for security-sensitive settings (Story 4.62).</p></li>
 </ul>
 </section>
+<section id="fixed">
+<h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Logger resource cleanup on drain:</strong> Internal data structures (<code class="docutils literal notranslate"><span class="pre">_error_dedupe</span></code>, <code class="docutils literal notranslate"><span class="pre">_plugin_stats</span></code>, <code class="docutils literal notranslate"><span class="pre">_worker_tasks</span></code>, plugin lists) are now cleared after <code class="docutils literal notranslate"><span class="pre">stop_and_drain()</span></code> completes. This prevents memory leaks in long-running applications that create and destroy loggers (Story 4.63).</p></li>
+</ul>
+</section>
 </section>
 <section id="id1">
 <h2>[0.8.0] - 2026-01-28<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
@@ -280,8 +286,8 @@
 <li><p><strong>Fallback sink raw output hardening:</strong> When JSON parsing fails for serialized payloads on the fallback path, fapilog now applies keyword scrubbing to mask common secret patterns (<code class="docutils literal notranslate"><span class="pre">password=</span></code>, <code class="docutils literal notranslate"><span class="pre">token=</span></code>, <code class="docutils literal notranslate"><span class="pre">api_key=</span></code>, <code class="docutils literal notranslate"><span class="pre">authorization:</span></code>) before writing to stderr. Optional truncation via <code class="docutils literal notranslate"><span class="pre">core.fallback_raw_max_bytes</span></code> limits output size. Scrubbing is enabled by default; set <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__FALLBACK_SCRUB_RAW=false</span></code> to disable for debugging (Story 4.59).</p></li>
 </ul>
 </section>
-<section id="fixed">
-<h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading"></a></h3>
+<section id="id3">
+<h3>Fixed<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Core redaction guardrails now functional:</strong> The <code class="docutils literal notranslate"><span class="pre">redaction_max_depth</span></code> and <code class="docutils literal notranslate"><span class="pre">redaction_max_keys_scanned</span></code> settings in <code class="docutils literal notranslate"><span class="pre">CoreSettings</span></code> were previously defined but never applied (dead code). They are now passed to <code class="docutils literal notranslate"><span class="pre">FieldMaskRedactor</span></code> and <code class="docutils literal notranslate"><span class="pre">RegexMaskRedactor</span></code> during initialization and act as outer limits that override per-redactor settings when more restrictive (Story 4.57).</p></li>
 <li><p><strong>Silent data loss in <code class="docutils literal notranslate"><span class="pre">write_serialized</span></code>:</strong> Fixed correctness issue where HTTP, Webhook, Loki, CloudWatch, and PostgreSQL sinks silently replaced log data with placeholder values (e.g., <code class="docutils literal notranslate"><span class="pre">{&quot;message&quot;:</span> <span class="pre">&quot;fallback&quot;}</span></code>) when deserialization failed. All sinks now raise <code class="docutils literal notranslate"><span class="pre">SinkWriteError</span></code> with diagnostics, enabling proper fallback and circuit breaker handling (Story 4.53).</p></li>
@@ -300,10 +306,10 @@
 </ul>
 </section>
 </section>
-<section id="id3">
-<h2>[0.7.0] - 2026-01-27<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
 <section id="id4">
-<h3>Breaking Changes<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<h2>[0.7.0] - 2026-01-27<a class="headerlink" href="#id4" title="Link to this heading"></a></h2>
+<section id="id5">
+<h3>Breaking Changes<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
 <ul>
 <li><p><strong>Unified Redaction API:</strong> The following methods have been removed and consolidated into <code class="docutils literal notranslate"><span class="pre">with_redaction()</span></code>:</p>
 <ul class="simple">
@@ -327,8 +333,8 @@
 <li><p><strong>Production/FastAPI/Serverless presets now apply CREDENTIALS preset:</strong> Security-focused presets (<code class="docutils literal notranslate"><span class="pre">production</span></code>, <code class="docutils literal notranslate"><span class="pre">fastapi</span></code>, <code class="docutils literal notranslate"><span class="pre">serverless</span></code>) automatically apply the <code class="docutils literal notranslate"><span class="pre">CREDENTIALS</span></code> redaction preset for comprehensive secret protection. Custom credential fields are no longer hardcoded in these presets.</p></li>
 </ul>
 </section>
-<section id="id5">
-<h3>Added<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<section id="id6">
+<h3>Added<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Unified <code class="docutils literal notranslate"><span class="pre">with_redaction()</span></code> API:</strong> Single method for all redaction configuration with preset support, URL credentials, guardrails, and custom fields/patterns (Story 3.8).</p></li>
 <li><p><strong>Preset discovery methods:</strong> <code class="docutils literal notranslate"><span class="pre">LoggerBuilder.list_redaction_presets()</span></code> and <code class="docutils literal notranslate"><span class="pre">LoggerBuilder.get_redaction_preset_info(name)</span></code> for discovering available redaction presets.</p></li>
@@ -336,14 +342,14 @@
 <li><p><strong>Composable redaction presets:</strong> One-liner compliance protection via <code class="docutils literal notranslate"><span class="pre">with_redaction(preset=&quot;GDPR_PII&quot;)</span></code>. Includes presets for GDPR, CCPA, HIPAA, PCI-DSS, and CREDENTIALS with inheritance support and metadata filtering (Story 3.8).</p></li>
 </ul>
 </section>
-<section id="id6">
-<h3>Changed<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
+<section id="id7">
+<h3>Changed<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">with_redaction()</span></code> is now additive by default:</strong> Calling <code class="docutils literal notranslate"><span class="pre">with_redaction()</span></code> multiple times merges fields/patterns instead of replacing. Use <code class="docutils literal notranslate"><span class="pre">replace=True</span></code> to restore the previous overwrite behavior (Story 3.8).</p></li>
 </ul>
 </section>
-<section id="id7">
-<h3>Documentation<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<section id="id8">
+<h3>Documentation<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>New dedicated <code class="docutils literal notranslate"><span class="pre">/redaction/</span></code> documentation section with presets reference, configuration guide, behavior documentation, and testing guide.</p></li>
 <li><p>Added compliance redaction cookbook explaining what field-name matching covers and its limitations.</p></li>
@@ -353,17 +359,17 @@
 </ul>
 </section>
 </section>
-<section id="id8">
-<h2>[0.6.0] - 2026-01-26<a class="headerlink" href="#id8" title="Link to this heading"></a></h2>
 <section id="id9">
-<h3>Added<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<h2>[0.6.0] - 2026-01-26<a class="headerlink" href="#id9" title="Link to this heading"></a></h2>
+<section id="id10">
+<h3>Added<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Graceful log drain on shutdown:</strong> Loggers now automatically flush pending logs during application shutdown via <code class="docutils literal notranslate"><span class="pre">atexit</span></code> handlers (Story 6.13). This ensures logs are not lost when processes terminate.</p></li>
 <li><p><strong>Regex ReDoS protection:</strong> <code class="docutils literal notranslate"><span class="pre">RegexMaskRedactor</span></code> now validates patterns at config time to prevent catastrophic backtracking. Patterns with nested quantifiers, overlapping alternation, or wildcards in bounded repetition are rejected. Use <code class="docutils literal notranslate"><span class="pre">allow_unsafe_patterns=True</span></code> to bypass validation if needed (Story 4.50).</p></li>
 </ul>
 </section>
-<section id="id10">
-<h3>Changed<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
+<section id="id11">
+<h3>Changed<a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Secure header redaction by default:</strong> <code class="docutils literal notranslate"><span class="pre">LoggingMiddleware</span></code> now redacts sensitive headers (Authorization, Cookie, X-API-Key, etc.) by default when <code class="docutils literal notranslate"><span class="pre">include_headers=True</span></code> (Story 4.51). This prevents accidental credential leakage in logs.</p>
 <ul>
@@ -374,8 +380,8 @@
 </li>
 </ul>
 </section>
-<section id="id11">
-<h3>Documentation<a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
+<section id="id12">
+<h3>Documentation<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Added Django structured logging cookbook entry.</p></li>
 <li><p>Added library comparison pages (why-fapilog, alternative library comparisons).</p></li>
@@ -383,16 +389,16 @@
 </ul>
 </section>
 </section>
-<section id="id12">
-<h2>[0.5.1] - 2026-01-21<a class="headerlink" href="#id12" title="Link to this heading"></a></h2>
 <section id="id13">
-<h3>Added<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
+<h2>[0.5.1] - 2026-01-21<a class="headerlink" href="#id13" title="Link to this heading"></a></h2>
+<section id="id14">
+<h3>Added<a class="headerlink" href="#id14" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>FastAPI <code class="docutils literal notranslate"><span class="pre">log_errors_on_skip</span></code> parameter:</strong> <code class="docutils literal notranslate"><span class="pre">LoggingMiddleware</span></code> and <code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code> now accept <code class="docutils literal notranslate"><span class="pre">log_errors_on_skip</span></code> (default: True) to log unhandled exceptions on skipped paths (Story 1.32). This ensures visibility into crashes on health endpoints while still skipping routine success logs.</p></li>
 </ul>
 </section>
-<section id="id14">
-<h3>Documentation<a class="headerlink" href="#id14" title="Link to this heading"></a></h3>
+<section id="id15">
+<h3>Documentation<a class="headerlink" href="#id15" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Added 10 cookbook recipes for common FastAPI logging patterns:</p>
 <ul>
@@ -412,18 +418,18 @@
 <li><p>Fixed documentation accuracy and cross-reference issues.</p></li>
 </ul>
 </section>
-<section id="id15">
-<h3>Changed<a class="headerlink" href="#id15" title="Link to this heading"></a></h3>
+<section id="id16">
+<h3>Changed<a class="headerlink" href="#id16" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Updated PyPI description to be more concrete.</p></li>
 <li><p>Organized audit assessment files into versioned directories.</p></li>
 </ul>
 </section>
 </section>
-<section id="id16">
-<h2>[0.5.0] - 2026-01-21<a class="headerlink" href="#id16" title="Link to this heading"></a></h2>
 <section id="id17">
-<h3>Breaking Changes<a class="headerlink" href="#id17" title="Link to this heading"></a></h3>
+<h2>[0.5.0] - 2026-01-21<a class="headerlink" href="#id17" title="Link to this heading"></a></h2>
+<section id="id18">
+<h3>Breaking Changes<a class="headerlink" href="#id18" title="Link to this heading"></a></h3>
 <ul>
 <li><p><strong>Logger instance caching enabled by default:</strong> <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> and <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> now cache instances by name, matching stdlib <code class="docutils literal notranslate"><span class="pre">logging.getLogger()</span></code> behavior (Story 10.29). This prevents resource exhaustion from unbounded logger creation.</p>
 <p><strong>Migration:</strong> Code that relied on fresh instances per call should add <code class="docutils literal notranslate"><span class="pre">reuse=False</span></code>:</p>
@@ -451,8 +457,8 @@
 </li>
 </ul>
 </section>
-<section id="id18">
-<h3>Added<a class="headerlink" href="#id18" title="Link to this heading"></a></h3>
+<section id="id19">
+<h3>Added<a class="headerlink" href="#id19" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Logger instance caching: <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> and <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> now cache instances by name (like stdlib <code class="docutils literal notranslate"><span class="pre">logging.getLogger()</span></code>), preventing resource exhaustion from unbounded logger creation (Story 10.29).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">reuse</span></code> parameter for <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> and <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> to opt out of caching when needed (e.g., tests).</p></li>
@@ -472,18 +478,18 @@
 <li><p>Builder API parity enforcement via CI to prevent configuration drift (Story 10.27).</p></li>
 </ul>
 </section>
-<section id="id19">
-<h3>Documentation<a class="headerlink" href="#id19" title="Link to this heading"></a></h3>
+<section id="id20">
+<h3>Documentation<a class="headerlink" href="#id20" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Comprehensive builder API documentation with examples for all methods (Story 10.28).</p></li>
 <li><p>Logger caching documentation explaining lifecycle and cache management.</p></li>
 </ul>
 </section>
 </section>
-<section id="id20">
-<h2>[0.4.0] - 2026-01-19<a class="headerlink" href="#id20" title="Link to this heading"></a></h2>
 <section id="id21">
-<h3>Breaking Changes<a class="headerlink" href="#id21" title="Link to this heading"></a></h3>
+<h2>[0.4.0] - 2026-01-19<a class="headerlink" href="#id21" title="Link to this heading"></a></h2>
+<section id="id22">
+<h3>Breaking Changes<a class="headerlink" href="#id22" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code> preset now enables redaction by default (<code class="docutils literal notranslate"><span class="pre">field_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">url_credentials</span></code>), matching <code class="docutils literal notranslate"><span class="pre">production</span></code> preset security posture (Story 10.21). Use <code class="docutils literal notranslate"><span class="pre">dev</span></code> preset for debugging or explicitly set <code class="docutils literal notranslate"><span class="pre">redactors=[]</span></code> to disable.</p></li>
 <li><p>Log schema v1.1 with semantic field groupings (<code class="docutils literal notranslate"><span class="pre">context</span></code>, <code class="docutils literal notranslate"><span class="pre">diagnostics</span></code>, <code class="docutils literal notranslate"><span class="pre">data</span></code>); <code class="docutils literal notranslate"><span class="pre">metadata</span></code> renamed to <code class="docutils literal notranslate"><span class="pre">data</span></code>, <code class="docutils literal notranslate"><span class="pre">correlation_id</span></code> moved to <code class="docutils literal notranslate"><span class="pre">context.correlation_id</span></code>, timestamp now RFC3339 string (Story 1.26). See <code class="docutils literal notranslate"><span class="pre">docs/schema-migration-v1.0-to-v1.1.md</span></code>.</p></li>
@@ -492,8 +498,8 @@
 <li><p>External plugins now blocked by default; use <code class="docutils literal notranslate"><span class="pre">plugins.allow_external=true</span></code> or <code class="docutils literal notranslate"><span class="pre">plugins.allowlist</span></code> for explicit opt-in (Story 3.5).</p></li>
 </ul>
 </section>
-<section id="id22">
-<h3>Added<a class="headerlink" href="#id22" title="Link to this heading"></a></h3>
+<section id="id23">
+<h3>Added<a class="headerlink" href="#id23" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Fluent builder API (<code class="docutils literal notranslate"><span class="pre">LoggerBuilder</span></code>, <code class="docutils literal notranslate"><span class="pre">AsyncLoggerBuilder</span></code>) for chainable logger configuration with IDE autocomplete support.</p></li>
 <li><p>Pretty console output (<code class="docutils literal notranslate"><span class="pre">stdout_pretty</span></code>) and <code class="docutils literal notranslate"><span class="pre">format</span></code> selection for stdout logging.</p></li>
@@ -508,8 +514,8 @@
 <li><p>Production tip callout in README for <code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code> guidance.</p></li>
 </ul>
 </section>
-<section id="id23">
-<h3>Changed<a class="headerlink" href="#id23" title="Link to this heading"></a></h3>
+<section id="id24">
+<h3>Changed<a class="headerlink" href="#id24" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Serialization path cleanup - <code class="docutils literal notranslate"><span class="pre">serialize_envelope()</span></code> now trusts upstream v1.1 schema compliance and only fails for non-JSON-serializable objects; exception-driven fallback is now truly exceptional, not the normal path; <code class="docutils literal notranslate"><span class="pre">strict_envelope_mode</span></code> now works correctly (Story 1.28).</p></li>
 <li><p>Internal diagnostics now write to stderr by default (Unix convention); add <code class="docutils literal notranslate"><span class="pre">core.diagnostics_output=&quot;stdout&quot;</span></code> for backward compatibility (Story 6.11).</p></li>
@@ -520,8 +526,8 @@
 <li><p>Split large test files into focused modules: <code class="docutils literal notranslate"><span class="pre">test_error_handling.py</span></code> → 4 files, <code class="docutils literal notranslate"><span class="pre">test_high_performance_lru_cache.py</span></code> → 3 files, <code class="docutils literal notranslate"><span class="pre">test_logger_pipeline.py</span></code> → 3 files, <code class="docutils literal notranslate"><span class="pre">test_rotating_file_sink.py</span></code> → 3 files (total test count preserved at 1704).</p></li>
 </ul>
 </section>
-<section id="id24">
-<h3>Fixed<a class="headerlink" href="#id24" title="Link to this heading"></a></h3>
+<section id="id25">
+<h3>Fixed<a class="headerlink" href="#id25" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Benchmark script key alignment in <code class="docutils literal notranslate"><span class="pre">derive_verdicts()</span></code> to match actual output keys from <code class="docutils literal notranslate"><span class="pre">benchmark()</span></code> (Story 10.11).</p></li>
 <li><p>Strict mode serialization drops now correctly increment the <code class="docutils literal notranslate"><span class="pre">dropped</span></code> counter and record metrics; previously these drops were silently unaccounted (Story 1.24).</p></li>
@@ -545,8 +551,8 @@
 <li><p>Cache sampling rate, filter config, and error dedupe window at logger initialization to avoid <code class="docutils literal notranslate"><span class="pre">Settings()</span></code> instantiation on every log call (Story 1.23).</p></li>
 </ul>
 </section>
-<section id="id25">
-<h3>Documentation<a class="headerlink" href="#id25" title="Link to this heading"></a></h3>
+<section id="id26">
+<h3>Documentation<a class="headerlink" href="#id26" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Added performance benchmarks page with methodology, results, and reproduction instructions (Story 10.20).</p></li>
 <li><p>Added <code class="docutils literal notranslate"><span class="pre">redaction-guarantee.md</span></code> documenting exact redaction behavior per preset; fixed inaccurate claims in <code class="docutils literal notranslate"><span class="pre">reliability-defaults.md</span></code> (Story 4.47).</p></li>
@@ -556,31 +562,31 @@
 </ul>
 </section>
 </section>
-<section id="id26">
-<h2>[0.3.5] - 2026-01-01<a class="headerlink" href="#id26" title="Link to this heading"></a></h2>
 <section id="id27">
-<h3>Added<a class="headerlink" href="#id27" title="Link to this heading"></a></h3>
+<h2>[0.3.5] - 2026-01-01<a class="headerlink" href="#id27" title="Link to this heading"></a></h2>
+<section id="id28">
+<h3>Added<a class="headerlink" href="#id28" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Hash-chain integrity for AuditTrail.</p></li>
 </ul>
 </section>
-<section id="id28">
-<h3>Changed<a class="headerlink" href="#id28" title="Link to this heading"></a></h3>
+<section id="id29">
+<h3>Changed<a class="headerlink" href="#id29" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">unbind()</span></code> now returns self for method chaining.</p></li>
 </ul>
 </section>
-<section id="id29">
-<h3>Fixed<a class="headerlink" href="#id29" title="Link to this heading"></a></h3>
+<section id="id30">
+<h3>Fixed<a class="headerlink" href="#id30" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>GitHub release workflow now handles existing releases.</p></li>
 </ul>
 </section>
 </section>
-<section id="id30">
-<h2>[0.3.4] - 2025-12-30<a class="headerlink" href="#id30" title="Link to this heading"></a></h2>
 <section id="id31">
-<h3>Added<a class="headerlink" href="#id31" title="Link to this heading"></a></h3>
+<h2>[0.3.4] - 2025-12-30<a class="headerlink" href="#id31" title="Link to this heading"></a></h2>
+<section id="id32">
+<h3>Added<a class="headerlink" href="#id32" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Enterprise key management for tamper-evident plugin (Story 4.18).</p></li>
 <li><p>Verification API and CLI for tamper-evident plugin (Story 4.17).</p></li>
@@ -588,8 +594,8 @@
 <li><p>Configurable worker count for logging pipeline.</p></li>
 </ul>
 </section>
-<section id="id32">
-<h3>Fixed<a class="headerlink" href="#id32" title="Link to this heading"></a></h3>
+<section id="id33">
+<h3>Fixed<a class="headerlink" href="#id33" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>PYTHONPATH passing to subprocess in CLI test.</p></li>
 <li><p>fapilog-tamper tests now skip gracefully if package not available.</p></li>
@@ -598,8 +604,8 @@
 </ul>
 </section>
 </section>
-<section id="id33">
-<h2>[0.3.3] - 2025-12-22<a class="headerlink" href="#id33" title="Link to this heading"></a></h2>
+<section id="id34">
+<h2>[0.3.3] - 2025-12-22<a class="headerlink" href="#id34" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Project status upgraded from Alpha to Beta classification.</p></li>
 <li><p>Fixed plugin catalog generation to exclude failed plugin entries.</p></li>
@@ -608,8 +614,8 @@
 <li><p>Removed placeholder Discord and Plugin Marketplace links from PyPI metadata.</p></li>
 </ul>
 </section>
-<section id="id34">
-<h2>[0.3.2] - 2025-12-22<a class="headerlink" href="#id34" title="Link to this heading"></a></h2>
+<section id="id35">
+<h2>[0.3.2] - 2025-12-22<a class="headerlink" href="#id35" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Backpressure configuration now honored: <code class="docutils literal notranslate"><span class="pre">drop_on_full</span></code> waits instead of dropping when set to false; sink/enricher/redactor failures emit diagnostics.</p></li>
 <li><p>FastAPI request/response logging middleware added (sampling, header redaction, skip paths) and exported alongside context middleware.</p></li>
