@@ -6,6 +6,7 @@ Extend fapilog to send logs anywhere, add context automatically, or mask custom 
 :maxdepth: 2
 :caption: Plugin Development
 
+quickstart
 authoring
 contracts-and-versioning
 redactors
@@ -58,6 +59,7 @@ Handle plugin failures gracefully. Learn how to contain errors so a broken sink 
 
 ## Getting Started
 
+- [Quickstart](quickstart.md) - Create your first plugin in 10 minutes
 - [Plugin Authoring Guide](authoring.md) - Learn how to create plugins
 - [Contracts and Versioning](contracts-and-versioning.md) - Understand plugin compatibility
 - [Redaction Plugins](redactors.md) - Data security and compliance
