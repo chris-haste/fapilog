@@ -27,6 +27,9 @@ def extract_latest_section(changelog: Path) -> str:
         if not saw_title:
             continue
         if line.startswith("## "):
+            # Skip [Unreleased] section
+            if "[Unreleased]" in line:
+                continue
             if not in_section:
                 in_section = True
                 section_lines.append(line)
