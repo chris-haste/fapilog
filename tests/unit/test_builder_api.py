@@ -707,3 +707,33 @@ class TestRedactionBranches:
         patterns = builder._config["redactor_config"]["regex_mask"]["patterns"]
         assert patterns == ["password.*"]
         assert "secret.*" not in patterns
+
+
+class TestWithContextDocstring:
+    """Test with_context() docstring documents field routing (Story 10.42)."""
+
+    def test_docstring_explains_field_routing(self):
+        """AC1: Docstring explains that known fields go to context, custom to data."""
+        from fapilog import LoggerBuilder
+
+        docstring = LoggerBuilder.with_context.__doc__
+        assert docstring is not None  # noqa: WA003 - guard before behavioral checks
+        assert "context" in docstring.lower()
+        assert "data" in docstring.lower()
+        assert "request_id" in docstring
+
+    def test_docstring_lists_known_context_fields(self):
+        """AC2: Docstring lists all 5 known context fields."""
+        from fapilog import LoggerBuilder
+
+        docstring = LoggerBuilder.with_context.__doc__
+        known_fields = ["request_id", "user_id", "tenant_id", "trace_id", "span_id"]
+        for field in known_fields:
+            assert field in docstring, f"Missing known context field: {field}"
+
+    def test_docstring_includes_example(self):
+        """AC3: Docstring includes an example showing field destinations."""
+        from fapilog import LoggerBuilder
+
+        docstring = LoggerBuilder.with_context.__doc__
+        assert "Example:" in docstring or ">>>" in docstring
