@@ -7,7 +7,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Migration Guide: Simplified Rotating File Setup &mdash; fapilog latest documentation</title>
+  <title>Testing with Fapilog &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -25,12 +25,12 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Tenacity Integration Guide" href="tenacity-integration.html" />
-    <link rel="prev" title="Migrating from Settings to Builder" href="settings-to-builder-migration.html" />
+    <link rel="next" title="Tamper-Evident Logging Add-on (Optional)" href="../addons/tamper-evident-logging.html" />
+    <link rel="prev" title="Tenacity Integration Guide" href="tenacity-integration.html" />
  
 
 
-<link rel="canonical" href="https://docs.fapilog.dev/en/stable/guides/migration-file-rotation.html" />
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/guides/testing.html" />
 <meta name="robots" content="noindex, follow" />
 
 
@@ -189,9 +189,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../quality-signals.html">Quality Signals</a></li>
 <li class="toctree-l2"><a class="reference internal" href="settings-to-builder-migration.html">Migrating from Settings to Builder</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Migration Guide: Simplified Rotating File Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="migration-file-rotation.html">Migration Guide: Simplified Rotating File Setup</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tenacity-integration.html">Tenacity Integration Guide</a></li>
-<li class="toctree-l2"><a class="reference internal" href="testing.html">Testing with Fapilog</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Testing with Fapilog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../addons/tamper-evident-logging.html">Tamper-Evident Logging Add-on (Optional)</a></li>
 </ul>
 </li>
@@ -212,9 +212,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../appendices.html">Appendices</a></li>
-      <li class="breadcrumb-item active">Migration Guide: Simplified Rotating File Setup</li>
+      <li class="breadcrumb-item active">Testing with Fapilog</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/guides/migration-file-rotation.md.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/guides/testing.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -222,64 +222,165 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="migration-guide-simplified-rotating-file-setup">
-<h1>Migration Guide: Simplified Rotating File Setup<a class="headerlink" href="#migration-guide-simplified-rotating-file-setup" title="Link to this heading"></a></h1>
-<p>This guide shows how to migrate from the verbose <code class="docutils literal notranslate"><span class="pre">RotatingFileSinkConfig</span></code> pattern
-to the new <code class="docutils literal notranslate"><span class="pre">fapilog.sinks.rotating_file()</span></code> convenience factory.</p>
-<section id="before-verbose-configuration">
-<h2>Before (Verbose Configuration)<a class="headerlink" href="#before-verbose-configuration" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.sinks.rotating_file</span><span class="w"> </span><span class="kn">import</span> <span class="n">RotatingFileSink</span><span class="p">,</span> <span class="n">RotatingFileSinkConfig</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+  <section class="tex2jax_ignore mathjax_ignore" id="testing-with-fapilog">
+<h1>Testing with Fapilog<a class="headerlink" href="#testing-with-fapilog" title="Link to this heading"></a></h1>
+<p>This guide covers patterns for testing applications that use fapilog.</p>
+<section id="capturing-stdout-output">
+<h2>Capturing Stdout Output<a class="headerlink" href="#capturing-stdout-output" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">StdoutJsonSink</span></code> uses <code class="docutils literal notranslate"><span class="pre">os.writev()</span></code> for high-performance output, which bypasses Python’s <code class="docutils literal notranslate"><span class="pre">sys.stdout</span></code> redirection. This makes it difficult to capture output in tests using <code class="docutils literal notranslate"><span class="pre">contextlib.redirect_stdout()</span></code>.</p>
+<section id="solution-use-capture-mode-true">
+<h3>Solution: Use <code class="docutils literal notranslate"><span class="pre">capture_mode=True</span></code><a class="headerlink" href="#solution-use-capture-mode-true" title="Link to this heading"></a></h3>
+<p>Enable <code class="docutils literal notranslate"><span class="pre">capture_mode</span></code> when creating your logger to use buffered writes that can be captured:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncLoggerBuilder</span>
 
-<span class="n">config</span> <span class="o">=</span> <span class="n">RotatingFileSinkConfig</span><span class="p">(</span>
-    <span class="n">directory</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;logs&quot;</span><span class="p">),</span>
-    <span class="n">filename_prefix</span><span class="o">=</span><span class="s2">&quot;app&quot;</span><span class="p">,</span>
-    <span class="n">max_bytes</span><span class="o">=</span><span class="mi">10485760</span><span class="p">,</span>
-    <span class="n">max_files</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
-    <span class="n">compress_rotated</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">sink</span> <span class="o">=</span> <span class="n">RotatingFileSink</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="n">sink</span><span class="p">])</span>
-</pre></div>
-</div>
-</section>
-<section id="after-convenience-factory">
-<h2>After (Convenience Factory)<a class="headerlink" href="#after-convenience-factory" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.sinks</span><span class="w"> </span><span class="kn">import</span> <span class="n">rotating_file</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_logging_output</span><span class="p">():</span>
+    <span class="c1"># Create a buffer to capture output</span>
+    <span class="n">buf</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+    <span class="n">orig_stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span>
-    <span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="n">rotating_file</span><span class="p">(</span><span class="s2">&quot;logs/app.log&quot;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="s2">&quot;10 MB&quot;</span><span class="p">,</span> <span class="n">retention</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="kc">True</span><span class="p">)]</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="notes">
-<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p>The factory parses the path into directory + filename prefix automatically.</p></li>
-<li><p>Rotation values accept human-readable strings (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;10</span> <span class="pre">MB&quot;</span></code>).</p></li>
-<li><p>Behavior is additive; the old configuration path still works.</p></li>
-</ul>
-</section>
-<section id="settings-alternative">
-<h2>Settings Alternative<a class="headerlink" href="#settings-alternative" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span><span class="p">,</span> <span class="n">get_logger</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">RotatingFileSettings</span>
-
-<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span>
-    <span class="n">sink_config</span><span class="o">=</span><span class="n">Settings</span><span class="o">.</span><span class="n">SinkConfig</span><span class="p">(</span>
-        <span class="n">rotating_file</span><span class="o">=</span><span class="n">RotatingFileSettings</span><span class="p">(</span>
-            <span class="n">directory</span><span class="o">=</span><span class="s2">&quot;logs&quot;</span><span class="p">,</span>
-            <span class="n">filename_prefix</span><span class="o">=</span><span class="s2">&quot;app&quot;</span><span class="p">,</span>
-            <span class="n">max_bytes</span><span class="o">=</span><span class="s2">&quot;10 MB&quot;</span><span class="p">,</span>
-            <span class="n">max_files</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
-            <span class="n">compress_rotated</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Enable capture_mode for testing</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="p">(</span>
+            <span class="n">AsyncLoggerBuilder</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">add_stdout</span><span class="p">(</span><span class="n">capture_mode</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">build_async</span><span class="p">()</span>
         <span class="p">)</span>
+
+        <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;test message&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;value&quot;</span><span class="p">})</span>
+        <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">drain</span><span class="p">()</span>
+
+        <span class="c1"># Flush and read captured output</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">buf</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="s2">&quot;test message&quot;</span> <span class="ow">in</span> <span class="n">output</span>
+        <span class="k">assert</span> <span class="s1">&#39;&quot;key&quot;: &quot;value&quot;&#39;</span> <span class="ow">in</span> <span class="n">output</span> <span class="ow">or</span> <span class="s1">&#39;&quot;key&quot;:&quot;value&quot;&#39;</span> <span class="ow">in</span> <span class="n">output</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">orig_stdout</span>
+</pre></div>
+</div>
+</section>
+<section id="sync-logger-example">
+<h3>Sync Logger Example<a class="headerlink" href="#sync-logger-example" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_sync_logging</span><span class="p">():</span>
+    <span class="n">buf</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+    <span class="n">orig_stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">add_stdout</span><span class="p">(</span><span class="n">capture_mode</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;sync test&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">drain</span><span class="p">()</span>
+
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">buf</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="s2">&quot;sync test&quot;</span> <span class="ow">in</span> <span class="n">output</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">orig_stdout</span>
+</pre></div>
+</div>
+</section>
+<section id="pytest-fixture">
+<h3>pytest Fixture<a class="headerlink" href="#pytest-fixture" title="Link to this heading"></a></h3>
+<p>Create a reusable fixture for capturing fapilog output:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncLoggerBuilder</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">captured_stdout</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fixture that captures stdout for testing.&quot;&quot;&quot;</span>
+    <span class="n">buf</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+    <span class="n">orig</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+
+    <span class="k">yield</span> <span class="n">buf</span>
+
+    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">orig</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_logger</span><span class="p">(</span><span class="n">captured_stdout</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fixture that provides a capture-enabled logger.&quot;&quot;&quot;</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="p">(</span>
+        <span class="n">AsyncLoggerBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">add_stdout</span><span class="p">(</span><span class="n">capture_mode</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">build_async</span><span class="p">()</span>
     <span class="p">)</span>
-<span class="p">)</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
+    <span class="k">yield</span> <span class="n">logger</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">drain</span><span class="p">()</span>
+
+<span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">asyncio</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_with_fixture</span><span class="p">(</span><span class="n">test_logger</span><span class="p">,</span> <span class="n">captured_stdout</span><span class="p">):</span>
+    <span class="k">await</span> <span class="n">test_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;using fixtures&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">test_logger</span><span class="o">.</span><span class="n">drain</span><span class="p">()</span>
+
+    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">captured_stdout</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="s2">&quot;using fixtures&quot;</span> <span class="ow">in</span> <span class="n">output</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="when-to-use-capture-mode">
+<h2>When to Use capture_mode<a class="headerlink" href="#when-to-use-capture-mode" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Scenario</p></th>
+<th class="head"><p>Use capture_mode?</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Unit tests that verify log content</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>Integration tests checking log format</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p>Production applications</p></td>
+<td><p>No (default)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Benchmarks measuring logging performance</p></td>
+<td><p>No</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note:</strong> <code class="docutils literal notranslate"><span class="pre">capture_mode=True</span></code> disables the <code class="docutils literal notranslate"><span class="pre">os.writev()</span></code> optimization, so it should only be used in tests, not production.</p>
+</section>
+<section id="testing-with-pretty-output">
+<h2>Testing with Pretty Output<a class="headerlink" href="#testing-with-pretty-output" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">StdoutPrettySink</span></code> (used with <code class="docutils literal notranslate"><span class="pre">format=&quot;pretty&quot;</span></code>) already uses <code class="docutils literal notranslate"><span class="pre">sys.stdout.write()</span></code> and doesn’t need <code class="docutils literal notranslate"><span class="pre">capture_mode</span></code>. You can capture its output directly:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">add_stdout</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;pretty&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="c1"># Output can be captured without capture_mode</span>
+</pre></div>
+</div>
+</section>
+<section id="alternative-file-sink-for-testing">
+<h2>Alternative: File Sink for Testing<a class="headerlink" href="#alternative-file-sink-for-testing" title="Link to this heading"></a></h2>
+<p>For tests that don’t need real-time output capture, consider using a temporary file sink:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncLoggerBuilder</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">test_with_file_sink</span><span class="p">():</span>
+    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmpdir</span><span class="p">:</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="p">(</span>
+            <span class="n">AsyncLoggerBuilder</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;test.log&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">build_async</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;file test&quot;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">drain</span><span class="p">()</span>
+
+        <span class="n">log_content</span> <span class="o">=</span> <span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;test.log&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="s2">&quot;file test&quot;</span> <span class="ow">in</span> <span class="n">log_content</span>
 </pre></div>
 </div>
 </section>
@@ -291,8 +392,8 @@ to the new <code class="docutils literal notranslate"><span class="pre">fapilog.
           
 <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer" style="position: relative;">
-        <a href="settings-to-builder-migration.html" class="btn btn-neutral float-left" title="Migrating from Settings to Builder" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="tenacity-integration.html" class="btn btn-neutral float-right" title="Tenacity Integration Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="tenacity-integration.html" class="btn btn-neutral float-left" title="Tenacity Integration Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../addons/tamper-evident-logging.html" class="btn btn-neutral float-right" title="Tamper-Evident Logging Add-on (Optional)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
       <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 50%; margin-top: -0.5em;">
         <a href="https://fapilog.dev">www.fapilog.dev</a>
       </div>

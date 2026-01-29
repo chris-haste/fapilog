@@ -16,6 +16,7 @@ quality-signals
 guides/settings-to-builder-migration
 guides/migration-file-rotation
 guides/tenacity-integration
+guides/testing
 addons/tamper-evident-logging
 ```
 

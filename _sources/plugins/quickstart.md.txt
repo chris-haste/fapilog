@@ -358,7 +358,7 @@ PLUGIN_METADATA = {
 
 ## Next Steps
 
-- [Plugin Authoring Guide](../plugins/authoring.md) - Detailed authoring guidance
-- [Plugin Testing](../plugins/testing.md) - Comprehensive testing patterns
+- [Plugin Authoring Guide](authoring.md) - Detailed authoring guidance
+- [Plugin Testing](testing.md) - Comprehensive testing patterns
 - [Plugin Catalog](../plugin-guide.md) - Reference implementations
-- [Error Handling](../plugins/error-handling.md) - Graceful failure patterns
+- [Error Handling](error-handling.md) - Graceful failure patterns

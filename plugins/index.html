@@ -25,7 +25,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Authoring Fapilog Plugins" href="authoring.html" />
+    <link rel="next" title="Plugin Author Quickstart" href="quickstart.html" />
     <link rel="prev" title="API Modules" href="../api-reference/modules.html" />
  
 
@@ -149,6 +149,7 @@
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Plugin Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html">Plugin Author Quickstart</a></li>
 <li class="toctree-l2"><a class="reference internal" href="authoring.html">Authoring Fapilog Plugins</a></li>
 <li class="toctree-l2"><a class="reference internal" href="contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="redactors.html">Redactors</a></li>
@@ -160,10 +161,6 @@
 <li class="toctree-l2"><a class="reference internal" href="configuration.html">Plugin Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="health-checks.html">Plugin Health Checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="error-handling.html">Plugin Error Handling</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../plugin-development/index.html">Plugin Development</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../plugin-development/quickstart.html">Plugin Author Quickstart</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../patterns.html">Integration Patterns</a><ul>
@@ -194,6 +191,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../guides/settings-to-builder-migration.html">Migrating from Settings to Builder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../guides/migration-file-rotation.html">Migration Guide: Simplified Rotating File Setup</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../guides/tenacity-integration.html">Tenacity Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/testing.html">Testing with Fapilog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../addons/tamper-evident-logging.html">Tamper-Evident Logging Add-on (Optional)</a></li>
 </ul>
 </li>
@@ -229,6 +227,20 @@
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Plugin Development</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Plugin Author Quickstart</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#minimal-sink-plugin">Minimal Sink Plugin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#registering-via-entry-points">Registering via Entry Points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#plugin-validation-modes">Plugin Validation Modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#plugin-protocols">Plugin Protocols</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#security-considerations">Security Considerations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#testing-your-plugin">Testing Your Plugin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#example-http-webhook-sink">Example: HTTP Webhook Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#example-sampling-filter">Example: Sampling Filter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#plugin-metadata-optional">Plugin Metadata (Optional)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="authoring.html">Authoring Fapilog Plugins</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="authoring.html#entry-points">Entry Points</a></li>
 <li class="toctree-l2"><a class="reference internal" href="authoring.html#naming-convention">Naming Convention</a></li>
@@ -368,6 +380,7 @@
 <section id="getting-started">
 <h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h2>
 <ul class="simple">
+<li><p><a class="reference internal" href="quickstart.html"><span class="std std-doc">Quickstart</span></a> - Create your first plugin in 10 minutes</p></li>
 <li><p><a class="reference internal" href="authoring.html"><span class="std std-doc">Plugin Authoring Guide</span></a> - Learn how to create plugins</p></li>
 <li><p><a class="reference internal" href="contracts-and-versioning.html"><span class="std std-doc">Contracts and Versioning</span></a> - Understand plugin compatibility</p></li>
 <li><p><a class="reference internal" href="redactors.html"><span class="std std-doc">Redaction Plugins</span></a> - Data security and compliance</p></li>
@@ -385,7 +398,7 @@
 <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer" style="position: relative;">
         <a href="../api-reference/modules.html" class="btn btn-neutral float-left" title="API Modules" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="authoring.html" class="btn btn-neutral float-right" title="Authoring Fapilog Plugins" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="quickstart.html" class="btn btn-neutral float-right" title="Plugin Author Quickstart" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
       <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 50%; margin-top: -0.5em;">
         <a href="https://fapilog.dev">www.fapilog.dev</a>
       </div>

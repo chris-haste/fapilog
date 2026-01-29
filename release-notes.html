@@ -147,6 +147,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="plugins/index.html">Plugin Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="plugins/quickstart.html">Plugin Author Quickstart</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plugins/authoring.html">Authoring Fapilog Plugins</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plugins/contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plugins/redactors.html">Redactors</a></li>
@@ -158,10 +159,6 @@
 <li class="toctree-l2"><a class="reference internal" href="plugins/configuration.html">Plugin Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plugins/health-checks.html">Plugin Health Checks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plugins/error-handling.html">Plugin Error Handling</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="plugin-development/index.html">Plugin Development</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="plugin-development/quickstart.html">Plugin Author Quickstart</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="patterns.html">Integration Patterns</a><ul>
@@ -192,6 +189,7 @@
 <li class="toctree-l2"><a class="reference internal" href="guides/settings-to-builder-migration.html">Migrating from Settings to Builder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="guides/migration-file-rotation.html">Migration Guide: Simplified Rotating File Setup</a></li>
 <li class="toctree-l2"><a class="reference internal" href="guides/tenacity-integration.html">Tenacity Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/testing.html">Testing with Fapilog</a></li>
 <li class="toctree-l2"><a class="reference internal" href="addons/tamper-evident-logging.html">Tamper-Evident Logging Add-on (Optional)</a></li>
 </ul>
 </li>
@@ -229,6 +227,7 @@
 <section id="added">
 <h3>Added<a class="headerlink" href="#added" title="Link to this heading"></a></h3>
 <ul class="simple">
+<li><p><strong>Stdout sink capture mode for testing:</strong> <code class="docutils literal notranslate"><span class="pre">StdoutJsonSink</span></code> now accepts a <code class="docutils literal notranslate"><span class="pre">capture_mode=True</span></code> parameter that disables <code class="docutils literal notranslate"><span class="pre">os.writev()</span></code> optimization, allowing output to be captured via <code class="docutils literal notranslate"><span class="pre">sys.stdout</span></code> replacement in tests. The builder API also supports this: <code class="docutils literal notranslate"><span class="pre">add_stdout(capture_mode=True)</span></code>. See <code class="docutils literal notranslate"><span class="pre">docs/guides/testing.md</span></code> for usage patterns (Story 10.38).</p></li>
 <li><p><strong>Duration parser supports milliseconds and decimals:</strong> The duration string parser now accepts <code class="docutils literal notranslate"><span class="pre">ms</span></code> suffix for milliseconds (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;100ms&quot;</span></code>) and decimal values with any unit (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;0.5s&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;1.5h&quot;</span></code>). Error messages now list all valid formats. Builder methods like <code class="docutils literal notranslate"><span class="pre">with_circuit_breaker(recovery_timeout=&quot;500ms&quot;)</span></code> benefit automatically (Story 10.37).</p></li>
 <li><p><strong>Doc-accuracy CI check for redaction_fail_mode:</strong> The <code class="docutils literal notranslate"><span class="pre">scripts/check_doc_accuracy.py</span></code> script now validates that <code class="docutils literal notranslate"><span class="pre">docs/redaction/behavior.md</span></code> accurately documents the <code class="docutils literal notranslate"><span class="pre">redaction_fail_mode</span></code> default value from <code class="docutils literal notranslate"><span class="pre">CoreSettings</span></code>. This prevents documentation drift for security-sensitive settings (Story 4.62).</p></li>
 </ul>
