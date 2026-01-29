@@ -430,6 +430,13 @@ class MetricsCollector:
             result[name] = await self.get_plugin_stats(name)
         return result
 
+    def cleanup(self) -> None:
+        """Clear accumulated statistics.
+
+        Called during logger drain to release memory. Safe to call multiple times.
+        """
+        self._plugin_stats.clear()
+
 
 class PluginExecutionTimer:
     """Async context manager to profile a single plugin execution.

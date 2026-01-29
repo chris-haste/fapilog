@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file. This change
 
 - **Doc-accuracy CI check for redaction_fail_mode:** The `scripts/check_doc_accuracy.py` script now validates that `docs/redaction/behavior.md` accurately documents the `redaction_fail_mode` default value from `CoreSettings`. This prevents documentation drift for security-sensitive settings (Story 4.62).
 
+### Fixed
+
+- **Logger resource cleanup on drain:** Internal data structures (`_error_dedupe`, `_plugin_stats`, `_worker_tasks`, plugin lists) are now cleared after `stop_and_drain()` completes. This prevents memory leaks in long-running applications that create and destroy loggers (Story 4.63).
+
 ## [0.8.0] - 2026-01-28
 
 ### Breaking Changes
