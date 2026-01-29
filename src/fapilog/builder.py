@@ -5,6 +5,8 @@ from __future__ import annotations
 import copy
 from typing import TYPE_CHECKING, Any, Literal
 
+from typing_extensions import Self
+
 if TYPE_CHECKING:
     from .core.logger import AsyncLoggerFacade, SyncLoggerFacade
 
@@ -78,10 +80,31 @@ class LoggerBuilder:
         self._name: str | None = None
         self._preset: str | None = None
         self._sinks: list[dict[str, Any]] = []
+        self._reuse: bool = True
 
     def with_name(self, name: str) -> LoggerBuilder:
         """Set logger name."""
         self._name = name
+        return self
+
+    def reuse(self, enabled: bool = True) -> Self:
+        """Control whether this logger is cached for reuse.
+
+        Args:
+            enabled: If True (default), logger is cached by name.
+                If False, creates an independent instance that can be
+                garbage collected after stop_and_drain().
+
+        Returns:
+            Self for method chaining.
+
+        Example:
+            >>> # For tests - create isolated logger
+            >>> logger = await AsyncLoggerBuilder().reuse(False).build_async()
+            >>> await logger.stop_and_drain()
+            >>> # Logger can now be garbage collected
+        """
+        self._reuse = enabled
         return self
 
     def with_level(self, level: str) -> LoggerBuilder:
@@ -1334,7 +1357,7 @@ class LoggerBuilder:
         except Exception as e:
             raise ValueError(f"Invalid builder configuration: {e}") from e
 
-        return get_logger(name=self._name, settings=settings)
+        return get_logger(name=self._name, settings=settings, reuse=self._reuse)
 
     def _deep_merge(self, base: dict[str, Any], override: dict[str, Any]) -> None:
         """Merge override into base (mutates base). Override wins."""
@@ -1389,4 +1412,6 @@ class AsyncLoggerBuilder(LoggerBuilder):
         except Exception as e:
             raise ValueError(f"Invalid builder configuration: {e}") from e
 
-        return await get_async_logger(name=self._name, settings=settings)
+        return await get_async_logger(
+            name=self._name, settings=settings, reuse=self._reuse
+        )
