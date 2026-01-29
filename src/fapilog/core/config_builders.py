@@ -52,7 +52,7 @@ def _sink_configs(settings: _Settings) -> dict[str, dict[str, _Any]]:
     """
     scfg = settings.sink_config
     configs: dict[str, dict[str, _Any]] = {
-        "stdout_json": {},
+        "stdout_json": scfg.stdout_json,
         "stdout_pretty": {},
         "rotating_file": {
             "config": _RotatingFileSinkConfig(

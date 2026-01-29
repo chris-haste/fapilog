@@ -164,14 +164,27 @@ class LoggerBuilder:
         self._sinks.append({"name": "rotating_file", "config": file_config})
         return self
 
-    def add_stdout(self, *, format: str = "json") -> LoggerBuilder:
+    def add_stdout(
+        self, *, format: str = "json", capture_mode: bool = False
+    ) -> LoggerBuilder:
         """Add stdout sink.
 
         Args:
             format: Output format ("json" or "pretty")
+            capture_mode: If True, skip os.writev() optimization and use buffered
+                writes that can be captured via sys.stdout replacement. Useful for
+                testing. Only applies to "json" format. Default False.
+
+        Example:
+            >>> # For testing with captured output
+            >>> logger = LoggerBuilder().add_stdout(capture_mode=True).build()
         """
         sink_name = "stdout_pretty" if format == "pretty" else "stdout_json"
-        self._sinks.append({"name": sink_name})
+        sink_entry: dict[str, Any] = {"name": sink_name}
+        # Only pass capture_mode config for json sink (pretty already uses sys.stdout)
+        if sink_name == "stdout_json" and capture_mode:
+            sink_entry["config"] = {"capture_mode": True}
+        self._sinks.append(sink_entry)
         return self
 
     def add_stdout_pretty(self) -> LoggerBuilder:

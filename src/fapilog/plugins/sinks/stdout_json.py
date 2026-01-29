@@ -24,14 +24,20 @@ class StdoutJsonSink:
     Args:
         strict_envelope_mode: If True, drop entries that fail envelope
             serialization. If False, fall back to best-effort JSON.
+        capture_mode: If True, skip os.writev() optimization and use buffered
+            writes that can be captured via sys.stdout replacement. Useful for
+            testing. Default False for production performance.
     """
 
     name = "stdout_json"
     _lock: asyncio.Lock
 
-    def __init__(self, *, strict_envelope_mode: bool = False) -> None:
+    def __init__(
+        self, *, strict_envelope_mode: bool = False, capture_mode: bool = False
+    ) -> None:
         self._lock = asyncio.Lock()
         self._strict_envelope_mode = strict_envelope_mode
+        self._capture_mode = capture_mode
 
     async def start(self) -> None:  # lifecycle placeholder
         return None
@@ -70,17 +76,19 @@ class StdoutJsonSink:
                 segments.iter_memoryviews()
             )
             async with self._lock:
+                capture_mode = self._capture_mode
 
                 def _write_segments() -> None:
-                    # Prefer zero-copy vectored write if available
-                    try:
-                        if hasattr(os, "writev"):
-                            fd = sys.stdout.buffer.fileno()
-                            os.writev(fd, list(payload_segments))
-                            return
-                    except Exception:
-                        # Fallback to buffered writes below
-                        pass
+                    # Prefer zero-copy vectored write if available (skip in capture mode)
+                    if not capture_mode:
+                        try:
+                            if hasattr(os, "writev"):
+                                fd = sys.stdout.buffer.fileno()
+                                os.writev(fd, list(payload_segments))
+                                return
+                        except Exception:
+                            # Fallback to buffered writes below
+                            pass
                     buf = sys.stdout.buffer
                     try:
                         buf.writelines(payload_segments)
@@ -106,17 +114,19 @@ class StdoutJsonSink:
                 segments.iter_memoryviews()
             )
             async with self._lock:
+                capture_mode = self._capture_mode
 
                 def _write_segments() -> None:
-                    # Prefer zero-copy vectored write if available
-                    try:
-                        if hasattr(os, "writev"):
-                            fd = sys.stdout.buffer.fileno()
-                            os.writev(fd, list(payload_segments))
-                            return
-                    except Exception:
-                        # Fallback to buffered writes below
-                        pass
+                    # Prefer zero-copy vectored write if available (skip in capture mode)
+                    if not capture_mode:
+                        try:
+                            if hasattr(os, "writev"):
+                                fd = sys.stdout.buffer.fileno()
+                                os.writev(fd, list(payload_segments))
+                                return
+                        except Exception:
+                            # Fallback to buffered writes below
+                            pass
                     buf = sys.stdout.buffer
                     try:
                         buf.writelines(payload_segments)
