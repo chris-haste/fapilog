@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+### Documentation
+
+- **with_context() docstring documents field routing:** The `with_context()` builder method docstring now explains that known context fields (`request_id`, `user_id`, `tenant_id`, `trace_id`, `span_id`) are routed to `log.context` while custom fields go to `log.data`.
+
 ## [0.8.1] - 2026-01-29
 
 ### Added

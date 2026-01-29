@@ -395,10 +395,28 @@ class LoggerBuilder:
         return self
 
     def with_context(self, **kwargs: object) -> LoggerBuilder:
-        """Set default bound context.
+        """Set default bound context fields for all log entries.
+
+        Context fields are automatically included in every log entry from this
+        logger. Fields are routed to different sections based on their names:
+
+        **Known context fields** (go to ``log.context``):
+            request_id, user_id, tenant_id, trace_id, span_id
+
+        **Custom fields** (go to ``log.data``):
+            All other field names
 
         Args:
-            **kwargs: Context key-value pairs
+            **kwargs: Context key-value pairs to bind to the logger.
+
+        Returns:
+            Self for method chaining.
+
+        Example:
+            >>> logger = LoggerBuilder().with_context(
+            ...     request_id="req-123",  # -> log.context.request_id
+            ...     custom="value"         # -> log.data.custom
+            ... ).build()
         """
         self._config.setdefault("core", {})["default_bound_context"] = kwargs
         return self
