@@ -16,6 +16,9 @@ from pathlib import Path
 # Discord embed color (blue)
 EMBED_COLOR = 0x5865F2
 
+# Branding
+LANDING_PAGE_URL = "https://fapilog.dev"
+
 
 def parse_changelog_sections(content: str) -> dict[str, list[str]]:
     """Parse changelog into category -> items mapping."""
@@ -62,6 +65,10 @@ def build_embed(version: str, release_url: str, sections: dict[str, list[str]]) 
         "title": f"\U0001f680 Fapilog v{version} Released",
         "url": release_url,
         "color": EMBED_COLOR,
+        "author": {
+            "name": "fapilog.dev",
+            "url": LANDING_PAGE_URL,
+        },
         "fields": [],
     }
 
@@ -74,19 +81,24 @@ def build_embed(version: str, release_url: str, sections: dict[str, list[str]]) 
         "Documentation",
     ]
 
+    # Use em-space (\u2003) for visual indentation
+    indent = "\u2003"
+
     for category in category_order:
         if category not in sections:
             continue
         items = sections[category]
-        # Format as bullet list
-        value = "\n".join(f"\u2022 {item}" for item in items)
+        # Format as indented bullet list
+        value = "\n".join(f"{indent}\u2022 {item}" for item in items)
         # Truncate if too long
         if len(value) > 1000:
             value = value[:997] + "..."
         embed["fields"].append({"name": category, "value": value, "inline": False})
 
     # Add install instructions as footer
-    embed["footer"] = {"text": f"\U0001f4e6 pip install fapilog=={version}"}
+    embed["footer"] = {
+        "text": f"\U0001f4e6 pip install fapilog=={version}  \u2022  fapilog.dev"
+    }
 
     return embed
 
