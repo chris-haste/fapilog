@@ -20,13 +20,14 @@ class TestSinglePresetRedaction:
             .build()
         )
 
+        # Verify the redactor was configured BEFORE drain
+        # (drain clears internal lists to allow GC per Story 4.63)
+        assert any(r.name == "field_mask" for r in logger._redactors)
+
         logger.info("user signup", email="john@example.com", phone="555-1234")
 
         # Drain to ensure all events are processed
         await logger.stop_and_drain()
-
-        # Verify the redactor was configured
-        assert any(r.name == "field_mask" for r in logger._redactors)
 
     @pytest.mark.asyncio
     async def test_gdpr_preset_redacts_email(self) -> None:

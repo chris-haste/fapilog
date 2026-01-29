@@ -278,6 +278,22 @@ class _LoggerMixin(_WorkerCountersMixin):
             self._enrichers,
         )
 
+    def _cleanup_resources(self) -> None:
+        """Clear internal data structures after drain.
+
+        Releases references to allow garbage collection in long-running
+        applications that create/destroy loggers.
+        """
+        self._error_dedupe.clear()
+        self._worker_tasks.clear()
+        self._enrichers.clear()
+        self._processors.clear()
+        self._filters.clear()
+        self._redactors.clear()
+        self._sinks.clear()
+        if self._metrics is not None:
+            self._metrics.cleanup()
+
     def _prepare_payload(
         self,
         level: str,
@@ -677,6 +693,7 @@ class _LoggerMixin(_WorkerCountersMixin):
                 pass
 
         await self._stop_enrichers_and_redactors()
+        self._cleanup_resources()
         self._drained = True
         flush_latency = time.perf_counter() - start
         return DrainResult(
@@ -893,6 +910,7 @@ class SyncLoggerFacade(_LoggerMixin):
 
         result = await asyncio.to_thread(self._drain_thread_mode, warn_on_timeout=True)
         await self._stop_enrichers_and_redactors()
+        self._cleanup_resources()
         return result
 
     # Public sync API
@@ -1222,6 +1240,7 @@ class AsyncLoggerFacade(_LoggerMixin):
 
         result = await asyncio.to_thread(self._drain_thread_mode, warn_on_timeout=False)
         await self._stop_enrichers_and_redactors()
+        self._cleanup_resources()
         return result
 
     # Public async API

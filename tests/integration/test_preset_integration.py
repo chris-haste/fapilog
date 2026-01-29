@@ -143,8 +143,8 @@ class TestMinimalPresetIntegration:
         """Minimal preset behaves same as no preset."""
         buf, orig = _swap_stdout_bytesio()
         try:
-            # Log with minimal preset
-            logger1 = get_logger(preset="minimal")
+            # Log with minimal preset (use unique name to avoid cache conflicts)
+            logger1 = get_logger(name="minimal-test", preset="minimal")
             logger1.info("minimal preset message")
             asyncio.run(logger1.stop_and_drain())
             sys.stdout.flush()
@@ -154,8 +154,8 @@ class TestMinimalPresetIntegration:
             buf.truncate(0)
             buf.seek(0)
 
-            # Log with no preset
-            logger2 = get_logger()
+            # Log with no preset (use different unique name)
+            logger2 = get_logger(name="no-preset-test")
             logger2.info("no preset message")
             asyncio.run(logger2.stop_and_drain())
             sys.stdout.flush()
