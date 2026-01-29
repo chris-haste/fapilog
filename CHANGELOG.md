@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. This change
 
 ### Added
 
+- **Stdout sink capture mode for testing:** `StdoutJsonSink` now accepts a `capture_mode=True` parameter that disables `os.writev()` optimization, allowing output to be captured via `sys.stdout` replacement in tests. The builder API also supports this: `add_stdout(capture_mode=True)`. See `docs/guides/testing.md` for usage patterns (Story 10.38).
 - **Duration parser supports milliseconds and decimals:** The duration string parser now accepts `ms` suffix for milliseconds (e.g., `"100ms"`) and decimal values with any unit (e.g., `"0.5s"`, `"1.5h"`). Error messages now list all valid formats. Builder methods like `with_circuit_breaker(recovery_timeout="500ms")` benefit automatically (Story 10.37).
 - **Doc-accuracy CI check for redaction_fail_mode:** The `scripts/check_doc_accuracy.py` script now validates that `docs/redaction/behavior.md` accurately documents the `redaction_fail_mode` default value from `CoreSettings`. This prevents documentation drift for security-sensitive settings (Story 4.62).
 

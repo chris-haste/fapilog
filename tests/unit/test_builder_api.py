@@ -188,6 +188,41 @@ class TestStdoutSink:
         result = builder.add_stdout_pretty()
         assert result is builder
 
+    def test_add_stdout_capture_mode(self):
+        """AC3: add_stdout() accepts capture_mode for testing."""
+        from fapilog import LoggerBuilder
+
+        # Should accept capture_mode parameter
+        logger = LoggerBuilder().add_stdout(capture_mode=True).build()
+        assert callable(logger.info)
+
+    def test_add_stdout_capture_mode_enables_output_capture(self):
+        """AC3: capture_mode=True enables capturing stdout in tests."""
+        import io
+        import sys
+
+        from fapilog import AsyncLoggerBuilder
+
+        buf = io.BytesIO()
+        orig = sys.stdout
+        sys.stdout = io.TextIOWrapper(buf, encoding="utf-8")
+        try:
+            import asyncio
+
+            async def test_capture():
+                logger = await (
+                    AsyncLoggerBuilder().add_stdout(capture_mode=True).build_async()
+                )
+                await logger.info("captured message")
+                await logger.drain()
+
+            asyncio.run(test_capture())
+            sys.stdout.flush()
+            output = buf.getvalue().decode("utf-8")
+            assert "captured message" in output
+        finally:
+            sys.stdout = orig
+
 
 class TestHttpSink:
     """Test HTTP sink configuration."""
