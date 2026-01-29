@@ -4,16 +4,16 @@
 
 # Fapilog - Batteries-included, async-first logging for Python services
 
-![Async-first](https://img.shields.io/badge/async-first-84CC16?style=flat-square&logo=python&logoColor=white)
-![JSON Ready](https://img.shields.io/badge/json-ready-84CC16?style=flat-square&logo=json&logoColor=white)
-![Enterprise Ready](https://img.shields.io/badge/enterprise-ready-84CC16?style=flat-square&logo=shield&logoColor=white)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-84CC16?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+![Async-first](https://img.shields.io/badge/async-first-84CC16?style=flat-square&logo=python&logoColor=333333)
+![JSON Ready](https://img.shields.io/badge/json-ready-84CC16?style=flat-square&logo=json&logoColor=333333)
+![Enterprise Ready](https://img.shields.io/badge/enterprise-ready-84CC16?style=flat-square&logo=shield&logoColor=333333)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-84CC16?style=flat-square&logo=fastapi&logoColor=333333)](https://fastapi.tiangolo.com/)
 [![Coverage](https://img.shields.io/badge/coverage-90%25-84CC16?style=flat-square)](docs/quality-signals.md)
-![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-84CC16?style=flat-square&logo=pydantic&logoColor=white)
+![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-84CC16?style=flat-square&logo=pydantic&logoColor=333333)
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-84CC16?style=flat-square&logo=python&logoColor=white)](https://pypi.org/project/fapilog/)
-[![PyPI Version](https://img.shields.io/pypi/v/fapilog.svg?style=flat-square&color=84CC16&logo=pypi&logoColor=white)](https://pypi.org/project/fapilog/)
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-84CC16?style=flat-square&logo=apache&logoColor=white)](https://opensource.org/licenses/Apache-2.0)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-84CC16?style=flat-square&logo=python&logoColor=333333)](https://pypi.org/project/fapilog/)
+[![PyPI Version](https://img.shields.io/pypi/v/fapilog.svg?style=flat-square&color=84CC16&logo=pypi&logoColor=333333)](https://pypi.org/project/fapilog/)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-84CC16?style=flat-square&logo=apache&logoColor=333333)](https://opensource.org/licenses/Apache-2.0)
 
 **fapilog** delivers production-ready logging for the modern Python stack—async-first, structured, and optimized for FastAPI and cloud-native apps. It's equally suitable for **on-prem**, **desktop**, or **embedded** projects where structured, JSON-ready, and pluggable logging is required.
 
