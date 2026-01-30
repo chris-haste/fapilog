@@ -41,7 +41,7 @@ Settings path: `core.*`
 | `core.backpressure_wait_ms` | `FAPILOG_CORE__BACKPRESSURE_WAIT_MS` | `.with_backpressure(wait_ms=50)` | `50` | Milliseconds to wait for queue space |
 | `core.drop_on_full` | `FAPILOG_CORE__DROP_ON_FULL` | `.with_backpressure(drop_on_full=True)` | `True` | Drop events when queue is full after wait |
 | `core.enable_metrics` | `FAPILOG_CORE__ENABLE_METRICS` | `.with_metrics(enabled=True)` | `False` | Enable Prometheus-compatible metrics |
-| `core.worker_count` | `FAPILOG_CORE__WORKER_COUNT` | `.with_workers(count=1)` | `1` | Number of worker tasks for flush processing |
+| `core.worker_count` | `FAPILOG_CORE__WORKER_COUNT` | `.with_workers(count=1)` | `1` | Number of worker tasks for flush processing (see [validation limits](#validation-limits)) |
 | `core.shutdown_timeout_seconds` | `FAPILOG_CORE__SHUTDOWN_TIMEOUT_SECONDS` | `.with_shutdown_timeout("3s")` | `3.0` | Maximum time to flush on shutdown |
 | `core.error_dedupe_window_seconds` | `FAPILOG_CORE__ERROR_DEDUPE_WINDOW_SECONDS` | `.with_error_deduplication(5.0)` | `5.0` | Seconds to suppress duplicate ERROR logs |
 
@@ -120,6 +120,31 @@ Settings path: `core.*`
 | `core.resource_pool_max_size` | `FAPILOG_CORE__RESOURCE_POOL_MAX_SIZE` | Settings only | `8` | Default max size for resource pools |
 | `core.resource_pool_acquire_timeout_seconds` | `FAPILOG_CORE__RESOURCE_POOL_ACQUIRE_TIMEOUT_SECONDS` | Settings only | `2.0` | Default acquire timeout for pools |
 | `core.sensitive_fields_policy` | `FAPILOG_CORE__SENSITIVE_FIELDS_POLICY` | Settings only | `[]` | Optional list for sensitive fields warning |
+
+### Validation Limits
+
+Configuration values are validated at logger creation. Invalid values raise `ValueError`.
+
+**Hard limits (rejected if violated):**
+
+| Setting | Minimum | Error |
+|---------|---------|-------|
+| `max_queue_size` | 1 | `queue_capacity must be at least 1` |
+| `batch_max_size` | 1 | `batch_max_size must be at least 1` |
+| `batch_timeout_seconds` | >0 | `batch_timeout_seconds must be positive` |
+| `worker_count` | 1 | `num_workers must be at least 1` |
+
+**Soft limits (warning emitted via diagnostics):**
+
+| Setting | Warning Threshold | Recommendation |
+|---------|-------------------|----------------|
+| `worker_count` | >32 | More workers increase memory and context-switching overhead |
+| `max_queue_size` | >1,000,000 | Large queues consume significant memory |
+| `batch_max_size` | >10,000 | Very large batches may cause latency spikes |
+
+**Relationship warning:**
+
+If `batch_max_size` > `max_queue_size`, a warning is emitted because batches can never reach their maximum size.
 
 ---
 

@@ -74,6 +74,11 @@ class _LoggerMixin(_WorkerCountersMixin):
 
     _emit_worker_diagnostics: bool = True
 
+    # Configuration limits - warn if exceeded, but don't reject
+    _WARN_NUM_WORKERS = 32
+    _WARN_QUEUE_CAPACITY = 1_000_000
+    _WARN_BATCH_MAX_SIZE = 10_000
+
     def _common_init(
         self,
         *,
@@ -98,6 +103,14 @@ class _LoggerMixin(_WorkerCountersMixin):
         emit_drop_summary: bool = False,
         drop_summary_window_seconds: float = 60.0,
     ) -> None:
+        # Validate configuration parameters
+        self._validate_config(
+            queue_capacity=queue_capacity,
+            batch_max_size=batch_max_size,
+            batch_timeout_seconds=batch_timeout_seconds,
+            num_workers=num_workers,
+        )
+
         self._name = name or "root"
         self._queue = NonBlockingRingQueue[dict[str, Any]](capacity=queue_capacity)
         self._queue_high_watermark = 0
@@ -170,6 +183,91 @@ class _LoggerMixin(_WorkerCountersMixin):
         except Exception:
             pass
 
+    def _validate_config(
+        self,
+        *,
+        queue_capacity: int,
+        batch_max_size: int,
+        batch_timeout_seconds: float,
+        num_workers: int,
+    ) -> None:
+        """Validate configuration parameters.
+
+        Raises ValueError for invalid values (zero, negative).
+        Emits warnings for unusually high values that may indicate misconfiguration.
+        """
+        # Strict validation - reject invalid values
+        if queue_capacity < 1:
+            raise ValueError(f"queue_capacity must be at least 1, got {queue_capacity}")
+        if batch_max_size < 1:
+            raise ValueError(f"batch_max_size must be at least 1, got {batch_max_size}")
+        if batch_timeout_seconds <= 0:
+            raise ValueError(
+                f"batch_timeout_seconds must be positive, got {batch_timeout_seconds}"
+            )
+        if num_workers < 1:
+            raise ValueError(f"num_workers must be at least 1, got {num_workers}")
+
+        # Soft validation - warn on unusually high values
+        warnings_to_emit: list[tuple[str, dict[str, Any]]] = []
+
+        if num_workers > self._WARN_NUM_WORKERS:
+            warnings_to_emit.append(
+                (
+                    f"num_workers={num_workers} exceeds recommended maximum of "
+                    f"{self._WARN_NUM_WORKERS}; this may cause thread contention",
+                    {
+                        "num_workers": num_workers,
+                        "recommended_max": self._WARN_NUM_WORKERS,
+                    },
+                )
+            )
+
+        if queue_capacity > self._WARN_QUEUE_CAPACITY:
+            warnings_to_emit.append(
+                (
+                    f"queue_capacity={queue_capacity:,} exceeds recommended maximum of "
+                    f"{self._WARN_QUEUE_CAPACITY:,}; this may cause memory exhaustion",
+                    {
+                        "queue_capacity": queue_capacity,
+                        "recommended_max": self._WARN_QUEUE_CAPACITY,
+                    },
+                )
+            )
+
+        if batch_max_size > self._WARN_BATCH_MAX_SIZE:
+            warnings_to_emit.append(
+                (
+                    f"batch_max_size={batch_max_size:,} exceeds recommended maximum of "
+                    f"{self._WARN_BATCH_MAX_SIZE:,}; this may cause latency spikes",
+                    {
+                        "batch_max_size": batch_max_size,
+                        "recommended_max": self._WARN_BATCH_MAX_SIZE,
+                    },
+                )
+            )
+
+        if batch_max_size > queue_capacity:
+            warnings_to_emit.append(
+                (
+                    f"batch_max_size={batch_max_size} exceeds queue_capacity={queue_capacity}; "
+                    "batches will never reach max size",
+                    {
+                        "batch_max_size": batch_max_size,
+                        "queue_capacity": queue_capacity,
+                    },
+                )
+            )
+
+        # Emit warnings (fail-safe - don't let warning failures break startup)
+        for message, context in warnings_to_emit:
+            try:
+                from .diagnostics import warn
+
+                warn("config", message, _rate_limit_key="config_validation", **context)
+            except Exception:
+                pass
+
     def start(self) -> None:
         """Start the background worker, choosing the appropriate mode.
 
@@ -237,11 +335,17 @@ class _LoggerMixin(_WorkerCountersMixin):
                     self._worker_tasks.append(
                         loop_local.create_task(self._worker_main())
                     )
+
                 # Signal the main thread that we're ready to accept work
                 self._thread_ready.set()
                 try:
-                    # Run until stop_and_drain() calls loop.call_soon_threadsafe(stop)
-                    loop_local.run_forever()
+                    # Run until all workers complete. Workers complete when stop_flag
+                    # is set and they finish draining/flushing. Using run_until_complete
+                    # instead of run_forever ensures the loop stops only after ALL
+                    # workers finish, fixing the multi-worker race condition.
+                    loop_local.run_until_complete(
+                        asyncio.gather(*self._worker_tasks, return_exceptions=True)
+                    )
                 finally:
                     # Cleanup: cancel pending tasks and close the loop
                     try:
@@ -716,12 +820,14 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._stop_flag = True
         loop = self._worker_loop
         if loop is not None and self._worker_thread is not None:
+            # Signal the stop flag to workers via the loop's thread
             try:
                 loop.call_soon_threadsafe(lambda: setattr(self, "_stop_flag", True))
-                time.sleep(0.01)
             except Exception:
                 pass
 
+            # Wait for thread to complete. The thread uses run_until_complete()
+            # which returns after all workers finish.
             try:
                 timeout = 5.0 if warn_on_timeout else None
                 self._worker_thread.join(timeout=timeout)
@@ -770,7 +876,8 @@ class _LoggerMixin(_WorkerCountersMixin):
             return
 
         # Only warn if workers were started but never drained
-        if self._started and not self._drained:
+        # Use getattr for safety - attributes may not exist if __init__ failed
+        if getattr(self, "_started", False) and not getattr(self, "_drained", True):
             warnings.warn(
                 f"Logger '{self._name}' was garbage collected without calling "
                 "drain(). This causes resource leaks. Use runtime_async() context "
@@ -912,9 +1019,12 @@ class SyncLoggerFacade(_LoggerMixin):
             and self._worker_thread is None
             and self._drained_event is not None
         ):
-            return await self._drain_on_loop(timeout=10.0, warn_on_timeout=True)
+            # Use timeout=None to ensure all queued events are processed.
+            # A fixed timeout (e.g., 10s) can cause data loss with slow sinks.
+            # Users can wrap with asyncio.wait_for() if timeout is needed.
+            return await self._drain_on_loop(timeout=None, warn_on_timeout=False)
 
-        result = await asyncio.to_thread(self._drain_thread_mode, warn_on_timeout=True)
+        result = await asyncio.to_thread(self._drain_thread_mode, warn_on_timeout=False)
         await self._stop_enrichers_and_redactors()
         self._cleanup_resources()
         return result

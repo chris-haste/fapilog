@@ -277,6 +277,7 @@ markers = [
     "enterprise: marks tests as enterprise features",
     "property: property-based tests (may be slower)",
     "asyncio: async tests (pytest-asyncio)",
+    "stress: heavy stress tests for nightly runs (deselect with '-m \"not stress\"')",
 ]
 
 [tool.ruff]
