@@ -110,18 +110,19 @@ await logger.info("Request handled", request_id="abc-123")
 logger = get_logger(preset="minimal")
 ```
 
-| Preset | Log Level | File Logging | Redaction | Batch Size | Workers | When to use |
-|--------|-----------|--------------|-----------|------------|---------|-------------|
-| `dev` | DEBUG | No | No | 1 (immediate) | 1 | See every log instantly while debugging locally |
-| `production` | INFO | Yes (50MB rotation) | Yes (9 fields) | 100 | 2 | Never lose logs, automatically mask secrets |
-| `fastapi` | INFO | No | Yes (9 fields) | 50 | 2 | Async apps where you want redaction without file overhead |
-| `serverless` | INFO | No | Yes (9 fields) | 25 | 2 | Lambda/Cloud Functions with fast flush |
-| `hardened` | INFO | Yes (50MB rotation) | Yes (compliance) | 100 | 2 | Regulated environments (HIPAA, PCI-DSS) |
-| `minimal` | INFO | No | No | Default | 1 | Migrating from another logger—start here |
+| Preset | Log Level | Drops Logs? | File Output | Redaction | When to use |
+|--------|-----------|-------------|-------------|-----------|-------------|
+| `dev` | DEBUG | No | No | No | See every log instantly while debugging locally |
+| `production` | INFO | Never | Yes | Yes | Audit trails, compliance—never lose logs |
+| `production-latency` | INFO | If needed | No | Yes | High-throughput APIs—prioritize response time |
+| `fastapi` | INFO | If needed | No | Yes | Async apps with redaction, no file overhead |
+| `serverless` | INFO | If needed | No | Yes | Lambda/Cloud Functions with fast flush |
+| `hardened` | INFO | Never | Yes | Yes (HIPAA+PCI) | Regulated environments (HIPAA, PCI-DSS) |
+| `minimal` | INFO | Default | No | No | Migrating from another logger—start here |
 
 > **Security Note:** By default, only URL credentials (`user:pass@host`) are stripped. For full field redaction (passwords, API keys, tokens), use a preset like `production`/`fastapi` or configure redactors manually. See [redaction docs](docs/redaction/index.md).
 
-See [docs/user-guide/configuration.md](docs/user-guide/configuration.md) for full preset details.
+See [docs/user-guide/presets.md](docs/user-guide/presets.md) for the full presets guide including decision matrix and trade-off explanations.
 
 ### Sink routing by level
 
