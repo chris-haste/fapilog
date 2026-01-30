@@ -7,6 +7,7 @@ from typing import Any
 
 import pytest
 
+from conftest import get_test_timeout
 from fapilog.core.concurrency import NonBlockingRingQueue
 from fapilog.core.serialization import (
     convert_json_bytes_to_jsonl,
@@ -213,8 +214,10 @@ async def test_backpressure_event_signaling_low_cpu() -> None:
     assert completed == 0, "No enqueue should have succeeded"
 
     # Elapsed time should be reasonable (not spinning)
-    # Allow some overhead but should complete within 2x the wait duration
-    assert elapsed < wait_duration * 3, (
-        f"Elapsed {elapsed:.3f}s >> expected ~{wait_duration}s. "
+    # Allow some overhead but should complete within 3x the wait duration
+    # Use get_test_timeout() to scale for CI environments
+    max_elapsed = get_test_timeout(wait_duration * 3)
+    assert elapsed < max_elapsed, (
+        f"Elapsed {elapsed:.3f}s >> expected <{max_elapsed:.3f}s. "
         "Event signaling may not be working correctly."
     )
