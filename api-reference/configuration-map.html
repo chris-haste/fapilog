@@ -7,17 +7,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Configuration Reference &mdash; fapilog 0.10.2 documentation</title>
+  <title>Configuration Reference &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
   
-    <link rel="canonical" href="https://docs.fapilog.dev/en/stable/api-reference/configuration-map.html" />
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=11e62b30"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -30,6 +29,9 @@
     <link rel="prev" title="Configuration" href="configuration.html" />
  
 
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/api-reference/configuration-map.html" />
+<meta name="robots" content="noindex, follow" />
 
 
 </head>
@@ -76,6 +78,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../user-guide/index.html">User Guide</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/execution-modes.html">Execution Modes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/builder-configuration.html">Configuring Fapilog with the Builder API</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/environment-variables.html">Environment Variable Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/production-checklist.html">Production Checklist</a></li>
@@ -315,7 +318,7 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__WORKER_COUNT</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.with_workers(count=1)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
-<td><p>Number of worker tasks for flush processing</p></td>
+<td><p>Number of worker tasks for flush processing (see Validation Limits below)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.shutdown_timeout_seconds</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SHUTDOWN_TIMEOUT_SECONDS</span></code></p></td>
@@ -666,6 +669,62 @@
 </tr>
 </tbody>
 </table>
+</section>
+<section id="validation-limits">
+<h3>Validation Limits<a class="headerlink" href="#validation-limits" title="Link to this heading"></a></h3>
+<p>Configuration values are validated at logger creation. Invalid values raise <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>.</p>
+<p><strong>Hard limits (rejected if violated):</strong></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Minimum</p></th>
+<th class="head"><p>Error</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_queue_size</span></code></p></td>
+<td><p>1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">queue_capacity</span> <span class="pre">must</span> <span class="pre">be</span> <span class="pre">at</span> <span class="pre">least</span> <span class="pre">1</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">batch_max_size</span></code></p></td>
+<td><p>1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">batch_max_size</span> <span class="pre">must</span> <span class="pre">be</span> <span class="pre">at</span> <span class="pre">least</span> <span class="pre">1</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">batch_timeout_seconds</span></code></p></td>
+<td><p>&gt;0</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">batch_timeout_seconds</span> <span class="pre">must</span> <span class="pre">be</span> <span class="pre">positive</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">worker_count</span></code></p></td>
+<td><p>1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">num_workers</span> <span class="pre">must</span> <span class="pre">be</span> <span class="pre">at</span> <span class="pre">least</span> <span class="pre">1</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Soft limits (warning emitted via diagnostics):</strong></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Warning Threshold</p></th>
+<th class="head"><p>Recommendation</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">worker_count</span></code></p></td>
+<td><p>&gt;32</p></td>
+<td><p>More workers increase memory and context-switching overhead</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max_queue_size</span></code></p></td>
+<td><p>&gt;1,000,000</p></td>
+<td><p>Large queues consume significant memory</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">batch_max_size</span></code></p></td>
+<td><p>&gt;10,000</p></td>
+<td><p>Very large batches may cause latency spikes</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Relationship warning:</strong></p>
+<p>If <code class="docutils literal notranslate"><span class="pre">batch_max_size</span></code> &gt; <code class="docutils literal notranslate"><span class="pre">max_queue_size</span></code>, a warning is emitted because batches can never reach their maximum size.</p>
 </section>
 </section>
 <hr class="docutils" />

@@ -1,0 +1,565 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Execution Modes &mdash; fapilog latest documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=30646c52"></script>
+      <script src="../_static/custom.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Configuring Fapilog with the Builder API" href="builder-configuration.html" />
+    <link rel="prev" title="Configuration" href="configuration.html" />
+ 
+
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/execution-modes.html" />
+<meta name="robots" content="noindex, follow" />
+
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            fapilog
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/quickstart.html">Quickstart Tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/hello-world.html">Hello World Walkthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../why-fapilog.html">Why Fapilog?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../comparisons.html">Python Logging Library Comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core-concepts/index.html">Core Concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/pipeline-architecture.html">Pipeline Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/envelope.html">Envelope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/batching-backpressure.html">Batching &amp; Backpressure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/metrics.html">Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html">Diagnostics Resilience</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html#id1">Diagnostics &amp; Resilience</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Execution Modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="builder-configuration.html">Configuring Fapilog with the Builder API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="environment-variables.html">Environment Variable Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="production-checklist.html">Production Checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using-logger.html">Using the Logger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="context-enrichment.html">Context Enrichment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rotating-file-sink.html">Rotating File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sink-routing.html">Sink routing by level</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sampling.html">Sampling Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="graceful-shutdown.html">Graceful Shutdown</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance-tuning.html">Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="benchmarks.html">Performance Benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration-guide.html">Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stdlib-bridge.html">stdlib Logging Bridge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fastapi.html">FastAPI / ASGI Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing-plugins.html">Testing Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webhook-security.html">Webhook Security</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../cookbook/index.html">Cookbook</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/fastapi-json-logging.html">FastAPI JSON logging to stdout (Uvicorn access logs included)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/fastapi-request-id-logging.html">FastAPI request_id logging (correlation ID middleware, concurrency-safe)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/django-structured-logging.html">Django Structured JSON Logging with Correlation IDs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/non-blocking-async-logging.html">Non-blocking logging in FastAPI (protect latency under slow sinks)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/dev-prod-logging-config.html">One FastAPI logging config for dev + prod (Uvicorn/Gunicorn)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/redacting-secrets-pii.html">Redacting secrets and PII in FastAPI logs (Authorization, tokens, fields)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/compliance-redaction.html">Compliance Redaction: What Works and What Doesn’t</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/safe-request-response-logging.html">Logging request/response bodies without hanging (safe patterns)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/skip-noisy-endpoints.html">Skipping health/metrics endpoints (noise reduction)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/log-sampling-rate-limiting.html">Log sampling and rate limiting for FastAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/graceful-shutdown-flush.html">Graceful shutdown &amp; flushing logs (don’t lose logs on deploy)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/exception-logging-request-context.html">Exception logging in FastAPI with request_id + structured context</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples &amp; Recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/builder-configurations.html">Builder Configuration Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/fastapi-logging.html">FastAPI Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cli-tools.html">Logging in Scripts/CLIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/redacting-secrets.html">Redacting Secrets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/structured-error-logging.html">Structured Error Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/kubernetes-file-sink.html">Kubernetes File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/prometheus-metrics.html">Prometheus Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloudwatch_logging/index.html">CloudWatch Logging (LocalStack)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloud-sinks/index.html">Cloud Sink Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../redaction/index.html">Redaction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/presets.html">Redaction Presets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/configuration.html">Redaction Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/behavior.html">Redaction Behavior</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/testing.html">Testing Redaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api-reference/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/top-level-functions.html">Top-Level Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/builder.html">Builder API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/logger-methods.html">Logger Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/audit-trail.html">Audit Trail</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/configuration-map.html">Configuration Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/types.html">Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/plugins/index.html">Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/modules.html">API Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugin Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/quickstart.html">Plugin Author Quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/authoring.html">Authoring Fapilog Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/enrichers.html">Enrichers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/filters.html">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/processors.html">Processors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/testing.html">Plugin Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/configuration.html">Plugin Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/health-checks.html">Plugin Health Checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/error-handling.html">Plugin Error Handling</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../patterns.html">Integration Patterns</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../patterns/sdk-sinks.html">Building SDK-Based Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../patterns/http-sinks.html">Building HTTP-Based Sinks</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting/index.html">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/logs-dropped-under-load.html">Logs Dropped Under Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/destination-size-limits.html">Logs Rejected by Destination Size Limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/context-values-missing.html">Context Values Missing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/file-sink-not-rotating.html">File Sink Not Rotating</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/serialization-errors.html">Serialization Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/cloudwatch-sink.html">CloudWatch Sink Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/loki-sink.html">Loki Sink Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices.html">Appendices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../env-vars.html">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../settings-guide.html">Settings Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-guide.html">Schema Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-migration-v1.0-to-v1.1.html">Schema Migration Guide: v1.0 to v1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugin-guide.html">Plugin Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quality-signals.html">Quality Signals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/settings-to-builder-migration.html">Migrating from Settings to Builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/migration-file-rotation.html">Migration Guide: Simplified Rotating File Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/tenacity-integration.html">Tenacity Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/testing.html">Testing with Fapilog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../addons/tamper-evident-logging.html">Tamper-Evident Logging Add-on (Optional)</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">fapilog</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">User Guide</a></li>
+      <li class="breadcrumb-item active">Execution Modes</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/user-guide/execution-modes.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="execution-modes">
+<h1>Execution Modes<a class="headerlink" href="#execution-modes" title="Link to this heading"></a></h1>
+<p>Fapilog automatically detects your execution context and chooses the optimal mode for background processing. Understanding these modes helps you achieve maximum throughput and avoid common pitfalls.</p>
+<section id="quick-reference">
+<h2>Quick Reference<a class="headerlink" href="#quick-reference" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Mode</p></th>
+<th class="head"><p>How to trigger</p></th>
+<th class="head"><p>Throughput</p></th>
+<th class="head"><p>Best for</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Async</strong></p></td>
+<td><p>Use <code class="docutils literal notranslate"><span class="pre">AsyncLoggerFacade</span></code></p></td>
+<td><p>~100K+ events/sec</p></td>
+<td><p>FastAPI, aiohttp, async frameworks</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Bound loop</strong></p></td>
+<td><p>Start <code class="docutils literal notranslate"><span class="pre">SyncLoggerFacade</span></code> inside async context</p></td>
+<td><p>~100K+ events/sec</p></td>
+<td><p>Sync APIs called from async code</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Thread</strong></p></td>
+<td><p>Start <code class="docutils literal notranslate"><span class="pre">SyncLoggerFacade</span></code> outside async context</p></td>
+<td><p>~10-15K events/sec</p></td>
+<td><p>CLI tools, scripts, traditional frameworks</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="understanding-the-modes">
+<h2>Understanding the Modes<a class="headerlink" href="#understanding-the-modes" title="Link to this heading"></a></h2>
+<section id="async-mode-fastest">
+<h3>Async Mode (Fastest)<a class="headerlink" href="#async-mode-fastest" title="Link to this heading"></a></h3>
+<p>Use <code class="docutils literal notranslate"><span class="pre">AsyncLoggerFacade</span></code> for native async integration:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_async_logger</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Each call is a coroutine - no blocking, no threads</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Processing request&quot;</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="mi">123</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Something failed&quot;</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="s2">&quot;details&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Drain before shutdown</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">drain</span><span class="p">()</span>
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+<p><strong>Why it’s fast:</strong> Log calls are coroutines that interact directly with the async queue. No thread synchronization, no blocking.</p>
+<p><strong>Use when:</strong></p>
+<ul class="simple">
+<li><p>Building FastAPI, Starlette, or aiohttp applications</p></li>
+<li><p>Writing async libraries or frameworks</p></li>
+<li><p>Maximum throughput is critical</p></li>
+</ul>
+</section>
+<section id="bound-loop-mode">
+<h3>Bound Loop Mode<a class="headerlink" href="#bound-loop-mode" title="Link to this heading"></a></h3>
+<p>When <code class="docutils literal notranslate"><span class="pre">SyncLoggerFacade</span></code> is started inside an async context, it binds to the current event loop:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="c1"># Started INSIDE async context = bound loop mode</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Sync API, but runs on the same event loop</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;This achieves ~100K events/sec&quot;</span><span class="p">)</span>
+
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">stop_and_drain</span><span class="p">()</span>
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+<p><strong>Why it’s fast:</strong> The logger detects the running event loop and creates worker tasks directly in it. No separate thread, no cross-thread synchronization.</p>
+<p><strong>Use when:</strong></p>
+<ul class="simple">
+<li><p>You have sync code that runs inside an async application</p></li>
+<li><p>You want the familiar sync <code class="docutils literal notranslate"><span class="pre">logger.info()</span></code> API</p></li>
+<li><p>You’re inside a FastAPI route handler or async middleware</p></li>
+</ul>
+</section>
+<section id="thread-mode">
+<h3>Thread Mode<a class="headerlink" href="#thread-mode" title="Link to this heading"></a></h3>
+<p>When <code class="docutils literal notranslate"><span class="pre">SyncLoggerFacade</span></code> is started outside any async context, it creates a background thread:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+
+<span class="c1"># Started OUTSIDE async context = thread mode</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+
+<span class="c1"># Each call synchronizes with the worker thread</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;This achieves ~10-15K events/sec&quot;</span><span class="p">)</span>
+
+<span class="c1"># Must drain before exit</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">stop_and_drain</span><span class="p">())</span>
+</pre></div>
+</div>
+<p><strong>Why it’s slower:</strong> Each <code class="docutils literal notranslate"><span class="pre">logger.info()</span></code> call must coordinate with the worker thread via <code class="docutils literal notranslate"><span class="pre">asyncio.run_coroutine_threadsafe()</span></code>. This cross-thread synchronization adds ~80-90µs per call.</p>
+<p><strong>Use when:</strong></p>
+<ul class="simple">
+<li><p>Building CLI tools or scripts</p></li>
+<li><p>Using traditional sync frameworks (Flask, Django without async)</p></li>
+<li><p>The ~10-15K events/sec throughput is sufficient</p></li>
+</ul>
+</section>
+</section>
+<section id="choosing-the-right-mode">
+<h2>Choosing the Right Mode<a class="headerlink" href="#choosing-the-right-mode" title="Link to this heading"></a></h2>
+<section id="fastapi-applications">
+<h3>FastAPI Applications<a class="headerlink" href="#fastapi-applications" title="Link to this heading"></a></h3>
+<p><strong>Recommended: Async mode with <code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code></strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">FastAPI</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_request_logger</span><span class="p">,</span> <span class="n">setup_logging</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">))</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/users/</span><span class="si">{user_id}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_user</span><span class="p">(</span><span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">Depends</span><span class="p">(</span><span class="n">get_request_logger</span><span class="p">)):</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Fetching user&quot;</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="n">user_id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">user_id</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>This uses <code class="docutils literal notranslate"><span class="pre">AsyncLoggerFacade</span></code> under the hood for maximum throughput.</p>
+</section>
+<section id="sync-code-in-async-applications">
+<h3>Sync Code in Async Applications<a class="headerlink" href="#sync-code-in-async-applications" title="Link to this heading"></a></h3>
+<p><strong>Recommended: Bound loop mode</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">async_handler</span><span class="p">():</span>
+    <span class="c1"># Logger started inside async context</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;handler&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Sync API works, full async performance</span>
+    <span class="n">process_data</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">process_data</span><span class="p">(</span><span class="n">logger</span><span class="p">):</span>
+    <span class="c1"># This sync function can use the logger normally</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Processing...&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="cli-tools-and-scripts">
+<h3>CLI Tools and Scripts<a class="headerlink" href="#cli-tools-and-scripts" title="Link to this heading"></a></h3>
+<p><strong>Use: Thread mode (automatic)</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting batch job&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+        <span class="n">process</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Processed item&quot;</span><span class="p">,</span> <span class="n">item_id</span><span class="o">=</span><span class="n">item</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Batch complete&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+    <span class="c1"># Ensure logs are flushed before exit</span>
+    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">stop_and_drain</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+<section id="django-flask-traditional-sync">
+<h3>Django / Flask (Traditional Sync)<a class="headerlink" href="#django-flask-traditional-sync" title="Link to this heading"></a></h3>
+<p><strong>Use: Thread mode</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># settings.py or app initialization</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+
+<span class="c1"># Started at module level (outside async) = thread mode</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+
+<span class="c1"># In views/handlers</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">my_view</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Handling request&quot;</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">response</span>
+</pre></div>
+</div>
+<p>For Django with async views, consider initializing the logger inside the async view for bound loop mode.</p>
+</section>
+</section>
+<section id="performance-comparison">
+<h2>Performance Comparison<a class="headerlink" href="#performance-comparison" title="Link to this heading"></a></h2>
+<p>Measured on typical hardware with a no-op sink:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Mode              Throughput        Latency (p50)    Latency (p99)
+─────────────────────────────────────────────────────────────────
+Async             ~120K events/sec  ~8µs             ~15µs
+Bound loop        ~100K events/sec  ~10µs            ~20µs
+Thread            ~12K events/sec   ~80µs            ~150µs
+</pre></div>
+</div>
+<p>The ~10x difference in thread mode is due to cross-thread synchronization overhead.</p>
+</section>
+<section id="common-pitfalls">
+<h2>Common Pitfalls<a class="headerlink" href="#common-pitfalls" title="Link to this heading"></a></h2>
+<section id="expecting-100k-events-sec-in-thread-mode">
+<h3>Expecting 100K events/sec in Thread Mode<a class="headerlink" href="#expecting-100k-events-sec-in-thread-mode" title="Link to this heading"></a></h3>
+<p><strong>Problem:</strong> You read “100K events/sec” and use <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> in a sync script, but only achieve ~10K.</p>
+<p><strong>Solution:</strong> This is expected behavior. For 100K+ throughput, use async mode or ensure you start the logger inside an async context.</p>
+</section>
+<section id="starting-logger-at-module-level-in-async-apps">
+<h3>Starting Logger at Module Level in Async Apps<a class="headerlink" href="#starting-logger-at-module-level-in-async-apps" title="Link to this heading"></a></h3>
+<p><strong>Problem:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># top of file - outside async context</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>  <span class="c1"># Thread mode!</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">handler</span><span class="p">():</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>  <span class="c1"># ~10K events/sec, not 100K</span>
+</pre></div>
+</div>
+<p><strong>Solution:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Option 1: Initialize inside async context</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">handler</span><span class="p">():</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>  <span class="c1"># Bound loop mode</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>
+
+<span class="c1"># Option 2: Use AsyncLoggerFacade</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">startup</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">logger</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="mixing-modes-unintentionally">
+<h3>Mixing Modes Unintentionally<a class="headerlink" href="#mixing-modes-unintentionally" title="Link to this heading"></a></h3>
+<p><strong>Problem:</strong> Different parts of your app initialize loggers differently, leading to inconsistent performance.</p>
+<p><strong>Solution:</strong> Centralize logger initialization. In FastAPI, use <code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code>. In other frameworks, create a single initialization point.</p>
+</section>
+</section>
+<section id="checking-which-mode-youre-in">
+<h2>Checking Which Mode You’re In<a class="headerlink" href="#checking-which-mode-youre-in" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">logger</span><span class="o">.</span><span class="n">_worker_thread</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Thread mode - ~10-15K events/sec&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Bound loop mode - ~100K+ events/sec&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="migration-tips">
+<h2>Migration Tips<a class="headerlink" href="#migration-tips" title="Link to this heading"></a></h2>
+<section id="from-thread-mode-to-bound-loop-mode">
+<h3>From Thread Mode to Bound Loop Mode<a class="headerlink" href="#from-thread-mode-to-bound-loop-mode" title="Link to this heading"></a></h3>
+<p>If your async application is accidentally using thread mode:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Before (thread mode - logger created at import time)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">root</span><span class="p">():</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;hello&quot;</span><span class="p">)</span>
+
+<span class="c1"># After (bound loop mode - logger created inside async)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">on_event</span><span class="p">(</span><span class="s2">&quot;startup&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">startup</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">logger</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">root</span><span class="p">():</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;hello&quot;</span><span class="p">)</span>  <span class="c1"># Now ~100K events/sec</span>
+</pre></div>
+</div>
+</section>
+<section id="from-sync-logger-to-async-logger">
+<h3>From Sync Logger to Async Logger<a class="headerlink" href="#from-sync-logger-to-async-logger" title="Link to this heading"></a></h3>
+<p>For maximum performance in async applications:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Before</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;sync call&quot;</span><span class="p">)</span>
+
+<span class="c1"># After</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_async_logger</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">()</span>
+<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;async call&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="see-also">
+<h2>See Also<a class="headerlink" href="#see-also" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="configuration.html"><span class="std std-doc">Configuration Guide</span></a> - Logger configuration options</p></li>
+<li><p><a class="reference internal" href="performance-tuning.html"><span class="std std-doc">Performance Tuning</span></a> - Workers, batch sizes, queue capacity</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          
+<footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer" style="position: relative;">
+        <a href="configuration.html" class="btn btn-neutral float-left" title="Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="builder-configuration.html" class="btn btn-neutral float-right" title="Configuring Fapilog with the Builder API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+      <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 50%; margin-top: -0.5em;">
+        <a href="https://fapilog.dev">www.fapilog.dev</a>
+      </div>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Chris Haste.
+      <span class="lastupdated">Last updated on January 30, 2026.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
