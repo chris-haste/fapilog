@@ -1142,6 +1142,25 @@ class SyncLoggerFacade(_LoggerMixin):
                         )
                     except Exception:
                         pass
+            except TimeoutError:
+                # fut.result() timed out, but the coroutine may still be running.
+                # Attempt to cancel; if cancellation fails, check if it completed.
+                fut.cancel()
+                if fut.cancelled():
+                    # Successfully cancelled before enqueue started
+                    self._dropped += 1
+                    self._record_drop_for_summary(1)
+                elif fut.done():
+                    # Coroutine finished - check if enqueue succeeded
+                    try:
+                        ok = fut.result(timeout=0)
+                        if not ok:
+                            self._dropped += 1
+                            self._record_drop_for_summary(1)
+                    except Exception:
+                        self._dropped += 1
+                        self._record_drop_for_summary(1)
+                # else: coroutine still running, may yet succeed - don't double-count
             except Exception:
                 self._dropped += 1
                 self._record_drop_for_summary(1)
