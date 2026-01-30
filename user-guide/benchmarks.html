@@ -7,17 +7,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Performance Benchmarks &mdash; fapilog 0.9.0 documentation</title>
+  <title>Performance Benchmarks &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
   
-    <link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/benchmarks.html" />
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=39bb1c6d"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -30,6 +29,9 @@
     <link rel="prev" title="Performance Tuning" href="performance-tuning.html" />
  
 
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/benchmarks.html" />
+<meta name="robots" content="noindex, follow" />
 
 
 </head>
@@ -412,6 +414,48 @@
 </table>
 <p><strong>Interpretation:</strong> fapilog uses more memory due to its queue, batching buffers, and async infrastructure. This is a deliberate trade-off for non-blocking behavior. Configure <code class="docutils literal notranslate"><span class="pre">max_queue_size</span></code> based on available memory.</p>
 </section>
+<section id="worker-count-impact">
+<h3>Worker Count Impact<a class="headerlink" href="#worker-count-impact" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">worker_count</span></code> setting controls parallel flush processing and has the largest impact on fapilog throughput:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Workers</p></th>
+<th class="head"><p>Throughput</p></th>
+<th class="head"><p>Relative</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1 (default)</p></td>
+<td><p>~3,500/sec</p></td>
+<td><p>1.0x</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>~105,000/sec</p></td>
+<td><p><strong>30x</strong></p></td>
+</tr>
+<tr class="row-even"><td><p>2 + redaction</p></td>
+<td><p>~89,000/sec</p></td>
+<td><p>26x</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key findings:</strong></p>
+<ul class="simple">
+<li><p>Workers are the bottleneck with <code class="docutils literal notranslate"><span class="pre">worker_count=1</span></code> (serializes all processing)</p></li>
+<li><p>2 workers is optimal - more shows diminishing returns due to context switching</p></li>
+<li><p>Queue size has minimal impact - larger queues slightly hurt due to memory overhead</p></li>
+<li><p>Redaction cost is minimal (~15%) with proper worker count</p></li>
+</ul>
+<p><strong>Recommendation:</strong> Use 2 workers for production. Production-oriented presets (<code class="docutils literal notranslate"><span class="pre">production</span></code>, <code class="docutils literal notranslate"><span class="pre">fastapi</span></code>, <code class="docutils literal notranslate"><span class="pre">serverless</span></code>, <code class="docutils literal notranslate"><span class="pre">hardened</span></code>) default to 2 workers automatically.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Option 1: Use a production preset (recommended)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+
+<span class="c1"># Option 2: Explicitly set worker count</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_workers</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="performance-tuning.html"><span class="std std-doc">Performance Tuning</span></a> for detailed configuration guidance.</p>
+</section>
 </section>
 <section id="when-to-use-fapilog">
 <h2>When to Use fapilog<a class="headerlink" href="#when-to-use-fapilog" title="Link to this heading"></a></h2>
@@ -513,7 +557,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on January 29, 2026.
+      <span class="lastupdated">Last updated on January 30, 2026.
       </span></p>
   </div>
 

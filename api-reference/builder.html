@@ -7,17 +7,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Builder API Reference &mdash; fapilog 0.9.0 documentation</title>
+  <title>Builder API Reference &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
   
-    <link rel="canonical" href="https://docs.fapilog.dev/en/stable/api-reference/builder.html" />
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=39bb1c6d"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -30,6 +29,9 @@
     <link rel="prev" title="Top-Level Functions" href="top-level-functions.html" />
  
 
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/api-reference/builder.html" />
+<meta name="robots" content="noindex, follow" />
 
 
 </head>
@@ -326,6 +328,7 @@
 <th class="head"><p>File Logging</p></th>
 <th class="head"><p>Redaction</p></th>
 <th class="head"><p>Batch Size</p></th>
+<th class="head"><p>Workers</p></th>
 </tr>
 </thead>
 <tbody>
@@ -334,27 +337,48 @@
 <td><p>No</p></td>
 <td><p>No</p></td>
 <td><p>1 (immediate)</p></td>
+<td><p>1</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">production</span></code></p></td>
 <td><p>INFO</p></td>
 <td><p>Yes (50MB rotation)</p></td>
 <td><p>Yes</p></td>
 <td><p>100</p></td>
+<td><p>2</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
 <td><p>INFO</p></td>
 <td><p>No</p></td>
 <td><p>Yes</p></td>
 <td><p>50</p></td>
+<td><p>2</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
+<td><p>INFO</p></td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+<td><p>25</p></td>
+<td><p>2</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
+<td><p>INFO</p></td>
+<td><p>Yes (50MB rotation)</p></td>
+<td><p>Yes</p></td>
+<td><p>100</p></td>
+<td><p>2</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
 <td><p>INFO</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 <td><p>256</p></td>
+<td><p>1</p></td>
 </tr>
 </tbody>
 </table>
+<blockquote>
+<div><p><strong>Performance note:</strong> Production-oriented presets use 2 workers for ~30x better throughput. See <a class="reference internal" href="../user-guide/performance-tuning.html"><span class="std std-doc">Performance Tuning</span></a> for details.</p>
+</div></blockquote>
 </section>
 <hr class="docutils" />
 <section id="with-app-name-name">
@@ -884,8 +908,29 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">count</span></code> (int): Number of workers (default: 1)</p></li>
 </ul>
 <p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Performance impact:</strong> Worker count has the largest impact on throughput:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Workers</p></th>
+<th class="head"><p>Throughput</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>~3,500/sec</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>~105,000/sec (+30x)</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Recommendation:</strong> Use 2 workers for production. Production-oriented presets (<code class="docutils literal notranslate"><span class="pre">production</span></code>, <code class="docutils literal notranslate"><span class="pre">fastapi</span></code>, <code class="docutils literal notranslate"><span class="pre">serverless</span></code>, <code class="docutils literal notranslate"><span class="pre">hardened</span></code>) default to 2 workers automatically.</p>
 <p><strong>Example:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_workers</span><span class="p">(</span><span class="n">count</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_workers</span><span class="p">(</span><span class="n">count</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># Recommended for production</span>
+</pre></div>
+</div>
+<p><strong>Equivalent Settings:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Settings</span><span class="p">(</span><span class="n">core</span><span class="o">=</span><span class="n">CoreSettings</span><span class="p">(</span><span class="n">worker_count</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
 </pre></div>
 </div>
 </section>
@@ -1382,7 +1427,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on January 29, 2026.
+      <span class="lastupdated">Last updated on January 30, 2026.
       </span></p>
   </div>
 
