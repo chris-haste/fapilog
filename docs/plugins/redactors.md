@@ -2,6 +2,24 @@
 
 Redactors transform structured log events to remove or mask sensitive data before serialization and sink emission. The Redactors stage executes after Enrichers and before Sinks, preserving the async-first, non-blocking guarantees of the runtime pipeline.
 
+!!! warning "PII in Message Strings Is Not Redacted"
+
+    Redactors only process **structured fields** in the log envelope.
+    PII embedded in the message string will pass through unchanged.
+
+    ```python
+    # UNSAFE - email will NOT be redacted
+    logger.info(f"User {email} logged in")
+    logger.info("User " + email + " logged in")
+
+    # SAFE - email field will be redacted
+    logger.info("User logged in", email=email)
+    logger.info("User logged in", user={"email": email})
+    ```
+
+    See [PII Showing Despite Redaction](../troubleshooting/pii-showing-despite-redaction.md)
+    for more details.
+
 ## Stage Placement and Lifecycle
 
 - Runs in the logger worker loop; no new threads or loops are created
