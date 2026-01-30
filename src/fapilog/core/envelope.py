@@ -44,9 +44,14 @@ def build_envelope(
     """Construct a log envelope following the canonical v1.1 schema.
 
     The v1.1 schema organizes fields into semantic groupings:
-    - context: Request/trace identifiers (correlation_id, request_id, etc.)
+    - context: Request/trace identifiers (message_id, correlation_id, request_id, etc.)
     - diagnostics: Runtime/operational data (exception info, etc.)
     - data: User-provided structured data from extra and bound_context
+
+    Field semantics (Story 1.34):
+    - message_id: Unique identifier for each log entry (always generated)
+    - correlation_id: Shared identifier across related log entries (only when
+      explicitly set via context variable or parameter)
 
     Args:
         level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL).
@@ -61,7 +66,8 @@ def build_envelope(
         exceptions_max_frames: Maximum traceback frames to include.
         exceptions_max_stack_chars: Maximum characters for stack trace.
         logger_name: Name of the logger.
-        correlation_id: Correlation ID for request tracing.
+        correlation_id: Correlation ID for request tracing. Only included in
+            envelope when explicitly provided (not auto-generated).
 
     Returns:
         A dictionary containing the v1.1 log envelope with structure:
@@ -77,8 +83,13 @@ def build_envelope(
     """
     # Build context dict (request/trace identifiers)
     context: dict[str, Any] = {}
-    corr_id = correlation_id if correlation_id is not None else str(uuid4())
-    context["correlation_id"] = corr_id
+
+    # message_id: Always generate a unique ID per log entry (Story 1.34)
+    context["message_id"] = str(uuid4())
+
+    # correlation_id: Only include when explicitly set (not auto-generated)
+    if correlation_id is not None:
+        context["correlation_id"] = correlation_id
 
     # Extract trace context fields from bound_context (first)
     if bound_context:

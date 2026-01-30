@@ -23,9 +23,14 @@ class LogContext(TypedDict, total=False):
 
     These fields identify WHO and WHAT request is being logged.
     All fields are optional to support partial context.
+
+    Field semantics (Story 1.34):
+    - message_id: Unique identifier for each log entry (always present)
+    - correlation_id: Shared identifier across related entries (only when set via context)
     """
 
-    correlation_id: str | None
+    message_id: str  # Always present - unique per log entry
+    correlation_id: str | None  # Only when explicitly set via context
     request_id: str | None
     user_id: str | None
     tenant_id: str | None

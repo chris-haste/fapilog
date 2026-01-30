@@ -123,9 +123,10 @@ class TestTypeContract:
         # TypedDict __annotations__ contains the field types
         assert set(LogEnvelopeV1.__annotations__.keys()) == expected_keys
 
-        # Verify LogContext has expected keys
+        # Verify LogContext has expected keys (includes message_id per Story 1.34)
         context_keys = {
-            "correlation_id",
+            "message_id",  # Always present - unique per log entry (Story 1.34)
+            "correlation_id",  # Only when explicitly set via context
             "request_id",
             "user_id",
             "tenant_id",
