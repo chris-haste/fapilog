@@ -671,12 +671,18 @@ class _LoggerMixin(_WorkerCountersMixin):
     ) -> DrainResult:
         start = time.perf_counter()
         self._stop_flag = True
-        if self._drained_event is not None:
+        # Wait for ALL worker tasks to complete, not just a single event.
+        # With multiple workers, each drains remaining queue items and flushes.
+        # We must wait for all to finish to ensure counters are accurate.
+        if self._worker_tasks:
             try:
                 if timeout is not None:
-                    await asyncio.wait_for(self._drained_event.wait(), timeout=timeout)
+                    await asyncio.wait_for(
+                        asyncio.gather(*self._worker_tasks, return_exceptions=True),
+                        timeout=timeout,
+                    )
                 else:
-                    await self._drained_event.wait()
+                    await asyncio.gather(*self._worker_tasks, return_exceptions=True)
             except asyncio.TimeoutError:
                 if warn_on_timeout:
                     try:
@@ -684,7 +690,7 @@ class _LoggerMixin(_WorkerCountersMixin):
 
                         warn(
                             "logger",
-                            "drain event timeout during async shutdown",
+                            "drain timeout waiting for worker tasks",
                             timeout_seconds=timeout,
                         )
                     except Exception:
