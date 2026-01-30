@@ -1,5 +1,11 @@
 # Security Policy
 
+> **Your sinks can be slow. Your app shouldn't be.**
+>
+> Async-first structured logging for FastAPI and modern Python applications.
+
+---
+
 ## Supported Versions
 
 The following versions of fapilog are currently supported with security updates:
