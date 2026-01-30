@@ -4,7 +4,25 @@
 - Passwords, tokens, or emails appear in logs
 - URL credentials (`user:pass@`) still visible
 
-## Causes
+## Most Common Cause: PII in Message Strings
+
+Redactors only process **structured fields** in the log envelope. PII embedded directly in the message string bypasses redaction entirely:
+
+```python
+# UNSAFE - these will NOT be redacted
+logger.info(f"User {email} logged in")           # f-string
+logger.info("User " + email + " logged in")      # concatenation
+logger.info("User %s logged in", email)          # %-formatting
+logger.info("User {} logged in".format(email))   # .format()
+
+# SAFE - structured fields ARE redacted
+logger.info("User logged in", email=email)
+logger.info("User logged in", user={"email": email})
+```
+
+**Fix:** Always pass sensitive data as structured keyword arguments, not in the message string.
+
+## Other Causes
 - Redactors disabled or order overridden
 - Sensitive fields not included in policy
 - Guardrails too restrictive for nested data
