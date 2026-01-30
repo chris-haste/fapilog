@@ -79,11 +79,15 @@ class TestFormatParameterIntegration:
             sys.stdout = orig  # type: ignore[assignment]
 
     def test_format_overrides_preset(self) -> None:
+        import time
+
         buf, orig = _swap_stdout_bytesio()
         try:
             with patch.object(sys.stdout, "isatty", return_value=False):
                 logger = get_logger(preset="production", format="pretty")
                 logger.info("Preset override")
+                # Allow workers to process (production preset has worker_count=2)
+                time.sleep(0.3)
                 asyncio.run(logger.stop_and_drain())
             sys.stdout.flush()
             output = buf.getvalue().decode("utf-8")
