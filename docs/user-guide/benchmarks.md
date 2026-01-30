@@ -90,6 +90,34 @@ Peak memory during throughput test:
 
 **Interpretation:** fapilog uses more memory due to its queue, batching buffers, and async infrastructure. This is a deliberate trade-off for non-blocking behavior. Configure `max_queue_size` based on available memory.
 
+### Worker Count Impact
+
+The `worker_count` setting controls parallel flush processing and has the largest impact on fapilog throughput:
+
+| Workers | Throughput | Relative |
+|---------|------------|----------|
+| 1 (default) | ~3,500/sec | 1.0x |
+| 2 | ~105,000/sec | **30x** |
+| 2 + redaction | ~89,000/sec | 26x |
+
+**Key findings:**
+- Workers are the bottleneck with `worker_count=1` (serializes all processing)
+- 2 workers is optimal - more shows diminishing returns due to context switching
+- Queue size has minimal impact - larger queues slightly hurt due to memory overhead
+- Redaction cost is minimal (~15%) with proper worker count
+
+**Recommendation:** Use 2 workers for production. Production-oriented presets (`production`, `fastapi`, `serverless`, `hardened`) default to 2 workers automatically.
+
+```python
+# Option 1: Use a production preset (recommended)
+logger = get_logger(preset="production")
+
+# Option 2: Explicitly set worker count
+logger = LoggerBuilder().with_workers(2).build()
+```
+
+See [Performance Tuning](performance-tuning.md) for detailed configuration guidance.
+
 ## When to Use fapilog
 
 Based on these benchmarks:
