@@ -591,19 +591,35 @@ class LoggerBuilder:
         self,
         window_seconds: float = 300.0,
         *,
-        max_entries: int = 10000,
+        max_keys: int | None = None,
+        max_entries: int | None = None,
         key_fields: list[str] | None = None,
     ) -> Self:
         """Configure first-occurrence deduplication filter.
 
         Args:
             window_seconds: Deduplication window (default: 300 = 5 minutes)
-            max_entries: Maximum tracked messages (default: 10000)
+            max_keys: Maximum tracked messages (default: 10000)
+            max_entries: Deprecated alias for max_keys
             key_fields: Fields to use as dedup key (default: message only)
 
         Example:
             >>> builder.with_first_occurrence(window_seconds=60)
         """
+        import warnings
+
+        if max_entries is not None:
+            warnings.warn(
+                "max_entries is deprecated, use max_keys instead",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            if max_keys is None:
+                max_keys = max_entries
+
+        if max_keys is None:
+            max_keys = 10000
+
         filters = self._config.setdefault("core", {}).setdefault("filters", [])
         if "first_occurrence" not in filters:
             filters.append("first_occurrence")
@@ -611,7 +627,7 @@ class LoggerBuilder:
         filter_config = self._config.setdefault("filter_config", {})
         first_occurrence_config: dict[str, Any] = {
             "window_seconds": window_seconds,
-            "max_entries": max_entries,
+            "max_keys": max_keys,
         }
         if key_fields is not None:
             first_occurrence_config["key_fields"] = key_fields
