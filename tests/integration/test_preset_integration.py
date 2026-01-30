@@ -291,3 +291,89 @@ class TestPresetPerformance:
         # Average should be < 100ms per logger (generous bound)
         avg_ms = (elapsed / 10) * 1000
         assert avg_ms < 100, f"Preset application too slow: {avg_ms:.1f}ms per logger"
+
+
+class TestPresetWithBuilderSinkIntegration:
+    """Test preset + builder add_file() integration.
+
+    Regression test for bug where with_preset('production') combined
+    with add_file() caused messages to be submitted but never processed.
+    """
+
+    @pytest.mark.asyncio
+    async def test_production_preset_with_add_file_processes_messages(
+        self, tmp_path: Path
+    ):
+        """with_preset('production').add_file() processes messages.
+
+        Bug reproduction: messages were submitted but processed=0.
+        Fix: merge sinks instead of replacing them.
+        """
+        from fapilog import AsyncLoggerBuilder
+
+        logger = await (
+            AsyncLoggerBuilder()
+            .with_preset("production")
+            .add_file(directory=str(tmp_path))
+            .reuse(False)
+            .build_async()
+        )
+
+        await logger.info("Test message", data={"key": "value"})
+        # Allow workers to process (production preset has worker_count=2)
+        await asyncio.sleep(0.3)
+        result = await logger.drain()
+
+        assert result.submitted == 1, "Message should be submitted"
+        assert result.processed == 1, "Message should be processed (was 0 before fix)"
+
+        # Verify file was created
+        log_files = list(tmp_path.glob("*.jsonl"))
+        assert len(log_files) == 1, "Log file should be created"
+
+    @pytest.mark.asyncio
+    async def test_dev_preset_with_add_file_processes_messages(self, tmp_path: Path):
+        """with_preset('dev').add_file() processes messages."""
+        from fapilog import AsyncLoggerBuilder
+
+        logger = await (
+            AsyncLoggerBuilder()
+            .with_preset("dev")
+            .add_file(directory=str(tmp_path))
+            .reuse(False)
+            .build_async()
+        )
+
+        await logger.debug("Debug test message")
+        result = await logger.drain()
+
+        assert result.submitted == 1
+        assert result.processed == 1
+
+        log_files = list(tmp_path.glob("*.jsonl"))
+        assert len(log_files) == 1
+
+    def test_production_preset_with_add_file_sync(self, tmp_path: Path):
+        """Sync version: with_preset('production').add_file() works."""
+        import time
+
+        from fapilog import LoggerBuilder
+
+        logger = (
+            LoggerBuilder()
+            .with_preset("production")
+            .add_file(directory=str(tmp_path))
+            .reuse(False)
+            .build()
+        )
+
+        logger.info("Sync test message")
+        # Allow workers to process
+        time.sleep(0.3)
+        result = asyncio.run(logger.stop_and_drain())
+
+        assert result.submitted == 1
+        assert result.processed == 1
+
+        log_files = list(tmp_path.glob("*.jsonl"))
+        assert len(log_files) == 1

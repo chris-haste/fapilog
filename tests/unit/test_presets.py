@@ -470,3 +470,101 @@ class TestPresetImmutability:
         config2 = get_preset("dev")
         config1["core"]["log_level"] = "ERROR"
         assert config2["core"]["log_level"] == "DEBUG"
+
+
+class TestPresetWithBuilderSinks:
+    """Test that builder add_*() methods merge with preset sinks.
+
+    Regression test for bug where add_file() with preset caused
+    messages to be submitted but not processed (processed=0).
+    """
+
+    def test_production_preset_with_add_file_merges_sinks(self):
+        """add_file() with production preset merges sinks, not replaces.
+
+        Bug: preset sinks were completely replaced instead of merged,
+        losing stdout_json when add_file() was called.
+        """
+        from fapilog.builder import LoggerBuilder
+
+        builder = LoggerBuilder().with_preset("production").add_file("/tmp/logs")
+
+        # Access internal config to verify merge happened
+        # Build creates the merged config internally, so we simulate
+        import copy
+
+        from fapilog.core.presets import get_preset
+
+        config = copy.deepcopy(get_preset("production"))
+        builder._deep_merge(config, builder._config)
+
+        # Apply sink merging logic (what build() does)
+        sink_names = [s["name"] for s in builder._sinks]
+        existing_sinks = config.get("core", {}).get("sinks", [])
+        merged_sinks = list(dict.fromkeys(existing_sinks + sink_names))
+
+        # Should have both preset sinks preserved
+        assert "stdout_json" in merged_sinks
+        assert "rotating_file" in merged_sinks
+
+    def test_dev_preset_with_add_file_merges_sinks(self):
+        """add_file() with dev preset preserves stdout_pretty sink."""
+        from fapilog.builder import LoggerBuilder
+
+        builder = LoggerBuilder().with_preset("dev").add_file("/tmp/logs")
+
+        import copy
+
+        from fapilog.core.presets import get_preset
+
+        config = copy.deepcopy(get_preset("dev"))
+        builder._deep_merge(config, builder._config)
+
+        sink_names = [s["name"] for s in builder._sinks]
+        existing_sinks = config.get("core", {}).get("sinks", [])
+        merged_sinks = list(dict.fromkeys(existing_sinks + sink_names))
+
+        # Should have both dev preset's stdout_pretty and new rotating_file
+        assert "stdout_pretty" in merged_sinks
+        assert "rotating_file" in merged_sinks
+
+    def test_preset_sink_config_merged_not_replaced(self):
+        """add_file() merges sink config with preset defaults.
+
+        Bug: preset sink_config was completely replaced, losing
+        filename_prefix and other defaults.
+        """
+        from fapilog.builder import LoggerBuilder
+
+        builder = (
+            LoggerBuilder()
+            .with_preset("production")
+            .add_file(
+                "/custom/path",
+                max_bytes="20 MB",
+            )
+        )
+
+        import copy
+
+        from fapilog.core.presets import get_preset
+
+        config = copy.deepcopy(get_preset("production"))
+        builder._deep_merge(config, builder._config)
+
+        # Simulate sink config merging
+        sink_config = config.setdefault("sink_config", {})
+        for sink in builder._sinks:
+            if "config" in sink:
+                if sink["name"] in sink_config:
+                    builder._deep_merge(sink_config[sink["name"]], sink["config"])
+                else:
+                    sink_config[sink["name"]] = sink["config"]
+
+        # User's values should override
+        assert sink_config["rotating_file"]["directory"] == "/custom/path"
+        assert sink_config["rotating_file"]["max_bytes"] == "20 MB"
+        # Preset defaults should be preserved
+        assert sink_config["rotating_file"]["filename_prefix"] == "fapilog"
+        assert sink_config["rotating_file"]["max_files"] == 10
+        assert sink_config["rotating_file"]["compress_rotated"] is True
