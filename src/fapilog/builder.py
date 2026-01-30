@@ -1363,16 +1363,23 @@ class LoggerBuilder:
         else:
             config = copy.deepcopy(self._config)
 
-        # Add sinks to config
+        # Add sinks to config (merge with preset sinks, don't replace)
         if self._sinks:
             sink_names = [s["name"] for s in self._sinks]
-            config.setdefault("core", {})["sinks"] = sink_names
+            existing_sinks = config.get("core", {}).get("sinks", [])
+            # Merge: preset sinks + builder sinks, deduplicated, preserving order
+            merged_sinks = list(dict.fromkeys(existing_sinks + sink_names))
+            config.setdefault("core", {})["sinks"] = merged_sinks
 
-            # Add sink configs
+            # Add sink configs (merge with preset configs, don't replace)
             sink_config = config.setdefault("sink_config", {})
             for sink in self._sinks:
                 if "config" in sink:
-                    sink_config[sink["name"]] = sink["config"]
+                    if sink["name"] in sink_config:
+                        # Merge: preset config as base, builder config overrides
+                        self._deep_merge(sink_config[sink["name"]], sink["config"])
+                    else:
+                        sink_config[sink["name"]] = sink["config"]
 
         try:
             settings = Settings(**config)
@@ -1418,16 +1425,23 @@ class AsyncLoggerBuilder(LoggerBuilder):
         else:
             config = copy.deepcopy(self._config)
 
-        # Add sinks to config
+        # Add sinks to config (merge with preset sinks, don't replace)
         if self._sinks:
             sink_names = [s["name"] for s in self._sinks]
-            config.setdefault("core", {})["sinks"] = sink_names
+            existing_sinks = config.get("core", {}).get("sinks", [])
+            # Merge: preset sinks + builder sinks, deduplicated, preserving order
+            merged_sinks = list(dict.fromkeys(existing_sinks + sink_names))
+            config.setdefault("core", {})["sinks"] = merged_sinks
 
-            # Add sink configs
+            # Add sink configs (merge with preset configs, don't replace)
             sink_config = config.setdefault("sink_config", {})
             for sink in self._sinks:
                 if "config" in sink:
-                    sink_config[sink["name"]] = sink["config"]
+                    if sink["name"] in sink_config:
+                        # Merge: preset config as base, builder config overrides
+                        self._deep_merge(sink_config[sink["name"]], sink["config"])
+                    else:
+                        sink_config[sink["name"]] = sink["config"]
 
         try:
             settings = Settings(**config)
