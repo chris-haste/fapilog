@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-01-29
+
+### Added
+
+- **Core - Default production presets to worker_count=2:** Add worker_count: 2 to production, fastapi, serverless, hardened presets. Provides ~30x throughput improvement (3,500 → 105,000 events/sec). Keep dev/minimal presets at 1 worker for simpler debugging.
+
+### Fixed
+
+- **Core - Align filter builder config keys with plugin fields:** Fix with_adaptive_sampling() to use min_sample_rate, max_sample_rate, target_eps. Fix with_trace_sampling() to use sample_rate, remove honor_upstream. Add contract tests verifying builder configs load via _build_pipeline.
+- **Core - Rename max_entries to max_keys in with_first_occurrence():** Fix parameter name mismatch causing silent filter loading failure. Add max_entries as deprecated alias with DeprecationWarning.
+- **Core - Enable serialize_in_flush for size_guard processor:** with_size_guard() now sets serialize_in_flush=True automatically. Respects explicit user setting if already configured.
+
+### Documentation
+
+- **Docs - Use correct logo green and make logo clickable:** Update badge color from #84CC16 to #9FE17B to match logo. Wrap logo image in link to fapilog.dev.
+
 ## [0.9.0] - 2026-01-29
 
 ### Added
