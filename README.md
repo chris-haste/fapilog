@@ -4,7 +4,11 @@
   </a>
 </p>
 
-# Fapilog - Batteries-included, async-first logging for Python services
+# Fapilog
+
+> **Your sinks can be slow. Your app shouldn't be.**
+
+Async-first structured logging for FastAPI and modern Python applications.
 
 ![Async-first](https://img.shields.io/badge/async-first-9FE17B?style=flat-square&logo=python&logoColor=white)
 ![JSON Ready](https://img.shields.io/badge/json-ready-9FE17B?style=flat-square&logo=json&logoColor=white)
@@ -17,21 +21,22 @@
 [![PyPI Version](https://img.shields.io/pypi/v/fapilog.svg?style=flat-square&color=9FE17B&logo=pypi&logoColor=white)](https://pypi.org/project/fapilog/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-9FE17B?style=flat-square&logo=apache&logoColor=white)](https://opensource.org/licenses/Apache-2.0)
 
-**fapilog** delivers production-ready logging for the modern Python stack—async-first, structured, and optimized for FastAPI and cloud-native apps. It's equally suitable for **on-prem**, **desktop**, or **embedded** projects where structured, JSON-ready, and pluggable logging is required.
+Fapilog is an async-first logging pipeline that keeps your app responsive even when log sinks are slow or bursty. Every log becomes a structured JSON object optimized for aggregators and search. Built-in PII redaction, backpressure control, and first-class FastAPI integration built to be the perfect companion for FastAPI microservices.
 
-Fapilog isn't a thin wrapper over existing logging libraries—it's an async-first logging pipeline designed to keep your app responsive under slow or bursty log sinks, with backpressure policies, redaction, and first-class FastAPI integration built in.
+Also suitable for **on-prem**, **desktop**, or **embedded** projects where structured, JSON-ready logging is needed.
 
 > **Save evaluation time:** [Independent technical assessments](docs/audits/) are available from multiple AI reviewers.
 
 ## Why fapilog?
 
-- **Your app speed doesn't depend on your log destination**: Even if logs go to a slow S3 bucket or flaky network, your API responses stay fast.
-- **Predictable behavior under load**: You decide what happens during traffic spikes—drop logs gracefully or wait briefly. No random thread stalls.
-- **No lost logs on shutdown**: Graceful drain ensures those final logs make it to storage before your container stops.
-- **Secrets stay out of logs automatically**: Passwords, API keys, and tokens are redacted by default with production presets.
-- **Request tracking without boilerplate**: Bind a request ID once and it appears in every log—no need to pass it through your call stack.
-- **See what's happening in production**: Optional metrics show queue depth, dropped logs, and flush latency so you can tune before problems hit.
-- **Pre-1.0 stability**: Core logger and FastAPI middleware APIs are stable within minor versions; see [Stability](#stability) for details.
+- **Performance**: Logging I/O is queued and processed off the critical path—slow sinks never block your request handlers.
+- **Structured data**: Every log entry becomes a JSON object, optimized for log aggregators, searching, and analytical tools.
+- **Framework integration**: Purpose-built for FastAPI with automatic request logging and correlation ID tracking.
+- **Backpressure control**: Configurable policies when logs arrive faster than sinks can process—balance latency versus durability.
+- **Security**: Built-in PII redaction automatically masks sensitive data in production environments.
+- **Reliability**: Clean shutdown procedures drain queues to prevent log loss.
+- **Extensibility**: Add custom sinks, filters, processors, enrichers, and redactors through clean extension points.
+- **Cloud integration**: Native support for CloudWatch, Loki, PostgreSQL, and stdout routing.
 
 **[Read more →](https://docs.fapilog.dev/en/latest/why-fapilog.html)** | **[Compare with structlog, loguru, and others →](https://docs.fapilog.dev/en/latest/comparisons.html)**
 
@@ -217,19 +222,9 @@ Fapilog is pre-1.0 but actively used in production. What this means:
 
 Your log calls return immediately. Everything else happens in the background:
 
-```text
-┌─────────────┐    ┌──────────────┐    ┌──────────────┐    ┌─────────────┐    ┌──────────────┐    ┌─────────────┐
-│ Log Event   │───▶│ Enrichment   │───▶│ Redaction    │───▶│ Processing  │───▶│ Queue        │───▶│ Sinks       │
-│             │    │              │    │              │    │             │    │              │    │             │
-│ log.info()  │    │ Add context  │    │ Masking      │    │ Formatting  │    │ Async buffer │    │ File/Stdout │
-│ log.error() │    │ Trace IDs    │    │ PII removal  │    │ Validation  │    │ Batching     │    │ HTTP/Custom │
-|             |    │ User data    │    │ Policy checks│    │ Transform   │    │ Overflow     │    │             │
-└─────────────┘    └──────────────┘    └──────────────┘    └─────────────┘    └──────────────┘    └─────────────┘
-     ↑                                                                                                  ↑
-     │                                                                                                  │
-  Returns                                                                              Slow sinks don't
-  immediately                                                                          affect your app
-```
+<p align="center">
+  <img src="https://fapilog.dev/fapilog-architecture.png" alt="Fapilog pipeline architecture" width="800">
+</p>
 
 See Redactors documentation: [docs/plugins/redactors.md](docs/plugins/redactors.md)
 
@@ -432,4 +427,4 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ---
 
-**Fapilog** - Batteries-included, async-first logging for Python services.
+**Fapilog** — Your sinks can be slow. Your app shouldn't be.
