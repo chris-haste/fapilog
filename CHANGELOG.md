@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-01-30
+
+### Added
+
+- **Core - Add message_id field:** message_id uniquely identifies each log entry (always present). correlation_id now only appears when set via context variable, clarifying semantics: message_id per-entry vs correlation_id per-request.
+- **Core - Add critical() log level method:** Add critical() method to SyncLoggerFacade and AsyncLoggerFacade. Update stdlib bridge to call critical() directly instead of error() with extras.
+
+### Fixed
+
+- **Core - Resolve race condition in cross-thread dropped counter:** Move dropped counting into _async_enqueue so it executes even when caller times out. Remove duplicate counting from sync and async callers. Ensures accurate accounting when fut.result() times out but coroutine completes.
+- **Docs - Add presets.md to toctree:** Add presets.md to docs/user-guide/index.md toctree. Update test_all_presets_documented to include production-latency.
+
+### Documentation
+
+- **Security - Update supported versions:** Remove marketing tagline (not appropriate for security policy). Update version table to reflect current releases.
+- **Security - Add tagline for brand consistency.**
+- **Readme - Remove redundant title heading:** Logo already provides branding, no need for duplicate heading.
+- **Readme - Align messaging with fapilog.dev website:** Update tagline to "Your sinks can be slow. Your app shouldn't be." Align "Why fapilog?" section with website value propositions. Replace ASCII architecture diagram with website image.
+- **Stdlib-bridge - Fix CRITICAL level mapping:** Level mapping table incorrectly stated CRITICAL uses error() with critical=True. Implementation actually uses critical() method directly.
+- **Redactors - Add prominent PII f-string warning:** Add warning callout to main redaction guide explaining message strings bypass redaction. Add same warning to API reference. Expand troubleshooting guide with comprehensive unsafe/safe code examples.
+
 ## [0.11.0] - 2026-01-30
 
 ### Added
