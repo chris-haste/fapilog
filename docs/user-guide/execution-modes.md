@@ -286,4 +286,3 @@ await logger.info("async call")
 
 - [Configuration Guide](configuration.md) - Logger configuration options
 - [Performance Tuning](performance-tuning.md) - Workers, batch sizes, queue capacity
-- [Async/Sync Boundary Design](../architecture/async-sync-boundary.md) - Technical deep-dive
