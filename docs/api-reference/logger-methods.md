@@ -73,6 +73,22 @@ except Exception:
     logger.error("Work failed", exc_info=True)
 ```
 
+## critical {#critical}
+
+```python
+logger.critical(message: str, *, exc: BaseException | None = None, exc_info: Any | None = None, **metadata) -> None
+await async_logger.critical(message: str, *, exc: BaseException | None = None, exc_info: Any | None = None, **metadata) -> None
+```
+
+Log critical errors. CRITICAL indicates a severe error that may cause the application to abort. Use for unrecoverable failures requiring immediate attention.
+
+### Example
+
+```python
+logger.critical("Database connection lost", db_host="prod-db", retry_count=3)
+await async_logger.critical("System failure", component="auth", error_code="AUTH_001")
+```
+
 ## exception {#exception}
 
 ```python

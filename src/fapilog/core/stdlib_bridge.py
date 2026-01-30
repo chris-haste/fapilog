@@ -203,10 +203,10 @@ class StdlibBridgeHandler(logging.Handler):
             # Level mapping
             lvl = record.levelno
             method = self._fl.debug
-            if lvl >= logging.ERROR:
+            if lvl >= logging.CRITICAL:
+                method = self._fl.critical
+            elif lvl >= logging.ERROR:
                 method = self._fl.error
-                if lvl >= logging.CRITICAL:
-                    extras.setdefault("critical", True)
             elif lvl >= logging.WARNING:
                 method = self._fl.warning
             elif lvl >= logging.INFO:
