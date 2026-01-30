@@ -84,9 +84,10 @@ class TestWithAdaptiveSampling:
         filter_config = builder._config["filter_config"]["adaptive_sampling"]
 
         assert "adaptive_sampling" in filters
-        assert filter_config["min_rate"] == 0.01
-        assert filter_config["max_rate"] == 1.0
-        assert filter_config["target_events_per_sec"] == 1000.0
+        # Config keys must match AdaptiveSamplingConfig field names
+        assert filter_config["min_sample_rate"] == 0.01
+        assert filter_config["max_sample_rate"] == 1.0
+        assert filter_config["target_eps"] == 1000.0
         assert filter_config["window_seconds"] == 60.0
 
     def test_with_adaptive_sampling_returns_self(self) -> None:
@@ -102,9 +103,10 @@ class TestWithAdaptiveSampling:
 
         filter_config = builder._config["filter_config"]["adaptive_sampling"]
 
-        assert filter_config["min_rate"] == 0.01
-        assert filter_config["max_rate"] == 1.0
-        assert filter_config["target_events_per_sec"] == 1000.0
+        # Config keys must match AdaptiveSamplingConfig field names
+        assert filter_config["min_sample_rate"] == 0.01
+        assert filter_config["max_sample_rate"] == 1.0
+        assert filter_config["target_eps"] == 1000.0
         assert filter_config["window_seconds"] == 60.0
 
     def test_with_adaptive_sampling_does_not_duplicate_filter(self) -> None:
@@ -115,11 +117,9 @@ class TestWithAdaptiveSampling:
 
         filters = builder._config["core"]["filters"]
         assert filters.count("adaptive_sampling") == 1
+        # Config key must match AdaptiveSamplingConfig field name
         assert (
-            builder._config["filter_config"]["adaptive_sampling"][
-                "target_events_per_sec"
-            ]
-            == 1000
+            builder._config["filter_config"]["adaptive_sampling"]["target_eps"] == 1000
         )
 
     def test_with_adaptive_sampling_creates_valid_logger(self) -> None:
@@ -141,14 +141,16 @@ class TestWithTraceSampling:
     def test_with_trace_sampling_adds_filter_and_config(self) -> None:
         """with_trace_sampling() adds filter and sets config fields."""
         builder = LoggerBuilder()
-        builder.with_trace_sampling(default_rate=0.1, honor_upstream=False)
+        builder.with_trace_sampling(default_rate=0.1)
 
         filters = builder._config["core"]["filters"]
         filter_config = builder._config["filter_config"]["trace_sampling"]
 
         assert "trace_sampling" in filters
-        assert filter_config["default_rate"] == 0.1
-        assert filter_config["honor_upstream"] is False
+        # Config key must match TraceSamplingConfig field name
+        assert filter_config["sample_rate"] == 0.1
+        # honor_upstream not in TraceSamplingConfig - should not be in config
+        assert "honor_upstream" not in filter_config
 
     def test_with_trace_sampling_returns_self(self) -> None:
         """with_trace_sampling() returns self for chaining."""
@@ -163,8 +165,10 @@ class TestWithTraceSampling:
 
         filter_config = builder._config["filter_config"]["trace_sampling"]
 
-        assert filter_config["default_rate"] == 1.0
-        assert filter_config["honor_upstream"] is True
+        # Config key must match TraceSamplingConfig field name
+        assert filter_config["sample_rate"] == 1.0
+        # honor_upstream not in TraceSamplingConfig
+        assert "honor_upstream" not in filter_config
 
     def test_with_trace_sampling_does_not_duplicate_filter(self) -> None:
         """Calling with_trace_sampling() twice doesn't duplicate filter."""
@@ -174,7 +178,8 @@ class TestWithTraceSampling:
 
         filters = builder._config["core"]["filters"]
         assert filters.count("trace_sampling") == 1
-        assert builder._config["filter_config"]["trace_sampling"]["default_rate"] == 0.3
+        # Config key must match TraceSamplingConfig field name
+        assert builder._config["filter_config"]["trace_sampling"]["sample_rate"] == 0.3
 
     def test_with_trace_sampling_creates_valid_logger(self) -> None:
         """with_trace_sampling() produces valid logger configuration."""

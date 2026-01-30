@@ -156,6 +156,42 @@ FILTER_COVERAGE: dict[str, str] = {
 }
 
 
+# === FILTER PARAMETER MAPPINGS ===
+# Maps builder param name -> plugin config field name
+# Story 12.28: Added to document param-to-field translations
+
+FILTER_PARAM_MAPPINGS: dict[str, dict[str, str]] = {
+    "with_sampling": {
+        "rate": "sample_rate",
+        "seed": "seed",
+    },
+    "with_adaptive_sampling": {
+        # Builder uses human-friendly names, plugin uses abbreviated field names
+        "min_rate": "min_sample_rate",
+        "max_rate": "max_sample_rate",
+        "target_events_per_sec": "target_eps",
+        "window_seconds": "window_seconds",
+    },
+    "with_trace_sampling": {
+        # Builder param 'default_rate' maps to plugin field 'sample_rate'
+        "default_rate": "sample_rate",
+        # Note: honor_upstream was removed (not in TraceSamplingConfig)
+    },
+    "with_rate_limit": {
+        "capacity": "capacity",
+        "refill_rate": "refill_rate_per_sec",
+        "key_field": "key_field",
+        "max_keys": "max_keys",
+        "overflow_action": "overflow_action",
+    },
+    "with_first_occurrence": {
+        "window_seconds": "window_seconds",
+        "max_keys": "max_keys",
+        "key_fields": "key_fields",
+    },
+}
+
+
 # === PROCESSOR COVERAGE ===
 # Maps processor -> param:field mappings
 
