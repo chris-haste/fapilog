@@ -149,3 +149,12 @@ repos:
         files: ^(src/fapilog/redaction/presets\.py|docs/redaction/presets\.md)$
         stages: [pre-commit]
         description: "Ensure redaction preset docs match source definitions"
+
+      - id: check-filter-config-parity
+        name: Check Filter Config Parity
+        entry: python scripts/check_filter_config_parity.py
+        language: system
+        pass_filenames: false
+        files: ^src/fapilog/(builder\.py|plugins/(filters|processors)/)
+        stages: [pre-commit]
+        description: "Ensure builder filter/processor config keys match plugin config fields"

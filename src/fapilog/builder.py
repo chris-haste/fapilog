@@ -513,10 +513,11 @@ class LoggerBuilder:
             filters.append("adaptive_sampling")
 
         filter_config = self._config.setdefault("filter_config", {})
+        # Config keys must match AdaptiveSamplingConfig field names
         filter_config["adaptive_sampling"] = {
-            "min_rate": min_rate,
-            "max_rate": max_rate,
-            "target_events_per_sec": target_events_per_sec,
+            "min_sample_rate": min_rate,
+            "max_sample_rate": max_rate,
+            "target_eps": target_events_per_sec,
             "window_seconds": window_seconds,
         }
 
@@ -525,14 +526,11 @@ class LoggerBuilder:
     def with_trace_sampling(
         self,
         default_rate: float = 1.0,
-        *,
-        honor_upstream: bool = True,
     ) -> Self:
         """Configure distributed trace-aware sampling.
 
         Args:
             default_rate: Default sample rate when no trace context (default: 1.0)
-            honor_upstream: Honor upstream sampling decisions (default: True)
 
         Example:
             >>> builder.with_trace_sampling(default_rate=0.1)
@@ -542,9 +540,9 @@ class LoggerBuilder:
             filters.append("trace_sampling")
 
         filter_config = self._config.setdefault("filter_config", {})
+        # Config key must match TraceSamplingConfig field name
         filter_config["trace_sampling"] = {
-            "default_rate": default_rate,
-            "honor_upstream": honor_upstream,
+            "sample_rate": default_rate,
         }
 
         return self
