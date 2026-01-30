@@ -4,8 +4,6 @@
   </a>
 </p>
 
-# Fapilog
-
 > **Your sinks can be slow. Your app shouldn't be.**
 
 Async-first structured logging for FastAPI and modern Python applications.
