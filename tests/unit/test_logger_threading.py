@@ -324,7 +324,12 @@ class TestCrossThreadSubmission:
         assert result.processed > 0 or result.dropped > 0
 
     def test_timeout_with_future_done_and_enqueue_failed(self) -> None:
-        """When fut.result() times out but future completed with ok=False, count as dropped."""
+        """When fut.result() times out but future completed with ok=False.
+
+        The dropped counting now happens inside _async_enqueue, not at the call site.
+        This test verifies the caller does NOT double-count when the coroutine
+        returns False (since the coroutine handles it internally).
+        """
         from concurrent.futures import Future
 
         collected: list[dict[str, Any]] = []
@@ -351,8 +356,10 @@ class TestCrossThreadSubmission:
         with patch("asyncio.run_coroutine_threadsafe", return_value=mock_future):
             logger.info("test-message")
 
-        # The event should be counted as dropped since future.result() returned False
-        assert logger._dropped == 1
+        # Caller does NOT increment dropped - that's done in _async_enqueue.
+        # Since we mocked out the coroutine, dropped stays 0 (the real coroutine
+        # would have incremented it when returning False).
+        assert logger._dropped == 0
 
         asyncio.run(logger.stop_and_drain())
 
