@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-01-29
+
+### Fixed
+
+- **Core - Merge builder sinks with preset sinks instead of replacing:** Fix bug where `with_preset('production').add_file()` caused messages to be submitted but never processed (processed=0). Merge sink names preserving preset sinks (e.g., stdout_json). Deep-merge sink configs to preserve preset defaults.
+- **Tests - Use CI timeout multiplier for backpressure timing test:** Apply `get_test_timeout()` to scale timing threshold for CI environments. Prevents flaky failures from 1% timing variance.
+
 ## [0.10.0] - 2026-01-29
 
 ### Added
