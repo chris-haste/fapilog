@@ -1144,23 +1144,30 @@ class SyncLoggerFacade(_LoggerMixin):
                         pass
             except TimeoutError:
                 # fut.result() timed out, but the coroutine may still be running.
-                # Attempt to cancel; if cancellation fails, check if it completed.
-                fut.cancel()
-                if fut.cancelled():
-                    # Successfully cancelled before enqueue started
-                    self._dropped += 1
-                    self._record_drop_for_summary(1)
-                elif fut.done():
-                    # Coroutine finished - check if enqueue succeeded
-                    try:
-                        ok = fut.result(timeout=0)
-                        if not ok:
-                            self._dropped += 1
-                            self._record_drop_for_summary(1)
-                    except Exception:
+                # We must NOT count as dropped if the enqueue might still succeed,
+                # as that would cause double-counting (processed + dropped > submitted).
+                # Instead, try to get the actual result with a brief wait.
+                import concurrent.futures
+
+                try:
+                    # Give it a tiny bit more time to see if it completes
+                    ok = fut.result(timeout=0.01)
+                    # Got a result - only count as dropped if enqueue failed
+                    if not ok:
                         self._dropped += 1
                         self._record_drop_for_summary(1)
-                # else: coroutine still running, may yet succeed - don't double-count
+                except concurrent.futures.TimeoutError:
+                    # Still not done - coroutine is running, may yet succeed.
+                    # Do NOT count as dropped to avoid double-counting if it succeeds.
+                    pass
+                except concurrent.futures.CancelledError:
+                    # Future was cancelled - event won't be enqueued
+                    self._dropped += 1
+                    self._record_drop_for_summary(1)
+                except Exception:
+                    # Coroutine raised an exception - event wasn't enqueued
+                    self._dropped += 1
+                    self._record_drop_for_summary(1)
             except Exception:
                 self._dropped += 1
                 self._record_drop_for_summary(1)
