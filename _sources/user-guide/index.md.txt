@@ -8,6 +8,7 @@ Practical usage patterns and configuration for fapilog.
 :caption: User Guide
 
 configuration
+presets
 execution-modes
 builder-configuration
 environment-variables

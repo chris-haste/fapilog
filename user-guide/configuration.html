@@ -25,7 +25,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Execution Modes" href="execution-modes.html" />
+    <link rel="next" title="Configuration Presets" href="presets.html" />
     <link rel="prev" title="User Guide" href="index.html" />
  
 
@@ -78,6 +78,7 @@
 </li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">User Guide</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="presets.html">Configuration Presets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="execution-modes.html">Execution Modes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="builder-configuration.html">Configuring Fapilog with the Builder API</a></li>
 <li class="toctree-l2"><a class="reference internal" href="environment-variables.html">Environment Variable Configuration</a></li>
@@ -290,13 +291,77 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span><span class="p">,</span> <span class="n">get_async_logger</span>
 
 <span class="c1"># Choose the preset that matches your use case</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;dev&quot;</span><span class="p">)</span>         <span class="c1"># Local development</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>  <span class="c1"># Production deployment</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;serverless&quot;</span><span class="p">)</span>  <span class="c1"># Lambda, Cloud Run, Azure Functions</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;dev&quot;</span><span class="p">)</span>                <span class="c1"># Local development</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>         <span class="c1"># Durable production (never drops logs)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production-latency&quot;</span><span class="p">)</span> <span class="c1"># Low-latency production (prioritizes speed)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;serverless&quot;</span><span class="p">)</span>         <span class="c1"># Lambda, Cloud Run, Azure Functions</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>  <span class="c1"># FastAPI apps</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;minimal&quot;</span><span class="p">)</span>     <span class="c1"># Backwards compatible default</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;minimal&quot;</span><span class="p">)</span>            <span class="c1"># Backwards compatible default</span>
 </pre></div>
 </div>
+<p><strong>See <a class="reference internal" href="presets.html"><span class="std std-doc">Presets Guide</span></a></strong> for complete documentation including:</p>
+<ul class="simple">
+<li><p>Decision matrix for choosing the right preset</p></li>
+<li><p>Detailed comparison of <code class="docutils literal notranslate"><span class="pre">production</span></code> vs <code class="docutils literal notranslate"><span class="pre">production-latency</span></code></p></li>
+<li><p>Full settings tables and customization examples</p></li>
+</ul>
+<section id="quick-comparison">
+<h3>Quick Comparison<a class="headerlink" href="#quick-comparison" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Preset</p></th>
+<th class="head"><p>Drops Logs?</p></th>
+<th class="head"><p>File Output</p></th>
+<th class="head"><p>Redaction</p></th>
+<th class="head"><p>Best For</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dev</span></code></p></td>
+<td><p>No</p></td>
+<td><p>No</p></td>
+<td><p>No</p></td>
+<td><p>Local development</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">production</span></code></p></td>
+<td><p>Never</p></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>Audit trails, compliance</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">production-latency</span></code></p></td>
+<td><p>If needed</p></td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+<td><p>High-throughput APIs</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
+<td><p>If needed</p></td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+<td><p>FastAPI applications</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
+<td><p>If needed</p></td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+<td><p>Lambda/Cloud Functions</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
+<td><p>Never</p></td>
+<td><p>Yes</p></td>
+<td><p>Yes (HIPAA+PCI)</p></td>
+<td><p>Regulated environments</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
+<td><p>Default</p></td>
+<td><p>No</p></td>
+<td><p>No</p></td>
+<td><p>Migration, explicit defaults</p></td>
+</tr>
+</tbody>
+</table>
+</section>
 <section id="fastapi-one-liner">
 <h3>FastAPI one-liner<a class="headerlink" href="#fastapi-one-liner" title="Link to this heading"></a></h3>
 <p>Use the presets with <code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code> for FastAPI apps:</p>
@@ -327,125 +392,6 @@
 </div>
 <p>Set the lifespan before the application starts.</p>
 </section>
-<section id="preset-comparison">
-<h3>Preset Comparison<a class="headerlink" href="#preset-comparison" title="Link to this heading"></a></h3>
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Preset</p></th>
-<th class="head"><p>Log Level</p></th>
-<th class="head"><p>Sinks</p></th>
-<th class="head"><p>File Rotation</p></th>
-<th class="head"><p>Redaction</p></th>
-<th class="head"><p>Enrichers</p></th>
-<th class="head"><p>Batch Size</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dev</span></code></p></td>
-<td><p>DEBUG</p></td>
-<td><p>stdout_pretty</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-<td><p>runtime_info, context_vars</p></td>
-<td><p>1 (immediate)</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">production</span></code></p></td>
-<td><p>INFO</p></td>
-<td><p>stdout_json + file</p></td>
-<td><p>50MB × 10 files</p></td>
-<td><p>Yes (CREDENTIALS)</p></td>
-<td><p>runtime_info, context_vars</p></td>
-<td><p>100</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
-<td><p>INFO</p></td>
-<td><p>stdout_json + file</p></td>
-<td><p>50MB × 10 files</p></td>
-<td><p>Yes (HIPAA + PCI + CREDENTIALS)</p></td>
-<td><p>runtime_info, context_vars</p></td>
-<td><p>100</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
-<td><p>INFO</p></td>
-<td><p>stdout_json</p></td>
-<td><p>No</p></td>
-<td><p>Yes (CREDENTIALS)</p></td>
-<td><p>runtime_info, context_vars</p></td>
-<td><p>25</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
-<td><p>INFO</p></td>
-<td><p>stdout_json</p></td>
-<td><p>No</p></td>
-<td><p>Yes (CREDENTIALS)</p></td>
-<td><p>context_vars only</p></td>
-<td><p>50</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
-<td><p>INFO</p></td>
-<td><p>stdout_json</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-<td><p>runtime_info, context_vars</p></td>
-<td><p>256 (default)</p></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="preset-details">
-<h3>Preset Details<a class="headerlink" href="#preset-details" title="Link to this heading"></a></h3>
-<p><strong><code class="docutils literal notranslate"><span class="pre">dev</span></code></strong> - Local development with maximum visibility:</p>
-<ul class="simple">
-<li><p>DEBUG level shows all messages</p></li>
-<li><p>Immediate flushing (batch_size=1) for real-time debugging</p></li>
-<li><p>Both <code class="docutils literal notranslate"><span class="pre">runtime_info</span></code> and <code class="docutils literal notranslate"><span class="pre">context_vars</span></code> enrichers enabled</p></li>
-<li><p>Internal diagnostics enabled</p></li>
-<li><p>Pretty console output in terminals</p></li>
-<li><p>No redaction (safe for local secrets)</p></li>
-</ul>
-<p><strong><code class="docutils literal notranslate"><span class="pre">production</span></code></strong> - Production deployments with safety features:</p>
-<ul class="simple">
-<li><p>File rotation: <code class="docutils literal notranslate"><span class="pre">./logs/fapilog-*.log</span></code>, 50MB max, 10 files retained, gzip compressed</p></li>
-<li><p>Both <code class="docutils literal notranslate"><span class="pre">runtime_info</span></code> and <code class="docutils literal notranslate"><span class="pre">context_vars</span></code> enrichers for complete diagnostic data</p></li>
-<li><p>Automatic redaction of: <code class="docutils literal notranslate"><span class="pre">password</span></code>, <code class="docutils literal notranslate"><span class="pre">api_key</span></code>, <code class="docutils literal notranslate"><span class="pre">token</span></code>, <code class="docutils literal notranslate"><span class="pre">secret</span></code>, <code class="docutils literal notranslate"><span class="pre">authorization</span></code>, <code class="docutils literal notranslate"><span class="pre">api_secret</span></code>, <code class="docutils literal notranslate"><span class="pre">private_key</span></code>, <code class="docutils literal notranslate"><span class="pre">ssn</span></code>, <code class="docutils literal notranslate"><span class="pre">credit_card</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">drop_on_full=False</span></code> ensures no log loss under pressure</p></li>
-<li><p>Postgres sink: <code class="docutils literal notranslate"><span class="pre">create_table=False</span></code> (requires explicit table provisioning via migrations)</p></li>
-</ul>
-<p><strong><code class="docutils literal notranslate"><span class="pre">serverless</span></code></strong> - Optimized for AWS Lambda, Google Cloud Run, Azure Functions:</p>
-<ul class="simple">
-<li><p>Stdout-only output (no file sinks) — cloud providers capture stdout automatically</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">drop_on_full=True</span></code> to avoid blocking in time-constrained environments</p></li>
-<li><p>Smaller batch size (25) for quick flushing before function timeout</p></li>
-<li><p>Production-grade redaction enabled</p></li>
-<li><p>Both <code class="docutils literal notranslate"><span class="pre">runtime_info</span></code> and <code class="docutils literal notranslate"><span class="pre">context_vars</span></code> enrichers for diagnostics</p></li>
-</ul>
-<p><strong><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></strong> - Optimized for async FastAPI applications:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">context_vars</span></code> enricher only (excludes <code class="docutils literal notranslate"><span class="pre">runtime_info</span></code> for reduced overhead in high-throughput scenarios)</p></li>
-<li><p>Container-friendly stdout JSON output</p></li>
-<li><p>Balanced batch size for latency/throughput tradeoff</p></li>
-<li><p>Automatic redaction of CREDENTIALS preset fields</p></li>
-</ul>
-<p><strong><code class="docutils literal notranslate"><span class="pre">hardened</span></code></strong> - Maximum security for regulated environments (HIPAA, PCI-DSS, financial services):</p>
-<ul class="simple">
-<li><p>All strict security settings enabled:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">redaction_fail_mode=&quot;closed&quot;</span></code> - drops events if redaction fails (fail-closed)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">strict_envelope_mode=True</span></code> - rejects malformed envelopes</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">fallback_redact_mode=&quot;inherit&quot;</span></code> - full redaction on fallback output</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">drop_on_full=False</span></code> - never drops logs under queue pressure</p></li>
-</ul>
-</li>
-<li><p>Comprehensive redaction coverage from HIPAA_PHI, PCI_DSS, and CREDENTIALS presets</p></li>
-<li><p>File rotation: <code class="docutils literal notranslate"><span class="pre">./logs/fapilog-*.log</span></code>, 50MB max, 10 files retained, gzip compressed</p></li>
-<li><p>Both <code class="docutils literal notranslate"><span class="pre">runtime_info</span></code> and <code class="docutils literal notranslate"><span class="pre">context_vars</span></code> enrichers for complete diagnostics</p></li>
-<li><p><strong>Trade-off</strong>: May drop logs if redactors fail or envelopes are malformed (security over availability)</p></li>
-</ul>
-<p><strong><code class="docutils literal notranslate"><span class="pre">minimal</span></code></strong> - Matches <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> with no arguments:</p>
-<ul class="simple">
-<li><p>Use for explicit preset selection while maintaining backwards compatibility</p></li>
-</ul>
-</section>
 <section id="preset-vs-settings">
 <h3>Preset vs Settings<a class="headerlink" href="#preset-vs-settings" title="Link to this heading"></a></h3>
 <p>Presets and <code class="docutils literal notranslate"><span class="pre">Settings</span></code> are mutually exclusive. Choose one approach:</p>
@@ -459,7 +405,7 @@
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="n">Settings</span><span class="p">(</span><span class="o">...</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>If you need customization beyond what presets offer, use the <code class="docutils literal notranslate"><span class="pre">Settings</span></code> class directly.</p>
+<p>If you need customization beyond what presets offer, use the <code class="docutils literal notranslate"><span class="pre">Settings</span></code> class directly or customize via the Builder API.</p>
 </section>
 </section>
 <section id="output-format">
@@ -774,7 +720,7 @@ interval settings and represent fixed intervals (not wall-clock boundaries).</p>
 <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer" style="position: relative;">
         <a href="index.html" class="btn btn-neutral float-left" title="User Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="execution-modes.html" class="btn btn-neutral float-right" title="Execution Modes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="presets.html" class="btn btn-neutral float-right" title="Configuration Presets" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
       <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 50%; margin-top: -0.5em;">
         <a href="https://fapilog.dev">www.fapilog.dev</a>
       </div>

@@ -49,12 +49,30 @@ Presets provide pre-configured settings for common use cases. Use a preset when 
 from fapilog import get_logger, get_async_logger
 
 # Choose the preset that matches your use case
-logger = get_logger(preset="dev")         # Local development
-logger = get_logger(preset="production")  # Production deployment
-logger = get_logger(preset="serverless")  # Lambda, Cloud Run, Azure Functions
+logger = get_logger(preset="dev")                # Local development
+logger = get_logger(preset="production")         # Durable production (never drops logs)
+logger = get_logger(preset="production-latency") # Low-latency production (prioritizes speed)
+logger = get_logger(preset="serverless")         # Lambda, Cloud Run, Azure Functions
 logger = await get_async_logger(preset="fastapi")  # FastAPI apps
-logger = get_logger(preset="minimal")     # Backwards compatible default
+logger = get_logger(preset="minimal")            # Backwards compatible default
 ```
+
+**See [Presets Guide](presets.md)** for complete documentation including:
+- Decision matrix for choosing the right preset
+- Detailed comparison of `production` vs `production-latency`
+- Full settings tables and customization examples
+
+### Quick Comparison
+
+| Preset | Drops Logs? | File Output | Redaction | Best For |
+|--------|-------------|-------------|-----------|----------|
+| `dev` | No | No | No | Local development |
+| `production` | Never | Yes | Yes | Audit trails, compliance |
+| `production-latency` | If needed | No | Yes | High-throughput APIs |
+| `fastapi` | If needed | No | Yes | FastAPI applications |
+| `serverless` | If needed | No | Yes | Lambda/Cloud Functions |
+| `hardened` | Never | Yes | Yes (HIPAA+PCI) | Regulated environments |
+| `minimal` | Default | No | No | Migration, explicit defaults |
 
 ### FastAPI one-liner
 
@@ -92,61 +110,6 @@ app.router.lifespan_context = setup_logging(preset="fastapi")
 
 Set the lifespan before the application starts.
 
-### Preset Comparison
-
-| Preset | Log Level | Sinks | File Rotation | Redaction | Enrichers | Batch Size |
-|--------|-----------|-------|---------------|-----------|-----------|------------|
-| `dev` | DEBUG | stdout_pretty | No | No | runtime_info, context_vars | 1 (immediate) |
-| `production` | INFO | stdout_json + file | 50MB × 10 files | Yes (CREDENTIALS) | runtime_info, context_vars | 100 |
-| `hardened` | INFO | stdout_json + file | 50MB × 10 files | Yes (HIPAA + PCI + CREDENTIALS) | runtime_info, context_vars | 100 |
-| `serverless` | INFO | stdout_json | No | Yes (CREDENTIALS) | runtime_info, context_vars | 25 |
-| `fastapi` | INFO | stdout_json | No | Yes (CREDENTIALS) | context_vars only | 50 |
-| `minimal` | INFO | stdout_json | No | No | runtime_info, context_vars | 256 (default) |
-
-### Preset Details
-
-**`dev`** - Local development with maximum visibility:
-- DEBUG level shows all messages
-- Immediate flushing (batch_size=1) for real-time debugging
-- Both `runtime_info` and `context_vars` enrichers enabled
-- Internal diagnostics enabled
-- Pretty console output in terminals
-- No redaction (safe for local secrets)
-
-**`production`** - Production deployments with safety features:
-- File rotation: `./logs/fapilog-*.log`, 50MB max, 10 files retained, gzip compressed
-- Both `runtime_info` and `context_vars` enrichers for complete diagnostic data
-- Automatic redaction of: `password`, `api_key`, `token`, `secret`, `authorization`, `api_secret`, `private_key`, `ssn`, `credit_card`
-- `drop_on_full=False` ensures no log loss under pressure
-- Postgres sink: `create_table=False` (requires explicit table provisioning via migrations)
-
-**`serverless`** - Optimized for AWS Lambda, Google Cloud Run, Azure Functions:
-- Stdout-only output (no file sinks) — cloud providers capture stdout automatically
-- `drop_on_full=True` to avoid blocking in time-constrained environments
-- Smaller batch size (25) for quick flushing before function timeout
-- Production-grade redaction enabled
-- Both `runtime_info` and `context_vars` enrichers for diagnostics
-
-**`fastapi`** - Optimized for async FastAPI applications:
-- `context_vars` enricher only (excludes `runtime_info` for reduced overhead in high-throughput scenarios)
-- Container-friendly stdout JSON output
-- Balanced batch size for latency/throughput tradeoff
-- Automatic redaction of CREDENTIALS preset fields
-
-**`hardened`** - Maximum security for regulated environments (HIPAA, PCI-DSS, financial services):
-- All strict security settings enabled:
-  - `redaction_fail_mode="closed"` - drops events if redaction fails (fail-closed)
-  - `strict_envelope_mode=True` - rejects malformed envelopes
-  - `fallback_redact_mode="inherit"` - full redaction on fallback output
-  - `drop_on_full=False` - never drops logs under queue pressure
-- Comprehensive redaction coverage from HIPAA_PHI, PCI_DSS, and CREDENTIALS presets
-- File rotation: `./logs/fapilog-*.log`, 50MB max, 10 files retained, gzip compressed
-- Both `runtime_info` and `context_vars` enrichers for complete diagnostics
-- **Trade-off**: May drop logs if redactors fail or envelopes are malformed (security over availability)
-
-**`minimal`** - Matches `get_logger()` with no arguments:
-- Use for explicit preset selection while maintaining backwards compatibility
-
 ### Preset vs Settings
 
 Presets and `Settings` are mutually exclusive. Choose one approach:
@@ -162,7 +125,7 @@ logger = get_logger(settings=Settings(...))
 logger = get_logger(preset="production", settings=Settings(...))
 ```
 
-If you need customization beyond what presets offer, use the `Settings` class directly.
+If you need customization beyond what presets offer, use the `Settings` class directly or customize via the Builder API.
 
 ## Output format
 

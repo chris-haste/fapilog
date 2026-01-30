@@ -78,6 +78,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../user-guide/index.html">User Guide</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/presets.html">Configuration Presets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/execution-modes.html">Execution Modes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/builder-configuration.html">Configuring Fapilog with the Builder API</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/environment-variables.html">Environment Variable Configuration</a></li>
@@ -310,7 +311,7 @@
 <p>Apply a preset configuration. Preset is applied first, then subsequent methods override specific values.</p>
 <p><strong>Parameters:</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">preset</span></code> (str): Preset name - <code class="docutils literal notranslate"><span class="pre">&quot;dev&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;production&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;fastapi&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;minimal&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">preset</span></code> (str): Preset name - <code class="docutils literal notranslate"><span class="pre">&quot;dev&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;production&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;production-latency&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;fastapi&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;serverless&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;hardened&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;minimal&quot;</span></code></p></li>
 </ul>
 <p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
 <p><strong>Raises:</strong></p>
@@ -347,28 +348,35 @@
 <td><p>100</p></td>
 <td><p>2</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">production-latency</span></code></p></td>
+<td><p>INFO</p></td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+<td><p>100</p></td>
+<td><p>2</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
 <td><p>INFO</p></td>
 <td><p>No</p></td>
 <td><p>Yes</p></td>
 <td><p>50</p></td>
 <td><p>2</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
 <td><p>INFO</p></td>
 <td><p>No</p></td>
 <td><p>Yes</p></td>
 <td><p>25</p></td>
 <td><p>2</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
 <td><p>INFO</p></td>
 <td><p>Yes (50MB rotation)</p></td>
 <td><p>Yes</p></td>
 <td><p>100</p></td>
 <td><p>2</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
 <td><p>INFO</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
@@ -379,6 +387,7 @@
 </table>
 <blockquote>
 <div><p><strong>Performance note:</strong> Production-oriented presets use 2 workers for ~30x better throughput. See <a class="reference internal" href="../user-guide/performance-tuning.html"><span class="std std-doc">Performance Tuning</span></a> for details.</p>
+<p><strong>Choosing a preset:</strong> See <a class="reference internal" href="../user-guide/presets.html"><span class="std std-doc">Presets Guide</span></a> for a decision matrix and detailed comparison of <code class="docutils literal notranslate"><span class="pre">production</span></code> vs <code class="docutils literal notranslate"><span class="pre">production-latency</span></code>.</p>
 </div></blockquote>
 </section>
 <hr class="docutils" />
