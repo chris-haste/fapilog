@@ -72,8 +72,8 @@ class TestContextFieldSemantics:
         envelope = build_envelope(level="INFO", message="Test")
         assert isinstance(envelope["context"], dict)
 
-    def test_correlation_id_in_context(self) -> None:
-        """correlation_id should be inside context, not top-level."""
+    def test_correlation_id_in_context_when_provided(self) -> None:
+        """correlation_id should be inside context when explicitly provided."""
         envelope = build_envelope(
             level="INFO",
             message="Test",
@@ -85,16 +85,27 @@ class TestContextFieldSemantics:
         # NOT at top level
         assert "correlation_id" not in envelope
 
-    def test_correlation_id_auto_generated_when_not_provided(self) -> None:
-        """correlation_id should be auto-generated UUID when not provided."""
+    def test_correlation_id_absent_when_not_provided(self) -> None:
+        """correlation_id should NOT be present when not explicitly set (Story 1.34).
+
+        The new semantics: message_id is always generated (unique per entry),
+        correlation_id only appears when explicitly set via context variable.
+        """
         envelope = build_envelope(level="INFO", message="Test")
 
-        corr_id = envelope["context"]["correlation_id"]
-        assert isinstance(corr_id, str), "correlation_id must be a string"
+        # correlation_id NOT present when not explicitly set
+        assert "correlation_id" not in envelope["context"]
+
+    def test_message_id_always_present(self) -> None:
+        """message_id should always be present as a valid UUID (Story 1.34)."""
+        envelope = build_envelope(level="INFO", message="Test")
+
+        message_id = envelope["context"]["message_id"]
+        assert isinstance(message_id, str), "message_id must be a string"
         # UUID format check (8-4-4-4-12)
         assert re.match(
             r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-            corr_id,
+            message_id,
         )
 
     def test_trace_context_fields_from_bound_context(self) -> None:

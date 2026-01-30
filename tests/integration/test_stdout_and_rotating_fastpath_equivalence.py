@@ -73,9 +73,10 @@ async def test_stdout_fastpath_on_off_equivalence(
             log = cp.deepcopy(obj["log"])
             log.pop("timestamp", None)
             log.pop("correlation_id", None)  # v1.0 location
-            # v1.1: correlation_id is in context
+            # v1.1: correlation_id and message_id are in context
             if "context" in log and isinstance(log["context"], dict):
                 log["context"].pop("correlation_id", None)
+                log["context"].pop("message_id", None)  # Story 1.34: unique per call
             return {"schema_version": obj["schema_version"], "log": log}
         else:
             copy = dict(obj)
@@ -132,9 +133,10 @@ async def test_rotating_file_fastpath_on_off_equivalence(
             log = cp.deepcopy(obj["log"])
             log.pop("timestamp", None)
             log.pop("correlation_id", None)  # v1.0 location
-            # v1.1: correlation_id is in context
+            # v1.1: correlation_id and message_id are in context
             if "context" in log and isinstance(log["context"], dict):
                 log["context"].pop("correlation_id", None)
+                log["context"].pop("message_id", None)  # Story 1.34: unique per call
             return {"schema_version": obj["schema_version"], "log": log}
         else:
             copy = dict(obj)

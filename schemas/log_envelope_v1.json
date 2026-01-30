@@ -35,9 +35,11 @@
         },
         "context": {
           "type": "object",
-          "description": "Request/trace context - identifies WHO and WHAT request",
+          "description": "Request/trace context - identifies WHO and WHAT request. message_id uniquely identifies each log entry; correlation_id is shared across related entries when set via context.",
+          "required": ["message_id"],
           "properties": {
-            "correlation_id": { "type": "string" },
+            "message_id": { "type": "string", "description": "Unique identifier for each log entry (always present)" },
+            "correlation_id": { "type": "string", "description": "Shared identifier across related log entries (only when set via context)" },
             "request_id": { "type": "string" },
             "user_id": { "type": "string" },
             "tenant_id": { "type": "string" },

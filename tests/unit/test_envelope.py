@@ -230,10 +230,10 @@ class TestBuildEnvelopeExceptions:
 
 
 class TestBuildEnvelopeCorrelation:
-    """Test correlation ID handling in envelope."""
+    """Test correlation ID handling in envelope (Story 1.34 semantics)."""
 
-    def test_correlation_id_in_context(self) -> None:
-        """Correlation ID is in context when provided."""
+    def test_correlation_id_in_context_when_provided(self) -> None:
+        """Correlation ID is in context when explicitly provided."""
         envelope = build_envelope(
             level="INFO",
             message="test",
@@ -242,18 +242,22 @@ class TestBuildEnvelopeCorrelation:
 
         assert envelope["context"]["correlation_id"] == "corr-789"
 
-    def test_correlation_id_generated_when_missing(self) -> None:
-        """Correlation ID is auto-generated when not provided."""
+    def test_correlation_id_absent_when_not_provided(self) -> None:
+        """Correlation ID is NOT present when not explicitly provided (Story 1.34).
+
+        The old behavior auto-generated a UUID for correlation_id. The new behavior
+        only includes correlation_id when explicitly set via context variable.
+        message_id is now used for unique per-message identification.
+        """
         envelope = build_envelope(
             level="INFO",
             message="test",
         )
 
-        corr_id = envelope["context"]["correlation_id"]
-        assert isinstance(corr_id, str), "correlation_id must be a string"
-        # Should be a valid UUID string
-        assert len(corr_id) == 36
-        assert corr_id.count("-") == 4
+        # correlation_id should NOT be present when not explicitly set
+        assert "correlation_id" not in envelope["context"]
+        # message_id should always be present
+        assert "message_id" in envelope["context"]
 
 
 class TestBuildEnvelopeContextRouting:
