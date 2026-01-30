@@ -1238,6 +1238,30 @@ class SyncLoggerFacade(_LoggerMixin):
         """
         self._enqueue("ERROR", message, exc_info=True, **metadata)
 
+    def critical(
+        self,
+        message: str,
+        *,
+        exc: BaseException | None = None,
+        exc_info: Any | None = None,
+        **metadata: Any,
+    ) -> None:
+        """Log a message at CRITICAL level.
+
+        CRITICAL indicates a severe error that may cause the application to
+        abort. Use for unrecoverable failures requiring immediate attention.
+
+        Args:
+            message: The log message.
+            exc: Exception instance to include in the log event.
+            exc_info: Exception info tuple or True to capture current exception.
+            **metadata: Additional fields to include in the log event.
+
+        Example:
+            logger.critical("Database connection lost", db_host="prod-db")
+        """
+        self._enqueue("CRITICAL", message, exc=exc, exc_info=exc_info, **metadata)
+
     # Context binding API
     def bind(self, **context: Any) -> SyncLoggerFacade:
         """Return a child logger with additional bound context for
@@ -1486,6 +1510,30 @@ class AsyncLoggerFacade(_LoggerMixin):
         Equivalent to error(message, exc_info=True, **metadata) inside except.
         """
         await self._enqueue("ERROR", message, exc_info=True, **metadata)
+
+    async def critical(
+        self,
+        message: str,
+        *,
+        exc: BaseException | None = None,
+        exc_info: Any | None = None,
+        **metadata: Any,
+    ) -> None:
+        """Log a message at CRITICAL level.
+
+        CRITICAL indicates a severe error that may cause the application to
+        abort. Use for unrecoverable failures requiring immediate attention.
+
+        Args:
+            message: The log message.
+            exc: Exception instance to include in the log event.
+            exc_info: Exception info tuple or True to capture current exception.
+            **metadata: Additional fields to include in the log event.
+
+        Example:
+            await logger.critical("Database connection lost", db_host="prod-db")
+        """
+        await self._enqueue("CRITICAL", message, exc=exc, exc_info=exc_info, **metadata)
 
     # Context binding API
     def bind(self, **context: Any) -> AsyncLoggerFacade:

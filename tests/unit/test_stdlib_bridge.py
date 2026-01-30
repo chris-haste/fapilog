@@ -71,7 +71,8 @@ def test_emit_skips_fapilog_prefix() -> None:
     assert called is False
 
 
-def test_emit_critical_passes_exc_info_and_stack_info() -> None:
+def test_stdlib_critical_calls_fapilog_critical() -> None:
+    """AC4: Stdlib CRITICAL calls logger.critical() directly, not error() with extras."""
     captured: dict[str, object] = {}
 
     class CaptureLogger:
@@ -85,6 +86,12 @@ def test_emit_critical_passes_exc_info_and_stack_info() -> None:
             _ = message
 
         def error(self, message: str, **extras: object) -> None:
+            captured["method"] = "error"
+            captured["message"] = message
+            captured["extras"] = extras
+
+        def critical(self, message: str, **extras: object) -> None:
+            captured["method"] = "critical"
             captured["message"] = message
             captured["extras"] = extras
 
@@ -99,7 +106,7 @@ def test_emit_critical_passes_exc_info_and_stack_info() -> None:
         level=logging.CRITICAL,
         pathname=__file__,
         lineno=10,
-        msg="critical",
+        msg="critical message",
         args=(),
         exc_info=exc_info,
     )
@@ -108,10 +115,13 @@ def test_emit_critical_passes_exc_info_and_stack_info() -> None:
 
     handler.emit(record)
 
+    # AC4: Bridge should call critical() directly
+    assert captured["method"] == "critical"
+    assert captured["message"] == "critical message"
     extras = captured["extras"]
-    assert captured["message"] == "critical"
     assert isinstance(extras, dict)
-    assert extras["critical"] is True
+    # No longer adds extras["critical"] = True since we call critical() directly
+    assert "critical" not in extras
     assert extras["stack_info"] == "stack"
     assert extras["custom_field"] == "custom"
     assert extras["exc_info"] == exc_info
