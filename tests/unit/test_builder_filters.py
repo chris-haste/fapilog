@@ -264,7 +264,7 @@ class TestWithFirstOccurrence:
         builder = LoggerBuilder()
         builder.with_first_occurrence(
             window_seconds=60.0,
-            max_entries=5000,
+            max_keys=5000,
             key_fields=["message", "level"],
         )
 
@@ -273,7 +273,7 @@ class TestWithFirstOccurrence:
 
         assert "first_occurrence" in filters
         assert filter_config["window_seconds"] == 60.0
-        assert filter_config["max_entries"] == 5000
+        assert filter_config["max_keys"] == 5000
         assert filter_config["key_fields"] == ["message", "level"]
 
     def test_with_first_occurrence_returns_self(self) -> None:
@@ -290,7 +290,7 @@ class TestWithFirstOccurrence:
         filter_config = builder._config["filter_config"]["first_occurrence"]
 
         assert filter_config["window_seconds"] == 300.0
-        assert filter_config["max_entries"] == 10000
+        assert filter_config["max_keys"] == 10000
         assert "key_fields" not in filter_config
 
     def test_with_first_occurrence_without_key_fields_omits_key(self) -> None:
@@ -318,11 +318,50 @@ class TestWithFirstOccurrence:
         """with_first_occurrence() produces valid logger configuration."""
         logger = (
             LoggerBuilder()
-            .with_first_occurrence(window_seconds=60.0, max_entries=5000)
+            .with_first_occurrence(window_seconds=60.0, max_keys=5000)
             .add_stdout()
             .build()
         )
         assert callable(logger.info)
+
+    def test_with_first_occurrence_uses_max_keys(self) -> None:
+        """with_first_occurrence() uses max_keys (not max_entries) in config."""
+        builder = LoggerBuilder()
+        builder.with_first_occurrence(window_seconds=60.0, max_keys=500)
+
+        filter_config = builder._config["filter_config"]["first_occurrence"]
+
+        assert "max_keys" in filter_config
+        assert filter_config["max_keys"] == 500
+        assert "max_entries" not in filter_config
+
+    def test_with_first_occurrence_max_entries_deprecated(self) -> None:
+        """with_first_occurrence() emits deprecation warning for max_entries."""
+        import warnings
+
+        builder = LoggerBuilder()
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            builder.with_first_occurrence(window_seconds=60.0, max_entries=500)
+
+            assert len(w) == 1
+            assert issubclass(w[0].category, DeprecationWarning)
+            assert "max_entries" in str(w[0].message)
+            assert "max_keys" in str(w[0].message)
+
+    def test_with_first_occurrence_max_entries_maps_to_max_keys(self) -> None:
+        """with_first_occurrence() maps deprecated max_entries to max_keys."""
+        import warnings
+
+        builder = LoggerBuilder()
+        with warnings.catch_warnings(record=True):
+            warnings.simplefilter("always")
+            builder.with_first_occurrence(window_seconds=60.0, max_entries=500)
+
+        filter_config = builder._config["filter_config"]["first_occurrence"]
+
+        assert filter_config.get("max_keys") == 500
+        assert "max_entries" not in filter_config
 
 
 class TestFiltersAndProcessorsChainable:
