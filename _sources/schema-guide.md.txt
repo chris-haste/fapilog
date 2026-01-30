@@ -789,9 +789,14 @@
       "properties": {
         "context": {
           "additionalProperties": true,
-          "description": "Request/trace context - identifies WHO and WHAT request",
+          "description": "Request/trace context - identifies WHO and WHAT request. message_id uniquely identifies each log entry; correlation_id is shared across related entries when set via context.",
           "properties": {
             "correlation_id": {
+              "description": "Shared identifier across related log entries (only when set via context)",
+              "type": "string"
+            },
+            "message_id": {
+              "description": "Unique identifier for each log entry (always present)",
               "type": "string"
             },
             "request_id": {
@@ -810,6 +815,9 @@
               "type": "string"
             }
           },
+          "required": [
+            "message_id"
+          ],
           "type": "object"
         },
         "data": {
