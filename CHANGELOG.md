@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## [0.10.2] - 2026-01-30
+
+### Fixed
+
+- **Core - Wait for all workers to complete during drain:** Fix race condition where drain returned before all workers finished. Workers sharing single drained_event caused first-to-finish to win. Use asyncio.gather() to wait for all worker tasks instead.
+
 ## [0.10.1] - 2026-01-29
 
 ### Fixed
