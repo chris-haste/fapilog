@@ -228,6 +228,22 @@
   <section class="tex2jax_ignore mathjax_ignore" id="redactors">
 <h1>Redactors<a class="headerlink" href="#redactors" title="Link to this heading"></a></h1>
 <p>Plugins that mask or remove sensitive data.</p>
+<p>!!! warning “PII in Message Strings Is Not Redacted”</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Redactors only process **structured fields** in the log envelope.
+PII embedded in the message string will pass through unchanged.
+
+```python
+# UNSAFE - email will NOT be redacted
+logger.info(f&quot;User {email} logged in&quot;)
+
+# SAFE - email field will be redacted
+logger.info(&quot;User logged in&quot;, email=email)
+```
+
+See [PII Showing Despite Redaction](../../troubleshooting/pii-showing-despite-redaction.md)
+for more details.
+</pre></div>
+</div>
 <section id="contract">
 <h2>Contract<a class="headerlink" href="#contract" title="Link to this heading"></a></h2>
 <p>Implement <code class="docutils literal notranslate"><span class="pre">BaseRedactor.redact(entry:</span> <span class="pre">dict)</span> <span class="pre">-&gt;</span> <span class="pre">dict</span></code> (async). Return the updated entry; contain errors so the pipeline continues.</p>

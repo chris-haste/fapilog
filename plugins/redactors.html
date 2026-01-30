@@ -227,6 +227,24 @@
   <section class="tex2jax_ignore mathjax_ignore" id="redactors">
 <h1>Redactors<a class="headerlink" href="#redactors" title="Link to this heading"></a></h1>
 <p>Redactors transform structured log events to remove or mask sensitive data before serialization and sink emission. The Redactors stage executes after Enrichers and before Sinks, preserving the async-first, non-blocking guarantees of the runtime pipeline.</p>
+<p>!!! warning “PII in Message Strings Is Not Redacted”</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Redactors only process **structured fields** in the log envelope.
+PII embedded in the message string will pass through unchanged.
+
+```python
+# UNSAFE - email will NOT be redacted
+logger.info(f&quot;User {email} logged in&quot;)
+logger.info(&quot;User &quot; + email + &quot; logged in&quot;)
+
+# SAFE - email field will be redacted
+logger.info(&quot;User logged in&quot;, email=email)
+logger.info(&quot;User logged in&quot;, user={&quot;email&quot;: email})
+```
+
+See [PII Showing Despite Redaction](../troubleshooting/pii-showing-despite-redaction.md)
+for more details.
+</pre></div>
+</div>
 <section id="stage-placement-and-lifecycle">
 <h2>Stage Placement and Lifecycle<a class="headerlink" href="#stage-placement-and-lifecycle" title="Link to this heading"></a></h2>
 <ul class="simple">

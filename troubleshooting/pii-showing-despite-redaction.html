@@ -233,8 +233,24 @@
 <li><p>URL credentials (<code class="docutils literal notranslate"><span class="pre">user:pass&#64;</span></code>) still visible</p></li>
 </ul>
 </section>
-<section id="causes">
-<h2>Causes<a class="headerlink" href="#causes" title="Link to this heading"></a></h2>
+<section id="most-common-cause-pii-in-message-strings">
+<h2>Most Common Cause: PII in Message Strings<a class="headerlink" href="#most-common-cause-pii-in-message-strings" title="Link to this heading"></a></h2>
+<p>Redactors only process <strong>structured fields</strong> in the log envelope. PII embedded directly in the message string bypasses redaction entirely:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># UNSAFE - these will NOT be redacted</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;User </span><span class="si">{</span><span class="n">email</span><span class="si">}</span><span class="s2"> logged in&quot;</span><span class="p">)</span>           <span class="c1"># f-string</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User &quot;</span> <span class="o">+</span> <span class="n">email</span> <span class="o">+</span> <span class="s2">&quot; logged in&quot;</span><span class="p">)</span>      <span class="c1"># concatenation</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User </span><span class="si">%s</span><span class="s2"> logged in&quot;</span><span class="p">,</span> <span class="n">email</span><span class="p">)</span>          <span class="c1"># %-formatting</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User </span><span class="si">{}</span><span class="s2"> logged in&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">email</span><span class="p">))</span>   <span class="c1"># .format()</span>
+
+<span class="c1"># SAFE - structured fields ARE redacted</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User logged in&quot;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="n">email</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User logged in&quot;</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="n">email</span><span class="p">})</span>
+</pre></div>
+</div>
+<p><strong>Fix:</strong> Always pass sensitive data as structured keyword arguments, not in the message string.</p>
+</section>
+<section id="other-causes">
+<h2>Other Causes<a class="headerlink" href="#other-causes" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Redactors disabled or order overridden</p></li>
 <li><p>Sensitive fields not included in policy</p></li>
