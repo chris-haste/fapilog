@@ -390,8 +390,8 @@ class TestCrossThreadSubmission:
         asyncio.run(logger.stop_and_drain())
 
     def test_timeout_with_future_cancelled(self) -> None:
-        """When fut.result() times out and cancel succeeds, count as dropped."""
-        from concurrent.futures import Future
+        """When fut.result() times out and future was cancelled, count as dropped."""
+        from concurrent.futures import CancelledError, Future
 
         collected: list[dict[str, Any]] = []
         logger = SyncLoggerFacade(
@@ -405,23 +405,22 @@ class TestCrossThreadSubmission:
         )
         logger.start()
 
-        # Mock run_coroutine_threadsafe to return a future that times out and cancels
+        # Mock: first result() raises TimeoutError, retry raises CancelledError
         mock_future = MagicMock(spec=Future)
-        mock_future.result.side_effect = TimeoutError()
-        mock_future.cancelled.return_value = True
-        mock_future.cancel.return_value = True
+        mock_future.result.side_effect = [TimeoutError(), CancelledError()]
 
         with patch("asyncio.run_coroutine_threadsafe", return_value=mock_future):
             logger.info("test-message")
 
-        # The event should be counted as dropped since cancel succeeded
+        # The event should be counted as dropped since future was cancelled
         assert logger._dropped == 1
 
         asyncio.run(logger.stop_and_drain())
 
     def test_timeout_with_future_still_running(self) -> None:
-        """When fut.result() times out but coroutine still running, don't count as dropped."""
+        """When fut.result() times out repeatedly, don't count as dropped."""
         from concurrent.futures import Future
+        from concurrent.futures import TimeoutError as FuturesTimeoutError
 
         collected: list[dict[str, Any]] = []
         logger = SyncLoggerFacade(
@@ -435,12 +434,9 @@ class TestCrossThreadSubmission:
         )
         logger.start()
 
-        # Mock run_coroutine_threadsafe to return a future that times out and is still running
+        # Mock: both result() calls timeout (coroutine still running)
         mock_future = MagicMock(spec=Future)
-        mock_future.result.side_effect = TimeoutError()
-        mock_future.cancelled.return_value = False
-        mock_future.done.return_value = False  # Still running
-        mock_future.cancel.return_value = False
+        mock_future.result.side_effect = [TimeoutError(), FuturesTimeoutError()]
 
         with patch("asyncio.run_coroutine_threadsafe", return_value=mock_future):
             logger.info("test-message")
