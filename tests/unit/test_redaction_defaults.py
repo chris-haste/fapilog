@@ -223,6 +223,7 @@ class TestPresetConsistency:
         expected_presets = {
             "dev",
             "production",
+            "production-latency",
             "fastapi",
             "minimal",
             "serverless",

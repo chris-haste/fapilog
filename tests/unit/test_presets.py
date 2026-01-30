@@ -300,7 +300,16 @@ class TestPresetValidation:
     """Test preset name validation."""
 
     @pytest.mark.parametrize(
-        "name", ["dev", "production", "fastapi", "minimal", "serverless", "hardened"]
+        "name",
+        [
+            "dev",
+            "production",
+            "production-latency",
+            "fastapi",
+            "minimal",
+            "serverless",
+            "hardened",
+        ],
     )
     def test_valid_presets_accepted(self, name: str):
         """All valid preset names are accepted without raising."""
@@ -325,7 +334,7 @@ class TestPresetValidation:
         """Error message includes list of valid presets."""
         with pytest.raises(
             ValueError,
-            match="Valid presets: dev, fastapi, hardened, minimal, production, serverless",
+            match="Valid presets: dev, fastapi, hardened, minimal, production, production-latency, serverless",
         ):
             validate_preset("invalid")
 
@@ -368,7 +377,16 @@ class TestPresetToSettings:
         assert settings.core.drop_on_full is True
 
     @pytest.mark.parametrize(
-        "name", ["dev", "production", "fastapi", "minimal", "serverless", "hardened"]
+        "name",
+        [
+            "dev",
+            "production",
+            "production-latency",
+            "fastapi",
+            "minimal",
+            "serverless",
+            "hardened",
+        ],
     )
     def test_all_presets_create_valid_settings(self, name: str):
         """All presets produce valid Settings objects with core config."""
@@ -380,12 +398,13 @@ class TestPresetToSettings:
 class TestPresetList:
     """Test preset listing."""
 
-    def test_list_presets_returns_all_six(self):
-        """list_presets returns all six preset names."""
+    def test_list_presets_returns_all_seven(self):
+        """list_presets returns all seven preset names."""
         presets = list_presets()
         assert set(presets) == {
             "dev",
             "production",
+            "production-latency",
             "fastapi",
             "minimal",
             "serverless",
@@ -443,6 +462,14 @@ class TestPresetWorkerCount:
         config = get_preset("hardened")
         assert config["core"]["worker_count"] == 2
 
+    def test_production_latency_preset_has_two_workers(self):
+        """Production-latency preset sets worker_count to 2 for throughput.
+
+        Story 10.45 AC2: worker_count == 2 for multi-worker throughput.
+        """
+        config = get_preset("production-latency")
+        assert config["core"]["worker_count"] == 2
+
     def test_dev_preset_has_one_worker(self):
         """Dev preset uses 1 worker for simpler debugging.
 
@@ -459,6 +486,99 @@ class TestPresetWorkerCount:
         config = get_preset("minimal")
         # Minimal preset only sets redactors=[], so worker_count is not present
         assert "worker_count" not in config.get("core", {})
+
+
+class TestProductionLatencyPreset:
+    """Test production-latency preset for low-latency production deployments.
+
+    Story 10.45 AC2: A new `production-latency` preset is available that
+    prioritizes throughput over durability.
+    """
+
+    def test_production_latency_preset_exists(self):
+        """Production-latency preset is available via get_preset."""
+        config = get_preset("production-latency")
+        assert "core" in config
+
+    def test_production_latency_preset_in_list_presets(self):
+        """Production-latency preset appears in list_presets()."""
+        presets = list_presets()
+        assert "production-latency" in presets
+
+    def test_production_latency_preset_has_info_log_level(self):
+        """Production-latency preset sets log level to INFO."""
+        config = get_preset("production-latency")
+        assert config["core"]["log_level"] == "INFO"
+
+    def test_production_latency_preset_enables_drop_on_full(self):
+        """Production-latency preset enables drop_on_full for latency.
+
+        Story 10.45 AC2: Key setting - accept drops for latency.
+        """
+        config = get_preset("production-latency")
+        assert config["core"]["drop_on_full"] is True
+
+    def test_production_latency_preset_has_two_workers(self):
+        """Production-latency preset uses 2 workers for throughput."""
+        config = get_preset("production-latency")
+        assert config["core"]["worker_count"] == 2
+
+    def test_production_latency_preset_has_batch_size_100(self):
+        """Production-latency preset uses batch size >= 50."""
+        config = get_preset("production-latency")
+        assert config["core"]["batch_max_size"] >= 50
+
+    def test_production_latency_preset_uses_stdout_only(self):
+        """Production-latency preset uses stdout_json only, no file sink.
+
+        No file sink for minimal I/O latency.
+        """
+        config = get_preset("production-latency")
+        assert config["core"]["sinks"] == ["stdout_json"]
+
+    def test_production_latency_preset_has_redactors(self):
+        """Production-latency preset has production-grade redaction."""
+        config = get_preset("production-latency")
+        assert "field_mask" in config["core"]["redactors"]
+        assert "regex_mask" in config["core"]["redactors"]
+        assert "url_credentials" in config["core"]["redactors"]
+
+    def test_production_latency_preset_applies_credentials_preset(self):
+        """Production-latency preset applies CREDENTIALS preset."""
+        config = get_preset("production-latency")
+        assert config.get("_apply_credentials_preset") is True
+
+    def test_production_latency_preset_has_enrichers(self):
+        """Production-latency preset enables runtime_info and context_vars."""
+        config = get_preset("production-latency")
+        assert "runtime_info" in config["core"]["enrichers"]
+        assert "context_vars" in config["core"]["enrichers"]
+
+    def test_production_latency_preset_creates_valid_settings(self):
+        """Production-latency preset can be converted to Settings."""
+        config = get_preset("production-latency")
+        settings = Settings(**config)
+        assert settings.core.log_level == "INFO"
+        assert settings.core.drop_on_full is True
+        assert settings.core.worker_count == 2
+
+    def test_production_latency_vs_production_difference(self):
+        """Production-latency differs from production in key ways.
+
+        Verify the distinguishing characteristics:
+        - production: drop_on_full=False, has file sink
+        - production-latency: drop_on_full=True, no file sink
+        """
+        prod = get_preset("production")
+        prod_latency = get_preset("production-latency")
+
+        # The key behavioral difference
+        assert prod["core"]["drop_on_full"] is False
+        assert prod_latency["core"]["drop_on_full"] is True
+
+        # File sink difference
+        assert "rotating_file" in prod["core"]["sinks"]
+        assert "rotating_file" not in prod_latency["core"]["sinks"]
 
 
 class TestPresetImmutability:

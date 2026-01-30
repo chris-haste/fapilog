@@ -738,7 +738,13 @@ class _LoggerMixin(_WorkerCountersMixin):
         *,
         timeout: float,
     ) -> bool:
-        """Async enqueue executed in the worker loop; returns True if enqueued."""
+        """Async enqueue executed in the worker loop; returns True if enqueued.
+
+        When enqueue fails (returns False), this method handles dropped counting
+        internally. This ensures accurate accounting even when the caller times
+        out waiting for the result - the coroutine will still increment dropped
+        when it eventually completes.
+        """
         ok, high_watermark = await enqueue_with_backpressure(
             self._queue,
             payload,
@@ -748,6 +754,10 @@ class _LoggerMixin(_WorkerCountersMixin):
             current_high_watermark=self._queue_high_watermark,
         )
         self._queue_high_watermark = high_watermark
+        if not ok:
+            # Count dropped here so it's recorded even if caller timed out
+            self._dropped += 1
+            self._record_drop_for_summary(1)
         return ok
 
     def _schedule_metrics_call(self, fn: Any, *args: Any, **kwargs: Any) -> None:
@@ -1127,8 +1137,7 @@ class SyncLoggerFacade(_LoggerMixin):
                     result_timeout = wait_seconds + 0.05
                 ok = fut.result(timeout=result_timeout)
                 if not ok:
-                    self._dropped += 1
-                    self._record_drop_for_summary(1)
+                    # dropped counting done in _async_enqueue
                     # Throttled WARN for backpressure drop on cross-thread path
                     try:
                         from .diagnostics import warn
@@ -1144,28 +1153,25 @@ class SyncLoggerFacade(_LoggerMixin):
                         pass
             except TimeoutError:
                 # fut.result() timed out, but the coroutine may still be running.
-                # We must NOT count as dropped if the enqueue might still succeed,
-                # as that would cause double-counting (processed + dropped > submitted).
-                # Instead, try to get the actual result with a brief wait.
+                # The coroutine handles dropped counting internally when it returns
+                # ok=False, so we don't need to count here. Just try to get the
+                # result to log the warning, but don't duplicate counting.
                 import concurrent.futures
 
                 try:
                     # Give it a tiny bit more time to see if it completes
-                    ok = fut.result(timeout=0.01)
-                    # Got a result - only count as dropped if enqueue failed
-                    if not ok:
-                        self._dropped += 1
-                        self._record_drop_for_summary(1)
+                    fut.result(timeout=0.01)
+                    # Got a result - dropped counting done in _async_enqueue if needed
                 except concurrent.futures.TimeoutError:
-                    # Still not done - coroutine is running, may yet succeed.
-                    # Do NOT count as dropped to avoid double-counting if it succeeds.
+                    # Still not done - coroutine will handle accounting when it completes
                     pass
                 except concurrent.futures.CancelledError:
-                    # Future was cancelled - event won't be enqueued
+                    # Future was cancelled before coroutine ran - count dropped here
                     self._dropped += 1
                     self._record_drop_for_summary(1)
                 except Exception:
-                    # Coroutine raised an exception - event wasn't enqueued
+                    # Coroutine raised an exception - it didn't complete normally
+                    # so dropped wasn't counted; count it here
                     self._dropped += 1
                     self._record_drop_for_summary(1)
             except Exception:
@@ -1442,8 +1448,7 @@ class AsyncLoggerFacade(_LoggerMixin):
             timeout=self._backpressure_wait_ms / 1000.0,
         )
         if not ok:
-            self._dropped += 1
-            await self._record_drop_for_summary_async(1)
+            # dropped counting done in _async_enqueue
             # Throttled WARN for backpressure drop on async path
             try:
                 from .diagnostics import warn

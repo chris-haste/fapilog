@@ -60,6 +60,28 @@ PRESETS: dict[str, dict[str, Any]] = {
         # Marker for automatic CREDENTIALS preset application
         "_apply_credentials_preset": True,
     },
+    "production-latency": {
+        "core": {
+            "log_level": "INFO",
+            "worker_count": 2,  # Multi-worker throughput
+            "batch_max_size": 100,
+            "drop_on_full": True,  # KEY DIFFERENCE: Accept drops for latency
+            "redaction_fail_mode": "warn",
+            "sinks": ["stdout_json"],  # No file sink for minimal I/O latency
+            "enrichers": ["runtime_info", "context_vars"],
+            "redactors": ["field_mask", "regex_mask", "url_credentials"],
+        },
+        "enricher_config": {
+            "runtime_info": {},
+            "context_vars": {},
+        },
+        "redactor_config": {
+            "field_mask": {},
+            "regex_mask": {},
+            "url_credentials": {},
+        },
+        "_apply_credentials_preset": True,
+    },
     "fastapi": {
         "core": {
             "log_level": "INFO",

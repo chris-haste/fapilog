@@ -94,7 +94,7 @@ Settings(core=CoreSettings(log_level="INFO"))
 Apply a preset configuration. Preset is applied first, then subsequent methods override specific values.
 
 **Parameters:**
-- `preset` (str): Preset name - `"dev"`, `"production"`, `"fastapi"`, `"minimal"`
+- `preset` (str): Preset name - `"dev"`, `"production"`, `"production-latency"`, `"fastapi"`, `"serverless"`, `"hardened"`, `"minimal"`
 
 **Returns:** `Self`
 
@@ -112,12 +112,15 @@ builder.with_preset("production")
 |--------|-----------|--------------|-----------|------------|---------|
 | `dev` | DEBUG | No | No | 1 (immediate) | 1 |
 | `production` | INFO | Yes (50MB rotation) | Yes | 100 | 2 |
+| `production-latency` | INFO | No | Yes | 100 | 2 |
 | `fastapi` | INFO | No | Yes | 50 | 2 |
 | `serverless` | INFO | No | Yes | 25 | 2 |
 | `hardened` | INFO | Yes (50MB rotation) | Yes | 100 | 2 |
 | `minimal` | INFO | No | No | 256 | 1 |
 
 > **Performance note:** Production-oriented presets use 2 workers for ~30x better throughput. See [Performance Tuning](../user-guide/performance-tuning.md) for details.
+>
+> **Choosing a preset:** See [Presets Guide](../user-guide/presets.md) for a decision matrix and detailed comparison of `production` vs `production-latency`.
 
 ---
 
