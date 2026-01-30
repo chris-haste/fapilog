@@ -1,25 +1,19 @@
 # Security Policy
 
-> **Your sinks can be slow. Your app shouldn't be.**
->
-> Async-first structured logging for FastAPI and modern Python applications.
-
----
-
 ## Supported Versions
 
 The following versions of fapilog are currently supported with security updates:
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.7.x   | :white_check_mark: |
-| 0.6.x   | :white_check_mark: |
-| < 0.6   | :x:                |
+| 0.11.x  | :white_check_mark: |
+| 0.10.x  | :white_check_mark: |
+| < 0.10  | :x:                |
 
 ## Version Support Policy
 
-- **Current release (0.7.x)**: Full security support
-- **Previous minor (0.6.x)**: Security fixes only, 6 months after next minor release
+- **Current release (0.11.x)**: Full security support
+- **Previous minor (0.10.x)**: Security fixes only, 6 months after next minor release
 - **Older versions**: No support, upgrade recommended
 
 ## Reporting a Vulnerability
