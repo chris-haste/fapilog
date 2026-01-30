@@ -96,3 +96,31 @@ class TestWithSizeGuard:
             "correlation_id",
             "request_id",
         ]
+
+    def test_with_size_guard_enables_serialize_in_flush(self) -> None:
+        """with_size_guard() automatically enables serialize_in_flush."""
+        builder = LoggerBuilder()
+        builder.with_size_guard(max_bytes="1 KB")
+
+        core = builder._config.get("core", {})
+        assert core.get("serialize_in_flush") is True
+
+    def test_with_size_guard_respects_explicit_serialize_in_flush_false(self) -> None:
+        """with_size_guard() respects pre-set serialize_in_flush=False."""
+        builder = LoggerBuilder()
+        # User explicitly disables serialize_in_flush first
+        builder._config.setdefault("core", {})["serialize_in_flush"] = False
+        builder.with_size_guard(max_bytes="1 KB")
+
+        # Should stay False - user knows what they're doing
+        assert builder._config["core"]["serialize_in_flush"] is False
+
+    def test_with_size_guard_does_not_override_explicit_true(self) -> None:
+        """with_size_guard() does not change pre-set serialize_in_flush=True."""
+        builder = LoggerBuilder()
+        # User explicitly enables serialize_in_flush first
+        builder._config.setdefault("core", {})["serialize_in_flush"] = True
+        builder.with_size_guard(max_bytes="1 KB")
+
+        # Should remain True
+        assert builder._config["core"]["serialize_in_flush"] is True

@@ -628,6 +628,11 @@ class LoggerBuilder:
     ) -> Self:
         """Configure payload size limiting processor.
 
+        Automatically enables ``serialize_in_flush`` since processors operate
+        on serialized bytes. If you explicitly set ``serialize_in_flush=False``
+        before calling this method, your setting will be preserved (but the
+        processor will not execute).
+
         Args:
             max_bytes: Maximum payload size ("256 KB" or 262144)
             action: Action on oversized payloads ("truncate", "drop", "warn")
@@ -636,9 +641,14 @@ class LoggerBuilder:
         Example:
             >>> builder.with_size_guard(max_bytes="1 MB", action="truncate")
         """
-        processors = self._config.setdefault("core", {}).setdefault("processors", [])
+        core = self._config.setdefault("core", {})
+        processors = core.setdefault("processors", [])
         if "size_guard" not in processors:
             processors.append("size_guard")
+
+        # Enable serialize_in_flush for processors to work (unless explicitly set)
+        if "serialize_in_flush" not in core:
+            core["serialize_in_flush"] = True
 
         processor_config = self._config.setdefault("processor_config", {})
         size_guard_config: dict[str, Any] = {
