@@ -108,12 +108,16 @@ builder.with_preset("production")
 
 **Preset Summary:**
 
-| Preset | Log Level | File Logging | Redaction | Batch Size |
-|--------|-----------|--------------|-----------|------------|
-| `dev` | DEBUG | No | No | 1 (immediate) |
-| `production` | INFO | Yes (50MB rotation) | Yes | 100 |
-| `fastapi` | INFO | No | Yes | 50 |
-| `minimal` | INFO | No | No | 256 |
+| Preset | Log Level | File Logging | Redaction | Batch Size | Workers |
+|--------|-----------|--------------|-----------|------------|---------|
+| `dev` | DEBUG | No | No | 1 (immediate) | 1 |
+| `production` | INFO | Yes (50MB rotation) | Yes | 100 | 2 |
+| `fastapi` | INFO | No | Yes | 50 | 2 |
+| `serverless` | INFO | No | Yes | 25 | 2 |
+| `hardened` | INFO | Yes (50MB rotation) | Yes | 100 | 2 |
+| `minimal` | INFO | No | No | 256 | 1 |
+
+> **Performance note:** Production-oriented presets use 2 workers for ~30x better throughput. See [Performance Tuning](../user-guide/performance-tuning.md#worker-count-most-impactful) for details.
 
 ---
 
@@ -693,9 +697,23 @@ Set number of worker tasks for flush processing.
 
 **Returns:** `Self`
 
+**Performance impact:** Worker count has the largest impact on throughput:
+
+| Workers | Throughput |
+|---------|------------|
+| 1 | ~3,500/sec |
+| 2 | ~105,000/sec (+30x) |
+
+**Recommendation:** Use 2 workers for production. Production-oriented presets (`production`, `fastapi`, `serverless`, `hardened`) default to 2 workers automatically.
+
 **Example:**
 ```python
-builder.with_workers(count=4)
+builder.with_workers(count=2)  # Recommended for production
+```
+
+**Equivalent Settings:**
+```python
+Settings(core=CoreSettings(worker_count=2))
 ```
 
 ---

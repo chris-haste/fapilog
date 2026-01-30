@@ -26,6 +26,7 @@ PRESETS: dict[str, dict[str, Any]] = {
     "production": {
         "core": {
             "log_level": "INFO",
+            "worker_count": 2,  # 30x throughput improvement over default (Story 10.44)
             "batch_max_size": 100,
             "drop_on_full": False,
             "redaction_fail_mode": "warn",
@@ -62,6 +63,7 @@ PRESETS: dict[str, dict[str, Any]] = {
     "fastapi": {
         "core": {
             "log_level": "INFO",
+            "worker_count": 2,  # 30x throughput improvement over default (Story 10.44)
             "batch_max_size": 50,
             "redaction_fail_mode": "warn",
             "sinks": ["stdout_json"],
@@ -88,6 +90,7 @@ PRESETS: dict[str, dict[str, Any]] = {
     "serverless": {
         "core": {
             "log_level": "INFO",
+            "worker_count": 2,  # 30x throughput improvement over default (Story 10.44)
             "batch_max_size": 25,  # Smaller batches for short-lived functions
             "drop_on_full": True,  # Don't block in time-constrained environments
             "redaction_fail_mode": "warn",
@@ -111,6 +114,7 @@ PRESETS: dict[str, dict[str, Any]] = {
     "hardened": {
         "core": {
             "log_level": "INFO",
+            "worker_count": 2,  # 30x throughput improvement over default (Story 10.44)
             "batch_max_size": 100,
             "drop_on_full": False,  # Never lose logs
             "redaction_fail_mode": "closed",  # Drop event if redaction fails

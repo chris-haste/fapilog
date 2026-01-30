@@ -110,12 +110,14 @@ await logger.info("Request handled", request_id="abc-123")
 logger = get_logger(preset="minimal")
 ```
 
-| Preset | Log Level | File Logging | Redaction | Batch Size | When to use |
-|--------|-----------|--------------|-----------|------------|-------------|
-| `dev` | DEBUG | No | No | 1 (immediate) | See every log instantly while debugging locally |
-| `production` | INFO | Yes (50MB rotation) | Yes (9 fields) | 100 | Never lose logs, automatically mask secrets |
-| `fastapi` | INFO | No | Yes (9 fields) | 50 | Async apps where you want redaction without file overhead |
-| `minimal` | INFO | No | No | Default | Migrating from another logger—start here |
+| Preset | Log Level | File Logging | Redaction | Batch Size | Workers | When to use |
+|--------|-----------|--------------|-----------|------------|---------|-------------|
+| `dev` | DEBUG | No | No | 1 (immediate) | 1 | See every log instantly while debugging locally |
+| `production` | INFO | Yes (50MB rotation) | Yes (9 fields) | 100 | 2 | Never lose logs, automatically mask secrets |
+| `fastapi` | INFO | No | Yes (9 fields) | 50 | 2 | Async apps where you want redaction without file overhead |
+| `serverless` | INFO | No | Yes (9 fields) | 25 | 2 | Lambda/Cloud Functions with fast flush |
+| `hardened` | INFO | Yes (50MB rotation) | Yes (compliance) | 100 | 2 | Regulated environments (HIPAA, PCI-DSS) |
+| `minimal` | INFO | No | No | Default | 1 | Migrating from another logger—start here |
 
 > **Security Note:** By default, only URL credentials (`user:pass@host`) are stripped. For full field redaction (passwords, API keys, tokens), use a preset like `production`/`fastapi` or configure redactors manually. See [redaction docs](docs/redaction/index.md).
 
@@ -356,6 +358,8 @@ Send logs anywhere, enrich them automatically, and filter what you don't need:
 
 ## 📈 Enterprise performance characteristics
 
+- **High throughput out of the box**
+  - Production presets deliver ~100,000 events/sec with optimized worker defaults. See [performance tuning](docs/user-guide/performance-tuning.md) for details.
 - **Non‑blocking under slow sinks**
   - Under a simulated 3 ms-per-write sink, fapilog reduced app-side log-call latency by ~75–80% vs stdlib, maintaining sub‑millisecond medians. Reproduce with `scripts/benchmarking.py`.
 - **Burst absorption with predictable behavior**
@@ -363,7 +367,7 @@ Send logs anywhere, enrich them automatically, and filter what you don't need:
 - **Tamper-evident logging add-on**
   - Optional `fapilog-tamper` package adds integrity MAC/signatures, sealed manifests, and enterprise key management (AWS/GCP/Azure/Vault). See `docs/addons/tamper-evident-logging.md` and `docs/enterprise/tamper-enterprise-key-management.md`.
 - **Honest note**
-  - In steady-state fast-sink scenarios, Python’s stdlib logging can be faster per call. Fapilog shines under constrained sinks, concurrency, and bursts.
+  - In steady-state fast-sink scenarios, Python's stdlib logging can be faster per call. Fapilog shines under constrained sinks, concurrency, and bursts.
 
 ## 📚 Documentation
 

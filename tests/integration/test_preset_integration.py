@@ -28,11 +28,16 @@ class TestProductionPresetIntegration:
 
     def test_production_preset_creates_log_directory(self, tmp_path: Path):
         """Production preset creates ./logs directory when writing."""
+        import time
+
         original_cwd = os.getcwd()
         try:
             os.chdir(tmp_path)
             logger = get_logger(preset="production")
             logger.info("test message")
+            # Allow workers to pick up the message before draining
+            # (with worker_count=2, work distribution is async)
+            time.sleep(0.3)
             # Drain to ensure file sink writes
             asyncio.run(logger.stop_and_drain())
             # The logs directory should exist after draining
@@ -115,6 +120,8 @@ class TestFastAPIPresetIntegration:
         try:
             logger = await get_async_logger(preset="fastapi")
             await logger.info("async message from fastapi preset")
+            # Allow workers to pick up the message (worker_count=2)
+            await asyncio.sleep(0.3)
             await logger.drain()
             sys.stdout.flush()
             output = buf.getvalue().decode("utf-8")
@@ -124,10 +131,14 @@ class TestFastAPIPresetIntegration:
 
     def test_fastapi_preset_sync_logger_works(self):
         """FastAPI preset also works with sync logger."""
+        import time
+
         buf, orig = _swap_stdout_bytesio()
         try:
             logger = get_logger(preset="fastapi")
             logger.info("sync message from fastapi preset")
+            # Allow workers to pick up the message (worker_count=2)
+            time.sleep(0.3)
             asyncio.run(logger.stop_and_drain())
             sys.stdout.flush()
             output = buf.getvalue().decode("utf-8")
@@ -174,6 +185,91 @@ class TestMinimalPresetIntegration:
                     json.loads(line)
         finally:
             sys.stdout = orig  # type: ignore[assignment]
+
+
+class TestPresetWorkerCountIntegration:
+    """Test worker_count settings propagate to logger.
+
+    Story 10.44: Production presets default to worker_count=2 for 30x
+    throughput improvement. These tests verify the configuration flows
+    through to the actual logger instance.
+    """
+
+    def test_production_preset_spawns_two_workers(self, tmp_path: Path):
+        """Logger built with production preset has 2 workers.
+
+        Story 10.44 AC1: Verify logger built with production preset spawns 2 workers.
+        """
+        original_cwd = os.getcwd()
+        try:
+            os.chdir(tmp_path)
+            logger = get_logger(preset="production")
+            assert logger._num_workers == 2  # noqa: SLF001
+            asyncio.run(logger.stop_and_drain())
+        finally:
+            os.chdir(original_cwd)
+
+    def test_fastapi_preset_spawns_two_workers(self):
+        """Logger built with fastapi preset has 2 workers."""
+        buf, orig = _swap_stdout_bytesio()
+        try:
+            logger = get_logger(preset="fastapi")
+            assert logger._num_workers == 2  # noqa: SLF001
+            asyncio.run(logger.stop_and_drain())
+        finally:
+            sys.stdout = orig  # type: ignore[assignment]
+
+    def test_serverless_preset_spawns_two_workers(self):
+        """Logger built with serverless preset has 2 workers."""
+        buf, orig = _swap_stdout_bytesio()
+        try:
+            logger = get_logger(preset="serverless")
+            assert logger._num_workers == 2  # noqa: SLF001
+            asyncio.run(logger.stop_and_drain())
+        finally:
+            sys.stdout = orig  # type: ignore[assignment]
+
+    def test_hardened_preset_spawns_two_workers(self, tmp_path: Path):
+        """Logger built with hardened preset has 2 workers."""
+        original_cwd = os.getcwd()
+        try:
+            os.chdir(tmp_path)
+            logger = get_logger(preset="hardened")
+            assert logger._num_workers == 2  # noqa: SLF001
+            asyncio.run(logger.stop_and_drain())
+        finally:
+            os.chdir(original_cwd)
+
+    def test_dev_preset_spawns_one_worker(self):
+        """Logger built with dev preset has 1 worker for simpler debugging."""
+        buf, orig = _swap_stdout_bytesio()
+        try:
+            logger = get_logger(preset="dev")
+            assert logger._num_workers == 1  # noqa: SLF001
+            asyncio.run(logger.stop_and_drain())
+        finally:
+            sys.stdout = orig  # type: ignore[assignment]
+
+    def test_explicit_with_workers_overrides_preset(self, tmp_path: Path):
+        """Explicit .with_workers() call overrides preset default.
+
+        Story 10.44 AC3: Users who explicitly set worker_count are unaffected.
+        """
+        from fapilog import LoggerBuilder
+
+        original_cwd = os.getcwd()
+        try:
+            os.chdir(tmp_path)
+            logger = (
+                LoggerBuilder()
+                .with_preset("production")
+                .with_workers(4)  # Override the preset's default of 2
+                .build()
+            )
+            assert logger._num_workers == 4  # noqa: SLF001
+            asyncio.run(logger.stop_and_drain())
+        finally:
+            os.chdir(original_cwd)
 
 
 class TestPresetPerformance:

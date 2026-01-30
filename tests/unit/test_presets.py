@@ -403,6 +403,64 @@ class TestPresetList:
         assert isinstance(presets, list)
 
 
+class TestPresetWorkerCount:
+    """Test worker_count settings per Story 10.44.
+
+    Performance testing showed worker_count=2 provides ~30x throughput
+    improvement over the default of 1. Production-oriented presets should
+    default to 2 workers for optimal out-of-box performance.
+    """
+
+    def test_production_preset_has_two_workers(self):
+        """Production preset sets worker_count to 2 for optimal throughput.
+
+        Story 10.44 AC1: production preset sets worker_count: 2.
+        """
+        config = get_preset("production")
+        assert config["core"]["worker_count"] == 2
+
+    def test_fastapi_preset_has_two_workers(self):
+        """FastAPI preset sets worker_count to 2 for optimal throughput.
+
+        Story 10.44 AC1: fastapi preset sets worker_count: 2.
+        """
+        config = get_preset("fastapi")
+        assert config["core"]["worker_count"] == 2
+
+    def test_serverless_preset_has_two_workers(self):
+        """Serverless preset sets worker_count to 2 for optimal throughput.
+
+        Story 10.44 AC1: serverless preset sets worker_count: 2.
+        """
+        config = get_preset("serverless")
+        assert config["core"]["worker_count"] == 2
+
+    def test_hardened_preset_has_two_workers(self):
+        """Hardened preset sets worker_count to 2 for optimal throughput.
+
+        Story 10.44 AC1: hardened preset sets worker_count: 2.
+        """
+        config = get_preset("hardened")
+        assert config["core"]["worker_count"] == 2
+
+    def test_dev_preset_has_one_worker(self):
+        """Dev preset uses 1 worker for simpler debugging.
+
+        Story 10.44 AC1: dev preset remains at default (1 worker).
+        """
+        config = get_preset("dev")
+        assert config["core"].get("worker_count", 1) == 1
+
+    def test_minimal_preset_uses_default_worker_count(self):
+        """Minimal preset uses default worker_count (1).
+
+        Story 10.44 AC1: minimal preset remains at default (1 worker).
+        """
+        config = get_preset("minimal")
+        # Minimal preset only sets redactors=[], so worker_count is not present
+        assert "worker_count" not in config.get("core", {})
+
+
 class TestPresetImmutability:
     """Test that get_preset returns copies, not references."""
 
