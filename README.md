@@ -356,10 +356,42 @@ Send logs anywhere, enrich them automatically, and filter what you don't need:
 - SIEM integrations (Splunk, Elasticsearch)
 - Message queue sinks (Kafka, Redis Streams)
 
+## ⚡ Execution Modes & Throughput
+
+Fapilog automatically detects your execution context and optimizes accordingly:
+
+| Mode | Context | Throughput | Use Case |
+|------|---------|------------|----------|
+| **Async** | `AsyncLoggerFacade` or `await` calls | ~100K+ events/sec | FastAPI, async frameworks |
+| **Bound loop** | `SyncLoggerFacade` started inside async | ~100K+ events/sec | Sync APIs in async apps |
+| **Thread** | `SyncLoggerFacade` started outside async | ~10-15K events/sec | CLI tools, sync scripts |
+
+```python
+# Async mode (fastest) - for FastAPI and async code
+from fapilog import get_async_logger
+logger = await get_async_logger(preset="fastapi")
+await logger.info("event")  # ~100K+ events/sec
+
+# Bound loop mode - sync API, async performance
+async def main():
+    logger = get_logger(preset="production")  # Started inside async context
+    logger.info("event")  # ~100K+ events/sec (no cross-thread overhead)
+
+# Thread mode - for traditional sync code
+logger = get_logger(preset="production")  # Started outside async context
+logger.info("event")  # ~10-15K events/sec (cross-thread sync)
+```
+
+**Why the difference?** Thread mode requires cross-thread synchronization for each log call. Async and bound loop modes avoid this overhead by working directly with the event loop.
+
+**Recommendation:** For maximum throughput in async applications, use `AsyncLoggerFacade` or ensure `SyncLoggerFacade.start()` is called inside an async context.
+
+See [Execution Modes Guide](docs/user-guide/execution-modes.md) for detailed patterns and migration tips.
+
 ## 📈 Enterprise performance characteristics
 
-- **High throughput out of the box**
-  - Production presets deliver ~100,000 events/sec with optimized worker defaults. See [performance tuning](docs/user-guide/performance-tuning.md) for details.
+- **High throughput in async modes**
+  - AsyncLoggerFacade and bound loop mode deliver ~100,000+ events/sec. Thread mode (sync code outside async) achieves ~10-15K events/sec due to cross-thread coordination. See [execution modes](docs/user-guide/execution-modes.md) for details.
 - **Non‑blocking under slow sinks**
   - Under a simulated 3 ms-per-write sink, fapilog reduced app-side log-call latency by ~75–80% vs stdlib, maintaining sub‑millisecond medians. Reproduce with `scripts/benchmarking.py`.
 - **Burst absorption with predictable behavior**

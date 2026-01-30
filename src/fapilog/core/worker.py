@@ -190,9 +190,10 @@ class LoggerWorker:
                 if self._stop_flag():
                     self._drain_queue(batch)
                     await self._flush_batch(batch)
-                    if in_thread_mode:
-                        loop = asyncio.get_running_loop()
-                        loop.stop()
+                    # NOTE: Do NOT call loop.stop() here. With multiple workers,
+                    # the first worker to finish would stop the loop and cancel
+                    # other workers still flushing. The drain coordinator handles
+                    # waiting for all workers and stopping the loop.
                     if self._drained_event is not None:
                         self._drained_event.set()
                     return

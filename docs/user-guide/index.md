@@ -8,6 +8,7 @@ Practical usage patterns and configuration for fapilog.
 :caption: User Guide
 
 configuration
+execution-modes
 builder-configuration
 environment-variables
 production-checklist
@@ -34,6 +35,7 @@ webhook-security
 The User Guide covers everything you need to know to use fapilog effectively in real applications:
 
 - **Configuration** - Environment variables, settings, and configuration
+- **Execution Modes** - Understanding async, bound loop, and thread modes for optimal throughput (~100K vs ~10K events/sec)
 - **Builder Configuration** - Fluent API for programmatic configuration
 - **Using the Logger** - Logging methods, extra fields, exceptions
 - **Context Enrichment** - Adding business context and correlation
@@ -102,12 +104,13 @@ export FAPILOG_CORE__MAX_QUEUE_SIZE=8192
 ## What You'll Learn
 
 1. **[Configuration](configuration.md)** - Environment variables, settings classes, and configuration hierarchy
-2. **[Using the Logger](using-logger.md)** - All logging methods, extra fields, and exception handling
-3. **[Context Enrichment](context-enrichment.md)** - Adding business context and correlation IDs
-4. **[Rotating File Sink](rotating-file-sink.md)** - File logging with automatic rotation and compression
-5. **[Graceful Shutdown](graceful-shutdown.md)** - Proper cleanup with `runtime()` / `runtime_async()`
-6. **[Performance Tuning](performance-tuning.md)** - Queue sizes, batching, and optimization
-7. **[Integration Guide](integration-guide.md)** - FastAPI, Docker, Kubernetes, and more
+2. **[Execution Modes](execution-modes.md)** - Async, bound loop, and thread modes (~100K vs ~10K events/sec)
+3. **[Using the Logger](using-logger.md)** - All logging methods, extra fields, and exception handling
+4. **[Context Enrichment](context-enrichment.md)** - Adding business context and correlation IDs
+5. **[Rotating File Sink](rotating-file-sink.md)** - File logging with automatic rotation and compression
+6. **[Graceful Shutdown](graceful-shutdown.md)** - Proper cleanup with `runtime()` / `runtime_async()`
+7. **[Performance Tuning](performance-tuning.md)** - Queue sizes, batching, and optimization
+8. **[Integration Guide](integration-guide.md)** - FastAPI, Docker, Kubernetes, and more
 
 For data masking and security, see the [Redaction](../redaction/index.md) documentation.
 
