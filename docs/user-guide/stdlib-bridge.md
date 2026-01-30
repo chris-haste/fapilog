@@ -154,7 +154,7 @@ def setup_logging(**kwargs):
 
 | stdlib Level | fapilog Method |
 |--------------|----------------|
-| `CRITICAL` | `error()` with `critical=True` |
+| `CRITICAL` | `critical()` |
 | `ERROR` | `error()` |
 | `WARNING` | `warning()` |
 | `INFO` | `info()` |
