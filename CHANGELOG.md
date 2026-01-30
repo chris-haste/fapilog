@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-01-30
+
+### Added
+
+- **Core - Add configuration validation:** Validate configuration with hard limits (reject invalid) and soft limits (warn on high values) for queue_capacity, batch_max_size, batch_timeout_seconds, and num_workers.
+
+### Documentation
+
+- **Core - Add execution modes guide:** Document execution modes (async, bound loop, thread) with throughput expectations and usage patterns in README and new user guide. Update troubleshooting docs with worker_count tuning guidance.
+- **Docs - Fix broken cross-reference links:** Remove link to async-sync-boundary.md and replace anchor link with plain text reference for validation limits.
+
 ## [0.10.2] - 2026-01-30
 
 ### Fixed
