@@ -117,7 +117,7 @@ builder.with_preset("production")
 | `hardened` | INFO | Yes (50MB rotation) | Yes | 100 | 2 |
 | `minimal` | INFO | No | No | 256 | 1 |
 
-> **Performance note:** Production-oriented presets use 2 workers for ~30x better throughput. See [Performance Tuning](../user-guide/performance-tuning.md#worker-count-most-impactful) for details.
+> **Performance note:** Production-oriented presets use 2 workers for ~30x better throughput. See [Performance Tuning](../user-guide/performance-tuning.md) for details.
 
 ---
 

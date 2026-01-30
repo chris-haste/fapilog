@@ -116,7 +116,7 @@ logger = get_logger(preset="production")
 logger = LoggerBuilder().with_workers(2).build()
 ```
 
-See [Performance Tuning](performance-tuning.md#worker-count-most-impactful) for detailed configuration guidance.
+See [Performance Tuning](performance-tuning.md) for detailed configuration guidance.
 
 ## When to Use fapilog
 
