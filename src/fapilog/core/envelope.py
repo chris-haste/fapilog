@@ -14,7 +14,7 @@ from types import TracebackType
 from typing import Any, cast
 from uuid import uuid4
 
-from .schema import LogContext, LogDiagnostics, LogEnvelopeV1
+from .schema import LogContext, LogDiagnostics, LogEnvelopeV1, LogOrigin
 
 _CONTEXT_FIELDS = frozenset(
     {"request_id", "user_id", "tenant_id", "trace_id", "span_id"}
@@ -40,6 +40,7 @@ def build_envelope(
     exceptions_max_stack_chars: int = 20000,
     logger_name: str = "root",
     correlation_id: str | None = None,
+    origin: LogOrigin = "native",
 ) -> LogEnvelopeV1:
     """Construct a log envelope following the canonical v1.1 schema.
 
@@ -68,6 +69,9 @@ def build_envelope(
         logger_name: Name of the logger.
         correlation_id: Correlation ID for request tracing. Only included in
             envelope when explicitly provided (not auto-generated).
+        origin: Source of the log entry. One of 'native' (direct fapilog calls),
+            'stdlib' (routed through stdlib bridge), or 'third_party' (from
+            external libraries or explicit override). Defaults to 'native'.
 
     Returns:
         A dictionary containing the v1.1 log envelope with structure:
@@ -104,7 +108,7 @@ def build_envelope(
                 context[key] = extra[key]
 
     # Build diagnostics dict (runtime/operational context)
-    diagnostics: dict[str, Any] = {}
+    diagnostics: dict[str, Any] = {"origin": origin}
 
     # Handle exception serialization into diagnostics
     if exceptions_enabled:

@@ -477,6 +477,14 @@ class _LoggerMixin(_WorkerCountersMixin):
         except Exception:
             bound_context = {}
 
+        # Extract _origin from metadata if provided (Story 10.48)
+        # _origin is a reserved key for explicit origin override
+        from .schema import LogOrigin
+
+        origin: LogOrigin = "native"
+        if metadata and "_origin" in metadata:
+            origin = cast(LogOrigin, metadata.pop("_origin"))
+
         # Delegate envelope construction to envelope module (Story 1.21)
         # build_envelope returns LogEnvelopeV1 (TypedDict) which is structurally
         # compatible with dict[str, Any] - cast for downstream queue compatibility
@@ -494,6 +502,7 @@ class _LoggerMixin(_WorkerCountersMixin):
                 exceptions_max_stack_chars=self._exceptions_max_stack_chars,
                 logger_name=self._name,
                 correlation_id=current_corr,
+                origin=origin,
             ),
         )
         self._submitted += 1

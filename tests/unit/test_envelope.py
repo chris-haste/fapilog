@@ -154,9 +154,10 @@ class TestBuildEnvelopeExceptions:
             exceptions_enabled=False,
         )
 
-        # Empty diagnostics since exception serialization is disabled
+        # No exception in diagnostics since exception serialization is disabled
+        # (origin is always present in diagnostics per Story 10.48)
         assert "exception" not in envelope["diagnostics"]
-        assert envelope["diagnostics"] == {}
+        assert envelope["diagnostics"] == {"origin": "native"}
 
     def test_exception_from_exc_parameter(self) -> None:
         """Exception can be provided via exc parameter."""
@@ -197,9 +198,10 @@ class TestBuildEnvelopeExceptions:
             exceptions_enabled=True,
         )
 
-        # Empty diagnostics when no exception
+        # No exception in diagnostics when none provided
+        # (origin is always present per Story 10.48)
         assert "exception" not in envelope["diagnostics"]
-        assert envelope["diagnostics"] == {}
+        assert envelope["diagnostics"] == {"origin": "native"}
 
     def test_exception_max_frames_respected(self) -> None:
         """Exception serialization respects max_frames limit."""
