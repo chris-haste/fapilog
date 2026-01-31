@@ -7,17 +7,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sink routing by level &mdash; fapilog 0.12.0 documentation</title>
+  <title>Sink routing by level &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
   
-    <link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/sink-routing.html" />
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=61ccb1f1"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -30,6 +29,9 @@
     <link rel="prev" title="Rotating File Sink" href="rotating-file-sink.html" />
  
 
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/sink-routing.html" />
+<meta name="robots" content="noindex, follow" />
 
 
 </head>
@@ -286,6 +288,38 @@
 </pre></div>
 </div>
 </section>
+<section id="builder-api-with-custom-sink-names">
+<h3>Builder API with custom sink names<a class="headerlink" href="#builder-api-with-custom-sink-names" title="Link to this heading"></a></h3>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">name</span></code> parameter to create multiple sinks of the same type with unique names for routing:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="s2">&quot;/logs/errors&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;error_file&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="s2">&quot;/logs/info&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;info_file&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_routing</span><span class="p">([</span>
+        <span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">],</span> <span class="s2">&quot;sinks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;error_file&quot;</span><span class="p">]},</span>
+        <span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span> <span class="s2">&quot;INFO&quot;</span><span class="p">,</span> <span class="s2">&quot;WARNING&quot;</span><span class="p">],</span> <span class="s2">&quot;sinks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;info_file&quot;</span><span class="p">]},</span>
+    <span class="p">])</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Goes to /logs/errors&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Goes to /logs/info&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>All <code class="docutils literal notranslate"><span class="pre">add_*</span></code> sink methods support the <code class="docutils literal notranslate"><span class="pre">name</span></code> parameter:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">add_file(directory,</span> <span class="pre">name=&quot;rotating_file&quot;)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">add_stdout(name=&quot;stdout_json&quot;)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">add_http(endpoint,</span> <span class="pre">name=&quot;http&quot;)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">add_webhook(endpoint,</span> <span class="pre">name=&quot;webhook&quot;)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">add_cloudwatch(log_group,</span> <span class="pre">name=&quot;cloudwatch&quot;)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">add_loki(url,</span> <span class="pre">name=&quot;loki&quot;)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">add_postgres(dsn,</span> <span class="pre">name=&quot;postgres&quot;)</span></code></p></li>
+</ul>
+<p>Duplicate sink names raise <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> at build time.</p>
+</section>
 </section>
 <section id="routingsink-plugin">
 <h2>RoutingSink plugin<a class="headerlink" href="#routingsink-plugin" title="Link to this heading"></a></h2>
@@ -335,7 +369,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on January 30, 2026.
+      <span class="lastupdated">Last updated on January 31, 2026.
       </span></p>
   </div>
 
