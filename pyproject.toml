@@ -406,6 +406,7 @@ exclude = [
     "src/fapilog/containers/lifecycle.py",  # API methods for container lifecycle
     "src/fapilog/core/envelope.py",  # Internal module used by logger.py
     "src/fapilog/core/events.py",  # Enum values and API methods
+    "src/fapilog/core/levels.py",  # Public API for custom level registration
     "src/fapilog/core/logger.py",  # API methods and context manager params
     "src/fapilog/core/presets.py",  # Public API functions for preset discovery
     "src/fapilog/core/worker.py",  # Shared internal functions used across facades
@@ -457,6 +458,8 @@ ignore_names = [
     "flush_batch",
     "strict_envelope_mode_enabled",
     "enqueue_with_backpressure",
+    # Level filter backward compatibility
+    "LEVEL_PRIORITY",
     
     # Context management API
     "error_chain_var",
