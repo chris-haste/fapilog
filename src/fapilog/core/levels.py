@@ -8,11 +8,10 @@ logger is created, the registry is frozen and no new levels can be added.
 
 Example:
     import fapilog
-    from fapilog.core.levels import register_level
 
-    # Register custom levels at module load time
-    register_level("TRACE", priority=5, add_method=True)
-    register_level("AUDIT", priority=25, add_method=True)
+    # Register custom levels at module load time (before creating loggers)
+    fapilog.register_level("TRACE", priority=5, add_method=True)
+    fapilog.register_level("AUDIT", priority=25, add_method=True)
 
     # Now create loggers
     logger = fapilog.get_logger()
