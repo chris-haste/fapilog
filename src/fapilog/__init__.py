@@ -24,6 +24,11 @@ from typing import cast as _cast
 
 from . import sinks as sinks
 from .builder import AsyncLoggerBuilder, LoggerBuilder
+from .context import (
+    create_task_with_context,
+    preserve_context,
+    run_in_executor_with_context,
+)
 
 # Preset discovery (public API)
 from .core.config_builders import _build_pipeline as _build_pipeline_impl
@@ -63,6 +68,9 @@ __all__ = [
     "clear_logger_cache",
     "install_shutdown_handlers",
     "register_level",
+    "create_task_with_context",
+    "preserve_context",
+    "run_in_executor_with_context",
     "__version__",
     "VERSION",
 ]
