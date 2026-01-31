@@ -19,6 +19,7 @@ skip-noisy-endpoints
 log-sampling-rate-limiting
 graceful-shutdown-flush
 exception-logging-request-context
+custom-log-levels
 ```
 
 ## Getting Started with Fapilog
