@@ -15,7 +15,10 @@ The v1.1 schema organizes fields into semantic groupings:
 
 from __future__ import annotations
 
-from typing import Any, TypedDict
+from typing import Any, Literal, TypedDict
+
+# Valid origin values for log entries
+LogOrigin = Literal["native", "stdlib", "third_party"]
 
 
 class LogContext(TypedDict, total=False):
@@ -45,6 +48,7 @@ class LogDiagnostics(TypedDict, total=False):
     All fields are optional as they may be added by enrichers.
     """
 
+    origin: LogOrigin  # Source of the log: native, stdlib, or third_party
     service: str | None
     env: str | None
     host: str | None

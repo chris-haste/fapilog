@@ -218,6 +218,9 @@ class StdlibBridgeHandler(logging.Handler):
             if stack_info and "error.stack" not in extras:
                 extras["stack_info"] = stack_info
 
+            # Mark log as originating from stdlib bridge (Story 10.48)
+            extras["_origin"] = "stdlib"
+
             if exc_info:
                 result = method(message, exc_info=exc_info, **extras)
             else:
