@@ -709,6 +709,115 @@ class TestRedactionBranches:
         assert "secret.*" not in patterns
 
 
+class TestCustomSinkNames:
+    """Test custom sink names for routing (Story 10.46)."""
+
+    def test_add_file_accepts_name_parameter(self):
+        """AC4: add_file() accepts name parameter."""
+        from fapilog import LoggerBuilder
+
+        builder = LoggerBuilder()
+        result = builder.add_file("/tmp/logs", name="custom_file")
+        assert result is builder
+        assert builder._sinks[0]["name"] == "custom_file"
+
+    def test_add_file_default_name_unchanged(self):
+        """AC2: add_file() defaults to 'rotating_file' for backwards compatibility."""
+        from fapilog import LoggerBuilder
+
+        builder = LoggerBuilder().add_file("/tmp/logs")
+        assert builder._sinks[0]["name"] == "rotating_file"
+
+    def test_add_stdout_accepts_name_parameter(self):
+        """AC4: add_stdout() accepts name parameter."""
+        from fapilog import LoggerBuilder
+
+        builder = LoggerBuilder().add_stdout(name="custom_stdout")
+        assert builder._sinks[0]["name"] == "custom_stdout"
+
+    def test_add_stdout_default_names_unchanged(self):
+        """AC2: add_stdout() defaults to 'stdout_json' or 'stdout_pretty'."""
+        from fapilog import LoggerBuilder
+
+        builder_json = LoggerBuilder().add_stdout(format="json")
+        assert builder_json._sinks[0]["name"] == "stdout_json"
+
+        builder_pretty = LoggerBuilder().add_stdout(format="pretty")
+        assert builder_pretty._sinks[0]["name"] == "stdout_pretty"
+
+    def test_add_http_accepts_name_parameter(self):
+        """AC4: add_http() accepts name parameter."""
+        from fapilog import LoggerBuilder
+
+        builder = LoggerBuilder().add_http("https://example.com", name="custom_http")
+        assert builder._sinks[0]["name"] == "custom_http"
+
+    def test_add_http_default_name_unchanged(self):
+        """AC2: add_http() defaults to 'http'."""
+        from fapilog import LoggerBuilder
+
+        builder = LoggerBuilder().add_http("https://example.com")
+        assert builder._sinks[0]["name"] == "http"
+
+    def test_add_webhook_accepts_name_parameter(self):
+        """AC4: add_webhook() accepts name parameter."""
+        from fapilog import LoggerBuilder
+
+        builder = LoggerBuilder().add_webhook(
+            "https://hook.example.com", name="custom_webhook"
+        )
+        assert builder._sinks[0]["name"] == "custom_webhook"
+
+    def test_add_webhook_default_name_unchanged(self):
+        """AC2: add_webhook() defaults to 'webhook'."""
+        from fapilog import LoggerBuilder
+
+        builder = LoggerBuilder().add_webhook("https://hook.example.com")
+        assert builder._sinks[0]["name"] == "webhook"
+
+    def test_duplicate_sink_name_raises_error(self):
+        """AC3: Builder raises ValueError on duplicate sink names."""
+        from fapilog import LoggerBuilder
+
+        with pytest.raises(ValueError, match="duplicate sink name"):
+            LoggerBuilder().add_file("/logs/one", name="myfile").add_file(
+                "/logs/two", name="myfile"
+            ).build()
+
+    def test_duplicate_default_names_raises_error(self):
+        """AC3: Duplicate default names also raise ValueError."""
+        from fapilog import LoggerBuilder
+
+        with pytest.raises(ValueError, match="duplicate sink name"):
+            LoggerBuilder().add_file("/logs/one").add_file("/logs/two").build()
+
+    def test_custom_names_allow_multiple_same_type_sinks(self):
+        """AC1: Custom names enable multiple sinks of the same type."""
+        from fapilog import LoggerBuilder
+
+        # Should not raise - names are unique
+        logger = (
+            LoggerBuilder()
+            .add_file("/tmp/errors", name="error_file")
+            .add_file("/tmp/info", name="info_file")
+            .build()
+        )
+        assert callable(logger.info)
+
+    @pytest.mark.asyncio
+    async def test_async_builder_duplicate_name_raises_error(self):
+        """AC3: AsyncLoggerBuilder also validates duplicate names."""
+        from fapilog import AsyncLoggerBuilder
+
+        with pytest.raises(ValueError, match="duplicate sink name"):
+            await (
+                AsyncLoggerBuilder()
+                .add_file("/logs/one", name="myfile")
+                .add_file("/logs/two", name="myfile")
+                .build_async()
+            )
+
+
 class TestWithContextDocstring:
     """Test with_context() docstring documents field routing (Story 10.42)."""
 

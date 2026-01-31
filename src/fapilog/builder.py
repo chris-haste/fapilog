@@ -150,6 +150,7 @@ class LoggerBuilder:
         self,
         directory: str,
         *,
+        name: str = "rotating_file",
         max_bytes: str | int = "10 MB",
         interval: str | int | None = None,
         max_files: int | None = None,
@@ -159,6 +160,7 @@ class LoggerBuilder:
 
         Args:
             directory: Log directory (required)
+            name: Sink name for routing (default: "rotating_file")
             max_bytes: Max bytes before rotation (supports "10 MB" strings)
             interval: Rotation interval (supports "daily", "1h" strings)
             max_files: Max rotated files to keep
@@ -184,13 +186,20 @@ class LoggerBuilder:
         if compress:
             file_config["compress_rotated"] = True
 
-        self._sinks.append({"name": "rotating_file", "config": file_config})
+        self._sinks.append({"name": name, "config": file_config})
         return self
 
-    def add_stdout(self, *, format: str = "json", capture_mode: bool = False) -> Self:
+    def add_stdout(
+        self,
+        *,
+        name: str | None = None,
+        format: str = "json",
+        capture_mode: bool = False,
+    ) -> Self:
         """Add stdout sink.
 
         Args:
+            name: Sink name for routing (default: "stdout_json" or "stdout_pretty")
             format: Output format ("json" or "pretty")
             capture_mode: If True, skip os.writev() optimization and use buffered
                 writes that can be captured via sys.stdout replacement. Useful for
@@ -200,10 +209,11 @@ class LoggerBuilder:
             >>> # For testing with captured output
             >>> logger = LoggerBuilder().add_stdout(capture_mode=True).build()
         """
-        sink_name = "stdout_pretty" if format == "pretty" else "stdout_json"
+        default_name = "stdout_pretty" if format == "pretty" else "stdout_json"
+        sink_name = name if name is not None else default_name
         sink_entry: dict[str, Any] = {"name": sink_name}
         # Only pass capture_mode config for json sink (pretty already uses sys.stdout)
-        if sink_name == "stdout_json" and capture_mode:
+        if default_name == "stdout_json" and capture_mode:
             sink_entry["config"] = {"capture_mode": True}
         self._sinks.append(sink_entry)
         return self
@@ -216,6 +226,7 @@ class LoggerBuilder:
         self,
         endpoint: str,
         *,
+        name: str = "http",
         timeout: str | float = "30s",
         headers: dict[str, str] | None = None,
     ) -> Self:
@@ -223,6 +234,7 @@ class LoggerBuilder:
 
         Args:
             endpoint: HTTP endpoint URL (required)
+            name: Sink name for routing (default: "http")
             timeout: Request timeout (supports "30s" strings)
             headers: Additional HTTP headers
 
@@ -240,13 +252,14 @@ class LoggerBuilder:
         if headers:
             http_config["headers"] = headers
 
-        self._sinks.append({"name": "http", "config": http_config})
+        self._sinks.append({"name": name, "config": http_config})
         return self
 
     def add_webhook(
         self,
         endpoint: str,
         *,
+        name: str = "webhook",
         secret: str | None = None,
         timeout: str | float = "5s",
         headers: dict[str, str] | None = None,
@@ -255,6 +268,7 @@ class LoggerBuilder:
 
         Args:
             endpoint: Webhook destination URL (required)
+            name: Sink name for routing (default: "webhook")
             secret: Shared secret for signing (optional)
             timeout: Request timeout (supports "5s" strings)
             headers: Additional HTTP headers
@@ -276,7 +290,7 @@ class LoggerBuilder:
         if headers:
             webhook_config["headers"] = headers
 
-        self._sinks.append({"name": "webhook", "config": webhook_config})
+        self._sinks.append({"name": name, "config": webhook_config})
         return self
 
     def with_redaction(
@@ -1136,6 +1150,7 @@ class LoggerBuilder:
         self,
         log_group: str,
         *,
+        name: str = "cloudwatch",
         stream: str | None = None,
         region: str | None = None,
         endpoint_url: str | None = None,
@@ -1152,6 +1167,7 @@ class LoggerBuilder:
 
         Args:
             log_group: CloudWatch log group name (required)
+            name: Sink name for routing (default: "cloudwatch")
             stream: Log stream name (auto-generated if not provided)
             region: AWS region (uses default if not provided)
             endpoint_url: Custom endpoint (e.g., LocalStack)
@@ -1186,13 +1202,14 @@ class LoggerBuilder:
         if endpoint_url is not None:
             config["endpoint_url"] = endpoint_url
 
-        self._sinks.append({"name": "cloudwatch", "config": config})
+        self._sinks.append({"name": name, "config": config})
         return self
 
     def add_loki(
         self,
         url: str = "http://localhost:3100",
         *,
+        name: str = "loki",
         tenant_id: str | None = None,
         labels: dict[str, str] | None = None,
         label_keys: list[str] | None = None,
@@ -1211,6 +1228,7 @@ class LoggerBuilder:
 
         Args:
             url: Loki push endpoint (default: http://localhost:3100)
+            name: Sink name for routing (default: "loki")
             tenant_id: Multi-tenant identifier
             labels: Static labels for log streams
             label_keys: Event keys to promote to labels
@@ -1252,13 +1270,14 @@ class LoggerBuilder:
         if auth_token is not None:
             config["auth_token"] = auth_token
 
-        self._sinks.append({"name": "loki", "config": config})
+        self._sinks.append({"name": name, "config": config})
         return self
 
     def add_postgres(
         self,
         dsn: str | None = None,
         *,
+        name: str = "postgres",
         host: str = "localhost",
         port: int = 5432,
         database: str = "fapilog",
@@ -1284,6 +1303,7 @@ class LoggerBuilder:
 
         Args:
             dsn: Full connection string (overrides host/port/database/user/password)
+            name: Sink name for routing (default: "postgres")
             host: Database host (default: localhost)
             port: Database port (default: 5432)
             database: Database name (default: fapilog)
@@ -1338,8 +1358,23 @@ class LoggerBuilder:
         if extract_fields is not None:
             config["extract_fields"] = extract_fields
 
-        self._sinks.append({"name": "postgres", "config": config})
+        self._sinks.append({"name": name, "config": config})
         return self
+
+    def _validate_no_duplicate_sink_names(self) -> None:
+        """Validate that no duplicate sink names exist.
+
+        Raises:
+            ValueError: If duplicate sink names are found
+        """
+        if not self._sinks:
+            return
+        sink_names = [s["name"] for s in self._sinks]
+        seen: set[str] = set()
+        for name in sink_names:
+            if name in seen:
+                raise ValueError(f"duplicate sink name: {name!r}")
+            seen.add(name)
 
     def build(self) -> SyncLoggerFacade:
         """Build and return logger.
@@ -1348,10 +1383,12 @@ class LoggerBuilder:
             SyncLoggerFacade instance
 
         Raises:
-            ValueError: If configuration is invalid
+            ValueError: If configuration is invalid or duplicate sink names exist
         """
         from . import get_logger
         from .core.settings import Settings
+
+        self._validate_no_duplicate_sink_names()
 
         # Start with preset or empty config
         if self._preset:
@@ -1410,10 +1447,12 @@ class AsyncLoggerBuilder(LoggerBuilder):
             AsyncLoggerFacade instance
 
         Raises:
-            ValueError: If configuration is invalid
+            ValueError: If configuration is invalid or duplicate sink names exist
         """
         from . import get_async_logger
         from .core.settings import Settings
+
+        self._validate_no_duplicate_sink_names()
 
         # Start with preset or empty config
         if self._preset:
