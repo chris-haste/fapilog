@@ -300,3 +300,61 @@ class TestMultipleCloudSinks:
         config = builder._sinks[0]["config"]
         assert config["circuit_breaker_enabled"] is True
         assert config["circuit_breaker_threshold"] == 3
+
+
+class TestCloudSinkCustomNames:
+    """Tests for custom sink names on cloud sinks (Story 10.46)."""
+
+    def test_add_cloudwatch_accepts_name_parameter(self) -> None:
+        """AC4: add_cloudwatch() accepts name parameter."""
+        builder = LoggerBuilder()
+        builder.add_cloudwatch(log_group="/myapp/prod", name="custom_cloudwatch")
+
+        assert builder._sinks[0]["name"] == "custom_cloudwatch"
+
+    def test_add_cloudwatch_default_name_unchanged(self) -> None:
+        """AC2: add_cloudwatch() defaults to 'cloudwatch'."""
+        builder = LoggerBuilder()
+        builder.add_cloudwatch(log_group="/myapp/prod")
+
+        assert builder._sinks[0]["name"] == "cloudwatch"
+
+    def test_add_loki_accepts_name_parameter(self) -> None:
+        """AC4: add_loki() accepts name parameter."""
+        builder = LoggerBuilder()
+        builder.add_loki(name="custom_loki")
+
+        assert builder._sinks[0]["name"] == "custom_loki"
+
+    def test_add_loki_default_name_unchanged(self) -> None:
+        """AC2: add_loki() defaults to 'loki'."""
+        builder = LoggerBuilder()
+        builder.add_loki()
+
+        assert builder._sinks[0]["name"] == "loki"
+
+    def test_add_postgres_accepts_name_parameter(self) -> None:
+        """AC4: add_postgres() accepts name parameter."""
+        builder = LoggerBuilder()
+        builder.add_postgres(
+            dsn="postgresql://user:pass@host/db", name="custom_postgres"
+        )
+
+        assert builder._sinks[0]["name"] == "custom_postgres"
+
+    def test_add_postgres_default_name_unchanged(self) -> None:
+        """AC2: add_postgres() defaults to 'postgres'."""
+        builder = LoggerBuilder()
+        builder.add_postgres(dsn="postgresql://user:pass@host/db")
+
+        assert builder._sinks[0]["name"] == "postgres"
+
+    def test_multiple_cloudwatch_sinks_with_custom_names(self) -> None:
+        """AC1: Custom names enable multiple CloudWatch sinks."""
+        builder = LoggerBuilder()
+        builder.add_cloudwatch(log_group="/errors", name="cw_errors")
+        builder.add_cloudwatch(log_group="/info", name="cw_info")
+
+        assert len(builder._sinks) == 2
+        assert builder._sinks[0]["name"] == "cw_errors"
+        assert builder._sinks[1]["name"] == "cw_info"

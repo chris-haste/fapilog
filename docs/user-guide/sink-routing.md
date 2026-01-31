@@ -64,6 +64,40 @@ settings.sink_routing.fallback_sinks = ["rotating_file"]
 logger = get_logger(settings=settings)
 ```
 
+### Builder API with custom sink names
+
+Use the `name` parameter to create multiple sinks of the same type with unique names for routing:
+
+```python
+from fapilog import LoggerBuilder
+
+logger = (
+    LoggerBuilder()
+    .add_file("/logs/errors", name="error_file")
+    .add_file("/logs/info", name="info_file")
+    .with_routing([
+        {"levels": ["ERROR", "CRITICAL"], "sinks": ["error_file"]},
+        {"levels": ["DEBUG", "INFO", "WARNING"], "sinks": ["info_file"]},
+    ])
+    .build()
+)
+
+logger.error("Goes to /logs/errors")
+logger.info("Goes to /logs/info")
+```
+
+All `add_*` sink methods support the `name` parameter:
+
+- `add_file(directory, name="rotating_file")`
+- `add_stdout(name="stdout_json")`
+- `add_http(endpoint, name="http")`
+- `add_webhook(endpoint, name="webhook")`
+- `add_cloudwatch(log_group, name="cloudwatch")`
+- `add_loki(url, name="loki")`
+- `add_postgres(dsn, name="postgres")`
+
+Duplicate sink names raise `ValueError` at build time.
+
 ## RoutingSink plugin
 
 For manual composition without touching global settings:
