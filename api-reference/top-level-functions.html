@@ -452,18 +452,132 @@
 </div>
 </section>
 </section>
+<section id="register-level-register-level">
+<h2>register_level {#register_level}<a class="headerlink" href="#register-level-register-level" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">register_level</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">priority</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">add_method</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</pre></div>
+</div>
+<p>Register a custom log level for use throughout your application.</p>
+<p>Custom levels allow you to define domain-specific severity levels beyond the standard DEBUG, INFO, WARNING, ERROR, and CRITICAL. Common use cases include:</p>
+<ul class="simple">
+<li><p><strong>TRACE</strong> (priority 5) - Verbose debugging below DEBUG</p></li>
+<li><p><strong>AUDIT</strong> (priority 25) - Compliance/security events between INFO and WARNING</p></li>
+<li><p><strong>NOTICE</strong> (priority 22) - Significant events that aren’t warnings</p></li>
+<li><p><strong>ALERT</strong> (priority 45) - Immediate attention needed, above ERROR</p></li>
+</ul>
+<section id="id7">
+<h3>Parameters<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">name</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>-</p></td>
+<td><p>Level name (e.g., “TRACE”, “AUDIT”). Automatically uppercased.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">priority</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int</span></code></p></td>
+<td><p>-</p></td>
+<td><p>Numeric priority 0-99. Lower = more verbose. Standard: DEBUG=10, INFO=20, WARNING=30, ERROR=40, CRITICAL=50.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">add_method</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>If True, adds a method to logger (e.g., <code class="docutils literal notranslate"><span class="pre">logger.trace()</span></code>).</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="raises">
+<h3>Raises<a class="headerlink" href="#raises" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ValueError</span></code> - If level name already exists or priority is outside 0-99</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RuntimeError</span></code> - If called after a logger has been created</p></li>
+</ul>
+</section>
+<section id="id8">
+<h3>Examples<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">fapilog</span>
+
+<span class="c1"># Register custom levels BEFORE creating any loggers</span>
+<span class="n">fapilog</span><span class="o">.</span><span class="n">register_level</span><span class="p">(</span><span class="s2">&quot;TRACE&quot;</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">add_method</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fapilog</span><span class="o">.</span><span class="n">register_level</span><span class="p">(</span><span class="s2">&quot;AUDIT&quot;</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">add_method</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Now create your logger</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">fapilog</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span>
+
+<span class="c1"># Use the dynamic methods</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="s2">&quot;entering function&quot;</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="s2">&quot;process_order&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">audit</span><span class="p">(</span><span class="s2">&quot;user accessed resource&quot;</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;123&quot;</span><span class="p">,</span> <span class="n">resource</span><span class="o">=</span><span class="s2">&quot;secrets&quot;</span><span class="p">)</span>
+
+<span class="c1"># Standard methods still work</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;order processed&quot;</span><span class="p">,</span> <span class="n">order_id</span><span class="o">=</span><span class="s2">&quot;456&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="level-filtering">
+<h3>Level Filtering<a class="headerlink" href="#level-filtering" title="Link to this heading"></a></h3>
+<p>Custom levels integrate with the level filter. Events below the configured minimum level are dropped:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">fapilog</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span>
+
+<span class="n">fapilog</span><span class="o">.</span><span class="n">register_level</span><span class="p">(</span><span class="s2">&quot;TRACE&quot;</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">add_method</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># With min_level=INFO (priority 20), TRACE events (priority 5) are dropped</span>
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span><span class="n">core</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;log_level&quot;</span><span class="p">:</span> <span class="s2">&quot;INFO&quot;</span><span class="p">})</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">fapilog</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
+
+<span class="n">logger</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="s2">&quot;this is dropped&quot;</span><span class="p">)</span>  <span class="c1"># priority 5 &lt; 20</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;this appears&quot;</span><span class="p">)</span>       <span class="c1"># priority 20 &gt;= 20</span>
+</pre></div>
+</div>
+</section>
+<section id="sink-routing">
+<h3>Sink Routing<a class="headerlink" href="#sink-routing" title="Link to this heading"></a></h3>
+<p>Custom levels work with sink routing rules:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># fapilog.yaml</span>
+<span class="nt">sink_routing</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">match</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> level</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;AUDIT&quot;</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<span class="w">      </span><span class="nt">sink</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;audit_file&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">match</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt"> level</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;ERROR&quot;</span><span class="w"> </span><span class="p p-Indicator">}</span>
+<span class="w">      </span><span class="nt">sink</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;alerts&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="id9">
+<h3>Notes<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Must be called before any logger is created</strong> - The registry freezes on first <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> or <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> call</p></li>
+<li><p>Level names are case-insensitive and stored uppercase</p></li>
+<li><p>Without <code class="docutils literal notranslate"><span class="pre">add_method=True</span></code>, you can still log via the level name but won’t have a dedicated method</p></li>
+<li><p>Priority determines filtering order: lower priority = more verbose (filtered first when min_level is higher)</p></li>
+</ul>
+</section>
+</section>
 <section id="get-cached-loggers-get-cached-loggers">
 <h2>get_cached_loggers {#get_cached_loggers}<a class="headerlink" href="#get-cached-loggers-get-cached-loggers" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_cached_loggers</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>Return a snapshot of currently cached logger names and their types.</p>
-<section id="id7">
-<h3>Returns<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<section id="id10">
+<h3>Returns<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">dict[str,</span> <span class="pre">str]</span></code> - Mapping of logger names to their type (<code class="docutils literal notranslate"><span class="pre">&quot;async&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;sync&quot;</span></code>).</p>
 </section>
-<section id="id8">
-<h3>Examples<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<section id="id11">
+<h3>Examples<a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span><span class="p">,</span> <span class="n">get_async_logger</span><span class="p">,</span> <span class="n">get_cached_loggers</span>
 
 <span class="n">get_logger</span><span class="p">(</span><span class="s2">&quot;service-a&quot;</span><span class="p">)</span>
@@ -481,8 +595,8 @@
 </pre></div>
 </div>
 <p>Drain all cached loggers and clear the cache. Useful for test cleanup.</p>
-<section id="id9">
-<h3>Examples<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<section id="id12">
+<h3>Examples<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">clear_logger_cache</span>
 
 <span class="c1"># Clear all cached loggers (drains them first)</span>
@@ -490,8 +604,8 @@
 </pre></div>
 </div>
 </section>
-<section id="id10">
-<h3>Notes<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
+<section id="id13">
+<h3>Notes<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Drains all cached loggers before removing them from the cache</p></li>
 <li><p>Thread-safe; can be called from any thread</p></li>

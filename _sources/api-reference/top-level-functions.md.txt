@@ -168,6 +168,98 @@ async with runtime_async() as logger:
 # Logger automatically drained on exit
 ```
 
+## register_level {#register_level}
+
+```python
+def register_level(
+    name: str,
+    priority: int,
+    *,
+    add_method: bool = False,
+) -> None
+```
+
+Register a custom log level for use throughout your application.
+
+Custom levels allow you to define domain-specific severity levels beyond the standard DEBUG, INFO, WARNING, ERROR, and CRITICAL. Common use cases include:
+
+- **TRACE** (priority 5) - Verbose debugging below DEBUG
+- **AUDIT** (priority 25) - Compliance/security events between INFO and WARNING
+- **NOTICE** (priority 22) - Significant events that aren't warnings
+- **ALERT** (priority 45) - Immediate attention needed, above ERROR
+
+### Parameters
+
+| Parameter    | Type   | Default | Description                                                                 |
+| ------------ | ------ | ------- | --------------------------------------------------------------------------- |
+| `name`       | `str`  | -       | Level name (e.g., "TRACE", "AUDIT"). Automatically uppercased.              |
+| `priority`   | `int`  | -       | Numeric priority 0-99. Lower = more verbose. Standard: DEBUG=10, INFO=20, WARNING=30, ERROR=40, CRITICAL=50. |
+| `add_method` | `bool` | `False` | If True, adds a method to logger (e.g., `logger.trace()`).                  |
+
+### Raises
+
+- `ValueError` - If level name already exists or priority is outside 0-99
+- `RuntimeError` - If called after a logger has been created
+
+### Examples
+
+```python
+import fapilog
+
+# Register custom levels BEFORE creating any loggers
+fapilog.register_level("TRACE", priority=5, add_method=True)
+fapilog.register_level("AUDIT", priority=25, add_method=True)
+
+# Now create your logger
+logger = fapilog.get_logger()
+
+# Use the dynamic methods
+logger.trace("entering function", func="process_order")
+logger.audit("user accessed resource", user_id="123", resource="secrets")
+
+# Standard methods still work
+logger.info("order processed", order_id="456")
+```
+
+### Level Filtering
+
+Custom levels integrate with the level filter. Events below the configured minimum level are dropped:
+
+```python
+import fapilog
+from fapilog import Settings
+
+fapilog.register_level("TRACE", priority=5, add_method=True)
+
+# With min_level=INFO (priority 20), TRACE events (priority 5) are dropped
+settings = Settings(core={"log_level": "INFO"})
+logger = fapilog.get_logger(settings=settings)
+
+logger.trace("this is dropped")  # priority 5 < 20
+logger.info("this appears")       # priority 20 >= 20
+```
+
+### Sink Routing
+
+Custom levels work with sink routing rules:
+
+```yaml
+# fapilog.yaml
+sink_routing:
+  rules:
+    - match: { level: "AUDIT" }
+      sink: "audit_file"
+    - match: { level: "ERROR" }
+      sink: "alerts"
+```
+
+### Notes
+
+- **Must be called before any logger is created** - The registry freezes on first `get_logger()` or `get_async_logger()` call
+- Level names are case-insensitive and stored uppercase
+- Without `add_method=True`, you can still log via the level name but won't have a dedicated method
+- Priority determines filtering order: lower priority = more verbose (filtered first when min_level is higher)
+
 ## get_cached_loggers {#get_cached_loggers}
 
 ```python
