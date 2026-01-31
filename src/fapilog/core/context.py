@@ -23,6 +23,11 @@ from typing import (
 )
 from uuid import uuid4
 
+# Re-export preserve_context from fapilog.context for backward compatibility.
+# The old implementation had a bug: it used lambda with create_task incorrectly.
+# See Story 1.35 for details.
+from fapilog.context import preserve_context as preserve_context
+
 from .errors import (
     AsyncErrorContext,
     ErrorCategory,
@@ -393,31 +398,6 @@ async def execution_context(
             component_name_var.reset(token_component_name)
         if token_operation_name:
             operation_name_var.reset(token_operation_name)
-
-
-def preserve_context(func: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:
-    """
-    Decorator to preserve execution context across async function calls.
-
-    Usage:
-        @preserve_context
-        async def my_function():
-            # Context variables are automatically preserved
-            pass
-    """
-
-    @functools.wraps(func)
-    async def wrapper(*args: Any, **kwargs: Any) -> T:
-        # Copy current context
-        current_context = contextvars.copy_context()
-
-        # Run function in copied context
-        async def _run_in_context() -> Any:
-            return await func(*args, **kwargs)
-
-        return await current_context.run(lambda: asyncio.create_task(_run_in_context()))
-
-    return wrapper
 
 
 async def get_current_execution_context() -> Optional[ExecutionContext]:
