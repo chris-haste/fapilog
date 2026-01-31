@@ -136,5 +136,5 @@ class TestTypeContract:
         assert set(LogContext.__annotations__.keys()) == context_keys
 
         # Verify LogDiagnostics has expected keys
-        diagnostics_keys = {"service", "env", "host", "pid", "exception"}
+        diagnostics_keys = {"origin", "service", "env", "host", "pid", "exception"}
         assert set(LogDiagnostics.__annotations__.keys()) == diagnostics_keys
