@@ -4,8 +4,11 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
+from ...core.levels import get_level_priority
 from ..utils import parse_plugin_config
 
+# Maintain LEVEL_PRIORITY for backward compatibility (external code may import it)
+# But internally we use get_level_priority() from the registry
 LEVEL_PRIORITY = {
     "DEBUG": 10,
     "INFO": 20,
@@ -33,7 +36,7 @@ class LevelFilter:
         self, *, config: LevelFilterConfig | dict | None = None, **kwargs: Any
     ) -> None:
         cfg = parse_plugin_config(LevelFilterConfig, config, **kwargs)
-        self._min_priority = LEVEL_PRIORITY.get(cfg.min_level.upper(), 20)
+        self._min_priority = get_level_priority(cfg.min_level)
         self._drop_below = bool(cfg.drop_below)
 
     async def start(self) -> None:
@@ -44,7 +47,7 @@ class LevelFilter:
 
     async def filter(self, event: dict) -> dict | None:
         level = str(event.get("level", "INFO")).upper()
-        priority = LEVEL_PRIORITY.get(level, 20)
+        priority = get_level_priority(level)
         if self._drop_below and priority < self._min_priority:
             return None
         return event

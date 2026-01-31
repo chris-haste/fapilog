@@ -18,12 +18,12 @@ from typing import Any, cast
 
 from ..metrics.metrics import MetricsCollector
 from ..plugins.enrichers import BaseEnricher
-from ..plugins.filters.level import LEVEL_PRIORITY
 from ..plugins.processors import BaseProcessor
 from ..plugins.redactors import BaseRedactor
 from .concurrency import NonBlockingRingQueue
 from .envelope import build_envelope
 from .events import LogEvent
+from .levels import get_level_priority
 from .worker import (
     LoggerWorker,
     enqueue_with_backpressure,
@@ -1069,7 +1069,7 @@ class SyncLoggerFacade(_LoggerMixin):
         """
         gate = self._level_gate
         if gate is not None:
-            priority = LEVEL_PRIORITY.get(level.upper(), 0)
+            priority = get_level_priority(level)
             if priority < gate:
                 self._record_filtered(1)
                 return
@@ -1425,7 +1425,7 @@ class AsyncLoggerFacade(_LoggerMixin):
     ) -> None:
         gate = self._level_gate
         if gate is not None:
-            priority = LEVEL_PRIORITY.get(level.upper(), 0)
+            priority = get_level_priority(level)
             if priority < gate:
                 await self._record_filtered_async(1)
                 return

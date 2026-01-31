@@ -29,6 +29,7 @@ from .builder import AsyncLoggerBuilder, LoggerBuilder
 from .core.config_builders import _build_pipeline as _build_pipeline_impl
 from .core.config_builders import _default_sink_names, _sink_configs
 from .core.events import LogEvent
+from .core.levels import register_level
 from .core.logger import AsyncLoggerFacade as _AsyncLoggerFacade
 from .core.logger import DrainResult
 from .core.logger import SyncLoggerFacade as _SyncLoggerFacade
@@ -61,6 +62,7 @@ __all__ = [
     "get_cached_loggers",
     "clear_logger_cache",
     "install_shutdown_handlers",
+    "register_level",
     "__version__",
     "VERSION",
 ]
@@ -674,6 +676,77 @@ def _prepare_logger(
     return setup, cfg_source
 
 
+def _make_sync_level_method(
+    logger: _SyncLoggerFacade,
+    level_name: str,
+) -> _Callable[..., None]:
+    """Create a sync logging method for a custom level.
+
+    Uses a factory function to properly capture the level_name in closure.
+    """
+
+    def _sync_log_method(
+        message: str,
+        *,
+        exc: BaseException | None = None,
+        exc_info: _Any | None = None,
+        **metadata: _Any,
+    ) -> None:
+        logger._enqueue(level_name, message, exc=exc, exc_info=exc_info, **metadata)  # noqa: SLF001
+
+    return _sync_log_method
+
+
+def _make_async_level_method(
+    logger: _AsyncLoggerFacade,
+    level_name: str,
+) -> _Callable[..., _Coroutine[_Any, _Any, None]]:
+    """Create an async logging method for a custom level.
+
+    Uses a factory function to properly capture the level_name in closure.
+    """
+
+    async def _async_log_method(
+        message: str,
+        *,
+        exc: BaseException | None = None,
+        exc_info: _Any | None = None,
+        **metadata: _Any,
+    ) -> None:
+        await logger._enqueue(
+            level_name, message, exc=exc, exc_info=exc_info, **metadata
+        )  # noqa: SLF001
+
+    return _async_log_method
+
+
+def _add_dynamic_level_methods(
+    logger: _SyncLoggerFacade | _AsyncLoggerFacade, is_async: bool
+) -> None:
+    """Add dynamic methods for custom levels with add_method=True.
+
+    Generates logger.trace(), logger.audit(), etc. based on registered custom levels.
+    """
+    from .core.levels import get_pending_methods
+
+    for level_name in get_pending_methods():
+        method_name = level_name.lower()
+        # Skip if method already exists (e.g., debug, info, etc.)
+        if hasattr(logger, method_name):
+            continue
+
+        if is_async:
+            async_method = _make_async_level_method(
+                _cast(_AsyncLoggerFacade, logger), level_name
+            )
+            setattr(logger, method_name, async_method)
+        else:
+            sync_method = _make_sync_level_method(
+                _cast(_SyncLoggerFacade, logger), level_name
+            )
+            setattr(logger, method_name, sync_method)
+
+
 def _create_and_start_facade(
     facade_cls: type,
     name: str | None,
@@ -684,6 +757,11 @@ def _create_and_start_facade(
     filters: list[object],
 ) -> object:
     """Create a logger facade, apply extras, and start it."""
+    # Freeze the registry before creating the logger (Story 10.47 AC6)
+    from .core.levels import freeze_registry
+
+    freeze_registry()
+
     cfg = setup.settings
     logger = facade_cls(
         name=name,
@@ -705,6 +783,10 @@ def _create_and_start_facade(
         num_workers=cfg.core.worker_count,
         level_gate=setup.level_gate,
     )
+
+    # Add dynamic methods for custom levels (Story 10.47 AC5)
+    is_async = facade_cls is _AsyncLoggerFacade
+    _add_dynamic_level_methods(logger, is_async)
 
     _apply_logger_extras(
         logger,
