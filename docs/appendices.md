@@ -17,6 +17,7 @@ guides/settings-to-builder-migration
 guides/migration-file-rotation
 guides/tenacity-integration
 guides/testing
+guides/async-context
 addons/tamper-evident-logging
 ```
 
