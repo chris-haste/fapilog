@@ -224,6 +224,7 @@ class TestPresetConsistency:
             "dev",
             "production",
             "production-latency",
+            "high-volume",
             "fastapi",
             "minimal",
             "serverless",
