@@ -1,16 +1,16 @@
-# Why Fapilog?
+# Why fapilog?
 
 Fapilog is an **async-first structured logging library** for Python services. If you're building FastAPI applications, microservices, or any system where logging shouldn't slow down your requests, fapilog was designed for your use case.
 
 ## Quick Decision Guide
 
-| If you need... | Best choice |
-|----------------|-------------|
-| Async-first logging with backpressure handling | **fapilog** |
-| Simplest possible API, sync is fine | loguru |
-| Processor ecosystem, stdlib compatibility | structlog |
-| Full observability (logs + traces + metrics) | OpenTelemetry |
-| Zero dependencies | stdlib logging |
+| If you need...                                 | Best choice    |
+| ---------------------------------------------- | -------------- |
+| Async-first logging with backpressure handling | **fapilog**    |
+| Simplest possible API, sync is fine            | loguru         |
+| Processor ecosystem, stdlib compatibility      | structlog      |
+| Full observability (logs + traces + metrics)   | OpenTelemetry  |
+| Zero dependencies                              | stdlib logging |
 
 **Not sure?** Read on for details, or jump to the [full comparison](comparisons.md).
 
@@ -80,12 +80,12 @@ logger = (
 )
 ```
 
-| Configuration | Behavior |
-|--------------|----------|
-| `wait_ms=50, drop_on_full=True` | Wait up to 50ms for space, then drop (default) |
-| `wait_ms=0, drop_on_full=True` | Drop immediately if queue full |
-| `wait_ms=0, drop_on_full=False` | Block indefinitely until space available |
-| `wait_ms=100, drop_on_full=False` | Wait 100ms, then block indefinitely |
+| Configuration                     | Behavior                                       |
+| --------------------------------- | ---------------------------------------------- |
+| `wait_ms=50, drop_on_full=True`   | Wait up to 50ms for space, then drop (default) |
+| `wait_ms=0, drop_on_full=True`    | Drop immediately if queue full                 |
+| `wait_ms=0, drop_on_full=False`   | Block indefinitely until space available       |
+| `wait_ms=100, drop_on_full=False` | Wait 100ms, then block indefinitely            |
 
 ### 3. Built-in Redaction
 
@@ -131,12 +131,12 @@ logger = (
 
 ## Honest Trade-offs
 
-| Consideration | Reality |
-|---------------|---------|
-| **Maturity** | New (2024) vs structlog (2013), loguru (2018) |
-| **Community** | Growing vs established ecosystems with more tutorials and Stack Overflow answers |
-| **Sync use cases** | If you don't need async, loguru is simpler |
-| **Processor ecosystem** | structlog has more built-in processors and community extensions |
+| Consideration           | Reality                                                                          |
+| ----------------------- | -------------------------------------------------------------------------------- |
+| **Maturity**            | New (2024) vs structlog (2013), loguru (2018)                                    |
+| **Community**           | Growing vs established ecosystems with more tutorials and Stack Overflow answers |
+| **Sync use cases**      | If you don't need async, loguru is simpler                                       |
+| **Processor ecosystem** | structlog has more built-in processors and community extensions                  |
 
 ### When fapilog might not be the best fit
 
@@ -146,6 +146,7 @@ logger = (
 
 ## Learn More
 
+- **[Feature List](features.md)** - Complete overview of what fapilog offers
 - **[Full Feature Comparison](comparisons.md)** - Detailed comparison with structlog, loguru, stdlib, and OpenTelemetry
 - **[Getting Started](getting-started/index.md)** - Install and start logging in 2 minutes
 - **[Architecture](core-concepts/pipeline-architecture.md)** - How the async pipeline works
