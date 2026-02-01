@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-02-01
+
+### Added
+
+- **FastAPI - Expose header options in setup_logging:** Add include_headers, additional_redact_headers, allow_headers params. Pass header options through to _configure_middleware and LoggingMiddleware.
+- **Core - Add high-volume preset with adaptive sampling:** Enable cost-effective logging for high-traffic services via preset="high-volume". Configure adaptive sampling to target ~100 events/sec with 1-100% dynamic range. Ensure ERROR/CRITICAL/FATAL always pass through (never sampled out).
+- **Core - Add log origin tracking:** Add LogOrigin type and origin field to LogDiagnostics TypedDict. Set origin="native" by default in build_envelope(). Stdlib bridge sets origin="stdlib" via _origin parameter.
+- **Core - Add async context propagation helpers:** Add create_task_with_context() for context-preserving task creation. Add run_in_executor_with_context() for executor context preservation. Fix preserve_context decorator bug.
+- **Core - Add custom log level registration API:** Add register_level() to register custom levels with priority 0-99. Integrate custom levels with level filter and routing. Generate dynamic logger methods for levels with add_method=True.
+- **Core - Add custom sink names to builder API:** Add optional name parameter to all add_* sink methods. Enable multiple sinks of same type with unique names for routing.
+
+### Fixed
+
+- **FastAPI - Preserve default header redactions in setup_logging:** Pass redact_headers=None instead of [] to LoggingMiddleware. Allows DEFAULT_REDACT_HEADERS to apply when include_headers=True.
+
+### Documentation
+
+- **Cookbook - Add FastAPI microservice production guide:** Cover preset selection for different traffic patterns. Include Kubernetes probe skip paths. Document serverless containers (Cloud Run, Fargate, Lambda).
+- **Features - Add features page with comprehensive feature list:** Add features.md with categorized feature tables and benefits.
+- **Cookbook - Add custom log levels recipe:** Cover TRACE, AUDIT, NOTICE level patterns for Python logging.
+- **Guides - Add async context propagation guide:** Document create_task_with_context, run_in_executor_with_context, and preserve_context decorator usage.
+- **Core - Add register_level API documentation:** Add comprehensive register_level() docs to top-level-functions.md with integration tests.
+
 ## [0.12.0] - 2026-01-30
 
 ### Added
