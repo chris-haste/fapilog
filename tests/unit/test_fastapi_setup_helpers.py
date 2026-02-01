@@ -59,6 +59,66 @@ def test_configure_middleware_propagates_log_errors_on_skip() -> None:
     assert logging_mw.kwargs["log_errors_on_skip"] is False
 
 
+def test_configure_middleware_include_headers() -> None:
+    """Test include_headers is passed to LoggingMiddleware."""
+    app = FastAPI()
+    logger = object()
+
+    _configure_middleware(
+        app,
+        logger=logger,
+        include_headers=True,
+    )
+
+    logging_mw = next(
+        mw for mw in app.user_middleware if mw.cls.__name__ == "LoggingMiddleware"
+    )
+    assert logging_mw.kwargs["include_headers"] is True
+
+
+def test_configure_middleware_additional_redact_headers() -> None:
+    """Test additional_redact_headers is passed to LoggingMiddleware."""
+    app = FastAPI()
+    logger = object()
+
+    _configure_middleware(
+        app,
+        logger=logger,
+        include_headers=True,
+        additional_redact_headers=["X-Internal-Token", "X-Session-Id"],
+    )
+
+    logging_mw = next(
+        mw for mw in app.user_middleware if mw.cls.__name__ == "LoggingMiddleware"
+    )
+    assert logging_mw.kwargs["additional_redact_headers"] == [
+        "X-Internal-Token",
+        "X-Session-Id",
+    ]
+
+
+def test_configure_middleware_allow_headers() -> None:
+    """Test allow_headers is passed to LoggingMiddleware."""
+    app = FastAPI()
+    logger = object()
+
+    _configure_middleware(
+        app,
+        logger=logger,
+        include_headers=True,
+        allow_headers=["Content-Type", "Accept", "User-Agent"],
+    )
+
+    logging_mw = next(
+        mw for mw in app.user_middleware if mw.cls.__name__ == "LoggingMiddleware"
+    )
+    assert logging_mw.kwargs["allow_headers"] == [
+        "Content-Type",
+        "Accept",
+        "User-Agent",
+    ]
+
+
 def test_configure_middleware_resets_stack_when_updated() -> None:
     app = FastAPI()
     app.add_middleware(RequestContextMiddleware)
@@ -97,6 +157,89 @@ def test_configure_middleware_updates_existing_logging_logger() -> None:
     assert any(
         mw.cls.__name__ == "RequestContextMiddleware" for mw in app.user_middleware
     )
+
+
+def test_setup_logging_passes_include_headers(monkeypatch) -> None:
+    """Test setup_logging passes include_headers to _configure_middleware."""
+
+    class DummyLogger:
+        async def drain(self) -> None:
+            return None
+
+    async def fake_get_async_logger(name: str | None = None, *, preset=None):
+        return DummyLogger()
+
+    monkeypatch.setattr("fapilog.get_async_logger", fake_get_async_logger)
+
+    app = FastAPI(
+        lifespan=setup_logging(
+            include_headers=True,
+        )
+    )
+
+    with TestClient(app):
+        pass
+
+    logging_mw = next(
+        mw for mw in app.user_middleware if mw.cls.__name__ == "LoggingMiddleware"
+    )
+    assert logging_mw.kwargs["include_headers"] is True
+
+
+def test_setup_logging_passes_additional_redact_headers(monkeypatch) -> None:
+    """Test setup_logging passes additional_redact_headers to _configure_middleware."""
+
+    class DummyLogger:
+        async def drain(self) -> None:
+            return None
+
+    async def fake_get_async_logger(name: str | None = None, *, preset=None):
+        return DummyLogger()
+
+    monkeypatch.setattr("fapilog.get_async_logger", fake_get_async_logger)
+
+    app = FastAPI(
+        lifespan=setup_logging(
+            include_headers=True,
+            additional_redact_headers=["X-Internal-Token"],
+        )
+    )
+
+    with TestClient(app):
+        pass
+
+    logging_mw = next(
+        mw for mw in app.user_middleware if mw.cls.__name__ == "LoggingMiddleware"
+    )
+    assert logging_mw.kwargs["additional_redact_headers"] == ["X-Internal-Token"]
+
+
+def test_setup_logging_passes_allow_headers(monkeypatch) -> None:
+    """Test setup_logging passes allow_headers to _configure_middleware."""
+
+    class DummyLogger:
+        async def drain(self) -> None:
+            return None
+
+    async def fake_get_async_logger(name: str | None = None, *, preset=None):
+        return DummyLogger()
+
+    monkeypatch.setattr("fapilog.get_async_logger", fake_get_async_logger)
+
+    app = FastAPI(
+        lifespan=setup_logging(
+            include_headers=True,
+            allow_headers=["Content-Type", "Accept"],
+        )
+    )
+
+    with TestClient(app):
+        pass
+
+    logging_mw = next(
+        mw for mw in app.user_middleware if mw.cls.__name__ == "LoggingMiddleware"
+    )
+    assert logging_mw.kwargs["allow_headers"] == ["Content-Type", "Accept"]
 
 
 def test_setup_logging_wraps_lifespan_and_drains(monkeypatch) -> None:

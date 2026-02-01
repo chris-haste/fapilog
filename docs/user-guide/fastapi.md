@@ -23,6 +23,32 @@ async def root(logger=Depends(get_request_logger)):
     return {"message": "Hello World"}
 ```
 
+### Header logging with setup_logging
+
+The `setup_logging` one-liner supports the same header options as `LoggingMiddleware`:
+
+```python
+app = FastAPI(
+    lifespan=setup_logging(
+        preset="fastapi",
+        include_headers=True,  # Enable header logging
+        additional_redact_headers=["X-Internal-Token"],  # Add to default redactions
+    )
+)
+```
+
+Or use allowlist mode to log only specific headers:
+
+```python
+app = FastAPI(
+    lifespan=setup_logging(
+        preset="fastapi",
+        include_headers=True,
+        allow_headers=["Content-Type", "Accept", "User-Agent"],  # Only these headers
+    )
+)
+```
+
 Automatic middleware registration is enabled by default. Disable it for manual control:
 
 ```python

@@ -25,6 +25,9 @@ def _configure_middleware(
     sample_rate: float = 1.0,
     redact_headers: list[str] | None = None,
     log_errors_on_skip: bool = True,
+    include_headers: bool = False,
+    additional_redact_headers: list[str] | None = None,
+    allow_headers: list[str] | None = None,
 ) -> None:
     """Configure FastAPI middleware in the correct order."""
 
@@ -59,6 +62,9 @@ def _configure_middleware(
                 sample_rate=sample_rate,
                 redact_headers=redact_headers or [],
                 log_errors_on_skip=log_errors_on_skip,
+                include_headers=include_headers,
+                additional_redact_headers=additional_redact_headers,
+                allow_headers=allow_headers,
             )
             app.add_middleware(RequestContextMiddleware)
             updated = True
@@ -75,6 +81,9 @@ def _configure_middleware(
                     sample_rate=sample_rate,
                     redact_headers=redact_headers or [],
                     log_errors_on_skip=log_errors_on_skip,
+                    include_headers=include_headers,
+                    additional_redact_headers=additional_redact_headers,
+                    allow_headers=allow_headers,
                 ),
             )
             updated = True
@@ -111,6 +120,9 @@ def setup_logging(
     log_errors_on_skip: bool = True,
     wrap_lifespan: Callable[[FastAPI], AsyncContextManager[None]] | None = None,
     auto_middleware: bool = True,
+    include_headers: bool = False,
+    additional_redact_headers: list[str] | None = None,
+    allow_headers: list[str] | None = None,
 ) -> Callable[[FastAPI], AsyncContextManager[None]]:
     """One-liner FastAPI logging setup.
 
@@ -129,6 +141,9 @@ def setup_logging(
         log_errors_on_skip: Whether to log errors on skipped paths (default: True).
         wrap_lifespan: User lifespan to wrap.
         auto_middleware: Whether to auto-configure middleware.
+        include_headers: Whether to include request headers in logs (default: False).
+        additional_redact_headers: Additional header names to redact (added to defaults).
+        allow_headers: If set, only these headers are logged (allowlist mode).
     """
     app_ref = app
 
@@ -150,6 +165,9 @@ def setup_logging(
                 sample_rate=sample_rate,
                 redact_headers=redact_headers,
                 log_errors_on_skip=log_errors_on_skip,
+                include_headers=include_headers,
+                additional_redact_headers=additional_redact_headers,
+                allow_headers=allow_headers,
             )
         try:
             if wrap_lifespan is not None:
