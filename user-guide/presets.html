@@ -111,6 +111,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../cookbook/safe-request-response-logging.html">Logging request/response bodies without hanging (safe patterns)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../cookbook/skip-noisy-endpoints.html">Skipping health/metrics endpoints (noise reduction)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../cookbook/log-sampling-rate-limiting.html">Log sampling and rate limiting for FastAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/adaptive-sampling-high-volume.html">Adaptive Sampling for High-Volume Services</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../cookbook/graceful-shutdown-flush.html">Graceful shutdown &amp; flushing logs (don’t lose logs on deploy)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../cookbook/exception-logging-request-context.html">Exception logging in FastAPI with request_id + structured context</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../cookbook/custom-log-levels.html">Custom log levels in Python (TRACE, AUDIT, NOTICE)</a></li>
@@ -260,25 +261,31 @@
 <td><p>No</p></td>
 <td><p>Yes (CREDENTIALS)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">high-volume</span></code></p></td>
+<td><p>Cost-effective high traffic</p></td>
+<td><p>If needed</p></td>
+<td><p>No</p></td>
+<td><p>Yes (CREDENTIALS)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
 <td><p>FastAPI applications</p></td>
 <td><p>If needed</p></td>
 <td><p>No</p></td>
 <td><p>Yes (CREDENTIALS)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
 <td><p>Lambda/Cloud Run</p></td>
 <td><p>If needed</p></td>
 <td><p>No</p></td>
 <td><p>Yes (CREDENTIALS)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
 <td><p>Compliance (HIPAA/PCI)</p></td>
 <td><p>Never</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes (HIPAA + PCI + CREDENTIALS)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
 <td><p>Maximum control</p></td>
 <td><p>Default</p></td>
 <td><p>Default</p></td>
@@ -297,9 +304,11 @@
                   ├─ Yes → hardened
                   └─ No → Are you using FastAPI?
                            ├─ Yes → fastapi
-                           └─ No → Is log durability critical?
-                                    ├─ Yes → production (never drops)
-                                    └─ No → production-latency (prioritizes speed)
+                           └─ No → Is traffic high-volume (100+ req/s) with cost concerns?
+                                    ├─ Yes → high-volume (adaptive sampling)
+                                    └─ No → Is log durability critical?
+                                             ├─ Yes → production (never drops)
+                                             └─ No → production-latency (prioritizes speed)
 </pre></div>
 </div>
 <section id="key-decision-production-vs-production-latency">
@@ -397,25 +406,31 @@
 <td><p>256</p></td>
 <td><p>runtime_info, context_vars</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
-<td><p>2</p></td>
-<td><p>50</p></td>
-<td><p>256</p></td>
-<td><p>context_vars only</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
-<td><p>2</p></td>
-<td><p>25</p></td>
-<td><p>256</p></td>
-<td><p>runtime_info, context_vars</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">high-volume</span></code></p></td>
 <td><p>2</p></td>
 <td><p>100</p></td>
 <td><p>256</p></td>
 <td><p>runtime_info, context_vars</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
+<td><p>2</p></td>
+<td><p>50</p></td>
+<td><p>256</p></td>
+<td><p>context_vars only</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
+<td><p>2</p></td>
+<td><p>25</p></td>
+<td><p>256</p></td>
+<td><p>runtime_info, context_vars</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
+<td><p>2</p></td>
+<td><p>100</p></td>
+<td><p>256</p></td>
+<td><p>runtime_info, context_vars</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
 <td><p>1</p></td>
 <td><p>256</p></td>
 <td><p>256</p></td>
@@ -457,25 +472,31 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
 <td><p>None</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">high-volume</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">warn</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
 <td><p>None</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">warn</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
 <td><p>None</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">warn</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>None</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">closed</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
 <td><p>50MB × 10, gzip</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
 <td><p>N/A</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
@@ -518,22 +539,27 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">high-volume</span></code></p></td>
 <td><p>CREDENTIALS</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
 <td><p>CREDENTIALS</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
+<td><p>CREDENTIALS</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
 <td><p>HIPAA_PHI + PCI_DSS + CREDENTIALS</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">inherit</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
 <td><p>None</p></td>
 <td><p>N/A</p></td>
 <td><p>N/A</p></td>
@@ -599,6 +625,25 @@
 </ul>
 <p><strong>Use when:</strong> High-throughput APIs, latency-sensitive services, user-facing endpoints with strict SLOs.</p>
 <p><strong>Trade-off:</strong> Under extreme load, some log events may be dropped to maintain application throughput.</p>
+</section>
+<section id="high-volume">
+<h3>high-volume<a class="headerlink" href="#high-volume" title="Link to this heading"></a></h3>
+<p>Cost-effective logging for high-traffic services with adaptive sampling.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;high-volume&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Settings:</strong></p>
+<ul class="simple">
+<li><p>INFO level filters noise</p></li>
+<li><p>Adaptive sampling: targets ~100 events/sec, automatically adjusts 1-100%</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">always_pass_levels=[&quot;ERROR&quot;,</span> <span class="pre">&quot;CRITICAL&quot;,</span> <span class="pre">&quot;FATAL&quot;]</span></code> — errors never sampled out</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">drop_on_full=True</span></code> — drops logs rather than block</p></li>
+<li><p>Automatic redaction of credentials</p></li>
+<li><p>2 workers for throughput</p></li>
+</ul>
+<p><strong>Use when:</strong> High-traffic services (100+ req/s), cost-conscious deployments, traffic spikes expected, need full visibility on errors.</p>
+<p><strong>Trade-off:</strong> INFO/DEBUG logs are sampled during high traffic. All errors are always logged.</p>
+<p>See <a class="reference internal" href="../cookbook/adaptive-sampling-high-volume.html"><span class="std std-doc">Adaptive Sampling for High-Volume Services</span></a> for detailed configuration and tuning.</p>
 </section>
 <section id="fastapi">
 <h3>fastapi<a class="headerlink" href="#fastapi" title="Link to this heading"></a></h3>
@@ -747,7 +792,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">list_presets</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">list_presets</span><span class="p">())</span>
-<span class="c1"># [&#39;dev&#39;, &#39;fastapi&#39;, &#39;hardened&#39;, &#39;minimal&#39;, &#39;production&#39;, &#39;production-latency&#39;, &#39;serverless&#39;]</span>
+<span class="c1"># [&#39;dev&#39;, &#39;fastapi&#39;, &#39;hardened&#39;, &#39;high-volume&#39;, &#39;minimal&#39;, &#39;production&#39;, &#39;production-latency&#39;, &#39;serverless&#39;]</span>
 </pre></div>
 </div>
 </section>

@@ -7,7 +7,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Non-blocking logging in FastAPI (protect latency under slow sinks) &mdash; fapilog latest documentation</title>
+  <title>Adaptive Sampling for High-Volume Services &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -25,12 +25,12 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="One FastAPI logging config for dev + prod (Uvicorn/Gunicorn)" href="dev-prod-logging-config.html" />
-    <link rel="prev" title="Django Structured JSON Logging with Correlation IDs" href="django-structured-logging.html" />
+    <link rel="next" title="Graceful shutdown &amp; flushing logs (don’t lose logs on deploy)" href="graceful-shutdown-flush.html" />
+    <link rel="prev" title="Log sampling and rate limiting for FastAPI" href="log-sampling-rate-limiting.html" />
  
 
 
-<link rel="canonical" href="https://docs.fapilog.dev/en/stable/cookbook/non-blocking-async-logging.html" />
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/cookbook/adaptive-sampling-high-volume.html" />
 <meta name="robots" content="noindex, follow" />
 
 
@@ -104,14 +104,14 @@
 <li class="toctree-l2"><a class="reference internal" href="fastapi-json-logging.html">FastAPI JSON logging to stdout (Uvicorn access logs included)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fastapi-request-id-logging.html">FastAPI request_id logging (correlation ID middleware, concurrency-safe)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="django-structured-logging.html">Django Structured JSON Logging with Correlation IDs</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Non-blocking logging in FastAPI (protect latency under slow sinks)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="non-blocking-async-logging.html">Non-blocking logging in FastAPI (protect latency under slow sinks)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dev-prod-logging-config.html">One FastAPI logging config for dev + prod (Uvicorn/Gunicorn)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="redacting-secrets-pii.html">Redacting secrets and PII in FastAPI logs (Authorization, tokens, fields)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="compliance-redaction.html">Compliance Redaction: What Works and What Doesn’t</a></li>
 <li class="toctree-l2"><a class="reference internal" href="safe-request-response-logging.html">Logging request/response bodies without hanging (safe patterns)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="skip-noisy-endpoints.html">Skipping health/metrics endpoints (noise reduction)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="log-sampling-rate-limiting.html">Log sampling and rate limiting for FastAPI</a></li>
-<li class="toctree-l2"><a class="reference internal" href="adaptive-sampling-high-volume.html">Adaptive Sampling for High-Volume Services</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Adaptive Sampling for High-Volume Services</a></li>
 <li class="toctree-l2"><a class="reference internal" href="graceful-shutdown-flush.html">Graceful shutdown &amp; flushing logs (don’t lose logs on deploy)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="exception-logging-request-context.html">Exception logging in FastAPI with request_id + structured context</a></li>
 <li class="toctree-l2"><a class="reference internal" href="custom-log-levels.html">Custom log levels in Python (TRACE, AUDIT, NOTICE)</a></li>
@@ -218,9 +218,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="index.html">Cookbook</a></li>
-      <li class="breadcrumb-item active">Non-blocking logging in FastAPI (protect latency under slow sinks)</li>
+      <li class="breadcrumb-item active">Adaptive Sampling for High-Volume Services</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/cookbook/non-blocking-async-logging.md.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/cookbook/adaptive-sampling-high-volume.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -228,198 +228,259 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="non-blocking-logging-in-fastapi-protect-latency-under-slow-sinks">
-<h1>Non-blocking logging in FastAPI (protect latency under slow sinks)<a class="headerlink" href="#non-blocking-logging-in-fastapi-protect-latency-under-slow-sinks" title="Link to this heading"></a></h1>
-<p>Slow log sinks can stall your async application. When a network hiccup delays CloudWatch or your disk fills up, synchronous logging blocks the event loop, affecting every concurrent request. fapilog’s async pipeline with configurable backpressure lets you choose: drop logs to protect latency, or block to guarantee delivery.</p>
-<blockquote>
-<div><p><strong>Note:</strong> Whether you use <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> in sync code or <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> in async code, your log calls never block on I/O. The non-blocking benefits described here apply to both APIs.</p>
-</div></blockquote>
-<section id="the-problem-slow-sinks-block-your-app">
-<h2>The Problem: Slow Sinks Block Your App<a class="headerlink" href="#the-problem-slow-sinks-block-your-app" title="Link to this heading"></a></h2>
-<p>In a traditional logging setup, each log call writes directly to the destination:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Request → log.info(&quot;...&quot;) → [WAIT for network/disk] → Continue processing
+  <section class="tex2jax_ignore mathjax_ignore" id="adaptive-sampling-for-high-volume-services">
+<h1>Adaptive Sampling for High-Volume Services<a class="headerlink" href="#adaptive-sampling-for-high-volume-services" title="Link to this heading"></a></h1>
+<p>When your service handles thousands of requests per second, logging everything is expensive and often unnecessary. But during incidents, you need full visibility. The <code class="docutils literal notranslate"><span class="pre">high-volume</span></code> preset solves this with adaptive sampling that automatically adjusts based on traffic.</p>
+<section id="the-problem">
+<h2>The Problem<a class="headerlink" href="#the-problem" title="Link to this heading"></a></h2>
+<p>A flash sale or viral moment creates a cost explosion:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Normal:     100 req/s × 86,400 sec = 8.6M logs/day    ($4.30/day)
+Flash sale: 10,000 req/s × 3,600 sec = 36M logs/hour  ($18/hour)
 </pre></div>
 </div>
-<p>When the sink is fast, this works fine. But sinks can slow down:</p>
+<p>At $0.50/GB ingested (typical cloud pricing), a 4-hour sale event costs more than a month of normal operation. Worse, the flood makes it harder to find actual problems.</p>
+<p><strong>What you need:</strong></p>
 <ul class="simple">
-<li><p><strong>Network latency</strong>: CloudWatch API taking 500ms instead of 50ms</p></li>
-<li><p><strong>Disk I/O</strong>: Log rotation or full disk causing writes to stall</p></li>
-<li><p><strong>External services</strong>: Loki or Elasticsearch under heavy load</p></li>
+<li><p>Cost-effective logging during normal operation</p></li>
+<li><p>Full visibility during incidents</p></li>
+<li><p>Errors never dropped, regardless of volume</p></li>
 </ul>
-<p>In an async framework like FastAPI, a blocking log call doesn’t just slow one request—it blocks the entire event loop:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Request A → log.info() → [BLOCKED 500ms waiting for CloudWatch]
-Request B → waiting...
-Request C → waiting...
-Request D → waiting...
-</pre></div>
-</div>
-<p>A single slow log sink can turn your 10ms API into a 500ms+ API.</p>
 </section>
-<section id="the-solution-async-pipeline-with-backpressure">
-<h2>The Solution: Async Pipeline with Backpressure<a class="headerlink" href="#the-solution-async-pipeline-with-backpressure" title="Link to this heading"></a></h2>
-<p>fapilog decouples log emission from sink delivery:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Request → log.info() → [Queue] → Worker → Sink
-              ↓
-         Returns immediately
+<section id="the-solution-high-volume-preset">
+<h2>The Solution: high-volume Preset<a class="headerlink" href="#the-solution-high-volume-preset" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">high-volume</span></code> preset provides intelligent adaptive sampling out of the box:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;high-volume&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+<span class="c1"># During normal traffic: logs ~100 events/sec</span>
+<span class="c1"># During spikes: automatically samples down, never below 1%</span>
+<span class="c1"># Errors: always logged, never sampled out</span>
 </pre></div>
 </div>
-<p>Log calls return immediately after enqueueing. A background worker handles delivery, isolating your request handlers from sink latency.</p>
-<p>But what happens when logs arrive faster than the sink can process them? The queue fills up. fapilog provides two backpressure modes to handle this:</p>
+<section id="what-the-preset-configures">
+<h3>What the Preset Configures<a class="headerlink" href="#what-the-preset-configures" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Equivalent manual configuration:</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_adaptive_sampling</span><span class="p">(</span>
+        <span class="n">target_events_per_sec</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>  <span class="c1"># Target throughput</span>
+        <span class="n">min_rate</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>              <span class="c1"># Never below 1%</span>
+        <span class="n">max_rate</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>               <span class="c1"># Full logging when quiet</span>
+        <span class="n">window_seconds</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>        <span class="c1"># 10-second rolling window</span>
+        <span class="n">always_pass_levels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">,</span> <span class="s2">&quot;FATAL&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">with_workers</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>        <span class="c1"># Throughput optimization</span>
+    <span class="o">.</span><span class="n">with_drop_on_full</span><span class="p">()</span>    <span class="c1"># Protect latency under pressure</span>
+    <span class="o">.</span><span class="n">add_stdout_json</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="how-adaptive-sampling-works">
+<h2>How Adaptive Sampling Works<a class="headerlink" href="#how-adaptive-sampling-works" title="Link to this heading"></a></h2>
+<p>Unlike fixed-rate sampling, adaptive sampling responds to actual throughput:</p>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p>Mode</p></th>
-<th class="head"><p>Behavior</p></th>
+<tr class="row-odd"><th class="head"><p>Traffic</p></th>
+<th class="head"><p>Sample Rate</p></th>
+<th class="head"><p>Events Logged</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>50/sec</p></td>
+<td><p>100%</p></td>
+<td><p>50/sec (full visibility)</p></td>
+</tr>
+<tr class="row-odd"><td><p>100/sec</p></td>
+<td><p>100%</p></td>
+<td><p>100/sec (at target)</p></td>
+</tr>
+<tr class="row-even"><td><p>1,000/sec</p></td>
+<td><p>10%</p></td>
+<td><p>~100/sec (cost controlled)</p></td>
+</tr>
+<tr class="row-odd"><td><p>10,000/sec</p></td>
+<td><p>1%</p></td>
+<td><p>~100/sec (minimum rate)</p></td>
+</tr>
+</tbody>
+</table>
+<p>The algorithm uses exponential smoothing over a 10-second window to avoid thrashing.</p>
+</section>
+<section id="errors-always-pass-through">
+<h2>Errors Always Pass Through<a class="headerlink" href="#errors-always-pass-through" title="Link to this heading"></a></h2>
+<p>The most important feature: <strong>errors are never dropped</strong>. The <code class="docutils literal notranslate"><span class="pre">always_pass_levels</span></code> setting ensures ERROR, CRITICAL, and FATAL messages bypass sampling entirely:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Even during a 10,000 req/sec spike with 1% sampling:</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;request processed&quot;</span><span class="p">)</span>   <span class="c1"># 1% chance of logging</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;database timeout&quot;</span><span class="p">)</span>   <span class="c1"># 100% logged, always</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s2">&quot;service down&quot;</span><span class="p">)</span>    <span class="c1"># 100% logged, always</span>
+</pre></div>
+</div>
+<p>This is production-safe because you’ll always see:</p>
+<ul class="simple">
+<li><p>Unhandled exceptions</p></li>
+<li><p>Database failures</p></li>
+<li><p>Service degradations</p></li>
+<li><p>Security events logged at ERROR+</p></li>
+</ul>
+</section>
+<section id="real-world-example-e-commerce-flash-sale">
+<h2>Real-World Example: E-commerce Flash Sale<a class="headerlink" href="#real-world-example-e-commerce-flash-sale" title="Link to this heading"></a></h2>
+<section id="before-fixed-sampling">
+<h3>Before: Fixed Sampling<a class="headerlink" href="#before-fixed-sampling" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fixed 10% sampling - problematic</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_sampling</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span><span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+<span class="c1"># Problem 1: During quiet periods, you&#39;re missing 90% of data</span>
+<span class="c1"># Problem 2: During flash sale, you might still be over budget</span>
+<span class="c1"># Problem 3: No automatic adjustment</span>
+</pre></div>
+</div>
+</section>
+<section id="after-adaptive-sampling-with-high-volume">
+<h3>After: Adaptive Sampling with high-volume<a class="headerlink" href="#after-adaptive-sampling-with-high-volume" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="c1"># Adaptive sampling - responds to actual traffic</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;high-volume&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+<span class="c1"># Quiet period (50 req/s): 100% sampled</span>
+<span class="c1"># Normal load (500 req/s): ~20% sampled, hitting 100/sec target</span>
+<span class="c1"># Flash sale (5000 req/s): ~2% sampled, hitting 100/sec target</span>
+<span class="c1"># All errors: 100% captured regardless of load</span>
+</pre></div>
+</div>
+</section>
+<section id="cost-comparison">
+<h3>Cost Comparison<a class="headerlink" href="#cost-comparison" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Scenario</p></th>
+<th class="head"><p>Fixed 10%</p></th>
+<th class="head"><p>Adaptive (high-volume)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Quiet (50/sec)</p></td>
+<td><p>5/sec</p></td>
+<td><p>50/sec (full visibility)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Normal (500/sec)</p></td>
+<td><p>50/sec</p></td>
+<td><p>100/sec</p></td>
+</tr>
+<tr class="row-even"><td><p>Flash sale (5000/sec)</p></td>
+<td><p>500/sec</p></td>
+<td><p>100/sec</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Daily cost</strong>*</p></td>
+<td><p>~$10</p></td>
+<td><p>~$5</p></td>
+</tr>
+</tbody>
+</table>
+<p>*Estimated at $0.50/GB, 1KB average log size</p>
+</section>
+</section>
+<section id="customizing-the-preset">
+<h2>Customizing the Preset<a class="headerlink" href="#customizing-the-preset" title="Link to this heading"></a></h2>
+<p>Override specific settings while keeping the preset’s base configuration:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="c1"># Higher target for services that need more visibility</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;high-volume&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_adaptive_sampling</span><span class="p">(</span><span class="n">target_events_per_sec</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>  <span class="c1"># Override target</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="c1"># Lower minimum rate for extremely high-volume services</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;high-volume&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_adaptive_sampling</span><span class="p">(</span><span class="n">min_rate</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>  <span class="c1"># 0.1% minimum</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="c1"># Add a cloud sink while keeping preset configuration</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;high-volume&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_cloudwatch</span><span class="p">(</span><span class="n">log_group</span><span class="o">=</span><span class="s2">&quot;/app/production&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="when-to-use-high-volume-vs-other-presets">
+<h2>When to Use high-volume vs Other Presets<a class="headerlink" href="#when-to-use-high-volume-vs-other-presets" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Preset</p></th>
 <th class="head"><p>Use When</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><strong>Drop</strong> (default)</p></td>
-<td><p>Wait briefly, then drop the log</p></td>
-<td><p>Latency is critical</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">high-volume</span></code></p></td>
+<td><p>Traffic varies widely, cost is a concern, errors must never be missed</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Block</strong></p></td>
-<td><p>Wait indefinitely for queue space</p></td>
-<td><p>Every log must be delivered</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">production</span></code></p></td>
+<td><p>Moderate traffic, durability matters more than cost</p></td>
 </tr>
-</tbody>
-</table>
-</section>
-<section id="configuring-backpressure">
-<h2>Configuring Backpressure<a class="headerlink" href="#configuring-backpressure" title="Link to this heading"></a></h2>
-<section id="drop-mode-latency-critical-services">
-<h3>Drop Mode (Latency-Critical Services)<a class="headerlink" href="#drop-mode-latency-critical-services" title="Link to this heading"></a></h3>
-<p>For APIs where response time matters more than log completeness:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_async_logger</span><span class="p">,</span> <span class="n">Settings</span>
-
-<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">()</span>
-<span class="n">settings</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">drop_on_full</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Drop logs if queue is full (default)</span>
-<span class="n">settings</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">backpressure_wait_ms</span> <span class="o">=</span> <span class="mi">100</span>  <span class="c1"># Wait up to 100ms before dropping</span>
-
-<span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>With these settings, <code class="docutils literal notranslate"><span class="pre">log.info()</span></code> will:</p>
-<ol class="arabic simple">
-<li><p>Try to enqueue immediately</p></li>
-<li><p>If the queue is full, wait up to 100ms for space</p></li>
-<li><p>If still full after 100ms, drop the log and return</p></li>
-</ol>
-<p>Your request handler never blocks for more than 100ms on logging.</p>
-</section>
-<section id="block-mode-audit-critical-services">
-<h3>Block Mode (Audit-Critical Services)<a class="headerlink" href="#block-mode-audit-critical-services" title="Link to this heading"></a></h3>
-<p>For services where every log must be delivered (financial transactions, security events):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_async_logger</span><span class="p">,</span> <span class="n">Settings</span>
-
-<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">()</span>
-<span class="n">settings</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">drop_on_full</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># Never drop, wait indefinitely</span>
-
-<span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>With <code class="docutils literal notranslate"><span class="pre">drop_on_full=False</span></code>, log calls will wait as long as needed for queue space. This guarantees delivery but may add latency during sink slowdowns.</p>
-</section>
-<section id="tuning-queue-size">
-<h3>Tuning Queue Size<a class="headerlink" href="#tuning-queue-size" title="Link to this heading"></a></h3>
-<p>The queue acts as a buffer between log emission and sink delivery:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">settings</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">max_queue_size</span> <span class="o">=</span> <span class="mi">50_000</span>  <span class="c1"># Default: 10,000</span>
-</pre></div>
-</div>
-<p>A larger queue absorbs longer bursts but uses more memory. A smaller queue triggers backpressure sooner.</p>
-</section>
-</section>
-<section id="choosing-the-right-mode">
-<h2>Choosing the Right Mode<a class="headerlink" href="#choosing-the-right-mode" title="Link to this heading"></a></h2>
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Scenario</p></th>
-<th class="head"><p>Recommended Mode</p></th>
-<th class="head"><p>Why</p></th>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">production-latency</span></code></p></td>
+<td><p>Low latency critical, willing to drop logs under pressure</p></td>
 </tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>User-facing API</p></td>
-<td><p>Drop</p></td>
-<td><p>Users won’t wait for logs</p></td>
-</tr>
-<tr class="row-odd"><td><p>Background jobs</p></td>
-<td><p>Block</p></td>
-<td><p>No user waiting, logs are valuable</p></td>
-</tr>
-<tr class="row-even"><td><p>Financial transactions</p></td>
-<td><p>Block</p></td>
-<td><p>Audit trail must be complete</p></td>
-</tr>
-<tr class="row-odd"><td><p>High-throughput metrics</p></td>
-<td><p>Drop</p></td>
-<td><p>Volume matters more than completeness</p></td>
-</tr>
-<tr class="row-even"><td><p>Debug logging in production</p></td>
-<td><p>Drop</p></td>
-<td><p>Debug logs are nice-to-have</p></td>
-</tr>
-<tr class="row-odd"><td><p>Security event logging</p></td>
-<td><p>Block</p></td>
-<td><p>Security logs are critical</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
+<td><p>Lambda/Cloud Functions with short execution time</p></td>
 </tr>
 </tbody>
 </table>
-<p><strong>Default behavior</strong>: fapilog defaults to drop mode (<code class="docutils literal notranslate"><span class="pre">drop_on_full=True</span></code>) with a 50ms wait (<code class="docutils literal notranslate"><span class="pre">backpressure_wait_ms=50</span></code>). This protects latency out of the box while giving sinks a brief chance to catch up.</p>
-</section>
-<section id="monitoring-backpressure">
-<h2>Monitoring Backpressure<a class="headerlink" href="#monitoring-backpressure" title="Link to this heading"></a></h2>
-<p>fapilog exposes metrics to track queue health in production:</p>
-<section id="queue-depth">
-<h3>Queue Depth<a class="headerlink" href="#queue-depth" title="Link to this heading"></a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">queue_depth_high_watermark</span></code> in logger stats shows the maximum queue depth reached:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">stats</span> <span class="o">=</span> <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">get_stats</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Queue high watermark: </span><span class="si">{</span><span class="n">stats</span><span class="o">.</span><span class="n">queue_depth_high_watermark</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>If this approaches <code class="docutils literal notranslate"><span class="pre">max_queue_size</span></code>, you’re hitting backpressure regularly.</p>
-</section>
-<section id="dropped-events">
-<h3>Dropped Events<a class="headerlink" href="#dropped-events" title="Link to this heading"></a></h3>
-<p>When using Prometheus metrics (<code class="docutils literal notranslate"><span class="pre">enable_metrics=True</span></code>), fapilog exports:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fapilog_events_dropped_total</span>
-</pre></div>
-</div>
-<p>A rising counter indicates logs are being dropped due to backpressure. This is expected in drop mode during sink slowdowns, but sustained drops may indicate:</p>
+<section id="decision-guide">
+<h3>Decision Guide<a class="headerlink" href="#decision-guide" title="Link to this heading"></a></h3>
+<p><strong>Choose <code class="docutils literal notranslate"><span class="pre">high-volume</span></code> when:</strong></p>
 <ul class="simple">
-<li><p>Queue size too small for your throughput</p></li>
-<li><p>Sink consistently slower than log emission rate</p></li>
-<li><p>Need to scale sink capacity or reduce log volume</p></li>
+<li><p>Your service handles 100+ requests/second regularly</p></li>
+<li><p>Traffic is spiky or unpredictable</p></li>
+<li><p>Log storage/ingestion costs are a concern</p></li>
+<li><p>You need errors to always be captured</p></li>
+</ul>
+<p><strong>Choose <code class="docutils literal notranslate"><span class="pre">production</span></code> instead when:</strong></p>
+<ul class="simple">
+<li><p>You need every log for compliance/audit</p></li>
+<li><p>Traffic is predictable and moderate</p></li>
+<li><p>File-based logging is required</p></li>
 </ul>
 </section>
 </section>
-<section id="example-fastapi-with-protected-latency">
-<h2>Example: FastAPI with Protected Latency<a class="headerlink" href="#example-fastapi-with-protected-latency" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">Depends</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span><span class="p">,</span> <span class="n">get_request_logger</span>
+<section id="monitoring-adaptive-sampling">
+<h2>Monitoring Adaptive Sampling<a class="headerlink" href="#monitoring-adaptive-sampling" title="Link to this heading"></a></h2>
+<p>Track the current sample rate and dropped events:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
 
-<span class="c1"># Configure for latency-critical API</span>
-<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">()</span>
-<span class="n">settings</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">drop_on_full</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="n">settings</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">backpressure_wait_ms</span> <span class="o">=</span> <span class="mi">50</span>  <span class="c1"># Max 50ms wait</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;high-volume&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_metrics</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
 
-<span class="n">lifespan</span> <span class="o">=</span> <span class="n">setup_logging</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
-<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">lifespan</span><span class="p">)</span>
-
-<span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/api/orders/</span><span class="si">{order_id}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_order</span><span class="p">(</span><span class="n">order_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">Depends</span><span class="p">(</span><span class="n">get_request_logger</span><span class="p">)):</span>
-    <span class="c1"># This log call returns in &lt;50ms even if CloudWatch is slow</span>
-    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Fetching order&quot;</span><span class="p">,</span> <span class="n">order_id</span><span class="o">=</span><span class="n">order_id</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;order_id&quot;</span><span class="p">:</span> <span class="n">order_id</span><span class="p">}</span>
+<span class="c1"># Exposed metrics:</span>
+<span class="c1"># - fapilog_adaptive_sample_rate: Current rate (0.0-1.0)</span>
+<span class="c1"># - fapilog_events_filtered: Events dropped by sampling</span>
+<span class="c1"># - fapilog_events_always_passed: High-priority events that bypassed sampling</span>
 </pre></div>
 </div>
 </section>
 <section id="going-deeper">
 <h2>Going Deeper<a class="headerlink" href="#going-deeper" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><a class="reference internal" href="fastapi-json-logging.html"><span class="std std-doc">FastAPI JSON Logging</span></a> - Structured logging setup</p></li>
-<li><p><a class="reference internal" href="fastapi-request-id-logging.html"><span class="std std-doc">FastAPI request_id Logging</span></a> - Correlation IDs</p></li>
-<li><p><a class="reference internal" href="../why-fapilog.html"><span class="std std-doc">Why Fapilog?</span></a> - How fapilog compares to other logging libraries</p></li>
+<li><p><a class="reference internal" href="log-sampling-rate-limiting.html"><span class="std std-doc">Log Sampling and Rate Limiting</span></a> - Fixed-rate sampling and token bucket rate limiting</p></li>
+<li><p><a class="reference internal" href="../user-guide/configuration.html"><span class="std std-doc">Configuration Guide</span></a> - Complete settings reference</p></li>
+<li><p><a class="reference internal" href="../user-guide/performance-tuning.html"><span class="std std-doc">Performance Tuning</span></a> - Optimization strategies</p></li>
 </ul>
 </section>
 </section>
@@ -430,8 +491,8 @@ Request D → waiting...
           
 <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer" style="position: relative;">
-        <a href="django-structured-logging.html" class="btn btn-neutral float-left" title="Django Structured JSON Logging with Correlation IDs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="dev-prod-logging-config.html" class="btn btn-neutral float-right" title="One FastAPI logging config for dev + prod (Uvicorn/Gunicorn)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="log-sampling-rate-limiting.html" class="btn btn-neutral float-left" title="Log sampling and rate limiting for FastAPI" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="graceful-shutdown-flush.html" class="btn btn-neutral float-right" title="Graceful shutdown &amp; flushing logs (don’t lose logs on deploy)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
       <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 50%; margin-top: -0.5em;">
         <a href="https://fapilog.dev">www.fapilog.dev</a>
       </div>

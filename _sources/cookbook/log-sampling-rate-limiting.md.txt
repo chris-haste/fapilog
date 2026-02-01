@@ -301,6 +301,7 @@ export FAPILOG_FILTER_CONFIG__SAMPLING__SAMPLE_RATE=1.0
 
 ## Going Deeper
 
+- [Adaptive Sampling for High-Volume Services](adaptive-sampling-high-volume.md) - Dynamic sampling with the `high-volume` preset
 - [Configuration Guide](../user-guide/configuration.md) - Complete settings reference
 - [Performance Tuning](../user-guide/performance-tuning.md) - Optimization strategies
 - [Skipping Health Endpoints](skip-noisy-endpoints.md) - Eliminate noise at the source
