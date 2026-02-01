@@ -251,6 +251,28 @@
     <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Hello World&quot;</span><span class="p">}</span>
 </pre></div>
 </div>
+<section id="header-logging-with-setup-logging">
+<h3>Header logging with setup_logging<a class="headerlink" href="#header-logging-with-setup-logging" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">setup_logging</span></code> one-liner supports the same header options as <code class="docutils literal notranslate"><span class="pre">LoggingMiddleware</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span>
+        <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">,</span>
+        <span class="n">include_headers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Enable header logging</span>
+        <span class="n">additional_redact_headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;X-Internal-Token&quot;</span><span class="p">],</span>  <span class="c1"># Add to default redactions</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Or use allowlist mode to log only specific headers:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span>
+        <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">,</span>
+        <span class="n">include_headers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">allow_headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">,</span> <span class="s2">&quot;Accept&quot;</span><span class="p">,</span> <span class="s2">&quot;User-Agent&quot;</span><span class="p">],</span>  <span class="c1"># Only these headers</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 <p>Automatic middleware registration is enabled by default. Disable it for manual control:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi.context</span><span class="w"> </span><span class="kn">import</span> <span class="n">RequestContextMiddleware</span>
@@ -261,6 +283,7 @@
 <span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span><span class="n">LoggingMiddleware</span><span class="p">)</span>
 </pre></div>
 </div>
+</section>
 </section>
 <section id="request-response-logging-middleware">
 <h2>Request/response logging middleware<a class="headerlink" href="#request-response-logging-middleware" title="Link to this heading"></a></h2>
