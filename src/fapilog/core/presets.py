@@ -133,6 +133,38 @@ PRESETS: dict[str, dict[str, Any]] = {
         },
         "_apply_credentials_preset": True,
     },
+    "high-volume": {
+        "core": {
+            "log_level": "INFO",
+            "worker_count": 2,  # Throughput for high-volume scenarios
+            "batch_max_size": 100,
+            "drop_on_full": True,  # Accept drops for latency (Story 10.49)
+            "redaction_fail_mode": "warn",
+            "sinks": ["stdout_json"],
+            "enrichers": ["runtime_info", "context_vars"],
+            "filters": ["adaptive_sampling"],  # Key feature: adaptive sampling
+            "redactors": ["field_mask", "regex_mask", "url_credentials"],
+        },
+        "filter_config": {
+            "adaptive_sampling": {
+                "target_eps": 100.0,  # Target 100 events/sec
+                "min_sample_rate": 0.01,  # Never below 1%
+                "max_sample_rate": 1.0,  # Full logging when quiet
+                "window_seconds": 10.0,
+                "always_pass_levels": ["ERROR", "CRITICAL", "FATAL"],
+            },
+        },
+        "enricher_config": {
+            "runtime_info": {},
+            "context_vars": {},
+        },
+        "redactor_config": {
+            "field_mask": {},
+            "regex_mask": {},
+            "url_credentials": {},
+        },
+        "_apply_credentials_preset": True,
+    },
     "hardened": {
         "core": {
             "log_level": "INFO",

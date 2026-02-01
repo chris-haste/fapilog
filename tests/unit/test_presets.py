@@ -303,6 +303,7 @@ class TestPresetValidation:
         "name",
         [
             "dev",
+            "high-volume",
             "production",
             "production-latency",
             "fastapi",
@@ -334,7 +335,7 @@ class TestPresetValidation:
         """Error message includes list of valid presets."""
         with pytest.raises(
             ValueError,
-            match="Valid presets: dev, fastapi, hardened, minimal, production, production-latency, serverless",
+            match="Valid presets: dev, fastapi, hardened, high-volume, minimal, production, production-latency, serverless",
         ):
             validate_preset("invalid")
 
@@ -380,6 +381,7 @@ class TestPresetToSettings:
         "name",
         [
             "dev",
+            "high-volume",
             "production",
             "production-latency",
             "fastapi",
@@ -398,11 +400,12 @@ class TestPresetToSettings:
 class TestPresetList:
     """Test preset listing."""
 
-    def test_list_presets_returns_all_seven(self):
-        """list_presets returns all seven preset names."""
+    def test_list_presets_returns_all_eight(self):
+        """list_presets returns all eight preset names."""
         presets = list_presets()
         assert set(presets) == {
             "dev",
+            "high-volume",
             "production",
             "production-latency",
             "fastapi",
@@ -579,6 +582,115 @@ class TestProductionLatencyPreset:
         # File sink difference
         assert "rotating_file" in prod["core"]["sinks"]
         assert "rotating_file" not in prod_latency["core"]["sinks"]
+
+
+class TestHighVolumePreset:
+    """Test high-volume preset for adaptive sampling use cases.
+
+    Story 10.49: Add high-volume preset with adaptive sampling for
+    cost-effective logging during normal operation with full visibility
+    during incidents.
+    """
+
+    def test_high_volume_preset_exists(self):
+        """High-volume preset is available via get_preset.
+
+        Story 10.49 AC1: Users can create logger with preset="high-volume".
+        """
+        config = get_preset("high-volume")
+        assert "core" in config
+
+    def test_high_volume_preset_in_list_presets(self):
+        """High-volume preset appears in list_presets()."""
+        presets = list_presets()
+        assert "high-volume" in presets
+
+    def test_high_volume_preset_has_adaptive_sampling_filter(self):
+        """High-volume preset uses adaptive_sampling filter.
+
+        Story 10.49 AC2: adaptive_sampling in preset filters.
+        """
+        config = get_preset("high-volume")
+        assert "adaptive_sampling" in config["core"]["filters"]
+
+    def test_high_volume_preset_enables_drop_on_full(self):
+        """High-volume preset enables drop_on_full for latency.
+
+        Story 10.49 AC2: drop_on_full=True to protect latency.
+        """
+        config = get_preset("high-volume")
+        assert config["core"]["drop_on_full"] is True
+
+    def test_high_volume_preset_has_two_workers(self):
+        """High-volume preset uses 2 workers for throughput.
+
+        Story 10.49 AC2: worker_count==2 for throughput.
+        """
+        config = get_preset("high-volume")
+        assert config["core"]["worker_count"] == 2
+
+    def test_high_volume_preset_has_info_log_level(self):
+        """High-volume preset sets log level to INFO."""
+        config = get_preset("high-volume")
+        assert config["core"]["log_level"] == "INFO"
+
+    def test_high_volume_preset_has_batch_size_100(self):
+        """High-volume preset uses batch size 100 for throughput."""
+        config = get_preset("high-volume")
+        assert config["core"]["batch_max_size"] == 100
+
+    def test_high_volume_preset_uses_stdout_json_sink(self):
+        """High-volume preset uses stdout_json sink."""
+        config = get_preset("high-volume")
+        assert "stdout_json" in config["core"]["sinks"]
+
+    def test_high_volume_preset_has_redactors(self):
+        """High-volume preset has production-grade redaction."""
+        config = get_preset("high-volume")
+        assert "field_mask" in config["core"]["redactors"]
+        assert "regex_mask" in config["core"]["redactors"]
+        assert "url_credentials" in config["core"]["redactors"]
+
+    def test_high_volume_preset_applies_credentials_preset(self):
+        """High-volume preset applies CREDENTIALS preset."""
+        config = get_preset("high-volume")
+        assert config.get("_apply_credentials_preset") is True
+
+    def test_high_volume_preset_has_enrichers(self):
+        """High-volume preset enables runtime_info and context_vars."""
+        config = get_preset("high-volume")
+        assert "runtime_info" in config["core"]["enrichers"]
+        assert "context_vars" in config["core"]["enrichers"]
+
+    def test_high_volume_preset_has_filter_config(self):
+        """High-volume preset has filter_config for adaptive_sampling."""
+        config = get_preset("high-volume")
+        assert "filter_config" in config
+        assert "adaptive_sampling" in config["filter_config"]
+
+    def test_high_volume_preset_adaptive_sampling_target_eps(self):
+        """High-volume preset sets target_eps to 100.0."""
+        config = get_preset("high-volume")
+        assert config["filter_config"]["adaptive_sampling"]["target_eps"] == 100.0
+
+    def test_high_volume_preset_adaptive_sampling_always_pass_levels(self):
+        """High-volume preset ensures errors always pass through.
+
+        Story 10.49: Errors are never sampled out via always_pass_levels.
+        """
+        config = get_preset("high-volume")
+        always_pass = config["filter_config"]["adaptive_sampling"]["always_pass_levels"]
+        assert "ERROR" in always_pass
+        assert "CRITICAL" in always_pass
+        assert "FATAL" in always_pass
+
+    def test_high_volume_preset_creates_valid_settings(self):
+        """High-volume preset can be converted to Settings."""
+        config = get_preset("high-volume")
+        settings = Settings(**config)
+        assert settings.core.log_level == "INFO"
+        assert settings.core.drop_on_full is True
+        assert settings.core.worker_count == 2
 
 
 class TestPresetImmutability:
