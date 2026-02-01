@@ -9,6 +9,7 @@ Presets provide pre-configured settings for common deployment scenarios. Choose 
 | `dev` | Local development | No | No | No |
 | `production` | Durable production | Never | Yes | Yes (CREDENTIALS) |
 | `production-latency` | Low-latency production | If needed | No | Yes (CREDENTIALS) |
+| `high-volume` | Cost-effective high traffic | If needed | No | Yes (CREDENTIALS) |
 | `fastapi` | FastAPI applications | If needed | No | Yes (CREDENTIALS) |
 | `serverless` | Lambda/Cloud Run | If needed | No | Yes (CREDENTIALS) |
 | `hardened` | Compliance (HIPAA/PCI) | Never | Yes | Yes (HIPAA + PCI + CREDENTIALS) |
@@ -25,9 +26,11 @@ Is this for local development?
                   ├─ Yes → hardened
                   └─ No → Are you using FastAPI?
                            ├─ Yes → fastapi
-                           └─ No → Is log durability critical?
-                                    ├─ Yes → production (never drops)
-                                    └─ No → production-latency (prioritizes speed)
+                           └─ No → Is traffic high-volume (100+ req/s) with cost concerns?
+                                    ├─ Yes → high-volume (adaptive sampling)
+                                    └─ No → Is log durability critical?
+                                             ├─ Yes → production (never drops)
+                                             └─ No → production-latency (prioritizes speed)
 ```
 
 ### Key Decision: `production` vs `production-latency`
@@ -78,6 +81,7 @@ logger = (
 | `dev` | 1 | 1 | 256 | runtime_info, context_vars |
 | `production` | 2 | 100 | 256 | runtime_info, context_vars |
 | `production-latency` | 2 | 100 | 256 | runtime_info, context_vars |
+| `high-volume` | 2 | 100 | 256 | runtime_info, context_vars |
 | `fastapi` | 2 | 50 | 256 | context_vars only |
 | `serverless` | 2 | 25 | 256 | runtime_info, context_vars |
 | `hardened` | 2 | 100 | 256 | runtime_info, context_vars |
@@ -92,6 +96,7 @@ logger = (
 | `dev` | N/A | N/A | `False` | None |
 | `production` | `False` | `warn` | `False` | 50MB × 10, gzip |
 | `production-latency` | `True` | `warn` | `False` | None |
+| `high-volume` | `True` | `warn` | `False` | None |
 | `fastapi` | `True` | `warn` | `False` | None |
 | `serverless` | `True` | `warn` | `False` | None |
 | `hardened` | `False` | `closed` | `True` | 50MB × 10, gzip |
@@ -111,6 +116,7 @@ See [Reliability Defaults](reliability-defaults.md) for detailed backpressure be
 | `dev` | None | N/A | N/A |
 | `production` | CREDENTIALS | `minimal` | `False` |
 | `production-latency` | CREDENTIALS | `minimal` | `False` |
+| `high-volume` | CREDENTIALS | `minimal` | `False` |
 | `fastapi` | CREDENTIALS | `minimal` | `False` |
 | `serverless` | CREDENTIALS | `minimal` | `False` |
 | `hardened` | HIPAA_PHI + PCI_DSS + CREDENTIALS | `inherit` | `True` |
@@ -179,6 +185,28 @@ logger = get_logger(preset="production-latency")
 **Use when:** High-throughput APIs, latency-sensitive services, user-facing endpoints with strict SLOs.
 
 **Trade-off:** Under extreme load, some log events may be dropped to maintain application throughput.
+
+### high-volume
+
+Cost-effective logging for high-traffic services with adaptive sampling.
+
+```python
+logger = get_logger(preset="high-volume")
+```
+
+**Settings:**
+- INFO level filters noise
+- Adaptive sampling: targets ~100 events/sec, automatically adjusts 1-100%
+- `always_pass_levels=["ERROR", "CRITICAL", "FATAL"]` — errors never sampled out
+- `drop_on_full=True` — drops logs rather than block
+- Automatic redaction of credentials
+- 2 workers for throughput
+
+**Use when:** High-traffic services (100+ req/s), cost-conscious deployments, traffic spikes expected, need full visibility on errors.
+
+**Trade-off:** INFO/DEBUG logs are sampled during high traffic. All errors are always logged.
+
+See [Adaptive Sampling for High-Volume Services](../cookbook/adaptive-sampling-high-volume.md) for detailed configuration and tuning.
 
 ### fastapi
 
@@ -316,7 +344,7 @@ All production-oriented presets default to 2 workers. See [Performance Tuning](p
 from fapilog import list_presets
 
 print(list_presets())
-# ['dev', 'fastapi', 'hardened', 'minimal', 'production', 'production-latency', 'serverless']
+# ['dev', 'fastapi', 'hardened', 'high-volume', 'minimal', 'production', 'production-latency', 'serverless']
 ```
 
 ## Related

@@ -272,6 +272,92 @@ class TestPresetWorkerCountIntegration:
             os.chdir(original_cwd)
 
 
+class TestHighVolumePresetIntegration:
+    """Test high-volume preset end-to-end behavior.
+
+    Story 10.49: Add high-volume preset with adaptive sampling for
+    cost-effective logging during normal operation with full visibility
+    during incidents.
+    """
+
+    def test_high_volume_preset_creates_working_logger(self):
+        """High-volume preset creates a working logger.
+
+        Story 10.49 AC1: Users can create logger with preset="high-volume".
+        """
+        buf, orig = _swap_stdout_bytesio()
+        try:
+            logger = get_logger(preset="high-volume")
+            logger.info("high volume test message")
+            asyncio.run(logger.stop_and_drain())
+            sys.stdout.flush()
+            output = buf.getvalue().decode("utf-8")
+            assert "high volume test message" in output
+        finally:
+            sys.stdout = orig  # type: ignore[assignment]
+
+    def test_high_volume_preset_spawns_two_workers(self):
+        """Logger built with high-volume preset has 2 workers."""
+        buf, orig = _swap_stdout_bytesio()
+        try:
+            logger = get_logger(preset="high-volume")
+            assert logger._num_workers == 2  # noqa: SLF001
+            asyncio.run(logger.stop_and_drain())
+        finally:
+            sys.stdout = orig  # type: ignore[assignment]
+
+    def test_high_volume_preset_errors_always_pass(self):
+        """High-volume preset never drops ERROR or higher levels.
+
+        Story 10.49: Errors are never sampled out via always_pass_levels.
+        The adaptive sampling filter should always pass ERROR/CRITICAL/FATAL.
+        """
+        buf, orig = _swap_stdout_bytesio()
+        try:
+            logger = get_logger(preset="high-volume")
+            # Log multiple error messages - they should all pass
+            for i in range(5):
+                logger.error(f"error message {i}")
+            asyncio.run(logger.stop_and_drain())
+            sys.stdout.flush()
+            output = buf.getvalue().decode("utf-8")
+            # All error messages should be present (not sampled out)
+            for i in range(5):
+                assert f"error message {i}" in output
+        finally:
+            sys.stdout = orig  # type: ignore[assignment]
+
+    def test_high_volume_preset_redacts_credentials(self):
+        """High-volume preset applies CREDENTIALS redaction preset."""
+        buf, orig = _swap_stdout_bytesio()
+        try:
+            logger = get_logger(preset="high-volume")
+            logger.info("api call", password="secret123", api_key="key456")
+            asyncio.run(logger.stop_and_drain())
+            sys.stdout.flush()
+            output = buf.getvalue().decode("utf-8")
+            # Credentials should be redacted
+            assert "secret123" not in output
+            assert "key456" not in output
+        finally:
+            sys.stdout = orig  # type: ignore[assignment]
+
+    @pytest.mark.asyncio
+    async def test_high_volume_preset_async_logger_works(self):
+        """High-volume preset works with async logger."""
+        buf, orig = _swap_stdout_bytesio()
+        try:
+            logger = await get_async_logger(preset="high-volume")
+            await logger.info("async high volume message")
+            await asyncio.sleep(0.3)  # Allow workers to process
+            await logger.drain()
+            sys.stdout.flush()
+            output = buf.getvalue().decode("utf-8")
+            assert "async high volume message" in output
+        finally:
+            sys.stdout = orig  # type: ignore[assignment]
+
+
 class TestPresetPerformance:
     """Test preset application performance."""
 

@@ -17,6 +17,7 @@ compliance-redaction
 safe-request-response-logging
 skip-noisy-endpoints
 log-sampling-rate-limiting
+adaptive-sampling-high-volume
 graceful-shutdown-flush
 exception-logging-request-context
 custom-log-levels
