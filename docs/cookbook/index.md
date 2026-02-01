@@ -7,6 +7,7 @@ Practical solutions to common logging problems. Each recipe is self-contained wi
 :titlesonly:
 :caption: Cookbook
 
+fastapi-microservice-production
 fastapi-json-logging
 fastapi-request-id-logging
 django-structured-logging
