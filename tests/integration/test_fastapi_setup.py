@@ -252,6 +252,216 @@ def test_logger_refreshes_across_lifespan_restarts(monkeypatch) -> None:
     assert any(item.startswith("logger-1:request_completed") for item in seen)
 
 
+def test_setup_logging_include_headers(monkeypatch) -> None:
+    """Test include_headers enables header logging via setup_logging."""
+    logged_headers: list[dict[str, str] | None] = []
+
+    class DummyLogger:
+        async def info(self, message: str, **metadata) -> None:
+            logged_headers.append(metadata.get("headers"))
+
+        async def error(self, message: str, **metadata) -> None:
+            return None
+
+        async def drain(self) -> None:
+            return None
+
+    async def fake_get_async_logger(name: str | None = None, *, preset=None):
+        return DummyLogger()
+
+    monkeypatch.setattr("fapilog.get_async_logger", fake_get_async_logger)
+
+    app = FastAPI(
+        lifespan=setup_logging(
+            include_headers=True,
+        )
+    )
+
+    @app.get("/test")
+    async def test_endpoint() -> dict[str, str]:
+        return {"ok": "yes"}
+
+    with TestClient(app) as client:
+        client.get("/test", headers={"X-Custom-Header": "test-value"})
+
+    assert len(logged_headers) == 1
+    assert logged_headers[0] is not None  # noqa: WA003 - type guard before value check
+    assert logged_headers[0].get("x-custom-header") == "test-value"
+
+
+def test_setup_logging_additional_redact_headers(monkeypatch) -> None:
+    """Test additional_redact_headers adds custom headers to redaction."""
+    logged_headers: list[dict[str, str] | None] = []
+
+    class DummyLogger:
+        async def info(self, message: str, **metadata) -> None:
+            logged_headers.append(metadata.get("headers"))
+
+        async def error(self, message: str, **metadata) -> None:
+            return None
+
+        async def drain(self) -> None:
+            return None
+
+    async def fake_get_async_logger(name: str | None = None, *, preset=None):
+        return DummyLogger()
+
+    monkeypatch.setattr("fapilog.get_async_logger", fake_get_async_logger)
+
+    app = FastAPI(
+        lifespan=setup_logging(
+            include_headers=True,
+            additional_redact_headers=["X-Internal-Token"],
+        )
+    )
+
+    @app.get("/test")
+    async def test_endpoint() -> dict[str, str]:
+        return {"ok": "yes"}
+
+    with TestClient(app) as client:
+        client.get(
+            "/test",
+            headers={
+                "X-Internal-Token": "secret-value",
+                "X-Custom-Header": "visible-value",
+            },
+        )
+
+    assert len(logged_headers) == 1
+    assert logged_headers[0] is not None  # noqa: WA003 - type guard before value check
+    # Custom redact header should be redacted
+    assert logged_headers[0].get("x-internal-token") == "***"
+    # Non-redacted header should be visible
+    assert logged_headers[0].get("x-custom-header") == "visible-value"
+
+
+def test_setup_logging_allow_headers(monkeypatch) -> None:
+    """Test allow_headers enables allowlist mode."""
+    logged_headers: list[dict[str, str] | None] = []
+
+    class DummyLogger:
+        async def info(self, message: str, **metadata) -> None:
+            logged_headers.append(metadata.get("headers"))
+
+        async def error(self, message: str, **metadata) -> None:
+            return None
+
+        async def drain(self) -> None:
+            return None
+
+    async def fake_get_async_logger(name: str | None = None, *, preset=None):
+        return DummyLogger()
+
+    monkeypatch.setattr("fapilog.get_async_logger", fake_get_async_logger)
+
+    app = FastAPI(
+        lifespan=setup_logging(
+            include_headers=True,
+            allow_headers=["Content-Type"],
+        )
+    )
+
+    @app.get("/test")
+    async def test_endpoint() -> dict[str, str]:
+        return {"ok": "yes"}
+
+    with TestClient(app) as client:
+        client.get(
+            "/test",
+            headers={
+                "Content-Type": "application/json",
+                "X-Custom-Header": "should-not-appear",
+            },
+        )
+
+    assert len(logged_headers) == 1
+    assert logged_headers[0] is not None  # noqa: WA003 - type guard before value check
+    # Only allowlisted header should appear
+    assert logged_headers[0].get("content-type") == "application/json"
+    # Non-allowlisted header should not appear
+    assert "x-custom-header" not in logged_headers[0]
+
+
+def test_setup_logging_include_headers_uses_default_redactions(monkeypatch) -> None:
+    """Test that default header redactions apply when include_headers=True."""
+    logged_headers: list[dict[str, str] | None] = []
+
+    class DummyLogger:
+        async def info(self, message: str, **metadata) -> None:
+            logged_headers.append(metadata.get("headers"))
+
+        async def error(self, message: str, **metadata) -> None:
+            return None
+
+        async def drain(self) -> None:
+            return None
+
+    async def fake_get_async_logger(name: str | None = None, *, preset=None):
+        return DummyLogger()
+
+    monkeypatch.setattr("fapilog.get_async_logger", fake_get_async_logger)
+
+    app = FastAPI(
+        lifespan=setup_logging(
+            include_headers=True,
+        )
+    )
+
+    @app.get("/test")
+    async def test_endpoint() -> dict[str, str]:
+        return {"ok": "yes"}
+
+    with TestClient(app) as client:
+        client.get(
+            "/test",
+            headers={
+                "Authorization": "Bearer secret-token",
+                "X-Custom-Header": "visible-value",
+            },
+        )
+
+    assert len(logged_headers) == 1
+    assert logged_headers[0] is not None  # noqa: WA003 - type guard before value check
+    # Default redaction should apply to Authorization
+    assert logged_headers[0].get("authorization") == "***"
+    # Non-sensitive header should be visible
+    assert logged_headers[0].get("x-custom-header") == "visible-value"
+
+
+def test_setup_logging_defaults_unchanged(monkeypatch) -> None:
+    """Test that defaults remain unchanged - headers NOT logged by default."""
+    logged_headers: list[dict[str, str] | None] = []
+
+    class DummyLogger:
+        async def info(self, message: str, **metadata) -> None:
+            logged_headers.append(metadata.get("headers"))
+
+        async def error(self, message: str, **metadata) -> None:
+            return None
+
+        async def drain(self) -> None:
+            return None
+
+    async def fake_get_async_logger(name: str | None = None, *, preset=None):
+        return DummyLogger()
+
+    monkeypatch.setattr("fapilog.get_async_logger", fake_get_async_logger)
+
+    app = FastAPI(lifespan=setup_logging(preset="fastapi"))
+
+    @app.get("/test")
+    async def test_endpoint() -> dict[str, str]:
+        return {"ok": "yes"}
+
+    with TestClient(app) as client:
+        client.get("/test", headers={"X-Custom-Header": "test-value"})
+
+    assert len(logged_headers) == 1
+    # Headers should be None by default (not logged)
+    assert logged_headers[0] is None
+
+
 def test_request_context_set_by_auto_middleware(monkeypatch) -> None:
     from fapilog.core.errors import request_id_var
 
