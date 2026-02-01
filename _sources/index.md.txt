@@ -13,7 +13,7 @@ Traditional logging libraries block your application, lose context, and produce 
 - **Production-ready** - Built-in redaction, metrics, and resilience
 - **High-performance** - Lock-free queues and zero-copy processing
 
-**[Read more about why fapilog →](why-fapilog.md)** | **[Compare with alternatives →](comparisons.md)**
+**[Read more about why fapilog →](why-fapilog.md)** | **[See all features →](features.md)** | **[Compare with alternatives →](comparisons.md)**
 
 ## Quick Example
 
@@ -59,6 +59,7 @@ await logger.error("Database connection failed", exc_info=True)
 
 getting-started/index
 why-fapilog
+features
 comparisons
 core-concepts/index
 user-guide/index

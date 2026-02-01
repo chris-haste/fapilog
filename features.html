@@ -7,7 +7,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Why fapilog? &mdash; fapilog latest documentation</title>
+  <title>Features &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -25,12 +25,12 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Features" href="features.html" />
-    <link rel="prev" title="Hello World Walkthrough" href="getting-started/hello-world.html" />
+    <link rel="next" title="Python Logging Library Comparison" href="comparisons.html" />
+    <link rel="prev" title="Why fapilog?" href="why-fapilog.html" />
  
 
 
-<link rel="canonical" href="https://docs.fapilog.dev/en/stable/why-fapilog.html" />
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/features.html" />
 <meta name="robots" content="noindex, follow" />
 
 
@@ -63,8 +63,8 @@
 <li class="toctree-l2"><a class="reference internal" href="getting-started/hello-world.html">Hello World Walkthrough</a></li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Why fapilog?</a></li>
-<li class="toctree-l1"><a class="reference internal" href="features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="why-fapilog.html">Why fapilog?</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Features</a></li>
 <li class="toctree-l1"><a class="reference internal" href="comparisons.html">Python Logging Library Comparison</a></li>
 <li class="toctree-l1"><a class="reference internal" href="core-concepts/index.html">Core Concepts</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="core-concepts/pipeline-architecture.html">Pipeline Architecture</a></li>
@@ -216,9 +216,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Why fapilog?</li>
+      <li class="breadcrumb-item active">Features</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/why-fapilog.md.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/features.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -226,200 +226,361 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="why-fapilog">
-<h1>Why fapilog?<a class="headerlink" href="#why-fapilog" title="Link to this heading"></a></h1>
-<p>Fapilog is an <strong>async-first structured logging library</strong> for Python services. If you’re building FastAPI applications, microservices, or any system where logging shouldn’t slow down your requests, fapilog was designed for your use case.</p>
-<section id="quick-decision-guide">
-<h2>Quick Decision Guide<a class="headerlink" href="#quick-decision-guide" title="Link to this heading"></a></h2>
+  <section class="tex2jax_ignore mathjax_ignore" id="features">
+<h1>Features<a class="headerlink" href="#features" title="Link to this heading"></a></h1>
+<p>A comprehensive overview of what fapilog offers.</p>
+<section id="core-logging">
+<h2>Core Logging<a class="headerlink" href="#core-logging" title="Link to this heading"></a></h2>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p>If you need…</p></th>
-<th class="head"><p>Best choice</p></th>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>Why It Matters</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Async-first logging with backpressure handling</p></td>
-<td><p><strong>fapilog</strong></p></td>
+<tr class="row-even"><td><p><strong>Sync and async loggers</strong></p></td>
+<td><p>Use <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> in sync code or <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> in async code—both use the same non-blocking pipeline</p></td>
 </tr>
-<tr class="row-odd"><td><p>Simplest possible API, sync is fine</p></td>
-<td><p>loguru</p></td>
+<tr class="row-odd"><td><p><strong>Context managers</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">runtime()</span></code> and <code class="docutils literal notranslate"><span class="pre">runtime_async()</span></code> automatically drain logs on exit, preventing lost messages</p></td>
 </tr>
-<tr class="row-even"><td><p>Processor ecosystem, stdlib compatibility</p></td>
-<td><p>structlog</p></td>
+<tr class="row-even"><td><p><strong>Custom log levels</strong></p></td>
+<td><p>Register domain-specific levels like <code class="docutils literal notranslate"><span class="pre">AUDIT</span></code> or <code class="docutils literal notranslate"><span class="pre">TRACE</span></code> with <code class="docutils literal notranslate"><span class="pre">register_level()</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>Full observability (logs + traces + metrics)</p></td>
-<td><p>OpenTelemetry</p></td>
-</tr>
-<tr class="row-even"><td><p>Zero dependencies</p></td>
-<td><p>stdlib logging</p></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Not sure?</strong> Read on for details, or jump to the <a class="reference internal" href="comparisons.html"><span class="std std-doc">full comparison</span></a>.</p>
-</section>
-<section id="is-fapilog-right-for-your-project">
-<h2>Is Fapilog Right for Your Project?<a class="headerlink" href="#is-fapilog-right-for-your-project" title="Link to this heading"></a></h2>
-<p>Use fapilog if you’re building:</p>
-<ul class="simple">
-<li><p><strong>Microservices and distributed systems</strong> - Request ID tracking, async-first, multiple cloud sinks</p></li>
-<li><p><strong>FastAPI/async applications</strong> - Built-in middleware, non-blocking logging</p></li>
-<li><p><strong>High-throughput services</strong> - Backpressure handling, won’t impact request latency</p></li>
-<li><p><strong>Production services at scale</strong> - Reliability features (circuit breaker, sink routing, batching)</p></li>
-<li><p><strong>Applications with compliance needs</strong> - Built-in PII redaction (field/regex/URL)</p></li>
-<li><p><strong>Cloud-native applications</strong> - Native CloudWatch, Loki, PostgreSQL sinks</p></li>
-<li><p><strong>Services with variable load patterns</strong> - Backpressure policies handle bursts gracefully</p></li>
-</ul>
-</section>
-<section id="what-makes-fapilog-different">
-<h2>What Makes Fapilog Different<a class="headerlink" href="#what-makes-fapilog-different" title="Link to this heading"></a></h2>
-<section id="true-async-first-architecture">
-<h3>1. True Async-First Architecture<a class="headerlink" href="#true-async-first-architecture" title="Link to this heading"></a></h3>
-<p>Most Python logging libraries are synchronous—they block your application while writing to disk or network. <strong>With fapilog, your log calls never block on I/O.</strong> Whether you use <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> in sync code or <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> in async code, the actual writes happen in background workers. A slow CloudWatch API or full disk won’t stall your request handlers.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Your code          Background worker
-    │                     │
-log.info(&quot;msg&quot;) ──queue──→ │
-    │ (returns)           ↓
-    │               serialize → enrich → write to sink
-    ↓
-(continues)
-</pre></div>
-</div>
-<p>The difference between the two APIs is the calling convention, not the architecture:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Sync API - for sync code or when you don&#39;t want to await</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Request processed&quot;</span><span class="p">)</span>  <span class="c1"># Enqueues and returns</span>
-
-<span class="c1"># Async API - for async code with tighter event loop integration</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_async_logger</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">()</span>
-<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Request processed&quot;</span><span class="p">)</span>  <span class="c1"># Enqueues and returns</span>
-</pre></div>
-</div>
-<p><strong>In async contexts</strong>, both are non-blocking. <strong>In sync contexts</strong>, <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> may briefly wait (up to 50ms by default) for queue space before returning—still far faster than blocking on network I/O.</p>
-</section>
-<section id="backpressure-handling">
-<h3>2. Backpressure Handling<a class="headerlink" href="#backpressure-handling" title="Link to this heading"></a></h3>
-<p>What happens when logs arrive faster than they can be written? Most libraries either block (hurting latency) or silently drop logs (hurting reliability). Fapilog lets you configure the tradeoff:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
-
-<span class="c1"># Protect latency: wait briefly, then drop if still full</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">LoggerBuilder</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">with_backpressure</span><span class="p">(</span><span class="n">wait_ms</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">drop_on_full</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
-<span class="p">)</span>
-
-<span class="c1"># Protect durability: never lose logs (may block longer)</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">LoggerBuilder</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">with_backpressure</span><span class="p">(</span><span class="n">wait_ms</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">drop_on_full</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Configuration</p></th>
-<th class="head"><p>Behavior</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">wait_ms=50,</span> <span class="pre">drop_on_full=True</span></code></p></td>
-<td><p>Wait up to 50ms for space, then drop (default)</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">wait_ms=0,</span> <span class="pre">drop_on_full=True</span></code></p></td>
-<td><p>Drop immediately if queue full</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">wait_ms=0,</span> <span class="pre">drop_on_full=False</span></code></p></td>
-<td><p>Block indefinitely until space available</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">wait_ms=100,</span> <span class="pre">drop_on_full=False</span></code></p></td>
-<td><p>Wait 100ms, then block indefinitely</p></td>
+<tr class="row-odd"><td><p><strong>Logger caching</strong></p></td>
+<td><p>Loggers are cached by name by default, so repeated <code class="docutils literal notranslate"><span class="pre">get_logger(&quot;app&quot;)</span></code> calls return the same instance</p></td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="built-in-redaction">
-<h3>3. Built-in Redaction<a class="headerlink" href="#built-in-redaction" title="Link to this heading"></a></h3>
-<p>PII and secrets are masked by default with the production preset. No compliance surprises.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
-
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User login&quot;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">&quot;secret123&quot;</span><span class="p">,</span> <span class="n">email</span><span class="o">=</span><span class="s2">&quot;user@example.com&quot;</span><span class="p">)</span>
-<span class="c1"># Output: password=**REDACTED**, email=**REDACTED**</span>
-</pre></div>
-</div>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>Why It Matters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Presets</strong></p></td>
+<td><p>Start with <code class="docutils literal notranslate"><span class="pre">dev</span></code>, <code class="docutils literal notranslate"><span class="pre">production</span></code>, <code class="docutils literal notranslate"><span class="pre">serverless</span></code>, or <code class="docutils literal notranslate"><span class="pre">hardened</span></code>—sensible defaults for common scenarios</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Environment detection</strong></p></td>
+<td><p>Automatically detects Lambda, Kubernetes, Docker, and CI environments to apply appropriate settings</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Builder API</strong></p></td>
+<td><p>Fluent <code class="docutils literal notranslate"><span class="pre">LoggerBuilder</span></code> for programmatic configuration without YAML or config files</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Pydantic settings</strong></p></td>
+<td><p>Configure via environment variables with type validation</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="performance">
+<h2>Performance<a class="headerlink" href="#performance" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>Why It Matters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Non-blocking writes</strong></p></td>
+<td><p>Log calls enqueue and return immediately—I/O happens in background workers</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Lock-free queue</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NonBlockingRingQueue</span></code> minimizes contention in high-throughput scenarios</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Backpressure handling</strong></p></td>
+<td><p>Choose between dropping logs (protect latency) or blocking (protect durability) when the queue fills</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Batching</strong></p></td>
+<td><p>Logs are batched before writing to reduce I/O overhead</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Zero-copy processing</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ZeroCopyProcessor</span></code> avoids unnecessary memory copies during serialization</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="structured-output">
+<h2>Structured Output<a class="headerlink" href="#structured-output" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>Why It Matters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>JSON Lines format</strong></p></td>
+<td><p>Machine-parseable output for log aggregators and analysis tools</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Pretty-print mode</strong></p></td>
+<td><p>Human-readable output for local development (auto-detected when running in a terminal)</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Structured envelope</strong></p></td>
+<td><p>Every log includes <code class="docutils literal notranslate"><span class="pre">timestamp</span></code>, <code class="docutils literal notranslate"><span class="pre">level</span></code>, <code class="docutils literal notranslate"><span class="pre">message</span></code>, <code class="docutils literal notranslate"><span class="pre">context</span></code>, <code class="docutils literal notranslate"><span class="pre">diagnostics</span></code>, and <code class="docutils literal notranslate"><span class="pre">data</span></code> fields</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Origin tracking</strong></p></td>
+<td><p>Logs are tagged as <code class="docutils literal notranslate"><span class="pre">native</span></code>, <code class="docutils literal notranslate"><span class="pre">stdlib</span></code>, or <code class="docutils literal notranslate"><span class="pre">third_party</span></code> so you know where they came from</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="context-and-correlation">
+<h2>Context and Correlation<a class="headerlink" href="#context-and-correlation" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>Why It Matters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Context binding</strong></p></td>
+<td><p>Attach fields to a logger with <code class="docutils literal notranslate"><span class="pre">logger.bind(user_id=&quot;123&quot;)</span></code> and they appear on every subsequent log</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Context variables</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bind_context()</span></code> sets values that propagate across async boundaries</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Request ID tracking</strong></p></td>
+<td><p>Built-in <code class="docutils literal notranslate"><span class="pre">request_id</span></code>, <code class="docutils literal notranslate"><span class="pre">correlation_id</span></code>, <code class="docutils literal notranslate"><span class="pre">trace_id</span></code>, and <code class="docutils literal notranslate"><span class="pre">span_id</span></code> fields for distributed tracing</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Async context preservation</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">create_task_with_context()</span></code> and <code class="docutils literal notranslate"><span class="pre">&#64;preserve_context</span></code> keep context intact across task boundaries</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="redaction-and-compliance">
+<h2>Redaction and Compliance<a class="headerlink" href="#redaction-and-compliance" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>Why It Matters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Field masking</strong></p></td>
+<td><p>Redact specific fields like <code class="docutils literal notranslate"><span class="pre">password</span></code> or <code class="docutils literal notranslate"><span class="pre">data.credit_card</span></code> by path</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Regex patterns</strong></p></td>
+<td><p>Match and redact patterns like SSNs, credit card numbers, or API keys</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>URL credential scrubbing</strong></p></td>
+<td><p>Automatically redact credentials embedded in database URLs or API endpoints</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Compliance presets</strong></p></td>
+<td><p>Built-in presets for <code class="docutils literal notranslate"><span class="pre">GDPR_PII</span></code>, <code class="docutils literal notranslate"><span class="pre">HIPAA_PHI</span></code>, <code class="docutils literal notranslate"><span class="pre">PCI_DSS</span></code>, <code class="docutils literal notranslate"><span class="pre">CCPA_PII</span></code>, and <code class="docutils literal notranslate"><span class="pre">SOC2</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Fail modes</strong></p></td>
+<td><p>Choose <code class="docutils literal notranslate"><span class="pre">warn</span></code> (log and continue) or <code class="docutils literal notranslate"><span class="pre">closed</span></code> (drop the log) when redaction fails</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="sinks">
+<h2>Sinks<a class="headerlink" href="#sinks" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>Why It Matters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Multiple destinations</strong></p></td>
+<td><p>Write to stdout, files, HTTP endpoints, or cloud services simultaneously</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Rotating files</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RotatingFileSink</span></code> handles size-based rotation and optional compression</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Cloud-native sinks</strong></p></td>
+<td><p>Direct integration with CloudWatch, Loki, and PostgreSQL</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Sink routing</strong></p></td>
+<td><p>Route logs by level—send errors to a database while info goes to stdout</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Circuit breakers</strong></p></td>
+<td><p>Failing sinks are temporarily disabled to prevent cascade failures</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Fallback sinks</strong></p></td>
+<td><p>Specify a fallback destination when the primary sink trips its circuit breaker</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="filtering">
+<h2>Filtering<a class="headerlink" href="#filtering" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>Why It Matters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Level filtering</strong></p></td>
+<td><p>Drop logs below a threshold</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Sampling</strong></p></td>
+<td><p>Randomly sample a percentage of logs to reduce volume</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Rate limiting</strong></p></td>
+<td><p>Limit logs per key (e.g., per endpoint or per user) to prevent floods</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Adaptive sampling</strong></p></td>
+<td><p>Automatically increase sampling during error spikes to capture more context</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Trace sampling</strong></p></td>
+<td><p>Sample entire request traces together so you don’t get incomplete pictures</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="enrichment">
+<h2>Enrichment<a class="headerlink" href="#enrichment" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>Why It Matters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Runtime info</strong></p></td>
+<td><p>Automatically add PID, hostname, and Python version to every log</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Kubernetes metadata</strong></p></td>
+<td><p>Add pod name, namespace, and labels when running in K8s</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Custom enrichers</strong></p></td>
+<td><p>Implement the enricher protocol to add your own fields</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="exception-handling">
+<h2>Exception Handling<a class="headerlink" href="#exception-handling" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>Why It Matters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Full traceback capture</strong></p></td>
+<td><p>Exceptions include complete stack traces with configurable depth</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Exception chaining</strong></p></td>
+<td><p>Chained exceptions (<code class="docutils literal notranslate"><span class="pre">raise</span> <span class="pre">...</span> <span class="pre">from</span> <span class="pre">...</span></code>) are preserved</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Unhandled exception capture</strong></p></td>
+<td><p>Optionally log uncaught exceptions before they crash the process</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Stack truncation</strong></p></td>
+<td><p>Limit stack trace size to prevent log bloat</p></td>
+</tr>
+</tbody>
+</table>
 </section>
 <section id="fastapi-integration">
-<h3>4. FastAPI Integration<a class="headerlink" href="#fastapi-integration" title="Link to this heading"></a></h3>
-<p>One line gets you request logging, correlation IDs, and context propagation:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span>
-
-<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">))</span>
-</pre></div>
-</div>
-</section>
-<section id="level-based-sink-routing">
-<h3>5. Level-Based Sink Routing<a class="headerlink" href="#level-based-sink-routing" title="Link to this heading"></a></h3>
-<p>Send errors to a database for alerting while info logs go to stdout:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
-
-<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">LoggerBuilder</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">with_routing</span><span class="p">(</span>
-        <span class="n">rules</span><span class="o">=</span><span class="p">[</span>
-            <span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">],</span> <span class="s2">&quot;sinks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;postgres&quot;</span><span class="p">]},</span>
-            <span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span> <span class="s2">&quot;INFO&quot;</span><span class="p">,</span> <span class="s2">&quot;WARNING&quot;</span><span class="p">],</span> <span class="s2">&quot;sinks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;stdout&quot;</span><span class="p">]},</span>
-        <span class="p">]</span>
-    <span class="p">)</span>
-    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</section>
-</section>
-<section id="honest-trade-offs">
-<h2>Honest Trade-offs<a class="headerlink" href="#honest-trade-offs" title="Link to this heading"></a></h2>
+<h2>FastAPI Integration<a class="headerlink" href="#fastapi-integration" title="Link to this heading"></a></h2>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p>Consideration</p></th>
-<th class="head"><p>Reality</p></th>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>Why It Matters</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><strong>Maturity</strong></p></td>
-<td><p>New (2024) vs structlog (2013), loguru (2018)</p></td>
+<tr class="row-even"><td><p><strong>One-line setup</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">setup_logging(preset=&quot;production&quot;)</span></code> configures middleware and lifespan</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Community</strong></p></td>
-<td><p>Growing vs established ecosystems with more tutorials and Stack Overflow answers</p></td>
+<tr class="row-odd"><td><p><strong>Request/response logging</strong></p></td>
+<td><p>Automatic logging of incoming requests and outgoing responses</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Sync use cases</strong></p></td>
-<td><p>If you don’t need async, loguru is simpler</p></td>
+<tr class="row-even"><td><p><strong>Timing</strong></p></td>
+<td><p>Request duration is captured and logged</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Processor ecosystem</strong></p></td>
-<td><p>structlog has more built-in processors and community extensions</p></td>
+<tr class="row-odd"><td><p><strong>Context injection</strong></p></td>
+<td><p>Use FastAPI dependencies to inject loggers with request context</p></td>
 </tr>
 </tbody>
 </table>
-<section id="when-fapilog-might-not-be-the-best-fit">
-<h3>When fapilog might not be the best fit<a class="headerlink" href="#when-fapilog-might-not-be-the-best-fit" title="Link to this heading"></a></h3>
-<ul class="simple">
-<li><p><strong>Simple scripts or CLIs</strong>: If you’re writing to fast local stdout with minimal structure, stdlib or loguru is simpler.</p></li>
-<li><p><strong>Existing structlog codebases</strong>: Migration effort may not be worth it unless you’re hitting blocking I/O issues.</p></li>
-<li><p><strong>Need full observability</strong>: If you want unified logs + traces + metrics, OpenTelemetry is the industry standard.</p></li>
-</ul>
 </section>
+<section id="resilience">
+<h2>Resilience<a class="headerlink" href="#resilience" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>Why It Matters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Plugin isolation</strong></p></td>
+<td><p>A failing enricher or processor doesn’t crash your logging—errors are captured in diagnostics</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Graceful shutdown</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">install_shutdown_handlers()</span></code> ensures logs are flushed on SIGTERM/SIGINT</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Drain operations</strong></p></td>
+<td><p>Explicitly drain pending logs before shutdown</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Health checks</strong></p></td>
+<td><p>Per-plugin health checks for monitoring</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="observability">
+<h2>Observability<a class="headerlink" href="#observability" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>Why It Matters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Prometheus metrics</strong></p></td>
+<td><p>Export logging metrics (queue depth, batch sizes, errors) for monitoring</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Per-plugin timing</strong></p></td>
+<td><p>Track how long each enricher, processor, and sink takes</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Diagnostics system</strong></p></td>
+<td><p>Internal issues are logged with rate limiting to avoid log storms</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="extensibility">
+<h2>Extensibility<a class="headerlink" href="#extensibility" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>Why It Matters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Plugin architecture</strong></p></td>
+<td><p>Add custom enrichers, redactors, filters, processors, and sinks</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Entry point discovery</strong></p></td>
+<td><p>Plugins can be installed as packages and auto-discovered</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Allowlist/denylist</strong></p></td>
+<td><p>Control which plugins are loaded in production</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Stdlib bridge</strong></p></td>
+<td><p>Route Python’s standard <code class="docutils literal notranslate"><span class="pre">logging</span></code> module through fapilog</p></td>
+</tr>
+</tbody>
+</table>
 </section>
 <section id="learn-more">
 <h2>Learn More<a class="headerlink" href="#learn-more" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><strong><a class="reference internal" href="features.html"><span class="std std-doc">Feature List</span></a></strong> - Complete overview of what fapilog offers</p></li>
-<li><p><strong><a class="reference internal" href="comparisons.html"><span class="std std-doc">Full Feature Comparison</span></a></strong> - Detailed comparison with structlog, loguru, stdlib, and OpenTelemetry</p></li>
-<li><p><strong><a class="reference internal" href="getting-started/index.html"><span class="std std-doc">Getting Started</span></a></strong> - Install and start logging in 2 minutes</p></li>
-<li><p><strong><a class="reference internal" href="core-concepts/pipeline-architecture.html"><span class="std std-doc">Architecture</span></a></strong> - How the async pipeline works</p></li>
-<li><p><strong><a class="reference internal" href="cookbook/index.html"><span class="std std-doc">Cookbook</span></a></strong> - Copy-paste solutions for common problems</p></li>
+<li><p><strong><a class="reference internal" href="why-fapilog.html"><span class="std std-doc">Why Fapilog?</span></a></strong> - When to choose fapilog over alternatives</p></li>
+<li><p><strong><a class="reference internal" href="getting-started/index.html"><span class="std std-doc">Getting Started</span></a></strong> - Install and start logging</p></li>
+<li><p><strong><a class="reference internal" href="core-concepts/index.html"><span class="std std-doc">Core Concepts</span></a></strong> - Understand the architecture</p></li>
+<li><p><strong><a class="reference internal" href="cookbook/index.html"><span class="std std-doc">Cookbook</span></a></strong> - Recipes for common problems</p></li>
 </ul>
 </section>
 </section>
@@ -430,8 +591,8 @@ log.info(&quot;msg&quot;) ──queue──→ │
           
 <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer" style="position: relative;">
-        <a href="getting-started/hello-world.html" class="btn btn-neutral float-left" title="Hello World Walkthrough" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="features.html" class="btn btn-neutral float-right" title="Features" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="why-fapilog.html" class="btn btn-neutral float-left" title="Why fapilog?" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="comparisons.html" class="btn btn-neutral float-right" title="Python Logging Library Comparison" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
       <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 50%; margin-top: -0.5em;">
         <a href="https://fapilog.dev">www.fapilog.dev</a>
       </div>
