@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-02-02
+
+### Added
+
+- **FastAPI - Add FastAPIBuilder for unified integration:** Extend AsyncLoggerBuilder with FastAPI-specific methods. Add skip_paths, include_headers, sample_rate, log_errors_on_skip. Support env var overrides with warning emission. Deprecate setup_logging() in favor of FastAPIBuilder.
+
+### Documentation
+
+- **FastAPI - Update documentation for FastAPIBuilder:** Update user guide with FastAPIBuilder as recommended approach. Create migration guide from setup_logging() to FastAPIBuilder. Update cookbook entries to use FastAPIBuilder pattern. Mark deprecated sections in documentation.
+- **FastAPI - Update all documentation to use FastAPIBuilder:** Update all cookbook entries to use FastAPIBuilder instead of setup_logging(). Update user guide pages (configuration, execution-modes, presets). Update integrations/fastapi.md and examples/fastapi-logging.md. Update why-fapilog.md, features.md, context-binding.md.
+- **Docs - Move migration guide to guides directory:** Move fastapi-builder.md to guides/fastapi-builder-migration.md. Add orphan directive to suppress toctree warning. Update links in user-guide/fastapi.md and user-guide/index.md.
+
 ## [0.13.0] - 2026-02-01
 
 ### Added
