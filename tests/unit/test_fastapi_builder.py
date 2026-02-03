@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import warnings
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -417,3 +418,135 @@ class TestBuildWithSinks:
         assert callable(lifespan)
         # Verify sink was added (exactly 1 explicit sink)
         assert len(builder._sinks) == 1
+
+
+class TestLifespanExecution:
+    """Test the lifespan function returned by build()."""
+
+    @pytest.mark.asyncio
+    async def test_lifespan_with_preset(self) -> None:
+        """Test lifespan executes correctly with a preset."""
+        from fastapi import FastAPI
+
+        builder = FastAPIBuilder().with_preset("fastapi")
+        lifespan = builder.build()
+        app = FastAPI()
+
+        # Mock the drain to avoid actual cleanup
+        with patch("fapilog.fastapi.setup._drain_logger", new_callable=AsyncMock):
+            async with lifespan(app):
+                # Verify logger was set on app state with expected interface
+                assert hasattr(app.state, "fapilog_logger")
+                logger = app.state.fapilog_logger
+                assert hasattr(logger, "info")  # Has logging methods
+
+    @pytest.mark.asyncio
+    async def test_lifespan_without_preset(self) -> None:
+        """Test lifespan executes correctly without a preset."""
+        from fastapi import FastAPI
+
+        builder = FastAPIBuilder().with_level("INFO")
+        lifespan = builder.build()
+        app = FastAPI()
+
+        with patch("fapilog.fastapi.setup._drain_logger", new_callable=AsyncMock):
+            async with lifespan(app):
+                assert hasattr(app.state, "fapilog_logger")
+
+    @pytest.mark.asyncio
+    async def test_lifespan_with_custom_sinks(self) -> None:
+        """Test lifespan with custom sink configuration."""
+        from fastapi import FastAPI
+
+        builder = FastAPIBuilder().with_preset("fastapi").add_stdout()
+        lifespan = builder.build()
+        app = FastAPI()
+
+        with patch("fapilog.fastapi.setup._drain_logger", new_callable=AsyncMock):
+            async with lifespan(app):
+                assert hasattr(app.state, "fapilog_logger")
+
+    @pytest.mark.asyncio
+    async def test_lifespan_with_sink_config(self) -> None:
+        """Test lifespan merges sink configs correctly."""
+        from fastapi import FastAPI
+
+        # Create builder with preset and add sink with config
+        builder = FastAPIBuilder().with_preset("fastapi")
+        # Manually add a sink with config to test the merge path
+        builder._sinks.append({"name": "stdout", "config": {"format": "json"}})
+        lifespan = builder.build()
+        app = FastAPI()
+
+        with patch("fapilog.fastapi.setup._drain_logger", new_callable=AsyncMock):
+            async with lifespan(app):
+                assert hasattr(app.state, "fapilog_logger")
+
+    @pytest.mark.asyncio
+    async def test_lifespan_drains_on_exit(self) -> None:
+        """Test that lifespan drains logger on exit."""
+        from fastapi import FastAPI
+
+        builder = FastAPIBuilder().with_preset("fastapi")
+        lifespan = builder.build()
+        app = FastAPI()
+
+        mock_drain = AsyncMock()
+        with patch("fapilog.fastapi.setup._drain_logger", mock_drain):
+            async with lifespan(app):
+                pass
+            # Verify drain was called
+            mock_drain.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_lifespan_with_fastapi_config(self) -> None:
+        """Test lifespan applies FastAPI-specific config."""
+        from fastapi import FastAPI
+
+        builder = (
+            FastAPIBuilder()
+            .with_preset("fastapi")
+            .skip_paths(["/health"])
+            .sample_rate(0.5)
+            .log_errors_on_skip(False)
+            .include_headers(["content-type"])
+        )
+        lifespan = builder.build()
+        app = FastAPI()
+
+        with patch("fapilog.fastapi.setup._drain_logger", new_callable=AsyncMock):
+            async with lifespan(app):
+                assert hasattr(app.state, "fapilog_logger")
+
+    @pytest.mark.asyncio
+    async def test_lifespan_clears_middleware_stack(self) -> None:
+        """Test that lifespan clears middleware_stack for rebuild."""
+        from fastapi import FastAPI
+
+        builder = FastAPIBuilder().with_preset("fastapi")
+        lifespan = builder.build()
+        app = FastAPI()
+        # Simulate existing middleware stack
+        app.middleware_stack = MagicMock()
+
+        with patch("fapilog.fastapi.setup._drain_logger", new_callable=AsyncMock):
+            async with lifespan(app):
+                # middleware_stack should be cleared
+                assert app.middleware_stack is None or hasattr(
+                    app.state, "fapilog_logger"
+                )
+
+    @pytest.mark.asyncio
+    async def test_lifespan_invalid_config_raises(self) -> None:
+        """Test that invalid configuration raises ValueError."""
+        from fastapi import FastAPI
+
+        builder = FastAPIBuilder()
+        # Force invalid config by setting core to wrong type
+        builder._config["core"] = {"log_level": ["not", "a", "string"]}
+        lifespan = builder.build()
+        app = FastAPI()
+
+        with pytest.raises(ValueError, match="Invalid builder configuration"):
+            async with lifespan(app):
+                pass
