@@ -27,10 +27,13 @@ These configurations drift apart over time:
 
 ```python
 from fastapi import FastAPI
-from fapilog.fastapi import setup_logging
+from fapilog.fastapi import FastAPIBuilder
 
-lifespan = setup_logging(preset="fastapi")
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .build()
+)
 ```
 
 This single configuration works everywhere:
@@ -116,18 +119,22 @@ export FAPILOG_CORE__SINKS='["stdout_json"]'
 ### Programmatic Overrides
 
 ```python
-from fapilog.fastapi import setup_logging
+from fapilog.fastapi import FastAPIBuilder
 
 # Always use JSON, even in development
-lifespan = setup_logging(
-    preset="fastapi",
-    sinks=["stdout_json"],
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .add_stdout_json()
+        .build()
 )
 
 # Always DEBUG, even in production (not recommended)
-lifespan = setup_logging(
-    preset="fastapi",
-    log_level="DEBUG",
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .with_level("DEBUG")
+        .build()
 )
 ```
 
@@ -154,11 +161,14 @@ async def main():
 
 ```python
 from fastapi import FastAPI, Depends
-from fapilog.fastapi import setup_logging, get_request_logger
+from fapilog.fastapi import FastAPIBuilder, get_request_logger
 
-# One line - works everywhere
-lifespan = setup_logging(preset="fastapi")
-app = FastAPI(lifespan=lifespan)
+# Works everywhere - adapts to environment automatically
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .build()
+)
 
 @app.get("/api/orders/{order_id}")
 async def get_order(order_id: str, logger=Depends(get_request_logger)):

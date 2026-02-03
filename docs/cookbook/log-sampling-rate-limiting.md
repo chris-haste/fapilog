@@ -23,12 +23,14 @@ The simplest approach uses the middleware's built-in sampling:
 
 ```python
 from fastapi import FastAPI
-from fapilog.fastapi import setup_logging
+from fapilog.fastapi import FastAPIBuilder
 
-lifespan = setup_logging(
-    sample_rate=0.1,  # Log 10% of successful requests
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .sample_rate(0.1)  # Log 10% of successful requests
+        .build()
 )
-app = FastAPI(lifespan=lifespan)
 ```
 
 This samples at the request level—10% of successful requests are logged. Errors are always logged regardless of sample rate.
@@ -210,12 +212,15 @@ Neither sampling nor rate limiting should drop critical information. fapilog pro
 
 ### Errors Always Logged (Middleware)
 
-When using `setup_logging()` with `sample_rate`, errors bypass sampling:
+When using `FastAPIBuilder` with `sample_rate()`, errors bypass sampling:
 
 ```python
-lifespan = setup_logging(
-    sample_rate=0.1,  # 10% of successful requests
-    # Errors (5xx, unhandled exceptions) always logged
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .sample_rate(0.1)  # 10% of successful requests
+        # Errors (5xx, unhandled exceptions) always logged
+        .build()
 )
 ```
 

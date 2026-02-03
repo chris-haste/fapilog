@@ -7,7 +7,7 @@ Configure fapilog using presets for quick setup, environment variables, or the `
 | Situation | Recommended Approach | Why |
 |-----------|---------------------|-----|
 | **Just getting started** | `get_logger(preset="...")` | Zero config, sensible defaults |
-| **FastAPI app** | `setup_logging(preset="fastapi")` | Automatic middleware and request context |
+| **FastAPI app** | `FastAPIBuilder().with_preset("fastapi").build()` | Automatic middleware and request context |
 | **Writing new code** | `LoggerBuilder()` | IDE autocomplete, type safety, discoverable API |
 | **Config from env/files** | `Settings` + environment variables | 12-factor apps, Kubernetes, external config |
 | **Need compliance presets** | `LoggerBuilder().with_redaction(preset="GDPR_PII")` | One-liner GDPR, HIPAA, PCI-DSS protection |
@@ -74,15 +74,19 @@ logger = get_logger(preset="minimal")            # Backwards compatible default
 | `hardened` | Never | Yes | Yes (HIPAA+PCI) | Regulated environments |
 | `minimal` | Default | No | No | Migration, explicit defaults |
 
-### FastAPI one-liner
+### FastAPI Integration
 
-Use the presets with `setup_logging()` for FastAPI apps:
+Use `FastAPIBuilder` for FastAPI apps:
 
 ```python
 from fastapi import Depends, FastAPI
-from fapilog.fastapi import get_request_logger, setup_logging
+from fapilog.fastapi import FastAPIBuilder, get_request_logger
 
-app = FastAPI(lifespan=setup_logging(preset="fastapi"))
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .build()
+)
 
 @app.get("/users/{user_id}")
 async def get_user(user_id: int, logger=Depends(get_request_logger)):
@@ -90,25 +94,7 @@ async def get_user(user_id: int, logger=Depends(get_request_logger)):
     return {"user_id": user_id}
 ```
 
-Automatic middleware registration is enabled by default. Disable it for manual control:
-
-```python
-from fapilog.fastapi.context import RequestContextMiddleware
-from fapilog.fastapi.logging import LoggingMiddleware
-
-app = FastAPI(lifespan=setup_logging(preset="fastapi", auto_middleware=False))
-app.add_middleware(RequestContextMiddleware)
-app.add_middleware(LoggingMiddleware)
-```
-
-If you need to attach the lifespan after app creation:
-
-```python
-app = FastAPI()
-app.router.lifespan_context = setup_logging(preset="fastapi")
-```
-
-Set the lifespan before the application starts.
+See the [FastAPI Integration Guide](fastapi.md) for full configuration options including `skip_paths()`, `include_headers()`, and `sample_rate()`.
 
 ### Preset vs Settings
 

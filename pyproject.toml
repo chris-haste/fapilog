@@ -415,6 +415,7 @@ exclude = [
     "src/fapilog/core/config_builders.py",  # _build_pipeline used via import in __init__.py
     "src/fapilog/core/schema.py",  # TypedDict definitions for schema contracts
     "src/fapilog/core/shutdown.py",  # Public API for logger registration (used dynamically)
+    "src/fapilog/fastapi/builder.py",  # Fluent builder API methods used via chaining
     "src/fapilog/fastapi/integration.py",  # FastAPI router functions are public API
     "src/fapilog/plugins/registry.py",  # API methods
     "src/fapilog/plugins/discovery.py",  # Plugin discovery API methods

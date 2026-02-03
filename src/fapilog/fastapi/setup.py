@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import warnings
 from contextlib import asynccontextmanager
 from typing import Any, AsyncContextManager, AsyncIterator, Callable
 
@@ -126,6 +127,10 @@ def setup_logging(
 ) -> Callable[[FastAPI], AsyncContextManager[None]]:
     """One-liner FastAPI logging setup.
 
+    .. deprecated::
+        Use :class:`FastAPIBuilder` instead for full configuration access.
+        See https://fapilog.dev/migration/fastapi-builder for migration guide.
+
     Returns an async context manager (lifespan) that:
     - Creates async logger on startup
     - Adds middleware automatically by default (set auto_middleware=False to opt out)
@@ -145,6 +150,12 @@ def setup_logging(
         additional_redact_headers: Additional header names to redact (added to defaults).
         allow_headers: If set, only these headers are logged (allowlist mode).
     """
+    warnings.warn(
+        "setup_logging() is deprecated, use FastAPIBuilder instead. "
+        "See https://fapilog.dev/migration/fastapi-builder",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     app_ref = app
 
     @asynccontextmanager

@@ -8,6 +8,7 @@ AVAILABLE: bool
 _IMPORT_ERROR: Exception | None
 
 try:
+    from .builder import FastAPIBuilder
     from .context import RequestContextMiddleware
     from .dependencies import get_request_logger
     from .integration import get_router  # re-export primary API
@@ -22,6 +23,7 @@ except Exception as e:  # pragma: no cover - exercised in envs without extra
 
 __all__ = [
     "AVAILABLE",
+    "FastAPIBuilder",
     "get_request_logger",
     "get_router",
     "LoggingMiddleware",

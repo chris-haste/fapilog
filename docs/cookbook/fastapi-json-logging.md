@@ -28,10 +28,13 @@ fapilog provides unified JSON output for both application and access logs:
 
 ```python
 from fastapi import FastAPI, Depends
-from fapilog.fastapi import setup_logging, get_request_logger
+from fapilog.fastapi import FastAPIBuilder, get_request_logger
 
-lifespan = setup_logging(preset="fastapi")
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .build()
+)
 
 @app.get("/api/orders/{order_id}")
 async def get_order(order_id: str, logger=Depends(get_request_logger)):
@@ -39,7 +42,7 @@ async def get_order(order_id: str, logger=Depends(get_request_logger)):
     return {"order_id": order_id, "status": "shipped"}
 ```
 
-The `preset="fastapi"` configuration:
+The `fastapi` preset configuration:
 - Outputs JSON to stdout (no files)
 - Disables color codes
 - Includes request context (request_id) automatically
@@ -61,7 +64,7 @@ Both share consistent field names (`timestamp`, `level`, `message`, `request_id`
 
 ## Including Uvicorn Access Logs
 
-fapilog's `setup_logging()` automatically installs middleware that captures HTTP requests. The `LoggingMiddleware` handles:
+fapilog's `FastAPIBuilder` automatically installs middleware that captures HTTP requests. The `LoggingMiddleware` handles:
 
 - Request method, path, and query parameters
 - Response status codes

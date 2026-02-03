@@ -42,10 +42,13 @@ fapilog uses Python's `contextvars` module, which correctly isolates context per
 
 ```python
 from fastapi import FastAPI, Depends
-from fapilog.fastapi import setup_logging, get_request_logger
+from fapilog.fastapi import FastAPIBuilder, get_request_logger
 
-lifespan = setup_logging()
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .build()
+)
 
 @app.get("/")
 async def root(logger=Depends(get_request_logger)):

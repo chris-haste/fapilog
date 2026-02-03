@@ -2,7 +2,79 @@
 
 For a complete, production-ready example with health checks, metrics, and graceful shutdown, see the [FastAPI Production Template](https://github.com/chris-haste/fapilog/tree/main/examples/fastapi_production).
 
-## One-liner setup
+## FastAPIBuilder (Recommended)
+
+`FastAPIBuilder` provides the full power of fapilog's configuration with FastAPI-specific additions:
+
+```python
+from fastapi import Depends, FastAPI
+from fapilog.fastapi import FastAPIBuilder, get_request_logger
+
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .skip_paths(["/health", "/metrics"])
+        .include_headers(["content-type", "user-agent"])
+        .sample_rate(1.0)
+        .build()
+)
+
+@app.get("/")
+async def root(logger=Depends(get_request_logger)):
+    await logger.info("Request handled")  # request_id auto-included
+    return {"message": "Hello World"}
+```
+
+### Full configuration access
+
+`FastAPIBuilder` extends `AsyncLoggerBuilder`, giving you access to all core configuration options:
+
+```python
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        # FastAPI-specific options
+        .skip_paths(["/health", "/metrics", "/ready"])
+        .include_headers(["content-type", "user-agent", "accept"])
+        .sample_rate(0.1)  # Log 10% of requests
+        .log_errors_on_skip(True)  # Still log errors on skipped paths
+        # Core fapilog options (inherited from AsyncLoggerBuilder)
+        .with_level("DEBUG")
+        .with_backpressure(drop_on_full=False)
+        .with_sampling(rate=0.1)  # Log-level sampling
+        .with_redaction(preset="GDPR_PII")
+        .with_queue_size(50000)
+        .build()
+)
+```
+
+### FastAPI-specific methods
+
+| Method | Description |
+|--------|-------------|
+| `.skip_paths([...])` | Paths to exclude from request logging |
+| `.include_headers([...])` | Headers to include in logs (allowlist mode) |
+| `.sample_rate(float)` | Fraction of requests to log (0.0-1.0) |
+| `.log_errors_on_skip(bool)` | Log errors even on skipped paths (default: True) |
+| `.with_correlation_id(...)` | Configure correlation ID handling |
+
+### Environment variable configuration
+
+FastAPI-specific settings can be configured via environment variables:
+
+```bash
+FAPILOG_FASTAPI__SKIP_PATHS=/health,/metrics,/ready
+FAPILOG_FASTAPI__INCLUDE_HEADERS=content-type,user-agent
+FAPILOG_FASTAPI__SAMPLE_RATE=0.1
+FAPILOG_FASTAPI__LOG_ERRORS_ON_SKIP=true
+```
+
+Environment variables take priority over code-specified values. When an env var overrides a code value, a warning is emitted via internal diagnostics.
+
+## One-liner setup (Deprecated)
+
+> **Deprecated:** `setup_logging()` is deprecated. Use `FastAPIBuilder` instead for full configuration access.
+> See the [migration guide](../guides/fastapi-builder-migration.md) for upgrade instructions.
 
 ```python
 from fastapi import Depends, FastAPI
@@ -23,7 +95,9 @@ async def root(logger=Depends(get_request_logger)):
     return {"message": "Hello World"}
 ```
 
-### Header logging with setup_logging
+### Header logging with setup_logging (Deprecated)
+
+> **Note:** This section documents deprecated `setup_logging()` options. Use `FastAPIBuilder` with `.include_headers()` instead.
 
 The `setup_logging` one-liner supports the same header options as `LoggingMiddleware`:
 
