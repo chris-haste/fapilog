@@ -115,7 +115,7 @@ try:
         "assert_valid_filter",
         "assert_valid_processor",
     ]
-except ImportError:
+except ImportError:  # pragma: no cover - can't test without pytest
     # pytest not installed - fixtures unavailable
     # Provide helpful error if someone tries to access them
     from typing import Any, Callable
