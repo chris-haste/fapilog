@@ -74,7 +74,7 @@ Environment variables take priority over code-specified values. When an env var 
 ## One-liner setup (Deprecated)
 
 > **Deprecated:** `setup_logging()` is deprecated. Use `FastAPIBuilder` instead for full configuration access.
-> See the [migration guide](../migration/fastapi-builder.md) for upgrade instructions.
+> See the [migration guide](../guides/fastapi-builder-migration.md) for upgrade instructions.
 
 ```python
 from fastapi import Depends, FastAPI

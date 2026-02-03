@@ -1,3 +1,7 @@
+---
+orphan: true
+---
+
 # Migrating from setup_logging() to FastAPIBuilder
 
 This guide helps you migrate from the deprecated `setup_logging()` function to the new `FastAPIBuilder` class.
