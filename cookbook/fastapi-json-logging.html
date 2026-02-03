@@ -7,17 +7,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FastAPI JSON logging to stdout (Uvicorn access logs included) &mdash; fapilog 0.13.0 documentation</title>
+  <title>FastAPI JSON logging to stdout (Uvicorn access logs included) &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
   
-    <link rel="canonical" href="https://docs.fapilog.dev/en/stable/cookbook/fastapi-json-logging.html" />
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=1019fba8"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -30,6 +29,9 @@
     <link rel="prev" title="FastAPI Microservices in Production" href="fastapi-microservice-production.html" />
  
 
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/cookbook/fastapi-json-logging.html" />
+<meta name="robots" content="noindex, follow" />
 
 
 </head>
@@ -252,10 +254,13 @@
 <h2>The Solution<a class="headerlink" href="#the-solution" title="Link to this heading"></a></h2>
 <p>fapilog provides unified JSON output for both application and access logs:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">Depends</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span><span class="p">,</span> <span class="n">get_request_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPIBuilder</span><span class="p">,</span> <span class="n">get_request_logger</span>
 
-<span class="n">lifespan</span> <span class="o">=</span> <span class="n">setup_logging</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
-<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">lifespan</span><span class="p">)</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
 
 <span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/api/orders/</span><span class="si">{order_id}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_order</span><span class="p">(</span><span class="n">order_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">Depends</span><span class="p">(</span><span class="n">get_request_logger</span><span class="p">)):</span>
@@ -263,7 +268,7 @@
     <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;order_id&quot;</span><span class="p">:</span> <span class="n">order_id</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;shipped&quot;</span><span class="p">}</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">preset=&quot;fastapi&quot;</span></code> configuration:</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">fastapi</span></code> preset configuration:</p>
 <ul class="simple">
 <li><p>Outputs JSON to stdout (no files)</p></li>
 <li><p>Disables color codes</p></li>
@@ -285,7 +290,7 @@
 </section>
 <section id="including-uvicorn-access-logs">
 <h2>Including Uvicorn Access Logs<a class="headerlink" href="#including-uvicorn-access-logs" title="Link to this heading"></a></h2>
-<p>fapilog’s <code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code> automatically installs middleware that captures HTTP requests. The <code class="docutils literal notranslate"><span class="pre">LoggingMiddleware</span></code> handles:</p>
+<p>fapilog’s <code class="docutils literal notranslate"><span class="pre">FastAPIBuilder</span></code> automatically installs middleware that captures HTTP requests. The <code class="docutils literal notranslate"><span class="pre">LoggingMiddleware</span></code> handles:</p>
 <ul class="simple">
 <li><p>Request method, path, and query parameters</p></li>
 <li><p>Response status codes</p></li>
@@ -391,7 +396,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on February 01, 2026.
+      <span class="lastupdated">Last updated on February 03, 2026.
       </span></p>
   </div>
 

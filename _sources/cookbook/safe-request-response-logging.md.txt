@@ -50,9 +50,13 @@ The key is reading the body once and making it available to both your middleware
 ```python
 from fastapi import FastAPI, Request
 from starlette.middleware.base import BaseHTTPMiddleware
-from fapilog.fastapi import setup_logging
+from fapilog.fastapi import FastAPIBuilder
 
-app = FastAPI(lifespan=setup_logging(preset="fastapi"))
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .build()
+)
 
 
 class BodyLoggingMiddleware(BaseHTTPMiddleware):
@@ -85,7 +89,7 @@ class BodyLoggingMiddleware(BaseHTTPMiddleware):
         return response
 
 
-# Add after setup_logging configures the app
+# Add after FastAPIBuilder configures the app
 app.add_middleware(BodyLoggingMiddleware)
 ```
 

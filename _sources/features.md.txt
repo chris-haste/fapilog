@@ -100,7 +100,7 @@ A comprehensive overview of what fapilog offers.
 
 | Feature | Why It Matters |
 |---------|----------------|
-| **One-line setup** | `setup_logging(preset="production")` configures middleware and lifespan |
+| **Builder pattern** | `FastAPIBuilder().with_preset("fastapi").build()` configures middleware and lifespan |
 | **Request/response logging** | Automatic logging of incoming requests and outgoing responses |
 | **Timing** | Request duration is captured and logged |
 | **Context injection** | Use FastAPI dependencies to inject loggers with request context |

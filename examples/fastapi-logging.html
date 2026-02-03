@@ -7,17 +7,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FastAPI Logging &mdash; fapilog 0.13.0 documentation</title>
+  <title>FastAPI Logging &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
   
-    <link rel="canonical" href="https://docs.fapilog.dev/en/stable/examples/fastapi-logging.html" />
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=1019fba8"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -30,6 +29,9 @@
     <link rel="prev" title="Builder Configuration Examples" href="builder-configurations.html" />
  
 
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/examples/fastapi-logging.html" />
+<meta name="robots" content="noindex, follow" />
 
 
 </head>
@@ -230,41 +232,30 @@
   <section class="tex2jax_ignore mathjax_ignore" id="fastapi-logging">
 <h1>FastAPI Logging<a class="headerlink" href="#fastapi-logging" title="Link to this heading"></a></h1>
 <p>Request-scoped logging with dependency injection and automatic correlation.</p>
-<section id="basic-setup-with-middleware">
-<h2>Basic Setup with Middleware<a class="headerlink" href="#basic-setup-with-middleware" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span><span class="p">,</span> <span class="n">RequestContextMiddleware</span><span class="p">,</span> <span class="n">LoggingMiddleware</span>
+<section id="basic-setup">
+<h2>Basic Setup<a class="headerlink" href="#basic-setup" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">Depends</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPIBuilder</span><span class="p">,</span> <span class="n">get_request_logger</span>
 
-<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
 
-<span class="c1"># Initialize logger in app.state (recommended)</span>
-<span class="n">setup_logging</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
-
-<span class="c1"># Sets request_id for correlation (from X-Request-ID header or UUID)</span>
-<span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span><span class="n">RequestContextMiddleware</span><span class="p">)</span>
-
-<span class="c1"># Logs request completion with method, path, status, latency_ms</span>
-<span class="c1"># Use require_logger=True to fail fast if logger not initialized</span>
-<span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span><span class="n">LoggingMiddleware</span><span class="p">,</span> <span class="n">require_logger</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/users/</span><span class="si">{user_id}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_user</span><span class="p">(</span><span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">Depends</span><span class="p">(</span><span class="n">get_request_logger</span><span class="p">)):</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User lookup&quot;</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="n">user_id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">user_id</span><span class="p">}</span>
 </pre></div>
 </div>
-</section>
-<section id="production-pattern">
-<h2>Production Pattern<a class="headerlink" href="#production-pattern" title="Link to this heading"></a></h2>
-<p>For production, use <code class="docutils literal notranslate"><span class="pre">require_logger=True</span></code> to catch initialization issues early:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span><span class="p">,</span> <span class="n">LoggingMiddleware</span>
-
-<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
-<span class="n">setup_logging</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>  <span class="c1"># Sets app.state.fapilog_logger</span>
-<span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span><span class="n">LoggingMiddleware</span><span class="p">,</span> <span class="n">require_logger</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>This avoids latency spikes from lazy logger creation on cold-start requests. If you forget to call <code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code>, the middleware raises a clear error:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ne">RuntimeError</span><span class="p">:</span> <span class="n">LoggingMiddleware</span> <span class="n">requires</span> <span class="n">logger</span> <span class="ow">in</span> <span class="n">app</span><span class="o">.</span><span class="n">state</span><span class="o">.</span>
-<span class="n">Call</span> <span class="n">setup_logging</span><span class="p">(</span><span class="n">app</span><span class="p">)</span> <span class="n">before</span> <span class="n">adding</span> <span class="n">middleware</span><span class="p">,</span> <span class="ow">or</span> <span class="k">pass</span> <span class="n">logger</span><span class="o">=</span> <span class="n">parameter</span><span class="o">.</span>
-</pre></div>
-</div>
+<p>This automatically:</p>
+<ul class="simple">
+<li><p>Initializes the logger in app.state</p></li>
+<li><p>Adds <code class="docutils literal notranslate"><span class="pre">RequestContextMiddleware</span></code> for correlation IDs</p></li>
+<li><p>Adds <code class="docutils literal notranslate"><span class="pre">LoggingMiddleware</span></code> for request/response logging</p></li>
+<li><p>Sets up graceful shutdown with log flushing</p></li>
+</ul>
 </section>
 <section id="request-scoped-logger">
 <h2>Request-Scoped Logger<a class="headerlink" href="#request-scoped-logger" title="Link to this heading"></a></h2>
@@ -343,7 +334,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on February 01, 2026.
+      <span class="lastupdated">Last updated on February 03, 2026.
       </span></p>
   </div>
 

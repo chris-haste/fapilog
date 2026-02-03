@@ -7,17 +7,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FastAPI Microservices in Production &mdash; fapilog 0.13.0 documentation</title>
+  <title>FastAPI Microservices in Production &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
   
-    <link rel="canonical" href="https://docs.fapilog.dev/en/stable/cookbook/fastapi-microservice-production.html" />
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=1019fba8"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -30,6 +29,9 @@
     <link rel="prev" title="Cookbook" href="index.html" />
  
 
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/cookbook/fastapi-microservice-production.html" />
+<meta name="robots" content="noindex, follow" />
 
 
 </head>
@@ -232,17 +234,16 @@
 <p>Production microservices need logging that handles Kubernetes probes, containerized deployments, traffic spikes, and observability pipelines. This guide covers the optimal fapilog configuration for containerized FastAPI services.</p>
 <section id="quick-start">
 <h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h2>
-<p>The recommended one-liner for most production microservices:</p>
+<p>The recommended configuration for most production microservices:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPIBuilder</span>
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
-    <span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span>
-        <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">,</span>
-        <span class="n">skip_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/healthz&quot;</span><span class="p">,</span> <span class="s2">&quot;/ready&quot;</span><span class="p">,</span> <span class="s2">&quot;/live&quot;</span><span class="p">,</span> <span class="s2">&quot;/metrics&quot;</span><span class="p">],</span>
-        <span class="n">include_headers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">allow_headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;content-type&quot;</span><span class="p">,</span> <span class="s2">&quot;accept&quot;</span><span class="p">,</span> <span class="s2">&quot;user-agent&quot;</span><span class="p">,</span> <span class="s2">&quot;x-request-id&quot;</span><span class="p">],</span>
-    <span class="p">)</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">skip_paths</span><span class="p">([</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/healthz&quot;</span><span class="p">,</span> <span class="s2">&quot;/ready&quot;</span><span class="p">,</span> <span class="s2">&quot;/live&quot;</span><span class="p">,</span> <span class="s2">&quot;/metrics&quot;</span><span class="p">])</span>
+        <span class="o">.</span><span class="n">include_headers</span><span class="p">([</span><span class="s2">&quot;content-type&quot;</span><span class="p">,</span> <span class="s2">&quot;accept&quot;</span><span class="p">,</span> <span class="s2">&quot;user-agent&quot;</span><span class="p">,</span> <span class="s2">&quot;x-request-id&quot;</span><span class="p">])</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -285,10 +286,10 @@
 <section id="standard-microservice-100-1000-req-sec">
 <h3>Standard Microservice (100-1000 req/sec)<a class="headerlink" href="#standard-microservice-100-1000-req-sec" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
-    <span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span>
-        <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">,</span>
-        <span class="n">skip_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/healthz&quot;</span><span class="p">,</span> <span class="s2">&quot;/ready&quot;</span><span class="p">,</span> <span class="s2">&quot;/live&quot;</span><span class="p">,</span> <span class="s2">&quot;/metrics&quot;</span><span class="p">],</span>
-    <span class="p">)</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">skip_paths</span><span class="p">([</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/healthz&quot;</span><span class="p">,</span> <span class="s2">&quot;/ready&quot;</span><span class="p">,</span> <span class="s2">&quot;/live&quot;</span><span class="p">,</span> <span class="s2">&quot;/metrics&quot;</span><span class="p">])</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -296,10 +297,10 @@
 <section id="high-volume-service-1000-req-sec">
 <h3>High-Volume Service (&gt;1000 req/sec)<a class="headerlink" href="#high-volume-service-1000-req-sec" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
-    <span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span>
-        <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;high-volume&quot;</span><span class="p">,</span>  <span class="c1"># Adaptive sampling kicks in</span>
-        <span class="n">skip_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/healthz&quot;</span><span class="p">,</span> <span class="s2">&quot;/ready&quot;</span><span class="p">,</span> <span class="s2">&quot;/live&quot;</span><span class="p">,</span> <span class="s2">&quot;/metrics&quot;</span><span class="p">],</span>
-    <span class="p">)</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;high-volume&quot;</span><span class="p">)</span>  <span class="c1"># Adaptive sampling kicks in</span>
+        <span class="o">.</span><span class="n">skip_paths</span><span class="p">([</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/healthz&quot;</span><span class="p">,</span> <span class="s2">&quot;/ready&quot;</span><span class="p">,</span> <span class="s2">&quot;/live&quot;</span><span class="p">,</span> <span class="s2">&quot;/metrics&quot;</span><span class="p">])</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -309,15 +310,15 @@
 <h3>Environment-Based Selection<a class="headerlink" href="#environment-based-selection" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPIBuilder</span>
 
 <span class="n">PRESET</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;FAPILOG_PRESET&quot;</span><span class="p">,</span> <span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
-    <span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span>
-        <span class="n">preset</span><span class="o">=</span><span class="n">PRESET</span><span class="p">,</span>
-        <span class="n">skip_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/healthz&quot;</span><span class="p">,</span> <span class="s2">&quot;/ready&quot;</span><span class="p">,</span> <span class="s2">&quot;/live&quot;</span><span class="p">,</span> <span class="s2">&quot;/metrics&quot;</span><span class="p">],</span>
-    <span class="p">)</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="n">PRESET</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">skip_paths</span><span class="p">([</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/healthz&quot;</span><span class="p">,</span> <span class="s2">&quot;/ready&quot;</span><span class="p">,</span> <span class="s2">&quot;/live&quot;</span><span class="p">,</span> <span class="s2">&quot;/metrics&quot;</span><span class="p">])</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -355,10 +356,10 @@
 <span class="p">]</span>
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
-    <span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span>
-        <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">,</span>
-        <span class="n">skip_paths</span><span class="o">=</span><span class="n">KUBERNETES_PROBES</span> <span class="o">+</span> <span class="n">OBSERVABILITY_PATHS</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">skip_paths</span><span class="p">(</span><span class="n">KUBERNETES_PROBES</span> <span class="o">+</span> <span class="n">OBSERVABILITY_PATHS</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -404,9 +405,9 @@
 <span class="w">                </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;sleep&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;5&quot;</span><span class="p p-Indicator">]</span><span class="w">  </span><span class="c1"># Allow in-flight requests</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">setup_logging</span></code> lifespan handles drain automatically:</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">FastAPIBuilder</span></code> lifespan handles drain automatically:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># No manual drain needed - handled by lifespan</span>
-<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">))</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">())</span>
 </pre></div>
 </div>
 </section>
@@ -417,13 +418,13 @@
 <h3>Google Cloud Run<a class="headerlink" href="#google-cloud-run" title="Link to this heading"></a></h3>
 <p>Cloud Run captures stdout automatically. Use the <code class="docutils literal notranslate"><span class="pre">serverless</span></code> preset for optimal cold-start behavior:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPIBuilder</span>
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
-    <span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span>
-        <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;serverless&quot;</span><span class="p">,</span>  <span class="c1"># Smaller batches, fast drain</span>
-        <span class="n">skip_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/_ah/health&quot;</span><span class="p">],</span>  <span class="c1"># Cloud Run health checks</span>
-    <span class="p">)</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;serverless&quot;</span><span class="p">)</span>  <span class="c1"># Smaller batches, fast drain</span>
+        <span class="o">.</span><span class="n">skip_paths</span><span class="p">([</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/_ah/health&quot;</span><span class="p">])</span>  <span class="c1"># Cloud Run health checks</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -470,10 +471,10 @@
 </div>
 <p>fapilog configuration:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
-    <span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span>
-        <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;serverless&quot;</span><span class="p">,</span>
-        <span class="n">skip_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">],</span>  <span class="c1"># ALB health check path</span>
-    <span class="p">)</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;serverless&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">skip_paths</span><span class="p">([</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">])</span>  <span class="c1"># ALB health check path</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -533,10 +534,10 @@
 <h3>Azure Container Apps<a class="headerlink" href="#azure-container-apps" title="Link to this heading"></a></h3>
 <p>Similar to Cloud Run, Azure captures stdout:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
-    <span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span>
-        <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;serverless&quot;</span><span class="p">,</span>
-        <span class="n">skip_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/liveness&quot;</span><span class="p">,</span> <span class="s2">&quot;/readiness&quot;</span><span class="p">],</span>
-    <span class="p">)</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;serverless&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">skip_paths</span><span class="p">([</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/liveness&quot;</span><span class="p">,</span> <span class="s2">&quot;/readiness&quot;</span><span class="p">])</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -548,18 +549,17 @@
 <h3>Allowlist (Recommended)<a class="headerlink" href="#allowlist-recommended" title="Link to this heading"></a></h3>
 <p>Log only known-safe headers:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
-    <span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span>
-        <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">,</span>
-        <span class="n">include_headers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">allow_headers</span><span class="o">=</span><span class="p">[</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">include_headers</span><span class="p">([</span>
             <span class="s2">&quot;content-type&quot;</span><span class="p">,</span>
             <span class="s2">&quot;accept&quot;</span><span class="p">,</span>
             <span class="s2">&quot;user-agent&quot;</span><span class="p">,</span>
             <span class="s2">&quot;x-request-id&quot;</span><span class="p">,</span>
             <span class="s2">&quot;x-correlation-id&quot;</span><span class="p">,</span>
             <span class="s2">&quot;x-forwarded-for&quot;</span><span class="p">,</span>
-        <span class="p">],</span>
-    <span class="p">)</span>
+        <span class="p">])</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -572,17 +572,23 @@
 </section>
 <section id="redaction-when-you-need-more-headers">
 <h3>Redaction (When You Need More Headers)<a class="headerlink" href="#redaction-when-you-need-more-headers" title="Link to this heading"></a></h3>
-<p>When you need most headers but must redact sensitive ones:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
-    <span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span>
-        <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">,</span>
-        <span class="n">include_headers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">additional_redact_headers</span><span class="o">=</span><span class="p">[</span>
-            <span class="s2">&quot;x-api-key&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;x-internal-token&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;x-session-id&quot;</span><span class="p">,</span>
-        <span class="p">],</span>
-    <span class="p">)</span>
+<p>When you need most headers but must redact sensitive ones, use the middleware directly:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPIBuilder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggingMiddleware</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span>
+    <span class="n">LoggingMiddleware</span><span class="p">,</span>
+    <span class="n">include_headers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">additional_redact_headers</span><span class="o">=</span><span class="p">[</span>
+        <span class="s2">&quot;x-api-key&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;x-internal-token&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;x-session-id&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -654,9 +660,8 @@
 <section id="complete-production-example">
 <h2>Complete Production Example<a class="headerlink" href="#complete-production-example" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">asynccontextmanager</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">Depends</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span><span class="p">,</span> <span class="n">get_request_logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPIBuilder</span><span class="p">,</span> <span class="n">get_request_logger</span>
 
 <span class="c1"># Configuration from environment</span>
 <span class="n">PRESET</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;FAPILOG_PRESET&quot;</span><span class="p">,</span> <span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
@@ -673,12 +678,11 @@
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
     <span class="n">title</span><span class="o">=</span><span class="s2">&quot;My Microservice&quot;</span><span class="p">,</span>
-    <span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span>
-        <span class="n">preset</span><span class="o">=</span><span class="n">PRESET</span><span class="p">,</span>
-        <span class="n">skip_paths</span><span class="o">=</span><span class="n">SKIP_PATHS</span><span class="p">,</span>
-        <span class="n">include_headers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">allow_headers</span><span class="o">=</span><span class="n">ALLOWED_HEADERS</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="n">PRESET</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">skip_paths</span><span class="p">(</span><span class="n">SKIP_PATHS</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">include_headers</span><span class="p">(</span><span class="n">ALLOWED_HEADERS</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 
 
@@ -721,9 +725,9 @@
 </section>
 <section id="missing-request-context">
 <h3>Missing Request Context<a class="headerlink" href="#missing-request-context" title="Link to this heading"></a></h3>
-<p>Ensure middleware order is correct (handled automatically by <code class="docutils literal notranslate"><span class="pre">setup_logging</span></code>):</p>
+<p>Ensure middleware order is correct (handled automatically by <code class="docutils literal notranslate"><span class="pre">FastAPIBuilder</span></code>):</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># RequestContextMiddleware must come BEFORE LoggingMiddleware</span>
-<span class="c1"># setup_logging handles this automatically</span>
+<span class="c1"># FastAPIBuilder handles this automatically</span>
 </pre></div>
 </div>
 </section>
@@ -756,7 +760,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on February 01, 2026.
+      <span class="lastupdated">Last updated on February 03, 2026.
       </span></p>
   </div>
 

@@ -29,7 +29,9 @@ testing-plugins
 webhook-security
 ```
 
-**Migration Guide:** [Settings to Builder Migration](../guides/settings-to-builder-migration.md) - Migrate from Settings-based to Builder-based configuration.
+**Migration Guides:**
+- [Settings to Builder Migration](../guides/settings-to-builder-migration.md) - Migrate from Settings-based to Builder-based configuration
+- [FastAPI Builder Migration](../guides/fastapi-builder-migration.md) - Migrate from `setup_logging()` to `FastAPIBuilder`
 
 ## Overview
 

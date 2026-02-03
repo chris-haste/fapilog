@@ -7,17 +7,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Configuration &mdash; fapilog 0.13.0 documentation</title>
+  <title>Configuration &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
   
-    <link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/configuration.html" />
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=1019fba8"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -30,6 +29,9 @@
     <link rel="prev" title="User Guide" href="index.html" />
  
 
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/configuration.html" />
+<meta name="robots" content="noindex, follow" />
 
 
 </head>
@@ -245,7 +247,7 @@
 <td><p>Zero config, sensible defaults</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>FastAPI app</strong></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">setup_logging(preset=&quot;fastapi&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FastAPIBuilder().with_preset(&quot;fastapi&quot;).build()</span></code></p></td>
 <td><p>Automatic middleware and request context</p></td>
 </tr>
 <tr class="row-even"><td><p><strong>Writing new code</strong></p></td>
@@ -365,13 +367,17 @@
 </tbody>
 </table>
 </section>
-<section id="fastapi-one-liner">
-<h3>FastAPI one-liner<a class="headerlink" href="#fastapi-one-liner" title="Link to this heading"></a></h3>
-<p>Use the presets with <code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code> for FastAPI apps:</p>
+<section id="fastapi-integration">
+<h3>FastAPI Integration<a class="headerlink" href="#fastapi-integration" title="Link to this heading"></a></h3>
+<p>Use <code class="docutils literal notranslate"><span class="pre">FastAPIBuilder</span></code> for FastAPI apps:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">FastAPI</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_request_logger</span><span class="p">,</span> <span class="n">setup_logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPIBuilder</span><span class="p">,</span> <span class="n">get_request_logger</span>
 
-<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">))</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
 
 <span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/users/</span><span class="si">{user_id}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_user</span><span class="p">(</span><span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">Depends</span><span class="p">(</span><span class="n">get_request_logger</span><span class="p">)):</span>
@@ -379,21 +385,7 @@
     <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">user_id</span><span class="p">}</span>
 </pre></div>
 </div>
-<p>Automatic middleware registration is enabled by default. Disable it for manual control:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi.context</span><span class="w"> </span><span class="kn">import</span> <span class="n">RequestContextMiddleware</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggingMiddleware</span>
-
-<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">,</span> <span class="n">auto_middleware</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
-<span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span><span class="n">RequestContextMiddleware</span><span class="p">)</span>
-<span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span><span class="n">LoggingMiddleware</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>If you need to attach the lifespan after app creation:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
-<span class="n">app</span><span class="o">.</span><span class="n">router</span><span class="o">.</span><span class="n">lifespan_context</span> <span class="o">=</span> <span class="n">setup_logging</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Set the lifespan before the application starts.</p>
+<p>See the <a class="reference internal" href="fastapi.html"><span class="std std-doc">FastAPI Integration Guide</span></a> for full configuration options including <code class="docutils literal notranslate"><span class="pre">skip_paths()</span></code>, <code class="docutils literal notranslate"><span class="pre">include_headers()</span></code>, and <code class="docutils literal notranslate"><span class="pre">sample_rate()</span></code>.</p>
 </section>
 <section id="preset-vs-settings">
 <h3>Preset vs Settings<a class="headerlink" href="#preset-vs-settings" title="Link to this heading"></a></h3>
@@ -733,7 +725,7 @@ interval settings and represent fixed intervals (not wall-clock boundaries).</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on February 01, 2026.
+      <span class="lastupdated">Last updated on February 03, 2026.
       </span></p>
   </div>
 

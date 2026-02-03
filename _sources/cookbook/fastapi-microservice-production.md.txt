@@ -4,19 +4,18 @@ Production microservices need logging that handles Kubernetes probes, containeri
 
 ## Quick Start
 
-The recommended one-liner for most production microservices:
+The recommended configuration for most production microservices:
 
 ```python
 from fastapi import FastAPI
-from fapilog.fastapi import setup_logging
+from fapilog.fastapi import FastAPIBuilder
 
 app = FastAPI(
-    lifespan=setup_logging(
-        preset="fastapi",
-        skip_paths=["/health", "/healthz", "/ready", "/live", "/metrics"],
-        include_headers=True,
-        allow_headers=["content-type", "accept", "user-agent", "x-request-id"],
-    )
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .skip_paths(["/health", "/healthz", "/ready", "/live", "/metrics"])
+        .include_headers(["content-type", "accept", "user-agent", "x-request-id"])
+        .build()
 )
 ```
 
@@ -40,10 +39,10 @@ Choose based on your traffic patterns and deployment environment:
 
 ```python
 app = FastAPI(
-    lifespan=setup_logging(
-        preset="fastapi",
-        skip_paths=["/health", "/healthz", "/ready", "/live", "/metrics"],
-    )
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .skip_paths(["/health", "/healthz", "/ready", "/live", "/metrics"])
+        .build()
 )
 ```
 
@@ -51,10 +50,10 @@ app = FastAPI(
 
 ```python
 app = FastAPI(
-    lifespan=setup_logging(
-        preset="high-volume",  # Adaptive sampling kicks in
-        skip_paths=["/health", "/healthz", "/ready", "/live", "/metrics"],
-    )
+    lifespan=FastAPIBuilder()
+        .with_preset("high-volume")  # Adaptive sampling kicks in
+        .skip_paths(["/health", "/healthz", "/ready", "/live", "/metrics"])
+        .build()
 )
 ```
 
@@ -65,15 +64,15 @@ The `high-volume` preset automatically samples down during traffic spikes while 
 ```python
 import os
 from fastapi import FastAPI
-from fapilog.fastapi import setup_logging
+from fapilog.fastapi import FastAPIBuilder
 
 PRESET = os.getenv("FAPILOG_PRESET", "fastapi")
 
 app = FastAPI(
-    lifespan=setup_logging(
-        preset=PRESET,
-        skip_paths=["/health", "/healthz", "/ready", "/live", "/metrics"],
-    )
+    lifespan=FastAPIBuilder()
+        .with_preset(PRESET)
+        .skip_paths(["/health", "/healthz", "/ready", "/live", "/metrics"])
+        .build()
 )
 ```
 
@@ -112,10 +111,10 @@ OBSERVABILITY_PATHS = [
 ]
 
 app = FastAPI(
-    lifespan=setup_logging(
-        preset="fastapi",
-        skip_paths=KUBERNETES_PROBES + OBSERVABILITY_PATHS,
-    )
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .skip_paths(KUBERNETES_PROBES + OBSERVABILITY_PATHS)
+        .build()
 )
 ```
 
@@ -163,10 +162,10 @@ spec:
                 command: ["sleep", "5"]  # Allow in-flight requests
 ```
 
-The `setup_logging` lifespan handles drain automatically:
+The `FastAPIBuilder` lifespan handles drain automatically:
 ```python
 # No manual drain needed - handled by lifespan
-app = FastAPI(lifespan=setup_logging(preset="fastapi"))
+app = FastAPI(lifespan=FastAPIBuilder().with_preset("fastapi").build())
 ```
 
 ## Serverless Containers
@@ -177,13 +176,13 @@ Cloud Run captures stdout automatically. Use the `serverless` preset for optimal
 
 ```python
 from fastapi import FastAPI
-from fapilog.fastapi import setup_logging
+from fapilog.fastapi import FastAPIBuilder
 
 app = FastAPI(
-    lifespan=setup_logging(
-        preset="serverless",  # Smaller batches, fast drain
-        skip_paths=["/health", "/_ah/health"],  # Cloud Run health checks
-    )
+    lifespan=FastAPIBuilder()
+        .with_preset("serverless")  # Smaller batches, fast drain
+        .skip_paths(["/health", "/_ah/health"])  # Cloud Run health checks
+        .build()
 )
 ```
 
@@ -236,10 +235,10 @@ fapilog configuration:
 
 ```python
 app = FastAPI(
-    lifespan=setup_logging(
-        preset="serverless",
-        skip_paths=["/health", "/"],  # ALB health check path
-    )
+    lifespan=FastAPIBuilder()
+        .with_preset("serverless")
+        .skip_paths(["/health", "/"])  # ALB health check path
+        .build()
 )
 ```
 
@@ -304,10 +303,10 @@ Similar to Cloud Run, Azure captures stdout:
 
 ```python
 app = FastAPI(
-    lifespan=setup_logging(
-        preset="serverless",
-        skip_paths=["/health", "/liveness", "/readiness"],
-    )
+    lifespan=FastAPIBuilder()
+        .with_preset("serverless")
+        .skip_paths(["/health", "/liveness", "/readiness"])
+        .build()
 )
 ```
 
@@ -319,18 +318,17 @@ Log only known-safe headers:
 
 ```python
 app = FastAPI(
-    lifespan=setup_logging(
-        preset="fastapi",
-        include_headers=True,
-        allow_headers=[
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .include_headers([
             "content-type",
             "accept",
             "user-agent",
             "x-request-id",
             "x-correlation-id",
             "x-forwarded-for",
-        ],
-    )
+        ])
+        .build()
 )
 ```
 
@@ -341,19 +339,25 @@ Benefits:
 
 ### Redaction (When You Need More Headers)
 
-When you need most headers but must redact sensitive ones:
+When you need most headers but must redact sensitive ones, use the middleware directly:
 
 ```python
+from fapilog.fastapi import FastAPIBuilder
+from fapilog.fastapi.logging import LoggingMiddleware
+
 app = FastAPI(
-    lifespan=setup_logging(
-        preset="fastapi",
-        include_headers=True,
-        additional_redact_headers=[
-            "x-api-key",
-            "x-internal-token",
-            "x-session-id",
-        ],
-    )
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .build()
+)
+app.add_middleware(
+    LoggingMiddleware,
+    include_headers=True,
+    additional_redact_headers=[
+        "x-api-key",
+        "x-internal-token",
+        "x-session-id",
+    ],
 )
 ```
 
@@ -423,9 +427,8 @@ Datadog Agent picks up JSON logs from stdout when configured with `logs_enabled:
 
 ```python
 import os
-from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
-from fapilog.fastapi import setup_logging, get_request_logger
+from fapilog.fastapi import FastAPIBuilder, get_request_logger
 
 # Configuration from environment
 PRESET = os.getenv("FAPILOG_PRESET", "fastapi")
@@ -442,12 +445,11 @@ ALLOWED_HEADERS = [
 
 app = FastAPI(
     title="My Microservice",
-    lifespan=setup_logging(
-        preset=PRESET,
-        skip_paths=SKIP_PATHS,
-        include_headers=True,
-        allow_headers=ALLOWED_HEADERS,
-    )
+    lifespan=FastAPIBuilder()
+        .with_preset(PRESET)
+        .skip_paths(SKIP_PATHS)
+        .include_headers(ALLOWED_HEADERS)
+        .build()
 )
 
 
@@ -487,10 +489,10 @@ await logger.drain(timeout=2.0)
 
 ### Missing Request Context
 
-Ensure middleware order is correct (handled automatically by `setup_logging`):
+Ensure middleware order is correct (handled automatically by `FastAPIBuilder`):
 ```python
 # RequestContextMiddleware must come BEFORE LoggingMiddleware
-# setup_logging handles this automatically
+# FastAPIBuilder handles this automatically
 ```
 
 ## Going Deeper

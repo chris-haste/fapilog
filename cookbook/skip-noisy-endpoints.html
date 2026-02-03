@@ -7,17 +7,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Skipping health/metrics endpoints (noise reduction) &mdash; fapilog 0.13.0 documentation</title>
+  <title>Skipping health/metrics endpoints (noise reduction) &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
   
-    <link rel="canonical" href="https://docs.fapilog.dev/en/stable/cookbook/skip-noisy-endpoints.html" />
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=1019fba8"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -30,6 +29,9 @@
     <link rel="prev" title="Logging request/response bodies without hanging (safe patterns)" href="safe-request-response-logging.html" />
  
 
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/cookbook/skip-noisy-endpoints.html" />
+<meta name="robots" content="noindex, follow" />
 
 
 </head>
@@ -245,21 +247,23 @@
 </section>
 <section id="the-solution">
 <h2>The Solution<a class="headerlink" href="#the-solution" title="Link to this heading"></a></h2>
-<p>Skip health endpoints with <code class="docutils literal notranslate"><span class="pre">skip_paths</span></code>:</p>
+<p>Skip health endpoints with <code class="docutils literal notranslate"><span class="pre">skip_paths()</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPIBuilder</span>
 
-<span class="n">lifespan</span> <span class="o">=</span> <span class="n">setup_logging</span><span class="p">(</span>
-    <span class="n">skip_paths</span><span class="o">=</span><span class="p">[</span>
-        <span class="s2">&quot;/health&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;/healthz&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;/ready&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;/readiness&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;/metrics&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;/ping&quot;</span><span class="p">,</span>
-    <span class="p">],</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">skip_paths</span><span class="p">([</span>
+            <span class="s2">&quot;/health&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;/healthz&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;/ready&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;/readiness&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;/metrics&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;/ping&quot;</span><span class="p">,</span>
+        <span class="p">])</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
-<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">lifespan</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Requests to these paths are processed normally—they just don’t generate log entries.</p>
@@ -298,16 +302,22 @@
 </table>
 <section id="kubernetes-focused-setup">
 <h3>Kubernetes-Focused Setup<a class="headerlink" href="#kubernetes-focused-setup" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">lifespan</span> <span class="o">=</span> <span class="n">setup_logging</span><span class="p">(</span>
-    <span class="n">skip_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/healthz&quot;</span><span class="p">,</span> <span class="s2">&quot;/ready&quot;</span><span class="p">,</span> <span class="s2">&quot;/readiness&quot;</span><span class="p">,</span> <span class="s2">&quot;/livez&quot;</span><span class="p">],</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">skip_paths</span><span class="p">([</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/healthz&quot;</span><span class="p">,</span> <span class="s2">&quot;/ready&quot;</span><span class="p">,</span> <span class="s2">&quot;/readiness&quot;</span><span class="p">,</span> <span class="s2">&quot;/livez&quot;</span><span class="p">])</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="aws-generic-load-balancer-setup">
 <h3>AWS / Generic Load Balancer Setup<a class="headerlink" href="#aws-generic-load-balancer-setup" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">lifespan</span> <span class="o">=</span> <span class="n">setup_logging</span><span class="p">(</span>
-    <span class="n">skip_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/ping&quot;</span><span class="p">,</span> <span class="s2">&quot;/_health&quot;</span><span class="p">],</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">skip_paths</span><span class="p">([</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/ping&quot;</span><span class="p">,</span> <span class="s2">&quot;/_health&quot;</span><span class="p">])</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -356,14 +366,17 @@
 <section id="complete-health-check-coverage">
 <h3>Complete Health Check Coverage<a class="headerlink" href="#complete-health-check-coverage" title="Link to this heading"></a></h3>
 <p>If your endpoints accept trailing slashes or subpaths, list each variant:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">lifespan</span> <span class="o">=</span> <span class="n">setup_logging</span><span class="p">(</span>
-    <span class="n">skip_paths</span><span class="o">=</span><span class="p">[</span>
-        <span class="s2">&quot;/health&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;/health/&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;/ready&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;/ready/&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;/metrics&quot;</span><span class="p">,</span>
-    <span class="p">],</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">skip_paths</span><span class="p">([</span>
+            <span class="s2">&quot;/health&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;/health/&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;/ready&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;/ready/&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;/metrics&quot;</span><span class="p">,</span>
+        <span class="p">])</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -385,7 +398,7 @@
 <span class="p">)</span>
 </pre></div>
 </div>
-<p>This gives identical behavior to <code class="docutils literal notranslate"><span class="pre">setup_logging(skip_paths=...)</span></code>.</p>
+<p>This gives identical behavior to <code class="docutils literal notranslate"><span class="pre">FastAPIBuilder().skip_paths(...)</span></code>.</p>
 </section>
 <section id="impact-on-log-volume">
 <h2>Impact on Log Volume<a class="headerlink" href="#impact-on-log-volume" title="Link to this heading"></a></h2>
@@ -435,10 +448,13 @@
 <p><strong>Note:</strong> HTTPExceptions (like <code class="docutils literal notranslate"><span class="pre">HTTPException(status_code=503)</span></code>) are not logged because they’re handled by FastAPI’s exception handler and converted to responses—they’re expected error responses, not crashes.</p>
 <section id="opting-out">
 <h3>Opting Out<a class="headerlink" href="#opting-out" title="Link to this heading"></a></h3>
-<p>If you need complete silence on skipped paths (no logs at all, even for crashes), set <code class="docutils literal notranslate"><span class="pre">log_errors_on_skip=False</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">lifespan</span> <span class="o">=</span> <span class="n">setup_logging</span><span class="p">(</span>
-    <span class="n">skip_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/metrics&quot;</span><span class="p">],</span>
-    <span class="n">log_errors_on_skip</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># Complete silence on skipped paths</span>
+<p>If you need complete silence on skipped paths (no logs at all, even for crashes), use <code class="docutils literal notranslate"><span class="pre">log_errors_on_skip(False)</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">skip_paths</span><span class="p">([</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/metrics&quot;</span><span class="p">])</span>
+        <span class="o">.</span><span class="n">log_errors_on_skip</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># Complete silence on skipped paths</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -448,9 +464,12 @@
 <section id="combining-with-sampling">
 <h2>Combining with Sampling<a class="headerlink" href="#combining-with-sampling" title="Link to this heading"></a></h2>
 <p>For high-traffic endpoints that aren’t health checks, combine path filtering with sampling:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">lifespan</span> <span class="o">=</span> <span class="n">setup_logging</span><span class="p">(</span>
-    <span class="n">skip_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/metrics&quot;</span><span class="p">],</span>  <span class="c1"># Skip entirely</span>
-    <span class="n">sample_rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>                      <span class="c1"># Log 10% of other requests</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">skip_paths</span><span class="p">([</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/metrics&quot;</span><span class="p">])</span>  <span class="c1"># Skip entirely</span>
+        <span class="o">.</span><span class="n">sample_rate</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>                      <span class="c1"># Log 10% of other requests</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -488,7 +507,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on February 01, 2026.
+      <span class="lastupdated">Last updated on February 03, 2026.
       </span></p>
   </div>
 

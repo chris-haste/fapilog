@@ -42,6 +42,6 @@ asyncio.run(main())
 
 ## Tips
 
-- **Bind at the start of each request** - In FastAPI, this happens automatically with `setup_logging()`. In other frameworks, bind in your middleware.
+- **Bind at the start of each request** - In FastAPI, this happens automatically with `FastAPIBuilder`. In other frameworks, bind in your middleware.
 - **Use `runtime()` or `runtime_async()`** - These context managers automatically clear context when the request ends, preventing leakage.
 - **Common fields to bind**: `request_id`, `user_id`, `tenant_id`, `trace_id`, `correlation_id`

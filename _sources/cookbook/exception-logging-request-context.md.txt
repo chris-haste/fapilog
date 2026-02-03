@@ -40,10 +40,13 @@ fapilog's middleware automatically preserves request context in error logs:
 
 ```python
 from fastapi import FastAPI
-from fapilog.fastapi import setup_logging
+from fapilog.fastapi import FastAPIBuilder
 
-lifespan = setup_logging()
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .build()
+)
 
 @app.get("/users/{user_id}")
 async def get_user(user_id: int):
@@ -76,10 +79,13 @@ For custom exception handling, use `get_request_logger` to maintain context:
 ```python
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from fapilog.fastapi import setup_logging, get_request_logger
+from fapilog.fastapi import FastAPIBuilder, get_request_logger
 
-lifespan = setup_logging()
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .build()
+)
 
 class UserNotFoundError(Exception):
     def __init__(self, user_id: int):

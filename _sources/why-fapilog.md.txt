@@ -105,9 +105,13 @@ One line gets you request logging, correlation IDs, and context propagation:
 
 ```python
 from fastapi import FastAPI
-from fapilog.fastapi import setup_logging
+from fapilog.fastapi import FastAPIBuilder
 
-app = FastAPI(lifespan=setup_logging(preset="production"))
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .build()
+)
 ```
 
 ### 5. Level-Based Sink Routing

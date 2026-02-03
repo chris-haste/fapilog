@@ -8,10 +8,13 @@ fapilog redacts URL credentials automatically—no configuration required:
 
 ```python
 from fastapi import FastAPI
-from fapilog.fastapi import setup_logging
+from fapilog.fastapi import FastAPIBuilder
 
-lifespan = setup_logging(preset="fastapi")
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .build()
+)
 ```
 
 With this setup, URLs containing credentials are automatically scrubbed:

@@ -7,17 +7,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Graceful shutdown &amp; flushing logs (don’t lose logs on deploy) &mdash; fapilog 0.13.0 documentation</title>
+  <title>Graceful shutdown &amp; flushing logs (don’t lose logs on deploy) &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
   
-    <link rel="canonical" href="https://docs.fapilog.dev/en/stable/cookbook/graceful-shutdown-flush.html" />
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=1019fba8"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -30,6 +29,9 @@
     <link rel="prev" title="Adaptive Sampling for High-Volume Services" href="adaptive-sampling-high-volume.html" />
  
 
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/cookbook/graceful-shutdown-flush.html" />
+<meta name="robots" content="noindex, follow" />
 
 
 </head>
@@ -260,10 +262,13 @@ App receives SIGKILL (no grace period)
 <h2>The Solution: Lifespan Integration<a class="headerlink" href="#the-solution-lifespan-integration" title="Link to this heading"></a></h2>
 <p>With fapilog’s FastAPI integration, logs are automatically flushed on graceful shutdown:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPIBuilder</span>
 
-<span class="n">lifespan</span> <span class="o">=</span> <span class="n">setup_logging</span><span class="p">()</span>  <span class="c1"># Automatic flush on shutdown</span>
-<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">lifespan</span><span class="p">)</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>  <span class="c1"># Automatic flush on shutdown</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 <p>When your app receives SIGTERM, the lifespan ensures:</p>
@@ -441,7 +446,7 @@ App receives SIGKILL (no grace period)
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on February 01, 2026.
+      <span class="lastupdated">Last updated on February 03, 2026.
       </span></p>
   </div>
 

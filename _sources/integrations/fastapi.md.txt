@@ -2,9 +2,9 @@
 orphan: true
 ---
 
-# FastAPI One-Liner Integration
+# FastAPI Integration
 
-This guide shows the one-liner FastAPI integration and how to customize it
+This guide shows the FastAPI integration and how to customize it
 when you need more control.
 
 ## Install
@@ -13,20 +13,19 @@ when you need more control.
 pip install "fapilog[fastapi]"
 ```
 
-## One-liner setup
+## Quick Start
 
 ```python
 from fastapi import Depends, FastAPI
-from fapilog.fastapi import get_request_logger, setup_logging
+from fapilog.fastapi import FastAPIBuilder, get_request_logger
 
 app = FastAPI(
-    lifespan=setup_logging(
-        preset="fastapi",  # Includes redaction by default
-        skip_paths=["/health"],
-        sample_rate=0.1,
-        redact_headers=["authorization", "cookie"],
-        log_errors_on_skip=True,  # Log crashes on skipped paths (default)
-    )
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")  # Includes redaction by default
+        .skip_paths(["/health"])
+        .sample_rate(0.1)
+        .log_errors_on_skip(True)  # Log crashes on skipped paths (default)
+        .build()
 )
 
 @app.get("/")
@@ -41,10 +40,10 @@ Automatic middleware registration is enabled by default:
 
 ```python
 from fastapi import FastAPI
-from fapilog.fastapi import setup_logging
+from fapilog.fastapi import FastAPIBuilder
 
 app = FastAPI()
-app.router.lifespan_context = setup_logging(preset="production")
+app.router.lifespan_context = FastAPIBuilder().with_preset("fastapi").build()
 ```
 
 Middleware order is fixed for correctness:
@@ -55,11 +54,16 @@ Disable automatic registration when you want manual control:
 
 ```python
 from fastapi import FastAPI
-from fapilog.fastapi import setup_logging
+from fapilog.fastapi import FastAPIBuilder
 from fapilog.fastapi.context import RequestContextMiddleware
 from fapilog.fastapi.logging import LoggingMiddleware
 
-app = FastAPI(lifespan=setup_logging(auto_middleware=False))
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .auto_middleware(False)
+        .build()
+)
 app.add_middleware(RequestContextMiddleware)
 app.add_middleware(LoggingMiddleware)
 ```
@@ -69,7 +73,7 @@ app.add_middleware(LoggingMiddleware)
 ```python
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from fapilog.fastapi import setup_logging
+from fapilog.fastapi import FastAPIBuilder
 
 @asynccontextmanager
 async def my_lifespan(app: FastAPI):
@@ -77,7 +81,12 @@ async def my_lifespan(app: FastAPI):
     yield
     app.state.startup_marker = False
 
-app = FastAPI(lifespan=setup_logging(wrap_lifespan=my_lifespan))
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .wrap_lifespan(my_lifespan)
+        .build()
+)
 ```
 
 Startup/shutdown order:
@@ -93,11 +102,16 @@ If you prefer manual control:
 
 ```python
 from fastapi import FastAPI
-from fapilog.fastapi import setup_logging
+from fapilog.fastapi import FastAPIBuilder
 from fapilog.fastapi.context import RequestContextMiddleware
 from fapilog.fastapi.logging import LoggingMiddleware
 
-app = FastAPI(lifespan=setup_logging(preset="fastapi", auto_middleware=False))
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .auto_middleware(False)
+        .build()
+)
 app.add_middleware(RequestContextMiddleware)
 app.add_middleware(LoggingMiddleware)
 ```
@@ -127,10 +141,14 @@ app.add_middleware(RequestContextMiddleware)
 app.add_middleware(LoggingMiddleware)
 ```
 
-After: one line of setup.
+After: builder pattern.
 
 ```python
-app = FastAPI(lifespan=setup_logging(preset="fastapi"))
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .build()
+)
 ```
 
 ## Redaction

@@ -2,44 +2,29 @@
 
 Request-scoped logging with dependency injection and automatic correlation.
 
-## Basic Setup with Middleware
+## Basic Setup
 
 ```python
-from fastapi import FastAPI
-from fapilog.fastapi import setup_logging, RequestContextMiddleware, LoggingMiddleware
+from fastapi import FastAPI, Depends
+from fapilog.fastapi import FastAPIBuilder, get_request_logger
 
-app = FastAPI()
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .build()
+)
 
-# Initialize logger in app.state (recommended)
-setup_logging(app)
-
-# Sets request_id for correlation (from X-Request-ID header or UUID)
-app.add_middleware(RequestContextMiddleware)
-
-# Logs request completion with method, path, status, latency_ms
-# Use require_logger=True to fail fast if logger not initialized
-app.add_middleware(LoggingMiddleware, require_logger=True)
+@app.get("/users/{user_id}")
+async def get_user(user_id: str, logger=Depends(get_request_logger)):
+    await logger.info("User lookup", user_id=user_id)
+    return {"user_id": user_id}
 ```
 
-## Production Pattern
-
-For production, use `require_logger=True` to catch initialization issues early:
-
-```python
-from fastapi import FastAPI
-from fapilog.fastapi import setup_logging, LoggingMiddleware
-
-app = FastAPI()
-setup_logging(app)  # Sets app.state.fapilog_logger
-app.add_middleware(LoggingMiddleware, require_logger=True)
-```
-
-This avoids latency spikes from lazy logger creation on cold-start requests. If you forget to call `setup_logging()`, the middleware raises a clear error:
-
-```
-RuntimeError: LoggingMiddleware requires logger in app.state.
-Call setup_logging(app) before adding middleware, or pass logger= parameter.
-```
+This automatically:
+- Initializes the logger in app.state
+- Adds `RequestContextMiddleware` for correlation IDs
+- Adds `LoggingMiddleware` for request/response logging
+- Sets up graceful shutdown with log flushing
 
 ## Request-Scoped Logger
 

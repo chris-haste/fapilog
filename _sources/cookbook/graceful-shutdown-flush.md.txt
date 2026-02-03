@@ -36,10 +36,13 @@ With fapilog's FastAPI integration, logs are automatically flushed on graceful s
 
 ```python
 from fastapi import FastAPI
-from fapilog.fastapi import setup_logging
+from fapilog.fastapi import FastAPIBuilder
 
-lifespan = setup_logging()  # Automatic flush on shutdown
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .build()  # Automatic flush on shutdown
+)
 ```
 
 When your app receives SIGTERM, the lifespan ensures:

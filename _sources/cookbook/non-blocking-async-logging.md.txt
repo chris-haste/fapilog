@@ -142,16 +142,15 @@ A rising counter indicates logs are being dropped due to backpressure. This is e
 
 ```python
 from fastapi import FastAPI, Depends
-from fapilog import Settings
-from fapilog.fastapi import setup_logging, get_request_logger
+from fapilog.fastapi import FastAPIBuilder, get_request_logger
 
-# Configure for latency-critical API
-settings = Settings()
-settings.core.drop_on_full = True
-settings.core.backpressure_wait_ms = 50  # Max 50ms wait
-
-lifespan = setup_logging(preset="fastapi", settings=settings)
-app = FastAPI(lifespan=lifespan)
+# Configure for latency-critical API with backpressure
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .with_backpressure(drop_on_full=True, wait_ms=50)  # Max 50ms wait
+        .build()
+)
 
 @app.get("/api/orders/{order_id}")
 async def get_order(order_id: str, logger=Depends(get_request_logger)):
