@@ -408,7 +408,15 @@ logger = LoggerBuilder().with_preset("production").build()
 ### `fastapi` - FastAPI Applications
 
 ```python
-logger = await AsyncLoggerBuilder().with_preset("fastapi").build_async()
+from fapilog.fastapi import FastAPIBuilder
+from fastapi import FastAPI
+
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .skip_paths(["/health", "/metrics"])
+        .build()
+)
 ```
 
 - INFO level
@@ -416,6 +424,7 @@ logger = await AsyncLoggerBuilder().with_preset("fastapi").build_async()
 - Balanced batch size (50)
 - Automatic redaction enabled
 - `context_vars` enricher only (reduced overhead)
+- FastAPI-specific methods: `skip_paths()`, `include_headers()`, `sample_rate()`
 
 ### `minimal` - Backwards Compatible
 

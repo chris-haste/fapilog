@@ -41,6 +41,47 @@ logger = (
 )
 ```
 
+## How Configuration Layers Work
+
+Fapilog's three configuration methods form a layered hierarchy:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Builder Methods           (highest priority)           │
+│  .with_level("DEBUG")                                   │
+├─────────────────────────────────────────────────────────┤
+│  Settings Object                                        │
+│  Settings(core__log_level="INFO")                       │
+├─────────────────────────────────────────────────────────┤
+│  Environment Variables     (lowest priority)            │
+│  FAPILOG_CORE__LOG_LEVEL=WARNING                        │
+└─────────────────────────────────────────────────────────┘
+```
+
+**How they interact:**
+
+1. **Builder creates Settings** - When you call `.build()`, the builder constructs a `Settings` object internally with all your configured values.
+
+2. **Settings reads environment variables** - The `Settings` class uses Pydantic's env var support. Any setting not explicitly provided is automatically populated from environment variables.
+
+3. **Explicit values override env vars** - Builder methods and explicit `Settings` parameters take precedence over environment variables.
+
+**Example:** If you set `FAPILOG_CORE__LOG_LEVEL=WARNING` in your environment:
+
+```python
+# Environment variable applies (WARNING)
+logger = LoggerBuilder().add_stdout().build()
+
+# Builder method overrides env var (DEBUG)
+logger = LoggerBuilder().with_level("DEBUG").add_stdout().build()
+
+# Explicit Settings parameter overrides env var (ERROR)
+settings = Settings(core__log_level="ERROR")
+logger = get_logger(settings=settings)
+```
+
+This layering enables a common 12-factor pattern: define defaults in code with the builder, allow operational overrides via environment variables at deployment time.
+
 ## Configuration Presets (Recommended)
 
 Presets provide pre-configured settings for common use cases. Use a preset when you want quick, sensible defaults:
