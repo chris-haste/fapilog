@@ -327,3 +327,93 @@ class TestEnvOverrideWithNullCodeValue:
         builder = FastAPIBuilder()  # No sample_rate set
         overrides = builder._detect_env_overrides()
         assert len(overrides) == 0
+
+
+class TestDeepMerge:
+    """Test the _deep_merge helper function."""
+
+    def test_deep_merge_simple_override(self) -> None:
+        from fapilog.fastapi.builder import _deep_merge
+
+        base = {"a": 1, "b": 2}
+        override = {"b": 3, "c": 4}
+        _deep_merge(base, override)
+        assert base == {"a": 1, "b": 3, "c": 4}
+
+    def test_deep_merge_nested_dicts(self) -> None:
+        from fapilog.fastapi.builder import _deep_merge
+
+        base = {"core": {"level": "INFO", "workers": 2}}
+        override = {"core": {"level": "DEBUG"}}
+        _deep_merge(base, override)
+        assert base == {"core": {"level": "DEBUG", "workers": 2}}
+
+    def test_deep_merge_nested_override_non_dict(self) -> None:
+        from fapilog.fastapi.builder import _deep_merge
+
+        base = {"core": {"level": "INFO"}}
+        override = {"core": "replaced"}
+        _deep_merge(base, override)
+        assert base == {"core": "replaced"}
+
+    def test_deep_merge_empty_override(self) -> None:
+        from fapilog.fastapi.builder import _deep_merge
+
+        base = {"a": 1}
+        override: dict[str, int] = {}
+        _deep_merge(base, override)
+        assert base == {"a": 1}
+
+    def test_deep_merge_deeply_nested(self) -> None:
+        from fapilog.fastapi.builder import _deep_merge
+
+        base = {"a": {"b": {"c": 1, "d": 2}}}
+        override = {"a": {"b": {"c": 3}}}
+        _deep_merge(base, override)
+        assert base == {"a": {"b": {"c": 3, "d": 2}}}
+
+
+class TestBuildOverrideWarnings:
+    """Test that build() emits override warnings via diagnostics."""
+
+    def test_build_emits_override_warning(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test that build() calls warn() for env var overrides."""
+        monkeypatch.setenv("FAPILOG_FASTAPI__SAMPLE_RATE", "0.1")
+
+        warnings_emitted: list[str] = []
+
+        def mock_warn(source: str, msg: str) -> None:
+            warnings_emitted.append(f"{source}: {msg}")
+
+        monkeypatch.setattr("fapilog.fastapi.builder.warn", mock_warn)
+
+        builder = FastAPIBuilder().with_preset("fastapi").sample_rate(1.0)
+        builder.build()
+
+        assert len(warnings_emitted) == 1
+        assert "sample_rate" in warnings_emitted[0]
+        assert "0.1" in warnings_emitted[0]
+
+
+class TestBuildWithSinks:
+    """Test build() with custom sink configurations."""
+
+    def test_build_with_sink_config(self) -> None:
+        """Test that sinks are properly configured in build."""
+        builder = FastAPIBuilder().with_preset("fastapi").add_stdout()
+        lifespan = builder.build()
+        assert callable(lifespan)
+        # Verify sink was added to builder
+        assert len(builder._sinks) > 0
+
+    def test_build_merges_sink_with_preset(self) -> None:
+        """Test that custom sinks merge with preset sinks."""
+        builder = FastAPIBuilder().with_preset("fastapi")
+        # Add another stdout sink to trigger merge logic
+        builder.add_stdout()
+        lifespan = builder.build()
+        assert callable(lifespan)
+        # Verify sink was added (exactly 1 explicit sink)
+        assert len(builder._sinks) == 1
