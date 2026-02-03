@@ -213,10 +213,14 @@ See [Adaptive Sampling for High-Volume Services](../cookbook/adaptive-sampling-h
 Optimized for async FastAPI applications.
 
 ```python
-from fapilog.fastapi import setup_logging
 from fastapi import FastAPI
+from fapilog.fastapi import FastAPIBuilder
 
-app = FastAPI(lifespan=setup_logging(preset="fastapi"))
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .build()
+)
 ```
 
 **Settings:**

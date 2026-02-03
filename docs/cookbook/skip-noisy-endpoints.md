@@ -20,23 +20,25 @@ These logs are identical, contain no useful information, and obscure the logs th
 
 ## The Solution
 
-Skip health endpoints with `skip_paths`:
+Skip health endpoints with `skip_paths()`:
 
 ```python
 from fastapi import FastAPI
-from fapilog.fastapi import setup_logging
+from fapilog.fastapi import FastAPIBuilder
 
-lifespan = setup_logging(
-    skip_paths=[
-        "/health",
-        "/healthz",
-        "/ready",
-        "/readiness",
-        "/metrics",
-        "/ping",
-    ],
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .skip_paths([
+            "/health",
+            "/healthz",
+            "/ready",
+            "/readiness",
+            "/metrics",
+            "/ping",
+        ])
+        .build()
 )
-app = FastAPI(lifespan=lifespan)
 ```
 
 Requests to these paths are processed normally—they just don't generate log entries.
@@ -54,16 +56,22 @@ Requests to these paths are processed normally—they just don't generate log en
 ### Kubernetes-Focused Setup
 
 ```python
-lifespan = setup_logging(
-    skip_paths=["/health", "/healthz", "/ready", "/readiness", "/livez"],
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .skip_paths(["/health", "/healthz", "/ready", "/readiness", "/livez"])
+        .build()
 )
 ```
 
 ### AWS / Generic Load Balancer Setup
 
 ```python
-lifespan = setup_logging(
-    skip_paths=["/health", "/ping", "/_health"],
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .skip_paths(["/health", "/ping", "/_health"])
+        .build()
 )
 ```
 
@@ -91,14 +99,17 @@ This means:
 If your endpoints accept trailing slashes or subpaths, list each variant:
 
 ```python
-lifespan = setup_logging(
-    skip_paths=[
-        "/health",
-        "/health/",
-        "/ready",
-        "/ready/",
-        "/metrics",
-    ],
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .skip_paths([
+            "/health",
+            "/health/",
+            "/ready",
+            "/ready/",
+            "/metrics",
+        ])
+        .build()
 )
 ```
 
@@ -120,7 +131,7 @@ app.add_middleware(
 )
 ```
 
-This gives identical behavior to `setup_logging(skip_paths=...)`.
+This gives identical behavior to `FastAPIBuilder().skip_paths(...)`.
 
 ## Impact on Log Volume
 
@@ -157,12 +168,15 @@ When the handler crashes, you'll see `request_failed` logs for `/health` even th
 
 ### Opting Out
 
-If you need complete silence on skipped paths (no logs at all, even for crashes), set `log_errors_on_skip=False`:
+If you need complete silence on skipped paths (no logs at all, even for crashes), use `log_errors_on_skip(False)`:
 
 ```python
-lifespan = setup_logging(
-    skip_paths=["/health", "/metrics"],
-    log_errors_on_skip=False,  # Complete silence on skipped paths
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .skip_paths(["/health", "/metrics"])
+        .log_errors_on_skip(False)  # Complete silence on skipped paths
+        .build()
 )
 ```
 
@@ -173,9 +187,12 @@ This is useful when health endpoints are monitored externally and you don't want
 For high-traffic endpoints that aren't health checks, combine path filtering with sampling:
 
 ```python
-lifespan = setup_logging(
-    skip_paths=["/health", "/metrics"],  # Skip entirely
-    sample_rate=0.1,                      # Log 10% of other requests
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .skip_paths(["/health", "/metrics"])  # Skip entirely
+        .sample_rate(0.1)                      # Log 10% of other requests
+        .build()
 )
 ```
 

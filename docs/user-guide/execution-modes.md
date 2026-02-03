@@ -94,13 +94,17 @@ asyncio.run(logger.stop_and_drain())
 
 ### FastAPI Applications
 
-**Recommended: Async mode with `setup_logging()`**
+**Recommended: Async mode with `FastAPIBuilder`**
 
 ```python
 from fastapi import Depends, FastAPI
-from fapilog.fastapi import get_request_logger, setup_logging
+from fapilog.fastapi import FastAPIBuilder, get_request_logger
 
-app = FastAPI(lifespan=setup_logging(preset="fastapi"))
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .build()
+)
 
 @app.get("/users/{user_id}")
 async def get_user(user_id: int, logger=Depends(get_request_logger)):
@@ -224,7 +228,7 @@ async def startup():
 
 **Problem:** Different parts of your app initialize loggers differently, leading to inconsistent performance.
 
-**Solution:** Centralize logger initialization. In FastAPI, use `setup_logging()`. In other frameworks, create a single initialization point.
+**Solution:** Centralize logger initialization. In FastAPI, use `FastAPIBuilder`. In other frameworks, create a single initialization point.
 
 ## Checking Which Mode You're In
 
