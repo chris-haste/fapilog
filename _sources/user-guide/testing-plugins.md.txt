@@ -4,7 +4,7 @@ fapilog provides comprehensive testing utilities to help you develop and validat
 
 ## Installation
 
-The testing utilities are included in the main `fapilog` package:
+Basic utilities (mocks, validators, factories, benchmarks) are included in the main package:
 
 ```python
 from fapilog.testing import (
@@ -25,6 +25,14 @@ from fapilog.testing import (
     create_sensitive_event,
 )
 ```
+
+For pytest fixtures, install the testing extra:
+
+```bash
+pip install fapilog[testing]
+```
+
+This enables additional fixtures like `mock_sink`, `mock_enricher`, and assertion helpers.
 
 ## Mock Plugins
 

@@ -7,17 +7,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Configuring Fapilog with the Builder API &mdash; fapilog 0.14.0 documentation</title>
+  <title>Configuring Fapilog with the Builder API &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
   
-    <link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/builder-configuration.html" />
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=9e420a66"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -30,6 +29,9 @@
     <link rel="prev" title="Execution Modes" href="execution-modes.html" />
  
 
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/builder-configuration.html" />
+<meta name="robots" content="noindex, follow" />
 
 
 </head>
@@ -619,7 +621,15 @@
 </section>
 <section id="fastapi-fastapi-applications">
 <h3><code class="docutils literal notranslate"><span class="pre">fastapi</span></code> - FastAPI Applications<a class="headerlink" href="#fastapi-fastapi-applications" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">AsyncLoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">build_async</span><span class="p">()</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPIBuilder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
+    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">skip_paths</span><span class="p">([</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/metrics&quot;</span><span class="p">])</span>
+        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 <ul class="simple">
@@ -628,6 +638,7 @@
 <li><p>Balanced batch size (50)</p></li>
 <li><p>Automatic redaction enabled</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">context_vars</span></code> enricher only (reduced overhead)</p></li>
+<li><p>FastAPI-specific methods: <code class="docutils literal notranslate"><span class="pre">skip_paths()</span></code>, <code class="docutils literal notranslate"><span class="pre">include_headers()</span></code>, <code class="docutils literal notranslate"><span class="pre">sample_rate()</span></code></p></li>
 </ul>
 </section>
 <section id="minimal-backwards-compatible">

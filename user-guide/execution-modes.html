@@ -7,17 +7,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Execution Modes &mdash; fapilog 0.14.0 documentation</title>
+  <title>Execution Modes &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
   
-    <link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/execution-modes.html" />
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=9e420a66"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -30,6 +29,9 @@
     <link rel="prev" title="Configuration Presets" href="presets.html" />
  
 
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/execution-modes.html" />
+<meta name="robots" content="noindex, follow" />
 
 
 </head>
@@ -261,6 +263,7 @@
 </section>
 <section id="understanding-the-modes">
 <h2>Understanding the Modes<a class="headerlink" href="#understanding-the-modes" title="Link to this heading"></a></h2>
+<p><strong>Important:</strong> Regardless of mode, fapilog’s workers are <strong>asyncio tasks</strong>, not OS threads or processes. The <code class="docutils literal notranslate"><span class="pre">worker_count</span></code> setting creates multiple coroutines within an event loop for pipelined batch processing. The key difference between modes is <em>where</em> that event loop runs and how your code communicates with it.</p>
 <section id="async-mode-fastest">
 <h3>Async Mode (Fastest)<a class="headerlink" href="#async-mode-fastest" title="Link to this heading"></a></h3>
 <p>Use <code class="docutils literal notranslate"><span class="pre">AsyncLoggerFacade</span></code> for native async integration:</p>
@@ -328,7 +331,7 @@
 <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">stop_and_drain</span><span class="p">())</span>
 </pre></div>
 </div>
-<p><strong>Why it’s slower:</strong> Each <code class="docutils literal notranslate"><span class="pre">logger.info()</span></code> call must coordinate with the worker thread via <code class="docutils literal notranslate"><span class="pre">asyncio.run_coroutine_threadsafe()</span></code>. This cross-thread synchronization adds ~80-90µs per call.</p>
+<p><strong>Why it’s slower:</strong> Each <code class="docutils literal notranslate"><span class="pre">logger.info()</span></code> call must coordinate with the worker thread via <code class="docutils literal notranslate"><span class="pre">asyncio.run_coroutine_threadsafe()</span></code>. This cross-thread synchronization adds ~80-90µs per call. This is the only mode with true OS-level context switching overhead—the workers themselves are still asyncio tasks, but they run in a separate thread’s event loop.</p>
 <p><strong>Use when:</strong></p>
 <ul class="simple">
 <li><p>Building CLI tools or scripts</p></li>
@@ -428,7 +431,7 @@ Bound loop        ~100K events/sec  ~10µs            ~20µs
 Thread            ~12K events/sec   ~80µs            ~150µs
 </pre></div>
 </div>
-<p>The ~10x difference in thread mode is due to cross-thread synchronization overhead.</p>
+<p>The ~10x difference in thread mode is due to OS-level cross-thread synchronization overhead—the only mode where true context switching occurs.</p>
 </section>
 <section id="common-pitfalls">
 <h2>Common Pitfalls<a class="headerlink" href="#common-pitfalls" title="Link to this heading"></a></h2>

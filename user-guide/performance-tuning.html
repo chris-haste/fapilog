@@ -7,17 +7,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Performance Tuning &mdash; fapilog 0.14.0 documentation</title>
+  <title>Performance Tuning &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
   
-    <link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/performance-tuning.html" />
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=9e420a66"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -30,6 +29,9 @@
     <link rel="prev" title="Graceful Shutdown" href="graceful-shutdown.html" />
  
 
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/performance-tuning.html" />
+<meta name="robots" content="noindex, follow" />
 
 
 </head>
@@ -271,10 +273,11 @@
 </div>
 <p><strong>Why 2 workers is optimal:</strong></p>
 <ul class="simple">
-<li><p>More than 2 workers shows diminishing returns due to context switching</p></li>
+<li><p>More than 2 workers shows diminishing returns due to asyncio scheduler overhead</p></li>
 <li><p>Queue size barely matters - larger queues actually hurt slightly (memory overhead)</p></li>
 <li><p>Workers are the bottleneck with <code class="docutils literal notranslate"><span class="pre">worker_count=1</span></code> (serializes all processing)</p></li>
 </ul>
+<p><strong>Note on “context switching”:</strong> Workers are asyncio tasks, not OS threads. In async/bound loop mode, there’s no OS-level context switching—all workers run cooperatively in the same event loop. The “overhead” with 3+ workers is the asyncio scheduler managing more tasks, not kernel thread switching. True OS context switching only occurs in thread mode (see <a class="reference internal" href="execution-modes.html"><span class="std std-doc">Execution Modes</span></a>).</p>
 <p><strong>When to use 1 worker:</strong></p>
 <ul class="simple">
 <li><p>Development/debugging (simpler log ordering)</p></li>

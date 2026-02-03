@@ -12,6 +12,8 @@ Fapilog automatically detects your execution context and chooses the optimal mod
 
 ## Understanding the Modes
 
+**Important:** Regardless of mode, fapilog's workers are **asyncio tasks**, not OS threads or processes. The `worker_count` setting creates multiple coroutines within an event loop for pipelined batch processing. The key difference between modes is *where* that event loop runs and how your code communicates with it.
+
 ### Async Mode (Fastest)
 
 Use `AsyncLoggerFacade` for native async integration:
@@ -83,7 +85,7 @@ import asyncio
 asyncio.run(logger.stop_and_drain())
 ```
 
-**Why it's slower:** Each `logger.info()` call must coordinate with the worker thread via `asyncio.run_coroutine_threadsafe()`. This cross-thread synchronization adds ~80-90µs per call.
+**Why it's slower:** Each `logger.info()` call must coordinate with the worker thread via `asyncio.run_coroutine_threadsafe()`. This cross-thread synchronization adds ~80-90µs per call. This is the only mode with true OS-level context switching overhead—the workers themselves are still asyncio tasks, but they run in a separate thread's event loop.
 
 **Use when:**
 - Building CLI tools or scripts
@@ -188,7 +190,7 @@ Bound loop        ~100K events/sec  ~10µs            ~20µs
 Thread            ~12K events/sec   ~80µs            ~150µs
 ```
 
-The ~10x difference in thread mode is due to cross-thread synchronization overhead.
+The ~10x difference in thread mode is due to OS-level cross-thread synchronization overhead—the only mode where true context switching occurs.
 
 ## Common Pitfalls
 

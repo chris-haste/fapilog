@@ -102,7 +102,7 @@ The `worker_count` setting controls parallel flush processing and has the larges
 
 **Key findings:**
 - Workers are the bottleneck with `worker_count=1` (serializes all processing)
-- 2 workers is optimal - more shows diminishing returns due to context switching
+- 2 workers is optimal - more shows diminishing returns due to asyncio scheduler overhead (not OS context switching—workers are asyncio tasks, not threads)
 - Queue size has minimal impact - larger queues slightly hurt due to memory overhead
 - Redaction cost is minimal (~15%) with proper worker count
 

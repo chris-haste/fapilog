@@ -7,17 +7,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Configuration &mdash; fapilog 0.14.0 documentation</title>
+  <title>Configuration &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
   
-    <link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/configuration.html" />
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=9e420a66"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -30,6 +29,9 @@
     <link rel="prev" title="User Guide" href="index.html" />
  
 
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/configuration.html" />
+<meta name="robots" content="noindex, follow" />
 
 
 </head>
@@ -287,6 +289,41 @@
 <span class="p">)</span>
 </pre></div>
 </div>
+</section>
+<section id="how-configuration-layers-work">
+<h2>How Configuration Layers Work<a class="headerlink" href="#how-configuration-layers-work" title="Link to this heading"></a></h2>
+<p>Fapilog’s three configuration methods form a layered hierarchy:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>┌─────────────────────────────────────────────────────────┐
+│  Builder Methods           (highest priority)           │
+│  .with_level(&quot;DEBUG&quot;)                                   │
+├─────────────────────────────────────────────────────────┤
+│  Settings Object                                        │
+│  Settings(core__log_level=&quot;INFO&quot;)                       │
+├─────────────────────────────────────────────────────────┤
+│  Environment Variables     (lowest priority)            │
+│  FAPILOG_CORE__LOG_LEVEL=WARNING                        │
+└─────────────────────────────────────────────────────────┘
+</pre></div>
+</div>
+<p><strong>How they interact:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Builder creates Settings</strong> - When you call <code class="docutils literal notranslate"><span class="pre">.build()</span></code>, the builder constructs a <code class="docutils literal notranslate"><span class="pre">Settings</span></code> object internally with all your configured values.</p></li>
+<li><p><strong>Settings reads environment variables</strong> - The <code class="docutils literal notranslate"><span class="pre">Settings</span></code> class uses Pydantic’s env var support. Any setting not explicitly provided is automatically populated from environment variables.</p></li>
+<li><p><strong>Explicit values override env vars</strong> - Builder methods and explicit <code class="docutils literal notranslate"><span class="pre">Settings</span></code> parameters take precedence over environment variables.</p></li>
+</ol>
+<p><strong>Example:</strong> If you set <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__LOG_LEVEL=WARNING</span></code> in your environment:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Environment variable applies (WARNING)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+<span class="c1"># Builder method overrides env var (DEBUG)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_level</span><span class="p">(</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+<span class="c1"># Explicit Settings parameter overrides env var (ERROR)</span>
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span><span class="n">core__log_level</span><span class="o">=</span><span class="s2">&quot;ERROR&quot;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This layering enables a common 12-factor pattern: define defaults in code with the builder, allow operational overrides via environment variables at deployment time.</p>
 </section>
 <section id="configuration-presets-recommended">
 <h2>Configuration Presets (Recommended)<a class="headerlink" href="#configuration-presets-recommended" title="Link to this heading"></a></h2>
