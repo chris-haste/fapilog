@@ -300,3 +300,102 @@ request_id="<id from above>"
 | Adding HTTP context to every log | Use `logger.bind()` in middleware |
 
 **Note:** The `request_id` correlation pattern is usually sufficient. Adding method/path to every log increases log size without significant benefit—the completion log already has this data with the same `request_id`.
+
+## Capturing Uvicorn Logs
+
+By default, fapilog and uvicorn log independently:
+
+- **Uvicorn** uses Python's standard `logging` module → stderr
+- **Fapilog** uses its own async pipeline → stdout JSON (or configured sinks)
+
+To unify all logs in fapilog's structured pipeline, use the stdlib bridge:
+
+```python
+import logging
+from fastapi import Depends, FastAPI
+from fapilog.fastapi import FastAPIBuilder, get_request_logger
+from fapilog.core.stdlib_bridge import enable_stdlib_bridge
+
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .skip_paths(["/health"])
+        .build()
+)
+
+@app.on_event("startup")
+async def capture_uvicorn_logs():
+    """Route uvicorn logs through fapilog's pipeline."""
+    import fapilog
+    logger = fapilog.get_logger()
+    enable_stdlib_bridge(
+        logger,
+        target_loggers=[
+            logging.getLogger("uvicorn"),
+            logging.getLogger("uvicorn.access"),
+            logging.getLogger("uvicorn.error"),
+        ],
+        remove_existing_handlers=True,  # Avoid duplicate output
+    )
+
+@app.get("/")
+async def root(logger=Depends(get_request_logger)):
+    await logger.info("Request handled")
+    return {"message": "Hello"}
+```
+
+### What Gets Captured
+
+| Logger | Content |
+|--------|---------|
+| `uvicorn` | Server startup/shutdown messages |
+| `uvicorn.access` | HTTP access logs (method, path, status, timing) |
+| `uvicorn.error` | Server errors and exceptions |
+
+### Captured Log Format
+
+Uvicorn logs are enriched with origin metadata:
+
+```json
+{
+  "message": "127.0.0.1:52436 - \"GET / HTTP/1.1\" 200",
+  "level": "INFO",
+  "stdlib_logger": "uvicorn.access",
+  "module": "h11_impl",
+  "filename": "h11_impl.py",
+  "_origin": "stdlib"
+}
+```
+
+The `_origin: "stdlib"` field identifies logs captured via the bridge (vs. native fapilog logs).
+
+### Other ASGI Servers
+
+The same pattern works for other servers that use stdlib logging:
+
+```python
+# Hypercorn
+enable_stdlib_bridge(logger, target_loggers=[
+    logging.getLogger("hypercorn.access"),
+    logging.getLogger("hypercorn.error"),
+])
+
+# Gunicorn (with uvicorn workers)
+enable_stdlib_bridge(logger, target_loggers=[
+    logging.getLogger("gunicorn"),
+    logging.getLogger("gunicorn.access"),
+    logging.getLogger("gunicorn.error"),
+    logging.getLogger("uvicorn"),
+])
+```
+
+### When to Capture Server Logs
+
+| Scenario | Recommendation |
+|----------|----------------|
+| Development | Optional - uvicorn's default output is fine |
+| Production with log aggregation | Recommended - unified JSON format for all logs |
+| Containerized deployments | Recommended - single structured stream to stdout |
+| Debugging request issues | Recommended - correlate server and app logs |
+
+See [stdlib Bridge](stdlib-bridge.md) for full API documentation.

@@ -2,6 +2,14 @@
 
 fapilog ships testing utilities for every plugin type so you can validate behavior quickly and catch contract drift.
 
+## Installation
+
+Basic utilities (mocks, validators, factories, benchmarks) are included in the main package. For pytest fixtures, install the testing extra:
+
+```bash
+pip install fapilog[testing]
+```
+
 ## Quick Start
 
 ```python

@@ -84,6 +84,11 @@ postgres = [
     "asyncpg>=0.28.0",
 ]
 
+# Testing utilities for plugin authors
+testing = [
+    "pytest>=8.0.0",
+]
+
 # Development tools
 dev = [
     "hatch>=1.7.0",
@@ -114,7 +119,7 @@ docs = [
 
 # All optional dependencies
 all = [
-    "fapilog[dev,docs,fastapi,http,metrics,system,mqtt,aws,postgres]",
+    "fapilog[dev,docs,fastapi,http,metrics,system,mqtt,aws,postgres,testing]",
 ]
 
 [project.urls]

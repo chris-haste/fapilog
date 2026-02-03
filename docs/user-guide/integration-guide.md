@@ -8,18 +8,22 @@ Patterns for common application types.
 
 ```python
 from fastapi import FastAPI, Depends
-from fapilog import get_async_logger
+from fapilog.fastapi import FastAPIBuilder, get_request_logger
 
-app = FastAPI()
-
-async def logger_dep():
-    return await get_async_logger("request")
+app = FastAPI(
+    lifespan=FastAPIBuilder()
+        .with_preset("fastapi")
+        .skip_paths(["/health", "/metrics"])
+        .build()
+)
 
 @app.get("/items/{item_id}")
-async def get_item(item_id: str, logger = Depends(logger_dep)):
+async def get_item(item_id: str, logger=Depends(get_request_logger)):
     await logger.info("fetch", item_id=item_id)
     return {"item_id": item_id}
 ```
+
+`FastAPIBuilder` handles lifespan management, request context, and provides FastAPI-specific options like `skip_paths()`, `include_headers()`, and `sample_rate()`. See [FastAPI Integration](fastapi.md) for full documentation.
 
 ## CLI / scripts
 

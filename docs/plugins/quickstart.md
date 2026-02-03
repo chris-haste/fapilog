@@ -215,7 +215,11 @@ async def write(self, entry: dict[str, Any]) -> None:
 
 ## Testing Your Plugin
 
-Use fapilog's testing utilities:
+Use fapilog's testing utilities. For pytest fixtures, install the testing extra:
+
+```bash
+pip install fapilog[testing]
+```
 
 ```python
 import pytest
