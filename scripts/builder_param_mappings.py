@@ -45,6 +45,7 @@ CORE_COVERAGE: dict[str, list[str]] = {
         "sink_circuit_breaker_recovery_timeout_seconds",
     ],
     "with_backpressure": ["backpressure_wait_ms", "drop_on_full"],
+    "with_protected_levels": ["protected_levels"],
     "with_workers": ["worker_count"],
     "with_shutdown_timeout": ["shutdown_timeout_seconds"],
     "with_exceptions": [

@@ -797,6 +797,27 @@ class LoggerBuilder:
         core["drop_on_full"] = drop_on_full
         return self
 
+    def with_protected_levels(self, levels: list[str]) -> Self:
+        """Configure log levels protected from queue-pressure dropping.
+
+        When queue is full and a protected-level event arrives, an unprotected
+        event is evicted to make room. Protected events survive queue pressure
+        as long as unprotected events exist in the queue.
+
+        Args:
+            levels: List of level names to protect (e.g., ["ERROR", "CRITICAL"]).
+                    Use [] to disable priority dropping (all events treated equally).
+
+        Example:
+            >>> # Protect ERROR, CRITICAL, and custom AUDIT level
+            >>> builder.with_protected_levels(["ERROR", "CRITICAL", "AUDIT"])
+            >>>
+            >>> # Disable priority dropping (rollback to FIFO behavior)
+            >>> builder.with_protected_levels([])
+        """
+        self._config.setdefault("core", {})["protected_levels"] = levels
+        return self
+
     def with_workers(self, count: int = 1) -> Self:
         """Set number of worker tasks for flush processing.
 

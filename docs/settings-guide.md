@@ -14,6 +14,7 @@ This guide documents Settings groups and fields.
 | `core.batch_timeout_seconds` | float | 0.25 | Maximum time to wait before flushing a partial batch |
 | `core.backpressure_wait_ms` | int | 50 | Milliseconds to wait for queue space before dropping |
 | `core.drop_on_full` | bool | True | If True, drop events after backpressure_wait_ms elapses when queue is full |
+| `core.protected_levels` | list | PydanticUndefined | Log levels protected from queue-pressure dropping. When queue is full and a protected-level event arrives, an unprotected event is evicted. Set to [] to disable priority dropping (all events treated equally). |
 | `core.enable_metrics` | bool | False | Enable Prometheus-compatible metrics |
 | `core.context_binding_enabled` | bool | True | Enable per-task bound context via logger.bind/unbind/clear |
 | `core.default_bound_context` | dict | PydanticUndefined | Default bound context applied at logger creation when enabled |

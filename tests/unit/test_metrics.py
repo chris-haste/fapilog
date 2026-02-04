@@ -50,7 +50,11 @@ async def test_enabled_basic_counters_and_histograms() -> None:
     # Validate counters incremented
     assert reg.get_sample_value("fapilog_events_processed_total") == 1.0
     assert reg.get_sample_value("fapilog_events_submitted_total") == 3.0
-    assert reg.get_sample_value("fapilog_events_dropped_total") == 1.0
+    # Dropped counter now has protected label (Story 1.37)
+    assert (
+        reg.get_sample_value("fapilog_events_dropped_total", {"protected": "false"})
+        == 1.0
+    )
     assert reg.get_sample_value("fapilog_backpressure_waits_total") == 2.0
     # Histograms expose _count sample
     val_a = reg.get_sample_value("fapilog_event_process_seconds_count")

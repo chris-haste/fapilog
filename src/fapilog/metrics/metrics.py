@@ -44,7 +44,16 @@ class PipelineMetrics:
     events_processed: int = 0
     events_filtered: int = 0
     plugin_errors: int = 0
+    # Priority-aware queue metrics (Story 1.37)
+    priority_evictions: int = 0
+    drops_protected: int = 0
+    drops_unprotected: int = 0
+    evicted_by_level: dict[str, int] | None = None
     # Consumers can fetch per-plugin profiles via MetricsCollector APIs
+
+    def __post_init__(self) -> None:
+        if self.evicted_by_level is None:
+            self.evicted_by_level = {}
 
 
 @dataclass
@@ -112,6 +121,11 @@ class MetricsCollector:
         self._c_size_guard_truncated: Any | None = None
         self._c_size_guard_dropped: Any | None = None
         self._c_redaction_exceptions: Any | None = None
+        # Priority-aware queue metrics (Story 1.37)
+        self._c_priority_evictions: Any | None = None
+        self._c_events_evicted: Any | None = None
+        # In-memory tracking for evicted_by_level
+        self._evicted_by_level: dict[str, int] = {}
 
         if self._enabled:
             # Minimal metric set; names align with conventional Prometheus
@@ -177,6 +191,7 @@ class MetricsCollector:
             self._c_events_dropped = Counter(
                 "fapilog_events_dropped_total",
                 "Total number of events dropped due to backpressure",
+                ["protected"],
                 registry=self._registry,
             )
             self._c_events_filtered = Counter(
@@ -250,6 +265,18 @@ class MetricsCollector:
                 "Total number of redaction pipeline exceptions",
                 registry=self._registry,
             )
+            # Priority-aware queue metrics (Story 1.37)
+            self._c_priority_evictions = Counter(
+                "fapilog_priority_evictions_total",
+                "Total number of evictions triggered by priority-protected events",
+                registry=self._registry,
+            )
+            self._c_events_evicted = Counter(
+                "fapilog_events_evicted_total",
+                "Events evicted from queue to make room for protected events",
+                ["level"],
+                registry=self._registry,
+            )
 
     @property
     def is_enabled(self) -> bool:
@@ -279,10 +306,11 @@ class MetricsCollector:
             self._c_events_submitted.inc(count)
 
     async def record_events_dropped(self, count: int = 1) -> None:
+        # Default to unprotected for backward compatibility
         if not self._enabled:
             return
         if self._c_events_dropped is not None:
-            self._c_events_dropped.inc(count)
+            self._c_events_dropped.labels(protected="false").inc(count)
 
     async def record_events_filtered(self, count: int = 1) -> None:
         async with self._lock:
@@ -374,12 +402,52 @@ class MetricsCollector:
             label = plugin_name or "unknown"
             self._c_plugin_errors.labels(plugin=label).inc()
 
+    async def record_priority_eviction(self, count: int = 1) -> None:
+        """Record priority eviction events (protected event evicted unprotected)."""
+        async with self._lock:
+            self._state.priority_evictions += count
+        if not self._enabled:
+            return
+        if self._c_priority_evictions is not None:
+            self._c_priority_evictions.inc(count)
+
+    async def record_events_dropped_protected(self, count: int = 1) -> None:
+        """Record protected events that were dropped (no eviction candidates)."""
+        async with self._lock:
+            self._state.drops_protected += count
+        if not self._enabled:
+            return
+        if self._c_events_dropped is not None:
+            self._c_events_dropped.labels(protected="true").inc(count)
+
+    async def record_events_dropped_unprotected(self, count: int = 1) -> None:
+        """Record unprotected events that were dropped normally."""
+        async with self._lock:
+            self._state.drops_unprotected += count
+        if not self._enabled:
+            return
+        if self._c_events_dropped is not None:
+            self._c_events_dropped.labels(protected="false").inc(count)
+
+    async def record_events_evicted(self, level: str, count: int = 1) -> None:
+        """Record events evicted from queue by level."""
+        async with self._lock:
+            self._evicted_by_level[level] = self._evicted_by_level.get(level, 0) + count
+        if not self._enabled:
+            return
+        if self._c_events_evicted is not None:
+            self._c_events_evicted.labels(level=level).inc(count)
+
     async def snapshot(self) -> PipelineMetrics:
         # Lightweight copy without exposing internals
         async with self._lock:
             events = self._state.events_processed
             filtered = self._state.events_filtered
             errs = self._state.plugin_errors
+            priority_evictions = self._state.priority_evictions
+            drops_protected = self._state.drops_protected
+            drops_unprotected = self._state.drops_unprotected
+            evicted_by_level = dict(self._evicted_by_level)
         profiles = await self.all_plugin_stats()
         # Force-read attributes to satisfy static analysis (vulture) and
         # make aggregate values available to snapshot consumers if desired.
@@ -389,6 +457,10 @@ class MetricsCollector:
             events_processed=events,
             events_filtered=filtered,
             plugin_errors=errs,
+            priority_evictions=priority_evictions,
+            drops_protected=drops_protected,
+            drops_unprotected=drops_unprotected,
+            evicted_by_level=evicted_by_level,
         )
 
     async def record_plugin_execution(
@@ -493,3 +565,12 @@ def plugin_timer(
 ) -> PluginExecutionTimer:
     """Factory for a plugin execution timer context manager."""
     return PluginExecutionTimer(metrics=metrics, plugin_name=plugin_name)
+
+
+# Mark public API methods for vulture (Story 1.37 priority eviction metrics)
+_VULTURE_USED: tuple[object, ...] = (
+    MetricsCollector.record_priority_eviction,
+    MetricsCollector.record_events_dropped_protected,
+    MetricsCollector.record_events_dropped_unprotected,
+    MetricsCollector.record_events_evicted,
+)

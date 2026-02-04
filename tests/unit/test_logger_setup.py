@@ -731,6 +731,7 @@ class TestGetLoggerCallsSharedSetup:
                 serialize_in_flush: bool,
                 num_workers: int,
                 level_gate: int | None,
+                protected_levels: list[str] | None = None,
             ) -> None:
                 self.name = name
                 self.enrichers = enrichers or []
@@ -740,6 +741,7 @@ class TestGetLoggerCallsSharedSetup:
                 self.level_gate = level_gate
                 self.queue_capacity = queue_capacity
                 self.started = False
+                self.protected_levels = protected_levels or []
 
             def bind(self, **context: object) -> _StubLogger:
                 self.bound_context = context
