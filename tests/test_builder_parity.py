@@ -86,6 +86,8 @@ BUILDER_TO_CORE_FIELDS: dict[str, list[str]] = {
     "with_atexit_drain": ["atexit_drain_enabled", "atexit_drain_timeout_seconds"],
     "with_signal_handlers": ["signal_handler_enabled"],
     "with_flush_on_critical": ["flush_on_critical"],
+    # Story 1.37: Priority-aware queue
+    "with_protected_levels": ["protected_levels"],
     # Story 4.54: Redaction fail mode, Story 4.59: Raw output hardening
     "with_fallback_redaction": [
         "fallback_redact_mode",
