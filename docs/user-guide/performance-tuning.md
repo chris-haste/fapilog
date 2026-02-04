@@ -56,6 +56,48 @@ export FAPILOG_CORE__DROP_ON_FULL=true
 export FAPILOG_CORE__BACKPRESSURE_WAIT_MS=10
 ```
 
+## Protected levels (priority-aware dropping)
+
+Under queue pressure, fapilog uses priority-aware dropping to protect high-value events. By default, ERROR, CRITICAL, and FATAL events are protected from queue drops.
+
+```python
+from fapilog import LoggerBuilder
+
+# Default: ERROR, CRITICAL, FATAL protected
+logger = LoggerBuilder().with_preset("production").build()
+
+# Custom: Also protect AUDIT and SECURITY levels
+logger = (
+    LoggerBuilder()
+    .with_protected_levels(["ERROR", "CRITICAL", "FATAL", "AUDIT", "SECURITY"])
+    .build()
+)
+
+# Disable priority dropping (FIFO behavior)
+logger = LoggerBuilder().with_protected_levels([]).build()
+```
+
+```bash
+# Via environment variable
+export FAPILOG_CORE__PROTECTED_LEVELS='["ERROR", "CRITICAL", "FATAL", "AUDIT"]'
+```
+
+**How it works:**
+- When the queue is full and a protected-level event arrives, an unprotected event is evicted
+- Uses O(1) tombstone-based eviction (no queue scanning)
+- Maintains temporal ordering within each priority class
+- Falls back to normal drop behavior when no eviction candidates exist
+
+**Performance characteristics:**
+- Normal enqueue: O(1), no overhead vs standard queue
+- Eviction enqueue: O(1), just marks a tombstone
+- Dequeue: O(1) amortized, skips tombstones with lazy compaction
+
+**When to customize:**
+- Add custom levels (AUDIT, SECURITY) for compliance logging
+- Set `[]` to disable priority dropping for strict FIFO behavior
+- Leave default for most production workloads
+
 ## Sampling low-severity logs
 
 Use `observability.logging.sampling_rate` to drop a fraction of DEBUG/INFO logs:
