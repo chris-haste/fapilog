@@ -464,6 +464,14 @@
 <span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Processors&quot;</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;array&quot;</span>
 <span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;protected_levels&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Log levels protected from queue-pressure dropping. When queue is full and a protected-level event arrives, an unprotected event is evicted. Set to [] to disable priority dropping (all events treated equally).&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Protected Levels&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;array&quot;</span>
+<span class="w">    </span><span class="p">},</span>
 <span class="w">    </span><span class="nt">&quot;redaction_fail_mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">      </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;warn&quot;</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Behavior when _apply_redactors() catches an unexpected exception: &#39;open&#39; passes original event, &#39;closed&#39; drops the event, &#39;warn&#39; (default) passes event but emits diagnostic warning&quot;</span><span class="p">,</span>
@@ -1150,7 +1158,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on February 03, 2026.
+      <span class="lastupdated">Last updated on February 04, 2026.
       </span></p>
   </div>
 

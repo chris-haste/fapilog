@@ -271,7 +271,7 @@
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">high-volume</span></code></p></td>
 <td><p>&gt;1000 req/sec</p></td>
-<td><p>Adaptive sampling, drops for latency</p></td>
+<td><p>Protected levels, drops for latency</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
 <td><p>Cloud Run, Lambda</p></td>
@@ -298,13 +298,14 @@
 <h3>High-Volume Service (&gt;1000 req/sec)<a class="headerlink" href="#high-volume-service-1000-req-sec" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
     <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
-        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;high-volume&quot;</span><span class="p">)</span>  <span class="c1"># Adaptive sampling kicks in</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;high-volume&quot;</span><span class="p">)</span>  <span class="c1"># Protected levels survive queue pressure</span>
+        <span class="o">.</span><span class="n">with_adaptive_sampling</span><span class="p">(</span><span class="n">target_events_per_sec</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>  <span class="c1"># Optional: add sampling</span>
         <span class="o">.</span><span class="n">skip_paths</span><span class="p">([</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/healthz&quot;</span><span class="p">,</span> <span class="s2">&quot;/ready&quot;</span><span class="p">,</span> <span class="s2">&quot;/live&quot;</span><span class="p">,</span> <span class="s2">&quot;/metrics&quot;</span><span class="p">])</span>
         <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">high-volume</span></code> preset automatically samples down during traffic spikes while always logging errors. See <a class="reference internal" href="adaptive-sampling-high-volume.html"><span class="std std-doc">Adaptive Sampling</span></a> for details.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">high-volume</span></code> preset protects ERROR/CRITICAL/FATAL from queue drops. Add <code class="docutils literal notranslate"><span class="pre">.with_adaptive_sampling()</span></code> for cost control during traffic spikes. See <a class="reference internal" href="adaptive-sampling-high-volume.html"><span class="std std-doc">Adaptive Sampling</span></a> for details.</p>
 </section>
 <section id="environment-based-selection">
 <h3>Environment-Based Selection<a class="headerlink" href="#environment-based-selection" title="Link to this heading"></a></h3>
@@ -760,7 +761,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on February 03, 2026.
+      <span class="lastupdated">Last updated on February 04, 2026.
       </span></p>
   </div>
 

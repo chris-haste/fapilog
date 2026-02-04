@@ -279,207 +279,212 @@
 <td><p>True</p></td>
 <td><p>If True, drop events after backpressure_wait_ms elapses when queue is full</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.enable_metrics</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.protected_levels</span></code></p></td>
+<td><p>list</p></td>
+<td><p>PydanticUndefined</p></td>
+<td><p>Log levels protected from queue-pressure dropping. When queue is full and a protected-level event arrives, an unprotected event is evicted. Set to [] to disable priority dropping (all events treated equally).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.enable_metrics</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Enable Prometheus-compatible metrics</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.context_binding_enabled</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.context_binding_enabled</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Enable per-task bound context via logger.bind/unbind/clear</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.default_bound_context</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.default_bound_context</span></code></p></td>
 <td><p>dict</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Default bound context applied at logger creation when enabled</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.internal_logging_enabled</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.internal_logging_enabled</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Emit DEBUG/WARN diagnostics for internal errors</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.diagnostics_output</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.diagnostics_output</span></code></p></td>
 <td><p>Literal</p></td>
 <td><p>stderr</p></td>
 <td><p>Output stream for internal diagnostics: stderr (default, Unix convention) or stdout (backward compat)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.error_dedupe_window_seconds</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.error_dedupe_window_seconds</span></code></p></td>
 <td><p>float</p></td>
 <td><p>5.0</p></td>
 <td><p>Seconds to suppress duplicate ERROR logs with the same message; 0 disables deduplication</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.shutdown_timeout_seconds</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.shutdown_timeout_seconds</span></code></p></td>
 <td><p>float</p></td>
 <td><p>3.0</p></td>
 <td><p>Maximum time to flush on shutdown signals</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.worker_count</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.worker_count</span></code></p></td>
 <td><p>int</p></td>
 <td><p>1</p></td>
 <td><p>Number of worker tasks for flush processing</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.sensitive_fields_policy</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.sensitive_fields_policy</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Optional list of dotted paths for sensitive fields policy; warning if no redactors configured</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.enable_redactors</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.enable_redactors</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Enable redactors stage between enrichers and sink emission</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.redactors_order</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.redactors_order</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Ordered list of redactor plugin names to apply</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.sinks</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.sinks</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Sink plugins to use (by name); falls back to env-based default when empty</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.enrichers</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.enrichers</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Enricher plugins to use (by name)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.redactors</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.redactors</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Redactor plugins to use (by name); defaults to [‘url_credentials’] for secure defaults; set to [] to disable all redaction</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.processors</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.processors</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Processor plugins to use (by name)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.filters</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.filters</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Filter plugins to apply before enrichment (by name)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.redaction_max_depth</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.redaction_max_depth</span></code></p></td>
 <td><p>int</p></td>
 <td><p>None</p></td>
 <td><p>6</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.redaction_max_keys_scanned</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.redaction_max_keys_scanned</span></code></p></td>
 <td><p>int</p></td>
 <td><p>None</p></td>
 <td><p>5000</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.exceptions_enabled</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.exceptions_enabled</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Enable structured exception serialization for log calls</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.exceptions_max_frames</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.exceptions_max_frames</span></code></p></td>
 <td><p>int</p></td>
 <td><p>10</p></td>
 <td><p>Maximum number of stack frames to capture for exceptions</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.exceptions_max_stack_chars</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.exceptions_max_stack_chars</span></code></p></td>
 <td><p>int</p></td>
 <td><p>20000</p></td>
 <td><p>Maximum total characters for serialized stack string</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.strict_envelope_mode</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.strict_envelope_mode</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>If True, drop emission when envelope cannot be produced; otherwise fallback to best-effort serialization with diagnostics</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.capture_unhandled_enabled</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.capture_unhandled_enabled</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Automatically install unhandled exception hooks (sys/asyncio)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.serialize_in_flush</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.serialize_in_flush</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>If True, pre-serialize envelopes once during flush and pass SerializedView to sinks that support write_serialized</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.resource_pool_max_size</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.resource_pool_max_size</span></code></p></td>
 <td><p>int</p></td>
 <td><p>8</p></td>
 <td><p>Default max size for resource pools</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.resource_pool_acquire_timeout_seconds</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.resource_pool_acquire_timeout_seconds</span></code></p></td>
 <td><p>float</p></td>
 <td><p>2.0</p></td>
 <td><p>Default acquire timeout for pools</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.sink_circuit_breaker_enabled</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.sink_circuit_breaker_enabled</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Enable circuit breaker for sink fault isolation</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.sink_circuit_breaker_failure_threshold</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.sink_circuit_breaker_failure_threshold</span></code></p></td>
 <td><p>int</p></td>
 <td><p>5</p></td>
 <td><p>Number of consecutive failures before opening circuit</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.sink_circuit_breaker_recovery_timeout_seconds</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.sink_circuit_breaker_recovery_timeout_seconds</span></code></p></td>
 <td><p>float</p></td>
 <td><p>30.0</p></td>
 <td><p>Seconds to wait before probing a failed sink</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.sink_parallel_writes</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.sink_parallel_writes</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Write to multiple sinks in parallel instead of sequentially</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.fallback_redact_mode</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.fallback_redact_mode</span></code></p></td>
 <td><p>Literal</p></td>
 <td><p>minimal</p></td>
 <td><p>Redaction mode for fallback stderr output: ‘inherit’ uses pipeline redactors, ‘minimal’ applies built-in sensitive field masking, ‘none’ writes unredacted (opt-in to legacy behavior)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.redaction_fail_mode</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.redaction_fail_mode</span></code></p></td>
 <td><p>Literal</p></td>
 <td><p>warn</p></td>
 <td><p>Behavior when _apply_redactors() catches an unexpected exception: ‘open’ passes original event, ‘closed’ drops the event, ‘warn’ (default) passes event but emits diagnostic warning</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.atexit_drain_enabled</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.atexit_drain_enabled</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Register atexit handler to drain pending logs on normal process exit</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.atexit_drain_timeout_seconds</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.atexit_drain_timeout_seconds</span></code></p></td>
 <td><p>float</p></td>
 <td><p>2.0</p></td>
 <td><p>Maximum seconds to wait for log drain during atexit handler</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.signal_handler_enabled</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.signal_handler_enabled</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Install signal handlers for SIGTERM/SIGINT to enable graceful drain</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.flush_on_critical</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.flush_on_critical</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Immediately flush ERROR and CRITICAL logs (bypass batching) to reduce log loss on abrupt shutdown</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.emit_drop_summary</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.emit_drop_summary</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Emit summary log events when events are dropped due to backpressure or deduplicated due to error dedupe window</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.drop_summary_window_seconds</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.drop_summary_window_seconds</span></code></p></td>
 <td><p>float</p></td>
 <td><p>60.0</p></td>
 <td><p>Window in seconds for aggregating drop/dedupe summary events. Summaries are emitted at most once per window.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.fallback_scrub_raw</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.fallback_scrub_raw</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Apply keyword scrubbing to raw (non-JSON) fallback output; set to False for debugging when raw output is needed</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.fallback_raw_max_bytes</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.fallback_raw_max_bytes</span></code></p></td>
 <td><p>int</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.benchmark_file_path</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.benchmark_file_path</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
@@ -802,7 +807,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on February 03, 2026.
+      <span class="lastupdated">Last updated on February 04, 2026.
       </span></p>
   </div>
 

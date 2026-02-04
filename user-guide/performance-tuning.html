@@ -300,6 +300,49 @@
 </pre></div>
 </div>
 </section>
+<section id="protected-levels-priority-aware-dropping">
+<h2>Protected levels (priority-aware dropping)<a class="headerlink" href="#protected-levels-priority-aware-dropping" title="Link to this heading"></a></h2>
+<p>Under queue pressure, fapilog uses priority-aware dropping to protect high-value events. By default, ERROR, CRITICAL, and FATAL events are protected from queue drops.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="c1"># Default: ERROR, CRITICAL, FATAL protected</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+<span class="c1"># Custom: Also protect AUDIT and SECURITY levels</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_protected_levels</span><span class="p">([</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">,</span> <span class="s2">&quot;FATAL&quot;</span><span class="p">,</span> <span class="s2">&quot;AUDIT&quot;</span><span class="p">,</span> <span class="s2">&quot;SECURITY&quot;</span><span class="p">])</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="c1"># Disable priority dropping (FIFO behavior)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_protected_levels</span><span class="p">([])</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Via environment variable</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__PROTECTED_LEVELS</span><span class="o">=</span><span class="s1">&#39;[&quot;ERROR&quot;, &quot;CRITICAL&quot;, &quot;FATAL&quot;, &quot;AUDIT&quot;]&#39;</span>
+</pre></div>
+</div>
+<p><strong>How it works:</strong></p>
+<ul class="simple">
+<li><p>When the queue is full and a protected-level event arrives, an unprotected event is evicted</p></li>
+<li><p>Uses O(1) tombstone-based eviction (no queue scanning)</p></li>
+<li><p>Maintains temporal ordering within each priority class</p></li>
+<li><p>Falls back to normal drop behavior when no eviction candidates exist</p></li>
+</ul>
+<p><strong>Performance characteristics:</strong></p>
+<ul class="simple">
+<li><p>Normal enqueue: O(1), no overhead vs standard queue</p></li>
+<li><p>Eviction enqueue: O(1), just marks a tombstone</p></li>
+<li><p>Dequeue: O(1) amortized, skips tombstones with lazy compaction</p></li>
+</ul>
+<p><strong>When to customize:</strong></p>
+<ul class="simple">
+<li><p>Add custom levels (AUDIT, SECURITY) for compliance logging</p></li>
+<li><p>Set <code class="docutils literal notranslate"><span class="pre">[]</span></code> to disable priority dropping for strict FIFO behavior</p></li>
+<li><p>Leave default for most production workloads</p></li>
+</ul>
+</section>
 <section id="sampling-low-severity-logs">
 <h2>Sampling low-severity logs<a class="headerlink" href="#sampling-low-severity-logs" title="Link to this heading"></a></h2>
 <p>Use <code class="docutils literal notranslate"><span class="pre">observability.logging.sampling_rate</span></code> to drop a fraction of DEBUG/INFO logs:</p>
@@ -337,7 +380,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on February 03, 2026.
+      <span class="lastupdated">Last updated on February 04, 2026.
       </span></p>
   </div>
 

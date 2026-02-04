@@ -231,7 +231,7 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="adaptive-sampling-for-high-volume-services">
 <h1>Adaptive Sampling for High-Volume Services<a class="headerlink" href="#adaptive-sampling-for-high-volume-services" title="Link to this heading"></a></h1>
-<p>When your service handles thousands of requests per second, logging everything is expensive and often unnecessary. But during incidents, you need full visibility. The <code class="docutils literal notranslate"><span class="pre">high-volume</span></code> preset solves this with adaptive sampling that automatically adjusts based on traffic.</p>
+<p>When your service handles thousands of requests per second, logging everything is expensive and often unnecessary. But during incidents, you need full visibility. Adaptive sampling automatically adjusts the sample rate based on traffic.</p>
 <section id="the-problem">
 <h2>The Problem<a class="headerlink" href="#the-problem" title="Link to this heading"></a></h2>
 <p>A flash sale or viral moment creates a cost explosion:</p>
@@ -247,21 +247,42 @@ Flash sale: 10,000 req/s × 3,600 sec = 36M logs/hour  ($18/hour)
 <li><p>Errors never dropped, regardless of volume</p></li>
 </ul>
 </section>
-<section id="the-solution-high-volume-preset">
-<h2>The Solution: high-volume Preset<a class="headerlink" href="#the-solution-high-volume-preset" title="Link to this heading"></a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">high-volume</span></code> preset provides intelligent adaptive sampling out of the box:</p>
+<section id="the-solution-high-volume-preset-adaptive-sampling">
+<h2>The Solution: high-volume Preset + Adaptive Sampling<a class="headerlink" href="#the-solution-high-volume-preset-adaptive-sampling" title="Link to this heading"></a></h2>
+<p>Combine the <code class="docutils literal notranslate"><span class="pre">high-volume</span></code> preset with adaptive sampling for intelligent cost control:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;high-volume&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;high-volume&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_adaptive_sampling</span><span class="p">(</span><span class="n">target_events_per_sec</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
 
 <span class="c1"># During normal traffic: logs ~100 events/sec</span>
 <span class="c1"># During spikes: automatically samples down, never below 1%</span>
-<span class="c1"># Errors: always logged, never sampled out</span>
+<span class="c1"># Errors: always logged via priority queue protection</span>
 </pre></div>
 </div>
-<section id="what-the-preset-configures">
-<h3>What the Preset Configures<a class="headerlink" href="#what-the-preset-configures" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Equivalent manual configuration:</span>
+<section id="why-two-layers-of-protection">
+<h3>Why Two Layers of Protection?<a class="headerlink" href="#why-two-layers-of-protection" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">high-volume</span></code> preset provides <strong>queue-level protection</strong> via <code class="docutils literal notranslate"><span class="pre">protected_levels</span></code>:</p>
+<ul class="simple">
+<li><p>ERROR/CRITICAL/FATAL events survive queue pressure</p></li>
+<li><p>Under extreme load, unprotected events may be evicted to make room for protected ones</p></li>
+<li><p>This is a last-resort safety net</p></li>
+</ul>
+<p>Adaptive sampling provides <strong>pre-queue cost control</strong>:</p>
+<ul class="simple">
+<li><p>Samples events before they enter the queue</p></li>
+<li><p>Automatically adjusts rate based on throughput</p></li>
+<li><p>More predictable cost control</p></li>
+</ul>
+<p>Together they provide both cost efficiency and guaranteed error visibility.</p>
+</section>
+<section id="configuration">
+<h3>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Full configuration with adaptive sampling:</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">LoggerBuilder</span><span class="p">()</span>
     <span class="o">.</span><span class="n">with_adaptive_sampling</span><span class="p">(</span>
@@ -269,8 +290,8 @@ Flash sale: 10,000 req/s × 3,600 sec = 36M logs/hour  ($18/hour)
         <span class="n">min_rate</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>              <span class="c1"># Never below 1%</span>
         <span class="n">max_rate</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>               <span class="c1"># Full logging when quiet</span>
         <span class="n">window_seconds</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>        <span class="c1"># 10-second rolling window</span>
-        <span class="n">always_pass_levels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">,</span> <span class="s2">&quot;FATAL&quot;</span><span class="p">],</span>
     <span class="p">)</span>
+    <span class="o">.</span><span class="n">with_protected_levels</span><span class="p">([</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">,</span> <span class="s2">&quot;FATAL&quot;</span><span class="p">])</span>  <span class="c1"># Queue protection</span>
     <span class="o">.</span><span class="n">with_workers</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>        <span class="c1"># Throughput optimization</span>
     <span class="o">.</span><span class="n">with_drop_on_full</span><span class="p">()</span>    <span class="c1"># Protect latency under pressure</span>
     <span class="o">.</span><span class="n">add_stdout_json</span><span class="p">()</span>
@@ -313,11 +334,11 @@ Flash sale: 10,000 req/s × 3,600 sec = 36M logs/hour  ($18/hour)
 </section>
 <section id="errors-always-pass-through">
 <h2>Errors Always Pass Through<a class="headerlink" href="#errors-always-pass-through" title="Link to this heading"></a></h2>
-<p>The most important feature: <strong>errors are never dropped</strong>. The <code class="docutils literal notranslate"><span class="pre">always_pass_levels</span></code> setting ensures ERROR, CRITICAL, and FATAL messages bypass sampling entirely:</p>
+<p>The most important feature: <strong>errors are never dropped</strong>. The <code class="docutils literal notranslate"><span class="pre">protected_levels</span></code> setting ensures ERROR, CRITICAL, and FATAL messages survive queue pressure:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Even during a 10,000 req/sec spike with 1% sampling:</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;request processed&quot;</span><span class="p">)</span>   <span class="c1"># 1% chance of logging</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;database timeout&quot;</span><span class="p">)</span>   <span class="c1"># 100% logged, always</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s2">&quot;service down&quot;</span><span class="p">)</span>    <span class="c1"># 100% logged, always</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;request processed&quot;</span><span class="p">)</span>   <span class="c1"># May be sampled out or dropped under pressure</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;database timeout&quot;</span><span class="p">)</span>   <span class="c1"># Protected: survives queue pressure</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s2">&quot;service down&quot;</span><span class="p">)</span>    <span class="c1"># Protected: survives queue pressure</span>
 </pre></div>
 </div>
 <p>This is production-safe because you’ll always see:</p>
@@ -327,6 +348,11 @@ Flash sale: 10,000 req/s × 3,600 sec = 36M logs/hour  ($18/hour)
 <li><p>Service degradations</p></li>
 <li><p>Security events logged at ERROR+</p></li>
 </ul>
+<p>The protection works at two levels:</p>
+<ol class="arabic simple">
+<li><p><strong>Adaptive sampling filter</strong>: <code class="docutils literal notranslate"><span class="pre">always_pass_levels</span></code> bypasses sampling for protected levels</p></li>
+<li><p><strong>Priority queue</strong>: If queue is full, unprotected events are evicted to make room for protected ones</p></li>
+</ol>
 </section>
 <section id="real-world-example-e-commerce-flash-sale">
 <h2>Real-World Example: E-commerce Flash Sale<a class="headerlink" href="#real-world-example-e-commerce-flash-sale" title="Link to this heading"></a></h2>
@@ -346,12 +372,17 @@ Flash sale: 10,000 req/s × 3,600 sec = 36M logs/hour  ($18/hour)
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
 
 <span class="c1"># Adaptive sampling - responds to actual traffic</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;high-volume&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;high-volume&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_adaptive_sampling</span><span class="p">(</span><span class="n">target_events_per_sec</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
 
 <span class="c1"># Quiet period (50 req/s): 100% sampled</span>
 <span class="c1"># Normal load (500 req/s): ~20% sampled, hitting 100/sec target</span>
 <span class="c1"># Flash sale (5000 req/s): ~2% sampled, hitting 100/sec target</span>
-<span class="c1"># All errors: 100% captured regardless of load</span>
+<span class="c1"># All errors: 100% captured via queue protection</span>
 </pre></div>
 </div>
 </section>
@@ -361,7 +392,7 @@ Flash sale: 10,000 req/s × 3,600 sec = 36M logs/hour  ($18/hour)
 <thead>
 <tr class="row-odd"><th class="head"><p>Scenario</p></th>
 <th class="head"><p>Fixed 10%</p></th>
-<th class="head"><p>Adaptive (high-volume)</p></th>
+<th class="head"><p>high-volume + adaptive</p></th>
 </tr>
 </thead>
 <tbody>
@@ -503,7 +534,7 @@ Flash sale: 10,000 req/s × 3,600 sec = 36M logs/hour  ($18/hour)
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on February 03, 2026.
+      <span class="lastupdated">Last updated on February 04, 2026.
       </span></p>
   </div>
 
