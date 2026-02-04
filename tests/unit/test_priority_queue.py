@@ -68,11 +68,12 @@ class TestPriorityAwareQueue:
         assert result is True
 
         # Dequeue should skip evicted tombstone and return remaining items
-        dequeued = []
+        dequeued: list[dict[str, str]] = []
         while True:
             ok, item = queue.try_dequeue()
             if not ok:
                 break
+            assert item is not None  # noqa: WA003 - type guard for mypy
             dequeued.append(item)
 
         # Should have 3 items: 2 DEBUG (one evicted) + 1 ERROR
@@ -136,11 +137,12 @@ class TestPriorityAwareQueue:
         queue.try_enqueue({"level": "ERROR", "msg": "err2"})
 
         # Dequeue all - should get 1 DEBUG and 2 ERRORs (2 evicted)
-        items = []
+        items: list[dict[str, str]] = []
         while True:
             ok, item = queue.try_dequeue()
             if not ok:
                 break
+            assert item is not None  # noqa: WA003 - type guard for mypy
             items.append(item)
 
         assert len(items) == 3
@@ -213,6 +215,7 @@ class TestPriorityAwareQueue:
             ok, item = queue.try_dequeue()
             if not ok:
                 break
+            assert item is not None  # noqa: WA003 - type guard for mypy
             # No _evicted marker should be visible
             assert "_evicted" not in item
 
@@ -306,6 +309,7 @@ class TestPriorityMetrics:
         await metrics.record_events_evicted(level="DEBUG", count=3)
         await metrics.record_events_evicted(level="INFO", count=2)
         snapshot = await metrics.snapshot()
+        assert snapshot.evicted_by_level is not None  # noqa: WA003 - type guard
         assert snapshot.evicted_by_level["DEBUG"] == 3
         assert snapshot.evicted_by_level["INFO"] == 2
 
@@ -318,3 +322,241 @@ class TestPriorityMetrics:
         await metrics.record_events_dropped_protected(count=1)
         await metrics.record_events_dropped_unprotected(count=1)
         await metrics.record_events_evicted(level="DEBUG", count=1)
+
+
+class TestPriorityAwareQueueEdgeCases:
+    """Tests for edge cases and error handling in PriorityAwareQueue."""
+
+    def test_capacity_must_be_positive(self) -> None:
+        """Queue raises ValueError for capacity <= 0."""
+        with pytest.raises(ValueError, match="capacity must be > 0"):
+            PriorityAwareQueue(capacity=0, protected_levels={"ERROR"})
+
+        with pytest.raises(ValueError, match="capacity must be > 0"):
+            PriorityAwareQueue(capacity=-1, protected_levels={"ERROR"})
+
+    def test_non_dict_items_not_protected(self) -> None:
+        """Non-dict items are never considered protected."""
+        queue: PriorityAwareQueue[str] = PriorityAwareQueue(
+            capacity=2, protected_levels={"ERROR"}
+        )
+        # Fill with strings (not dicts)
+        queue.try_enqueue("item1")
+        queue.try_enqueue("item2")
+        assert queue.is_full()
+
+        # Another string cannot evict (strings are unprotected, but can't evict)
+        result = queue.try_enqueue("item3")
+        assert result is False
+
+    def test_compact_when_queue_empty(self) -> None:
+        """Compaction is a no-op on empty queue."""
+        queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
+            capacity=3, protected_levels={"ERROR"}
+        )
+        # Manually trigger compact on empty queue - should not raise
+        queue._compact_if_needed()
+        assert queue.is_empty()
+
+    def test_dequeue_skips_none_slots(self) -> None:
+        """Dequeue skips None slots from manual compaction or corruption."""
+        queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
+            capacity=5, protected_levels={"ERROR"}
+        )
+        # Add some items
+        queue.try_enqueue({"level": "INFO", "msg": "1"})
+        queue.try_enqueue({"level": "INFO", "msg": "2"})
+
+        # Manually insert None to simulate a compacted slot
+        queue._dq.appendleft(None)
+
+        # Dequeue should skip the None
+        ok, item = queue.try_dequeue()
+        assert ok is True
+        assert item == {"level": "INFO", "msg": "1"}
+
+    def test_compaction_skips_none_slots(self) -> None:
+        """Compaction loop skips None entries in the deque."""
+        queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
+            capacity=10, protected_levels={"ERROR"}
+        )
+        # Fill partially
+        for i in range(5):
+            queue.try_enqueue({"level": "DEBUG", "msg": str(i)})
+
+        # Manually insert None to simulate edge case
+        queue._dq.append(None)
+
+        # Force high tombstone ratio to trigger compaction
+        queue._tombstone_count = 4  # >25% of 6 items
+
+        queue._compact_if_needed()
+        # None should be removed, only live items remain
+        assert None not in queue._dq
+
+
+class TestPriorityAwareQueueAsync:
+    """Tests for async await_enqueue and await_dequeue methods."""
+
+    @pytest.mark.asyncio
+    async def test_await_enqueue_immediate_success(self) -> None:
+        """await_enqueue returns immediately when space available."""
+        queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
+            capacity=3, protected_levels={"ERROR"}
+        )
+        await queue.await_enqueue({"level": "INFO", "msg": "test"})
+        assert queue.qsize() == 1
+
+    @pytest.mark.asyncio
+    async def test_await_dequeue_immediate_success(self) -> None:
+        """await_dequeue returns immediately when data available."""
+        queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
+            capacity=3, protected_levels={"ERROR"}
+        )
+        queue.try_enqueue({"level": "INFO", "msg": "test"})
+
+        item = await queue.await_dequeue()
+        assert item == {"level": "INFO", "msg": "test"}
+
+    @pytest.mark.asyncio
+    async def test_await_enqueue_timeout_expired(self) -> None:
+        """await_enqueue raises TimeoutError when timeout expires."""
+        from fapilog.core.errors import TimeoutError
+
+        queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
+            capacity=1,
+            protected_levels=set(),  # No eviction possible
+        )
+        queue.try_enqueue({"level": "INFO", "msg": "fill"})
+        assert queue.is_full()
+
+        with pytest.raises(TimeoutError, match="Timed out waiting to enqueue"):
+            await queue.await_enqueue({"level": "INFO", "msg": "blocked"}, timeout=0.01)
+
+    @pytest.mark.asyncio
+    async def test_await_dequeue_timeout_expired(self) -> None:
+        """await_dequeue raises TimeoutError when timeout expires."""
+        from fapilog.core.errors import TimeoutError
+
+        queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
+            capacity=3, protected_levels={"ERROR"}
+        )
+        assert queue.is_empty()
+
+        with pytest.raises(TimeoutError, match="Timed out waiting to dequeue"):
+            await queue.await_dequeue(timeout=0.01)
+
+    @pytest.mark.asyncio
+    async def test_await_enqueue_waits_for_space(self) -> None:
+        """await_enqueue waits until space becomes available."""
+        import asyncio
+
+        queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
+            capacity=1, protected_levels=set()
+        )
+        queue.try_enqueue({"level": "INFO", "msg": "fill"})
+
+        async def consumer() -> None:
+            await asyncio.sleep(0.01)
+            queue.try_dequeue()
+
+        async def producer() -> None:
+            await queue.await_enqueue({"level": "INFO", "msg": "new"}, timeout=1.0)
+
+        # Run both concurrently - consumer frees space, producer enqueues
+        await asyncio.gather(consumer(), producer())
+        assert queue.qsize() == 1
+
+    @pytest.mark.asyncio
+    async def test_await_dequeue_waits_for_data(self) -> None:
+        """await_dequeue waits until data becomes available."""
+        import asyncio
+
+        queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
+            capacity=3, protected_levels={"ERROR"}
+        )
+
+        async def producer() -> None:
+            await asyncio.sleep(0.01)
+            queue.try_enqueue({"level": "INFO", "msg": "data"})
+
+        async def consumer() -> dict[str, str]:
+            return await queue.await_dequeue(timeout=1.0)
+
+        # Run both concurrently
+        _, item = await asyncio.gather(producer(), consumer())
+        assert item == {"level": "INFO", "msg": "data"}
+
+    @pytest.mark.asyncio
+    async def test_await_enqueue_timeout_zero_remaining(self) -> None:
+        """await_enqueue raises when remaining time is zero or negative."""
+        from fapilog.core.errors import TimeoutError
+
+        queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
+            capacity=1, protected_levels=set()
+        )
+        queue.try_enqueue({"level": "INFO", "msg": "fill"})
+
+        # Very short timeout to trigger the remaining <= 0 check
+        with pytest.raises(TimeoutError, match="Timed out waiting to enqueue"):
+            await queue.await_enqueue(
+                {"level": "INFO", "msg": "blocked"}, timeout=0.0001
+            )
+
+    @pytest.mark.asyncio
+    async def test_await_dequeue_timeout_zero_remaining(self) -> None:
+        """await_dequeue raises when remaining time is zero or negative."""
+        from fapilog.core.errors import TimeoutError
+
+        queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
+            capacity=3, protected_levels={"ERROR"}
+        )
+
+        # Very short timeout to trigger the remaining <= 0 check
+        with pytest.raises(TimeoutError, match="Timed out waiting to dequeue"):
+            await queue.await_dequeue(timeout=0.0001)
+
+    @pytest.mark.asyncio
+    async def test_await_enqueue_retry_loop(self) -> None:
+        """await_enqueue retries when try_enqueue fails after wait."""
+        import asyncio
+
+        queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
+            capacity=1, protected_levels=set()
+        )
+        queue.try_enqueue({"level": "INFO", "msg": "fill"})
+
+        async def delayed_free() -> None:
+            # First wake-up won't free space, second will
+            await asyncio.sleep(0.01)
+            queue._space_available.set()  # Wake up waiter but don't dequeue
+            await asyncio.sleep(0.01)
+            queue.try_dequeue()  # Now actually free space
+
+        async def producer() -> None:
+            await queue.await_enqueue({"level": "INFO", "msg": "new"}, timeout=1.0)
+
+        await asyncio.gather(delayed_free(), producer())
+        assert queue.qsize() == 1
+
+    @pytest.mark.asyncio
+    async def test_await_dequeue_retry_loop(self) -> None:
+        """await_dequeue retries when try_dequeue fails after wait."""
+        import asyncio
+
+        queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
+            capacity=3, protected_levels={"ERROR"}
+        )
+
+        async def delayed_enqueue() -> None:
+            # First wake-up won't have data, second will
+            await asyncio.sleep(0.01)
+            queue._data_available.set()  # Wake up waiter but don't enqueue
+            await asyncio.sleep(0.01)
+            queue.try_enqueue({"level": "INFO", "msg": "data"})
+
+        async def consumer() -> dict[str, str]:
+            return await queue.await_dequeue(timeout=1.0)
+
+        _, item = await asyncio.gather(delayed_enqueue(), consumer())
+        assert item == {"level": "INFO", "msg": "data"}
