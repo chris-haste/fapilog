@@ -609,7 +609,7 @@ class CoreSettings(BaseModel):
         ),
     )
     protected_levels: list[str] = Field(
-        default_factory=lambda: ["ERROR", "CRITICAL", "FATAL"],
+        default_factory=lambda: ["ERROR", "CRITICAL", "FATAL", "AUDIT", "SECURITY"],
         description=(
             "Log levels protected from queue-pressure dropping. When queue is full "
             "and a protected-level event arrives, an unprotected event is evicted. "

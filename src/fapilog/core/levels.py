@@ -31,6 +31,8 @@ _DEFAULT_LEVELS: Final[dict[str, int]] = {
     "ERROR": 40,
     "CRITICAL": 50,
     "FATAL": 50,  # alias
+    "AUDIT": 60,  # compliance/accountability records
+    "SECURITY": 70,  # security-relevant events
 }
 
 _custom_levels: dict[str, int] = {}
