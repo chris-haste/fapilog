@@ -198,6 +198,7 @@ class TestRedactorStage:
 
         # Inject redactor and enricher
         logger._redactors = [_SimpleRedactor()]  # type: ignore[attr-defined]
+        logger._invalidate_redactors_cache()  # type: ignore[attr-defined]
         logger.start()
         logger.enable_enricher(_SimpleEnricher())
 

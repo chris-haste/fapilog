@@ -72,6 +72,7 @@ async def test_redaction_reaches_stdout_sink() -> None:
         logger = get_logger(name="redaction-stdout-test")
         logger._sink_write = sink.write  # type: ignore[attr-defined]
         logger._redactors = cast(list[BaseRedactor], [redactor])
+        logger._invalidate_redactors_cache()  # type: ignore[attr-defined]
 
         logger.info(
             "user_login",
@@ -148,6 +149,7 @@ async def test_redaction_reaches_file_sink(tmp_path: Path) -> None:
         logger = get_logger(name="redaction-file-test")
         logger._sink_write = sink.write  # type: ignore[attr-defined]
         logger._redactors = cast(list[BaseRedactor], [redactor])
+        logger._invalidate_redactors_cache()  # type: ignore[attr-defined]
 
         logger.info(
             "api_call", api_key="sk-12345", token="bearer-xyz", endpoint="/users"
@@ -234,6 +236,7 @@ async def test_redaction_reaches_http_sink() -> None:
         logger = get_logger(name="redaction-http-test")
         logger._sink_write = sink.write  # type: ignore[attr-defined]
         logger._redactors = cast(list[BaseRedactor], [redactor])
+        logger._invalidate_redactors_cache()  # type: ignore[attr-defined]
 
         logger.info("login", username="bob", password="hunter2", secret="abc123")
 
@@ -323,6 +326,7 @@ async def test_redaction_reaches_postgres_sink(redaction_postgres_pool: Any) -> 
         logger = get_logger(name="redaction-postgres-test")
         logger._sink_write = sink.write  # type: ignore[attr-defined]
         logger._redactors = cast(list[BaseRedactor], [redactor])
+        logger._invalidate_redactors_cache()  # type: ignore[attr-defined]
 
         logger.info(
             "payment",
@@ -396,6 +400,7 @@ async def test_redaction_applies_to_all_log_levels() -> None:
     logger = get_logger(name="redaction-levels-test")
     logger._sink_write = collecting_sink  # type: ignore[attr-defined]
     logger._redactors = cast(list[BaseRedactor], [redactor])
+    logger._invalidate_redactors_cache()  # type: ignore[attr-defined]
 
     logger.debug("debug-msg", secret="debug-secret")
     logger.info("info-msg", secret="info-secret")
@@ -456,6 +461,7 @@ async def test_redaction_happens_before_serialization() -> None:
     logger = get_logger(name="redaction-order-test")
     logger._sink_write = capturing_sink  # type: ignore[attr-defined]
     logger._redactors = cast(list[BaseRedactor], [redactor])
+    logger._invalidate_redactors_cache()  # type: ignore[attr-defined]
 
     logger.info("login", password="supersecret")
 

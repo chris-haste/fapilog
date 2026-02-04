@@ -179,7 +179,9 @@ async def test_logger_check_health_aggregates() -> None:
     )
     logger._sinks = [sink]  # noqa: SLF001
     logger._redactors = [_DummyHealthRedactor()]  # noqa: SLF001
+    logger._invalidate_redactors_cache()  # noqa: SLF001
     logger._processors = [processor]  # noqa: SLF001
+    logger._invalidate_processors_cache()  # noqa: SLF001
     health = await logger.check_health()
     assert health.all_healthy is True
 

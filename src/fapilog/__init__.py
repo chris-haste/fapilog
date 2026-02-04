@@ -560,6 +560,11 @@ def _apply_logger_extras(
     logger._filters = started_filters  # noqa: SLF001
     logger._sinks = setup.sinks  # noqa: SLF001
 
+    # Invalidate component caches after direct assignment (Story 1.40)
+    logger._invalidate_redactors_cache()  # noqa: SLF001
+    logger._invalidate_processors_cache()  # noqa: SLF001
+    logger._invalidate_filters_cache()  # noqa: SLF001
+
 
 def _prepare_logger(
     name: str | None,

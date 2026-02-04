@@ -117,6 +117,7 @@ class TestEnrichmentAndRedactionPipeline:
         )
 
         logger._redactors = [redactor1, redactor2]
+        logger._invalidate_redactors_cache()
 
         logger.start()
         logger.info(
@@ -186,6 +187,7 @@ class TestEnrichmentAndRedactionPipeline:
         )
 
         logger._redactors = [good_redactor, failing_redactor]
+        logger._invalidate_redactors_cache()
 
         logger.start()
         logger.info("test message", remove_me="should_be_gone", keep_me="should_stay")
