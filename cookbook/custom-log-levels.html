@@ -7,7 +7,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Custom log levels in Python (TRACE, AUDIT, NOTICE) &mdash; fapilog latest documentation</title>
+  <title>Custom log levels in Python (TRACE, VERBOSE, NOTICE) &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -115,7 +115,7 @@
 <li class="toctree-l2"><a class="reference internal" href="adaptive-sampling-high-volume.html">Adaptive Sampling for High-Volume Services</a></li>
 <li class="toctree-l2"><a class="reference internal" href="graceful-shutdown-flush.html">Graceful shutdown &amp; flushing logs (don’t lose logs on deploy)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="exception-logging-request-context.html">Exception logging in FastAPI with request_id + structured context</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Custom log levels in Python (TRACE, AUDIT, NOTICE)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Custom log levels in Python (TRACE, VERBOSE, NOTICE)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples &amp; Recipes</a><ul>
@@ -219,7 +219,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="index.html">Cookbook</a></li>
-      <li class="breadcrumb-item active">Custom log levels in Python (TRACE, AUDIT, NOTICE)</li>
+      <li class="breadcrumb-item active">Custom log levels in Python (TRACE, VERBOSE, NOTICE)</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/cookbook/custom-log-levels.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -229,9 +229,12 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="custom-log-levels-in-python-trace-audit-notice">
-<h1>Custom log levels in Python (TRACE, AUDIT, NOTICE)<a class="headerlink" href="#custom-log-levels-in-python-trace-audit-notice" title="Link to this heading"></a></h1>
-<p>Python’s standard logging library provides five levels (DEBUG, INFO, WARNING, ERROR, CRITICAL), but real applications often need more granularity. Whether you’re adding TRACE for detailed debugging, AUDIT for compliance events, or NOTICE for operational alerts, custom levels help you filter and route logs precisely.</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="custom-log-levels-in-python-trace-verbose-notice">
+<h1>Custom log levels in Python (TRACE, VERBOSE, NOTICE)<a class="headerlink" href="#custom-log-levels-in-python-trace-verbose-notice" title="Link to this heading"></a></h1>
+<p>Python’s standard logging library provides five levels (DEBUG, INFO, WARNING, ERROR, CRITICAL), but real applications often need more granularity. Whether you’re adding TRACE for detailed debugging, VERBOSE for extra context, or NOTICE for operational alerts, custom levels help you filter and route logs precisely.</p>
+<blockquote>
+<div><p><strong>Note:</strong> fapilog includes AUDIT (60) and SECURITY (70) as built-in levels above CRITICAL. Use <code class="docutils literal notranslate"><span class="pre">logger.audit()</span></code> and <code class="docutils literal notranslate"><span class="pre">logger.security()</span></code> directly without registration. This guide covers adding <em>additional</em> custom levels.</p>
+</div></blockquote>
 <section id="the-problem">
 <h2>The Problem<a class="headerlink" href="#the-problem" title="Link to this heading"></a></h2>
 <p>The standard five log levels force awkward compromises:</p>
@@ -267,7 +270,7 @@
 
 <span class="c1"># Register custom levels BEFORE creating any loggers</span>
 <span class="n">fapilog</span><span class="o">.</span><span class="n">register_level</span><span class="p">(</span><span class="s2">&quot;TRACE&quot;</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">add_method</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">fapilog</span><span class="o">.</span><span class="n">register_level</span><span class="p">(</span><span class="s2">&quot;AUDIT&quot;</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">add_method</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fapilog</span><span class="o">.</span><span class="n">register_level</span><span class="p">(</span><span class="s2">&quot;VERBOSE&quot;</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">add_method</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">fapilog</span><span class="o">.</span><span class="n">register_level</span><span class="p">(</span><span class="s2">&quot;NOTICE&quot;</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="mi">35</span><span class="p">,</span> <span class="n">add_method</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Now create your logger</span>
@@ -275,12 +278,16 @@
 
 <span class="c1"># Use custom levels naturally</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="s2">&quot;Entering function&quot;</span><span class="p">,</span> <span class="n">function</span><span class="o">=</span><span class="s2">&quot;process_order&quot;</span><span class="p">)</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">audit</span><span class="p">(</span><span class="s2">&quot;User login&quot;</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;123&quot;</span><span class="p">,</span> <span class="n">ip_address</span><span class="o">=</span><span class="s2">&quot;192.168.1.1&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">verbose</span><span class="p">(</span><span class="s2">&quot;Request details&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;X-Request-Id&quot;</span><span class="p">:</span> <span class="s2">&quot;abc&quot;</span><span class="p">})</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">notice</span><span class="p">(</span><span class="s2">&quot;Disk usage elevated&quot;</span><span class="p">,</span> <span class="n">percent</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">mount</span><span class="o">=</span><span class="s2">&quot;/data&quot;</span><span class="p">)</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Order processed&quot;</span><span class="p">,</span> <span class="n">order_id</span><span class="o">=</span><span class="s2">&quot;456&quot;</span><span class="p">)</span>
+
+<span class="c1"># Built-in AUDIT and SECURITY work without registration</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">audit</span><span class="p">(</span><span class="s2">&quot;User login&quot;</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;123&quot;</span><span class="p">,</span> <span class="n">ip_address</span><span class="o">=</span><span class="s2">&quot;192.168.1.1&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">security</span><span class="p">(</span><span class="s2">&quot;Failed auth attempt&quot;</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;123&quot;</span><span class="p">,</span> <span class="n">attempts</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">add_method=True</span></code> parameter generates <code class="docutils literal notranslate"><span class="pre">logger.trace()</span></code>, <code class="docutils literal notranslate"><span class="pre">logger.audit()</span></code>, etc. as callable methods.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">add_method=True</span></code> parameter generates <code class="docutils literal notranslate"><span class="pre">logger.trace()</span></code>, <code class="docutils literal notranslate"><span class="pre">logger.verbose()</span></code>, etc. as callable methods.</p>
 </section>
 <section id="priority-values">
 <h2>Priority Values<a class="headerlink" href="#priority-values" title="Link to this heading"></a></h2>
@@ -289,55 +296,71 @@
 <thead>
 <tr class="row-odd"><th class="head"><p>Level</p></th>
 <th class="head"><p>Priority</p></th>
+<th class="head"><p>Type</p></th>
 <th class="head"><p>Use Case</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>TRACE</p></td>
 <td><p>5</p></td>
+<td><p>Custom</p></td>
 <td><p>Function entry/exit, loop iterations</p></td>
 </tr>
 <tr class="row-odd"><td><p>DEBUG</p></td>
 <td><p>10</p></td>
+<td><p>Built-in</p></td>
 <td><p>Variable values, decision branches</p></td>
 </tr>
-<tr class="row-even"><td><p>INFO</p></td>
-<td><p>20</p></td>
-<td><p>Normal operations, milestones</p></td>
+<tr class="row-even"><td><p>VERBOSE</p></td>
+<td><p>15</p></td>
+<td><p>Custom</p></td>
+<td><p>Extra context, request details</p></td>
 </tr>
-<tr class="row-odd"><td><p>AUDIT</p></td>
-<td><p>25</p></td>
-<td><p>Security events, compliance logging</p></td>
+<tr class="row-odd"><td><p>INFO</p></td>
+<td><p>20</p></td>
+<td><p>Built-in</p></td>
+<td><p>Normal operations, milestones</p></td>
 </tr>
 <tr class="row-even"><td><p>WARNING</p></td>
 <td><p>30</p></td>
+<td><p>Built-in</p></td>
 <td><p>Degraded performance, deprecations</p></td>
 </tr>
 <tr class="row-odd"><td><p>NOTICE</p></td>
 <td><p>35</p></td>
+<td><p>Custom</p></td>
 <td><p>Operational alerts, threshold alerts</p></td>
 </tr>
 <tr class="row-even"><td><p>ERROR</p></td>
 <td><p>40</p></td>
+<td><p>Built-in</p></td>
 <td><p>Failures that don’t stop the app</p></td>
 </tr>
 <tr class="row-odd"><td><p>CRITICAL</p></td>
 <td><p>50</p></td>
+<td><p>Built-in</p></td>
 <td><p>System failures, data corruption</p></td>
+</tr>
+<tr class="row-even"><td><p>AUDIT</p></td>
+<td><p>60</p></td>
+<td><p>Built-in</p></td>
+<td><p>Compliance events, accountability</p></td>
+</tr>
+<tr class="row-odd"><td><p>SECURITY</p></td>
+<td><p>70</p></td>
+<td><p>Built-in</p></td>
+<td><p>Security events, threat detection</p></td>
 </tr>
 </tbody>
 </table>
-<p>Custom levels integrate with fapilog’s level filtering. Setting <code class="docutils literal notranslate"><span class="pre">min_level=&quot;AUDIT&quot;</span></code> filters out TRACE, DEBUG, and INFO.</p>
+<p>Custom levels integrate with fapilog’s level filtering. Setting <code class="docutils literal notranslate"><span class="pre">min_level=&quot;AUDIT&quot;</span></code> filters out everything below priority 60.</p>
 </section>
-<section id="routing-custom-levels-to-separate-sinks">
-<h2>Routing Custom Levels to Separate Sinks<a class="headerlink" href="#routing-custom-levels-to-separate-sinks" title="Link to this heading"></a></h2>
+<section id="routing-levels-to-separate-sinks">
+<h2>Routing Levels to Separate Sinks<a class="headerlink" href="#routing-levels-to-separate-sinks" title="Link to this heading"></a></h2>
 <p>Route specific levels to dedicated outputs:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">fapilog</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.sinks</span><span class="w"> </span><span class="kn">import</span> <span class="n">StdoutSink</span><span class="p">,</span> <span class="n">FileSink</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.filters</span><span class="w"> </span><span class="kn">import</span> <span class="n">LevelFilter</span>
-
-<span class="c1"># Register custom level</span>
-<span class="n">fapilog</span><span class="o">.</span><span class="n">register_level</span><span class="p">(</span><span class="s2">&quot;AUDIT&quot;</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">add_method</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Create sinks with different filters</span>
 <span class="n">console_sink</span> <span class="o">=</span> <span class="n">StdoutSink</span><span class="p">(</span>
@@ -349,11 +372,19 @@
     <span class="n">filters</span><span class="o">=</span><span class="p">[</span><span class="n">LevelFilter</span><span class="p">(</span><span class="n">min_level</span><span class="o">=</span><span class="s2">&quot;AUDIT&quot;</span><span class="p">,</span> <span class="n">max_level</span><span class="o">=</span><span class="s2">&quot;AUDIT&quot;</span><span class="p">)]</span>  <span class="c1"># AUDIT only</span>
 <span class="p">)</span>
 
-<span class="c1"># Configure logger with multiple sinks</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">fapilog</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="n">console_sink</span><span class="p">,</span> <span class="n">audit_sink</span><span class="p">])</span>
+<span class="n">security_sink</span> <span class="o">=</span> <span class="n">FileSink</span><span class="p">(</span>
+    <span class="n">path</span><span class="o">=</span><span class="s2">&quot;/var/log/security.jsonl&quot;</span><span class="p">,</span>
+    <span class="n">filters</span><span class="o">=</span><span class="p">[</span><span class="n">LevelFilter</span><span class="p">(</span><span class="n">min_level</span><span class="o">=</span><span class="s2">&quot;SECURITY&quot;</span><span class="p">)]</span>  <span class="c1"># SECURITY only (highest level)</span>
+<span class="p">)</span>
 
-<span class="c1"># AUDIT goes to both console AND audit file</span>
+<span class="c1"># Configure logger with multiple sinks</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">fapilog</span><span class="o">.</span><span class="n">get_logger</span><span class="p">(</span><span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="n">console_sink</span><span class="p">,</span> <span class="n">audit_sink</span><span class="p">,</span> <span class="n">security_sink</span><span class="p">])</span>
+
+<span class="c1"># AUDIT goes to console AND audit file</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">audit</span><span class="p">(</span><span class="s2">&quot;Password changed&quot;</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="s2">&quot;123&quot;</span><span class="p">)</span>
+
+<span class="c1"># SECURITY goes to console AND security file</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">security</span><span class="p">(</span><span class="s2">&quot;Brute force detected&quot;</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="s2">&quot;10.0.0.1&quot;</span><span class="p">,</span> <span class="n">attempts</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 
 <span class="c1"># INFO goes only to console</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Request completed&quot;</span><span class="p">)</span>
@@ -366,13 +397,13 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">fapilog</span>
 
 <span class="n">fapilog</span><span class="o">.</span><span class="n">register_level</span><span class="p">(</span><span class="s2">&quot;TRACE&quot;</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">add_method</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">fapilog</span><span class="o">.</span><span class="n">register_level</span><span class="p">(</span><span class="s2">&quot;AUDIT&quot;</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">add_method</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
     <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">fapilog</span><span class="o">.</span><span class="n">get_async_logger</span><span class="p">()</span>
 
     <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="s2">&quot;Starting async operation&quot;</span><span class="p">)</span>
-    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">audit</span><span class="p">(</span><span class="s2">&quot;API key created&quot;</span><span class="p">,</span> <span class="n">key_id</span><span class="o">=</span><span class="s2">&quot;abc123&quot;</span><span class="p">)</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">audit</span><span class="p">(</span><span class="s2">&quot;API key created&quot;</span><span class="p">,</span> <span class="n">key_id</span><span class="o">=</span><span class="s2">&quot;abc123&quot;</span><span class="p">)</span>  <span class="c1"># Built-in</span>
+    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">security</span><span class="p">(</span><span class="s2">&quot;Suspicious request&quot;</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="s2">&quot;10.0.0.1&quot;</span><span class="p">)</span>  <span class="c1"># Built-in</span>
     <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Operation complete&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -396,11 +427,10 @@
 </pre></div>
 </div>
 </section>
-<section id="audit-for-compliance">
-<h3>AUDIT for Compliance<a class="headerlink" href="#audit-for-compliance" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fapilog</span><span class="o">.</span><span class="n">register_level</span><span class="p">(</span><span class="s2">&quot;AUDIT&quot;</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">add_method</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-<span class="n">logger</span> <span class="o">=</span> <span class="n">fapilog</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span>
+<section id="audit-for-compliance-built-in">
+<h3>AUDIT for Compliance (Built-in)<a class="headerlink" href="#audit-for-compliance-built-in" title="Link to this heading"></a></h3>
+<p>AUDIT is a built-in level (priority 60) - no registration needed:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">fapilog</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">change_password</span><span class="p">(</span><span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">new_password</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
     <span class="c1"># Business logic here...</span>
@@ -410,6 +440,22 @@
         <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;security.password_change&quot;</span><span class="p">,</span>
         <span class="n">compliance</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;SOC2&quot;</span><span class="p">,</span> <span class="s2">&quot;GDPR&quot;</span><span class="p">]</span>
     <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="security-for-threat-detection-built-in">
+<h3>SECURITY for Threat Detection (Built-in)<a class="headerlink" href="#security-for-threat-detection-built-in" title="Link to this heading"></a></h3>
+<p>SECURITY is the highest built-in level (priority 70):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">fapilog</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">detect_brute_force</span><span class="p">(</span><span class="n">ip</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">failed_attempts</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">failed_attempts</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">security</span><span class="p">(</span>
+            <span class="s2">&quot;Brute force attack detected&quot;</span><span class="p">,</span>
+            <span class="n">ip</span><span class="o">=</span><span class="n">ip</span><span class="p">,</span>
+            <span class="n">attempts</span><span class="o">=</span><span class="n">failed_attempts</span><span class="p">,</span>
+            <span class="n">action</span><span class="o">=</span><span class="s2">&quot;blocked&quot;</span>
+        <span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -446,10 +492,13 @@
 
 <span class="c1"># This raises RuntimeError</span>
 <span class="n">logger2</span> <span class="o">=</span> <span class="n">fapilog</span><span class="o">.</span><span class="n">get_logger</span><span class="p">()</span>
-<span class="n">fapilog</span><span class="o">.</span><span class="n">register_level</span><span class="p">(</span><span class="s2">&quot;AUDIT&quot;</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>  <span class="c1"># RuntimeError: Registry is frozen</span>
+<span class="n">fapilog</span><span class="o">.</span><span class="n">register_level</span><span class="p">(</span><span class="s2">&quot;VERBOSE&quot;</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>  <span class="c1"># RuntimeError: Registry is frozen</span>
 </pre></div>
 </div>
 <p>The registry freezes when the first logger is created. This prevents inconsistent behavior where some loggers have custom levels and others don’t.</p>
+<blockquote>
+<div><p><strong>Note:</strong> Built-in levels (DEBUG, INFO, WARNING, ERROR, CRITICAL, AUDIT, SECURITY) are always available and don’t need registration.</p>
+</div></blockquote>
 <section id="application-startup-pattern">
 <h3>Application Startup Pattern<a class="headerlink" href="#application-startup-pattern" title="Link to this heading"></a></h3>
 <p>Register all custom levels in your application’s entry point:</p>
@@ -458,8 +507,9 @@
 
 <span class="k">def</span><span class="w"> </span><span class="nf">configure_logging</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Call once at application startup, before any imports that create loggers.&quot;&quot;&quot;</span>
+    <span class="c1"># Only register custom levels - AUDIT and SECURITY are built-in</span>
     <span class="n">fapilog</span><span class="o">.</span><span class="n">register_level</span><span class="p">(</span><span class="s2">&quot;TRACE&quot;</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">add_method</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">fapilog</span><span class="o">.</span><span class="n">register_level</span><span class="p">(</span><span class="s2">&quot;AUDIT&quot;</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">add_method</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">fapilog</span><span class="o">.</span><span class="n">register_level</span><span class="p">(</span><span class="s2">&quot;VERBOSE&quot;</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">add_method</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">fapilog</span><span class="o">.</span><span class="n">register_level</span><span class="p">(</span><span class="s2">&quot;NOTICE&quot;</span><span class="p">,</span> <span class="n">priority</span><span class="o">=</span><span class="mi">35</span><span class="p">,</span> <span class="n">add_method</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># app/main.py</span>

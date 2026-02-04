@@ -115,7 +115,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../cookbook/adaptive-sampling-high-volume.html">Adaptive Sampling for High-Volume Services</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../cookbook/graceful-shutdown-flush.html">Graceful shutdown &amp; flushing logs (don’t lose logs on deploy)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../cookbook/exception-logging-request-context.html">Exception logging in FastAPI with request_id + structured context</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../cookbook/custom-log-levels.html">Custom log levels in Python (TRACE, AUDIT, NOTICE)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/custom-log-levels.html">Custom log levels in Python (TRACE, VERBOSE, NOTICE)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples &amp; Recipes</a><ul>
@@ -262,7 +262,9 @@
 <section id="methods">
 <h2>Methods<a class="headerlink" href="#methods" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">debug/info/warning/error/exception(message,</span> <span class="pre">**kwargs)</span></code>: emit a log entry; async variants must be awaited.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">debug/info/warning/error/critical/exception(message,</span> <span class="pre">**kwargs)</span></code>: standard log levels; async variants must be awaited.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">audit(message,</span> <span class="pre">**kwargs)</span></code>: compliance/accountability events (priority 60, above CRITICAL).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">security(message,</span> <span class="pre">**kwargs)</span></code>: security-relevant events (priority 70, highest standard level).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">bind(**context)</span></code>, <code class="docutils literal notranslate"><span class="pre">clear_context()</span></code>: manage bound context for the current task/thread.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">stop_and_drain()</span></code> / <code class="docutils literal notranslate"><span class="pre">drain()</span></code>: graceful shutdown; use <code class="docutils literal notranslate"><span class="pre">asyncio.run(logger.stop_and_drain())</span></code> for sync loggers if needed outside <code class="docutils literal notranslate"><span class="pre">runtime()</span></code>.</p></li>
 </ul>

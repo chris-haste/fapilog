@@ -31,7 +31,9 @@ async with runtime_async() as log:
 
 ## Methods
 
-- `debug/info/warning/error/exception(message, **kwargs)`: emit a log entry; async variants must be awaited.
+- `debug/info/warning/error/critical/exception(message, **kwargs)`: standard log levels; async variants must be awaited.
+- `audit(message, **kwargs)`: compliance/accountability events (priority 60, above CRITICAL).
+- `security(message, **kwargs)`: security-relevant events (priority 70, highest standard level).
 - `bind(**context)`, `clear_context()`: manage bound context for the current task/thread.
 - `stop_and_drain()` / `drain()`: graceful shutdown; use `asyncio.run(logger.stop_and_drain())` for sync loggers if needed outside `runtime()`.
 
