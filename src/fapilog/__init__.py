@@ -790,6 +790,7 @@ def _create_and_start_facade(
         serialize_in_flush=cfg.core.serialize_in_flush,
         num_workers=cfg.core.worker_count,
         level_gate=setup.level_gate,
+        protected_levels=cfg.core.protected_levels,
     )
 
     # Add dynamic methods for custom levels (Story 10.47 AC5)

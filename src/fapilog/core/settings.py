@@ -608,6 +608,14 @@ class CoreSettings(BaseModel):
             "If True, drop events after backpressure_wait_ms elapses when queue is full"
         ),
     )
+    protected_levels: list[str] = Field(
+        default_factory=lambda: ["ERROR", "CRITICAL", "FATAL"],
+        description=(
+            "Log levels protected from queue-pressure dropping. When queue is full "
+            "and a protected-level event arrives, an unprotected event is evicted. "
+            "Set to [] to disable priority dropping (all events treated equally)."
+        ),
+    )
     enable_metrics: bool = Field(
         default=False,
         description=("Enable Prometheus-compatible metrics"),
@@ -868,6 +876,11 @@ class CoreSettings(BaseModel):
         if not value:
             raise ValueError("app_name must not be empty")
         return value
+
+    @field_validator("protected_levels")
+    @classmethod
+    def _normalize_protected_levels(cls, value: list[str]) -> list[str]:
+        return [lvl.upper() for lvl in value]
 
 
 class HttpSinkSettings(BaseModel):

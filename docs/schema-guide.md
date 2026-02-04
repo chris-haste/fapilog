@@ -234,6 +234,14 @@
       "title": "Processors",
       "type": "array"
     },
+    "protected_levels": {
+      "description": "Log levels protected from queue-pressure dropping. When queue is full and a protected-level event arrives, an unprotected event is evicted. Set to [] to disable priority dropping (all events treated equally).",
+      "items": {
+        "type": "string"
+      },
+      "title": "Protected Levels",
+      "type": "array"
+    },
     "redaction_fail_mode": {
       "default": "warn",
       "description": "Behavior when _apply_redactors() catches an unexpected exception: 'open' passes original event, 'closed' drops the event, 'warn' (default) passes event but emits diagnostic warning",

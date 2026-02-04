@@ -31,7 +31,7 @@ Choose based on your traffic patterns and deployment environment:
 | Preset | Best For | Key Features |
 |--------|----------|--------------|
 | `fastapi` | Most microservices | Balanced throughput, JSON output, credential redaction |
-| `high-volume` | >1000 req/sec | Adaptive sampling, drops for latency |
+| `high-volume` | >1000 req/sec | Protected levels, drops for latency |
 | `serverless` | Cloud Run, Lambda | Smaller batches, fast drain, drop-tolerant |
 | `production-latency` | Latency-critical APIs | Drops over blocking, no file I/O |
 
@@ -51,13 +51,14 @@ app = FastAPI(
 ```python
 app = FastAPI(
     lifespan=FastAPIBuilder()
-        .with_preset("high-volume")  # Adaptive sampling kicks in
+        .with_preset("high-volume")  # Protected levels survive queue pressure
+        .with_adaptive_sampling(target_events_per_sec=100)  # Optional: add sampling
         .skip_paths(["/health", "/healthz", "/ready", "/live", "/metrics"])
         .build()
 )
 ```
 
-The `high-volume` preset automatically samples down during traffic spikes while always logging errors. See [Adaptive Sampling](adaptive-sampling-high-volume.md) for details.
+The `high-volume` preset protects ERROR/CRITICAL/FATAL from queue drops. Add `.with_adaptive_sampling()` for cost control during traffic spikes. See [Adaptive Sampling](adaptive-sampling-high-volume.md) for details.
 
 ### Environment-Based Selection
 

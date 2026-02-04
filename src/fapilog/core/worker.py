@@ -15,13 +15,16 @@ from ..plugins.enrichers import BaseEnricher, enrich_parallel
 from ..plugins.filters import filter_in_order
 from ..plugins.processors import BaseProcessor
 from ..plugins.redactors import BaseRedactor, redact_in_order
-from .concurrency import NonBlockingRingQueue
+from .concurrency import NonBlockingRingQueue, PriorityAwareQueue
 from .diagnostics import warn
 from .serialization import (
     SerializedView,
     serialize_envelope,
     serialize_mapping_to_json_bytes,
 )
+
+# Union type for both queue implementations
+LogQueue = NonBlockingRingQueue[dict[str, Any]] | PriorityAwareQueue[dict[str, Any]]
 
 
 def strict_envelope_mode_enabled() -> bool:
@@ -70,7 +73,7 @@ async def stop_plugins(
 
 
 async def enqueue_with_backpressure(
-    queue: NonBlockingRingQueue[dict[str, Any]],
+    queue: LogQueue,
     payload: dict[str, Any],
     *,
     timeout: float,
@@ -134,7 +137,7 @@ class LoggerWorker:
     def __init__(
         self,
         *,
-        queue: NonBlockingRingQueue[dict[str, Any]],
+        queue: LogQueue,
         batch_max_size: int,
         batch_timeout_seconds: float,
         sink_write: Callable[[dict[str, Any]], Awaitable[None]],

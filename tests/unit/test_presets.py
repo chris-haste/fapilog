@@ -605,13 +605,14 @@ class TestHighVolumePreset:
         presets = list_presets()
         assert "high-volume" in presets
 
-    def test_high_volume_preset_has_adaptive_sampling_filter(self):
-        """High-volume preset uses adaptive_sampling filter.
+    def test_high_volume_preset_has_no_filters(self):
+        """High-volume preset has no filters configured.
 
-        Story 10.49 AC2: adaptive_sampling in preset filters.
+        Story 1.37: Protected levels are handled via PriorityAwareQueue
+        (queue-based, not filter-based) for better hot-path performance.
         """
         config = get_preset("high-volume")
-        assert "adaptive_sampling" in config["core"]["filters"]
+        assert "filters" not in config["core"]
 
     def test_high_volume_preset_enables_drop_on_full(self):
         """High-volume preset enables drop_on_full for latency.
@@ -662,27 +663,17 @@ class TestHighVolumePreset:
         assert "runtime_info" in config["core"]["enrichers"]
         assert "context_vars" in config["core"]["enrichers"]
 
-    def test_high_volume_preset_has_filter_config(self):
-        """High-volume preset has filter_config for adaptive_sampling."""
-        config = get_preset("high-volume")
-        assert "filter_config" in config
-        assert "adaptive_sampling" in config["filter_config"]
+    def test_high_volume_preset_uses_queue_based_protection(self):
+        """High-volume preset relies on queue-based protected levels.
 
-    def test_high_volume_preset_adaptive_sampling_target_eps(self):
-        """High-volume preset sets target_eps to 100.0."""
-        config = get_preset("high-volume")
-        assert config["filter_config"]["adaptive_sampling"]["target_eps"] == 100.0
-
-    def test_high_volume_preset_adaptive_sampling_always_pass_levels(self):
-        """High-volume preset ensures errors always pass through.
-
-        Story 10.49: Errors are never sampled out via always_pass_levels.
+        Story 1.37: Protected levels (ERROR, CRITICAL, FATAL) are handled
+        via PriorityAwareQueue with eviction, not via filter-based approach.
+        The queue protects these levels from being dropped under pressure.
         """
         config = get_preset("high-volume")
-        always_pass = config["filter_config"]["adaptive_sampling"]["always_pass_levels"]
-        assert "ERROR" in always_pass
-        assert "CRITICAL" in always_pass
-        assert "FATAL" in always_pass
+        # No filter_config needed - protected_levels defaults to
+        # ["ERROR", "CRITICAL", "FATAL"] in CoreSettings
+        assert "filter_config" not in config
 
     def test_high_volume_preset_creates_valid_settings(self):
         """High-volume preset can be converted to Settings."""

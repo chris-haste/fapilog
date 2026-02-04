@@ -142,17 +142,9 @@ PRESETS: dict[str, dict[str, Any]] = {
             "redaction_fail_mode": "warn",
             "sinks": ["stdout_json"],
             "enrichers": ["runtime_info", "context_vars"],
-            "filters": ["adaptive_sampling"],  # Key feature: adaptive sampling
             "redactors": ["field_mask", "regex_mask", "url_credentials"],
-        },
-        "filter_config": {
-            "adaptive_sampling": {
-                "target_eps": 100.0,  # Target 100 events/sec
-                "min_sample_rate": 0.01,  # Never below 1%
-                "max_sample_rate": 1.0,  # Full logging when quiet
-                "window_seconds": 10.0,
-                "always_pass_levels": ["ERROR", "CRITICAL", "FATAL"],
-            },
+            # protected_levels defaults to ["ERROR", "CRITICAL", "FATAL"]
+            # handled via PriorityAwareQueue (queue-based, not filter-based)
         },
         "enricher_config": {
             "runtime_info": {},

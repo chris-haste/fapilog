@@ -20,7 +20,7 @@ from ..metrics.metrics import MetricsCollector
 from ..plugins.enrichers import BaseEnricher
 from ..plugins.processors import BaseProcessor
 from ..plugins.redactors import BaseRedactor
-from .concurrency import NonBlockingRingQueue
+from .concurrency import PriorityAwareQueue
 from .envelope import build_envelope
 from .events import LogEvent
 from .levels import get_level_priority
@@ -102,6 +102,7 @@ class _LoggerMixin(_WorkerCountersMixin):
         level_gate: int | None = None,
         emit_drop_summary: bool = False,
         drop_summary_window_seconds: float = 60.0,
+        protected_levels: list[str] | None = None,
     ) -> None:
         # Validate configuration parameters
         self._validate_config(
@@ -112,7 +113,17 @@ class _LoggerMixin(_WorkerCountersMixin):
         )
 
         self._name = name or "root"
-        self._queue = NonBlockingRingQueue[dict[str, Any]](capacity=queue_capacity)
+        # Use priority-aware queue if protected_levels specified (Story 1.37)
+        default_protected = ["ERROR", "CRITICAL", "FATAL"]
+        actual_protected = (
+            protected_levels if protected_levels is not None else default_protected
+        )
+        self._protected_levels: frozenset[str] = frozenset(
+            lvl.upper() for lvl in actual_protected
+        )
+        self._queue: PriorityAwareQueue[dict[str, Any]] = PriorityAwareQueue(
+            capacity=queue_capacity, protected_levels=self._protected_levels
+        )
         self._queue_high_watermark = 0
         self._counters: dict[str, int] = {"processed": 0, "dropped": 0}
         self._batch_max_size = int(batch_max_size)
@@ -974,6 +985,7 @@ class SyncLoggerFacade(_LoggerMixin):
         level_gate: int | None = None,
         emit_drop_summary: bool = False,
         drop_summary_window_seconds: float = 60.0,
+        protected_levels: list[str] | None = None,
     ) -> None:
         self._common_init(
             name=name,
@@ -996,6 +1008,7 @@ class SyncLoggerFacade(_LoggerMixin):
             level_gate=level_gate,
             emit_drop_summary=emit_drop_summary,
             drop_summary_window_seconds=drop_summary_window_seconds,
+            protected_levels=protected_levels,
         )
 
     def start(self) -> None:
@@ -1337,6 +1350,7 @@ class AsyncLoggerFacade(_LoggerMixin):
         level_gate: int | None = None,
         emit_drop_summary: bool = False,
         drop_summary_window_seconds: float = 60.0,
+        protected_levels: list[str] | None = None,
     ) -> None:
         self._common_init(
             name=name,
@@ -1359,6 +1373,7 @@ class AsyncLoggerFacade(_LoggerMixin):
             level_gate=level_gate,
             emit_drop_summary=emit_drop_summary,
             drop_summary_window_seconds=drop_summary_window_seconds,
+            protected_levels=protected_levels,
         )
 
     async def start_async(self) -> None:

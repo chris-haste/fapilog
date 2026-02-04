@@ -1,6 +1,6 @@
 # Adaptive Sampling for High-Volume Services
 
-When your service handles thousands of requests per second, logging everything is expensive and often unnecessary. But during incidents, you need full visibility. The `high-volume` preset solves this with adaptive sampling that automatically adjusts based on traffic.
+When your service handles thousands of requests per second, logging everything is expensive and often unnecessary. But during incidents, you need full visibility. Adaptive sampling automatically adjusts the sample rate based on traffic.
 
 ## The Problem
 
@@ -18,24 +18,43 @@ At $0.50/GB ingested (typical cloud pricing), a 4-hour sale event costs more tha
 - Full visibility during incidents
 - Errors never dropped, regardless of volume
 
-## The Solution: high-volume Preset
+## The Solution: high-volume Preset + Adaptive Sampling
 
-The `high-volume` preset provides intelligent adaptive sampling out of the box:
+Combine the `high-volume` preset with adaptive sampling for intelligent cost control:
 
 ```python
 from fapilog import LoggerBuilder
 
-logger = LoggerBuilder().with_preset("high-volume").build()
+logger = (
+    LoggerBuilder()
+    .with_preset("high-volume")
+    .with_adaptive_sampling(target_events_per_sec=100)
+    .build()
+)
 
 # During normal traffic: logs ~100 events/sec
 # During spikes: automatically samples down, never below 1%
-# Errors: always logged, never sampled out
+# Errors: always logged via priority queue protection
 ```
 
-### What the Preset Configures
+### Why Two Layers of Protection?
+
+The `high-volume` preset provides **queue-level protection** via `protected_levels`:
+- ERROR/CRITICAL/FATAL events survive queue pressure
+- Under extreme load, unprotected events may be evicted to make room for protected ones
+- This is a last-resort safety net
+
+Adaptive sampling provides **pre-queue cost control**:
+- Samples events before they enter the queue
+- Automatically adjusts rate based on throughput
+- More predictable cost control
+
+Together they provide both cost efficiency and guaranteed error visibility.
+
+### Configuration
 
 ```python
-# Equivalent manual configuration:
+# Full configuration with adaptive sampling:
 logger = (
     LoggerBuilder()
     .with_adaptive_sampling(
@@ -43,8 +62,8 @@ logger = (
         min_rate=0.01,              # Never below 1%
         max_rate=1.0,               # Full logging when quiet
         window_seconds=10.0,        # 10-second rolling window
-        always_pass_levels=["ERROR", "CRITICAL", "FATAL"],
     )
+    .with_protected_levels(["ERROR", "CRITICAL", "FATAL"])  # Queue protection
     .with_workers(2)        # Throughput optimization
     .with_drop_on_full()    # Protect latency under pressure
     .add_stdout_json()
@@ -67,13 +86,13 @@ The algorithm uses exponential smoothing over a 10-second window to avoid thrash
 
 ## Errors Always Pass Through
 
-The most important feature: **errors are never dropped**. The `always_pass_levels` setting ensures ERROR, CRITICAL, and FATAL messages bypass sampling entirely:
+The most important feature: **errors are never dropped**. The `protected_levels` setting ensures ERROR, CRITICAL, and FATAL messages survive queue pressure:
 
 ```python
 # Even during a 10,000 req/sec spike with 1% sampling:
-logger.info("request processed")   # 1% chance of logging
-logger.error("database timeout")   # 100% logged, always
-logger.critical("service down")    # 100% logged, always
+logger.info("request processed")   # May be sampled out or dropped under pressure
+logger.error("database timeout")   # Protected: survives queue pressure
+logger.critical("service down")    # Protected: survives queue pressure
 ```
 
 This is production-safe because you'll always see:
@@ -81,6 +100,10 @@ This is production-safe because you'll always see:
 - Database failures
 - Service degradations
 - Security events logged at ERROR+
+
+The protection works at two levels:
+1. **Adaptive sampling filter**: `always_pass_levels` bypasses sampling for protected levels
+2. **Priority queue**: If queue is full, unprotected events are evicted to make room for protected ones
 
 ## Real-World Example: E-commerce Flash Sale
 
@@ -101,17 +124,22 @@ logger = LoggerBuilder().with_sampling(rate=0.1).add_stdout().build()
 from fapilog import LoggerBuilder
 
 # Adaptive sampling - responds to actual traffic
-logger = LoggerBuilder().with_preset("high-volume").build()
+logger = (
+    LoggerBuilder()
+    .with_preset("high-volume")
+    .with_adaptive_sampling(target_events_per_sec=100)
+    .build()
+)
 
 # Quiet period (50 req/s): 100% sampled
 # Normal load (500 req/s): ~20% sampled, hitting 100/sec target
 # Flash sale (5000 req/s): ~2% sampled, hitting 100/sec target
-# All errors: 100% captured regardless of load
+# All errors: 100% captured via queue protection
 ```
 
 ### Cost Comparison
 
-| Scenario | Fixed 10% | Adaptive (high-volume) |
+| Scenario | Fixed 10% | high-volume + adaptive |
 |----------|-----------|------------------------|
 | Quiet (50/sec) | 5/sec | 50/sec (full visibility) |
 | Normal (500/sec) | 50/sec | 100/sec |

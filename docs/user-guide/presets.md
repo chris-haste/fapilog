@@ -27,7 +27,7 @@ Is this for local development?
                   └─ No → Are you using FastAPI?
                            ├─ Yes → fastapi
                            └─ No → Is traffic high-volume (100+ req/s) with cost concerns?
-                                    ├─ Yes → high-volume (adaptive sampling)
+                                    ├─ Yes → high-volume (protected levels)
                                     └─ No → Is log durability critical?
                                              ├─ Yes → production (never drops)
                                              └─ No → production-latency (prioritizes speed)
@@ -188,7 +188,7 @@ logger = get_logger(preset="production-latency")
 
 ### high-volume
 
-Cost-effective logging for high-traffic services with adaptive sampling.
+Cost-effective logging for high-traffic services.
 
 ```python
 logger = get_logger(preset="high-volume")
@@ -196,17 +196,27 @@ logger = get_logger(preset="high-volume")
 
 **Settings:**
 - INFO level filters noise
-- Adaptive sampling: targets ~100 events/sec, automatically adjusts 1-100%
-- `always_pass_levels=["ERROR", "CRITICAL", "FATAL"]` — errors never sampled out
 - `drop_on_full=True` — drops logs rather than block
+- `protected_levels=["ERROR", "CRITICAL", "FATAL"]` — protected from queue drops via priority queue
 - Automatic redaction of credentials
 - 2 workers for throughput
 
 **Use when:** High-traffic services (100+ req/s), cost-conscious deployments, traffic spikes expected, need full visibility on errors.
 
-**Trade-off:** INFO/DEBUG logs are sampled during high traffic. All errors are always logged.
+**Trade-off:** INFO/DEBUG logs may be dropped under extreme queue pressure. ERROR/CRITICAL/FATAL are protected by the priority queue.
 
-See [Adaptive Sampling for High-Volume Services](../cookbook/adaptive-sampling-high-volume.md) for detailed configuration and tuning.
+For adaptive sampling on top of the preset, use `.with_adaptive_sampling()`:
+
+```python
+logger = (
+    LoggerBuilder()
+    .with_preset("high-volume")
+    .with_adaptive_sampling(target_events_per_sec=100)
+    .build()
+)
+```
+
+See [Adaptive Sampling for High-Volume Services](../cookbook/adaptive-sampling-high-volume.md) for detailed configuration.
 
 ### fastapi
 

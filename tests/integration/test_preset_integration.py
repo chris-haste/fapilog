@@ -309,8 +309,9 @@ class TestHighVolumePresetIntegration:
     def test_high_volume_preset_errors_always_pass(self):
         """High-volume preset never drops ERROR or higher levels.
 
-        Story 10.49: Errors are never sampled out via always_pass_levels.
-        The adaptive sampling filter should always pass ERROR/CRITICAL/FATAL.
+        Story 1.37: Errors are protected via PriorityAwareQueue.
+        When queue is under pressure, protected levels (ERROR, CRITICAL, FATAL)
+        are preserved by evicting unprotected events.
         """
         buf, orig = _swap_stdout_bytesio()
         try:
@@ -321,7 +322,7 @@ class TestHighVolumePresetIntegration:
             asyncio.run(logger.stop_and_drain())
             sys.stdout.flush()
             output = buf.getvalue().decode("utf-8")
-            # All error messages should be present (not sampled out)
+            # All error messages should be present (protected from drops)
             for i in range(5):
                 assert f"error message {i}" in output
         finally:
