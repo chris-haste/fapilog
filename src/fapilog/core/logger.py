@@ -114,7 +114,8 @@ class _LoggerMixin(_WorkerCountersMixin):
 
         self._name = name or "root"
         # Use priority-aware queue if protected_levels specified (Story 1.37)
-        default_protected = ["ERROR", "CRITICAL", "FATAL"]
+        # Include AUDIT and SECURITY by default (Story 1.38)
+        default_protected = ["ERROR", "CRITICAL", "FATAL", "AUDIT", "SECURITY"]
         actual_protected = (
             protected_levels if protected_levels is not None else default_protected
         )
@@ -1288,6 +1289,54 @@ class SyncLoggerFacade(_LoggerMixin):
         """
         self._enqueue("CRITICAL", message, exc=exc, exc_info=exc_info, **metadata)
 
+    def audit(
+        self,
+        message: str,
+        *,
+        exc: BaseException | None = None,
+        exc_info: Any | None = None,
+        **metadata: Any,
+    ) -> None:
+        """Log an audit event for compliance/accountability records.
+
+        AUDIT events are for tracking user actions, data access, and other
+        activities that must be recorded for compliance or accountability.
+
+        Args:
+            message: The log message describing the audited action.
+            exc: Exception instance to include in the log event.
+            exc_info: Exception info tuple or True to capture current exception.
+            **metadata: Additional fields (user_id, resource, action, etc.).
+
+        Example:
+            logger.audit("User login", user_id="123", ip="10.0.0.1")
+        """
+        self._enqueue("AUDIT", message, exc=exc, exc_info=exc_info, **metadata)
+
+    def security(
+        self,
+        message: str,
+        *,
+        exc: BaseException | None = None,
+        exc_info: Any | None = None,
+        **metadata: Any,
+    ) -> None:
+        """Log a security event for security-relevant activity.
+
+        SECURITY events are for tracking security-relevant activities such as
+        authentication failures, suspicious behavior, or threat indicators.
+
+        Args:
+            message: The log message describing the security event.
+            exc: Exception instance to include in the log event.
+            exc_info: Exception info tuple or True to capture current exception.
+            **metadata: Additional fields (user_id, threat_type, source, etc.).
+
+        Example:
+            logger.security("Failed auth attempt", user_id="123", attempts=5)
+        """
+        self._enqueue("SECURITY", message, exc=exc, exc_info=exc_info, **metadata)
+
     # Context binding API
     def bind(self, **context: Any) -> SyncLoggerFacade:
         """Return a child logger with additional bound context for
@@ -1561,6 +1610,54 @@ class AsyncLoggerFacade(_LoggerMixin):
             await logger.critical("Database connection lost", db_host="prod-db")
         """
         await self._enqueue("CRITICAL", message, exc=exc, exc_info=exc_info, **metadata)
+
+    async def audit(
+        self,
+        message: str,
+        *,
+        exc: BaseException | None = None,
+        exc_info: Any | None = None,
+        **metadata: Any,
+    ) -> None:
+        """Log an audit event for compliance/accountability records.
+
+        AUDIT events are for tracking user actions, data access, and other
+        activities that must be recorded for compliance or accountability.
+
+        Args:
+            message: The log message describing the audited action.
+            exc: Exception instance to include in the log event.
+            exc_info: Exception info tuple or True to capture current exception.
+            **metadata: Additional fields (user_id, resource, action, etc.).
+
+        Example:
+            await logger.audit("User login", user_id="123", ip="10.0.0.1")
+        """
+        await self._enqueue("AUDIT", message, exc=exc, exc_info=exc_info, **metadata)
+
+    async def security(
+        self,
+        message: str,
+        *,
+        exc: BaseException | None = None,
+        exc_info: Any | None = None,
+        **metadata: Any,
+    ) -> None:
+        """Log a security event for security-relevant activity.
+
+        SECURITY events are for tracking security-relevant activities such as
+        authentication failures, suspicious behavior, or threat indicators.
+
+        Args:
+            message: The log message describing the security event.
+            exc: Exception instance to include in the log event.
+            exc_info: Exception info tuple or True to capture current exception.
+            **metadata: Additional fields (user_id, threat_type, source, etc.).
+
+        Example:
+            await logger.security("Failed auth attempt", user_id="123", attempts=5)
+        """
+        await self._enqueue("SECURITY", message, exc=exc, exc_info=exc_info, **metadata)
 
     # Context binding API
     def bind(self, **context: Any) -> AsyncLoggerFacade:

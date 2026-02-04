@@ -119,7 +119,7 @@ class TestRegisterLevel:
 
         _reset_registry()
 
-        register_level("AUDIT", priority=25)
+        register_level("NOTICE", priority=25)
 
         levels = get_all_levels()
         # Default levels
@@ -128,8 +128,11 @@ class TestRegisterLevel:
         assert levels["WARNING"] == 30
         assert levels["ERROR"] == 40
         assert levels["CRITICAL"] == 50
+        # Standard levels added in Story 1.38
+        assert levels["AUDIT"] == 60
+        assert levels["SECURITY"] == 70
         # Custom level
-        assert levels["AUDIT"] == 25
+        assert levels["NOTICE"] == 25
 
 
 class TestRegistryFreezing:
@@ -172,12 +175,12 @@ class TestPendingMethods:
         _reset_registry()
 
         register_level("TRACE", priority=5, add_method=True)
-        register_level("AUDIT", priority=25, add_method=False)
+        register_level("VERBOSE", priority=15, add_method=False)
         register_level("NOTICE", priority=22)  # default False
 
         pending = get_pending_methods()
         assert "TRACE" in pending
-        assert "AUDIT" not in pending
+        assert "VERBOSE" not in pending
         assert "NOTICE" not in pending
 
 
@@ -212,22 +215,22 @@ class TestLevelFilterIntegration:
         from fapilog.plugins.filters.level import LevelFilter
 
         _reset_registry()
-        register_level("AUDIT", priority=25)
+        register_level("NOTICE", priority=25)
 
-        # Level filter at AUDIT should drop INFO but pass WARNING
-        filter_instance = LevelFilter(config={"min_level": "AUDIT"})
+        # Level filter at NOTICE should drop INFO but pass WARNING
+        filter_instance = LevelFilter(config={"min_level": "NOTICE"})
 
         info_event = {"level": "INFO", "message": "info msg"}
-        audit_event = {"level": "AUDIT", "message": "audit msg"}
+        notice_event = {"level": "NOTICE", "message": "notice msg"}
         warning_event = {"level": "WARNING", "message": "warning msg"}
 
         result_info = await filter_instance.filter(info_event)
-        result_audit = await filter_instance.filter(audit_event)
+        result_notice = await filter_instance.filter(notice_event)
         result_warning = await filter_instance.filter(warning_event)
 
-        assert result_info is None  # INFO (20) < AUDIT (25)
-        assert result_audit == audit_event  # AUDIT (25) >= AUDIT (25)
-        assert result_warning == warning_event  # WARNING (30) >= AUDIT (25)
+        assert result_info is None  # INFO (20) < NOTICE (25)
+        assert result_notice == notice_event  # NOTICE (25) >= NOTICE (25)
+        assert result_warning == warning_event  # WARNING (30) >= NOTICE (25)
 
 
 class TestRoutingIntegration:
@@ -240,17 +243,17 @@ class TestRoutingIntegration:
         from fapilog.core.routing import RoutingSinkWriter
 
         _reset_registry()
-        register_level("AUDIT", priority=25)
+        register_level("NOTICE", priority=25)
 
         # Create mock sinks
-        audit_events: list[dict] = []
+        notice_events: list[dict] = []
         other_events: list[dict] = []
 
-        class AuditSink:
-            name = "audit_sink"
+        class NoticeSink:
+            name = "notice_sink"
 
             async def write(self, event: dict) -> bool:
-                audit_events.append(event)
+                notice_events.append(event)
                 return True
 
         class OtherSink:
@@ -260,21 +263,21 @@ class TestRoutingIntegration:
                 other_events.append(event)
                 return True
 
-        sinks = [AuditSink(), OtherSink()]
+        sinks = [NoticeSink(), OtherSink()]
         rules = [
-            ({"AUDIT"}, ["audit_sink"]),
+            ({"NOTICE"}, ["notice_sink"]),
             ({"INFO", "WARNING", "ERROR"}, ["other_sink"]),
         ]
 
         writer = RoutingSinkWriter(sinks, rules, fallback_sink_names=[])
 
-        # Route AUDIT to audit_sink
-        await writer.write({"level": "AUDIT", "message": "audit event"})
+        # Route NOTICE to notice_sink
+        await writer.write({"level": "NOTICE", "message": "notice event"})
         # Route INFO to other_sink
         await writer.write({"level": "INFO", "message": "info event"})
 
-        assert len(audit_events) == 1
-        assert audit_events[0]["level"] == "AUDIT"
+        assert len(notice_events) == 1
+        assert notice_events[0]["level"] == "NOTICE"
         assert len(other_events) == 1
         assert other_events[0]["level"] == "INFO"
 
@@ -360,7 +363,7 @@ class TestDynamicMethodGeneration:
         from fapilog.core.levels import _reset_registry, register_level
 
         _reset_registry()
-        register_level("AUDIT", priority=25, add_method=True)
+        register_level("NOTICE", priority=25, add_method=True)
 
         # Create a mock sink to capture events
         events: list[dict] = []
@@ -381,23 +384,23 @@ class TestDynamicMethodGeneration:
         import fapilog
         from fapilog import Settings
 
-        # AUDIT has priority 25 which is above INFO (20), so default settings work
+        # NOTICE has priority 25 which is above INFO (20), so default settings work
         # But use DEBUG to be safe and consistent with other tests
         settings = Settings(core={"log_level": "DEBUG"})
         logger = await fapilog.get_async_logger(
             sinks=[CaptureSink()], settings=settings, reuse=False
         )
 
-        # Should have audit() method
-        assert hasattr(logger, "audit")
-        await logger.audit("user login", user_id="123")
+        # Should have notice() method
+        assert hasattr(logger, "notice")
+        await logger.notice("user action", user_id="123")
 
         # Drain to ensure event is processed
         await logger.drain()
 
         assert len(events) == 1
-        assert events[0]["level"] == "AUDIT"
-        assert events[0]["message"] == "user login"
+        assert events[0]["level"] == "NOTICE"
+        assert events[0]["message"] == "user action"
 
     def test_no_method_without_add_method_flag(self) -> None:
         """Levels registered without add_method=True don't get methods."""
@@ -438,7 +441,7 @@ class TestLoggerCreationFreezesRegistry:
 
         # Can't register after logger creation
         with pytest.raises(RuntimeError, match="after loggers have been created"):
-            register_level("AUDIT", priority=25)
+            register_level("VERBOSE", priority=15)
 
     @pytest.mark.asyncio
     async def test_get_async_logger_freezes_registry(self) -> None:
@@ -452,7 +455,7 @@ class TestLoggerCreationFreezesRegistry:
         _reset_registry()
         assert not is_registry_frozen()
 
-        register_level("AUDIT", priority=25)
+        register_level("VERBOSE", priority=15)
 
         import fapilog
 
