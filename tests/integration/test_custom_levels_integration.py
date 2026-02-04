@@ -23,8 +23,9 @@ class TestCustomLevelsFullPipeline:
         from fapilog import Settings
 
         # Register custom levels before logger creation
+        # Note: AUDIT and SECURITY are now built-in levels (Story 1.38)
         fapilog.register_level("TRACE", priority=5, add_method=True)
-        fapilog.register_level("AUDIT", priority=25, add_method=True)
+        fapilog.register_level("NOTICE", priority=25, add_method=True)
 
         # Capture events at the sink
         captured_events: list[dict] = []
@@ -50,7 +51,7 @@ class TestCustomLevelsFullPipeline:
 
         # Log using dynamic methods (type: ignore for dynamically added methods)
         logger.trace("trace event", component="auth")  # type: ignore[attr-defined]
-        logger.audit("audit event", user_id="u123", action="login")  # type: ignore[attr-defined]
+        logger.notice("notice event", user_id="u123", action="login")  # type: ignore[attr-defined]
         logger.info("info event")
         logger.error("error event")
 
@@ -61,7 +62,7 @@ class TestCustomLevelsFullPipeline:
 
         levels = [e["level"] for e in captured_events]
         assert "TRACE" in levels
-        assert "AUDIT" in levels
+        assert "NOTICE" in levels
         assert "INFO" in levels
         assert "ERROR" in levels
 
@@ -70,11 +71,11 @@ class TestCustomLevelsFullPipeline:
         assert trace_event["message"] == "trace event"
         assert trace_event["data"]["component"] == "auth"
 
-        audit_event = next(e for e in captured_events if e["level"] == "AUDIT")
-        assert audit_event["message"] == "audit event"
+        notice_event = next(e for e in captured_events if e["level"] == "NOTICE")
+        assert notice_event["message"] == "notice event"
         # user_id goes to context (ID fields), action goes to data
-        assert audit_event["context"]["user_id"] == "u123"
-        assert audit_event["data"]["action"] == "login"
+        assert notice_event["context"]["user_id"] == "u123"
+        assert notice_event["data"]["action"] == "login"
 
     @pytest.mark.asyncio
     async def test_custom_level_filtering_in_pipeline(self) -> None:
@@ -87,7 +88,7 @@ class TestCustomLevelsFullPipeline:
         from fapilog import Settings
 
         fapilog.register_level("TRACE", priority=5, add_method=True)
-        fapilog.register_level("AUDIT", priority=25, add_method=True)
+        fapilog.register_level("NOTICE", priority=25, add_method=True)
 
         captured_events: list[dict] = []
 
@@ -104,7 +105,7 @@ class TestCustomLevelsFullPipeline:
             async def stop(self) -> None:
                 pass
 
-        # INFO level (20) should filter out TRACE (5) but allow AUDIT (25)
+        # INFO level (20) should filter out TRACE (5) but allow NOTICE (25)
         settings = Settings(core={"log_level": "INFO"})
         logger = fapilog.get_logger(
             sinks=[CaptureSink()], settings=settings, reuse=False
@@ -112,14 +113,14 @@ class TestCustomLevelsFullPipeline:
 
         logger.trace("should be dropped")  # type: ignore[attr-defined]  # priority 5 < 20
         logger.info("should appear")  # priority 20 >= 20
-        logger.audit("should appear")  # type: ignore[attr-defined]  # priority 25 >= 20
+        logger.notice("should appear")  # type: ignore[attr-defined]  # priority 25 >= 20
 
         await logger.stop_and_drain()
 
-        # Only INFO and AUDIT should reach the sink
+        # Only INFO and NOTICE should reach the sink
         assert len(captured_events) == 2
         levels = {e["level"] for e in captured_events}
-        assert levels == {"INFO", "AUDIT"}
+        assert levels == {"INFO", "NOTICE"}
 
     @pytest.mark.asyncio
     async def test_async_logger_with_custom_levels(self) -> None:
@@ -172,16 +173,16 @@ class TestCustomLevelsFullPipeline:
         import fapilog
         from fapilog import Settings
 
-        fapilog.register_level("AUDIT", priority=25, add_method=True)
+        fapilog.register_level("NOTICE", priority=25, add_method=True)
 
-        audit_events: list[dict] = []
+        notice_events: list[dict] = []
         general_events: list[dict] = []
 
-        class AuditSink:
-            name = "audit_sink"
+        class NoticeSink:
+            name = "notice_sink"
 
             async def write(self, event: dict) -> bool:
-                audit_events.append(event)
+                notice_events.append(event)
                 return True
 
             async def start(self) -> None:
@@ -204,28 +205,28 @@ class TestCustomLevelsFullPipeline:
                 pass
 
         settings = Settings(
-            core={"log_level": "DEBUG", "sinks": ["audit_sink", "general_sink"]},
+            core={"log_level": "DEBUG", "sinks": ["notice_sink", "general_sink"]},
             sink_routing={
                 "enabled": True,
                 "rules": [
-                    {"levels": ["AUDIT"], "sinks": ["audit_sink"]},
+                    {"levels": ["NOTICE"], "sinks": ["notice_sink"]},
                     {"levels": ["INFO", "WARNING", "ERROR"], "sinks": ["general_sink"]},
                 ],
             },
         )
 
         logger = fapilog.get_logger(
-            sinks=[AuditSink(), GeneralSink()], settings=settings, reuse=False
+            sinks=[NoticeSink(), GeneralSink()], settings=settings, reuse=False
         )
 
-        logger.audit("security event", action="access")  # type: ignore[attr-defined]
+        logger.notice("notice event", action="access")  # type: ignore[attr-defined]
         logger.info("general event")
 
         await logger.stop_and_drain()
 
-        # AUDIT should go to audit_sink, INFO to general_sink
-        assert len(audit_events) == 1
-        assert audit_events[0]["level"] == "AUDIT"
+        # NOTICE should go to notice_sink, INFO to general_sink
+        assert len(notice_events) == 1
+        assert notice_events[0]["level"] == "NOTICE"
 
         assert len(general_events) == 1
         assert general_events[0]["level"] == "INFO"
