@@ -1,6 +1,8 @@
-# Custom log levels in Python (TRACE, AUDIT, NOTICE)
+# Custom log levels in Python (TRACE, VERBOSE, NOTICE)
 
-Python's standard logging library provides five levels (DEBUG, INFO, WARNING, ERROR, CRITICAL), but real applications often need more granularity. Whether you're adding TRACE for detailed debugging, AUDIT for compliance events, or NOTICE for operational alerts, custom levels help you filter and route logs precisely.
+Python's standard logging library provides five levels (DEBUG, INFO, WARNING, ERROR, CRITICAL), but real applications often need more granularity. Whether you're adding TRACE for detailed debugging, VERBOSE for extra context, or NOTICE for operational alerts, custom levels help you filter and route logs precisely.
+
+> **Note:** fapilog includes AUDIT (60) and SECURITY (70) as built-in levels above CRITICAL. Use `logger.audit()` and `logger.security()` directly without registration. This guide covers adding *additional* custom levels.
 
 ## The Problem
 
@@ -40,7 +42,7 @@ import fapilog
 
 # Register custom levels BEFORE creating any loggers
 fapilog.register_level("TRACE", priority=5, add_method=True)
-fapilog.register_level("AUDIT", priority=25, add_method=True)
+fapilog.register_level("VERBOSE", priority=15, add_method=True)
 fapilog.register_level("NOTICE", priority=35, add_method=True)
 
 # Now create your logger
@@ -48,31 +50,37 @@ logger = fapilog.get_logger()
 
 # Use custom levels naturally
 logger.trace("Entering function", function="process_order")
-logger.audit("User login", user_id="123", ip_address="192.168.1.1")
+logger.verbose("Request details", headers={"X-Request-Id": "abc"})
 logger.notice("Disk usage elevated", percent=80, mount="/data")
 logger.info("Order processed", order_id="456")
+
+# Built-in AUDIT and SECURITY work without registration
+logger.audit("User login", user_id="123", ip_address="192.168.1.1")
+logger.security("Failed auth attempt", user_id="123", attempts=5)
 ```
 
-The `add_method=True` parameter generates `logger.trace()`, `logger.audit()`, etc. as callable methods.
+The `add_method=True` parameter generates `logger.trace()`, `logger.verbose()`, etc. as callable methods.
 
 ## Priority Values
 
 Priorities determine filtering order. Lower values are more verbose:
 
-| Level    | Priority | Use Case                              |
-|----------|----------|---------------------------------------|
-| TRACE    | 5        | Function entry/exit, loop iterations  |
-| DEBUG    | 10       | Variable values, decision branches    |
-| INFO     | 20       | Normal operations, milestones         |
-| AUDIT    | 25       | Security events, compliance logging   |
-| WARNING  | 30       | Degraded performance, deprecations    |
-| NOTICE   | 35       | Operational alerts, threshold alerts  |
-| ERROR    | 40       | Failures that don't stop the app      |
-| CRITICAL | 50       | System failures, data corruption      |
+| Level    | Priority | Type     | Use Case                              |
+|----------|----------|----------|---------------------------------------|
+| TRACE    | 5        | Custom   | Function entry/exit, loop iterations  |
+| DEBUG    | 10       | Built-in | Variable values, decision branches    |
+| VERBOSE  | 15       | Custom   | Extra context, request details        |
+| INFO     | 20       | Built-in | Normal operations, milestones         |
+| WARNING  | 30       | Built-in | Degraded performance, deprecations    |
+| NOTICE   | 35       | Custom   | Operational alerts, threshold alerts  |
+| ERROR    | 40       | Built-in | Failures that don't stop the app      |
+| CRITICAL | 50       | Built-in | System failures, data corruption      |
+| AUDIT    | 60       | Built-in | Compliance events, accountability     |
+| SECURITY | 70       | Built-in | Security events, threat detection     |
 
-Custom levels integrate with fapilog's level filtering. Setting `min_level="AUDIT"` filters out TRACE, DEBUG, and INFO.
+Custom levels integrate with fapilog's level filtering. Setting `min_level="AUDIT"` filters out everything below priority 60.
 
-## Routing Custom Levels to Separate Sinks
+## Routing Levels to Separate Sinks
 
 Route specific levels to dedicated outputs:
 
@@ -80,9 +88,6 @@ Route specific levels to dedicated outputs:
 import fapilog
 from fapilog.sinks import StdoutSink, FileSink
 from fapilog.filters import LevelFilter
-
-# Register custom level
-fapilog.register_level("AUDIT", priority=25, add_method=True)
 
 # Create sinks with different filters
 console_sink = StdoutSink(
@@ -94,11 +99,19 @@ audit_sink = FileSink(
     filters=[LevelFilter(min_level="AUDIT", max_level="AUDIT")]  # AUDIT only
 )
 
-# Configure logger with multiple sinks
-logger = fapilog.get_logger(sinks=[console_sink, audit_sink])
+security_sink = FileSink(
+    path="/var/log/security.jsonl",
+    filters=[LevelFilter(min_level="SECURITY")]  # SECURITY only (highest level)
+)
 
-# AUDIT goes to both console AND audit file
+# Configure logger with multiple sinks
+logger = fapilog.get_logger(sinks=[console_sink, audit_sink, security_sink])
+
+# AUDIT goes to console AND audit file
 logger.audit("Password changed", user_id="123")
+
+# SECURITY goes to console AND security file
+logger.security("Brute force detected", ip="10.0.0.1", attempts=100)
 
 # INFO goes only to console
 logger.info("Request completed")
@@ -112,13 +125,13 @@ Custom levels work identically with async loggers:
 import fapilog
 
 fapilog.register_level("TRACE", priority=5, add_method=True)
-fapilog.register_level("AUDIT", priority=25, add_method=True)
 
 async def main():
     logger = await fapilog.get_async_logger()
 
     await logger.trace("Starting async operation")
-    await logger.audit("API key created", key_id="abc123")
+    await logger.audit("API key created", key_id="abc123")  # Built-in
+    await logger.security("Suspicious request", ip="10.0.0.1")  # Built-in
     await logger.info("Operation complete")
 ```
 
@@ -141,11 +154,11 @@ def calculate_total(items):
     return total
 ```
 
-### AUDIT for Compliance
+### AUDIT for Compliance (Built-in)
+
+AUDIT is a built-in level (priority 60) - no registration needed:
 
 ```python
-fapilog.register_level("AUDIT", priority=25, add_method=True)
-
 logger = fapilog.get_logger()
 
 def change_password(user_id: str, new_password: str):
@@ -156,6 +169,23 @@ def change_password(user_id: str, new_password: str):
         event_type="security.password_change",
         compliance=["SOC2", "GDPR"]
     )
+```
+
+### SECURITY for Threat Detection (Built-in)
+
+SECURITY is the highest built-in level (priority 70):
+
+```python
+logger = fapilog.get_logger()
+
+def detect_brute_force(ip: str, failed_attempts: int):
+    if failed_attempts > 10:
+        logger.security(
+            "Brute force attack detected",
+            ip=ip,
+            attempts=failed_attempts,
+            action="blocked"
+        )
 ```
 
 ### NOTICE for Operations
@@ -192,10 +222,12 @@ logger.trace("Works!")
 
 # This raises RuntimeError
 logger2 = fapilog.get_logger()
-fapilog.register_level("AUDIT", priority=25)  # RuntimeError: Registry is frozen
+fapilog.register_level("VERBOSE", priority=15)  # RuntimeError: Registry is frozen
 ```
 
 The registry freezes when the first logger is created. This prevents inconsistent behavior where some loggers have custom levels and others don't.
+
+> **Note:** Built-in levels (DEBUG, INFO, WARNING, ERROR, CRITICAL, AUDIT, SECURITY) are always available and don't need registration.
 
 ### Application Startup Pattern
 
@@ -207,8 +239,9 @@ import fapilog
 
 def configure_logging():
     """Call once at application startup, before any imports that create loggers."""
+    # Only register custom levels - AUDIT and SECURITY are built-in
     fapilog.register_level("TRACE", priority=5, add_method=True)
-    fapilog.register_level("AUDIT", priority=25, add_method=True)
+    fapilog.register_level("VERBOSE", priority=15, add_method=True)
     fapilog.register_level("NOTICE", priority=35, add_method=True)
 
 # app/main.py
