@@ -8,6 +8,19 @@ from pydantic import BaseModel, ConfigDict, Field
 from ...core import diagnostics
 from ..utils import parse_plugin_config
 
+# URL schemes that may contain credentials - used for early exit optimization.
+# Strings not starting with one of these skip the urlsplit() call entirely.
+_URL_SCHEMES = (
+    "http://",
+    "https://",
+    "ftp://",
+    "ftps://",
+    "ssh://",
+    "git://",
+    "svn://",
+    "//",  # Protocol-relative URLs
+)
+
 
 class UrlCredentialsConfig(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid", validate_default=True)
@@ -69,6 +82,11 @@ class UrlCredentialsRedactor:
     def _scrub_string(self, value: str) -> str:
         if not value or len(value) > self._max_len:
             return value
+
+        # Quick win: skip urlsplit() for strings that don't start with a URL scheme
+        if not value.startswith(_URL_SCHEMES):
+            return value
+
         try:
             parts = urlsplit(value)
             # Only scrub if there's userinfo (username or password)
