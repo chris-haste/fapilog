@@ -208,6 +208,7 @@ class TestRedactorExceptionContainment:
 
         logger.start()
         logger._redactors = [ExplodingRedactor()]  # type: ignore[attr-defined]
+        logger._invalidate_redactors_cache()  # type: ignore[attr-defined]
 
         # Submit messages
         logger.info("normal-1")

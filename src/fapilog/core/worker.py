@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import time
+from collections.abc import Sequence
 from typing import Any, Awaitable, Callable, Literal
 
 from ..metrics.metrics import MetricsCollector, plugin_timer
@@ -142,10 +143,10 @@ class LoggerWorker:
         batch_timeout_seconds: float,
         sink_write: Callable[[dict[str, Any]], Awaitable[None]],
         sink_write_serialized: Callable[[SerializedView], Awaitable[None]] | None,
-        filters_getter: Callable[[], list[Any]] | None = None,
-        enrichers_getter: Callable[[], list[BaseEnricher]],
-        redactors_getter: Callable[[], list[BaseRedactor]],
-        processors_getter: Callable[[], list[BaseProcessor]] | None = None,
+        filters_getter: Callable[[], Sequence[Any]] | None = None,
+        enrichers_getter: Callable[[], Sequence[BaseEnricher]],
+        redactors_getter: Callable[[], Sequence[BaseRedactor]],
+        processors_getter: Callable[[], Sequence[BaseProcessor]] | None = None,
         metrics: MetricsCollector | None,
         serialize_in_flush: bool,
         strict_envelope_mode_provider: Callable[[], bool],

@@ -138,6 +138,13 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._processors: list[BaseProcessor] = list(processors or [])
         self._filters: list[Any] = list(filters or [])
         self._redactors: list[BaseRedactor] = []
+
+        # Cached component snapshots for worker access (Story 1.40)
+        # Tuples are immutable and safe to read from worker thread
+        self._filters_snapshot: tuple[Any, ...] = tuple(self._filters)
+        self._enrichers_snapshot: tuple[BaseEnricher, ...] = tuple(self._enrichers)
+        self._redactors_snapshot: tuple[BaseRedactor, ...] = tuple(self._redactors)
+        self._processors_snapshot: tuple[BaseProcessor, ...] = tuple(self._processors)
         self._sinks: list[Any] = []
         self._worker_tasks: list[asyncio.Task[None]] = []
         self._stop_flag = False
@@ -394,6 +401,22 @@ class _LoggerMixin(_WorkerCountersMixin):
             self._enrichers,
         )
 
+    def _invalidate_filters_cache(self) -> None:
+        """Update filters snapshot after mutation."""
+        self._filters_snapshot = tuple(self._filters)
+
+    def _invalidate_enrichers_cache(self) -> None:
+        """Update enrichers snapshot after mutation."""
+        self._enrichers_snapshot = tuple(self._enrichers)
+
+    def _invalidate_redactors_cache(self) -> None:
+        """Update redactors snapshot after mutation."""
+        self._redactors_snapshot = tuple(self._redactors)
+
+    def _invalidate_processors_cache(self) -> None:
+        """Update processors snapshot after mutation."""
+        self._processors_snapshot = tuple(self._processors)
+
     def _cleanup_resources(self) -> None:
         """Clear internal data structures after drain.
 
@@ -407,6 +430,11 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._filters.clear()
         self._redactors.clear()
         self._sinks.clear()
+        # Clear cached snapshots (Story 1.40)
+        self._invalidate_filters_cache()
+        self._invalidate_enrichers_cache()
+        self._invalidate_redactors_cache()
+        self._invalidate_processors_cache()
         if self._metrics is not None:
             self._metrics.cleanup()
 
@@ -691,10 +719,11 @@ class _LoggerMixin(_WorkerCountersMixin):
             batch_timeout_seconds=self._batch_timeout_seconds,
             sink_write=self._sink_write,
             sink_write_serialized=self._sink_write_serialized,
-            filters_getter=lambda: list(self._filters),
-            enrichers_getter=lambda: list(self._enrichers),
-            redactors_getter=lambda: list(self._redactors),
-            processors_getter=lambda: list(self._processors),
+            # Return cached snapshots instead of creating new lists (Story 1.40)
+            filters_getter=lambda: self._filters_snapshot,
+            enrichers_getter=lambda: self._enrichers_snapshot,
+            redactors_getter=lambda: self._redactors_snapshot,
+            processors_getter=lambda: self._processors_snapshot,
             metrics=self._metrics,
             serialize_in_flush=self._serialize_in_flush,
             strict_envelope_mode_provider=lambda: cached_strict_mode,
@@ -950,9 +979,11 @@ class _LoggerMixin(_WorkerCountersMixin):
             return
         if all(getattr(e, "name", "") != name for e in self._enrichers):
             self._enrichers.append(enricher)
+            self._invalidate_enrichers_cache()
 
     def disable_enricher(self, name: str) -> None:
         self._enrichers = [e for e in self._enrichers if getattr(e, "name", "") != name]
+        self._invalidate_enrichers_cache()
 
 
 class SyncLoggerFacade(_LoggerMixin):

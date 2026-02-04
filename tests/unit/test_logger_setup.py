@@ -913,6 +913,152 @@ class TestMixinInheritance:
         assert logger._emit_worker_diagnostics is True  # type: ignore[attr-defined]
 
 
+# ==============================================================================
+# Component Snapshot Cache Tests (Story 1.40)
+# ==============================================================================
+
+
+class TestComponentSnapshotCache:
+    """Tests for cached component snapshots in the logger."""
+
+    def test_snapshot_initialized_empty_when_no_components(self) -> None:
+        """Snapshots should be empty tuples when no components provided."""
+        logger = SyncLoggerFacade(**_logger_args())
+
+        assert logger._filters_snapshot == ()
+        assert logger._enrichers_snapshot == ()
+        assert logger._redactors_snapshot == ()
+        assert logger._processors_snapshot == ()
+
+    def test_snapshot_initialized_with_components(self) -> None:
+        """Snapshots should contain provided components as tuples."""
+        from fapilog.plugins.enrichers import BaseEnricher
+        from fapilog.plugins.processors import BaseProcessor
+        from fapilog.plugins.redactors import BaseRedactor
+
+        class TestEnricher(BaseEnricher):
+            name = "test-enricher"
+
+            async def enrich(self, entry: dict) -> dict:
+                return entry
+
+        class TestProcessor(BaseProcessor):
+            name = "test-processor"
+
+            async def process(self, entry: dict) -> dict:
+                return entry
+
+        class TestRedactor(BaseRedactor):
+            name = "test-redactor"
+
+            async def redact(self, entry: dict) -> dict:
+                return entry
+
+        class TestFilter:
+            name = "test-filter"
+
+            async def filter(self, entry: dict) -> bool:
+                return True
+
+        enricher = TestEnricher()
+        processor = TestProcessor()
+        redactor = TestRedactor()
+        test_filter = TestFilter()
+
+        args = _logger_args()
+        args["enrichers"] = [enricher]
+        args["processors"] = [processor]
+        args["filters"] = [test_filter]
+
+        logger = SyncLoggerFacade(**args)  # type: ignore[arg-type]
+        # Manually add redactor since it's not a constructor arg
+        logger._redactors.append(redactor)
+        logger._invalidate_redactors_cache()
+
+        assert logger._enrichers_snapshot == (enricher,)
+        assert logger._processors_snapshot == (processor,)
+        assert logger._filters_snapshot == (test_filter,)
+        assert logger._redactors_snapshot == (redactor,)
+
+    def test_snapshot_updated_on_enable_enricher(self) -> None:
+        """Snapshot should update when enricher is enabled."""
+        from fapilog.plugins.enrichers import BaseEnricher
+
+        class TestEnricher(BaseEnricher):
+            name = "test-enricher"
+
+            async def enrich(self, entry: dict) -> dict:
+                return entry
+
+        logger = SyncLoggerFacade(**_logger_args())
+        assert logger._enrichers_snapshot == ()
+
+        enricher = TestEnricher()
+        logger.enable_enricher(enricher)
+
+        assert enricher in logger._enrichers_snapshot
+        assert logger._enrichers_snapshot == (enricher,)
+
+    def test_snapshot_updated_on_disable_enricher(self) -> None:
+        """Snapshot should update when enricher is disabled."""
+        from fapilog.plugins.enrichers import BaseEnricher
+
+        class TestEnricher(BaseEnricher):
+            name = "test-enricher"
+
+            async def enrich(self, entry: dict) -> dict:
+                return entry
+
+        enricher = TestEnricher()
+        args = _logger_args()
+        args["enrichers"] = [enricher]
+        logger = SyncLoggerFacade(**args)  # type: ignore[arg-type]
+
+        assert enricher in logger._enrichers_snapshot
+
+        logger.disable_enricher("test-enricher")
+
+        assert enricher not in logger._enrichers_snapshot
+        assert logger._enrichers_snapshot == ()
+
+    @pytest.mark.asyncio
+    async def test_snapshot_cleared_on_stop(self) -> None:
+        """Snapshots should be cleared when logger is drained."""
+        from fapilog.plugins.enrichers import BaseEnricher
+        from fapilog.plugins.processors import BaseProcessor
+
+        class TestEnricher(BaseEnricher):
+            name = "test-enricher"
+
+            async def enrich(self, entry: dict) -> dict:
+                return entry
+
+        class TestProcessor(BaseProcessor):
+            name = "test-processor"
+
+            async def process(self, entry: dict) -> dict:
+                return entry
+
+        enricher = TestEnricher()
+        processor = TestProcessor()
+        args = _logger_args()
+        args["enrichers"] = [enricher]
+        args["processors"] = [processor]
+
+        logger = AsyncLoggerFacade(**args)  # type: ignore[arg-type]
+
+        assert enricher in logger._enrichers_snapshot
+        assert processor in logger._processors_snapshot
+
+        await logger.start_async()
+        await logger.drain()
+
+        assert logger._enrichers_snapshot == ()
+        assert logger._processors_snapshot == ()
+        assert logger._filters_snapshot == ()
+        assert logger._redactors_snapshot == ()
+
+
 class TestLevelGateSharedBehavior:
     """Tests for level gate filtering shared across both facades."""
 

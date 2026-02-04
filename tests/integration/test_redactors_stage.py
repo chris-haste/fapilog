@@ -74,6 +74,7 @@ async def test_redactors_ordering_and_integration() -> None:
         list[BaseEnricher],
         [_StubEnricher()],
     )  # type: ignore[attr-defined]
+    logger._invalidate_enrichers_cache()  # type: ignore[attr-defined]
     logger._redactors = cast(
         list[BaseRedactor],
         [
@@ -81,6 +82,7 @@ async def test_redactors_ordering_and_integration() -> None:
             _StubRedactorAdd100(),
         ],
     )  # type: ignore[attr-defined]
+    logger._invalidate_redactors_cache()  # type: ignore[attr-defined]
 
     logger.info("hello")
     await asyncio.sleep(0)
@@ -111,6 +113,7 @@ async def test_redactor_error_handling_no_drop() -> None:
         list[BaseEnricher],
         [_StubEnricher()],
     )  # type: ignore[attr-defined]
+    logger._invalidate_enrichers_cache()  # type: ignore[attr-defined]
     logger._redactors = cast(
         list[BaseRedactor],
         [
@@ -118,13 +121,14 @@ async def test_redactor_error_handling_no_drop() -> None:
             _StubRedactorAdd10(),
         ],
     )  # type: ignore[attr-defined]
+    logger._invalidate_redactors_cache()  # type: ignore[attr-defined]
 
     logger.info("x")
     await asyncio.sleep(0)
     res = await logger.stop_and_drain()
 
-    assert res.submitted >= 1
-    assert res.processed >= 1
+    assert res.submitted >= 1  # noqa: WA002
+    assert res.processed >= 1  # noqa: WA002
     assert collected, "Event should not be dropped on redactor error"
     # boom redactor contained; at least enriched
     assert collected[0].get("value") in (1, 11)
