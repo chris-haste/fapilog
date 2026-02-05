@@ -87,48 +87,81 @@ async def enqueue_with_backpressure(
     effective_timeout: float | None = timeout if drop_on_full else None
     high_watermark = current_high_watermark
 
+    # Fast path: try to enqueue immediately
     if queue.try_enqueue(payload):
+        # Event is enqueued - update metrics best-effort, always return True
         qsize = queue.qsize()
         if qsize > high_watermark:
             high_watermark = qsize
             if metrics is not None:
-                await metrics.set_queue_high_watermark(qsize)
+                try:
+                    await metrics.set_queue_high_watermark(qsize)
+                except Exception:
+                    pass  # Metrics failure must not affect enqueue success
         return True, high_watermark
 
+    # Slow path with timeout: wait for space
     if effective_timeout is not None and effective_timeout > 0:
         if metrics is not None:
-            await metrics.record_backpressure_wait(1)
+            try:
+                await metrics.record_backpressure_wait(1)
+            except Exception:
+                pass
         try:
             await queue.await_enqueue(payload, timeout=effective_timeout)
-            qsize = queue.qsize()
-            if qsize > high_watermark:
-                high_watermark = qsize
-                if metrics is not None:
-                    await metrics.set_queue_high_watermark(qsize)
-            return True, high_watermark
         except Exception:
+            # Enqueue failed (timeout or other error)
             if metrics is not None:
-                await metrics.record_events_dropped(1)
+                try:
+                    await metrics.record_events_dropped(1)
+                except Exception:
+                    pass
             return False, high_watermark
+        # Event is enqueued - update metrics best-effort, always return True
+        qsize = queue.qsize()
+        if qsize > high_watermark:
+            high_watermark = qsize
+            if metrics is not None:
+                try:
+                    await metrics.set_queue_high_watermark(qsize)
+                except Exception:
+                    pass
+        return True, high_watermark
 
+    # Blocking path (no timeout): wait indefinitely for space
     if not drop_on_full:
         if metrics is not None:
-            await metrics.record_backpressure_wait(1)
+            try:
+                await metrics.record_backpressure_wait(1)
+            except Exception:
+                pass
         try:
             await queue.await_enqueue(payload, timeout=None)
-            qsize = queue.qsize()
-            if qsize > high_watermark:
-                high_watermark = qsize
-                if metrics is not None:
-                    await metrics.set_queue_high_watermark(qsize)
-            return True, high_watermark
         except Exception:
+            # Enqueue failed
             if metrics is not None:
-                await metrics.record_events_dropped(1)
+                try:
+                    await metrics.record_events_dropped(1)
+                except Exception:
+                    pass
             return False, high_watermark
+        # Event is enqueued - update metrics best-effort, always return True
+        qsize = queue.qsize()
+        if qsize > high_watermark:
+            high_watermark = qsize
+            if metrics is not None:
+                try:
+                    await metrics.set_queue_high_watermark(qsize)
+                except Exception:
+                    pass
+        return True, high_watermark
 
+    # Drop on full with no wait
     if metrics is not None:
-        await metrics.record_events_dropped(1)
+        try:
+            await metrics.record_events_dropped(1)
+        except Exception:
+            pass
     return False, high_watermark
 
 
