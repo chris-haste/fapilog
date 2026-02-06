@@ -238,6 +238,31 @@ class TestPresetConsistency:
         )
 
 
+class TestBlockOnUnredactableConsistency:
+    """Verify block_on_unredactable defaults are consistent across config layers.
+
+    Story 4.67: FieldMaskConfig and RedactorFieldMaskSettings must agree.
+    """
+
+    def test_block_on_unredactable_consistent_across_config_layers(self) -> None:
+        """AC1: Plugin-level and settings-level defaults must match."""
+        from fapilog.core.settings import RedactorFieldMaskSettings
+        from fapilog.plugins.redactors.field_mask import FieldMaskConfig
+
+        assert (
+            FieldMaskConfig().block_on_unredactable
+            == RedactorFieldMaskSettings().block_on_unredactable
+        )
+
+    def test_both_defaults_are_true(self) -> None:
+        """AC2: Chosen default is True (security-forward)."""
+        from fapilog.core.settings import RedactorFieldMaskSettings
+        from fapilog.plugins.redactors.field_mask import FieldMaskConfig
+
+        assert FieldMaskConfig().block_on_unredactable is True
+        assert RedactorFieldMaskSettings().block_on_unredactable is True
+
+
 class TestFailClosedDefaults:
     """Verify fail-closed defaults for redaction security.
 
