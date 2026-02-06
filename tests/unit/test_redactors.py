@@ -79,3 +79,63 @@ async def test_guardrails_depth_and_scan_limits(
     out = await r.redact(deep)
     # No crash and shape preserved
     assert isinstance(out, dict)
+
+
+@pytest.mark.asyncio
+async def test_drop_guardrail_returns_dict_not_none() -> None:
+    """AC1/AC2: When on_guardrail_exceeded='drop' triggers, redact() returns
+    the original event as a dict — never None."""
+    r = FieldMaskRedactor(
+        config=FieldMaskConfig(
+            fields_to_mask=["a.b.c.d.e.f.g"],
+            max_depth=2,
+            on_guardrail_exceeded="drop",
+        )
+    )
+    event = {"a": {"b": {"c": {"d": {"e": {"f": {"g": "secret"}}}}}}}
+    result = await r.redact(event)
+    assert result is not None, "redact() must never return None"  # noqa: WA003
+    assert isinstance(result, dict)
+    # Original event returned unchanged — guardrail prevented masking
+    assert result == event
+
+
+@pytest.mark.asyncio
+async def test_redact_in_order_with_drop_guardrail() -> None:
+    """AC3: redact_in_order preserves event when drop guardrail fires."""
+    from fapilog.plugins.redactors import redact_in_order
+
+    r = FieldMaskRedactor(
+        config=FieldMaskConfig(
+            fields_to_mask=["deep.nested.path.to.secret"],
+            max_depth=2,
+            on_guardrail_exceeded="drop",
+        )
+    )
+    event = {"deep": {"nested": {"path": {"to": {"secret": "value"}}}}, "keep": "me"}
+    result = await redact_in_order(event, [r])
+    assert isinstance(result, dict)
+    # The event should pass through with original data intact
+    assert result["keep"] == "me"
+    assert result["deep"]["nested"]["path"]["to"]["secret"] == "value"
+
+
+@pytest.mark.asyncio
+async def test_drop_guardrail_returns_original_not_partial() -> None:
+    """When drop fires mid-way through fields, return original — not partially
+    masked copy."""
+    r = FieldMaskRedactor(
+        config=FieldMaskConfig(
+            fields_to_mask=["shallow", "a.b.c.d.e.f.g"],
+            max_depth=2,
+            on_guardrail_exceeded="drop",
+        )
+    )
+    event = {
+        "shallow": "visible",
+        "a": {"b": {"c": {"d": {"e": {"f": {"g": "secret"}}}}}},
+    }
+    result = await r.redact(event)
+    assert isinstance(result, dict)
+    # Must return original event, NOT the partially-masked copy
+    assert result["shallow"] == "visible"

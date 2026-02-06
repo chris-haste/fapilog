@@ -64,13 +64,13 @@ class FieldMaskRedactor:
     async def stop(self) -> None:  # pragma: no cover - optional
         return None
 
-    async def redact(self, event: dict) -> dict | None:
+    async def redact(self, event: dict) -> dict:
         # Work on a shallow copy of the root; mutate nested containers in place
         root: dict[str, Any] = dict(event)
         for path in self._fields:
             guardrail_hit = self._apply_mask(root, path)
             if guardrail_hit and self._on_guardrail_exceeded == "drop":
-                return None
+                return dict(event)  # Abandon masking, return original
         return root
 
     def _apply_mask(self, root: dict[str, Any], path: list[str]) -> bool:
