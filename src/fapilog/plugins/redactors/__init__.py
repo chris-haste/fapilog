@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from typing import Iterable, Protocol, runtime_checkable
 
+import orjson
+
 from ...core import diagnostics
 from ...metrics.metrics import MetricsCollector, plugin_timer
 from ..loader import register_builtin
@@ -43,6 +45,16 @@ class BaseRedactor(Protocol):
         return True
 
 
+def _deep_copy_event(event: dict) -> dict:
+    """Deep-copy a JSON-like event dict via orjson roundtrip.
+
+    Events are JSON-serializable by contract, so orjson.loads(orjson.dumps(...))
+    produces a fully independent copy with no shared nested references.
+    """
+    result: dict = orjson.loads(orjson.dumps(event))
+    return result
+
+
 async def redact_in_order(
     event: dict,
     redactors: Iterable[BaseRedactor],
@@ -61,7 +73,8 @@ async def redact_in_order(
         plugin_name = getattr(r, "__class__", type(r)).__name__
         try:
             async with plugin_timer(metrics, plugin_name):
-                next_event = await r.redact(dict(current))
+                snapshot = _deep_copy_event(current)
+                next_event = await r.redact(snapshot)
             # Shallow replacement to preserve mapping semantics
             if isinstance(next_event, dict):
                 current = next_event

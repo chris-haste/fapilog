@@ -139,3 +139,73 @@ async def test_drop_guardrail_returns_original_not_partial() -> None:
     assert isinstance(result, dict)
     # Must return original event, NOT the partially-masked copy
     assert result["shallow"] == "visible"
+
+
+@pytest.mark.asyncio
+async def test_snapshot_preserved_on_redactor_exception() -> None:
+    """AC1: When a redactor partially mutates nested data then raises,
+    the last good snapshot must remain unchanged."""
+    from fapilog.plugins.redactors import redact_in_order
+
+    class PartialMutatingRedactor:
+        name = "partial_mutator"
+
+        async def start(self) -> None:
+            pass
+
+        async def stop(self) -> None:
+            pass
+
+        async def health_check(self) -> bool:
+            return True
+
+        async def redact(self, event: dict) -> dict:
+            event["user"]["name"] = "***"
+            raise RuntimeError("boom")
+
+    event = {"user": {"name": "Alice", "role": "admin"}}
+    result = await redact_in_order(event, [PartialMutatingRedactor()])
+    assert result["user"]["name"] == "Alice"
+    assert result["user"]["role"] == "admin"
+
+
+@pytest.mark.asyncio
+async def test_nested_snapshot_not_corrupted_by_partial_mutation() -> None:
+    """Deep nesting variant: mutations at multiple levels must not leak."""
+    from fapilog.plugins.redactors import redact_in_order
+
+    class DeepMutatingRedactor:
+        name = "deep_mutator"
+
+        async def start(self) -> None:
+            pass
+
+        async def stop(self) -> None:
+            pass
+
+        async def health_check(self) -> bool:
+            return True
+
+        async def redact(self, event: dict) -> dict:
+            event["a"]["b"]["c"] = "CORRUPTED"
+            event["a"]["x"] = "INJECTED"
+            raise RuntimeError("deep boom")
+
+    event = {"a": {"b": {"c": "original"}, "x": "keep"}, "top": "safe"}
+    result = await redact_in_order(event, [DeepMutatingRedactor()])
+    assert result["a"]["b"]["c"] == "original"
+    assert result["a"]["x"] == "keep"
+    assert result["top"] == "safe"
+
+
+@pytest.mark.asyncio
+async def test_contract_redact_in_order_with_pipeline_redactors() -> None:
+    """AC3: Real redactors chained through redact_in_order produce valid output."""
+    from fapilog.plugins.redactors import redact_in_order
+
+    redactor = FieldMaskRedactor(config={"fields_to_mask": ["data.password"]})
+    event = {"data": {"password": "secret", "name": "Alice"}}
+    result = await redact_in_order(event, [redactor])
+    assert isinstance(result, dict)
+    assert result["data"]["password"] == "***"
+    assert result["data"]["name"] == "Alice"
