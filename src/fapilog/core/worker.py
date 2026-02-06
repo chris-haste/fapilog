@@ -439,11 +439,18 @@ class LoggerWorker:
         both original fields AND enriched fields (e.g., request context
         that may contain PII).
 
+        Events tagged with ``_fapilog_unsafe`` bypass redaction entirely
+        (Story 4.70 - unsafe_debug escape hatch).
+
         Behavior on error depends on redaction_fail_mode:
         - "open": Returns original entry unchanged (fail-safe, default)
         - "closed": Returns None to signal event should be dropped
         - "warn": Returns original entry but emits diagnostic warning
         """
+        # Skip redaction for unsafe_debug events (Story 4.70)
+        if entry.get("data", {}).get("_fapilog_unsafe") is True:
+            return entry
+
         redactors = self._redactors_getter()
         if not redactors:
             return entry

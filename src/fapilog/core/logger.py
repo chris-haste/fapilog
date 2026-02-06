@@ -30,6 +30,11 @@ from .worker import (
     stop_plugins,
 )
 
+# Sentinel used by unsafe_debug() to distinguish its calls from user kwargs.
+# _prepare_payload only injects the _fapilog_unsafe marker when it sees this
+# exact object, not a plain True from user kwargs.
+_UNSAFE_SENTINEL = object()
+
 
 class AsyncLogger:
     """Minimal async logger facade used by the core pipeline tests."""
@@ -525,6 +530,14 @@ class _LoggerMixin(_WorkerCountersMixin):
         if metadata and "_origin" in metadata:
             origin = cast(LogOrigin, metadata.pop("_origin"))
 
+        # Extract _fapilog_unsafe marker (Story 4.70).
+        # Only unsafe_debug() passes the _UNSAFE_SENTINEL; user kwargs
+        # with _fapilog_unsafe=True are silently stripped here.
+        is_unsafe = (
+            metadata is not None
+            and metadata.pop("_fapilog_unsafe", None) is _UNSAFE_SENTINEL
+        )
+
         # Delegate envelope construction to envelope module (Story 1.21)
         # build_envelope returns LogEnvelopeV1 (TypedDict) which is structurally
         # compatible with dict[str, Any] - cast for downstream queue compatibility
@@ -545,6 +558,15 @@ class _LoggerMixin(_WorkerCountersMixin):
                 origin=origin,
             ),
         )
+
+        # Inject unsafe marker into envelope data for worker to check
+        if is_unsafe:
+            data = payload.get("data")
+            if isinstance(data, dict):
+                data["_fapilog_unsafe"] = True
+            else:
+                payload["data"] = {"_fapilog_unsafe": True}
+
         self._submitted += 1
         return payload
 
@@ -1368,6 +1390,32 @@ class SyncLoggerFacade(_LoggerMixin):
         """
         self._enqueue("SECURITY", message, exc=exc, exc_info=exc_info, **metadata)
 
+    def unsafe_debug(
+        self,
+        message: str,
+        *,
+        exc: BaseException | None = None,
+        exc_info: Any | None = None,
+        **metadata: Any,
+    ) -> None:
+        """Log raw, unredacted data at DEBUG level.
+
+        Use this for debugging only. The event is tagged with
+        ``_fapilog_unsafe=True`` and bypasses the redaction pipeline.
+        This method is intentionally named to be visible in code review.
+
+        Args:
+            message: The log message describing the raw data.
+            exc: Exception instance to include in the log event.
+            exc_info: Exception info tuple or True to capture current exception.
+            **metadata: Additional fields to include unredacted.
+
+        Example:
+            logger.unsafe_debug("raw request", request=raw_req)
+        """
+        metadata["_fapilog_unsafe"] = _UNSAFE_SENTINEL
+        self._enqueue("DEBUG", message, exc=exc, exc_info=exc_info, **metadata)
+
     # Context binding API
     def bind(self, **context: Any) -> SyncLoggerFacade:
         """Return a child logger with additional bound context for
@@ -1689,6 +1737,32 @@ class AsyncLoggerFacade(_LoggerMixin):
             await logger.security("Failed auth attempt", user_id="123", attempts=5)
         """
         await self._enqueue("SECURITY", message, exc=exc, exc_info=exc_info, **metadata)
+
+    async def unsafe_debug(
+        self,
+        message: str,
+        *,
+        exc: BaseException | None = None,
+        exc_info: Any | None = None,
+        **metadata: Any,
+    ) -> None:
+        """Log raw, unredacted data at DEBUG level.
+
+        Use this for debugging only. The event is tagged with
+        ``_fapilog_unsafe=True`` and bypasses the redaction pipeline.
+        This method is intentionally named to be visible in code review.
+
+        Args:
+            message: The log message describing the raw data.
+            exc: Exception instance to include in the log event.
+            exc_info: Exception info tuple or True to capture current exception.
+            **metadata: Additional fields to include unredacted.
+
+        Example:
+            await logger.unsafe_debug("raw request", request=raw_req)
+        """
+        metadata["_fapilog_unsafe"] = _UNSAFE_SENTINEL
+        await self._enqueue("DEBUG", message, exc=exc, exc_info=exc_info, **metadata)
 
     # Context binding API
     def bind(self, **context: Any) -> AsyncLoggerFacade:
