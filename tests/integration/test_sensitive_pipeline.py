@@ -1,7 +1,8 @@
 """Integration tests for sensitive container through the full pipeline.
 
-Story 4.68: Verifies that sensitive data masked at envelope construction
-time survives redaction and serialization without leaking original values.
+Story 4.68: Verifies that:
+- Logger facade passes sensitive=/pii= through to build_envelope (AC9)
+- Masked data survives redaction and serialization (AC10)
 """
 
 from __future__ import annotations
@@ -11,6 +12,7 @@ from typing import Any, cast
 
 import pytest
 
+from fapilog import get_logger
 from fapilog.core.envelope import build_envelope
 from fapilog.core.serialization import serialize_envelope
 from fapilog.plugins.redactors import BaseRedactor, redact_in_order
@@ -31,6 +33,47 @@ class _NoopRedactor(BaseRedactor):
 
     async def redact(self, event: dict) -> dict:
         return event
+
+
+class TestSensitiveFacade:
+    """AC9: Logger facade forwards sensitive=/pii= kwargs to build_envelope."""
+
+    @pytest.mark.asyncio
+    async def test_sensitive_masked_via_logger_facade(self) -> None:
+        """sensitive= kwarg flows through logger.info → build_envelope → sink."""
+        collected: list[dict[str, Any]] = []
+
+        async def _capture(entry: dict[str, Any]) -> None:
+            collected.append(dict(entry))
+
+        logger = get_logger(name="sensitive-facade-test")
+        logger._sink_write = _capture  # type: ignore[attr-defined]
+
+        logger.info("signup", sensitive={"email": "alice@example.com"})
+        await logger.stop_and_drain()
+
+        assert len(collected) == 1
+        data = collected[0].get("data", {})
+        assert data["sensitive"]["email"] == "***"
+
+    @pytest.mark.asyncio
+    async def test_pii_masked_via_logger_facade(self) -> None:
+        """pii= kwarg flows through logger.info → build_envelope → sink."""
+        collected: list[dict[str, Any]] = []
+
+        async def _capture(entry: dict[str, Any]) -> None:
+            collected.append(dict(entry))
+
+        logger = get_logger(name="pii-facade-test")
+        logger._sink_write = _capture  # type: ignore[attr-defined]
+
+        logger.info("auth", pii={"token": "sk-secret-123"})
+        await logger.stop_and_drain()
+
+        assert len(collected) == 1
+        data = collected[0].get("data", {})
+        assert data["sensitive"]["token"] == "***"
+        assert "pii" not in data
 
 
 class TestSensitivePipeline:
