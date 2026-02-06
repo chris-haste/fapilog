@@ -20,6 +20,37 @@ _CONTEXT_FIELDS = frozenset(
     {"request_id", "user_id", "tenant_id", "trace_id", "span_id"}
 )
 
+_MASK_STRING = "***"
+
+# Pre-bind for speed in hot path
+_CONTAINER_TYPES = (dict, list)
+
+
+def _mask_recursive(node: Any, mask: str = _MASK_STRING) -> Any:
+    """Recursively mask all terminal values in a dict/list structure."""
+    if isinstance(node, dict):
+        return {
+            k: mask if not isinstance(v, _CONTAINER_TYPES) else _mask_recursive(v, mask)
+            for k, v in node.items()
+        }
+    if isinstance(node, list):
+        return [
+            mask
+            if not isinstance(item, _CONTAINER_TYPES)
+            else _mask_recursive(item, mask)
+            for item in node
+        ]
+    return mask
+
+
+def _mask_values(d: dict[str, Any]) -> dict[str, Any]:
+    """Mask all values in a dict. Recurse only for nested containers."""
+    m = _MASK_STRING
+    return {
+        k: m if not isinstance(v, _CONTAINER_TYPES) else _mask_recursive(v)
+        for k, v in d.items()
+    }
+
 
 def build_envelope(
     level: str,
@@ -159,6 +190,23 @@ def build_envelope(
         for key, value in extra.items():
             if key not in _CONTEXT_FIELDS:
                 data[key] = value
+
+    # Handle sensitive=/pii= containers (Story 4.68)
+    # Only dict-typed values trigger masking; non-dicts pass through as data.
+    _s = data.get("sensitive")
+    _p = data.get("pii")
+    if isinstance(_s, dict):
+        merged = {**_s, **_p} if isinstance(_p, dict) else _s
+        if isinstance(_p, dict):
+            del data["pii"]
+        if merged:
+            data["sensitive"] = _mask_values(merged)
+        else:
+            del data["sensitive"]
+    elif isinstance(_p, dict):
+        del data["pii"]
+        if _p:
+            data["sensitive"] = _mask_values(_p)
 
     # RFC3339 timestamp with millisecond precision and Z suffix
     ts = (

@@ -349,6 +349,48 @@ logger = await (
 )
 ```
 
+## Declaring Sensitive Data at Log Time
+
+Instead of relying solely on redactor configuration, you can mark data as sensitive when you log it. Pass a `sensitive=` dict and fapilog masks the values **at envelope construction time**, before the event reaches the queue or any sink:
+
+```python
+# Developer declares intent — values are masked immediately
+await logger.info(
+    "User signup",
+    sensitive={"email": "alice@example.com", "ssn": "123-45-6789"},
+    plan="free",
+)
+
+# What appears in logs
+{"message": "User signup", "data": {"sensitive": {"email": "***", "ssn": "***"}, "plan": "free"}}
+```
+
+`pii=` is an alias for teams that prefer that term:
+
+```python
+await logger.info("Payment processed", pii={"card_number": "4111-1111-1111-1111"})
+```
+
+Both keywords route to `data.sensitive` in the envelope. Nested dicts and lists are recursively masked:
+
+```python
+await logger.info(
+    "Checkout",
+    sensitive={"card": {"number": "4111-1111-1111-1111", "cvv": "123"}},
+)
+# data.sensitive.card.number == "***", data.sensitive.card.cvv == "***"
+```
+
+### When to Use Each Approach
+
+| Approach | Best For |
+|----------|----------|
+| `sensitive=` / `pii=` | Data the developer **knows** is sensitive at log time |
+| `with_redaction(fields=...)` | Safety net for fields developers might forget to mark |
+| `with_redaction(preset=...)` | Compliance-driven blanket coverage |
+
+These are complementary. `sensitive=` gives developer-declared intent; redactors remain the safety net for fields not explicitly marked.
+
 ## Going Deeper
 
 - [Redaction Presets](../redaction/presets.md) - Full preset documentation

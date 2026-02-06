@@ -62,6 +62,12 @@ class LogEnvelopeV1(TypedDict):
     This is the schema produced by build_envelope() and consumed by
     serialize_envelope(). All fields are required at the envelope level,
     though context/diagnostics/data dicts may be empty.
+
+    Convention - data.sensitive (Story 4.68):
+        When ``sensitive=`` or ``pii=`` kwargs are passed as Mappings,
+        build_envelope() merges them into ``data["sensitive"]`` and
+        recursively masks all terminal values with ``"***"`` at
+        construction time, before the event reaches the queue.
     """
 
     timestamp: str
