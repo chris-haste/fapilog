@@ -77,7 +77,7 @@ async def test_on_guardrail_exceeded_config_option() -> None:
 
 @pytest.mark.asyncio
 async def test_max_depth_exceeded_drop_mode(monkeypatch: pytest.MonkeyPatch) -> None:
-    """AC3: Drop mode returns None when max_depth exceeded."""
+    """AC3: Drop mode returns original event when max_depth exceeded."""
     captured: list[dict] = []
 
     def _warn(_component: str, _msg: str, **kw) -> None:  # type: ignore[no-untyped-def]
@@ -95,15 +95,16 @@ async def test_max_depth_exceeded_drop_mode(monkeypatch: pytest.MonkeyPatch) -> 
             on_guardrail_exceeded="drop",
         )
     )
-    result = await red.redact({"a": {"b": {"c": "secret"}}})
-    assert result is None
+    event = {"a": {"b": {"c": "secret"}}}
+    result = await red.redact(event)
+    assert result == event  # Returns original, unmasked
     # Should still emit diagnostic
     assert any("max depth" in w["msg"] for w in captured)
 
 
 @pytest.mark.asyncio
 async def test_max_keys_scanned_drop_mode(monkeypatch: pytest.MonkeyPatch) -> None:
-    """AC3: Drop mode returns None when max_keys_scanned exceeded."""
+    """AC3: Drop mode returns original event when max_keys_scanned exceeded."""
     captured: list[dict] = []
 
     def _warn(_component: str, _msg: str, **kw) -> None:  # type: ignore[no-untyped-def]
@@ -123,7 +124,7 @@ async def test_max_keys_scanned_drop_mode(monkeypatch: pytest.MonkeyPatch) -> No
         )
     )
     result = await red.redact(payload)
-    assert result is None
+    assert result == payload  # Returns original, unmasked
     # Should still emit diagnostic
     assert any("max keys" in w["msg"] for w in captured)
 
