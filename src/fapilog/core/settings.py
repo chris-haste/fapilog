@@ -493,7 +493,8 @@ class RedactorFieldMaskSettings(BaseModel):
     )
     mask_string: str = Field(default="***", description="Replacement mask string")
     block_on_unredactable: bool = Field(
-        default=False, description="Block log entry if redaction fails"
+        default=True,
+        description="Emit diagnostic warning when a field path cannot be redacted",
     )
     max_depth: int = Field(default=16, ge=1, description="Max nested depth to scan")
     max_keys_scanned: int = Field(
