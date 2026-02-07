@@ -111,7 +111,7 @@ class TestPostgresSinkIntegration:
         await sink.start()
         await sink.write_serialized(
             SerializedView(
-                data=b'{"level":"ERROR","message":"serialized","correlation_id":"abc-1"}'
+                data=b'{"level":"ERROR","message":"serialized","context":{"correlation_id":"abc-1"}}'
             )
         )
         await sink.stop()

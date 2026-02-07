@@ -260,6 +260,8 @@ class PostgresSink(BatchingMixin):
                 values.append(entry.get("logger", "root"))
             elif column == "message":
                 values.append(entry.get("message", ""))
+            elif column == "correlation_id":
+                values.append(entry.get("context", {}).get("correlation_id"))
             elif column == "event":
                 # asyncpg requires JSON string for JSONB columns, not Python dict
                 values.append(json.dumps(event_payload, default=str))
