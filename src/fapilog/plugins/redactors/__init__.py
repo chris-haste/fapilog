@@ -79,6 +79,14 @@ async def redact_in_order(
             # Shallow replacement to preserve mapping semantics
             if isinstance(next_event, dict):
                 current = next_event
+            # Record redaction operational metrics (Story 4.71)
+            if metrics is not None:
+                redacted = getattr(r, "last_redacted_count", 0)
+                if redacted:
+                    await metrics.record_redacted_fields(redacted)
+                violations = getattr(r, "last_policy_violations", 0)
+                if violations:
+                    await metrics.record_policy_violations(violations)
         except Exception as exc:
             # Contain failure and continue with last good snapshot
             # Errors are recorded by plugin_timer when metrics is enabled

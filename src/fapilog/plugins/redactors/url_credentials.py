@@ -44,6 +44,7 @@ class UrlCredentialsRedactor:
         return None
 
     async def redact(self, event: dict) -> dict:
+        self.last_redacted_count = 0
         root = dict(event)
         try:
             self._strip_credentials(root, depth=0, scanned=0)
@@ -63,7 +64,10 @@ class UrlCredentialsRedactor:
             for k, v in list(node.items()):
                 scanned += 1
                 if isinstance(v, str):
-                    node[k] = self._scrub_string(v)
+                    scrubbed = self._scrub_string(v)
+                    if scrubbed is not v:
+                        self.last_redacted_count += 1
+                    node[k] = scrubbed
                 elif isinstance(v, (dict, list)):
                     scanned = self._strip_credentials(
                         v, depth=depth + 1, scanned=scanned
@@ -72,7 +76,10 @@ class UrlCredentialsRedactor:
             for idx, item in enumerate(list(node)):
                 scanned += 1
                 if isinstance(item, str):
-                    node[idx] = self._scrub_string(item)
+                    scrubbed = self._scrub_string(item)
+                    if scrubbed is not item:
+                        self.last_redacted_count += 1
+                    node[idx] = scrubbed
                 elif isinstance(item, (dict, list)):
                     scanned = self._strip_credentials(
                         item, depth=depth + 1, scanned=scanned

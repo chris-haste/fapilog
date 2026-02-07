@@ -126,6 +126,10 @@ class MetricsCollector:
         self._c_events_evicted: Any | None = None
         # In-memory tracking for evicted_by_level
         self._evicted_by_level: dict[str, int] = {}
+        # Redaction operational metrics (Story 4.71)
+        self._c_redacted_fields: Any | None = None
+        self._c_policy_violations: Any | None = None
+        self._c_sensitive_fields: Any | None = None
 
         if self._enabled:
             # Minimal metric set; names align with conventional Prometheus
@@ -277,6 +281,22 @@ class MetricsCollector:
                 ["level"],
                 registry=self._registry,
             )
+            # Redaction operational metrics (Story 4.71)
+            self._c_redacted_fields = Counter(
+                "fapilog_redacted_fields_total",
+                "Total fields masked by redactors",
+                registry=self._registry,
+            )
+            self._c_policy_violations = Counter(
+                "fapilog_policy_violations_total",
+                "Total policy violation flags emitted",
+                registry=self._registry,
+            )
+            self._c_sensitive_fields = Counter(
+                "fapilog_sensitive_fields_total",
+                "Total fields logged via sensitive/pii container",
+                registry=self._registry,
+            )
 
     @property
     def is_enabled(self) -> bool:
@@ -374,6 +394,27 @@ class MetricsCollector:
             return
         if self._c_redaction_exceptions is not None:
             self._c_redaction_exceptions.inc(count)
+
+    async def record_redacted_fields(self, count: int = 1) -> None:
+        """Record total fields masked by redactors."""
+        if not self._enabled:
+            return
+        if self._c_redacted_fields is not None:
+            self._c_redacted_fields.inc(count)
+
+    async def record_policy_violations(self, count: int = 1) -> None:
+        """Record policy violation flags from field blocker."""
+        if not self._enabled:
+            return
+        if self._c_policy_violations is not None:
+            self._c_policy_violations.inc(count)
+
+    async def record_sensitive_fields(self, count: int = 1) -> None:
+        """Record fields logged via sensitive/pii container."""
+        if not self._enabled:
+            return
+        if self._c_sensitive_fields is not None:
+            self._c_sensitive_fields.inc(count)
 
     async def record_sink_error(
         self, *, sink: str | None = None, count: int = 1
@@ -573,4 +614,5 @@ _VULTURE_USED: tuple[object, ...] = (
     MetricsCollector.record_events_dropped_protected,
     MetricsCollector.record_events_dropped_unprotected,
     MetricsCollector.record_events_evicted,
+    MetricsCollector.record_sensitive_fields,
 )

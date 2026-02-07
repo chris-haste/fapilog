@@ -66,22 +66,28 @@ class FieldMaskRedactor:
 
     async def redact(self, event: dict) -> dict:
         # Work on a shallow copy of the root; mutate nested containers in place
+        self.last_redacted_count = 0
         root: dict[str, Any] = dict(event)
         for path in self._fields:
-            guardrail_hit = self._apply_mask(root, path)
+            guardrail_hit, masked = self._apply_mask(root, path)
+            self.last_redacted_count += masked
             if guardrail_hit and self._on_guardrail_exceeded == "drop":
+                self.last_redacted_count = 0
                 return dict(event)  # Abandon masking, return original
         return root
 
-    def _apply_mask(self, root: dict[str, Any], path: list[str]) -> bool:
-        """Apply mask to path in root. Returns True if guardrail was hit."""
+    def _apply_mask(self, root: dict[str, Any], path: list[str]) -> tuple[bool, int]:
+        """Apply mask to path in root. Returns (guardrail_hit, masked_count)."""
         scanned = 0
         guardrail_hit = False
+        masked_count = 0
 
         def mask_scalar(value: Any) -> Any:
+            nonlocal masked_count
             # Idempotence: do not double-mask
             if isinstance(value, str) and value == self._mask:
                 return value
+            masked_count += 1
             return self._mask
 
         def _handle_guardrail(
@@ -255,7 +261,7 @@ class FieldMaskRedactor:
                     )
 
         _traverse(root, 0, 0)
-        return guardrail_hit
+        return guardrail_hit, masked_count
 
     async def health_check(self) -> bool:
         """Verify redactor configuration is valid.

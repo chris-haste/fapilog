@@ -121,16 +121,19 @@ class RegexMaskRedactor:
         # Work on a shallow copy of the root; mutate nested containers in
         # place
         root: dict[str, Any] = dict(event)
-        self._apply_regex_masks(root)
+        self.last_redacted_count = self._apply_regex_masks(root)
         return root
 
-    def _apply_regex_masks(self, root: dict[str, Any]) -> None:
+    def _apply_regex_masks(self, root: dict[str, Any]) -> int:
         scanned = 0
+        masked_count = 0
 
         def mask_scalar(value: Any) -> Any:
+            nonlocal masked_count
             # Idempotence: do not double-mask
             if isinstance(value, str) and value == self._mask:
                 return value
+            masked_count += 1
             return self._mask
 
         def path_matches(path_segments: Iterable[str]) -> bool:
@@ -201,6 +204,7 @@ class RegexMaskRedactor:
                 return
 
         traverse(root, [], 0)
+        return masked_count
 
     async def health_check(self) -> bool:
         """Verify all regex patterns compiled successfully.

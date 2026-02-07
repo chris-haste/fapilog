@@ -92,6 +92,7 @@ class FieldBlockerRedactor:
         root: dict[str, Any] = dict(event)
         scanned = 0
         guardrail_hit = False
+        self.last_policy_violations = 0
 
         def _traverse(container: Any, depth: int, path_parts: list[str]) -> None:
             nonlocal scanned, guardrail_hit
@@ -121,6 +122,7 @@ class FieldBlockerRedactor:
 
                     if key.lower() in self._effective_blocklist:
                         container[key] = self._replacement
+                        self.last_policy_violations += 1
                         diagnostics.warn(
                             "redactor",
                             "high-risk field blocked",
