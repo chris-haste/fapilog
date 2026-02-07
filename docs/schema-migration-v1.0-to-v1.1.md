@@ -28,7 +28,8 @@ v1.1 organizes fields into three semantic groups:
     "message": str,        # Human-readable log message
     "logger": str,         # Logger name
     "context": {           # Request/trace identifiers (WHO/WHAT)
-        "correlation_id": str,
+        "message_id": str,             # Always present - unique per log entry
+        "correlation_id": str | None,  # Always present; None when unset
         "request_id": str | None,
         "user_id": str | None,
         "tenant_id": str | None,

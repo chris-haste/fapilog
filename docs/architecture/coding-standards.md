@@ -25,8 +25,8 @@ These standards are **MANDATORY for AI agents** and critical for maintaining cod
 - **Container Isolation:** Never use global state - all state must be container-scoped
 - **Zero-Copy Operations:** Pass LogEvent by reference, never copy event data unnecessarily
 - **Correlation ID Propagation:** All async operations must propagate correlation_id for tracing
-  - The default pipeline reads `request_id` from the async context and assigns it to `LogEvent.correlation_id`, defaulting to a UUID if none exists
-  - Sinks should include `correlation_id` in emitted records when present
+  - The default pipeline reads `request_id` from the async context and assigns it to `context.correlation_id`; the field is always present in the envelope (`null` when no correlation context is active)
+  - Sinks should always include `correlation_id` in emitted records
 - **Enrichment Order:** Default enrichers run before serialization/sinks
   - `runtime_info` provides service/env/version/host/pid/python
   - `context_vars` provides request_id/user_id and optional trace/span IDs
