@@ -32,10 +32,29 @@ class UrlCredentialsRedactor:
     name = "url_credentials"
 
     def __init__(
-        self, *, config: UrlCredentialsConfig | dict | None = None, **kwargs: Any
+        self,
+        *,
+        config: UrlCredentialsConfig | dict | None = None,
+        core_max_depth: int | None = None,
+        core_max_keys_scanned: int | None = None,
+        **kwargs: Any,
     ) -> None:
         cfg = parse_plugin_config(UrlCredentialsConfig, config, **kwargs)
         self._max_len = cfg.max_string_length
+
+        # Apply "more restrictive wins" logic for guardrails
+        plugin_depth = 16
+        plugin_scanned = 1000
+
+        if core_max_depth is not None:
+            self._max_depth = min(plugin_depth, core_max_depth)
+        else:
+            self._max_depth = plugin_depth
+
+        if core_max_keys_scanned is not None:
+            self._max_scanned = min(plugin_scanned, core_max_keys_scanned)
+        else:
+            self._max_scanned = plugin_scanned
 
     async def start(self) -> None:  # pragma: no cover - optional lifecycle
         return None
@@ -57,8 +76,7 @@ class UrlCredentialsRedactor:
         return root
 
     def _strip_credentials(self, node: Any, *, depth: int, scanned: int) -> int:
-        # Depth/scan guardrails: reuse conservative defaults
-        if depth > 16 or scanned > 1000:
+        if depth > self._max_depth or scanned > self._max_scanned:
             return scanned
         if isinstance(node, dict):
             for k, v in list(node.items()):

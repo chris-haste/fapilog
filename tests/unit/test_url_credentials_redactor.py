@@ -150,3 +150,64 @@ class TestUrlSchemeOptimization:
         )
         for scheme in required_schemes:
             assert scheme in _URL_SCHEMES, f"Missing scheme: {scheme}"
+
+
+class TestCoreGuardrails:
+    """Tests for core guardrail enforcement (Story 4.65)."""
+
+    @pytest.mark.asyncio
+    async def test_core_max_depth_limits_traversal(self) -> None:
+        """URLs beyond core_max_depth should not be scrubbed."""
+        r = UrlCredentialsRedactor(core_max_depth=2)
+        # depth 0=root dict, recurse into a at depth 1, into b at depth 2,
+        # into c at depth 3 → 3 > 2, so c's contents are not processed
+        event = {"a": {"b": {"c": {"u": "https://user:pass@host.com"}}}}
+        result = await r.redact(event)
+        assert result["a"]["b"]["c"]["u"] == "https://user:pass@host.com"
+
+    @pytest.mark.asyncio
+    async def test_core_max_depth_allows_within_limit(self) -> None:
+        """URLs within core_max_depth should be scrubbed."""
+        r = UrlCredentialsRedactor(core_max_depth=2)
+        # depth 0=root dict, a.u at depth 1 → within limit, scrubbed
+        event = {"a": {"u": "https://user:pass@host.com/path"}}
+        result = await r.redact(event)
+        assert result["a"]["u"] == "https://host.com/path"
+
+    @pytest.mark.asyncio
+    async def test_core_max_keys_scanned_limits_traversal(self) -> None:
+        """After scanning core_max_keys_scanned keys, stop traversing."""
+        r = UrlCredentialsRedactor(core_max_keys_scanned=2)
+        # First dict scans keys; after scanned exceeds 2, nested dicts stop
+        # Root dict processes k1 (scanned=1), k2 (scanned=2), nested (scanned=3)
+        # but nested recurses and at entry scanned=3 > 2 → stops
+        event = {
+            "k1": "plain",
+            "k2": "plain",
+            "nested": {"u": "https://user:pass@host.com/path"},
+        }
+        result = await r.redact(event)
+        assert result["nested"]["u"] == "https://user:pass@host.com/path"
+
+    @pytest.mark.asyncio
+    async def test_defaults_without_core_override(self) -> None:
+        """Without core overrides, plugin defaults (depth 16, scanned 1000) apply."""
+        r = UrlCredentialsRedactor()
+        # Shallow URL should still be scrubbed with defaults
+        event = {"u": "https://user:pass@host.com/path"}
+        result = await r.redact(event)
+        assert result["u"] == "https://host.com/path"
+
+    @pytest.mark.asyncio
+    async def test_more_restrictive_wins_when_core_is_higher(self) -> None:
+        """If core limit is higher than plugin default, plugin default wins."""
+        r = UrlCredentialsRedactor(core_max_depth=100)
+        # Plugin default is 16, so 16 should still be effective
+        assert r._max_depth == 16
+
+    @pytest.mark.asyncio
+    async def test_more_restrictive_wins_when_core_is_lower(self) -> None:
+        """If core limit is lower than plugin default, core wins."""
+        r = UrlCredentialsRedactor(core_max_depth=3, core_max_keys_scanned=50)
+        assert r._max_depth == 3
+        assert r._max_scanned == 50
