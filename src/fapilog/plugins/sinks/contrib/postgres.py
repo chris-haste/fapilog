@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 from datetime import datetime, timezone
 from typing import Any
@@ -15,6 +16,34 @@ from ...utils import parse_plugin_config
 from .._batching import BatchingMixin
 
 asyncpg: Any = None  # Lazy import; populated in _ensure_asyncpg
+
+_FIELD_LOCATIONS: dict[str, tuple[str, ...]] = {
+    # Root-level fields
+    "timestamp": ("timestamp",),
+    "level": ("level",),
+    "message": ("message",),
+    "logger": ("logger",),
+    # Context fields
+    "message_id": ("context", "message_id"),
+    "correlation_id": ("context", "correlation_id"),
+    "request_id": ("context", "request_id"),
+    "user_id": ("context", "user_id"),
+    "tenant_id": ("context", "tenant_id"),
+    "trace_id": ("context", "trace_id"),
+    "span_id": ("context", "span_id"),
+    # Diagnostics fields (exception excluded — nested dict, not a scalar column)
+    "origin": ("diagnostics", "origin"),
+    "service": ("diagnostics", "service"),
+    "env": ("diagnostics", "env"),
+    "host": ("diagnostics", "host"),
+    "pid": ("diagnostics", "pid"),
+}
+
+_FIELD_DEFAULTS: dict[str, Any] = {
+    "level": "INFO",
+    "logger": "root",
+    "message": "",
+}
 
 DEFAULT_COLUMN_TYPES: dict[str, str] = {
     "timestamp": "TIMESTAMPTZ",
@@ -94,7 +123,15 @@ class PostgresSinkConfig(BaseModel):
             "logger",
             "correlation_id",
             "message",
-        ]
+        ],
+        description=(
+            "Fields to extract into dedicated database columns. Supports root-level "
+            "fields (timestamp, level, message, logger), context fields (message_id, "
+            "correlation_id, request_id, user_id, tenant_id, trace_id, span_id), "
+            "and diagnostics fields (origin, service, env, host, pid). Fields are "
+            "resolved from their nested location automatically. Unrecognized names "
+            "fall back to root-level lookup."
+        ),
     )
 
 
@@ -102,6 +139,8 @@ class PostgresSink(BatchingMixin):
     """PostgreSQL sink with async batching and connection pooling."""
 
     name = "postgres"
+
+    _logger = logging.getLogger("fapilog.sinks.postgres")
 
     def __init__(self, config: PostgresSinkConfig | None = None, **kwargs: Any) -> None:
         cfg = parse_plugin_config(PostgresSinkConfig, config, **kwargs)
@@ -112,6 +151,19 @@ class PostgresSink(BatchingMixin):
         self._table_created = False
         self._insert_columns = self._build_insert_columns(cfg.extract_fields)
         self._init_batching(cfg.batch_size, cfg.batch_timeout_seconds)
+        self._warn_unrecognized_fields(cfg.extract_fields)
+
+    def _warn_unrecognized_fields(self, fields: list[str]) -> None:
+        """Log a warning for any extract_fields not in the known envelope map."""
+        known = set(_FIELD_LOCATIONS) | {"event"}
+        for field in fields:
+            if field not in known:
+                self._logger.warning(
+                    "extract_fields contains unrecognized field %r; "
+                    "it will be looked up at the envelope root and may return NULL "
+                    "if the field lives in context or diagnostics",
+                    field,
+                )
 
     async def start(self) -> None:
         _ensure_asyncpg()
@@ -243,30 +295,45 @@ class PostgresSink(BatchingMixin):
         ) as conn:
             await conn.executemany(query, rows)
 
+    def _resolve_field(self, entry: dict[str, Any], field: str) -> Any:
+        """Resolve a field name to its value using the v1.1 envelope layout."""
+        path = _FIELD_LOCATIONS.get(field)
+        if path is not None:
+            obj: Any = entry
+            for key in path:
+                if isinstance(obj, dict):
+                    obj = obj.get(key)
+                else:
+                    return None
+            return obj
+        # Unknown field — fall back to root lookup
+        return entry.get(field)
+
     def _prepare_row(self, entry: dict[str, Any]) -> tuple[Any, ...]:
         values: list[Any] = []
         event_payload = (
             dict(entry)
             if self._config.include_raw_json
-            else {k: entry.get(k) for k in self._config.extract_fields if k in entry}
+            else {
+                k: v
+                for k in self._config.extract_fields
+                if (v := self._resolve_field(entry, k)) is not None
+            }
         )
 
         for column in self._insert_columns:
             if column == "timestamp":
-                values.append(self._parse_timestamp(entry.get("timestamp")))
-            elif column == "level":
-                values.append(entry.get("level", "INFO"))
-            elif column == "logger":
-                values.append(entry.get("logger", "root"))
-            elif column == "message":
-                values.append(entry.get("message", ""))
-            elif column == "correlation_id":
-                values.append(entry.get("context", {}).get("correlation_id"))
+                values.append(
+                    self._parse_timestamp(self._resolve_field(entry, "timestamp"))
+                )
             elif column == "event":
                 # asyncpg requires JSON string for JSONB columns, not Python dict
                 values.append(json.dumps(event_payload, default=str))
             else:
-                values.append(entry.get(column))
+                value = self._resolve_field(entry, column)
+                if value is None and column in _FIELD_DEFAULTS:
+                    value = _FIELD_DEFAULTS[column]
+                values.append(value)
 
         return tuple(values)
 
