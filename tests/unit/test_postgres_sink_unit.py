@@ -431,6 +431,101 @@ class TestEdgeCases:
         assert row[4] == ""  # message default
 
 
+class TestFieldResolution:
+    """Test schema-aware field extraction from nested envelope sections."""
+
+    def test_extract_fields_resolves_context_request_id(self) -> None:
+        """request_id in extract_fields should resolve from context."""
+        from fapilog.core.envelope import build_envelope
+
+        sink = PostgresSink(
+            PostgresSinkConfig(
+                extract_fields=["timestamp", "level", "request_id", "message"],
+            )
+        )
+        envelope = build_envelope(level="INFO", message="test")
+        envelope["context"]["request_id"] = "req-456"
+        row = sink._prepare_row(dict(envelope))  # noqa: SLF001
+
+        # columns: timestamp, level, request_id, message, event
+        assert row[2] == "req-456"
+
+    def test_extract_fields_resolves_context_user_id(self) -> None:
+        """user_id in extract_fields should resolve from context."""
+        from fapilog.core.envelope import build_envelope
+
+        sink = PostgresSink(
+            PostgresSinkConfig(
+                extract_fields=["timestamp", "level", "user_id", "message"],
+            )
+        )
+        envelope = build_envelope(level="INFO", message="test")
+        envelope["context"]["user_id"] = "usr-789"
+        row = sink._prepare_row(dict(envelope))  # noqa: SLF001
+
+        assert row[2] == "usr-789"
+
+    def test_extract_fields_resolves_diagnostics_service(self) -> None:
+        """service in extract_fields should resolve from diagnostics."""
+        from fapilog.core.envelope import build_envelope
+
+        sink = PostgresSink(
+            PostgresSinkConfig(
+                extract_fields=["timestamp", "level", "service", "message"],
+            )
+        )
+        envelope = build_envelope(level="INFO", message="test")
+        envelope["diagnostics"]["service"] = "api"
+        row = sink._prepare_row(dict(envelope))  # noqa: SLF001
+
+        assert row[2] == "api"
+
+    def test_extract_fields_resolves_diagnostics_env(self) -> None:
+        """env in extract_fields should resolve from diagnostics."""
+        from fapilog.core.envelope import build_envelope
+
+        sink = PostgresSink(
+            PostgresSinkConfig(
+                extract_fields=["timestamp", "level", "env", "message"],
+            )
+        )
+        envelope = build_envelope(level="INFO", message="test")
+        envelope["diagnostics"]["env"] = "production"
+        row = sink._prepare_row(dict(envelope))  # noqa: SLF001
+
+        assert row[2] == "production"
+
+    def test_event_payload_includes_nested_fields_when_not_raw(self) -> None:
+        """include_raw_json=False should still resolve context fields in event."""
+        from fapilog.core.envelope import build_envelope
+
+        sink = PostgresSink(
+            PostgresSinkConfig(
+                include_raw_json=False,
+                extract_fields=["timestamp", "level", "correlation_id", "message"],
+            )
+        )
+        envelope = build_envelope(level="INFO", message="test", correlation_id="cid-1")
+        row = sink._prepare_row(dict(envelope))  # noqa: SLF001
+
+        event_json = json.loads(row[-1])  # last column is event
+        assert event_json["correlation_id"] == "cid-1"
+
+    def test_unrecognized_extract_field_logs_warning(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Unrecognized field names in extract_fields should log a warning."""
+        import logging
+
+        with caplog.at_level(logging.WARNING):
+            PostgresSink(
+                PostgresSinkConfig(
+                    extract_fields=["timestamp", "nonexistent_field", "message"],
+                )
+            )
+        assert "nonexistent_field" in caplog.text
+
+
 class TestSchemaVariations:
     """Test different schema configurations."""
 
