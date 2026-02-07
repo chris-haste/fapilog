@@ -150,12 +150,7 @@ class FieldBlockerRedactor:
         return root
 
     async def health_check(self) -> bool:
-        try:
-            if self._max_depth <= 0 or self._max_scanned <= 0:
-                return False
-            return True
-        except Exception:
-            return False
+        return self._max_depth > 0 and self._max_scanned > 0
 
 
 PLUGIN_METADATA = {

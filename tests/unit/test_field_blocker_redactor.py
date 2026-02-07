@@ -278,6 +278,21 @@ async def test_guardrail_exceeded_drop_returns_original() -> None:
     assert result == event
 
 
+@pytest.mark.asyncio
+async def test_guardrail_exceeded_drop_inside_list_traversal() -> None:
+    redactor = FieldBlockerRedactor(
+        config={
+            "blocked_fields": ["secret"],
+            "max_depth": 1,
+            "on_guardrail_exceeded": "drop",
+        }
+    )
+    # List items with nested dicts that exceed max_depth trigger drop inside list
+    event = {"items": [{"nested": {"secret": "deep"}}]}
+    result = await redactor.redact(event)
+    assert result == event
+
+
 # --- Custom Replacement String ---
 
 
