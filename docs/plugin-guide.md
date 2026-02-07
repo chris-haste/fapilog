@@ -4,6 +4,7 @@
 | Name | Type | Version | API | Author | Description |
 |------|------|---------|-----|--------|-------------|
 | context_vars | enricher | 1.1.0 | 1.1 | Fapilog Core | Adds request/trace identifiers (request_id, user_id, trace_id) to context group. |
+| field_blocker | redactor | 1.0.0 | 1.0 | Fapilog Core | Blocks high-risk field names by replacing their values. |
 | field_mask | redactor | 1.0.0 | 1.0 | Fapilog Core | Masks configured fields in structured events. |
 | http | sink | 1.0.0 | 1.0 | Fapilog Core | Async HTTP sink that POSTs JSON to a configured endpoint. |
 | kubernetes | enricher | 1.1.0 | 1.1 | Fapilog Core | Adds K8s pod metadata (pod, namespace, node, deployment) to diagnostics group. |

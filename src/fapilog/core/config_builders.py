@@ -19,6 +19,9 @@ from ..core.settings import Settings as _Settings
 from ..core.types import _parse_rotation_duration, _parse_size
 from ..metrics.metrics import MetricsCollector as _MetricsCollector
 from ..plugins.processors.size_guard import SizeGuardConfig as _SizeGuardConfig
+from ..plugins.redactors.field_blocker import (
+    FieldBlockerConfig as _FieldBlockerConfig,
+)
 from ..plugins.redactors.field_mask import FieldMaskConfig as _FieldMaskConfig
 from ..plugins.redactors.regex_mask import RegexMaskConfig as _RegexMaskConfig
 from ..plugins.redactors.url_credentials import (
@@ -219,6 +222,11 @@ def _redactor_configs(settings: _Settings) -> dict[str, dict[str, _Any]]:
         },
         "url_credentials": {
             "config": _UrlCredentialsConfig(**rcfg.url_credentials.model_dump())
+        },
+        "field_blocker": {
+            "config": _FieldBlockerConfig(**rcfg.field_blocker.model_dump()),
+            "core_max_depth": core_max_depth,
+            "core_max_keys_scanned": core_max_keys,
         },
     }
     cfg.update(rcfg.extra)

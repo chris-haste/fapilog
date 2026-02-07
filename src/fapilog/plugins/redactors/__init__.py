@@ -15,6 +15,7 @@ import orjson
 from ...core import diagnostics
 from ...metrics.metrics import MetricsCollector, plugin_timer
 from ..loader import register_builtin
+from .field_blocker import FieldBlockerRedactor
 from .field_mask import FieldMaskRedactor
 from .regex_mask import RegexMaskRedactor
 from .url_credentials import UrlCredentialsRedactor
@@ -113,10 +114,17 @@ register_builtin(
     UrlCredentialsRedactor,
     aliases=["url-credentials"],
 )
+register_builtin(
+    "fapilog.redactors",
+    "field_blocker",
+    FieldBlockerRedactor,
+    aliases=["field-blocker"],
+)
 
 __all__ = [
     "BaseRedactor",
     "redact_in_order",
+    "FieldBlockerRedactor",
     "FieldMaskRedactor",
     "RegexMaskRedactor",
     "UrlCredentialsRedactor",

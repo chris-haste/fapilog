@@ -169,7 +169,12 @@ PRESETS: dict[str, dict[str, Any]] = {
             "fallback_scrub_raw": True,  # Scrub raw output
             "sinks": ["stdout_json", "rotating_file"],
             "enrichers": ["runtime_info", "context_vars"],
-            "redactors": ["field_mask", "regex_mask", "url_credentials"],
+            "redactors": [
+                "field_mask",
+                "regex_mask",
+                "url_credentials",
+                "field_blocker",
+            ],
         },
         "sink_config": {
             "rotating_file": {
@@ -191,6 +196,7 @@ PRESETS: dict[str, dict[str, Any]] = {
             "field_mask": {},
             "regex_mask": {},
             "url_credentials": {},
+            "field_blocker": {},
         },
         # Marker for automatic CREDENTIALS preset application
         "_apply_credentials_preset": True,

@@ -518,6 +518,27 @@ class RedactorRegexMaskSettings(BaseModel):
     )
 
 
+class RedactorFieldBlockerSettings(BaseModel):
+    """Per-plugin configuration for FieldBlockerRedactor."""
+
+    blocked_fields: list[str] = Field(
+        default_factory=list,
+        description="Field names to block (replaces values with marker)",
+    )
+    allowed_fields: list[str] = Field(
+        default_factory=list,
+        description="Field names exempt from blocking even if in blocklist",
+    )
+    replacement: str = Field(
+        default="[REDACTED:HIGH_RISK_FIELD]",
+        description="Replacement string for blocked field values",
+    )
+    max_depth: int = Field(default=16, ge=1, description="Max nested depth to scan")
+    max_keys_scanned: int = Field(
+        default=1000, ge=1, description="Max keys to scan before stopping"
+    )
+
+
 class RedactorUrlCredentialsSettings(BaseModel):
     """Per-plugin configuration for UrlCredentialsRedactor."""
 
@@ -1063,6 +1084,10 @@ class Settings(BaseSettings):
         url_credentials: RedactorUrlCredentialsSettings = Field(
             default_factory=RedactorUrlCredentialsSettings,
             description="Configuration for url_credentials redactor",
+        )
+        field_blocker: RedactorFieldBlockerSettings = Field(
+            default_factory=RedactorFieldBlockerSettings,
+            description="Configuration for field_blocker redactor",
         )
         extra: dict[str, dict[str, Any]] = Field(
             default_factory=dict,
