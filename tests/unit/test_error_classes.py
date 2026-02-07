@@ -48,6 +48,22 @@ from fapilog.core.errors import (
 class TestErrorContextVariables:
     """Test error context variable handling."""
 
+    @pytest.fixture(autouse=True)
+    def _isolate_context_vars(self) -> None:  # type: ignore[return]
+        """Prevent set_error_context() from leaking context vars across tests."""
+        from fapilog.core.errors import (
+            container_id_var,
+            request_id_var,
+            session_id_var,
+            user_id_var,
+        )
+
+        _vars = [request_id_var, user_id_var, session_id_var, container_id_var]
+        tokens = [v.set("__isolate__") for v in _vars]  # type: ignore[arg-type]
+        yield
+        for v, t in zip(_vars, tokens, strict=False):
+            v.reset(t)
+
     def test_set_and_get_error_context_variables(self) -> None:
         """Setting context variables makes them retrievable."""
         set_error_context(
@@ -103,6 +119,22 @@ class TestErrorContextVariables:
 
 class TestFapilogErrorBehavior:
     """Test FapilogError class behavior."""
+
+    @pytest.fixture(autouse=True)
+    def _isolate_context_vars(self) -> None:  # type: ignore[return]
+        """Prevent set_error_context() from leaking context vars across tests."""
+        from fapilog.core.errors import (
+            container_id_var,
+            request_id_var,
+            session_id_var,
+            user_id_var,
+        )
+
+        _vars = [request_id_var, user_id_var, session_id_var, container_id_var]
+        tokens = [v.set("__isolate__") for v in _vars]  # type: ignore[arg-type]
+        yield
+        for v, t in zip(_vars, tokens, strict=False):
+            v.reset(t)
 
     def test_fapilog_error_to_dict_contains_context_and_cause(self) -> None:
         """to_dict includes error type, message, context and cause."""

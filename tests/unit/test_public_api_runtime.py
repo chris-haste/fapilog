@@ -40,7 +40,7 @@ def test_get_logger_basic_enqueue_and_stdout_json():
         sys.stdout = orig  # type: ignore[assignment]
 
 
-def test_get_logger_emits_correlation_id():
+def test_get_logger_omits_correlation_id_when_unset():
     # Capture stdout
     buf = io.BytesIO()
     orig = sys.stdout
@@ -66,10 +66,8 @@ def test_get_logger_emits_correlation_id():
         assert js["message"] == "hello"
         assert js["level"] == "INFO"
         assert js["logger"] == "corr-test"
-        # v1.1 schema: correlation_id is in context
-        assert "correlation_id" in js.get("context", {})
-        assert isinstance(js["context"]["correlation_id"], str)
-        assert len(js["context"]["correlation_id"]) > 0
+        # Story 1.34: correlation_id is absent when not explicitly set
+        assert "correlation_id" not in js.get("context", {})
     finally:
         sys.stdout = orig  # type: ignore[assignment]
 

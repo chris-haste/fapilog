@@ -8,6 +8,7 @@ Scope:
 - Correlation ID generation
 - Batch and drain behavior
 - Self-test functionality
+- Metrics scheduling from payload preparation
 
 Does NOT cover:
 - AsyncLoggerFacade (see test_logger_async.py)
@@ -20,6 +21,7 @@ from __future__ import annotations
 import asyncio
 import threading
 from typing import Any
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -163,7 +165,7 @@ class TestCorrelationId:
     """Tests for correlation ID generation."""
 
     @pytest.mark.asyncio
-    async def test_logger_auto_generates_correlation_id(self) -> None:
+    async def test_correlation_id_absent_when_not_set(self) -> None:
         captured: list[dict[str, Any]] = []
 
         logger = get_logger(name="test")
@@ -179,14 +181,12 @@ class TestCorrelationId:
 
         assert captured, "Expected at least one emitted entry"
         event = captured[0]
-        # v1.1 schema: correlation_id is in context
+        # Story 1.34: correlation_id only present when explicitly set
         assert "context" in event
-        assert "correlation_id" in event["context"]
-        assert isinstance(event["context"]["correlation_id"], str)
-        assert len(event["context"]["correlation_id"]) > 0
+        assert "correlation_id" not in event["context"]
 
     @pytest.mark.asyncio
-    async def test_context_propagation_and_uuid_fallback(self) -> None:
+    async def test_context_propagation_and_absent_without(self) -> None:
         captured: list[dict[str, Any]] = []
         logger = get_logger(name="ctx-test")
 
@@ -202,17 +202,15 @@ class TestCorrelationId:
         finally:
             request_id_var.reset(token)
 
-        # No request id -> UUID fallback
+        # No request id -> correlation_id absent (Story 1.34)
         logger.info("b")
 
         await logger.stop_and_drain()
 
         assert len(captured) >= 2
         a, b = captured[0], captured[1]
-        # v1.1 schema: correlation_id is in context
         assert a["context"]["correlation_id"] == "req-123"
-        assert isinstance(b["context"]["correlation_id"], str)
-        assert len(b["context"]["correlation_id"]) > 0
+        assert "correlation_id" not in b["context"]
 
 
 class TestBatchAndDrain:
@@ -353,3 +351,62 @@ class TestSelfTest:
         res = await logger.self_test()
         assert res.get("ok") is True
         assert res.get("sink") == "default"
+
+
+class TestMetricsScheduling:
+    """Tests for operational metrics scheduling from _prepare_payload."""
+
+    @pytest.mark.asyncio
+    async def test_sensitive_fields_schedules_metrics_call(self) -> None:
+        collected: list[dict[str, Any]] = []
+        metrics = MagicMock()
+        metrics.record_sensitive_fields = AsyncMock()
+
+        logger = SyncLoggerFacade(
+            name="t",
+            queue_capacity=16,
+            batch_max_size=8,
+            batch_timeout_seconds=0.05,
+            backpressure_wait_ms=10,
+            drop_on_full=True,
+            sink_write=lambda e: _collecting_sink(collected, e),
+            metrics=metrics,
+        )
+        logger.start()
+
+        logger.info("test", sensitive={"email": "a@b.com", "ssn": "123"})
+
+        await asyncio.sleep(0.1)
+        res = await logger.stop_and_drain()
+        assert res.submitted == 1
+
+        # Verify _schedule_metrics_call was invoked for sensitive fields
+        # It calls metrics.record_sensitive_fields with the count of keys
+        metrics.record_sensitive_fields.assert_called_once_with(2)
+
+    @pytest.mark.asyncio
+    async def test_empty_sensitive_dict_skips_metrics_call(self) -> None:
+        collected: list[dict[str, Any]] = []
+        metrics = MagicMock()
+        metrics.record_sensitive_fields = AsyncMock()
+
+        logger = SyncLoggerFacade(
+            name="t",
+            queue_capacity=16,
+            batch_max_size=8,
+            batch_timeout_seconds=0.05,
+            backpressure_wait_ms=10,
+            drop_on_full=True,
+            sink_write=lambda e: _collecting_sink(collected, e),
+            metrics=metrics,
+        )
+        logger.start()
+
+        logger.info("test", sensitive={})
+
+        await asyncio.sleep(0.1)
+        res = await logger.stop_and_drain()
+        assert res.submitted == 1
+
+        # Empty sensitive dict should NOT trigger metrics
+        metrics.record_sensitive_fields.assert_not_called()

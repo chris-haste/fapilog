@@ -91,6 +91,10 @@ myst_enable_extensions = [
     "tasklist",
 ]
 
+# Auto-generate heading anchors for h1-h3 so cross-doc fragment links
+# (e.g., file.md#heading-slug) resolve correctly.
+myst_heading_anchors = 3
+
 # Suppress known benign warnings
 suppress_warnings = [
     # Mermaid diagrams: directive not recognized when sphinxcontrib-mermaid isn't installed

@@ -1,10 +1,27 @@
 import sys
 from types import ModuleType
+from typing import Iterator
 
 import pytest
 
-from fapilog.core.errors import request_id_var, set_error_context, user_id_var
+from fapilog.core.errors import (
+    container_id_var,
+    request_id_var,
+    session_id_var,
+    set_error_context,
+    user_id_var,
+)
 from fapilog.plugins.enrichers.context_vars import ContextVarsEnricher
+
+
+@pytest.fixture(autouse=True)
+def _isolate_context_vars() -> Iterator[None]:
+    """Prevent set_error_context() from leaking context vars across tests."""
+    _vars = [request_id_var, user_id_var, session_id_var, container_id_var]
+    tokens = [v.set("__isolate__") for v in _vars]  # type: ignore[arg-type]
+    yield
+    for v, t in zip(_vars, tokens, strict=False):
+        v.reset(t)
 
 
 @pytest.mark.asyncio

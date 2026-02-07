@@ -90,6 +90,53 @@ Strips userinfo (username:password) from URLs in string values:
 {"endpoint": "https://***:***@api.example.com/v1"}
 ```
 
+### Field Blocker Redactor
+
+Blocks high-risk field names by replacing their values entirely. This catches accidental logging of request/response bodies and other bulk data fields.
+
+Default blocked fields: `body`, `request_body`, `response_body`, `payload`, `raw`, `dump`, `raw_body`, `raw_request`, `raw_response`.
+
+**Example:**
+```python
+# Input
+{"data": {"payload": "{\"ssn\": \"123-45-6789\"}", "status": "ok"}}
+
+# Output
+{"data": {"payload": "[REDACTED:HIGH_RISK_FIELD]", "status": "ok"}}
+```
+
+Each blocked field emits a policy-violation diagnostic. Use `allowed_fields` to exempt specific fields:
+
+```python
+logger = (
+    LoggerBuilder()
+    .with_redaction(block_fields=["body", "payload"])
+    .build()
+)
+```
+
+### String Truncate Redactor
+
+Truncates string values exceeding a configured length and appends a `[truncated]` marker. Disabled by default (`max_string_length=None`).
+
+**Example:**
+```python
+# With max_string_length=50
+# Input
+{"data": {"trace": "a]" * 100}}
+
+# Output
+{"data": {"trace": "a]a]a]...a]a][truncated]"}}  # truncated to 50 chars + marker
+```
+
+```python
+logger = (
+    LoggerBuilder()
+    .with_redaction(max_string_length=1000)
+    .build()
+)
+```
+
 ## What Does NOT Get Redacted
 
 ### PII in Message Strings
@@ -140,9 +187,11 @@ Log Event → Enrichers → Redactors → Serialization → Sinks
 Redactors execute in order:
 1. **field_mask** - Exact path matching first
 2. **regex_mask** - Pattern matching second
-3. **url_credentials** - URL sanitization last
+3. **url_credentials** - URL sanitization
+4. **field_blocker** - High-risk field blocking
+5. **string_truncate** - Long string truncation last
 
-This order ensures explicit masking takes precedence, followed by broader patterns, then URL cleanup.
+This order ensures explicit masking takes precedence, followed by broader patterns, URL cleanup, policy enforcement, and finally size control. The `production`, `fastapi`, and `serverless` presets enable the first three; the `hardened` preset also enables `field_blocker`.
 
 (guardrails)=
 ## Guardrails
@@ -204,13 +253,15 @@ This ensures that core guardrails act as hard limits that cannot be exceeded by 
 
 ### Guardrail Behavior (`on_guardrail_exceeded`)
 
-The FieldMaskRedactor supports configurable behavior when guardrails are exceeded via the `on_guardrail_exceeded` option:
+All tree-traversing redactors support configurable behavior when guardrails are exceeded via the `on_guardrail_exceeded` option:
 
 | Mode | Behavior | Use Case |
 |------|----------|----------|
 | `"warn"` | Emit diagnostic, continue with partial redaction | Development, debugging |
 | `"drop"` | Emit diagnostic, drop the entire event | High-security compliance |
-| `"replace_subtree"` (default) | Emit diagnostic, replace unscanned subtree with mask | Balanced security/availability |
+| `"replace_subtree"` (default for field_mask) | Emit diagnostic, replace unscanned subtree with mask | Balanced security/availability |
+
+> **Note:** `field_blocker` and `string_truncate` only support `"warn"` and `"drop"` — they do not support `"replace_subtree"`.
 
 To opt into fail-open behavior for debugging:
 ```python
@@ -332,6 +383,36 @@ For the same input and configuration:
 - Mask string is consistent
 
 This ensures logs are predictable and testable.
+
+(unsafe-debug-escape-hatch)=
+## Bypass: unsafe_debug()
+
+The `unsafe_debug()` method emits a DEBUG-level event that **skips the entire redaction pipeline**. It exists for cases where developers need to inspect raw data during local debugging.
+
+```python
+# Sync
+logger.unsafe_debug("raw request", body=request_body)
+
+# Async
+await logger.unsafe_debug("raw request", body=request_body)
+```
+
+```{danger}
+**Never use `unsafe_debug()` in production code.** Events emitted through this method bypass all redaction, including field masking, regex masking, URL credential stripping, and field blocking. Sensitive data will appear in plain text in your logs.
+```
+
+**How it works:**
+
+1. `unsafe_debug()` injects an internal sentinel object (`_UNSAFE_SENTINEL`) into the event metadata
+2. The envelope builder checks for the sentinel by identity (not value) and sets a `_fapilog_unsafe=True` marker on the envelope
+3. The worker's redaction step checks for this marker and skips redaction entirely
+4. User-supplied `_fapilog_unsafe=True` kwargs are stripped — only the method can set the sentinel
+
+**Restrictions:**
+
+- Logs at **DEBUG level only** — will not appear with INFO or higher log levels in production
+- Intentionally named `unsafe_debug` to be visible in code review and `grep`
+- Cannot be triggered by passing metadata kwargs; the sentinel is an internal `object()` instance
 
 ## Related
 
