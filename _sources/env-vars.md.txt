@@ -117,6 +117,9 @@
 | `FAPILOG_REDACTOR_CONFIG__REGEX_MASK__MAX_DEPTH` | int | 16 | Max nested depth to scan |
 | `FAPILOG_REDACTOR_CONFIG__REGEX_MASK__MAX_KEYS_SCANNED` | int | 1000 | Max keys to scan before stopping |
 | `FAPILOG_REDACTOR_CONFIG__REGEX_MASK__PATTERNS` | list | PydanticUndefined | Regex patterns to match and mask |
+| `FAPILOG_REDACTOR_CONFIG__STRING_TRUNCATE__MAX_DEPTH` | int | 16 | Max nested depth to scan |
+| `FAPILOG_REDACTOR_CONFIG__STRING_TRUNCATE__MAX_KEYS_SCANNED` | int | 1000 | Max keys to scan before stopping |
+| `FAPILOG_REDACTOR_CONFIG__STRING_TRUNCATE__MAX_STRING_LENGTH` | int | None | — | Maximum character length for string values (None = disabled) |
 | `FAPILOG_REDACTOR_CONFIG__URL_CREDENTIALS__MAX_STRING_LENGTH` | int | 4096 | Max string length to parse for URL credentials |
 | `FAPILOG_SCHEMA_VERSION` | str | 1.0 | Configuration schema version for forward/backward compatibility |
 | `FAPILOG_SECURITY__ACCESS_CONTROL__ALLOWED_ROLES` | list | PydanticUndefined | List of roles granted access to protected operations |

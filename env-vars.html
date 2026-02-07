@@ -811,537 +811,552 @@
 <td><p>PydanticUndefined</p></td>
 <td><p>Regex patterns to match and mask</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_REDACTOR_CONFIG__URL_CREDENTIALS__MAX_STRING_LENGTH</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_REDACTOR_CONFIG__STRING_TRUNCATE__MAX_DEPTH</span></code></p></td>
+<td><p>int</p></td>
+<td><p>16</p></td>
+<td><p>Max nested depth to scan</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_REDACTOR_CONFIG__STRING_TRUNCATE__MAX_KEYS_SCANNED</span></code></p></td>
+<td><p>int</p></td>
+<td><p>1000</p></td>
+<td><p>Max keys to scan before stopping</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_REDACTOR_CONFIG__STRING_TRUNCATE__MAX_STRING_LENGTH</span></code></p></td>
+<td><p>int</p></td>
+<td><p>None</p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_REDACTOR_CONFIG__URL_CREDENTIALS__MAX_STRING_LENGTH</span></code></p></td>
 <td><p>int</p></td>
 <td><p>4096</p></td>
 <td><p>Max string length to parse for URL credentials</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SCHEMA_VERSION</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SCHEMA_VERSION</span></code></p></td>
 <td><p>str</p></td>
 <td><p>1.0</p></td>
 <td><p>Configuration schema version for forward/backward compatibility</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ACCESS_CONTROL__ALLOWED_ROLES</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ACCESS_CONTROL__ALLOWED_ROLES</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>List of roles granted access to protected operations</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ACCESS_CONTROL__ALLOW_ANONYMOUS_READ</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ACCESS_CONTROL__ALLOW_ANONYMOUS_READ</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Permit read access without authentication (discouraged)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ACCESS_CONTROL__ALLOW_ANONYMOUS_WRITE</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ACCESS_CONTROL__ALLOW_ANONYMOUS_WRITE</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Permit write access without authentication (never recommended)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ACCESS_CONTROL__AUTH_MODE</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ACCESS_CONTROL__AUTH_MODE</span></code></p></td>
 <td><p>Literal</p></td>
 <td><p>token</p></td>
 <td><p>Authentication mode used by integrations (library-agnostic)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ACCESS_CONTROL__ENABLED</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ACCESS_CONTROL__ENABLED</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Enable access control checks across the system</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ACCESS_CONTROL__REQUIRE_ADMIN_FOR_SENSITIVE_OPS</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ACCESS_CONTROL__REQUIRE_ADMIN_FOR_SENSITIVE_OPS</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Require admin role for sensitive or destructive operations</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ENCRYPTION__ALGORITHM</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ENCRYPTION__ALGORITHM</span></code></p></td>
 <td><p>Literal</p></td>
 <td><p>AES-256</p></td>
 <td><p>Primary encryption algorithm</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ENCRYPTION__ENABLED</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ENCRYPTION__ENABLED</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Enable encryption features</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ENCRYPTION__ENV_VAR_NAME</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ENCRYPTION__ENV_VAR_NAME</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ENCRYPTION__KEY_FILE_PATH</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ENCRYPTION__KEY_FILE_PATH</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ENCRYPTION__KEY_ID</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ENCRYPTION__KEY_ID</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ENCRYPTION__KEY_SOURCE</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ENCRYPTION__KEY_SOURCE</span></code></p></td>
 <td><p>Optional</p></td>
 <td><p>—</p></td>
 <td><p>Source for key material</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ENCRYPTION__MIN_TLS_VERSION</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ENCRYPTION__MIN_TLS_VERSION</span></code></p></td>
 <td><p>Literal</p></td>
 <td><p>1.2</p></td>
 <td><p>Minimum TLS version for transport</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ENCRYPTION__ROTATE_INTERVAL_DAYS</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SECURITY__ENCRYPTION__ROTATE_INTERVAL_DAYS</span></code></p></td>
 <td><p>int</p></td>
 <td><p>90</p></td>
 <td><p>Recommended key rotation interval</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__BATCH_SIZE</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__BATCH_SIZE</span></code></p></td>
 <td><p>int</p></td>
 <td><p>100</p></td>
 <td><p>Events per batch</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__BATCH_TIMEOUT_SECONDS</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__BATCH_TIMEOUT_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>5.0</p></td>
 <td><p>Max seconds before flushing a partial batch. Accepts ‘5s’ or 5.0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__CIRCUIT_BREAKER_ENABLED</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__CIRCUIT_BREAKER_ENABLED</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Enable internal circuit breaker for CloudWatch sink</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__CIRCUIT_BREAKER_THRESHOLD</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__CIRCUIT_BREAKER_THRESHOLD</span></code></p></td>
 <td><p>int</p></td>
 <td><p>5</p></td>
 <td><p>Failures before opening circuit</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__CREATE_LOG_GROUP</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__CREATE_LOG_GROUP</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Create log group if missing</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__CREATE_LOG_STREAM</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__CREATE_LOG_STREAM</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Create log stream if missing</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__ENDPOINT_URL</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__ENDPOINT_URL</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__LOG_GROUP_NAME</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__LOG_GROUP_NAME</span></code></p></td>
 <td><p>str</p></td>
 <td><p>/fapilog/default</p></td>
 <td><p>CloudWatch log group name</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__LOG_STREAM_NAME</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__LOG_STREAM_NAME</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__MAX_RETRIES</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__MAX_RETRIES</span></code></p></td>
 <td><p>int</p></td>
 <td><p>3</p></td>
 <td><p>Max retries for PutLogEvents</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__REGION</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__REGION</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__RETRY_BASE_DELAY</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__CLOUDWATCH__RETRY_BASE_DELAY</span></code></p></td>
 <td><p>float</p></td>
 <td><p>0.5</p></td>
 <td><p>Base delay for exponential backoff. Accepts ‘1s’ or 0.5</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__EXTRA</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__EXTRA</span></code></p></td>
 <td><p>dict</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Configuration for third-party sinks by name</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__BATCH_FORMAT</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__BATCH_FORMAT</span></code></p></td>
 <td><p>str</p></td>
 <td><p>array</p></td>
 <td><p>Batch format: ‘array’, ‘ndjson’, or ‘wrapped’</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__BATCH_SIZE</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__BATCH_SIZE</span></code></p></td>
 <td><p>int</p></td>
 <td><p>1</p></td>
 <td><p>Maximum events per HTTP request (1 = no batching)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__BATCH_TIMEOUT_SECONDS</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__BATCH_TIMEOUT_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>5.0</p></td>
 <td><p>Max seconds before flushing a partial batch. Accepts ‘5s’ or 5.0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__BATCH_WRAPPER_KEY</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__BATCH_WRAPPER_KEY</span></code></p></td>
 <td><p>str</p></td>
 <td><p>logs</p></td>
 <td><p>Wrapper key when batch_format=‘wrapped’</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__ENDPOINT</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__ENDPOINT</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__HEADERS</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__HEADERS</span></code></p></td>
 <td><p>dict</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Default headers to send with each request</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__HEADERS_JSON</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__HEADERS_JSON</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__RETRY_BACKOFF_SECONDS</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__RETRY_BACKOFF_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__RETRY_MAX_ATTEMPTS</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__RETRY_MAX_ATTEMPTS</span></code></p></td>
 <td><p>int</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__TIMEOUT_SECONDS</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__HTTP__TIMEOUT_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>5.0</p></td>
 <td><p>Request timeout for HTTP sink operations. Accepts ‘5s’ or 5.0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__AUTH_PASSWORD</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__AUTH_PASSWORD</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__AUTH_TOKEN</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__AUTH_TOKEN</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__AUTH_USERNAME</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__AUTH_USERNAME</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__BATCH_SIZE</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__BATCH_SIZE</span></code></p></td>
 <td><p>int</p></td>
 <td><p>100</p></td>
 <td><p>Events per batch</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__BATCH_TIMEOUT_SECONDS</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__BATCH_TIMEOUT_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>5.0</p></td>
 <td><p>Max seconds before flushing a partial batch. Accepts ‘5s’ or 5.0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__CIRCUIT_BREAKER_ENABLED</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__CIRCUIT_BREAKER_ENABLED</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Enable circuit breaker for the Loki sink</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__CIRCUIT_BREAKER_THRESHOLD</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__CIRCUIT_BREAKER_THRESHOLD</span></code></p></td>
 <td><p>int</p></td>
 <td><p>5</p></td>
 <td><p>Failures before opening circuit</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__LABELS</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__LABELS</span></code></p></td>
 <td><p>dict</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Static labels to apply to each log stream</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__LABEL_KEYS</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__LABEL_KEYS</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Event keys to promote to labels</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__MAX_RETRIES</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__MAX_RETRIES</span></code></p></td>
 <td><p>int</p></td>
 <td><p>3</p></td>
 <td><p>Max retries on push failure</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__RETRY_BASE_DELAY</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__RETRY_BASE_DELAY</span></code></p></td>
 <td><p>float</p></td>
 <td><p>0.5</p></td>
 <td><p>Base delay for backoff. Accepts ‘1s’ or 0.5</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__TENANT_ID</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__TENANT_ID</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__TIMEOUT_SECONDS</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__TIMEOUT_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>10.0</p></td>
 <td><p>HTTP timeout seconds. Accepts ‘10s’ or 10.0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__URL</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__LOKI__URL</span></code></p></td>
 <td><p>str</p></td>
 <td><p>http://localhost:3100</p></td>
 <td><p>Loki push endpoint base URL</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__BATCH_SIZE</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__BATCH_SIZE</span></code></p></td>
 <td><p>int</p></td>
 <td><p>100</p></td>
 <td><p>Events per batch</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__BATCH_TIMEOUT_SECONDS</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__BATCH_TIMEOUT_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>5.0</p></td>
 <td><p>Max seconds before flushing a partial batch. Accepts ‘5s’ or 5.0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__CIRCUIT_BREAKER_ENABLED</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__CIRCUIT_BREAKER_ENABLED</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Enable circuit breaker for the PostgreSQL sink</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__CIRCUIT_BREAKER_THRESHOLD</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__CIRCUIT_BREAKER_THRESHOLD</span></code></p></td>
 <td><p>int</p></td>
 <td><p>5</p></td>
 <td><p>Failures before opening circuit breaker</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__CREATE_TABLE</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__CREATE_TABLE</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Auto-create table if missing</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__DATABASE</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__DATABASE</span></code></p></td>
 <td><p>str</p></td>
 <td><p>fapilog</p></td>
 <td><p>PostgreSQL database name to connect to</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__DSN</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__DSN</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__EXTRACT_FIELDS</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__EXTRACT_FIELDS</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Fields to promote to columns for fast queries</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__HOST</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__HOST</span></code></p></td>
 <td><p>str</p></td>
 <td><p>localhost</p></td>
 <td><p>PostgreSQL server hostname or IP address</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__INCLUDE_RAW_JSON</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__INCLUDE_RAW_JSON</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Store full event JSON payload</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__MAX_POOL_SIZE</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__MAX_POOL_SIZE</span></code></p></td>
 <td><p>int</p></td>
 <td><p>10</p></td>
 <td><p>Maximum pool connections</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__MAX_RETRIES</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__MAX_RETRIES</span></code></p></td>
 <td><p>int</p></td>
 <td><p>3</p></td>
 <td><p>Maximum retries for failed inserts</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__MIN_POOL_SIZE</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__MIN_POOL_SIZE</span></code></p></td>
 <td><p>int</p></td>
 <td><p>2</p></td>
 <td><p>Minimum pool connections</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__PASSWORD</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__PASSWORD</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__POOL_ACQUIRE_TIMEOUT</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__POOL_ACQUIRE_TIMEOUT</span></code></p></td>
 <td><p>float</p></td>
 <td><p>10.0</p></td>
 <td><p>Timeout when acquiring connections. Accepts ‘10s’ or 10.0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__PORT</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__PORT</span></code></p></td>
 <td><p>int</p></td>
 <td><p>5432</p></td>
 <td><p>PostgreSQL server port number</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__RETRY_BASE_DELAY</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__RETRY_BASE_DELAY</span></code></p></td>
 <td><p>float</p></td>
 <td><p>0.5</p></td>
 <td><p>Base delay for exponential backoff. Accepts ‘1s’ or 0.5</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__SCHEMA_NAME</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__SCHEMA_NAME</span></code></p></td>
 <td><p>str</p></td>
 <td><p>public</p></td>
 <td><p>Database schema name</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__TABLE_NAME</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__TABLE_NAME</span></code></p></td>
 <td><p>str</p></td>
 <td><p>logs</p></td>
 <td><p>Target table name</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__USER</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__USER</span></code></p></td>
 <td><p>str</p></td>
 <td><p>fapilog</p></td>
 <td><p>PostgreSQL username for authentication</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__USE_JSONB</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__POSTGRES__USE_JSONB</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Use JSONB column type</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__COMPRESS_ROTATED</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__COMPRESS_ROTATED</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Compress rotated log files with gzip</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__DIRECTORY</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__DIRECTORY</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__FILENAME_PREFIX</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__FILENAME_PREFIX</span></code></p></td>
 <td><p>str</p></td>
 <td><p>fapilog</p></td>
 <td><p>Filename prefix</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__INTERVAL_SECONDS</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__INTERVAL_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_BYTES</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_BYTES</span></code></p></td>
 <td><p>int</p></td>
 <td><p>10485760</p></td>
 <td><p>Max bytes before rotation. Accepts ‘10 MB’ or 10485760</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_FILES</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_FILES</span></code></p></td>
 <td><p>int</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_TOTAL_BYTES</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__MAX_TOTAL_BYTES</span></code></p></td>
 <td><p>int</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__MODE</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__ROTATING_FILE__MODE</span></code></p></td>
 <td><p>Literal</p></td>
 <td><p>json</p></td>
 <td><p>Output format: json or text</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__CHAIN_STATE_PATH</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__CHAIN_STATE_PATH</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__COMPRESS_ROTATED</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__COMPRESS_ROTATED</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Compress rotated files after sealing</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__FSYNC_ON_ROTATE</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__FSYNC_ON_ROTATE</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Fsync inner sink after rotation</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__FSYNC_ON_WRITE</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__FSYNC_ON_WRITE</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Fsync inner sink on every write</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__INNER_CONFIG</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__INNER_CONFIG</span></code></p></td>
 <td><p>dict</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Configuration for the inner sink</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__INNER_SINK</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__INNER_SINK</span></code></p></td>
 <td><p>str</p></td>
 <td><p>rotating_file</p></td>
 <td><p>Inner sink to wrap with sealing</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__KEY_ID</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__KEY_ID</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__KEY_PROVIDER</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__KEY_PROVIDER</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>env</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__MANIFEST_PATH</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__MANIFEST_PATH</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__ROTATE_CHAIN</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__ROTATE_CHAIN</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Reset chain state on rotation</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__SIGN_MANIFESTS</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__SIGN_MANIFESTS</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Sign manifests when keys are available</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__USE_KMS_SIGNING</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__SEALED__USE_KMS_SIGNING</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Sign manifests via external KMS provider</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__STDOUT_JSON</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__STDOUT_JSON</span></code></p></td>
 <td><p>dict</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Configuration for stdout_json sink</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__BATCH_SIZE</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__BATCH_SIZE</span></code></p></td>
 <td><p>int</p></td>
 <td><p>1</p></td>
 <td><p>Maximum events per webhook request (1 = no batching)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__BATCH_TIMEOUT_SECONDS</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__BATCH_TIMEOUT_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>5.0</p></td>
 <td><p>Max seconds before flushing a partial webhook batch. Accepts ‘5s’ or 5.0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__ENDPOINT</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__ENDPOINT</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__HEADERS</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__HEADERS</span></code></p></td>
 <td><p>dict</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Additional HTTP headers</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__RETRY_BACKOFF_SECONDS</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__RETRY_BACKOFF_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__RETRY_MAX_ATTEMPTS</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__RETRY_MAX_ATTEMPTS</span></code></p></td>
 <td><p>int</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__SECRET</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__SECRET</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__TIMEOUT_SECONDS</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_CONFIG__WEBHOOK__TIMEOUT_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>5.0</p></td>
 <td><p>Request timeout. Accepts ‘5s’ or 5.0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_ROUTING__ENABLED</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_ROUTING__ENABLED</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Enable routing (False = fanout to all sinks)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_ROUTING__FALLBACK_SINKS</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_ROUTING__FALLBACK_SINKS</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Sinks used when no rules match</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_ROUTING__OVERLAP</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_ROUTING__OVERLAP</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Allow events to match multiple rules</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_ROUTING__RULES</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_SINK_ROUTING__RULES</span></code></p></td>
 <td><p>list</p></td>
 <td><p>PydanticUndefined</p></td>
 <td><p>Routing rules in priority order</p></td>
