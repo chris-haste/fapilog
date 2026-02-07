@@ -173,7 +173,7 @@ def test_prepare_row_extracts_timestamp_and_message() -> None:
             "timestamp": now,
             "level": "ERROR",
             "logger": "unit",
-            "correlation_id": "cid-1",
+            "context": {"correlation_id": "cid-1"},
             "message": "boom",
         }
     )
@@ -181,7 +181,42 @@ def test_prepare_row_extracts_timestamp_and_message() -> None:
     assert isinstance(row[0], datetime)
     assert row[0].tzinfo == timezone.utc
     assert row[1] == "ERROR"
+    assert row[2] == "unit"
+    assert row[3] == "cid-1"
     assert row[4] == "boom"
+
+
+def test_prepare_row_null_correlation_id_when_absent() -> None:
+    sink = PostgresSink(PostgresSinkConfig())
+    row = sink._prepare_row(  # noqa: SLF001
+        {
+            "timestamp": "2024-01-15T10:30:00Z",
+            "level": "INFO",
+            "logger": "root",
+            "context": {},
+            "message": "no cid",
+        }
+    )
+
+    assert row[3] is None
+
+
+def test_prepare_row_with_real_envelope() -> None:
+    from fapilog.core.envelope import build_envelope
+
+    sink = PostgresSink(PostgresSinkConfig())
+    envelope = build_envelope(
+        level="ERROR",
+        message="contract test",
+        correlation_id="req-contract-123",
+    )
+    row = sink._prepare_row(dict(envelope))  # noqa: SLF001
+
+    assert isinstance(row[0], datetime)
+    assert row[1] == "ERROR"
+    assert row[2] == "root"
+    assert row[3] == "req-contract-123"
+    assert row[4] == "contract test"
 
 
 def test_settings_env_aliases(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -282,7 +317,7 @@ class TestErrorScenarios:
         await sink.start()
 
         # Force circuit breaker open
-        assert sink._circuit_breaker is not None  # noqa: SLF001
+        assert sink._circuit_breaker is not None  # noqa: SLF001, WA003
         sink._circuit_breaker._state = CircuitState.OPEN  # type: ignore[attr-defined]  # noqa: SLF001
 
         result = await sink.health_check()
