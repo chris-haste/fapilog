@@ -304,6 +304,7 @@ class LoggerBuilder:
         url_max_length: int = 4096,
         block_on_failure: bool = False,
         block_fields: list[str] | None = None,
+        max_string_length: int | None = None,
         max_depth: int | None = None,
         max_keys: int | None = None,
         auto_prefix: bool = True,
@@ -327,6 +328,8 @@ class LoggerBuilder:
             block_on_failure: Block log entry if redaction fails (default: False).
             block_fields: High-risk field names to block entirely (e.g., ["body", "payload"]).
                          Enables the field_blocker redactor.
+            max_string_length: Maximum character length for individual string values.
+                              Enables the string_truncate redactor.
             max_depth: Maximum nested depth for redaction scanning.
             max_keys: Maximum keys to scan during redaction.
             auto_prefix: If True (default), adds "data." prefix to simple field
@@ -435,6 +438,13 @@ class LoggerBuilder:
                 for f in block_fields:
                     if f not in existing:
                         existing.append(f)
+
+        # Handle string truncation
+        if max_string_length is not None:
+            if "string_truncate" not in redactors:
+                redactors.append("string_truncate")
+            truncate_config = redactor_config.setdefault("string_truncate", {})
+            truncate_config["max_string_length"] = max_string_length
 
         # Handle guardrails (max_depth and max_keys)
         core = self._config.setdefault("core", {})

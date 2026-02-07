@@ -18,6 +18,7 @@ from ..loader import register_builtin
 from .field_blocker import FieldBlockerRedactor
 from .field_mask import FieldMaskRedactor
 from .regex_mask import RegexMaskRedactor
+from .string_truncate import StringTruncateRedactor
 from .url_credentials import UrlCredentialsRedactor
 
 
@@ -128,6 +129,12 @@ register_builtin(
     FieldBlockerRedactor,
     aliases=["field-blocker"],
 )
+register_builtin(
+    "fapilog.redactors",
+    "string_truncate",
+    StringTruncateRedactor,
+    aliases=["string-truncate"],
+)
 
 __all__ = [
     "BaseRedactor",
@@ -135,5 +142,6 @@ __all__ = [
     "FieldBlockerRedactor",
     "FieldMaskRedactor",
     "RegexMaskRedactor",
+    "StringTruncateRedactor",
     "UrlCredentialsRedactor",
 ]

@@ -224,6 +224,7 @@ ADVANCED_COVERAGE: dict[str, dict[str, str]] = {
         "url_max_length": "max_string_length",
         "block_on_failure": "block_on_unredactable",
         "block_fields": "blocked_fields",
+        "max_string_length": "max_string_length (string_truncate redactor)",
         "max_depth": "redaction_max_depth",
         "max_keys": "redaction_max_keys_scanned",
         "auto_prefix": "(applies data. prefix to fields)",

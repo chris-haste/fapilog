@@ -547,6 +547,20 @@ class RedactorUrlCredentialsSettings(BaseModel):
     )
 
 
+class RedactorStringTruncateSettings(BaseModel):
+    """Per-plugin configuration for StringTruncateRedactor."""
+
+    max_string_length: int | None = Field(
+        default=None,
+        ge=1,
+        description="Maximum character length for string values (None = disabled)",
+    )
+    max_depth: int = Field(default=16, ge=1, description="Max nested depth to scan")
+    max_keys_scanned: int = Field(
+        default=1000, ge=1, description="Max keys to scan before stopping"
+    )
+
+
 class SizeGuardSettings(BaseModel):
     """Per-plugin configuration for SizeGuardProcessor."""
 
@@ -1088,6 +1102,10 @@ class Settings(BaseSettings):
         field_blocker: RedactorFieldBlockerSettings = Field(
             default_factory=RedactorFieldBlockerSettings,
             description="Configuration for field_blocker redactor",
+        )
+        string_truncate: RedactorStringTruncateSettings = Field(
+            default_factory=RedactorStringTruncateSettings,
+            description="Configuration for string_truncate redactor",
         )
         extra: dict[str, dict[str, Any]] = Field(
             default_factory=dict,
