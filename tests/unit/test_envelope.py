@@ -244,20 +244,18 @@ class TestBuildEnvelopeCorrelation:
 
         assert envelope["context"]["correlation_id"] == "corr-789"
 
-    def test_correlation_id_absent_when_not_provided(self) -> None:
-        """Correlation ID is NOT present when not explicitly provided (Story 1.34).
+    def test_correlation_id_null_when_not_provided(self) -> None:
+        """Correlation ID is None when not explicitly provided (Story 10.55).
 
-        The old behavior auto-generated a UUID for correlation_id. The new behavior
-        only includes correlation_id when explicitly set via context variable.
-        message_id is now used for unique per-message identification.
+        The schema always includes correlation_id for stability. It is None
+        when no correlation context is active.
         """
         envelope = build_envelope(
             level="INFO",
             message="test",
         )
 
-        # correlation_id should NOT be present when not explicitly set
-        assert "correlation_id" not in envelope["context"]
+        assert envelope["context"]["correlation_id"] is None
         # message_id should always be present
         assert "message_id" in envelope["context"]
 
