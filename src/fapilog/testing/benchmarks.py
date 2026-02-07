@@ -20,6 +20,7 @@ class BenchmarkResult:
     total_seconds: float
     ops_per_second: float
     avg_latency_ms: float
+    p95_latency_ms: float
     min_latency_ms: float
     max_latency_ms: float
 
@@ -53,12 +54,16 @@ async def benchmark_async(
     total_seconds = time.perf_counter() - start_total
     ops_per_second = iterations / total_seconds if total_seconds > 0 else float("inf")
 
+    sorted_latencies = sorted(latencies)
+    p95_idx = int(len(sorted_latencies) * 0.95) if sorted_latencies else 0
+
     return BenchmarkResult(
         name=name,
         iterations=iterations,
         total_seconds=total_seconds,
         ops_per_second=ops_per_second,
         avg_latency_ms=sum(latencies) / len(latencies) if latencies else 0.0,
+        p95_latency_ms=sorted_latencies[p95_idx] if sorted_latencies else 0.0,
         min_latency_ms=min(latencies) if latencies else 0.0,
         max_latency_ms=max(latencies) if latencies else 0.0,
     )
