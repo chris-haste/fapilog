@@ -43,15 +43,6 @@ def _mask_recursive(node: Any, mask: str = _MASK_STRING) -> Any:
     return mask
 
 
-def _mask_values(d: dict[str, Any]) -> dict[str, Any]:
-    """Mask all values in a dict. Recurse only for nested containers."""
-    m = _MASK_STRING
-    return {
-        k: m if not isinstance(v, _CONTAINER_TYPES) else _mask_recursive(v)
-        for k, v in d.items()
-    }
-
-
 def build_envelope(
     level: str,
     message: str,
@@ -193,6 +184,8 @@ def build_envelope(
 
     # Handle sensitive=/pii= containers (Story 4.68)
     # Only dict-typed values trigger masking; non-dicts pass through as data.
+    # Masking is inlined (avoiding function-call overhead) to minimise
+    # overhead on the synchronous hot path.
     _s = data.get("sensitive")
     _p = data.get("pii")
     if isinstance(_s, dict):
@@ -200,13 +193,21 @@ def build_envelope(
         if isinstance(_p, dict):
             del data["pii"]
         if merged:
-            data["sensitive"] = _mask_values(merged)
+            _m = _MASK_STRING
+            data["sensitive"] = {
+                k: _m if not isinstance(v, _CONTAINER_TYPES) else _mask_recursive(v)
+                for k, v in merged.items()
+            }
         else:
             del data["sensitive"]
     elif isinstance(_p, dict):
         del data["pii"]
         if _p:
-            data["sensitive"] = _mask_values(_p)
+            _m = _MASK_STRING
+            data["sensitive"] = {
+                k: _m if not isinstance(v, _CONTAINER_TYPES) else _mask_recursive(v)
+                for k, v in _p.items()
+            }
 
     # RFC3339 timestamp with millisecond precision and Z suffix
     ts = (
