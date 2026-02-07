@@ -371,11 +371,12 @@ restricted database permissions or change management policies, set
 <span class="p">);</span>
 </pre></div>
 </div>
+<p>The <code class="docutils literal notranslate"><span class="pre">correlation_id</span></code> column is extracted from <code class="docutils literal notranslate"><span class="pre">entry[&quot;context&quot;][&quot;correlation_id&quot;]</span></code> (v1.1 schema). When no correlation context is active, the column is <code class="docutils literal notranslate"><span class="pre">NULL</span></code>.</p>
 <p>Indexes:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">timestamp</span> <span class="pre">DESC</span></code> for time range queries</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">level</span></code> for severity filters</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">correlation_id</span></code> for tracing</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">correlation_id</span></code> for tracing (partial index, excludes NULLs)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">event</span></code> GIN index when <code class="docutils literal notranslate"><span class="pre">use_jsonb=True</span></code></p></li>
 </ul>
 </section>

@@ -107,11 +107,13 @@ CREATE TABLE IF NOT EXISTS public.logs (
 );
 ```
 
+The `correlation_id` column is extracted from `entry["context"]["correlation_id"]` (v1.1 schema). When no correlation context is active, the column is `NULL`.
+
 Indexes:
 
 - `timestamp DESC` for time range queries
 - `level` for severity filters
-- `correlation_id` for tracing
+- `correlation_id` for tracing (partial index, excludes NULLs)
 - `event` GIN index when `use_jsonb=True`
 
 ## Query examples
