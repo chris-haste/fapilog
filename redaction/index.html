@@ -297,6 +297,12 @@
 <tr class="row-odd"><td><p><strong>Pre-serialization</strong></p></td>
 <td><p>Redaction happens before logs reach any sink (file, CloudWatch, etc.).</p></td>
 </tr>
+<tr class="row-even"><td><p><strong><code class="docutils literal notranslate"><span class="pre">sensitive=</span></code>/<code class="docutils literal notranslate"><span class="pre">pii=</span></code></strong></p></td>
+<td><p>Developer-declared masking at log time — values are masked at envelope construction before queueing. See <a class="reference internal" href="../cookbook/redacting-secrets-pii.html#id1"><span class="std std-ref">Declaring Sensitive Data</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Field blocking</strong></p></td>
+<td><p>High-risk field names (<code class="docutils literal notranslate"><span class="pre">body</span></code>, <code class="docutils literal notranslate"><span class="pre">payload</span></code>, etc.) can be blocked entirely via <code class="docutils literal notranslate"><span class="pre">block_fields=</span></code>. See <a class="reference internal" href="configuration.html#id1"><span class="std std-ref">Configuration</span></a>.</p></td>
+</tr>
 </tbody>
 </table>
 </section>

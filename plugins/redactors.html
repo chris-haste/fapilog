@@ -261,10 +261,10 @@ for more details.
 </section>
 <section id="built-in-redactors">
 <h2>Built-in Redactors<a class="headerlink" href="#built-in-redactors" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p>FieldMaskRedactor: masks selected fields identified by dotted paths across nested dicts and lists.</p></li>
-</ul>
-<p>Example:</p>
+<p>Fapilog ships with five built-in redactors. The first three are the core masking layer; the last two provide policy enforcement and size control.</p>
+<section id="fieldmaskredactor">
+<h3>FieldMaskRedactor<a class="headerlink" href="#fieldmaskredactor" title="Link to this heading"></a></h3>
+<p>Masks selected fields identified by dotted paths across nested dicts and lists.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.redactors.field_mask</span><span class="w"> </span><span class="kn">import</span> <span class="n">FieldMaskRedactor</span><span class="p">,</span> <span class="n">FieldMaskConfig</span>
 
 <span class="n">redactor</span> <span class="o">=</span> <span class="n">FieldMaskRedactor</span><span class="p">(</span>
@@ -283,6 +283,85 @@ for more details.
 </pre></div>
 </div>
 </section>
+<section id="regexmaskredactor">
+<h3>RegexMaskRedactor<a class="headerlink" href="#regexmaskredactor" title="Link to this heading"></a></h3>
+<p>Matches field paths at any nesting level against regex patterns. All patterns are validated at config time to prevent ReDoS (see <a class="reference internal" href="../redaction/configuration.html#id2"><span class="std std-ref">Regex Pattern Safety</span></a>).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.redactors.regex_mask</span><span class="w"> </span><span class="kn">import</span> <span class="n">RegexMaskRedactor</span><span class="p">,</span> <span class="n">RegexMaskConfig</span>
+
+<span class="n">redactor</span> <span class="o">=</span> <span class="n">RegexMaskRedactor</span><span class="p">(</span>
+    <span class="n">config</span><span class="o">=</span><span class="n">RegexMaskConfig</span><span class="p">(</span>
+        <span class="n">patterns</span><span class="o">=</span><span class="p">[</span>
+            <span class="sa">r</span><span class="s2">&quot;(?i).*password.*&quot;</span><span class="p">,</span>
+            <span class="sa">r</span><span class="s2">&quot;(?i).*secret.*&quot;</span><span class="p">,</span>
+            <span class="sa">r</span><span class="s2">&quot;(?i).*token.*&quot;</span><span class="p">,</span>
+        <span class="p">],</span>
+        <span class="n">mask_string</span><span class="o">=</span><span class="s2">&quot;***&quot;</span><span class="p">,</span>
+        <span class="n">block_on_unredactable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="urlcredentialsredactor">
+<h3>UrlCredentialsRedactor<a class="headerlink" href="#urlcredentialsredactor" title="Link to this heading"></a></h3>
+<p>Strips <code class="docutils literal notranslate"><span class="pre">user:password&#64;</span></code> credentials from URL-like strings found in any field value. Enabled by default (no preset required).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.redactors.url_credentials</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">UrlCredentialsRedactor</span><span class="p">,</span>
+    <span class="n">UrlCredentialsConfig</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">redactor</span> <span class="o">=</span> <span class="n">UrlCredentialsRedactor</span><span class="p">(</span>
+    <span class="n">config</span><span class="o">=</span><span class="n">UrlCredentialsConfig</span><span class="p">(</span>
+        <span class="n">max_string_length</span><span class="o">=</span><span class="mi">4096</span><span class="p">,</span>  <span class="c1"># Max URL length to scan</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="fieldblockerredactor">
+<span id="id1"></span><h3>FieldBlockerRedactor<a class="headerlink" href="#fieldblockerredactor" title="Link to this heading"></a></h3>
+<p>Blocks high-risk field names (e.g., <code class="docutils literal notranslate"><span class="pre">body</span></code>, <code class="docutils literal notranslate"><span class="pre">payload</span></code>, <code class="docutils literal notranslate"><span class="pre">raw</span></code>) by replacing their values entirely. Designed to catch accidental logging of request/response bodies. Enabled by default in the <code class="docutils literal notranslate"><span class="pre">hardened</span></code> preset.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.redactors.field_blocker</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">FieldBlockerRedactor</span><span class="p">,</span>
+    <span class="n">FieldBlockerConfig</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">redactor</span> <span class="o">=</span> <span class="n">FieldBlockerRedactor</span><span class="p">(</span>
+    <span class="n">config</span><span class="o">=</span><span class="n">FieldBlockerConfig</span><span class="p">(</span>
+        <span class="n">blocked_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;body&quot;</span><span class="p">,</span> <span class="s2">&quot;request_body&quot;</span><span class="p">,</span> <span class="s2">&quot;response_body&quot;</span><span class="p">,</span> <span class="s2">&quot;payload&quot;</span><span class="p">],</span>
+        <span class="n">allowed_fields</span><span class="o">=</span><span class="p">[],</span>          <span class="c1"># Exemptions from the blocklist</span>
+        <span class="n">replacement</span><span class="o">=</span><span class="s2">&quot;[REDACTED:HIGH_RISK_FIELD]&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Builder API shortcut:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">block_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;body&quot;</span><span class="p">,</span> <span class="s2">&quot;payload&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Each blocked field emits a policy-violation diagnostic. Monitor violations with the <code class="docutils literal notranslate"><span class="pre">fapilog_policy_violations_total</span></code> metric (see <a class="reference internal" href="../core-concepts/metrics.html#id1"><span class="std std-ref">Redaction Metrics</span></a>).</p>
+</section>
+<section id="stringtruncateredactor">
+<span id="id2"></span><h3>StringTruncateRedactor<a class="headerlink" href="#stringtruncateredactor" title="Link to this heading"></a></h3>
+<p>Truncates string values exceeding a configured length and appends a <code class="docutils literal notranslate"><span class="pre">[truncated]</span></code> marker. Disabled by default (<code class="docutils literal notranslate"><span class="pre">max_string_length=None</span></code> means no traversal). Useful for preventing oversized log events from body dumps or stack traces.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.redactors.string_truncate</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">StringTruncateRedactor</span><span class="p">,</span>
+    <span class="n">StringTruncateConfig</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">redactor</span> <span class="o">=</span> <span class="n">StringTruncateRedactor</span><span class="p">(</span>
+    <span class="n">config</span><span class="o">=</span><span class="n">StringTruncateConfig</span><span class="p">(</span>
+        <span class="n">max_string_length</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>  <span class="c1"># None = disabled (default)</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Builder API shortcut:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">max_string_length</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
 <section id="configuration">
 <h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h2>
 <p>Core settings include:</p>
@@ -291,14 +370,181 @@ for more details.
 <li><p><code class="docutils literal notranslate"><span class="pre">core.redactors_order</span></code>: ordered list of redactor plugin names</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">core.redaction_max_depth</span></code>, <code class="docutils literal notranslate"><span class="pre">core.redaction_max_keys_scanned</span></code>: guardrail plumbing used by redactors</p></li>
 </ul>
-<p>FieldMaskRedactor config:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">fields_to_mask:</span> <span class="pre">list[str]</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">mask_string:</span> <span class="pre">str</span></code> (default <code class="docutils literal notranslate"><span class="pre">***</span></code>)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">block_on_unredactable:</span> <span class="pre">bool</span></code> (default <code class="docutils literal notranslate"><span class="pre">False</span></code>)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">max_depth:</span> <span class="pre">int</span></code> (default <code class="docutils literal notranslate"><span class="pre">16</span></code>)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">max_keys_scanned:</span> <span class="pre">int</span></code> (default <code class="docutils literal notranslate"><span class="pre">1000</span></code>)</p></li>
-</ul>
+<section id="id3">
+<h3>FieldMaskRedactor<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fields_to_mask</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">list[str]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[]</span></code></p></td>
+<td><p>Dotted field paths to mask</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mask_string</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;***&quot;</span></code></p></td>
+<td><p>Replacement string</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">block_on_unredactable</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Drop event if a value can’t be processed</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max_depth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">16</span></code></p></td>
+<td><p>Per-redactor traversal depth limit</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_keys_scanned</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1000</span></code></p></td>
+<td><p>Per-redactor key scan limit</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">on_guardrail_exceeded</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;replace_subtree&quot;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;warn&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;drop&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;replace_subtree&quot;</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id4">
+<h3>RegexMaskRedactor<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">patterns</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">list[str]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[]</span></code></p></td>
+<td><p>Regex patterns matched against field paths</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mask_string</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;***&quot;</span></code></p></td>
+<td><p>Replacement string</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">block_on_unredactable</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Drop event if a value can’t be processed</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">allow_unsafe_patterns</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Bypass ReDoS validation</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id5">
+<h3>UrlCredentialsRedactor<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_string_length</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">4096</span></code></p></td>
+<td><p>Max URL length to scan</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id6">
+<h3>FieldBlockerRedactor<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">blocked_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">list[str]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[&quot;body&quot;,</span> <span class="pre">&quot;request_body&quot;,</span> <span class="pre">...]</span></code></p></td>
+<td><p>Field names to block (case-insensitive)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">allowed_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">list[str]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[]</span></code></p></td>
+<td><p>Exemptions from the blocklist</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">replacement</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;[REDACTED:HIGH_RISK_FIELD]&quot;</span></code></p></td>
+<td><p>Replacement string</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max_depth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">16</span></code></p></td>
+<td><p>Per-redactor traversal depth limit</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_keys_scanned</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1000</span></code></p></td>
+<td><p>Per-redactor key scan limit</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">on_guardrail_exceeded</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;warn&quot;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;warn&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;drop&quot;</span></code> only</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id7">
+<h3>StringTruncateRedactor<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_string_length</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">|</span> <span class="pre">None</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Max string length; <code class="docutils literal notranslate"><span class="pre">None</span></code> disables the redactor</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max_depth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">16</span></code></p></td>
+<td><p>Per-redactor traversal depth limit</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_keys_scanned</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1000</span></code></p></td>
+<td><p>Per-redactor key scan limit</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">on_guardrail_exceeded</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;warn&quot;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;warn&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;drop&quot;</span></code> only</p></td>
+</tr>
+</tbody>
+</table>
+</section>
 </section>
 <section id="authoring-custom-redactors">
 <h2>Authoring Custom Redactors<a class="headerlink" href="#authoring-custom-redactors" title="Link to this heading"></a></h2>
@@ -320,6 +566,7 @@ for more details.
 <li><p>Each redactor execution is timed via the shared plugin timer</p></li>
 <li><p>Failures are recorded in plugin error metrics (when metrics are enabled)</p></li>
 <li><p>Structured diagnostics are emitted via <code class="docutils literal notranslate"><span class="pre">core.diagnostics.warn</span></code> for guardrail or policy warnings</p></li>
+<li><p>Redaction operational metrics (<code class="docutils literal notranslate"><span class="pre">fapilog_redacted_fields_total</span></code>, <code class="docutils literal notranslate"><span class="pre">fapilog_policy_violations_total</span></code>, etc.) are recorded automatically — see <a class="reference internal" href="../core-concepts/metrics.html#id1"><span class="std std-ref">Redaction Metrics</span></a></p></li>
 </ul>
 </section>
 <section id="integration-order">

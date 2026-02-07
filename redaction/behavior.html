@@ -338,6 +338,47 @@ Masks specific field paths under `data.*`. With production/fastapi/serverless pr
 </pre></div>
 </div>
 </section>
+<section id="field-blocker-redactor">
+<h2>Field Blocker Redactor<a class="headerlink" href="#field-blocker-redactor" title="Link to this heading"></a></h2>
+<p>Blocks high-risk field names by replacing their values entirely. This catches accidental logging of request/response bodies and other bulk data fields.</p>
+<p>Default blocked fields: <code class="docutils literal notranslate"><span class="pre">body</span></code>, <code class="docutils literal notranslate"><span class="pre">request_body</span></code>, <code class="docutils literal notranslate"><span class="pre">response_body</span></code>, <code class="docutils literal notranslate"><span class="pre">payload</span></code>, <code class="docutils literal notranslate"><span class="pre">raw</span></code>, <code class="docutils literal notranslate"><span class="pre">dump</span></code>, <code class="docutils literal notranslate"><span class="pre">raw_body</span></code>, <code class="docutils literal notranslate"><span class="pre">raw_request</span></code>, <code class="docutils literal notranslate"><span class="pre">raw_response</span></code>.</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Input</span>
+<span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="s2">&quot;{</span><span class="se">\&quot;</span><span class="s2">ssn</span><span class="se">\&quot;</span><span class="s2">: </span><span class="se">\&quot;</span><span class="s2">123-45-6789</span><span class="se">\&quot;</span><span class="s2">}&quot;</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;ok&quot;</span><span class="p">}}</span>
+
+<span class="c1"># Output</span>
+<span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="s2">&quot;[REDACTED:HIGH_RISK_FIELD]&quot;</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;ok&quot;</span><span class="p">}}</span>
+</pre></div>
+</div>
+<p>Each blocked field emits a policy-violation diagnostic. Use <code class="docutils literal notranslate"><span class="pre">allowed_fields</span></code> to exempt specific fields:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">block_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;body&quot;</span><span class="p">,</span> <span class="s2">&quot;payload&quot;</span><span class="p">])</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="string-truncate-redactor">
+<h2>String Truncate Redactor<a class="headerlink" href="#string-truncate-redactor" title="Link to this heading"></a></h2>
+<p>Truncates string values exceeding a configured length and appends a <code class="docutils literal notranslate"><span class="pre">[truncated]</span></code> marker. Disabled by default (<code class="docutils literal notranslate"><span class="pre">max_string_length=None</span></code>).</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># With max_string_length=50</span>
+<span class="c1"># Input</span>
+<span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;trace&quot;</span><span class="p">:</span> <span class="s2">&quot;a]&quot;</span> <span class="o">*</span> <span class="mi">100</span><span class="p">}}</span>
+
+<span class="c1"># Output</span>
+<span class="p">{</span><span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;trace&quot;</span><span class="p">:</span> <span class="s2">&quot;a]a]a]...a]a][truncated]&quot;</span><span class="p">}}</span>  <span class="c1"># truncated to 50 chars + marker</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_redaction</span><span class="p">(</span><span class="n">max_string_length</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
 <section id="what-does-not-get-redacted">
 <h2>What Does NOT Get Redacted<a class="headerlink" href="#what-does-not-get-redacted" title="Link to this heading"></a></h2>
 <section id="pii-in-message-strings">
@@ -388,9 +429,11 @@ Masks specific field paths under `data.*`. With production/fastapi/serverless pr
 <ol class="arabic simple">
 <li><p><strong>field_mask</strong> - Exact path matching first</p></li>
 <li><p><strong>regex_mask</strong> - Pattern matching second</p></li>
-<li><p><strong>url_credentials</strong> - URL sanitization last</p></li>
+<li><p><strong>url_credentials</strong> - URL sanitization</p></li>
+<li><p><strong>field_blocker</strong> - High-risk field blocking</p></li>
+<li><p><strong>string_truncate</strong> - Long string truncation last</p></li>
 </ol>
-<p>This order ensures explicit masking takes precedence, followed by broader patterns, then URL cleanup.</p>
+<p>This order ensures explicit masking takes precedence, followed by broader patterns, URL cleanup, policy enforcement, and finally size control. The <code class="docutils literal notranslate"><span class="pre">production</span></code>, <code class="docutils literal notranslate"><span class="pre">fastapi</span></code>, and <code class="docutils literal notranslate"><span class="pre">serverless</span></code> presets enable the first three; the <code class="docutils literal notranslate"><span class="pre">hardened</span></code> preset also enables <code class="docutils literal notranslate"><span class="pre">field_blocker</span></code>.</p>
 </section>
 <section id="guardrails">
 <span id="id1"></span><h2>Guardrails<a class="headerlink" href="#guardrails" title="Link to this heading"></a></h2>
@@ -488,7 +531,7 @@ Masks specific field paths under `data.*`. With production/fastapi/serverless pr
 </section>
 <section id="guardrail-behavior-on-guardrail-exceeded">
 <h3>Guardrail Behavior (<code class="docutils literal notranslate"><span class="pre">on_guardrail_exceeded</span></code>)<a class="headerlink" href="#guardrail-behavior-on-guardrail-exceeded" title="Link to this heading"></a></h3>
-<p>The FieldMaskRedactor supports configurable behavior when guardrails are exceeded via the <code class="docutils literal notranslate"><span class="pre">on_guardrail_exceeded</span></code> option:</p>
+<p>All tree-traversing redactors support configurable behavior when guardrails are exceeded via the <code class="docutils literal notranslate"><span class="pre">on_guardrail_exceeded</span></code> option:</p>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Mode</p></th>
@@ -505,12 +548,15 @@ Masks specific field paths under `data.*`. With production/fastapi/serverless pr
 <td><p>Emit diagnostic, drop the entire event</p></td>
 <td><p>High-security compliance</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;replace_subtree&quot;</span></code> (default)</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;replace_subtree&quot;</span></code> (default for field_mask)</p></td>
 <td><p>Emit diagnostic, replace unscanned subtree with mask</p></td>
 <td><p>Balanced security/availability</p></td>
 </tr>
 </tbody>
 </table>
+<blockquote>
+<div><p><strong>Note:</strong> <code class="docutils literal notranslate"><span class="pre">field_blocker</span></code> and <code class="docutils literal notranslate"><span class="pre">string_truncate</span></code> only support <code class="docutils literal notranslate"><span class="pre">&quot;warn&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;drop&quot;</span></code> — they do not support <code class="docutils literal notranslate"><span class="pre">&quot;replace_subtree&quot;</span></code>.</p>
+</div></blockquote>
 <p>To opt into fail-open behavior for debugging:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.redactors.field_mask</span><span class="w"> </span><span class="kn">import</span> <span class="n">FieldMaskConfig</span>
 
@@ -701,6 +747,34 @@ Masks specific field paths under `data.*`. With production/fastapi/serverless pr
 <li><p>Mask string is consistent</p></li>
 </ul>
 <p>This ensures logs are predictable and testable.</p>
+</section>
+<section id="bypass-unsafe-debug">
+<span id="unsafe-debug-escape-hatch"></span><h2>Bypass: unsafe_debug()<a class="headerlink" href="#bypass-unsafe-debug" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">unsafe_debug()</span></code> method emits a DEBUG-level event that <strong>skips the entire redaction pipeline</strong>. It exists for cases where developers need to inspect raw data during local debugging.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Sync</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">unsafe_debug</span><span class="p">(</span><span class="s2">&quot;raw request&quot;</span><span class="p">,</span> <span class="n">body</span><span class="o">=</span><span class="n">request_body</span><span class="p">)</span>
+
+<span class="c1"># Async</span>
+<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">unsafe_debug</span><span class="p">(</span><span class="s2">&quot;raw request&quot;</span><span class="p">,</span> <span class="n">body</span><span class="o">=</span><span class="n">request_body</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition danger">
+<p class="admonition-title">Danger</p>
+<p><strong>Never use <code class="docutils literal notranslate"><span class="pre">unsafe_debug()</span></code> in production code.</strong> Events emitted through this method bypass all redaction, including field masking, regex masking, URL credential stripping, and field blocking. Sensitive data will appear in plain text in your logs.</p>
+</div>
+<p><strong>How it works:</strong></p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">unsafe_debug()</span></code> injects an internal sentinel object (<code class="docutils literal notranslate"><span class="pre">_UNSAFE_SENTINEL</span></code>) into the event metadata</p></li>
+<li><p>The envelope builder checks for the sentinel by identity (not value) and sets a <code class="docutils literal notranslate"><span class="pre">_fapilog_unsafe=True</span></code> marker on the envelope</p></li>
+<li><p>The worker’s redaction step checks for this marker and skips redaction entirely</p></li>
+<li><p>User-supplied <code class="docutils literal notranslate"><span class="pre">_fapilog_unsafe=True</span></code> kwargs are stripped — only the method can set the sentinel</p></li>
+</ol>
+<p><strong>Restrictions:</strong></p>
+<ul class="simple">
+<li><p>Logs at <strong>DEBUG level only</strong> — will not appear with INFO or higher log levels in production</p></li>
+<li><p>Intentionally named <code class="docutils literal notranslate"><span class="pre">unsafe_debug</span></code> to be visible in code review and <code class="docutils literal notranslate"><span class="pre">grep</span></code></p></li>
+<li><p>Cannot be triggered by passing metadata kwargs; the sentinel is an internal <code class="docutils literal notranslate"><span class="pre">object()</span></code> instance</p></li>
+</ul>
 </section>
 <section id="related">
 <h2>Related<a class="headerlink" href="#related" title="Link to this heading"></a></h2>

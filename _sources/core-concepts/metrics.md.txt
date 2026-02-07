@@ -29,6 +29,10 @@ Set `core.enable_metrics=True` (env: `FAPILOG_CORE__ENABLE_METRICS=true`). Metri
 | `fapilog_sink_errors_total` | Counter | `sink` | Sink write failures |
 | `fapilog_priority_evictions_total` | Counter | - | Evictions triggered by protected events |
 | `fapilog_events_evicted_total` | Counter | `level` | Events evicted by log level |
+| `fapilog_redacted_fields_total` | Counter | - | Total fields masked by redactors |
+| `fapilog_policy_violations_total` | Counter | - | Policy violation flags from field_blocker |
+| `fapilog_sensitive_fields_total` | Counter | - | Fields logged via `sensitive=`/`pii=` container |
+| `fapilog_redaction_exceptions_total` | Counter | - | Redaction pipeline exceptions |
 
 ## Priority Queue Metrics
 
@@ -60,6 +64,56 @@ rate(fapilog_events_dropped_total{protected="true"}[5m])
     severity: critical
   annotations:
     summary: "Protected log events being dropped - queue saturated"
+```
+
+(redaction-metrics)=
+## Redaction Metrics
+
+Redaction operational metrics are recorded automatically when `core.enable_metrics=True`. These counters track masking activity, policy enforcement, and pipeline health.
+
+| Metric | What It Tracks |
+|--------|----------------|
+| `fapilog_redacted_fields_total` | Fields masked by any redactor (field_mask, regex_mask, string_truncate, etc.) |
+| `fapilog_policy_violations_total` | Fields blocked by `field_blocker` (e.g., `body`, `payload`) |
+| `fapilog_sensitive_fields_total` | Fields declared via `sensitive={}` or `pii={}` at log time |
+| `fapilog_redaction_exceptions_total` | Unexpected exceptions in the redaction pipeline |
+
+### PromQL Examples
+
+```promql
+# Redaction activity rate
+rate(fapilog_redacted_fields_total[5m])
+
+# Policy violations — are developers logging blocked fields?
+rate(fapilog_policy_violations_total[5m])
+
+# Sensitive container adoption — are developers using sensitive={}?
+rate(fapilog_sensitive_fields_total[5m])
+
+# Redaction pipeline health — any exceptions?
+rate(fapilog_redaction_exceptions_total[5m])
+```
+
+### Alerting on Redaction Issues
+
+```yaml
+# Alert when redaction pipeline is throwing exceptions
+- alert: FapilogRedactionExceptions
+  expr: rate(fapilog_redaction_exceptions_total[5m]) > 0
+  for: 1m
+  labels:
+    severity: warning
+  annotations:
+    summary: "Redaction pipeline exceptions detected"
+
+# Alert on high policy violation rate (field_blocker blocking fields)
+- alert: FapilogPolicyViolations
+  expr: rate(fapilog_policy_violations_total[5m]) > 10
+  for: 5m
+  labels:
+    severity: info
+  annotations:
+    summary: "High rate of policy violations — review blocked field usage"
 ```
 
 ## System Metrics

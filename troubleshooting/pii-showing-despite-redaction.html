@@ -254,6 +254,23 @@
 </div>
 <p><strong>Fix:</strong> Always pass sensitive data as structured keyword arguments, not in the message string.</p>
 </section>
+<section id="quick-fix-declare-sensitive-data-at-log-time">
+<h2>Quick Fix: Declare Sensitive Data at Log Time<a class="headerlink" href="#quick-fix-declare-sensitive-data-at-log-time" title="Link to this heading"></a></h2>
+<p>If you can’t wait for redactor configuration changes, use <code class="docutils literal notranslate"><span class="pre">sensitive=</span></code> to mask values immediately at log time:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Values are masked at envelope construction — before queueing or any sink</span>
+<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+    <span class="s2">&quot;User signup&quot;</span><span class="p">,</span>
+    <span class="n">sensitive</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="s2">&quot;alice@example.com&quot;</span><span class="p">,</span> <span class="s2">&quot;ssn&quot;</span><span class="p">:</span> <span class="s2">&quot;123-45-6789&quot;</span><span class="p">},</span>
+<span class="p">)</span>
+<span class="c1"># Output: {&quot;data&quot;: {&quot;sensitive&quot;: {&quot;email&quot;: &quot;***&quot;, &quot;ssn&quot;: &quot;***&quot;}}}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">pii=</span></code> is an alias for teams that prefer that term:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Payment&quot;</span><span class="p">,</span> <span class="n">pii</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;card_number&quot;</span><span class="p">:</span> <span class="s2">&quot;4111-1111-1111-1111&quot;</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>This is complementary to redactor configuration — use <code class="docutils literal notranslate"><span class="pre">sensitive=</span></code> for developer-declared intent and redactors as a safety net. See <a class="reference internal" href="../cookbook/redacting-secrets-pii.html#id1"><span class="std std-ref">Declaring Sensitive Data at Log Time</span></a> for details.</p>
+</section>
 <section id="other-causes">
 <h2>Other Causes<a class="headerlink" href="#other-causes" title="Link to this heading"></a></h2>
 <ul class="simple">
@@ -284,6 +301,16 @@
 <li><p>Field-mask uses <code class="docutils literal notranslate"><span class="pre">sensitive_fields_policy</span></code> to target specific keys.</p></li>
 <li><p>Monitor internal diagnostics to confirm redactors are running if you suspect configuration drift.</p></li>
 </ul>
+</section>
+<section id="intentional-bypasses">
+<h2>Intentional Bypasses<a class="headerlink" href="#intentional-bypasses" title="Link to this heading"></a></h2>
+<p>If sensitive data is appearing only at DEBUG level, check for <code class="docutils literal notranslate"><span class="pre">unsafe_debug()</span></code> calls. This method intentionally <strong>skips the entire redaction pipeline</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># This bypasses ALL redaction — sensitive data will appear in plain text</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">unsafe_debug</span><span class="p">(</span><span class="s2">&quot;raw request&quot;</span><span class="p">,</span> <span class="n">body</span><span class="o">=</span><span class="n">request_body</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">unsafe_debug()</span></code> is designed for local debugging only and logs at DEBUG level. If you see unredacted data in production logs, search the codebase for <code class="docutils literal notranslate"><span class="pre">unsafe_debug</span></code> calls and remove them.</p>
+<p>See <a class="reference internal" href="../redaction/behavior.html#bypass-unsafe-debug"><span class="std std-ref">Bypass: unsafe_debug()</span></a> for details on how this mechanism works.</p>
 </section>
 </section>
 

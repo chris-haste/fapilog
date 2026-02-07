@@ -314,6 +314,16 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">1000</span></code></p></td>
 <td><p>Max keys to scan per event</p></td>
 </tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">block_fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">list[str]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Field names to block via field_blocker</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_string_length</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Max string length via string_truncate</p></td>
+</tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">auto_prefix</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
@@ -369,7 +379,13 @@
 
 <span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span>
     <span class="n">core</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">&quot;redactors&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;field_mask&quot;</span><span class="p">,</span> <span class="s2">&quot;regex_mask&quot;</span><span class="p">,</span> <span class="s2">&quot;url_credentials&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;redactors&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;field_mask&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;regex_mask&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;url_credentials&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;field_blocker&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;string_truncate&quot;</span><span class="p">,</span>
+        <span class="p">],</span>
     <span class="p">},</span>
     <span class="n">redactor_config</span><span class="o">=</span><span class="p">{</span>
         <span class="s2">&quot;field_mask&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -384,6 +400,13 @@
             <span class="p">],</span>
             <span class="s2">&quot;mask_string&quot;</span><span class="p">:</span> <span class="s2">&quot;***&quot;</span><span class="p">,</span>
         <span class="p">},</span>
+        <span class="s2">&quot;field_blocker&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;blocked_fields&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;body&quot;</span><span class="p">,</span> <span class="s2">&quot;request_body&quot;</span><span class="p">,</span> <span class="s2">&quot;payload&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;allowed_fields&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;string_truncate&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;max_string_length&quot;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>
+        <span class="p">},</span>
     <span class="p">},</span>
 <span class="p">)</span>
 
@@ -395,7 +418,13 @@
 <p>Control the order redactors are applied:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span>
     <span class="n">core</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">&quot;redactors&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;field_mask&quot;</span><span class="p">,</span> <span class="s2">&quot;regex_mask&quot;</span><span class="p">,</span> <span class="s2">&quot;url_credentials&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;redactors&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;field_mask&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;regex_mask&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;url_credentials&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;field_blocker&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;string_truncate&quot;</span><span class="p">,</span>
+        <span class="p">],</span>
     <span class="p">}</span>
 <span class="p">)</span>
 </pre></div>
@@ -405,6 +434,8 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">field_mask</span></code> - Exact field path matching</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">regex_mask</span></code> - Pattern-based matching</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">url_credentials</span></code> - URL credential stripping</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">field_blocker</span></code> - High-risk field blocking</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">string_truncate</span></code> - Long string truncation</p></li>
 </ol>
 </section>
 <section id="guardrails">
@@ -424,7 +455,7 @@
 <h2>Environment Variables<a class="headerlink" href="#environment-variables" title="Link to this heading"></a></h2>
 <p>Configure redaction via environment:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Enable specific redactors</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__REDACTORS</span><span class="o">=</span><span class="s1">&#39;[&quot;field_mask&quot;, &quot;regex_mask&quot;, &quot;url_credentials&quot;]&#39;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__REDACTORS</span><span class="o">=</span><span class="s1">&#39;[&quot;field_mask&quot;, &quot;regex_mask&quot;, &quot;url_credentials&quot;, &quot;field_blocker&quot;, &quot;string_truncate&quot;]&#39;</span>
 
 <span class="c1"># Configure field mask</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_REDACTOR_CONFIG__FIELD_MASK__FIELDS_TO_MASK</span><span class="o">=</span><span class="s1">&#39;[&quot;password&quot;, &quot;api_key&quot;]&#39;</span>
@@ -433,6 +464,13 @@
 <span class="c1"># Configure regex mask</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_REDACTOR_CONFIG__REGEX_MASK__PATTERNS</span><span class="o">=</span><span class="s1">&#39;[&quot;(?i).*secret.*&quot;, &quot;(?i).*token.*&quot;]&#39;</span>
 
+<span class="c1"># Configure field blocker</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_REDACTOR_CONFIG__FIELD_BLOCKER__BLOCKED_FIELDS</span><span class="o">=</span><span class="s1">&#39;[&quot;body&quot;, &quot;request_body&quot;, &quot;payload&quot;]&#39;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_REDACTOR_CONFIG__FIELD_BLOCKER__REPLACEMENT</span><span class="o">=</span><span class="s1">&#39;[BLOCKED]&#39;</span>
+
+<span class="c1"># Configure string truncate</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_REDACTOR_CONFIG__STRING_TRUNCATE__MAX_STRING_LENGTH</span><span class="o">=</span><span class="m">1000</span>
+
 <span class="c1"># Guardrails</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__REDACTION_MAX_DEPTH</span><span class="o">=</span><span class="m">16</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_CORE__REDACTION_MAX_KEYS_SCANNED</span><span class="o">=</span><span class="m">1000</span>
@@ -440,13 +478,15 @@
 </div>
 </section>
 <section id="default-behavior-by-preset">
-<h2>Default Behavior by Preset<a class="headerlink" href="#default-behavior-by-preset" title="Link to this heading"></a></h2>
+<span id="id1"></span><h2>Default Behavior by Preset<a class="headerlink" href="#default-behavior-by-preset" title="Link to this heading"></a></h2>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Configuration</p></th>
 <th class="head"><p>field_mask</p></th>
 <th class="head"><p>regex_mask</p></th>
 <th class="head"><p>url_credentials</p></th>
+<th class="head"><p>field_blocker</p></th>
+<th class="head"><p>string_truncate</p></th>
 </tr>
 </thead>
 <tbody>
@@ -454,8 +494,12 @@
 <td><p>No</p></td>
 <td><p>No</p></td>
 <td><p><strong>Yes</strong></p></td>
+<td><p>No</p></td>
+<td><p>No</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">preset=&quot;dev&quot;</span></code></p></td>
+<td><p>No</p></td>
+<td><p>No</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
@@ -464,25 +508,40 @@
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
+<td><p>No</p></td>
+<td><p>No</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">preset=&quot;serverless&quot;</span></code></p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
+<td><p>No</p></td>
+<td><p>No</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">preset=&quot;fastapi&quot;</span></code></p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
+<td><p>No</p></td>
+<td><p>No</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">preset=&quot;minimal&quot;</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">preset=&quot;hardened&quot;</span></code></p></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p><strong>Yes</strong></p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">preset=&quot;minimal&quot;</span></code></p></td>
+<td><p>No</p></td>
+<td><p>No</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
 </tr>
 </tbody>
 </table>
-<p>The <code class="docutils literal notranslate"><span class="pre">production</span></code>, <code class="docutils literal notranslate"><span class="pre">fastapi</span></code>, and <code class="docutils literal notranslate"><span class="pre">serverless</span></code> presets automatically apply the <code class="docutils literal notranslate"><span class="pre">CREDENTIALS</span></code> redaction preset.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">production</span></code>, <code class="docutils literal notranslate"><span class="pre">fastapi</span></code>, and <code class="docutils literal notranslate"><span class="pre">serverless</span></code> presets automatically apply the <code class="docutils literal notranslate"><span class="pre">CREDENTIALS</span></code> redaction preset. The <code class="docutils literal notranslate"><span class="pre">hardened</span></code> preset additionally enables <code class="docutils literal notranslate"><span class="pre">field_blocker</span></code> with default blocked fields and applies the <code class="docutils literal notranslate"><span class="pre">HIPAA_PHI</span></code> and <code class="docutils literal notranslate"><span class="pre">PCI_DSS</span></code> presets.</p>
 </section>
 <section id="disabling-redaction">
 <h2>Disabling Redaction<a class="headerlink" href="#disabling-redaction" title="Link to this heading"></a></h2>
@@ -518,7 +577,7 @@
 </div>
 </section>
 <section id="regex-pattern-safety">
-<h2>Regex Pattern Safety<a class="headerlink" href="#regex-pattern-safety" title="Link to this heading"></a></h2>
+<span id="id2"></span><h2>Regex Pattern Safety<a class="headerlink" href="#regex-pattern-safety" title="Link to this heading"></a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">regex-mask</span></code> redactor validates patterns at config time to prevent ReDoS (Regular Expression Denial of Service) attacks. Patterns with these constructs are rejected:</p>
 <ul class="simple">
 <li><p><strong>Nested quantifiers</strong>: <code class="docutils literal notranslate"><span class="pre">(a+)+</span></code>, <code class="docutils literal notranslate"><span class="pre">(a*)*</span></code>, <code class="docutils literal notranslate"><span class="pre">(a+)*</span></code></p></li>

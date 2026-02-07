@@ -27,6 +27,8 @@ Implement `BaseRedactor.redact(entry: dict) -> dict` (async). Return the updated
 - **field-mask**: masks configured field names (from `sensitive_fields_policy`).
 - **regex-mask**: masks values matching sensitive patterns (default regex covers common secrets).
 - **url-credentials**: strips credentials from URL-like strings.
+- **field-blocker**: blocks high-risk field names (e.g., `body`, `payload`) by replacing their values entirely. See [FieldBlockerRedactor](../../plugins/redactors.md#fieldblockerredactor).
+- **string-truncate**: truncates string values exceeding a configured length and appends a `[truncated]` marker. Disabled by default. See [StringTruncateRedactor](../../plugins/redactors.md#stringtruncateredactor).
 
 ## Configuration
 

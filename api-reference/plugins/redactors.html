@@ -259,6 +259,8 @@ for more details.
 <li><p><strong>field-mask</strong>: masks configured field names (from <code class="docutils literal notranslate"><span class="pre">sensitive_fields_policy</span></code>).</p></li>
 <li><p><strong>regex-mask</strong>: masks values matching sensitive patterns (default regex covers common secrets).</p></li>
 <li><p><strong>url-credentials</strong>: strips credentials from URL-like strings.</p></li>
+<li><p><strong>field-blocker</strong>: blocks high-risk field names (e.g., <code class="docutils literal notranslate"><span class="pre">body</span></code>, <code class="docutils literal notranslate"><span class="pre">payload</span></code>) by replacing their values entirely. See <a class="reference internal" href="../../plugins/redactors.html#id1"><span class="std std-ref">FieldBlockerRedactor</span></a>.</p></li>
+<li><p><strong>string-truncate</strong>: truncates string values exceeding a configured length and appends a <code class="docutils literal notranslate"><span class="pre">[truncated]</span></code> marker. Disabled by default. See <a class="reference internal" href="../../plugins/redactors.html#id2"><span class="std std-ref">StringTruncateRedactor</span></a>.</p></li>
 </ul>
 </section>
 <section id="configuration">
