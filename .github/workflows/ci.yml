@@ -151,7 +151,7 @@ jobs:
           CI_TIMEOUT_MULTIPLIER: "3"
         run: >
           hatch run test:test-cov --
-          -m "((critical or security) and not flaky) or (not slow and not integration and not flaky)"
+          -m "((critical or security) and not flaky) or (not slow and not stress and not integration and not flaky)"
 
       - name: Run flaky tests (PR)
         if: github.event_name == 'pull_request'
