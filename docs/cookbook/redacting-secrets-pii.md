@@ -31,13 +31,15 @@ The `url_credentials` redactor is enabled by default and strips `user:pass@` fro
 
 ## What Gets Redacted by Default
 
-fapilog ships with three built-in redactors:
+fapilog ships with five built-in redactors:
 
 | Redactor | Enabled by Default | What It Does |
 |----------|-------------------|--------------|
 | `url_credentials` | Yes | Strips `user:pass@` from URLs |
 | `field_mask` | No (Yes with preset) | Masks specific field names |
 | `regex_mask` | No (Yes with preset) | Masks fields matching regex patterns |
+| `field_blocker` | No (Yes with `hardened`) | Blocks high-risk field names (`body`, `payload`, etc.) |
+| `string_truncate` | No (explicit opt-in) | Truncates long strings and appends `[truncated]` marker |
 
 The default configuration prioritizes safety without being overly aggressive. URL credentials are the most common accidental leak, so they're handled automatically.
 
@@ -349,6 +351,7 @@ logger = await (
 )
 ```
 
+(declaring-sensitive-data-at-log-time)=
 ## Declaring Sensitive Data at Log Time
 
 Instead of relying solely on redactor configuration, you can mark data as sensitive when you log it. Pass a `sensitive=` dict and fapilog masks the values **at envelope construction time**, before the event reaches the queue or any sink:
@@ -390,6 +393,65 @@ await logger.info(
 | `with_redaction(preset=...)` | Compliance-driven blanket coverage |
 
 These are complementary. `sensitive=` gives developer-declared intent; redactors remain the safety net for fields not explicitly marked.
+
+## Blocking High-Risk Fields
+
+Some fields should never appear in logs — request bodies, raw payloads, and response dumps can contain arbitrary user data. The `field_blocker` redactor replaces these values entirely:
+
+```python
+from fapilog import LoggerBuilder
+
+logger = await (
+    LoggerBuilder()
+    .with_redaction(block_fields=["body", "request_body", "payload", "raw"])
+    .build_async()
+)
+
+# What you log
+await logger.info("Request received", body='{"ssn": "123-45-6789"}', method="POST")
+
+# What appears in logs
+{"message": "Request received", "data": {"body": "[REDACTED:HIGH_RISK_FIELD]", "method": "POST"}}
+```
+
+Each blocked field emits a policy-violation diagnostic, so you can monitor violations via the `fapilog_policy_violations_total` metric.
+
+The `hardened` preset enables `field_blocker` by default with a sensible blocklist. To exempt a specific field, use `allowed_fields` in the redactor config:
+
+```python
+from fapilog import Settings
+
+settings = Settings(
+    redactor_config={
+        "field_blocker": {
+            "blocked_fields": ["body", "payload"],
+            "allowed_fields": ["body"],  # Exempt "body" from blocking
+        },
+    },
+)
+```
+
+## Truncating Long Strings
+
+Large string values (stack traces, serialized payloads, base64 blobs) can bloat log events. The `string_truncate` redactor caps string length and appends a `[truncated]` marker:
+
+```python
+from fapilog import LoggerBuilder
+
+logger = await (
+    LoggerBuilder()
+    .with_redaction(max_string_length=500)
+    .build_async()
+)
+
+# What you log
+await logger.info("Error details", traceback="..." * 1000)
+
+# What appears in logs — string truncated to 500 chars + marker
+{"message": "Error details", "data": {"traceback": "......[truncated]"}}
+```
+
+This redactor is disabled by default (`max_string_length=None`). Set a value to enable it. The truncation happens after all other redactors, so masked values are not affected.
 
 ## Going Deeper
 

@@ -29,9 +29,11 @@ Redactors transform structured log events to remove or mask sensitive data befor
 
 ## Built-in Redactors
 
-- FieldMaskRedactor: masks selected fields identified by dotted paths across nested dicts and lists.
+Fapilog ships with five built-in redactors. The first three are the core masking layer; the last two provide policy enforcement and size control.
 
-Example:
+### FieldMaskRedactor
+
+Masks selected fields identified by dotted paths across nested dicts and lists.
 
 ```python
 from fapilog.plugins.redactors.field_mask import FieldMaskRedactor, FieldMaskConfig
@@ -51,6 +53,95 @@ redactor = FieldMaskRedactor(
 )
 ```
 
+### RegexMaskRedactor
+
+Matches field paths at any nesting level against regex patterns. All patterns are validated at config time to prevent ReDoS (see [Regex Pattern Safety](../redaction/configuration.md#regex-pattern-safety)).
+
+```python
+from fapilog.plugins.redactors.regex_mask import RegexMaskRedactor, RegexMaskConfig
+
+redactor = RegexMaskRedactor(
+    config=RegexMaskConfig(
+        patterns=[
+            r"(?i).*password.*",
+            r"(?i).*secret.*",
+            r"(?i).*token.*",
+        ],
+        mask_string="***",
+        block_on_unredactable=False,
+    )
+)
+```
+
+### UrlCredentialsRedactor
+
+Strips `user:password@` credentials from URL-like strings found in any field value. Enabled by default (no preset required).
+
+```python
+from fapilog.plugins.redactors.url_credentials import (
+    UrlCredentialsRedactor,
+    UrlCredentialsConfig,
+)
+
+redactor = UrlCredentialsRedactor(
+    config=UrlCredentialsConfig(
+        max_string_length=4096,  # Max URL length to scan
+    )
+)
+```
+
+(fieldblockerredactor)=
+### FieldBlockerRedactor
+
+Blocks high-risk field names (e.g., `body`, `payload`, `raw`) by replacing their values entirely. Designed to catch accidental logging of request/response bodies. Enabled by default in the `hardened` preset.
+
+```python
+from fapilog.plugins.redactors.field_blocker import (
+    FieldBlockerRedactor,
+    FieldBlockerConfig,
+)
+
+redactor = FieldBlockerRedactor(
+    config=FieldBlockerConfig(
+        blocked_fields=["body", "request_body", "response_body", "payload"],
+        allowed_fields=[],          # Exemptions from the blocklist
+        replacement="[REDACTED:HIGH_RISK_FIELD]",
+    )
+)
+```
+
+Builder API shortcut:
+
+```python
+logger = LoggerBuilder().with_redaction(block_fields=["body", "payload"]).build()
+```
+
+Each blocked field emits a policy-violation diagnostic. Monitor violations with the `fapilog_policy_violations_total` metric (see [Redaction Metrics](../core-concepts/metrics.md#redaction-metrics)).
+
+(stringtruncateredactor)=
+### StringTruncateRedactor
+
+Truncates string values exceeding a configured length and appends a `[truncated]` marker. Disabled by default (`max_string_length=None` means no traversal). Useful for preventing oversized log events from body dumps or stack traces.
+
+```python
+from fapilog.plugins.redactors.string_truncate import (
+    StringTruncateRedactor,
+    StringTruncateConfig,
+)
+
+redactor = StringTruncateRedactor(
+    config=StringTruncateConfig(
+        max_string_length=1000,  # None = disabled (default)
+    )
+)
+```
+
+Builder API shortcut:
+
+```python
+logger = LoggerBuilder().with_redaction(max_string_length=1000).build()
+```
+
 ## Configuration
 
 Core settings include:
@@ -59,13 +150,51 @@ Core settings include:
 - `core.redactors_order`: ordered list of redactor plugin names
 - `core.redaction_max_depth`, `core.redaction_max_keys_scanned`: guardrail plumbing used by redactors
 
-FieldMaskRedactor config:
+### FieldMaskRedactor
 
-- `fields_to_mask: list[str]`
-- `mask_string: str` (default `***`)
-- `block_on_unredactable: bool` (default `False`)
-- `max_depth: int` (default `16`)
-- `max_keys_scanned: int` (default `1000`)
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `fields_to_mask` | `list[str]` | `[]` | Dotted field paths to mask |
+| `mask_string` | `str` | `"***"` | Replacement string |
+| `block_on_unredactable` | `bool` | `False` | Drop event if a value can't be processed |
+| `max_depth` | `int` | `16` | Per-redactor traversal depth limit |
+| `max_keys_scanned` | `int` | `1000` | Per-redactor key scan limit |
+| `on_guardrail_exceeded` | `str` | `"replace_subtree"` | `"warn"`, `"drop"`, or `"replace_subtree"` |
+
+### RegexMaskRedactor
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `patterns` | `list[str]` | `[]` | Regex patterns matched against field paths |
+| `mask_string` | `str` | `"***"` | Replacement string |
+| `block_on_unredactable` | `bool` | `False` | Drop event if a value can't be processed |
+| `allow_unsafe_patterns` | `bool` | `False` | Bypass ReDoS validation |
+
+### UrlCredentialsRedactor
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `max_string_length` | `int` | `4096` | Max URL length to scan |
+
+### FieldBlockerRedactor
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `blocked_fields` | `list[str]` | `["body", "request_body", ...]` | Field names to block (case-insensitive) |
+| `allowed_fields` | `list[str]` | `[]` | Exemptions from the blocklist |
+| `replacement` | `str` | `"[REDACTED:HIGH_RISK_FIELD]"` | Replacement string |
+| `max_depth` | `int` | `16` | Per-redactor traversal depth limit |
+| `max_keys_scanned` | `int` | `1000` | Per-redactor key scan limit |
+| `on_guardrail_exceeded` | `str` | `"warn"` | `"warn"` or `"drop"` only |
+
+### StringTruncateRedactor
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `max_string_length` | `int \| None` | `None` | Max string length; `None` disables the redactor |
+| `max_depth` | `int` | `16` | Per-redactor traversal depth limit |
+| `max_keys_scanned` | `int` | `1000` | Per-redactor key scan limit |
+| `on_guardrail_exceeded` | `str` | `"warn"` | `"warn"` or `"drop"` only |
 
 ## Authoring Custom Redactors
 
@@ -88,6 +217,7 @@ Register via entry points using the `fapilog.redactors` group in your package me
 - Each redactor execution is timed via the shared plugin timer
 - Failures are recorded in plugin error metrics (when metrics are enabled)
 - Structured diagnostics are emitted via `core.diagnostics.warn` for guardrail or policy warnings
+- Redaction operational metrics (`fapilog_redacted_fields_total`, `fapilog_policy_violations_total`, etc.) are recorded automatically — see [Redaction Metrics](../core-concepts/metrics.md#redaction-metrics)
 
 ## Integration Order
 

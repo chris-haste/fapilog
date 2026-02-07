@@ -65,6 +65,8 @@ See [Configuration](configuration.md) for all options.
 | **Auto-prefix** | Simple field names like `"password"` are prefixed to `"data.password"` to match the log envelope. |
 | **Additive** | Multiple `with_redaction()` calls merge fields/patterns. Use `replace=True` to overwrite. |
 | **Pre-serialization** | Redaction happens before logs reach any sink (file, CloudWatch, etc.). |
+| **`sensitive=`/`pii=`** | Developer-declared masking at log time — values are masked at envelope construction before queueing. See [Declaring Sensitive Data](../cookbook/redacting-secrets-pii.md#declaring-sensitive-data-at-log-time). |
+| **Field blocking** | High-risk field names (`body`, `payload`, etc.) can be blocked entirely via `block_fields=`. See [Configuration](configuration.md#default-behavior-by-preset). |
 
 ## What Gets Redacted
 

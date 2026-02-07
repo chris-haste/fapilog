@@ -43,6 +43,8 @@ logger = (
 | `block_on_failure` | `bool` | `False` | Block logging if redaction fails |
 | `max_depth` | `int` | `16` | Max nesting depth to traverse |
 | `max_keys` | `int` | `1000` | Max keys to scan per event |
+| `block_fields` | `list[str]` | `None` | Field names to block via field_blocker |
+| `max_string_length` | `int` | `None` | Max string length via string_truncate |
 | `auto_prefix` | `bool` | `True` | Add `data.` prefix to simple field names |
 | `replace` | `bool` | `False` | Replace existing config instead of merging |
 
@@ -97,7 +99,13 @@ from fapilog import get_logger, Settings
 
 settings = Settings(
     core={
-        "redactors": ["field_mask", "regex_mask", "url_credentials"],
+        "redactors": [
+            "field_mask",
+            "regex_mask",
+            "url_credentials",
+            "field_blocker",
+            "string_truncate",
+        ],
     },
     redactor_config={
         "field_mask": {
@@ -112,6 +120,13 @@ settings = Settings(
             ],
             "mask_string": "***",
         },
+        "field_blocker": {
+            "blocked_fields": ["body", "request_body", "payload"],
+            "allowed_fields": [],
+        },
+        "string_truncate": {
+            "max_string_length": 1000,
+        },
     },
 )
 
@@ -125,7 +140,13 @@ Control the order redactors are applied:
 ```python
 settings = Settings(
     core={
-        "redactors": ["field_mask", "regex_mask", "url_credentials"],
+        "redactors": [
+            "field_mask",
+            "regex_mask",
+            "url_credentials",
+            "field_blocker",
+            "string_truncate",
+        ],
     }
 )
 ```
@@ -134,6 +155,8 @@ Default order:
 1. `field_mask` - Exact field path matching
 2. `regex_mask` - Pattern-based matching
 3. `url_credentials` - URL credential stripping
+4. `field_blocker` - High-risk field blocking
+5. `string_truncate` - Long string truncation
 
 ### Guardrails
 
@@ -154,7 +177,7 @@ Configure redaction via environment:
 
 ```bash
 # Enable specific redactors
-export FAPILOG_CORE__REDACTORS='["field_mask", "regex_mask", "url_credentials"]'
+export FAPILOG_CORE__REDACTORS='["field_mask", "regex_mask", "url_credentials", "field_blocker", "string_truncate"]'
 
 # Configure field mask
 export FAPILOG_REDACTOR_CONFIG__FIELD_MASK__FIELDS_TO_MASK='["password", "api_key"]'
@@ -163,23 +186,32 @@ export FAPILOG_REDACTOR_CONFIG__FIELD_MASK__MASK_STRING='[REDACTED]'
 # Configure regex mask
 export FAPILOG_REDACTOR_CONFIG__REGEX_MASK__PATTERNS='["(?i).*secret.*", "(?i).*token.*"]'
 
+# Configure field blocker
+export FAPILOG_REDACTOR_CONFIG__FIELD_BLOCKER__BLOCKED_FIELDS='["body", "request_body", "payload"]'
+export FAPILOG_REDACTOR_CONFIG__FIELD_BLOCKER__REPLACEMENT='[BLOCKED]'
+
+# Configure string truncate
+export FAPILOG_REDACTOR_CONFIG__STRING_TRUNCATE__MAX_STRING_LENGTH=1000
+
 # Guardrails
 export FAPILOG_CORE__REDACTION_MAX_DEPTH=16
 export FAPILOG_CORE__REDACTION_MAX_KEYS_SCANNED=1000
 ```
 
+(default-behavior-by-preset)=
 ## Default Behavior by Preset
 
-| Configuration | field_mask | regex_mask | url_credentials |
-|---------------|------------|------------|-----------------|
-| `Settings()` (no preset) | No | No | **Yes** |
-| `preset="dev"` | No | No | No |
-| `preset="production"` | Yes | Yes | Yes |
-| `preset="serverless"` | Yes | Yes | Yes |
-| `preset="fastapi"` | Yes | Yes | Yes |
-| `preset="minimal"` | No | No | No |
+| Configuration | field_mask | regex_mask | url_credentials | field_blocker | string_truncate |
+|---------------|------------|------------|-----------------|---------------|-----------------|
+| `Settings()` (no preset) | No | No | **Yes** | No | No |
+| `preset="dev"` | No | No | No | No | No |
+| `preset="production"` | Yes | Yes | Yes | No | No |
+| `preset="serverless"` | Yes | Yes | Yes | No | No |
+| `preset="fastapi"` | Yes | Yes | Yes | No | No |
+| `preset="hardened"` | Yes | Yes | Yes | **Yes** | No |
+| `preset="minimal"` | No | No | No | No | No |
 
-The `production`, `fastapi`, and `serverless` presets automatically apply the `CREDENTIALS` redaction preset.
+The `production`, `fastapi`, and `serverless` presets automatically apply the `CREDENTIALS` redaction preset. The `hardened` preset additionally enables `field_blocker` with default blocked fields and applies the `HIPAA_PHI` and `PCI_DSS` presets.
 
 ## Disabling Redaction
 
@@ -215,6 +247,7 @@ logger = (
 )
 ```
 
+(regex-pattern-safety)=
 ## Regex Pattern Safety
 
 The `regex-mask` redactor validates patterns at config time to prevent ReDoS (Regular Expression Denial of Service) attacks. Patterns with these constructs are rejected:
