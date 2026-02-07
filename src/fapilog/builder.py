@@ -303,6 +303,7 @@ class LoggerBuilder:
         url_credentials: bool | None = None,
         url_max_length: int = 4096,
         block_on_failure: bool = False,
+        block_fields: list[str] | None = None,
         max_depth: int | None = None,
         max_keys: int | None = None,
         auto_prefix: bool = True,
@@ -324,6 +325,8 @@ class LoggerBuilder:
                             None means no change to current setting.
             url_max_length: Max string length for URL parsing (default: 4096).
             block_on_failure: Block log entry if redaction fails (default: False).
+            block_fields: High-risk field names to block entirely (e.g., ["body", "payload"]).
+                         Enables the field_blocker redactor.
             max_depth: Maximum nested depth for redaction scanning.
             max_keys: Maximum keys to scan during redaction.
             auto_prefix: If True (default), adds "data." prefix to simple field
@@ -419,6 +422,19 @@ class LoggerBuilder:
         elif url_credentials is False:
             if "url_credentials" in redactors:
                 redactors.remove("url_credentials")
+
+        # Handle field blocking
+        if block_fields is not None:
+            if "field_blocker" not in redactors:
+                redactors.append("field_blocker")
+            blocker_config = redactor_config.setdefault("field_blocker", {})
+            if replace:
+                blocker_config["blocked_fields"] = list(dict.fromkeys(block_fields))
+            else:
+                existing = blocker_config.setdefault("blocked_fields", [])
+                for f in block_fields:
+                    if f not in existing:
+                        existing.append(f)
 
         # Handle guardrails (max_depth and max_keys)
         core = self._config.setdefault("core", {})

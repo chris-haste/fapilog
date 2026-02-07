@@ -170,6 +170,47 @@ class TestUnifiedRedactionAPI:
         assert "data.card_number" in fields
 
 
+class TestBlockFieldsRedaction:
+    """Tests for with_redaction(block_fields=...) field blocker integration."""
+
+    def test_block_fields_enables_field_blocker(self) -> None:
+        builder = LoggerBuilder()
+        builder.with_redaction(block_fields=["body", "payload"])
+
+        assert "field_blocker" in builder._config["core"]["redactors"]
+        blocker_cfg = builder._config["redactor_config"]["field_blocker"]
+        assert blocker_cfg["blocked_fields"] == ["body", "payload"]
+
+    def test_block_fields_additive_by_default(self) -> None:
+        builder = LoggerBuilder()
+        builder.with_redaction(block_fields=["body"])
+        builder.with_redaction(block_fields=["payload"])
+
+        blocker_cfg = builder._config["redactor_config"]["field_blocker"]
+        assert blocker_cfg["blocked_fields"] == ["body", "payload"]
+
+    def test_block_fields_no_duplicates(self) -> None:
+        builder = LoggerBuilder()
+        builder.with_redaction(block_fields=["body"])
+        builder.with_redaction(block_fields=["body"])
+
+        blocker_cfg = builder._config["redactor_config"]["field_blocker"]
+        assert blocker_cfg["blocked_fields"] == ["body"]
+
+    def test_block_fields_replace_mode(self) -> None:
+        builder = LoggerBuilder()
+        builder.with_redaction(block_fields=["body"])
+        builder.with_redaction(block_fields=["payload"], replace=True)
+
+        blocker_cfg = builder._config["redactor_config"]["field_blocker"]
+        assert blocker_cfg["blocked_fields"] == ["payload"]
+
+    def test_block_fields_returns_self(self) -> None:
+        builder = LoggerBuilder()
+        result = builder.with_redaction(block_fields=["body"])
+        assert result is builder
+
+
 class TestConfigureEnricher:
     """Tests for configure_enricher() method."""
 

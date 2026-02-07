@@ -102,6 +102,11 @@
 | `FAPILOG_PROCESSOR_CONFIG__SIZE_GUARD__PRESERVE_FIELDS` | list | PydanticUndefined | Fields that should never be removed during truncation |
 | `FAPILOG_PROCESSOR_CONFIG__ZERO_COPY` | dict | PydanticUndefined | Configuration for zero_copy processor (reserved for future options) |
 | `FAPILOG_REDACTOR_CONFIG__EXTRA` | dict | PydanticUndefined | Configuration for third-party redactors by name |
+| `FAPILOG_REDACTOR_CONFIG__FIELD_BLOCKER__ALLOWED_FIELDS` | list | PydanticUndefined | Field names exempt from blocking even if in blocklist |
+| `FAPILOG_REDACTOR_CONFIG__FIELD_BLOCKER__BLOCKED_FIELDS` | list | PydanticUndefined | Field names to block (replaces values with marker) |
+| `FAPILOG_REDACTOR_CONFIG__FIELD_BLOCKER__MAX_DEPTH` | int | 16 | Max nested depth to scan |
+| `FAPILOG_REDACTOR_CONFIG__FIELD_BLOCKER__MAX_KEYS_SCANNED` | int | 1000 | Max keys to scan before stopping |
+| `FAPILOG_REDACTOR_CONFIG__FIELD_BLOCKER__REPLACEMENT` | str | [REDACTED:HIGH_RISK_FIELD] | Replacement string for blocked field values |
 | `FAPILOG_REDACTOR_CONFIG__FIELD_MASK__BLOCK_ON_UNREDACTABLE` | bool | True | Emit diagnostic warning when a field path cannot be redacted |
 | `FAPILOG_REDACTOR_CONFIG__FIELD_MASK__FIELDS_TO_MASK` | list | PydanticUndefined | Field names to mask (case-insensitive) |
 | `FAPILOG_REDACTOR_CONFIG__FIELD_MASK__MASK_STRING` | str | *** | Replacement mask string |
