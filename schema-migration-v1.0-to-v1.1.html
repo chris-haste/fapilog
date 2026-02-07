@@ -276,7 +276,8 @@
     <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>        <span class="c1"># Human-readable log message</span>
     <span class="s2">&quot;logger&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>         <span class="c1"># Logger name</span>
     <span class="s2">&quot;context&quot;</span><span class="p">:</span> <span class="p">{</span>           <span class="c1"># Request/trace identifiers (WHO/WHAT)</span>
-        <span class="s2">&quot;correlation_id&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="s2">&quot;message_id&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>             <span class="c1"># Always present - unique per log entry</span>
+        <span class="s2">&quot;correlation_id&quot;</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Always present; None when unset</span>
         <span class="s2">&quot;request_id&quot;</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
         <span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
         <span class="s2">&quot;tenant_id&quot;</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>

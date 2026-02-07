@@ -274,7 +274,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">context</span></code>: Request/trace identifiers. These identify WHO and WHAT request is being logged.</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">message_id</span></code>: Unique UUID for each log entry. Always present, auto-generated.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">correlation_id</span></code>: Shared identifier across related log entries. Only present when explicitly set via context variable (e.g., <code class="docutils literal notranslate"><span class="pre">request_id_var</span></code>). Use this for request-level tracing.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">correlation_id</span></code>: Shared identifier across related log entries. Always present; <code class="docutils literal notranslate"><span class="pre">null</span></code> when no correlation context is active, populated when set via context variable (e.g., <code class="docutils literal notranslate"><span class="pre">request_id_var</span></code>). Use this for request-level tracing.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">request_id</span></code>, <code class="docutils literal notranslate"><span class="pre">user_id</span></code>, <code class="docutils literal notranslate"><span class="pre">tenant_id</span></code>, <code class="docutils literal notranslate"><span class="pre">trace_id</span></code>, <code class="docutils literal notranslate"><span class="pre">span_id</span></code>: Optional trace context fields.</p></li>
 </ul>
 </li>
@@ -285,15 +285,15 @@
 <h4>message_id vs correlation_id<a class="headerlink" href="#message-id-vs-correlation-id" title="Link to this heading"></a></h4>
 <ul class="simple">
 <li><p><strong>message_id</strong>: Uniquely identifies each individual log entry. A new UUID is generated for every log call. Use this when you need to reference a specific log line.</p></li>
-<li><p><strong>correlation_id</strong>: Groups related log entries together. Only present when you explicitly set it via <code class="docutils literal notranslate"><span class="pre">request_id_var.set()</span></code> or when using FastAPI integration (which sets it automatically per request). Use this for tracing all logs from a single HTTP request or operation.</p></li>
+<li><p><strong>correlation_id</strong>: Groups related log entries together. Always present in the envelope for stable schema shape. Set to <code class="docutils literal notranslate"><span class="pre">null</span></code> when no correlation context is active; populated when set via <code class="docutils literal notranslate"><span class="pre">request_id_var.set()</span></code> or when using FastAPI integration (which sets it automatically per request). Use this for tracing all logs from a single HTTP request or operation.</p></li>
 </ul>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.context</span><span class="w"> </span><span class="kn">import</span> <span class="n">request_id_var</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
 
-<span class="c1"># Without context - only message_id present</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;standalone log&quot;</span><span class="p">)</span>  <span class="c1"># {&quot;context&quot;: {&quot;message_id&quot;: &quot;aaa-111&quot;}}</span>
+<span class="c1"># Without context - correlation_id is null</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;standalone log&quot;</span><span class="p">)</span>  <span class="c1"># {&quot;context&quot;: {&quot;message_id&quot;: &quot;aaa-111&quot;, &quot;correlation_id&quot;: null}}</span>
 
 <span class="c1"># With context - both message_id and correlation_id present</span>
 <span class="n">token</span> <span class="o">=</span> <span class="n">request_id_var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;req-123&quot;</span><span class="p">)</span>

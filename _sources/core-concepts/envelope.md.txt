@@ -42,7 +42,7 @@ Every log entry follows the v1.1 schema with semantic field groupings:
 
 - `context`: Request/trace identifiers. These identify WHO and WHAT request is being logged.
   - `message_id`: Unique UUID for each log entry. Always present, auto-generated.
-  - `correlation_id`: Shared identifier across related log entries. Only present when explicitly set via context variable (e.g., `request_id_var`). Use this for request-level tracing.
+  - `correlation_id`: Shared identifier across related log entries. Always present; `null` when no correlation context is active, populated when set via context variable (e.g., `request_id_var`). Use this for request-level tracing.
   - `request_id`, `user_id`, `tenant_id`, `trace_id`, `span_id`: Optional trace context fields.
 - `diagnostics`: Runtime/operational data (service, env, host, pid, exception). These identify WHERE the log originated and system state.
 - `data`: User-provided structured data from extra kwargs and bound context (excluding context fields).
@@ -50,7 +50,7 @@ Every log entry follows the v1.1 schema with semantic field groupings:
 #### message_id vs correlation_id
 
 - **message_id**: Uniquely identifies each individual log entry. A new UUID is generated for every log call. Use this when you need to reference a specific log line.
-- **correlation_id**: Groups related log entries together. Only present when you explicitly set it via `request_id_var.set()` or when using FastAPI integration (which sets it automatically per request). Use this for tracing all logs from a single HTTP request or operation.
+- **correlation_id**: Groups related log entries together. Always present in the envelope for stable schema shape. Set to `null` when no correlation context is active; populated when set via `request_id_var.set()` or when using FastAPI integration (which sets it automatically per request). Use this for tracing all logs from a single HTTP request or operation.
 
 ```python
 from fapilog import get_logger
@@ -58,8 +58,8 @@ from fapilog.core.context import request_id_var
 
 logger = get_logger()
 
-# Without context - only message_id present
-logger.info("standalone log")  # {"context": {"message_id": "aaa-111"}}
+# Without context - correlation_id is null
+logger.info("standalone log")  # {"context": {"message_id": "aaa-111", "correlation_id": null}}
 
 # With context - both message_id and correlation_id present
 token = request_id_var.set("req-123")
