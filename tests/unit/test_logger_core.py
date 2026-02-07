@@ -163,7 +163,7 @@ class TestCorrelationId:
     """Tests for correlation ID generation."""
 
     @pytest.mark.asyncio
-    async def test_logger_auto_generates_correlation_id(self) -> None:
+    async def test_correlation_id_absent_when_not_set(self) -> None:
         captured: list[dict[str, Any]] = []
 
         logger = get_logger(name="test")
@@ -179,14 +179,12 @@ class TestCorrelationId:
 
         assert captured, "Expected at least one emitted entry"
         event = captured[0]
-        # v1.1 schema: correlation_id is in context
+        # Story 1.34: correlation_id only present when explicitly set
         assert "context" in event
-        assert "correlation_id" in event["context"]
-        assert isinstance(event["context"]["correlation_id"], str)
-        assert len(event["context"]["correlation_id"]) > 0
+        assert "correlation_id" not in event["context"]
 
     @pytest.mark.asyncio
-    async def test_context_propagation_and_uuid_fallback(self) -> None:
+    async def test_context_propagation_and_absent_without(self) -> None:
         captured: list[dict[str, Any]] = []
         logger = get_logger(name="ctx-test")
 
@@ -202,17 +200,15 @@ class TestCorrelationId:
         finally:
             request_id_var.reset(token)
 
-        # No request id -> UUID fallback
+        # No request id -> correlation_id absent (Story 1.34)
         logger.info("b")
 
         await logger.stop_and_drain()
 
         assert len(captured) >= 2
         a, b = captured[0], captured[1]
-        # v1.1 schema: correlation_id is in context
         assert a["context"]["correlation_id"] == "req-123"
-        assert isinstance(b["context"]["correlation_id"], str)
-        assert len(b["context"]["correlation_id"]) > 0
+        assert "correlation_id" not in b["context"]
 
 
 class TestBatchAndDrain:
