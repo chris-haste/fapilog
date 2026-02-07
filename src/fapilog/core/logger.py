@@ -559,6 +559,14 @@ class _LoggerMixin(_WorkerCountersMixin):
             ),
         )
 
+        # Record sensitive-field count for operational metrics (Story 4.71)
+        if self._metrics is not None:
+            _sens = payload.get("data", {}).get("sensitive")
+            if isinstance(_sens, dict) and _sens:
+                self._schedule_metrics_call(
+                    self._metrics.record_sensitive_fields, len(_sens)
+                )
+
         # Inject unsafe marker into envelope data for worker to check
         if is_unsafe:
             data = payload.get("data")
