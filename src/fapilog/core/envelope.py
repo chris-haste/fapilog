@@ -89,8 +89,8 @@ def build_envelope(
         exceptions_max_frames: Maximum traceback frames to include.
         exceptions_max_stack_chars: Maximum characters for stack trace.
         logger_name: Name of the logger.
-        correlation_id: Correlation ID for request tracing. Only included in
-            envelope when explicitly provided (not auto-generated).
+        correlation_id: Correlation ID for request tracing. Always included in
+            envelope; None when no correlation context is active.
         origin: Source of the log entry. One of 'native' (direct fapilog calls),
             'stdlib' (routed through stdlib bridge), or 'third_party' (from
             external libraries or explicit override). Defaults to 'native'.
@@ -113,9 +113,8 @@ def build_envelope(
     # message_id: Always generate a unique ID per log entry (Story 1.34)
     context["message_id"] = str(uuid4())
 
-    # correlation_id: Only include when explicitly set (not auto-generated)
-    if correlation_id is not None:
-        context["correlation_id"] = correlation_id
+    # correlation_id: Always present; None when no correlation context is active
+    context["correlation_id"] = correlation_id
 
     # Extract trace context fields from bound_context (first)
     if bound_context:

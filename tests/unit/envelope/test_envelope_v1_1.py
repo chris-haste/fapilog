@@ -85,16 +85,15 @@ class TestContextFieldSemantics:
         # NOT at top level
         assert "correlation_id" not in envelope
 
-    def test_correlation_id_absent_when_not_provided(self) -> None:
-        """correlation_id should NOT be present when not explicitly set (Story 1.34).
+    def test_correlation_id_null_when_not_provided(self) -> None:
+        """correlation_id should be None when not explicitly set (Story 10.55).
 
-        The new semantics: message_id is always generated (unique per entry),
-        correlation_id only appears when explicitly set via context variable.
+        The v1.1+ schema always includes correlation_id for stable schema shape.
+        It is None when no correlation context is active, present when explicitly set.
         """
         envelope = build_envelope(level="INFO", message="Test")
 
-        # correlation_id NOT present when not explicitly set
-        assert "correlation_id" not in envelope["context"]
+        assert envelope["context"]["correlation_id"] is None
 
     def test_message_id_always_present(self) -> None:
         """message_id should always be present as a valid UUID (Story 1.34)."""

@@ -47,11 +47,11 @@ class TestMessageIdAlwaysPresent:
 class TestCorrelationIdOnlyWhenExplicitlySet:
     """AC2: correlation_id only appears when explicitly set."""
 
-    def test_correlation_id_absent_without_context(self) -> None:
-        """correlation_id is NOT present when not explicitly set."""
+    def test_correlation_id_null_without_context(self) -> None:
+        """correlation_id is None when not explicitly set (Story 10.55)."""
         envelope = build_envelope(level="INFO", message="test")
 
-        assert "correlation_id" not in envelope["context"]
+        assert envelope["context"]["correlation_id"] is None
 
     def test_correlation_id_present_when_explicitly_set(self) -> None:
         """correlation_id appears when explicitly provided."""

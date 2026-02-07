@@ -11,7 +11,7 @@ Fapilog v3 includes essential features **out of the box** to ensure immediate pr
   - Uses zero-copy serialization helpers
   - Non-blocking writes using `asyncio.to_thread(...)` to avoid event loop stalls
   - Intended as a dev/default sink; production deployments typically add file/HTTP/cloud sinks via plugins
-  - Includes `correlation_id` (when present in context) in the emitted JSON
+  - Includes `correlation_id` in the emitted JSON (always present; `null` when no correlation context is active)
   - Errors are contained and never crash the app; see Internal Diagnostics below
 
 ## Internal Diagnostics (Optional)
