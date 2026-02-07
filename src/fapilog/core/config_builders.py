@@ -221,7 +221,9 @@ def _redactor_configs(settings: _Settings) -> dict[str, dict[str, _Any]]:
             "core_max_keys_scanned": core_max_keys,
         },
         "url_credentials": {
-            "config": _UrlCredentialsConfig(**rcfg.url_credentials.model_dump())
+            "config": _UrlCredentialsConfig(**rcfg.url_credentials.model_dump()),
+            "core_max_depth": core_max_depth,
+            "core_max_keys_scanned": core_max_keys,
         },
         "field_blocker": {
             "config": _FieldBlockerConfig(**rcfg.field_blocker.model_dump()),

@@ -142,6 +142,21 @@ class TestRedactorConfigs:
 
         assert "config" in result["field_mask"]
 
+    def test_url_credentials_receives_core_guardrails(self) -> None:
+        """url_credentials config includes core_max_depth and core_max_keys_scanned."""
+        from fapilog.core.config_builders import _redactor_configs
+
+        settings = Settings()
+        result = _redactor_configs(settings)
+
+        url_cfg = result["url_credentials"]
+        assert "core_max_depth" in url_cfg
+        assert "core_max_keys_scanned" in url_cfg
+        assert url_cfg["core_max_depth"] == settings.core.redaction_max_depth
+        assert (
+            url_cfg["core_max_keys_scanned"] == settings.core.redaction_max_keys_scanned
+        )
+
 
 class TestFilterConfigs:
     """Test _filter_configs returns expected structure."""
