@@ -7,10 +7,10 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from .presets import BUILTIN_PRESETS, RedactionPreset
+from .presets import BUILTIN_PRESETS, RedactionPreset, RedactionPresetName
 
 
-def get_redaction_preset(name: str) -> RedactionPreset:
+def get_redaction_preset(name: RedactionPresetName) -> RedactionPreset:
     """Get a preset by name.
 
     Args:
@@ -38,7 +38,9 @@ def list_redaction_presets() -> list[str]:
 
 
 @lru_cache(maxsize=32)
-def resolve_preset_fields(name: str) -> tuple[frozenset[str], frozenset[str]]:
+def resolve_preset_fields(
+    name: RedactionPresetName,
+) -> tuple[frozenset[str], frozenset[str]]:
     """Resolve all fields and patterns including inherited ones.
 
     Cached for performance - inheritance resolution happens once per preset.

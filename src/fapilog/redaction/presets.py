@@ -8,6 +8,23 @@ combined at runtime.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Literal
+
+RedactionPresetName = Literal[
+    "CCPA_PII",
+    "CONTACT_INFO",
+    "CREDENTIALS",
+    "EU_GOVERNMENT_IDS",
+    "FINANCIAL_IDENTIFIERS",
+    "GDPR_PII",
+    "GDPR_PII_UK",
+    "HIPAA_PHI",
+    "ONLINE_IDENTIFIERS",
+    "PCI_DSS",
+    "PERSONAL_IDENTIFIERS",
+    "UK_GOVERNMENT_IDS",
+    "US_GOVERNMENT_IDS",
+]
 
 
 @dataclass(frozen=True)

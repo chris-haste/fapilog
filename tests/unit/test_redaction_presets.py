@@ -186,6 +186,27 @@ class TestPresetInheritance:
             preset_a.resolve(registry)
 
 
+class TestRedactionPresetNameLiteral:
+    """Test RedactionPresetName Literal type alias stays in sync with registry."""
+
+    def test_redaction_preset_name_literal_matches_registry(self) -> None:
+        """RedactionPresetName Literal values must exactly match BUILTIN_PRESETS keys."""
+        from typing import get_args
+
+        from fapilog.redaction.presets import BUILTIN_PRESETS, RedactionPresetName
+
+        assert set(get_args(RedactionPresetName)) == set(BUILTIN_PRESETS.keys())
+
+    def test_redaction_preset_name_exported_from_package(self) -> None:
+        """RedactionPresetName is importable from top-level fapilog package."""
+        from typing import get_args
+
+        from fapilog import RedactionPresetName
+
+        # Verify it's the same type, not an empty re-export
+        assert len(get_args(RedactionPresetName)) == 13
+
+
 class TestPresetFiltering:
     """Tests for preset filtering functions."""
 

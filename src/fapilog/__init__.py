@@ -38,6 +38,7 @@ from .core.levels import register_level
 from .core.logger import AsyncLoggerFacade as _AsyncLoggerFacade
 from .core.logger import DrainResult
 from .core.logger import SyncLoggerFacade as _SyncLoggerFacade
+from .core.presets import PresetName as PresetName
 from .core.presets import list_presets
 from .core.settings import Settings as _Settings
 from .core.shutdown import install_shutdown_handlers
@@ -48,6 +49,7 @@ from .plugins.filters.level import LEVEL_PRIORITY as _LEVEL_PRIORITY
 from .plugins.processors import BaseProcessor as _BaseProcessor
 from .plugins.redactors import BaseRedactor as _BaseRedactor
 from .plugins.sinks.stdout_json import StdoutJsonSink as _StdoutJsonSink
+from .redaction.presets import RedactionPresetName as RedactionPresetName
 
 # Public exports
 Settings = _Settings
@@ -63,6 +65,8 @@ __all__ = [
     "list_presets",
     "LoggerBuilder",
     "AsyncLoggerBuilder",
+    "PresetName",
+    "RedactionPresetName",
     "sinks",
     "get_cached_loggers",
     "clear_logger_cache",
@@ -122,7 +126,7 @@ def _apply_plugin_settings(settings: _Settings) -> None:
 def _apply_default_log_level(
     settings: _Settings,
     *,
-    preset: str | None,
+    preset: PresetName | None,
 ) -> _Settings:
     if preset is not None:
         return settings
@@ -569,7 +573,7 @@ def _apply_logger_extras(
 def _prepare_logger(
     name: str | None,
     *,
-    preset: str | None,
+    preset: PresetName | None,
     format: _Literal["json", "pretty", "auto"] | None,
     settings: _Settings | None,
     sinks: list[object] | None,
@@ -817,7 +821,7 @@ def _create_and_start_facade(
 def get_logger(
     name: str | None = None,
     *,
-    preset: str | None = None,
+    preset: PresetName | None = None,
     format: _Literal["json", "pretty", "auto"] | None = None,
     settings: _Settings | None = None,
     sinks: list[object] | None = None,
@@ -904,7 +908,7 @@ def get_logger(
 async def get_async_logger(
     name: str | None = None,
     *,
-    preset: str | None = None,
+    preset: PresetName | None = None,
     format: _Literal["json", "pretty", "auto"] | None = None,
     settings: _Settings | None = None,
     sinks: list[object] | None = None,

@@ -3,7 +3,18 @@
 from __future__ import annotations
 
 import copy
-from typing import Any
+from typing import Any, Literal
+
+PresetName = Literal[
+    "dev",
+    "fastapi",
+    "hardened",
+    "high-volume",
+    "minimal",
+    "production",
+    "production-latency",
+    "serverless",
+]
 
 PRESETS: dict[str, dict[str, Any]] = {
     "dev": {
@@ -206,7 +217,7 @@ PRESETS: dict[str, dict[str, Any]] = {
 }
 
 
-def validate_preset(name: str) -> None:
+def validate_preset(name: PresetName) -> None:
     """Validate preset name.
 
     Args:
@@ -220,7 +231,7 @@ def validate_preset(name: str) -> None:
         raise ValueError(f"Invalid preset '{name}'. Valid presets: {valid}")
 
 
-def get_preset(name: str) -> dict[str, Any]:
+def get_preset(name: PresetName) -> dict[str, Any]:
     """Get preset configuration by name.
 
     Args:
