@@ -7,6 +7,9 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from typing_extensions import Self
 
+from .core.presets import PresetName
+from .redaction.presets import RedactionPresetName
+
 if TYPE_CHECKING:
     from .core.logger import AsyncLoggerFacade, SyncLoggerFacade
 
@@ -34,7 +37,7 @@ class LoggerBuilder:
         return list_redaction_presets()
 
     @staticmethod
-    def get_redaction_preset_info(name: str) -> dict[str, Any]:
+    def get_redaction_preset_info(name: RedactionPresetName) -> dict[str, Any]:
         """Get detailed information about a redaction preset.
 
         Args:
@@ -78,7 +81,7 @@ class LoggerBuilder:
     def __init__(self) -> None:
         self._config: dict[str, Any] = {}
         self._name: str | None = None
-        self._preset: str | None = None
+        self._preset: PresetName | None = None
         self._sinks: list[dict[str, Any]] = []
         self._reuse: bool = True
 
@@ -112,7 +115,7 @@ class LoggerBuilder:
         self._config.setdefault("core", {})["log_level"] = level.upper()
         return self
 
-    def with_preset(self, preset: str) -> Self:
+    def with_preset(self, preset: PresetName) -> Self:
         """Apply preset configuration.
 
         Preset is applied first, then subsequent methods override.
@@ -296,7 +299,7 @@ class LoggerBuilder:
     def with_redaction(
         self,
         *,
-        preset: str | list[str] | None = None,
+        preset: RedactionPresetName | list[RedactionPresetName] | None = None,
         fields: list[str] | None = None,
         patterns: list[str] | None = None,
         mask: str = "***",

@@ -684,6 +684,27 @@ class TestHighVolumePreset:
         assert settings.core.worker_count == 2
 
 
+class TestPresetNameLiteral:
+    """Test PresetName Literal type alias stays in sync with registry."""
+
+    def test_preset_name_literal_matches_registry(self) -> None:
+        """PresetName Literal values must exactly match PRESETS dict keys."""
+        from typing import get_args
+
+        from fapilog.core.presets import PRESETS, PresetName
+
+        assert set(get_args(PresetName)) == set(PRESETS.keys())
+
+    def test_preset_name_exported_from_package(self) -> None:
+        """PresetName is importable from top-level fapilog package."""
+        from typing import get_args
+
+        from fapilog import PresetName
+
+        # Verify it's the same type, not an empty re-export
+        assert len(get_args(PresetName)) == 8
+
+
 class TestPresetImmutability:
     """Test that get_preset returns copies, not references."""
 

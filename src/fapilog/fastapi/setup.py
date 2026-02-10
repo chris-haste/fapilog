@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from typing import Any, AsyncContextManager, AsyncIterator, Callable
 
 from ..core.diagnostics import warn
+from ..core.presets import PresetName
 
 try:
     from fastapi import FastAPI
@@ -114,7 +115,7 @@ async def _drain_logger(logger: Any, *, timeout: _DrainTimeout = 5.0) -> None:
 def setup_logging(
     app: FastAPI | None = None,
     *,
-    preset: str | None = None,
+    preset: PresetName | None = None,
     skip_paths: list[str] | None = None,
     sample_rate: float = 1.0,
     redact_headers: list[str] | None = None,
