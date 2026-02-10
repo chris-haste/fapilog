@@ -90,63 +90,72 @@ class FieldBlockerRedactor:
 
     async def redact(self, event: dict) -> dict:
         root: dict[str, Any] = dict(event)
-        scanned = 0
-        guardrail_hit = False
         self.last_policy_violations = 0
 
-        def _traverse(container: Any, depth: int, path_parts: list[str]) -> None:
+        # Cache as locals for faster lookup in tight loop
+        blocklist = self._effective_blocklist
+        replacement = self._replacement
+        max_depth = self._max_depth
+        max_scanned = self._max_scanned
+        on_drop = self._on_guardrail_exceeded == "drop"
+
+        scanned = 0
+        guardrail_hit = False
+
+        def _walk(obj: Any, depth: int, parent_path: str) -> None:
             nonlocal scanned, guardrail_hit
 
-            if depth > self._max_depth:
+            if depth > max_depth:
                 guardrail_hit = True
                 diagnostics.warn(
                     "redactor",
                     "max depth exceeded during field blocking",
-                    path=".".join(path_parts),
+                    path=parent_path,
                 )
                 return
 
-            if isinstance(container, dict):
-                for key in list(container.keys()):
+            if isinstance(obj, dict):
+                for key in obj:
                     scanned += 1
-                    if scanned > self._max_scanned:
+                    if scanned > max_scanned:
                         guardrail_hit = True
                         diagnostics.warn(
                             "redactor",
                             "max keys scanned exceeded during field blocking",
-                            path=".".join(path_parts),
+                            path=parent_path,
                         )
                         return
 
-                    current_path = [*path_parts, str(key)]
-
-                    if key.lower() in self._effective_blocklist:
-                        container[key] = self._replacement
+                    if key.lower() in blocklist:
+                        obj[key] = replacement
                         self.last_policy_violations += 1
                         diagnostics.warn(
                             "redactor",
                             "high-risk field blocked",
                             field=str(key),
-                            path=".".join(current_path),
+                            path=f"{parent_path}.{key}" if parent_path else str(key),
                             policy_violation=True,
                         )
                     else:
-                        value = container[key]
-                        if isinstance(value, (dict, list)):
-                            _traverse(value, depth + 1, current_path)
-                            if guardrail_hit and self._on_guardrail_exceeded == "drop":
+                        val = obj[key]
+                        if isinstance(val, (dict, list)):
+                            child_path = (
+                                f"{parent_path}.{key}" if parent_path else str(key)
+                            )
+                            _walk(val, depth + 1, child_path)
+                            if guardrail_hit and on_drop:
                                 return
 
-            elif isinstance(container, list):
-                for item in container:
+            elif isinstance(obj, list):
+                for item in obj:
                     if isinstance(item, (dict, list)):
-                        _traverse(item, depth + 1, path_parts)
-                        if guardrail_hit and self._on_guardrail_exceeded == "drop":
+                        _walk(item, depth + 1, parent_path)
+                        if guardrail_hit and on_drop:
                             return
 
-        _traverse(root, 0, [])
+        _walk(root, 0, "")
 
-        if guardrail_hit and self._on_guardrail_exceeded == "drop":
+        if guardrail_hit and on_drop:
             return dict(event)
 
         return root
