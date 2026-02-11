@@ -178,6 +178,8 @@ class _LoggerMixin(_WorkerCountersMixin):
         # Adaptive pressure monitoring (Story 1.44)
         self._pressure_monitor: Any | None = None
         self._pressure_monitor_task: asyncio.Task[None] | None = None
+        # Adaptive filter ladder (Story 1.45)
+        self._adaptive_filter_ladder: dict[Any, tuple[Any, ...]] | None = None
 
         # Drop/dedupe summary visibility (Story 12.20)
         self._emit_drop_summary = bool(emit_drop_summary)
@@ -457,6 +459,42 @@ class _LoggerMixin(_WorkerCountersMixin):
                 metric_setter=_metric_setter,
             )
             self._pressure_monitor = monitor
+
+            # Build adaptive filter ladder and register swap callback (Story 1.45)
+            try:
+                from .filter_ladder import build_filter_ladder
+
+                ladder = build_filter_ladder(
+                    base_filters=self._filters,
+                    protected_levels=self._protected_levels,
+                )
+                self._adaptive_filter_ladder = ladder
+
+                def _on_pressure_change(old_level: Any, new_level: Any) -> None:
+                    if self._adaptive_filter_ladder is not None:
+                        self._filters_snapshot = self._adaptive_filter_ladder[new_level]
+                        try:
+                            from .diagnostics import warn as _diag_warn
+                            from .pressure import _LEVELS
+
+                            escalated = _LEVELS.index(new_level) > _LEVELS.index(
+                                old_level
+                            )
+                            msg = (
+                                "filters tightened" if escalated else "filters restored"
+                            )
+                            _diag_warn(
+                                "adaptive-controller",
+                                msg,
+                                pressure_level=new_level.value,
+                            )
+                        except Exception:
+                            pass
+
+                monitor.on_level_change(_on_pressure_change)
+            except Exception:
+                pass  # Fail-open: ladder build failure shouldn't block monitor
+
             self._pressure_monitor_task = loop.create_task(monitor.run())
         except Exception:
             pass  # Fail-open: don't break startup if adaptive module fails
@@ -509,6 +547,7 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._worker_tasks.clear()
         self._pressure_monitor = None
         self._pressure_monitor_task = None
+        self._adaptive_filter_ladder = None
         self._enrichers.clear()
         self._processors.clear()
         self._filters.clear()
