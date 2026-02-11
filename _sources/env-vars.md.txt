@@ -12,6 +12,7 @@
 | `FAPILOG_ADAPTIVE__ESCALATE_TO_CRITICAL` | float | 0.92 | Fill ratio to escalate HIGH to CRITICAL |
 | `FAPILOG_ADAPTIVE__ESCALATE_TO_ELEVATED` | float | 0.6 | Fill ratio to escalate NORMAL to ELEVATED |
 | `FAPILOG_ADAPTIVE__ESCALATE_TO_HIGH` | float | 0.8 | Fill ratio to escalate ELEVATED to HIGH |
+| `FAPILOG_ADAPTIVE__MAX_WORKERS` | int | 8 | Maximum number of workers when dynamic scaling is active |
 | `FAPILOG_CORE__APP_NAME` | str | fapilog | Logical application name |
 | `FAPILOG_CORE__ATEXIT_DRAIN_ENABLED` | bool | True | Register atexit handler to drain pending logs on normal process exit |
 | `FAPILOG_CORE__ATEXIT_DRAIN_TIMEOUT_SECONDS` | float | 2.0 | Maximum seconds to wait for log drain during atexit handler |
