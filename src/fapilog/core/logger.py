@@ -192,6 +192,7 @@ class _LoggerMixin(_WorkerCountersMixin):
         # Cache settings values at init to avoid per-call overhead (Story 1.23, 1.25)
         self._cached_adaptive_enabled: bool = False
         self._cached_adaptive_settings: Any | None = None
+        self._cached_adaptive_batch_sizing: bool = False
         self._cached_sampling_rate: float = 1.0
         self._cached_sampling_filters: set[str] = set()
         self._cached_sampling_configured: bool = False
@@ -216,9 +217,13 @@ class _LoggerMixin(_WorkerCountersMixin):
             self._cached_strict_envelope_mode = bool(s.core.strict_envelope_mode)
             # Cache adaptive settings for pressure monitor (Story 1.44)
             _adaptive = getattr(s, "adaptive", None)
-            if _adaptive is not None and getattr(_adaptive, "enabled", False) is True:
-                self._cached_adaptive_enabled = True
-                self._cached_adaptive_settings = _adaptive
+            if _adaptive is not None:
+                if getattr(_adaptive, "enabled", False) is True:
+                    self._cached_adaptive_enabled = True
+                    self._cached_adaptive_settings = _adaptive
+                # Cache batch_sizing independently (Story 1.47)
+                if getattr(_adaptive, "batch_sizing", False) is True:
+                    self._cached_adaptive_batch_sizing = True
         except Exception:
             pass
 
@@ -554,6 +559,12 @@ class _LoggerMixin(_WorkerCountersMixin):
         Creates a LoggerWorker with a composite stop flag that triggers
         on either the shared drain flag or the individual retirement flag.
         """
+        # Create adaptive controller if batch_sizing enabled (Story 1.47)
+        adaptive_ctrl = (
+            self._make_adaptive_controller()
+            if self._cached_adaptive_batch_sizing
+            else None
+        )
         worker = LoggerWorker(
             queue=self._queue,
             batch_max_size=self._batch_max_size,
@@ -576,6 +587,7 @@ class _LoggerMixin(_WorkerCountersMixin):
             emit_redactor_diagnostics=self._emit_worker_diagnostics,
             emit_processor_diagnostics=self._emit_worker_diagnostics,
             counters=self._counters,
+            adaptive_controller=adaptive_ctrl,
         )
         await worker.run(in_thread_mode=self._worker_thread is not None)
 
@@ -939,9 +951,27 @@ class _LoggerMixin(_WorkerCountersMixin):
         except Exception:
             pass  # Best-effort
 
+    def _make_adaptive_controller(self) -> Any:
+        """Create an AdaptiveController for batch sizing (Story 1.47)."""
+        from .adaptive import AdaptiveBatchSizer, AdaptiveController
+
+        return AdaptiveController(
+            batch_sizer=AdaptiveBatchSizer(
+                min_batch=1,
+                max_batch=max(self._batch_max_size, 1024),
+                target_latency_ms=5.0,
+            ),
+        )
+
     def _make_worker(self) -> LoggerWorker:
         # Use cached strict_envelope_mode to avoid Settings() on hot path (Story 1.25)
         cached_strict_mode = self._cached_strict_envelope_mode
+        # Create adaptive controller if batch_sizing enabled (Story 1.47)
+        adaptive_ctrl = (
+            self._make_adaptive_controller()
+            if self._cached_adaptive_batch_sizing
+            else None
+        )
         return LoggerWorker(
             queue=self._queue,
             batch_max_size=self._batch_max_size,
@@ -965,6 +995,7 @@ class _LoggerMixin(_WorkerCountersMixin):
             emit_redactor_diagnostics=self._emit_worker_diagnostics,
             emit_processor_diagnostics=self._emit_worker_diagnostics,
             counters=self._counters,
+            adaptive_controller=adaptive_ctrl,
         )
 
     async def _worker_main(self) -> None:
