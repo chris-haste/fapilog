@@ -55,3 +55,15 @@ class TestAdaptiveSettings:
         s = Settings(adaptive={"enabled": True, "cooldown_seconds": 5.0})
         assert s.adaptive.enabled is True
         assert s.adaptive.cooldown_seconds == 5.0
+
+    def test_max_workers_default(self) -> None:
+        s = AdaptiveSettings()
+        assert s.max_workers == 8
+
+    def test_max_workers_custom(self) -> None:
+        s = AdaptiveSettings(max_workers=16)
+        assert s.max_workers == 16
+
+    def test_max_workers_must_be_at_least_one(self) -> None:
+        with pytest.raises(ValidationError, match="max_workers"):
+            AdaptiveSettings(max_workers=0)

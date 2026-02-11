@@ -180,6 +180,8 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._pressure_monitor_task: asyncio.Task[None] | None = None
         # Adaptive filter ladder (Story 1.45)
         self._adaptive_filter_ladder: dict[Any, tuple[Any, ...]] | None = None
+        # Dynamic worker pool (Story 1.46)
+        self._worker_pool: Any | None = None
 
         # Drop/dedupe summary visibility (Story 12.20)
         self._emit_drop_summary = bool(emit_drop_summary)
@@ -470,7 +472,7 @@ class _LoggerMixin(_WorkerCountersMixin):
                 )
                 self._adaptive_filter_ladder = ladder
 
-                def _on_pressure_change(old_level: Any, new_level: Any) -> None:
+                def _on_filter_change(old_level: Any, new_level: Any) -> None:
                     if self._adaptive_filter_ladder is not None:
                         self._filters_snapshot = self._adaptive_filter_ladder[new_level]
                         try:
@@ -491,13 +493,91 @@ class _LoggerMixin(_WorkerCountersMixin):
                         except Exception:
                             pass
 
-                monitor.on_level_change(_on_pressure_change)
+                monitor.on_level_change(_on_filter_change)
             except Exception:
                 pass  # Fail-open: ladder build failure shouldn't block monitor
+
+            # Build dynamic worker pool and register scaling callback (Story 1.46)
+            self._maybe_start_worker_pool(monitor, loop, adaptive)
 
             self._pressure_monitor_task = loop.create_task(monitor.run())
         except Exception:
             pass  # Fail-open: don't break startup if adaptive module fails
+
+    def _maybe_start_worker_pool(
+        self,
+        monitor: Any,
+        loop: asyncio.AbstractEventLoop,
+        adaptive: Any,
+    ) -> None:
+        """Create WorkerPool and register scaling callback (Story 1.46)."""
+        try:
+            from .worker_pool import WorkerPool
+
+            max_workers = getattr(adaptive, "max_workers", 8)
+
+            pool = WorkerPool(
+                initial_count=self._num_workers,
+                max_workers=max_workers,
+                worker_factory=self._make_dynamic_worker,
+                loop=loop,
+            )
+            pool.register_initial_tasks(self._worker_tasks)
+            self._worker_pool = pool
+
+            def _on_scaling_change(old_level: Any, new_level: Any) -> None:
+                try:
+                    target = pool.target_for_level(new_level)
+                    pool.scale_to(target)
+                    try:
+                        from .diagnostics import warn as _diag_warn
+
+                        _diag_warn(
+                            "adaptive-controller",
+                            "workers scaled",
+                            pressure_level=new_level.value,
+                            worker_count=pool.current_count,
+                            dynamic_count=pool.dynamic_count,
+                        )
+                    except Exception:
+                        pass
+                except Exception:
+                    pass
+
+            monitor.on_level_change(_on_scaling_change)
+        except Exception:
+            pass  # Fail-open: pool creation failure shouldn't block startup
+
+    async def _make_dynamic_worker(self, stop_flag: Any) -> None:
+        """Factory for dynamic worker tasks (Story 1.46).
+
+        Creates a LoggerWorker with a composite stop flag that triggers
+        on either the shared drain flag or the individual retirement flag.
+        """
+        worker = LoggerWorker(
+            queue=self._queue,
+            batch_max_size=self._batch_max_size,
+            batch_timeout_seconds=self._batch_timeout_seconds,
+            sink_write=self._sink_write,
+            sink_write_serialized=self._sink_write_serialized,
+            filters_getter=lambda: self._filters_snapshot,
+            enrichers_getter=lambda: self._enrichers_snapshot,
+            redactors_getter=lambda: self._redactors_snapshot,
+            processors_getter=lambda: self._processors_snapshot,
+            metrics=self._metrics,
+            serialize_in_flush=self._serialize_in_flush,
+            strict_envelope_mode_provider=lambda: self._cached_strict_envelope_mode,
+            stop_flag=lambda: self._stop_flag or stop_flag(),
+            drained_event=None,
+            flush_event=None,
+            flush_done_event=None,
+            emit_filter_diagnostics=self._emit_worker_diagnostics,
+            emit_enricher_diagnostics=self._emit_worker_diagnostics,
+            emit_redactor_diagnostics=self._emit_worker_diagnostics,
+            emit_processor_diagnostics=self._emit_worker_diagnostics,
+            counters=self._counters,
+        )
+        await worker.run(in_thread_mode=self._worker_thread is not None)
 
     async def _stop_pressure_monitor(self) -> None:
         """Stop the PressureMonitor before draining workers (Story 1.44)."""
@@ -548,6 +628,7 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._pressure_monitor = None
         self._pressure_monitor_task = None
         self._adaptive_filter_ladder = None
+        self._worker_pool = None
         self._enrichers.clear()
         self._processors.clear()
         self._filters.clear()
@@ -983,18 +1064,22 @@ class _LoggerMixin(_WorkerCountersMixin):
         # Stop pressure monitor before workers (Story 1.44)
         await self._stop_pressure_monitor()
         self._stop_flag = True
+        # Collect all tasks: initial + dynamic from pool (Story 1.46)
+        all_tasks = self._worker_tasks
+        if self._worker_pool is not None:
+            all_tasks = self._worker_pool.drain_all()
         # Wait for ALL worker tasks to complete, not just a single event.
         # With multiple workers, each drains remaining queue items and flushes.
         # We must wait for all to finish to ensure counters are accurate.
-        if self._worker_tasks:
+        if all_tasks:
             try:
                 if timeout is not None:
                     await asyncio.wait_for(
-                        asyncio.gather(*self._worker_tasks, return_exceptions=True),
+                        asyncio.gather(*all_tasks, return_exceptions=True),
                         timeout=timeout,
                     )
                 else:
-                    await asyncio.gather(*self._worker_tasks, return_exceptions=True)
+                    await asyncio.gather(*all_tasks, return_exceptions=True)
             except asyncio.TimeoutError:
                 if warn_on_timeout:
                     try:
@@ -1028,6 +1113,9 @@ class _LoggerMixin(_WorkerCountersMixin):
         # Stop pressure monitor before workers (Story 1.44)
         if self._pressure_monitor is not None:
             self._pressure_monitor.stop()
+        # Stop all dynamic workers in pool (Story 1.46)
+        if self._worker_pool is not None:
+            self._worker_pool.drain_all()
         self._stop_flag = True
         loop = self._worker_loop
         if loop is not None and self._worker_thread is not None:
