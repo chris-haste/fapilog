@@ -3,6 +3,15 @@
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
+| `FAPILOG_ADAPTIVE__CHECK_INTERVAL_SECONDS` | float | 0.25 | Seconds between queue pressure samples |
+| `FAPILOG_ADAPTIVE__COOLDOWN_SECONDS` | float | 2.0 | Minimum seconds between pressure level transitions |
+| `FAPILOG_ADAPTIVE__DEESCALATE_FROM_CRITICAL` | float | 0.75 | Fill ratio below which CRITICAL de-escalates to HIGH |
+| `FAPILOG_ADAPTIVE__DEESCALATE_FROM_ELEVATED` | float | 0.4 | Fill ratio below which ELEVATED de-escalates to NORMAL |
+| `FAPILOG_ADAPTIVE__DEESCALATE_FROM_HIGH` | float | 0.6 | Fill ratio below which HIGH de-escalates to ELEVATED |
+| `FAPILOG_ADAPTIVE__ENABLED` | bool | False | Enable adaptive pressure monitoring task |
+| `FAPILOG_ADAPTIVE__ESCALATE_TO_CRITICAL` | float | 0.92 | Fill ratio to escalate HIGH to CRITICAL |
+| `FAPILOG_ADAPTIVE__ESCALATE_TO_ELEVATED` | float | 0.6 | Fill ratio to escalate NORMAL to ELEVATED |
+| `FAPILOG_ADAPTIVE__ESCALATE_TO_HIGH` | float | 0.8 | Fill ratio to escalate ELEVATED to HIGH |
 | `FAPILOG_CORE__APP_NAME` | str | fapilog | Logical application name |
 | `FAPILOG_CORE__ATEXIT_DRAIN_ENABLED` | bool | True | Register atexit handler to drain pending logs on normal process exit |
 | `FAPILOG_CORE__ATEXIT_DRAIN_TIMEOUT_SECONDS` | float | 2.0 | Maximum seconds to wait for log drain during atexit handler |

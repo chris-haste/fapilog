@@ -561,6 +561,62 @@ class RedactorStringTruncateSettings(BaseModel):
     )
 
 
+class AdaptiveSettings(BaseModel):
+    """Configuration for adaptive pressure monitoring (Story 1.44).
+
+    Controls the PressureMonitor task that samples queue fill ratio and
+    computes escalation levels for downstream actuators.
+    """
+
+    enabled: bool = Field(
+        default=False, description="Enable adaptive pressure monitoring task"
+    )
+    check_interval_seconds: float = Field(
+        default=0.25,
+        gt=0,
+        description="Seconds between queue pressure samples",
+    )
+    cooldown_seconds: float = Field(
+        default=2.0,
+        ge=0,
+        description="Minimum seconds between pressure level transitions",
+    )
+
+    # Escalation thresholds (fill ratio >= threshold triggers level increase)
+    escalate_to_elevated: float = Field(
+        default=0.60,
+        ge=0,
+        le=1,
+        description="Fill ratio to escalate NORMAL to ELEVATED",
+    )
+    escalate_to_high: float = Field(
+        default=0.80, ge=0, le=1, description="Fill ratio to escalate ELEVATED to HIGH"
+    )
+    escalate_to_critical: float = Field(
+        default=0.92, ge=0, le=1, description="Fill ratio to escalate HIGH to CRITICAL"
+    )
+
+    # De-escalation thresholds (fill ratio < threshold triggers level decrease)
+    deescalate_from_critical: float = Field(
+        default=0.75,
+        ge=0,
+        le=1,
+        description="Fill ratio below which CRITICAL de-escalates to HIGH",
+    )
+    deescalate_from_high: float = Field(
+        default=0.60,
+        ge=0,
+        le=1,
+        description="Fill ratio below which HIGH de-escalates to ELEVATED",
+    )
+    deescalate_from_elevated: float = Field(
+        default=0.40,
+        ge=0,
+        le=1,
+        description="Fill ratio below which ELEVATED de-escalates to NORMAL",
+    )
+
+
 class SizeGuardSettings(BaseModel):
     """Per-plugin configuration for SizeGuardProcessor."""
 
@@ -1020,6 +1076,10 @@ class Settings(BaseSettings):
     observability: ObservabilitySettings = Field(
         default_factory=ObservabilitySettings,
         description="Monitoring, metrics, tracing, logging, and alerting",
+    )
+    adaptive: AdaptiveSettings = Field(
+        default_factory=AdaptiveSettings,
+        description="Adaptive pressure monitoring configuration (Story 1.44)",
     )
     http: HttpSinkSettings = Field(
         default_factory=HttpSinkSettings,
