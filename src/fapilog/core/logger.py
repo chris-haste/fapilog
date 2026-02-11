@@ -175,6 +175,10 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._drained: bool = False  # Track if drain() was called (Story 10.29)
         self._started: bool = False  # Track if workers were started (Story 10.29)
 
+        # Adaptive pressure monitoring (Story 1.44)
+        self._pressure_monitor: Any | None = None
+        self._pressure_monitor_task: asyncio.Task[None] | None = None
+
         # Drop/dedupe summary visibility (Story 12.20)
         self._emit_drop_summary = bool(emit_drop_summary)
         self._drop_summary_window_seconds = float(drop_summary_window_seconds)
@@ -182,6 +186,8 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._last_drop_summary_time: float = 0.0
 
         # Cache settings values at init to avoid per-call overhead (Story 1.23, 1.25)
+        self._cached_adaptive_enabled: bool = False
+        self._cached_adaptive_settings: Any | None = None
         self._cached_sampling_rate: float = 1.0
         self._cached_sampling_filters: set[str] = set()
         self._cached_sampling_configured: bool = False
@@ -204,6 +210,11 @@ class _LoggerMixin(_WorkerCountersMixin):
             )
             self._cached_error_dedupe_window = float(s.core.error_dedupe_window_seconds)
             self._cached_strict_envelope_mode = bool(s.core.strict_envelope_mode)
+            # Cache adaptive settings for pressure monitor (Story 1.44)
+            _adaptive = getattr(s, "adaptive", None)
+            if _adaptive is not None and getattr(_adaptive, "enabled", False) is True:
+                self._cached_adaptive_enabled = True
+                self._cached_adaptive_settings = _adaptive
         except Exception:
             pass
 
@@ -342,6 +353,7 @@ class _LoggerMixin(_WorkerCountersMixin):
             for _ in range(self._num_workers):
                 task = loop.create_task(self._worker_main())
                 self._worker_tasks.append(task)
+            self._maybe_start_pressure_monitor(loop)
         except RuntimeError:
             # THREAD LOOP MODE: No running loop, create dedicated thread
             self._thread_ready.clear()
@@ -359,6 +371,7 @@ class _LoggerMixin(_WorkerCountersMixin):
                     self._worker_tasks.append(
                         loop_local.create_task(self._worker_main())
                     )
+                self._maybe_start_pressure_monitor(loop_local)
 
                 # Signal the main thread that we're ready to accept work
                 self._thread_ready.set()
@@ -397,6 +410,70 @@ class _LoggerMixin(_WorkerCountersMixin):
             # Wait for the thread to initialize before returning
             self._thread_ready.wait(timeout=2.0)
 
+    def _maybe_start_pressure_monitor(self, loop: asyncio.AbstractEventLoop) -> None:
+        """Start PressureMonitor task if adaptive settings are enabled (Story 1.44)."""
+        if not self._cached_adaptive_enabled or self._cached_adaptive_settings is None:
+            return
+        try:
+            from .pressure import PressureMonitor
+
+            # Build diagnostic writer that uses the diagnostics module
+            def _diag_writer(payload: dict[str, Any]) -> None:
+                try:
+                    from .diagnostics import warn
+
+                    extra = {
+                        k: v
+                        for k, v in payload.items()
+                        if k not in ("component", "message")
+                    }
+                    warn(payload["component"], payload["message"], **extra)
+                except Exception:
+                    pass
+
+            # Build metric setter for the pressure_level gauge
+            def _metric_setter(level_idx: int) -> None:
+                if self._metrics is not None:
+                    try:
+                        asyncio.run_coroutine_threadsafe(
+                            self._metrics.set_pressure_level(level_idx),
+                            loop,
+                        )
+                    except Exception:
+                        pass
+
+            adaptive = self._cached_adaptive_settings
+            monitor = PressureMonitor(
+                queue=self._queue,
+                check_interval_seconds=adaptive.check_interval_seconds,
+                cooldown_seconds=adaptive.cooldown_seconds,
+                escalate_to_elevated=adaptive.escalate_to_elevated,
+                escalate_to_high=adaptive.escalate_to_high,
+                escalate_to_critical=adaptive.escalate_to_critical,
+                deescalate_from_critical=adaptive.deescalate_from_critical,
+                deescalate_from_high=adaptive.deescalate_from_high,
+                deescalate_from_elevated=adaptive.deescalate_from_elevated,
+                diagnostic_writer=_diag_writer,
+                metric_setter=_metric_setter,
+            )
+            self._pressure_monitor = monitor
+            self._pressure_monitor_task = loop.create_task(monitor.run())
+        except Exception:
+            pass  # Fail-open: don't break startup if adaptive module fails
+
+    async def _stop_pressure_monitor(self) -> None:
+        """Stop the PressureMonitor before draining workers (Story 1.44)."""
+        if self._pressure_monitor is not None:
+            self._pressure_monitor.stop()
+        if self._pressure_monitor_task is not None:
+            try:
+                await asyncio.wait_for(self._pressure_monitor_task, timeout=2.0)
+            except (asyncio.TimeoutError, asyncio.CancelledError):
+                pass
+            except Exception:
+                pass
+            self._pressure_monitor_task = None
+
     async def _stop_enrichers_and_redactors(self) -> None:
         """Stop processors, filters, redactors, and enrichers using shared logic."""
         await stop_plugins(
@@ -430,6 +507,8 @@ class _LoggerMixin(_WorkerCountersMixin):
         """
         self._error_dedupe.clear()
         self._worker_tasks.clear()
+        self._pressure_monitor = None
+        self._pressure_monitor_task = None
         self._enrichers.clear()
         self._processors.clear()
         self._filters.clear()
@@ -862,6 +941,8 @@ class _LoggerMixin(_WorkerCountersMixin):
         self, *, timeout: float | None, warn_on_timeout: bool
     ) -> DrainResult:
         start = time.perf_counter()
+        # Stop pressure monitor before workers (Story 1.44)
+        await self._stop_pressure_monitor()
         self._stop_flag = True
         # Wait for ALL worker tasks to complete, not just a single event.
         # With multiple workers, each drains remaining queue items and flushes.
@@ -905,6 +986,9 @@ class _LoggerMixin(_WorkerCountersMixin):
 
     def _drain_thread_mode(self, *, warn_on_timeout: bool) -> DrainResult:
         start = time.perf_counter()
+        # Stop pressure monitor before workers (Story 1.44)
+        if self._pressure_monitor is not None:
+            self._pressure_monitor.stop()
         self._stop_flag = True
         loop = self._worker_loop
         if loop is not None and self._worker_thread is not None:

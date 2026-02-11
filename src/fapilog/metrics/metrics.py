@@ -130,6 +130,8 @@ class MetricsCollector:
         self._c_redacted_fields: Any | None = None
         self._c_policy_violations: Any | None = None
         self._c_sensitive_fields: Any | None = None
+        # Adaptive pressure monitoring (Story 1.44)
+        self._g_pressure_level: Any | None = None
 
         if self._enabled:
             # Minimal metric set; names align with conventional Prometheus
@@ -297,6 +299,12 @@ class MetricsCollector:
                 "Total fields logged via sensitive/pii container",
                 registry=self._registry,
             )
+            # Adaptive pressure monitoring (Story 1.44)
+            self._g_pressure_level = Gauge(
+                "fapilog_pressure_level",
+                "Current adaptive pressure level (0=NORMAL, 1=ELEVATED, 2=HIGH, 3=CRITICAL)",
+                registry=self._registry,
+            )
 
     @property
     def is_enabled(self) -> bool:
@@ -371,6 +379,17 @@ class MetricsCollector:
             return
         if self._g_rate_limit_keys is not None:
             self._g_rate_limit_keys.set(count)
+
+    async def set_pressure_level(self, level: int) -> None:
+        """Set the adaptive pressure level gauge (Story 1.44).
+
+        Args:
+            level: Pressure level as integer (0=NORMAL, 1=ELEVATED, 2=HIGH, 3=CRITICAL).
+        """
+        if not self._enabled:
+            return
+        if self._g_pressure_level is not None:
+            self._g_pressure_level.set(level)
 
     async def record_size_guard_truncated(self, count: int = 1) -> None:
         async with self._lock:
@@ -615,4 +634,5 @@ _VULTURE_USED: tuple[object, ...] = (
     MetricsCollector.record_events_dropped_unprotected,
     MetricsCollector.record_events_evicted,
     MetricsCollector.record_sensitive_fields,
+    MetricsCollector.set_pressure_level,
 )
