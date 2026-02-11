@@ -596,6 +596,13 @@ class AdaptiveSettings(BaseModel):
         default=0.92, ge=0, le=1, description="Fill ratio to escalate HIGH to CRITICAL"
     )
 
+    # Worker scaling bounds (Story 1.46)
+    max_workers: int = Field(
+        default=8,
+        ge=1,
+        description="Maximum number of workers when dynamic scaling is active",
+    )
+
     # De-escalation thresholds (fill ratio < threshold triggers level decrease)
     deescalate_from_critical: float = Field(
         default=0.75,
