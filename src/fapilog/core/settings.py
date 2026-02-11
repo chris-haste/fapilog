@@ -596,6 +596,12 @@ class AdaptiveSettings(BaseModel):
         default=0.92, ge=0, le=1, description="Fill ratio to escalate HIGH to CRITICAL"
     )
 
+    # Adaptive batch sizing (Story 1.47)
+    batch_sizing: bool = Field(
+        default=False,
+        description="Enable adaptive batch sizing based on sink latency feedback",
+    )
+
     # Worker scaling bounds (Story 1.46)
     max_workers: int = Field(
         default=8,

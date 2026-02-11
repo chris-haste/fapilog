@@ -16,6 +16,7 @@ from ..plugins.enrichers import BaseEnricher, enrich_parallel
 from ..plugins.filters import filter_in_order
 from ..plugins.processors import BaseProcessor
 from ..plugins.redactors import BaseRedactor, redact_in_order
+from .adaptive import AdaptiveController
 from .concurrency import NonBlockingRingQueue, PriorityAwareQueue
 from .diagnostics import warn
 from .serialization import (
@@ -194,9 +195,12 @@ class LoggerWorker:
         counters: dict[str, int],
         redaction_fail_mode: Literal["open", "closed", "warn"] = "warn",
         enqueue_event: asyncio.Event | None = None,
+        adaptive_controller: AdaptiveController | None = None,
     ) -> None:
         self._queue = queue
         self._batch_max_size = batch_max_size
+        self._adaptive_controller = adaptive_controller
+        self._current_batch_max = batch_max_size
         self._batch_timeout_seconds = batch_timeout_seconds
         self._sink_write = sink_write
         self._sink_write_serialized = sink_write_serialized
@@ -248,7 +252,7 @@ class LoggerWorker:
                 ok, item = self._queue.try_dequeue()
                 if ok and item is not None:
                     batch.append(item)
-                    if len(batch) >= self._batch_max_size:
+                    if len(batch) >= self._current_batch_max:
                         await self._flush_batch(batch)
                         next_flush_deadline = None
                         continue
@@ -377,7 +381,15 @@ class LoggerWorker:
             # to minimize the window for race conditions
             self._counters["processed"] += processed_in_batch
             self._counters["dropped"] += dropped_in_batch
-            await self._record_flush_metrics(batch_size, time.perf_counter() - start)
+            latency_seconds = time.perf_counter() - start
+            await self._record_flush_metrics(batch_size, latency_seconds)
+            # Adaptive batch sizing: record latency and get next size (Story 1.47)
+            if self._adaptive_controller is not None and batch_size > 0:
+                ms_per_item = (latency_seconds * 1000) / batch_size
+                self._adaptive_controller.record_latency_sample(ms_per_item)
+                self._current_batch_max = self._adaptive_controller.advise_batch_size(
+                    self._current_batch_max
+                )
             batch.clear()
 
     def _drain_queue(self, batch: list[dict[str, Any]]) -> None:

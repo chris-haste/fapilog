@@ -67,3 +67,15 @@ class TestAdaptiveSettings:
     def test_max_workers_must_be_at_least_one(self) -> None:
         with pytest.raises(ValidationError, match="max_workers"):
             AdaptiveSettings(max_workers=0)
+
+    def test_batch_sizing_default_false(self) -> None:
+        s = AdaptiveSettings()
+        assert s.batch_sizing is False
+
+    def test_batch_sizing_enabled(self) -> None:
+        s = AdaptiveSettings(batch_sizing=True)
+        assert s.batch_sizing is True
+
+    def test_settings_adaptive_batch_sizing_from_dict(self) -> None:
+        s = Settings(adaptive={"batch_sizing": True})
+        assert s.adaptive.batch_sizing is True
