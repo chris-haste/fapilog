@@ -228,6 +228,17 @@ class PriorityAwareQueue(Generic[T]):
         """Maximum live items the queue can hold."""
         return self._capacity
 
+    def grow_capacity(self, new_capacity: int) -> None:
+        """Increase queue capacity. Grow-only — ignored if new_capacity <= current.
+
+        Re-signals ``_space_available`` so blocked enqueuers wake up.
+        Thread-safe: CPython GIL makes the int write atomic.
+        """
+        if new_capacity <= self._capacity:
+            return
+        self._capacity = new_capacity
+        self._space_available.set()
+
     def qsize(self) -> int:
         """Return count of live (non-tombstoned) items."""
         return len(self._dq) - self._tombstone_count
@@ -443,3 +454,6 @@ __all__ = [
     "NonBlockingRingQueue",
     "PriorityAwareQueue",
 ]
+
+# Mark public API for vulture (Story 1.48)
+_VULTURE_USED: tuple[object, ...] = (PriorityAwareQueue.grow_capacity,)

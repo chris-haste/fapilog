@@ -609,6 +609,13 @@ class AdaptiveSettings(BaseModel):
         description="Maximum number of workers when dynamic scaling is active",
     )
 
+    # Queue capacity growth (Story 1.48)
+    max_queue_growth: float = Field(
+        default=4.0,
+        ge=1.0,
+        description="Maximum queue capacity as a multiplier of initial capacity (grow-only)",
+    )
+
     # De-escalation thresholds (fill ratio < threshold triggers level decrease)
     deescalate_from_critical: float = Field(
         default=0.75,

@@ -505,6 +505,9 @@ class _LoggerMixin(_WorkerCountersMixin):
             # Build dynamic worker pool and register scaling callback (Story 1.46)
             self._maybe_start_worker_pool(monitor, loop, adaptive)
 
+            # Register queue capacity growth callback (Story 1.48)
+            self._maybe_register_capacity_growth(monitor, adaptive)
+
             self._pressure_monitor_task = loop.create_task(monitor.run())
         except Exception:
             pass  # Fail-open: don't break startup if adaptive module fails
@@ -552,6 +555,50 @@ class _LoggerMixin(_WorkerCountersMixin):
             monitor.on_level_change(_on_scaling_change)
         except Exception:
             pass  # Fail-open: pool creation failure shouldn't block startup
+
+    def _maybe_register_capacity_growth(
+        self,
+        monitor: Any,
+        adaptive: Any,
+    ) -> None:
+        """Register queue capacity growth callback (Story 1.48)."""
+        try:
+            from .pressure import PressureLevel
+
+            queue = self._queue
+            initial_capacity = queue.capacity
+            max_growth: float = getattr(adaptive, "max_queue_growth", 4.0)
+            ceiling = int(initial_capacity * max_growth)
+
+            growth_table: dict[Any, float] = {
+                PressureLevel.NORMAL: 1.0,
+                PressureLevel.ELEVATED: 1.25,
+                PressureLevel.HIGH: 1.5,
+                PressureLevel.CRITICAL: 2.0,
+            }
+
+            def _on_capacity_change(old_level: Any, new_level: Any) -> None:
+                multiplier = growth_table.get(new_level, 1.0)
+                target = min(int(initial_capacity * multiplier), ceiling)
+                old_cap = queue.capacity
+                queue.grow_capacity(target)
+                if queue.capacity > old_cap:
+                    try:
+                        from .diagnostics import warn as _diag_warn
+
+                        _diag_warn(
+                            "adaptive-controller",
+                            "queue capacity grown",
+                            pressure_level=new_level.value,
+                            old_capacity=old_cap,
+                            new_capacity=queue.capacity,
+                        )
+                    except Exception:  # pragma: no cover - diagnostic failure
+                        pass
+
+            monitor.on_level_change(_on_capacity_change)
+        except Exception:  # pragma: no cover - fail-open
+            pass
 
     async def _make_dynamic_worker(self, stop_flag: Any) -> None:
         """Factory for dynamic worker tasks (Story 1.46).
