@@ -24,6 +24,7 @@ from .concurrency import PriorityAwareQueue
 from .envelope import build_envelope
 from .events import LogEvent
 from .levels import get_level_priority
+from .pressure import PressureLevel
 from .worker import (
     LoggerWorker,
     enqueue_with_backpressure,
@@ -44,6 +45,22 @@ class AsyncLogger:
         return sum(1 for _ in events)
 
 
+@dataclass(frozen=True)
+class AdaptiveDrainSummary:
+    """Summary of adaptive pipeline behavior over a logger's lifetime."""
+
+    peak_pressure_level: PressureLevel
+    escalation_count: int
+    deescalation_count: int
+    time_at_level: dict[PressureLevel, float]
+    filters_swapped: int
+    workers_scaled: int
+    peak_workers: int
+    batch_resize_count: int
+    queue_growth_count: int
+    peak_queue_capacity: int
+
+
 @dataclass
 class DrainResult:
     submitted: int
@@ -52,6 +69,7 @@ class DrainResult:
     retried: int
     queue_depth_high_watermark: int
     flush_latency_seconds: float
+    adaptive: AdaptiveDrainSummary | None = None
 
 
 class _WorkerCountersMixin:
@@ -488,6 +506,7 @@ class _LoggerMixin(_WorkerCountersMixin):
                 def _on_filter_change(old_level: Any, new_level: Any) -> None:
                     if self._adaptive_filter_ladder is not None:
                         self._filters_snapshot = self._adaptive_filter_ladder[new_level]
+                        monitor.record_filter_swap()
                         try:
                             from .diagnostics import warn as _diag_warn
                             from .pressure import _LEVELS
@@ -545,6 +564,7 @@ class _LoggerMixin(_WorkerCountersMixin):
                 try:
                     target = pool.target_for_level(new_level)
                     pool.scale_to(target)
+                    monitor.record_worker_scaling(pool.current_count)
                     try:
                         from .diagnostics import warn as _diag_warn
 
@@ -591,6 +611,7 @@ class _LoggerMixin(_WorkerCountersMixin):
                 old_cap = queue.capacity
                 queue.grow_capacity(target)
                 if queue.capacity > old_cap:
+                    monitor.record_queue_growth(queue.capacity)
                     try:
                         from .diagnostics import warn as _diag_warn
 
@@ -620,6 +641,12 @@ class _LoggerMixin(_WorkerCountersMixin):
             if self._cached_adaptive_batch_sizing
             else None
         )
+        # Wire batch resize reporter to pressure monitor (Story 10.58)
+        batch_resize_reporter = (
+            self._pressure_monitor.record_batch_resize
+            if self._pressure_monitor is not None and adaptive_ctrl is not None
+            else None
+        )
         worker = LoggerWorker(
             queue=self._queue,
             batch_max_size=self._batch_max_size,
@@ -643,6 +670,7 @@ class _LoggerMixin(_WorkerCountersMixin):
             emit_processor_diagnostics=self._emit_worker_diagnostics,
             counters=self._counters,
             adaptive_controller=adaptive_ctrl,
+            batch_resize_reporter=batch_resize_reporter,
         )
         await worker.run(in_thread_mode=self._worker_thread is not None)
 
@@ -1027,6 +1055,12 @@ class _LoggerMixin(_WorkerCountersMixin):
             if self._cached_adaptive_batch_sizing
             else None
         )
+        # Wire batch resize reporter to pressure monitor (Story 10.58)
+        batch_resize_reporter = (
+            self._pressure_monitor.record_batch_resize
+            if self._pressure_monitor is not None and adaptive_ctrl is not None
+            else None
+        )
         return LoggerWorker(
             queue=self._queue,
             batch_max_size=self._batch_max_size,
@@ -1051,6 +1085,7 @@ class _LoggerMixin(_WorkerCountersMixin):
             emit_processor_diagnostics=self._emit_worker_diagnostics,
             counters=self._counters,
             adaptive_controller=adaptive_ctrl,
+            batch_resize_reporter=batch_resize_reporter,
         )
 
     async def _worker_main(self) -> None:
@@ -1147,6 +1182,12 @@ class _LoggerMixin(_WorkerCountersMixin):
         self, *, timeout: float | None, warn_on_timeout: bool
     ) -> DrainResult:
         start = time.perf_counter()
+        # Capture adaptive snapshot before stopping monitor (Story 10.58)
+        adaptive_summary = (
+            self._pressure_monitor.snapshot()
+            if self._pressure_monitor is not None
+            else None
+        )
         # Stop pressure monitor before workers (Story 1.44)
         await self._stop_pressure_monitor()
         self._stop_flag = True
@@ -1192,10 +1233,17 @@ class _LoggerMixin(_WorkerCountersMixin):
             retried=self._retried,
             queue_depth_high_watermark=self._queue_high_watermark,
             flush_latency_seconds=flush_latency,
+            adaptive=adaptive_summary,
         )
 
     def _drain_thread_mode(self, *, warn_on_timeout: bool) -> DrainResult:
         start = time.perf_counter()
+        # Capture adaptive snapshot before stopping monitor (Story 10.58)
+        adaptive_summary = (
+            self._pressure_monitor.snapshot()
+            if self._pressure_monitor is not None
+            else None
+        )
         # Stop pressure monitor before workers (Story 1.44)
         if self._pressure_monitor is not None:
             self._pressure_monitor.stop()
@@ -1242,6 +1290,7 @@ class _LoggerMixin(_WorkerCountersMixin):
             retried=self._retried,
             queue_depth_high_watermark=self._queue_high_watermark,
             flush_latency_seconds=flush_latency,
+            adaptive=adaptive_summary,
         )
 
     def __del__(self) -> None:

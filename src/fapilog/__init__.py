@@ -35,8 +35,8 @@ from .core.config_builders import _build_pipeline as _build_pipeline_impl
 from .core.config_builders import _default_sink_names, _sink_configs
 from .core.events import LogEvent
 from .core.levels import register_level
+from .core.logger import AdaptiveDrainSummary, DrainResult
 from .core.logger import AsyncLoggerFacade as _AsyncLoggerFacade
-from .core.logger import DrainResult
 from .core.logger import SyncLoggerFacade as _SyncLoggerFacade
 from .core.presets import PresetName as PresetName
 from .core.presets import list_presets
@@ -60,6 +60,7 @@ __all__ = [
     "runtime",
     "runtime_async",
     "Settings",
+    "AdaptiveDrainSummary",
     "DrainResult",
     "LogEvent",
     "list_presets",

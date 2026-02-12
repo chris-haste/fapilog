@@ -12,7 +12,10 @@ import asyncio
 import time
 from collections.abc import Callable
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from .logger import AdaptiveDrainSummary
 
 
 class PressureLevel(str, Enum):
@@ -165,6 +168,21 @@ class PressureMonitor:
         self._stopped = False
         self._circuit_boost: float = 0.0
         self._circuit_boost_per_open: float = circuit_pressure_boost
+        # Adaptive summary counters (Story 10.58)
+        self._escalation_count = 0
+        self._deescalation_count = 0
+        self._peak_level = PressureLevel.NORMAL
+        self._level_entered_at: float = time.monotonic()
+        self._time_at_level: dict[PressureLevel, float] = dict.fromkeys(
+            PressureLevel, 0.0
+        )
+        # Actuator counters (incremented by callbacks)
+        self._filters_swapped = 0
+        self._workers_scaled = 0
+        self._peak_workers: int = 0
+        self._batch_resize_count = 0
+        self._queue_growth_count = 0
+        self._peak_queue_capacity: int = 0
 
     @property
     def pressure_level(self) -> PressureLevel:
@@ -212,6 +230,19 @@ class PressureMonitor:
         new_level = self._state_machine.evaluate(fill_ratio)
 
         if new_level != old_level:
+            # Accumulate time at old level (Story 10.58)
+            now = time.monotonic()
+            self._time_at_level[old_level] += now - self._level_entered_at
+            self._level_entered_at = now
+            # Count direction
+            if _LEVELS.index(new_level) > _LEVELS.index(old_level):
+                self._escalation_count += 1
+            else:
+                self._deescalation_count += 1
+            # Track peak
+            if _LEVELS.index(new_level) > _LEVELS.index(self._peak_level):
+                self._peak_level = new_level
+
             self._emit_diagnostic(old_level, new_level, fill_ratio)
             self._update_metric(new_level)
             self._dispatch_callbacks(old_level, new_level)
@@ -254,14 +285,62 @@ class PressureMonitor:
             except Exception:
                 pass
 
+    # -- Actuator counter methods (Story 10.58) --
 
-# Mark public API for vulture (Story 1.44, 4.73)
+    def record_filter_swap(self) -> None:
+        """Increment filter swap counter."""
+        self._filters_swapped += 1
+
+    def record_worker_scaling(self, count: int) -> None:
+        """Record a worker scaling event and track peak."""
+        self._workers_scaled += 1
+        if count > self._peak_workers:
+            self._peak_workers = count
+
+    def record_queue_growth(self, new_capacity: int) -> None:
+        """Record a queue growth event and track peak capacity."""
+        self._queue_growth_count += 1
+        if new_capacity > self._peak_queue_capacity:
+            self._peak_queue_capacity = new_capacity
+
+    def record_batch_resize(self) -> None:
+        """Increment batch resize counter."""
+        self._batch_resize_count += 1
+
+    def snapshot(self) -> AdaptiveDrainSummary:
+        """Capture current adaptive summary. Call before teardown."""
+        from .logger import AdaptiveDrainSummary
+
+        # Finalize time-at-level for current level
+        now = time.monotonic()
+        time_at_level = dict(self._time_at_level)
+        time_at_level[self._state_machine.current_level] += now - self._level_entered_at
+        return AdaptiveDrainSummary(
+            peak_pressure_level=self._peak_level,
+            escalation_count=self._escalation_count,
+            deescalation_count=self._deescalation_count,
+            time_at_level=time_at_level,
+            filters_swapped=self._filters_swapped,
+            workers_scaled=self._workers_scaled,
+            peak_workers=self._peak_workers,
+            batch_resize_count=self._batch_resize_count,
+            queue_growth_count=self._queue_growth_count,
+            peak_queue_capacity=self._peak_queue_capacity,
+        )
+
+
+# Mark public API for vulture (Story 1.44, 4.73, 10.58)
 _VULTURE_USED: tuple[object, ...] = (
     PressureMonitor.pressure_level,
     PressureMonitor.on_level_change,
     PressureMonitor.on_circuit_state_change,
     PressureMonitor.stop,
     PressureMonitor.run,
+    PressureMonitor.record_filter_swap,
+    PressureMonitor.record_worker_scaling,
+    PressureMonitor.record_queue_growth,
+    PressureMonitor.record_batch_resize,
+    PressureMonitor.snapshot,
     MetricSetter,
     DiagnosticWriter,
     PressureCallback,

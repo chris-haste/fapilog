@@ -196,10 +196,12 @@ class LoggerWorker:
         redaction_fail_mode: Literal["open", "closed", "warn"] = "warn",
         enqueue_event: asyncio.Event | None = None,
         adaptive_controller: AdaptiveController | None = None,
+        batch_resize_reporter: Callable[[], None] | None = None,
     ) -> None:
         self._queue = queue
         self._batch_max_size = batch_max_size
         self._adaptive_controller = adaptive_controller
+        self._batch_resize_reporter = batch_resize_reporter
         self._current_batch_max = batch_max_size
         self._batch_timeout_seconds = batch_timeout_seconds
         self._sink_write = sink_write
@@ -387,9 +389,15 @@ class LoggerWorker:
             if self._adaptive_controller is not None and batch_size > 0:
                 ms_per_item = (latency_seconds * 1000) / batch_size
                 self._adaptive_controller.record_latency_sample(ms_per_item)
+                old_batch_max = self._current_batch_max
                 self._current_batch_max = self._adaptive_controller.advise_batch_size(
                     self._current_batch_max
                 )
+                if (
+                    self._current_batch_max != old_batch_max
+                    and self._batch_resize_reporter is not None
+                ):
+                    self._batch_resize_reporter()
             batch.clear()
 
     def _drain_queue(self, batch: list[dict[str, Any]]) -> None:
