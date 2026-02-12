@@ -79,7 +79,8 @@ Settings path: `core.*`
 | `core.sink_circuit_breaker_enabled` | `FAPILOG_CORE__SINK_CIRCUIT_BREAKER_ENABLED` | `.with_circuit_breaker(enabled=True)` | `False` | Enable circuit breaker for sinks |
 | `core.sink_circuit_breaker_failure_threshold` | `FAPILOG_CORE__SINK_CIRCUIT_BREAKER_FAILURE_THRESHOLD` | `.with_circuit_breaker(failure_threshold=5)` | `5` | Consecutive failures before opening |
 | `core.sink_circuit_breaker_recovery_timeout_seconds` | `FAPILOG_CORE__SINK_CIRCUIT_BREAKER_RECOVERY_TIMEOUT_SECONDS` | `.with_circuit_breaker(recovery_timeout="30s")` | `30.0` | Seconds before probing failed sink |
-| `core.sink_parallel_writes` | `FAPILOG_CORE__SINK_PARALLEL_WRITES` | `.with_parallel_sink_writes(True)` | `False` | Write to sinks in parallel |
+| `core.sink_parallel_writes` | `FAPILOG_CORE__SINK_PARALLEL_WRITES` | `.with_parallel_sink_writes(True)` | `False` | Fan-out writes across multiple sinks in parallel |
+| `core.sink_concurrency` | `FAPILOG_CORE__SINK_CONCURRENCY` | `.with_sink_concurrency(limit=8)` | `1` | Max concurrent event writes per worker per batch flush. Unlike `sink_parallel_writes` (multi-sink fan-out), this controls within-sink concurrency for multiple events |
 
 ### Redaction Settings
 

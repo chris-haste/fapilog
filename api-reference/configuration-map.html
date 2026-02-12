@@ -493,7 +493,13 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SINK_PARALLEL_WRITES</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.with_parallel_sink_writes(True)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
-<td><p>Write to sinks in parallel</p></td>
+<td><p>Fan-out writes across multiple sinks in parallel</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.sink_concurrency</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SINK_CONCURRENCY</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_sink_concurrency(limit=8)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+<td><p>Max concurrent event writes per worker per batch flush. Unlike <code class="docutils literal notranslate"><span class="pre">sink_parallel_writes</span></code> (multi-sink fan-out), this controls within-sink concurrency for multiple events</p></td>
 </tr>
 </tbody>
 </table>

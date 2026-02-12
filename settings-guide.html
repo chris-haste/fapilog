@@ -441,57 +441,62 @@
 <td><p>False</p></td>
 <td><p>Write to multiple sinks in parallel instead of sequentially</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.fallback_redact_mode</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.sink_concurrency</span></code></p></td>
+<td><p>int</p></td>
+<td><p>1</p></td>
+<td><p>Max concurrent sink writes per worker per batch flush. Unlike sink_parallel_writes (fan-out across multiple sinks), this controls concurrency for multiple events to the same sink.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.fallback_redact_mode</span></code></p></td>
 <td><p>Literal</p></td>
 <td><p>minimal</p></td>
 <td><p>Redaction mode for fallback stderr output: ‘inherit’ uses pipeline redactors, ‘minimal’ applies built-in sensitive field masking, ‘none’ writes unredacted (opt-in to legacy behavior)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.redaction_fail_mode</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.redaction_fail_mode</span></code></p></td>
 <td><p>Literal</p></td>
 <td><p>warn</p></td>
 <td><p>Behavior when _apply_redactors() catches an unexpected exception: ‘open’ passes original event, ‘closed’ drops the event, ‘warn’ (default) passes event but emits diagnostic warning</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.atexit_drain_enabled</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.atexit_drain_enabled</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Register atexit handler to drain pending logs on normal process exit</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.atexit_drain_timeout_seconds</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.atexit_drain_timeout_seconds</span></code></p></td>
 <td><p>float</p></td>
 <td><p>2.0</p></td>
 <td><p>Maximum seconds to wait for log drain during atexit handler</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.signal_handler_enabled</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.signal_handler_enabled</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Install signal handlers for SIGTERM/SIGINT to enable graceful drain</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.flush_on_critical</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.flush_on_critical</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Immediately flush ERROR and CRITICAL logs (bypass batching) to reduce log loss on abrupt shutdown</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.emit_drop_summary</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.emit_drop_summary</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>False</p></td>
 <td><p>Emit summary log events when events are dropped due to backpressure or deduplicated due to error dedupe window</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.drop_summary_window_seconds</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.drop_summary_window_seconds</span></code></p></td>
 <td><p>float</p></td>
 <td><p>60.0</p></td>
 <td><p>Window in seconds for aggregating drop/dedupe summary events. Summaries are emitted at most once per window.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.fallback_scrub_raw</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.fallback_scrub_raw</span></code></p></td>
 <td><p>bool</p></td>
 <td><p>True</p></td>
 <td><p>Apply keyword scrubbing to raw (non-JSON) fallback output; set to False for debugging when raw output is needed</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.fallback_raw_max_bytes</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.fallback_raw_max_bytes</span></code></p></td>
 <td><p>int</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.benchmark_file_path</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.benchmark_file_path</span></code></p></td>
 <td><p>str</p></td>
 <td><p>None</p></td>
 <td><p>—</p></td>
