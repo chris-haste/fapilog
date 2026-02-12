@@ -94,7 +94,7 @@ Settings(core=CoreSettings(log_level="INFO"))
 Apply a preset configuration. Preset is applied first, then subsequent methods override specific values.
 
 **Parameters:**
-- `preset` (str): Preset name - `"dev"`, `"production"`, `"production-latency"`, `"fastapi"`, `"serverless"`, `"hardened"`, `"minimal"`
+- `preset` (str): Preset name - `"dev"`, `"production"`, `"production-latency"`, `"adaptive"`, `"fastapi"`, `"serverless"`, `"hardened"`, `"minimal"`
 
 **Returns:** `Self`
 
@@ -113,6 +113,7 @@ builder.with_preset("production")
 | `dev` | DEBUG | No | No | 1 (immediate) | 1 |
 | `production` | INFO | Yes (50MB rotation) | Yes | 100 | 2 |
 | `production-latency` | INFO | No | Yes | 100 | 2 |
+| `adaptive` | INFO | Yes (50MB rotation) | Yes | 100 | 2 (up to 8) |
 | `fastapi` | INFO | No | Yes | 50 | 2 |
 | `serverless` | INFO | No | Yes | 25 | 2 |
 | `hardened` | INFO | Yes (50MB rotation) | Yes | 100 | 2 |
@@ -721,7 +722,7 @@ Settings(core=CoreSettings(worker_count=2))
 
 ---
 
-### with_circuit_breaker(*, enabled=True, failure_threshold=5, recovery_timeout="30s")
+### with_circuit_breaker(*, enabled=True, failure_threshold=5, recovery_timeout="30s", fallback_sink=None)
 
 Configure sink circuit breaker for fault isolation.
 
@@ -729,12 +730,21 @@ Configure sink circuit breaker for fault isolation.
 - `enabled` (bool): Enable circuit breaker (default: True)
 - `failure_threshold` (int): Consecutive failures before opening circuit
 - `recovery_timeout` (str | float): Time before probing failed sink
+- `fallback_sink` (str | None): Sink name to route events to when circuit opens. Must match a configured sink name. `None` means events are silently skipped when the circuit is open.
 
 **Returns:** `Self`
 
 **Example:**
 ```python
+# Basic circuit breaker (skip events when circuit opens)
 builder.with_circuit_breaker(enabled=True, failure_threshold=3)
+
+# With fallback routing to a file sink
+builder.with_circuit_breaker(
+    enabled=True,
+    failure_threshold=3,
+    fallback_sink="rotating_file",
+)
 ```
 
 **Equivalent Settings:**
@@ -744,9 +754,73 @@ Settings(
         sink_circuit_breaker_enabled=True,
         sink_circuit_breaker_failure_threshold=3,
         sink_circuit_breaker_recovery_timeout_seconds=30.0,
+        sink_circuit_breaker_fallback_sink="rotating_file",
     )
 )
 ```
+
+See [Circuit Breaker](../user-guide/circuit-breaker.md) for a detailed guide on fallback routing patterns.
+
+---
+
+### with_adaptive(*, enabled=True, max_workers=None, max_queue_growth=None, batch_sizing=None, check_interval_seconds=None, cooldown_seconds=None, circuit_pressure_boost=None)
+
+Configure adaptive pipeline behavior. Enables pressure monitoring, dynamic worker scaling, adaptive batch sizing, and queue growth based on queue fill ratio.
+
+**Parameters:**
+- `enabled` (bool): Enable adaptive pipeline controller (default: True)
+- `max_workers` (int | None): Maximum workers when dynamic scaling is active
+- `max_queue_growth` (float | None): Maximum queue capacity multiplier (e.g., 4.0 = queue can grow to 4x initial size)
+- `batch_sizing` (bool | None): Enable adaptive batch sizing
+- `check_interval_seconds` (float | None): Seconds between queue pressure samples
+- `cooldown_seconds` (float | None): Minimum seconds between pressure level transitions
+- `circuit_pressure_boost` (float | None): Pressure boost per open circuit breaker (0.0-1.0)
+
+**Returns:** `Self`
+
+**Example:**
+```python
+# Enable adaptive with defaults
+builder.with_adaptive()
+
+# Fine-tune adaptive parameters
+builder.with_adaptive(
+    max_workers=6,
+    max_queue_growth=2.0,
+    batch_sizing=True,
+    check_interval_seconds=0.5,
+)
+
+# Combine with circuit breaker fallback
+logger = (
+    LoggerBuilder()
+    .with_preset("production")
+    .with_adaptive(max_workers=8, batch_sizing=True)
+    .with_circuit_breaker(enabled=True, fallback_sink="rotating_file")
+    .build()
+)
+```
+
+**Equivalent Settings:**
+```python
+Settings(adaptive={
+    "enabled": True,
+    "max_workers": 6,
+    "max_queue_growth": 2.0,
+    "batch_sizing": True,
+    "check_interval_seconds": 0.5,
+})
+```
+
+**Environment Variables:**
+```bash
+FAPILOG_ADAPTIVE__ENABLED=true
+FAPILOG_ADAPTIVE__MAX_WORKERS=6
+FAPILOG_ADAPTIVE__MAX_QUEUE_GROWTH=2.0
+FAPILOG_ADAPTIVE__BATCH_SIZING=true
+```
+
+See [Adaptive Pipeline](../user-guide/adaptive-pipeline.md) for a detailed guide on pressure thresholds and actuators.
 
 ---
 
@@ -1064,6 +1138,7 @@ logger = await AsyncLoggerBuilder().add_stdout().build_async()
 | `with_batch_timeout()` | Performance | Set batch timeout |
 | `with_workers()` | Performance | Set worker count |
 | `with_circuit_breaker()` | Reliability | Configure circuit breaker |
+| `with_adaptive()` | Reliability | Configure adaptive pipeline |
 | `with_backpressure()` | Reliability | Configure backpressure |
 | `with_shutdown_timeout()` | Reliability | Set shutdown timeout |
 | `with_parallel_sink_writes()` | Performance | Enable parallel writes |
