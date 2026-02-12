@@ -893,6 +893,13 @@ class CoreSettings(BaseModel):
         gt=0.0,
         description=("Seconds to wait before probing a failed sink"),
     )
+    sink_circuit_breaker_fallback_sink: str | None = Field(
+        default=None,
+        description=(
+            "Name of fallback sink to route events to when a circuit breaker opens. "
+            "Must match a configured sink name. None means silent skip (default)."
+        ),
+    )
     sink_parallel_writes: bool = Field(
         default=False,
         description=("Write to multiple sinks in parallel instead of sequentially"),

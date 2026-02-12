@@ -26,6 +26,16 @@ if TYPE_CHECKING:
 RedactMode = Literal["inherit", "minimal", "none"]
 
 
+def warn(component: str, message: str, **fields: Any) -> None:
+    """Emit a diagnostic warning (lazy import to avoid circular deps)."""
+    try:
+        from .diagnostics import warn as _warn
+
+        _warn(component, message, **fields)
+    except Exception:
+        pass
+
+
 def make_sink_writer(sink: Any) -> tuple[Any, Any]:
     """Create write functions for a single sink.
 
@@ -78,6 +88,8 @@ class SinkWriterGroup:
         _sinks: List of sink instances.
         _writers: List of (write, write_serialized) tuples from make_sink_writer.
         _breakers: Mapping from sink id to SinkCircuitBreaker instance.
+        _fallback_writers: Mapping from sink id to (write, write_serialized) fallback fns.
+        _fallback_write_count: Counter for fallback writes (metrics).
         _parallel: Whether to write to sinks in parallel.
         _redact_mode: Redaction mode for fallback output.
 
@@ -90,7 +102,15 @@ class SinkWriterGroup:
         >>> await group.write({"message": "test", "level": "INFO"})
     """
 
-    __slots__ = ("_sinks", "_writers", "_breakers", "_parallel", "_redact_mode")
+    __slots__ = (
+        "_sinks",
+        "_writers",
+        "_breakers",
+        "_fallback_writers",
+        "_fallback_write_count",
+        "_parallel",
+        "_redact_mode",
+    )
 
     def __init__(
         self,
@@ -98,6 +118,7 @@ class SinkWriterGroup:
         *,
         parallel: bool = False,
         circuit_config: SinkCircuitBreakerConfig | None = None,
+        fallback_writers: dict[int, tuple[Any, Any]] | None = None,
         redact_mode: RedactMode = "minimal",
     ) -> None:
         """Initialize SinkWriterGroup with sinks and configuration.
@@ -106,6 +127,9 @@ class SinkWriterGroup:
             sinks: List of sink instances to write to.
             parallel: If True, write to sinks in parallel when >1 sink.
             circuit_config: Optional circuit breaker config for fault isolation.
+            fallback_writers: Mapping from sink id to (write, write_serialized)
+                fallback functions. When a sink's circuit opens, its fallback
+                is used instead of silently skipping (Story 4.72).
             redact_mode: Redaction mode for fallback output (Story 4.46).
         """
         from .circuit_breaker import SinkCircuitBreaker
@@ -114,6 +138,8 @@ class SinkWriterGroup:
         self._writers = [make_sink_writer(s) for s in sinks]
         self._parallel = parallel
         self._redact_mode = redact_mode
+        self._fallback_writers: dict[int, tuple[Any, Any]] = fallback_writers or {}
+        self._fallback_write_count: int = 0
 
         # Create circuit breakers for each sink if enabled
         self._breakers: dict[int, SinkCircuitBreaker] = {}
@@ -161,12 +187,87 @@ class SinkWriterGroup:
             breaker = self._breakers.get(id(sink))
 
             if breaker and not breaker.should_allow():
-                continue  # Skip - circuit is open
+                # Circuit is open — try fallback (Story 4.72)
+                fallback = self._fallback_writers.get(id(sink))
+                if fallback is not None:
+                    tasks.append(self._write_fallback(sink, fallback[0], entry))
+                continue  # Skip primary
 
             tasks.append(self._write_one(i, write, entry))
 
         if tasks:
             await asyncio.gather(*tasks, return_exceptions=True)
+
+    async def _write_fallback(
+        self,
+        primary_sink: object,
+        fallback_write_fn: Any,
+        entry: dict[str, Any],
+    ) -> None:
+        """Write to a fallback sink when primary circuit is open.
+
+        Errors from fallback are contained via handle_sink_write_failure.
+        No recursive fallback chain.
+
+        Args:
+            primary_sink: The primary sink whose circuit is open.
+            fallback_write_fn: Async write function for the fallback sink.
+            entry: Log entry dictionary to write.
+        """
+        try:
+            await fallback_write_fn(entry)
+            self._fallback_write_count += 1
+            primary_name = getattr(primary_sink, "name", type(primary_sink).__name__)
+            warn(
+                "circuit-breaker",
+                "routing to fallback sink",
+                primary_sink=primary_name,
+            )
+        except Exception as exc:
+            try:
+                await handle_sink_write_failure(
+                    entry,
+                    sink=primary_sink,
+                    error=exc,
+                    serialized=False,
+                    redact_mode=self._redact_mode,
+                )
+            except Exception:
+                pass
+
+    async def _write_fallback_serialized(
+        self,
+        primary_sink: object,
+        fallback_write_s_fn: Any,
+        view: object,
+    ) -> None:
+        """Write serialized view to a fallback sink when primary circuit is open.
+
+        Args:
+            primary_sink: The primary sink whose circuit is open.
+            fallback_write_s_fn: Async write_serialized function for fallback sink.
+            view: Serialized view object to write.
+        """
+        try:
+            await fallback_write_s_fn(view)
+            self._fallback_write_count += 1
+            primary_name = getattr(primary_sink, "name", type(primary_sink).__name__)
+            warn(
+                "circuit-breaker",
+                "routing to fallback sink",
+                primary_sink=primary_name,
+            )
+        except Exception as exc:
+            try:
+                await handle_sink_write_failure(
+                    view,
+                    sink=primary_sink,
+                    error=exc,
+                    serialized=True,
+                    redact_mode=self._redact_mode,
+                )
+            except Exception:
+                pass
 
     async def _write_one(
         self,
@@ -185,7 +286,11 @@ class SinkWriterGroup:
         breaker = self._breakers.get(id(sink))
 
         if breaker and not breaker.should_allow():
-            return  # Skip - circuit is open
+            # Circuit is open — try fallback (Story 4.72)
+            fallback = self._fallback_writers.get(id(sink))
+            if fallback is not None:
+                await self._write_fallback(sink, fallback[0], entry)
+            return
 
         try:
             result = await write_fn(entry)
@@ -237,7 +342,11 @@ class SinkWriterGroup:
         breaker = self._breakers.get(id(sink))
 
         if breaker and not breaker.should_allow():
-            return  # Skip - circuit is open
+            # Circuit is open — try fallback (Story 4.72)
+            fallback = self._fallback_writers.get(id(sink))
+            if fallback is not None:
+                await self._write_fallback_serialized(sink, fallback[1], view)
+            return
 
         try:
             result = await write_fn(view)

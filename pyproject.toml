@@ -600,6 +600,8 @@ ignore_names = [
   "_size_guard_dropped",
   "_truncated_count",
   "_dropped_count",
+  # Circuit breaker fallback metrics - used via tests and MetricsCollector
+  "_fallback_write_count",
   # Pydantic v2 model configuration - used by framework
   "model_config",
   # Webhook config field - documentation-only for receiver tolerance

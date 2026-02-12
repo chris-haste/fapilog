@@ -275,11 +275,57 @@ def _build_pipeline(
     return _build_pipeline_impl(settings, _load_plugins)
 
 
+def _resolve_fallback_writers(
+    sinks: list[object],
+    circuit_config: _Any | None,
+) -> dict[int, tuple[_Any, _Any]]:
+    """Resolve fallback sink name to writer functions for each primary sink.
+
+    When circuit_config has a fallback_sink name, looks up the matching sink
+    by name and creates writer functions for it. Every other sink gets mapped
+    to this fallback (the fallback sink itself is excluded).
+
+    Args:
+        sinks: List of sink instances.
+        circuit_config: Circuit breaker config with optional fallback_sink name.
+
+    Returns:
+        Mapping from primary sink id -> (write, write_serialized) fallback fns.
+    """
+    from .core.sink_writers import make_sink_writer
+
+    if circuit_config is None:
+        return {}
+    fallback_name = getattr(circuit_config, "fallback_sink", None)
+    if not fallback_name:
+        return {}
+
+    # Find the fallback sink by name
+    fallback_sink = None
+    for sink in sinks:
+        name = getattr(sink, "name", type(sink).__name__)
+        if name == fallback_name:
+            fallback_sink = sink
+            break
+
+    if fallback_sink is None:
+        return {}
+
+    fb_write, fb_write_s = make_sink_writer(fallback_sink)
+    fallback_writers: dict[int, tuple[_Any, _Any]] = {}
+    for sink in sinks:
+        if sink is not fallback_sink:
+            fallback_writers[id(sink)] = (fb_write, fb_write_s)
+
+    return fallback_writers
+
+
 def _fanout_writer(
     sinks: list[object],
     *,
     parallel: bool = False,
     circuit_config: _Any | None = None,
+    fallback_writers: dict[int, tuple[_Any, _Any]] | None = None,
 ) -> tuple[_Any, _Any]:
     """Create fanout writer with optional parallelization and circuit breakers.
 
@@ -289,10 +335,16 @@ def _fanout_writer(
         sinks: List of sink instances
         parallel: If True, write to sinks in parallel
         circuit_config: Optional SinkCircuitBreakerConfig for fault isolation
+        fallback_writers: Resolved fallback writers for circuit-open routing
     """
     from .core.sink_writers import SinkWriterGroup
 
-    group = SinkWriterGroup(sinks, parallel=parallel, circuit_config=circuit_config)
+    group = SinkWriterGroup(
+        sinks,
+        parallel=parallel,
+        circuit_config=circuit_config,
+        fallback_writers=fallback_writers,
+    )
     return group.write, group.write_serialized
 
 
@@ -302,6 +354,8 @@ def _routing_or_fanout_writer(
     circuit_config: _Any | None,
 ) -> tuple[_Any, _Any]:
     """Return sink writer honoring routing configuration when enabled."""
+    fallback_writers = _resolve_fallback_writers(sinks, circuit_config)
+
     routing = getattr(cfg_source, "sink_routing", None)
     routing_enabled = routing is not None and routing.enabled and bool(routing.rules)
     if routing_enabled:
@@ -321,6 +375,7 @@ def _routing_or_fanout_writer(
         sinks,
         parallel=cfg_source.core.sink_parallel_writes,
         circuit_config=circuit_config,
+        fallback_writers=fallback_writers,
     )
 
 
@@ -367,6 +422,7 @@ def _configure_logger_common(
             enabled=True,
             failure_threshold=cfg_source.core.sink_circuit_breaker_failure_threshold,
             recovery_timeout_seconds=cfg_source.core.sink_circuit_breaker_recovery_timeout_seconds,
+            fallback_sink=cfg_source.core.sink_circuit_breaker_fallback_sink,
         )
 
     sink_write, sink_write_serialized = _routing_or_fanout_writer(

@@ -132,6 +132,9 @@ class MetricsCollector:
         self._c_sensitive_fields: Any | None = None
         # Adaptive pressure monitoring (Story 1.44)
         self._g_pressure_level: Any | None = None
+        # Circuit breaker fallback routing (Story 4.72)
+        self._c_fallback_writes: Any | None = None
+        self._fallback_write_count: int = 0
 
         if self._enabled:
             # Minimal metric set; names align with conventional Prometheus
@@ -305,6 +308,13 @@ class MetricsCollector:
                 "Current adaptive pressure level (0=NORMAL, 1=ELEVATED, 2=HIGH, 3=CRITICAL)",
                 registry=self._registry,
             )
+            # Circuit breaker fallback routing (Story 4.72)
+            self._c_fallback_writes = Counter(
+                "fapilog_circuit_breaker_fallback_writes_total",
+                "Total events routed to fallback sink due to open circuit breaker",
+                ["primary_sink", "fallback_sink"],
+                registry=self._registry,
+            )
 
     @property
     def is_enabled(self) -> bool:
@@ -390,6 +400,24 @@ class MetricsCollector:
             return
         if self._g_pressure_level is not None:
             self._g_pressure_level.set(level)
+
+    async def record_fallback_writes(
+        self, *, primary_sink: str, fallback_sink: str, count: int = 1
+    ) -> None:
+        """Record events routed to fallback sink (Story 4.72).
+
+        Args:
+            primary_sink: Name of the primary sink whose circuit is open.
+            fallback_sink: Name of the fallback sink receiving events.
+            count: Number of events routed (default: 1).
+        """
+        self._fallback_write_count += count
+        if not self._enabled:
+            return
+        if self._c_fallback_writes is not None:
+            self._c_fallback_writes.labels(
+                primary_sink=primary_sink, fallback_sink=fallback_sink
+            ).inc(count)
 
     async def record_size_guard_truncated(self, count: int = 1) -> None:
         async with self._lock:
@@ -635,4 +663,5 @@ _VULTURE_USED: tuple[object, ...] = (
     MetricsCollector.record_events_evicted,
     MetricsCollector.record_sensitive_fields,
     MetricsCollector.set_pressure_level,
+    MetricsCollector.record_fallback_writes,
 )

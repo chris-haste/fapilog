@@ -29,6 +29,7 @@ class SinkCircuitBreakerConfig:
     failure_threshold: int = 5  # Open after N consecutive failures
     recovery_timeout_seconds: float = 30.0  # Wait before probing
     half_open_max_calls: int = 1  # Probes before closing
+    fallback_sink: str | None = None  # Name of fallback sink for open circuit
 
 
 class SinkCircuitBreaker:

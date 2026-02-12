@@ -351,6 +351,19 @@
       "title": "Sink Circuit Breaker Failure Threshold",
       "type": "integer"
     },
+    "sink_circuit_breaker_fallback_sink": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Name of fallback sink to route events to when a circuit breaker opens. Must match a configured sink name. None means silent skip (default).",
+      "title": "Sink Circuit Breaker Fallback Sink"
+    },
     "sink_circuit_breaker_recovery_timeout_seconds": {
       "default": 30.0,
       "description": "Seconds to wait before probing a failed sink",
