@@ -88,6 +88,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/context-enrichment.html">Context Enrichment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/rotating-file-sink.html">Rotating File Sink</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/sink-routing.html">Sink routing by level</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/circuit-breaker.html">Circuit Breaker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user-guide/adaptive-pipeline.html">Adaptive Pipeline</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/sampling.html">Sampling Strategies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/graceful-shutdown.html">Graceful Shutdown</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guide/performance-tuning.html">Performance Tuning</a></li>
@@ -316,7 +318,7 @@
 <p>Apply a preset configuration. Preset is applied first, then subsequent methods override specific values.</p>
 <p><strong>Parameters:</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">preset</span></code> (str): Preset name - <code class="docutils literal notranslate"><span class="pre">&quot;dev&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;production&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;production-latency&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;fastapi&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;serverless&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;hardened&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;minimal&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">preset</span></code> (str): Preset name - <code class="docutils literal notranslate"><span class="pre">&quot;dev&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;production&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;production-latency&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;adaptive&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;fastapi&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;serverless&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;hardened&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;minimal&quot;</span></code></p></li>
 </ul>
 <p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
 <p><strong>Raises:</strong></p>
@@ -360,28 +362,35 @@
 <td><p>100</p></td>
 <td><p>2</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive</span></code></p></td>
+<td><p>INFO</p></td>
+<td><p>Yes (50MB rotation)</p></td>
+<td><p>Yes</p></td>
+<td><p>100</p></td>
+<td><p>2 (up to 8)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
 <td><p>INFO</p></td>
 <td><p>No</p></td>
 <td><p>Yes</p></td>
 <td><p>50</p></td>
 <td><p>2</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
 <td><p>INFO</p></td>
 <td><p>No</p></td>
 <td><p>Yes</p></td>
 <td><p>25</p></td>
 <td><p>2</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
 <td><p>INFO</p></td>
 <td><p>Yes (50MB rotation)</p></td>
 <td><p>Yes</p></td>
 <td><p>100</p></td>
 <td><p>2</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
 <td><p>INFO</p></td>
 <td><p>No</p></td>
 <td><p>No</p></td>
@@ -950,18 +959,27 @@
 </div>
 </section>
 <hr class="docutils" />
-<section id="with-circuit-breaker-enabled-true-failure-threshold-5-recovery-timeout-30s">
-<h3>with_circuit_breaker(*, enabled=True, failure_threshold=5, recovery_timeout=“30s”)<a class="headerlink" href="#with-circuit-breaker-enabled-true-failure-threshold-5-recovery-timeout-30s" title="Link to this heading"></a></h3>
+<section id="with-circuit-breaker-enabled-true-failure-threshold-5-recovery-timeout-30s-fallback-sink-none">
+<h3>with_circuit_breaker(*, enabled=True, failure_threshold=5, recovery_timeout=“30s”, fallback_sink=None)<a class="headerlink" href="#with-circuit-breaker-enabled-true-failure-threshold-5-recovery-timeout-30s-fallback-sink-none" title="Link to this heading"></a></h3>
 <p>Configure sink circuit breaker for fault isolation.</p>
 <p><strong>Parameters:</strong></p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">enabled</span></code> (bool): Enable circuit breaker (default: True)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">failure_threshold</span></code> (int): Consecutive failures before opening circuit</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">recovery_timeout</span></code> (str | float): Time before probing failed sink</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fallback_sink</span></code> (str | None): Sink name to route events to when circuit opens. Must match a configured sink name. <code class="docutils literal notranslate"><span class="pre">None</span></code> means events are silently skipped when the circuit is open.</p></li>
 </ul>
 <p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
 <p><strong>Example:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_circuit_breaker</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">failure_threshold</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Basic circuit breaker (skip events when circuit opens)</span>
+<span class="n">builder</span><span class="o">.</span><span class="n">with_circuit_breaker</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">failure_threshold</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="c1"># With fallback routing to a file sink</span>
+<span class="n">builder</span><span class="o">.</span><span class="n">with_circuit_breaker</span><span class="p">(</span>
+    <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">failure_threshold</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">fallback_sink</span><span class="o">=</span><span class="s2">&quot;rotating_file&quot;</span><span class="p">,</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 <p><strong>Equivalent Settings:</strong></p>
@@ -970,10 +988,68 @@
         <span class="n">sink_circuit_breaker_enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">sink_circuit_breaker_failure_threshold</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
         <span class="n">sink_circuit_breaker_recovery_timeout_seconds</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span>
+        <span class="n">sink_circuit_breaker_fallback_sink</span><span class="o">=</span><span class="s2">&quot;rotating_file&quot;</span><span class="p">,</span>
     <span class="p">)</span>
 <span class="p">)</span>
 </pre></div>
 </div>
+<p>See <a class="reference internal" href="../user-guide/circuit-breaker.html"><span class="std std-doc">Circuit Breaker</span></a> for a detailed guide on fallback routing patterns.</p>
+</section>
+<hr class="docutils" />
+<section id="with-adaptive-enabled-true-max-workers-none-max-queue-growth-none-batch-sizing-none-check-interval-seconds-none-cooldown-seconds-none-circuit-pressure-boost-none">
+<h3>with_adaptive(*, enabled=True, max_workers=None, max_queue_growth=None, batch_sizing=None, check_interval_seconds=None, cooldown_seconds=None, circuit_pressure_boost=None)<a class="headerlink" href="#with-adaptive-enabled-true-max-workers-none-max-queue-growth-none-batch-sizing-none-check-interval-seconds-none-cooldown-seconds-none-circuit-pressure-boost-none" title="Link to this heading"></a></h3>
+<p>Configure adaptive pipeline behavior. Enables pressure monitoring, dynamic worker scaling, adaptive batch sizing, and queue growth based on queue fill ratio.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">enabled</span></code> (bool): Enable adaptive pipeline controller (default: True)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_workers</span></code> (int | None): Maximum workers when dynamic scaling is active</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_queue_growth</span></code> (float | None): Maximum queue capacity multiplier (e.g., 4.0 = queue can grow to 4x initial size)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">batch_sizing</span></code> (bool | None): Enable adaptive batch sizing. Only beneficial with batch-aware sinks (CloudWatch, Loki, PostgreSQL). Disabled by default.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">check_interval_seconds</span></code> (float | None): Seconds between queue pressure samples</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cooldown_seconds</span></code> (float | None): Minimum seconds between pressure level transitions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">circuit_pressure_boost</span></code> (float | None): Pressure boost per open circuit breaker (0.0-1.0)</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Enable adaptive with defaults</span>
+<span class="n">builder</span><span class="o">.</span><span class="n">with_adaptive</span><span class="p">()</span>
+
+<span class="c1"># Fine-tune adaptive parameters</span>
+<span class="n">builder</span><span class="o">.</span><span class="n">with_adaptive</span><span class="p">(</span>
+    <span class="n">max_workers</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+    <span class="n">max_queue_growth</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+    <span class="n">check_interval_seconds</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Enable batch sizing for batch-aware sinks (CloudWatch, Loki, PostgreSQL)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_adaptive</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">batch_sizing</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_cloudwatch</span><span class="p">(</span><span class="s2">&quot;/myapp/prod&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_circuit_breaker</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fallback_sink</span><span class="o">=</span><span class="s2">&quot;rotating_file&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Equivalent Settings:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Settings</span><span class="p">(</span><span class="n">adaptive</span><span class="o">=</span><span class="p">{</span>
+    <span class="s2">&quot;enabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s2">&quot;max_workers&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+    <span class="s2">&quot;max_queue_growth&quot;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>
+    <span class="s2">&quot;batch_sizing&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s2">&quot;check_interval_seconds&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+<p><strong>Environment Variables:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">FAPILOG_ADAPTIVE__ENABLED</span><span class="o">=</span><span class="nb">true</span>
+<span class="nv">FAPILOG_ADAPTIVE__MAX_WORKERS</span><span class="o">=</span><span class="m">6</span>
+<span class="nv">FAPILOG_ADAPTIVE__MAX_QUEUE_GROWTH</span><span class="o">=</span><span class="m">2</span>.0
+<span class="nv">FAPILOG_ADAPTIVE__BATCH_SIZING</span><span class="o">=</span><span class="nb">true</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="../user-guide/adaptive-pipeline.html"><span class="std std-doc">Adaptive Pipeline</span></a> for a detailed guide on pressure thresholds and actuators.</p>
 </section>
 <hr class="docutils" />
 <section id="with-backpressure-wait-ms-50-drop-on-full-true">
@@ -1356,67 +1432,71 @@
 <td><p>Reliability</p></td>
 <td><p>Configure circuit breaker</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_backpressure()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_adaptive()</span></code></p></td>
+<td><p>Reliability</p></td>
+<td><p>Configure adaptive pipeline</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_backpressure()</span></code></p></td>
 <td><p>Reliability</p></td>
 <td><p>Configure backpressure</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_shutdown_timeout()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_shutdown_timeout()</span></code></p></td>
 <td><p>Reliability</p></td>
 <td><p>Set shutdown timeout</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_parallel_sink_writes()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_parallel_sink_writes()</span></code></p></td>
 <td><p>Performance</p></td>
 <td><p>Enable parallel writes</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_routing()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_routing()</span></code></p></td>
 <td><p>Routing</p></td>
 <td><p>Configure sink routing</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_enrichers()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_enrichers()</span></code></p></td>
 <td><p>Enrichers</p></td>
 <td><p>Enable enrichers</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">configure_enricher()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">configure_enricher()</span></code></p></td>
 <td><p>Enrichers</p></td>
 <td><p>Configure enricher</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_context()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_context()</span></code></p></td>
 <td><p>Enrichers</p></td>
 <td><p>Set default context</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_exceptions()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_exceptions()</span></code></p></td>
 <td><p>Advanced</p></td>
 <td><p>Configure exception handling</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_metrics()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_metrics()</span></code></p></td>
 <td><p>Advanced</p></td>
 <td><p>Enable metrics</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_error_deduplication()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_error_deduplication()</span></code></p></td>
 <td><p>Advanced</p></td>
 <td><p>Configure error dedup</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_diagnostics()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_diagnostics()</span></code></p></td>
 <td><p>Advanced</p></td>
 <td><p>Configure diagnostics</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_strict_mode()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_strict_mode()</span></code></p></td>
 <td><p>Advanced</p></td>
 <td><p>Enable strict mode</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_unhandled_exception_capture()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_unhandled_exception_capture()</span></code></p></td>
 <td><p>Advanced</p></td>
 <td><p>Capture unhandled exceptions</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_plugins()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_plugins()</span></code></p></td>
 <td><p>Advanced</p></td>
 <td><p>Configure plugin loading</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">build()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">build()</span></code></p></td>
 <td><p>Build</p></td>
 <td><p>Build sync logger</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">build_async()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">build_async()</span></code></p></td>
 <td><p>Build</p></td>
 <td><p>Build async logger</p></td>
 </tr>

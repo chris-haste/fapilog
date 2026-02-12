@@ -98,6 +98,56 @@ export FAPILOG_CORE__PROTECTED_LEVELS='["ERROR", "CRITICAL", "FATAL", "AUDIT"]'
 - Set `[]` to disable priority dropping for strict FIFO behavior
 - Leave default for most production workloads
 
+## Adaptive pipeline (automatic tuning)
+
+Instead of manually tuning workers, batch sizes, and queue sizes, the adaptive pipeline monitors queue pressure and adjusts automatically.
+
+```python
+from fapilog import LoggerBuilder
+
+# One-line setup with the adaptive preset
+logger = LoggerBuilder().with_preset("adaptive").build()
+
+# Or enable adaptive on any preset
+logger = (
+    LoggerBuilder()
+    .with_preset("production")
+    .with_adaptive(max_workers=8)
+    .build()
+)
+
+# Enable batch sizing when using batch-aware sinks (CloudWatch, Loki, PostgreSQL)
+logger = (
+    LoggerBuilder()
+    .with_preset("production")
+    .with_adaptive(max_workers=8, batch_sizing=True)
+    .add_cloudwatch("/myapp/prod")
+    .build()
+)
+```
+
+```bash
+# Via environment variables
+export FAPILOG_ADAPTIVE__ENABLED=true
+export FAPILOG_ADAPTIVE__MAX_WORKERS=8
+export FAPILOG_ADAPTIVE__BATCH_SIZING=true
+```
+
+**What it adjusts:**
+
+| Actuator | Normal | Elevated | High | Critical |
+|----------|--------|----------|------|----------|
+| Workers | Initial (2) | +1 | +2 | Max (8) |
+| Batch size (opt-in) | Base (100) | 1.5x | 2x | 4x |
+| Queue capacity | Base | 1.5x | 2x | Up to 4x |
+| Filter tightening | None | Soft | Medium | Aggressive |
+
+**When to use adaptive vs manual:**
+- **Adaptive**: Variable workloads, microservices, deployments where traffic spikes are unpredictable
+- **Manual**: Steady-state services where you know exact throughput, latency-critical paths where you want deterministic behavior
+
+See [Adaptive Pipeline](adaptive-pipeline.md) for threshold configuration and detailed tuning.
+
 ## Sampling low-severity logs
 
 Use `observability.logging.sampling_rate` to drop a fraction of DEBUG/INFO logs:

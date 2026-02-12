@@ -12,6 +12,7 @@ Presets provide pre-configured settings for common deployment scenarios. Choose 
 | `high-volume` | Cost-effective high traffic | If needed | No | Yes (CREDENTIALS) |
 | `fastapi` | FastAPI applications | If needed | No | Yes (CREDENTIALS) |
 | `serverless` | Lambda/Cloud Run | If needed | No | Yes (CREDENTIALS) |
+| `adaptive` | Auto-scaling production | If needed | Yes | Yes (CREDENTIALS) |
 | `hardened` | Compliance (HIPAA/PCI) | Never | Yes | Yes (HIPAA + PCI + CREDENTIALS) |
 | `minimal` | Maximum control | Default | Default | No |
 
@@ -26,11 +27,13 @@ Is this for local development?
                   ├─ Yes → hardened
                   └─ No → Are you using FastAPI?
                            ├─ Yes → fastapi
-                           └─ No → Is traffic high-volume (100+ req/s) with cost concerns?
-                                    ├─ Yes → high-volume (protected levels)
-                                    └─ No → Is log durability critical?
-                                             ├─ Yes → production (never drops)
-                                             └─ No → production-latency (prioritizes speed)
+                           └─ No → Do you need auto-scaling under load?
+                                    ├─ Yes → adaptive (dynamic workers, batch sizing, circuit breaker)
+                                    └─ No → Is traffic high-volume (100+ req/s) with cost concerns?
+                                             ├─ Yes → high-volume (protected levels)
+                                             └─ No → Is log durability critical?
+                                                      ├─ Yes → production (never drops)
+                                                      └─ No → production-latency (prioritizes speed)
 ```
 
 ### Key Decision: `production` vs `production-latency`
@@ -82,6 +85,7 @@ logger = (
 | `production` | 2 | 100 | 256 | runtime_info, context_vars |
 | `production-latency` | 2 | 100 | 256 | runtime_info, context_vars |
 | `high-volume` | 2 | 100 | 256 | runtime_info, context_vars |
+| `adaptive` | 2 (up to 8) | 100 | 256 (grows up to 4x) | runtime_info, context_vars |
 | `fastapi` | 2 | 50 | 256 | context_vars only |
 | `serverless` | 2 | 25 | 256 | runtime_info, context_vars |
 | `hardened` | 2 | 100 | 256 | runtime_info, context_vars |
@@ -97,6 +101,7 @@ logger = (
 | `production` | `False` | `warn` | `False` | 50MB × 10, gzip |
 | `production-latency` | `True` | `warn` | `False` | None |
 | `high-volume` | `True` | `warn` | `False` | None |
+| `adaptive` | `True` | `warn` | `False` | 50MB × 10, gzip |
 | `fastapi` | `True` | `warn` | `False` | None |
 | `serverless` | `True` | `warn` | `False` | None |
 | `hardened` | `False` | `closed` | `True` | 50MB × 10, gzip |
@@ -117,6 +122,7 @@ See [Reliability Defaults](reliability-defaults.md) for detailed backpressure be
 | `production` | CREDENTIALS | `minimal` | `False` |
 | `production-latency` | CREDENTIALS | `minimal` | `False` |
 | `high-volume` | CREDENTIALS | `minimal` | `False` |
+| `adaptive` | CREDENTIALS | `minimal` | `False` |
 | `fastapi` | CREDENTIALS | `minimal` | `False` |
 | `serverless` | CREDENTIALS | `minimal` | `False` |
 | `hardened` | HIPAA_PHI + PCI_DSS + CREDENTIALS | `inherit` | `True` |
@@ -217,6 +223,50 @@ logger = (
 ```
 
 See [Adaptive Sampling for High-Volume Services](../cookbook/adaptive-sampling-high-volume.md) for detailed configuration.
+
+### adaptive
+
+Production deployment with automatic scaling under load. Extends `production` with adaptive pipeline features.
+
+```python
+logger = get_logger(preset="adaptive")
+```
+
+**Settings:**
+- INFO level filters noise
+- Adaptive pipeline enabled: dynamic worker scaling (2-8), queue growth (up to 4x)
+- Circuit breaker with rotating file fallback — failing sinks are isolated, events reroute to local files
+- File rotation: `./logs/fapilog-*.log`, 50MB max, 10 files, gzip compressed
+- `drop_on_full=True` — drops logs rather than block
+- Protected levels: ERROR, CRITICAL, FATAL, AUDIT, SECURITY
+- Automatic redaction of credentials
+
+**Use when:** Services with variable load, microservices that need self-tuning, deployments where you want automatic resilience without manual capacity planning.
+
+**Trade-off:** Slightly higher baseline resource usage from pressure monitoring. Under sustained high load, the pipeline auto-scales workers and batch sizes to maintain throughput.
+
+For fine-grained control over adaptive behavior, use the builder:
+
+```python
+logger = (
+    LoggerBuilder()
+    .with_preset("adaptive")
+    .with_adaptive(max_workers=4)
+    .with_circuit_breaker(fallback_sink="rotating_file")
+    .build()
+)
+
+# Enable batch sizing when using batch-aware sinks (CloudWatch, Loki, PostgreSQL)
+logger = (
+    LoggerBuilder()
+    .with_preset("adaptive")
+    .with_adaptive(batch_sizing=True)
+    .add_cloudwatch("/myapp/prod")
+    .build()
+)
+```
+
+See [Adaptive Pipeline](adaptive-pipeline.md) for a detailed guide on tuning thresholds and actuators.
 
 ### fastapi
 
@@ -358,13 +408,15 @@ All production-oriented presets default to 2 workers. See [Performance Tuning](p
 from fapilog import list_presets
 
 print(list_presets())
-# ['dev', 'fastapi', 'hardened', 'high-volume', 'minimal', 'production', 'production-latency', 'serverless']
+# ['adaptive', 'dev', 'fastapi', 'hardened', 'high-volume', 'minimal', 'production', 'production-latency', 'serverless']
 ```
 
 ## Related
 
 - [Configuration](configuration.md) — Full configuration guide
 - [Builder API](../api-reference/builder.md) — Complete builder method reference
+- [Adaptive Pipeline](adaptive-pipeline.md) — Adaptive scaling and pressure monitoring
+- [Circuit Breaker](circuit-breaker.md) — Sink fault isolation and fallback routing
 - [Redaction Presets](../redaction/presets.md) — Compliance redaction presets
 - [Performance Tuning](performance-tuning.md) — Benchmarks and optimization
 - [Reliability Defaults](reliability-defaults.md) — Backpressure and queue behavior

@@ -7,7 +7,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sink routing by level &mdash; fapilog latest documentation</title>
+  <title>Circuit Breaker &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -25,12 +25,12 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Circuit Breaker" href="circuit-breaker.html" />
-    <link rel="prev" title="Rotating File Sink" href="rotating-file-sink.html" />
+    <link rel="next" title="Adaptive Pipeline" href="adaptive-pipeline.html" />
+    <link rel="prev" title="Sink routing by level" href="sink-routing.html" />
  
 
 
-<link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/sink-routing.html" />
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/circuit-breaker.html" />
 <meta name="robots" content="noindex, follow" />
 
 
@@ -87,8 +87,8 @@
 <li class="toctree-l2"><a class="reference internal" href="using-logger.html">Using the Logger</a></li>
 <li class="toctree-l2"><a class="reference internal" href="context-enrichment.html">Context Enrichment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rotating-file-sink.html">Rotating File Sink</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Sink routing by level</a></li>
-<li class="toctree-l2"><a class="reference internal" href="circuit-breaker.html">Circuit Breaker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sink-routing.html">Sink routing by level</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Circuit Breaker</a></li>
 <li class="toctree-l2"><a class="reference internal" href="adaptive-pipeline.html">Adaptive Pipeline</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sampling.html">Sampling Strategies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="graceful-shutdown.html">Graceful Shutdown</a></li>
@@ -221,9 +221,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="index.html">User Guide</a></li>
-      <li class="breadcrumb-item active">Sink routing by level</li>
+      <li class="breadcrumb-item active">Circuit Breaker</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/user-guide/sink-routing.md.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/user-guide/circuit-breaker.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -231,157 +231,193 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section class="tex2jax_ignore mathjax_ignore" id="sink-routing-by-level">
-<h1>Sink routing by level<a class="headerlink" href="#sink-routing-by-level" title="Link to this heading"></a></h1>
-<p>Route different log levels to different sinks for cost control, compliance, and targeted alerting.</p>
-<section id="quick-start-settings">
-<h2>Quick start (settings)<a class="headerlink" href="#quick-start-settings" title="Link to this heading"></a></h2>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_SINK_ROUTING__ENABLED</span><span class="o">=</span><span class="nb">true</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_SINK_ROUTING__RULES</span><span class="o">=</span><span class="s1">&#39;[</span>
-<span class="s1">  {&quot;levels&quot;: [&quot;ERROR&quot;, &quot;CRITICAL&quot;], &quot;sinks&quot;: [&quot;postgres&quot;]},</span>
-<span class="s1">  {&quot;levels&quot;: [&quot;DEBUG&quot;, &quot;INFO&quot;, &quot;WARNING&quot;], &quot;sinks&quot;: [&quot;stdout_json&quot;]}</span>
-<span class="s1">]&#39;</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_SINK_ROUTING__FALLBACK_SINKS</span><span class="o">=</span><span class="s1">&#39;[&quot;rotating_file&quot;]&#39;</span>
-</pre></div>
-</div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">runtime</span>
-
-<span class="k">with</span> <span class="n">runtime</span><span class="p">()</span> <span class="k">as</span> <span class="n">log</span><span class="p">:</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Stored in postgres&quot;</span><span class="p">)</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Goes to stdout&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="configuration-schema">
-<h2>Configuration schema<a class="headerlink" href="#configuration-schema" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">enabled</span></code>: turn routing on (defaults to fanout when false)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">rules</span></code>: list of <code class="docutils literal notranslate"><span class="pre">{levels:</span> <span class="pre">[...],</span> <span class="pre">sinks:</span> <span class="pre">[...]}</span></code>; levels are case-insensitive</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">overlap</span></code>: when true, multiple rules can apply; when false, first match wins</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">fallback_sinks</span></code>: used when no rule matches (empty drops unmatched events)</p></li>
-</ul>
-<section id="yaml-configuration">
-<h3>YAML configuration<a class="headerlink" href="#yaml-configuration" title="Link to this heading"></a></h3>
-<p>If loading settings from a YAML file:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">sink_routing</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="w">  </span><span class="nt">overlap</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">levels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">ERROR</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">CRITICAL</span><span class="p p-Indicator">]</span>
-<span class="w">      </span><span class="nt">sinks</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">postgres</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">webhook</span><span class="p p-Indicator">]</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">levels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">INFO</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">WARNING</span><span class="p p-Indicator">]</span>
-<span class="w">      </span><span class="nt">sinks</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">stdout_json</span><span class="p p-Indicator">]</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">levels</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">DEBUG</span><span class="p p-Indicator">]</span>
-<span class="w">      </span><span class="nt">sinks</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">rotating_file</span><span class="p p-Indicator">]</span>
-<span class="w">  </span><span class="nt">fallback_sinks</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">rotating_file</span>
-</pre></div>
-</div>
-</section>
-<section id="programmatic-example">
-<h3>Programmatic example<a class="headerlink" href="#programmatic-example" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span><span class="p">,</span> <span class="n">get_logger</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.core.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">RoutingRule</span>
-
-<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">()</span>
-<span class="n">settings</span><span class="o">.</span><span class="n">sink_routing</span><span class="o">.</span><span class="n">enabled</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="n">settings</span><span class="o">.</span><span class="n">sink_routing</span><span class="o">.</span><span class="n">rules</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">RoutingRule</span><span class="p">(</span><span class="n">levels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">],</span> <span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;postgres&quot;</span><span class="p">,</span> <span class="s2">&quot;webhook&quot;</span><span class="p">]),</span>
-    <span class="n">RoutingRule</span><span class="p">(</span><span class="n">levels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span> <span class="s2">&quot;WARNING&quot;</span><span class="p">],</span> <span class="n">sinks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;stdout_json&quot;</span><span class="p">]),</span>
-<span class="p">]</span>
-<span class="n">settings</span><span class="o">.</span><span class="n">sink_routing</span><span class="o">.</span><span class="n">fallback_sinks</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;rotating_file&quot;</span><span class="p">]</span>
-
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="builder-api-with-custom-sink-names">
-<h3>Builder API with custom sink names<a class="headerlink" href="#builder-api-with-custom-sink-names" title="Link to this heading"></a></h3>
-<p>Use the <code class="docutils literal notranslate"><span class="pre">name</span></code> parameter to create multiple sinks of the same type with unique names for routing:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
-
-<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">LoggerBuilder</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="s2">&quot;/logs/errors&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;error_file&quot;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="s2">&quot;/logs/info&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;info_file&quot;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">with_routing</span><span class="p">([</span>
-        <span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">],</span> <span class="s2">&quot;sinks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;error_file&quot;</span><span class="p">]},</span>
-        <span class="p">{</span><span class="s2">&quot;levels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">,</span> <span class="s2">&quot;INFO&quot;</span><span class="p">,</span> <span class="s2">&quot;WARNING&quot;</span><span class="p">],</span> <span class="s2">&quot;sinks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;info_file&quot;</span><span class="p">]},</span>
-    <span class="p">])</span>
-    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
-<span class="p">)</span>
-
-<span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Goes to /logs/errors&quot;</span><span class="p">)</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Goes to /logs/info&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>All <code class="docutils literal notranslate"><span class="pre">add_*</span></code> sink methods support the <code class="docutils literal notranslate"><span class="pre">name</span></code> parameter:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">add_file(directory,</span> <span class="pre">name=&quot;rotating_file&quot;)</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">add_stdout(name=&quot;stdout_json&quot;)</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">add_http(endpoint,</span> <span class="pre">name=&quot;http&quot;)</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">add_webhook(endpoint,</span> <span class="pre">name=&quot;webhook&quot;)</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">add_cloudwatch(log_group,</span> <span class="pre">name=&quot;cloudwatch&quot;)</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">add_loki(url,</span> <span class="pre">name=&quot;loki&quot;)</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">add_postgres(dsn,</span> <span class="pre">name=&quot;postgres&quot;)</span></code></p></li>
-</ul>
-<p>Duplicate sink names raise <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> at build time.</p>
-</section>
-</section>
-<section id="routingsink-plugin">
-<h2>RoutingSink plugin<a class="headerlink" href="#routingsink-plugin" title="Link to this heading"></a></h2>
-<p>For manual composition without touching global settings:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.plugins.sinks.routing</span><span class="w"> </span><span class="kn">import</span> <span class="n">RoutingSink</span><span class="p">,</span> <span class="n">RoutingSinkConfig</span>
-
-<span class="n">routing_sink</span> <span class="o">=</span> <span class="n">RoutingSink</span><span class="p">(</span>
-    <span class="n">RoutingSinkConfig</span><span class="p">(</span>
-        <span class="n">routes</span><span class="o">=</span><span class="p">{</span>
-            <span class="s2">&quot;ERROR&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;postgres&quot;</span><span class="p">],</span>
-            <span class="s2">&quot;CRITICAL&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;postgres&quot;</span><span class="p">,</span> <span class="s2">&quot;webhook&quot;</span><span class="p">],</span>
-            <span class="s2">&quot;INFO&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;stdout_json&quot;</span><span class="p">],</span>
-            <span class="s2">&quot;*&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;rotating_file&quot;</span><span class="p">],</span>  <span class="c1"># fallback</span>
-        <span class="p">},</span>
-        <span class="n">sink_configs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;postgres&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;table_name&quot;</span><span class="p">:</span> <span class="s2">&quot;errors_only&quot;</span><span class="p">}},</span>
-        <span class="n">parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="p">)</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="circuit-breaker-fallback-routing">
-<h2>Circuit breaker fallback routing<a class="headerlink" href="#circuit-breaker-fallback-routing" title="Link to this heading"></a></h2>
-<p>When a sink’s circuit breaker opens (after consecutive failures), events destined for that sink can be automatically rerouted to a fallback sink instead of being dropped.</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="circuit-breaker">
+<h1>Circuit Breaker<a class="headerlink" href="#circuit-breaker" title="Link to this heading"></a></h1>
+<p>Circuit breakers isolate failing sinks to prevent cascade failures. When a sink fails repeatedly, the circuit opens and events are either skipped or routed to a fallback sink.</p>
+<section id="quick-start">
+<h2>Quick start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">LoggerBuilder</span><span class="p">()</span>
     <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">add_http</span><span class="p">(</span><span class="s2">&quot;https://logs.example.com/ingest&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_circuit_breaker</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">failure_threshold</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>With fallback routing:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="s2">&quot;logs/fallback&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;fallback_file&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">with_circuit_breaker</span><span class="p">(</span>
         <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">failure_threshold</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
         <span class="n">recovery_timeout</span><span class="o">=</span><span class="s2">&quot;30s&quot;</span><span class="p">,</span>
-        <span class="n">fallback_sink</span><span class="o">=</span><span class="s2">&quot;rotating_file&quot;</span><span class="p">,</span>
+        <span class="n">fallback_sink</span><span class="o">=</span><span class="s2">&quot;fallback_file&quot;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 </pre></div>
 </div>
-<p>In this example, if the HTTP sink fails 5 times in a row, the circuit opens and events are written to the rotating file sink instead. After 30 seconds, the circuit enters a half-open state and probes the HTTP sink with a single event to check recovery.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">adaptive</span></code> preset enables this automatically with <code class="docutils literal notranslate"><span class="pre">rotating_file</span></code> as the fallback:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;adaptive&quot;</span><span class="p">)</span>
-<span class="c1"># Circuit breaker enabled with rotating_file fallback</span>
+<p>Or use the <code class="docutils literal notranslate"><span class="pre">adaptive</span></code> preset which enables circuit breaker with rotating file fallback automatically:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;adaptive&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>See <a class="reference internal" href="circuit-breaker.html"><span class="std std-doc">Circuit Breaker</span></a> for a complete guide on configuring fallback routing patterns.</p>
 </section>
-<section id="tips">
-<h2>Tips<a class="headerlink" href="#tips" title="Link to this heading"></a></h2>
+<section id="how-it-works">
+<h2>How it works<a class="headerlink" href="#how-it-works" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>CLOSED (healthy)
+  │
+  ├─ Sink write succeeds → stay CLOSED
+  └─ Sink write fails → increment failure count
+       └─ failures &gt;= threshold → transition to OPEN
+                                    │
+OPEN (tripped)                      │
+  │                                 │
+  ├─ Events → fallback sink (if configured)
+  ├─ Events → silently skipped (if no fallback)
+  └─ After recovery_timeout → transition to HALF-OPEN
+                                    │
+HALF-OPEN (probing)                 │
+  │                                 │
+  ├─ Probe write succeeds → transition to CLOSED (reset failure count)
+  └─ Probe write fails → transition to OPEN (restart timeout)
+</pre></div>
+</div>
+<section id="states">
+<h3>States<a class="headerlink" href="#states" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>State</p></th>
+<th class="head"><p>Behavior</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>CLOSED</strong></p></td>
+<td><p>All events sent to sink normally. Failure count tracked.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>OPEN</strong></p></td>
+<td><p>Sink bypassed. Events route to fallback sink (or are skipped).</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>HALF-OPEN</strong></p></td>
+<td><p>Single probe event sent to sink. Success closes circuit, failure reopens it.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h2>
+<section id="builder-api">
+<h3>Builder API<a class="headerlink" href="#builder-api" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_circuit_breaker</span><span class="p">(</span>
+    <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>              <span class="c1"># Enable circuit breaker</span>
+    <span class="n">failure_threshold</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>       <span class="c1"># Failures before opening (default: 5)</span>
+    <span class="n">recovery_timeout</span><span class="o">=</span><span class="s2">&quot;30s&quot;</span><span class="p">,</span>    <span class="c1"># Time before probing (default: 30s)</span>
+    <span class="n">fallback_sink</span><span class="o">=</span><span class="s2">&quot;rotating_file&quot;</span><span class="p">,</span>  <span class="c1"># Fallback when open (default: None)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="settings">
+<h3>Settings<a class="headerlink" href="#settings" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span>
+
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span><span class="n">core</span><span class="o">=</span><span class="p">{</span>
+    <span class="s2">&quot;sink_circuit_breaker_enabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s2">&quot;sink_circuit_breaker_failure_threshold&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="s2">&quot;sink_circuit_breaker_recovery_timeout_seconds&quot;</span><span class="p">:</span> <span class="mf">30.0</span><span class="p">,</span>
+    <span class="s2">&quot;sink_circuit_breaker_fallback_sink&quot;</span><span class="p">:</span> <span class="s2">&quot;rotating_file&quot;</span><span class="p">,</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+</section>
+<section id="environment-variables">
+<h3>Environment variables<a class="headerlink" href="#environment-variables" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">FAPILOG_CORE__SINK_CIRCUIT_BREAKER_ENABLED</span><span class="o">=</span><span class="nb">true</span>
+<span class="nv">FAPILOG_CORE__SINK_CIRCUIT_BREAKER_FAILURE_THRESHOLD</span><span class="o">=</span><span class="m">5</span>
+<span class="nv">FAPILOG_CORE__SINK_CIRCUIT_BREAKER_RECOVERY_TIMEOUT_SECONDS</span><span class="o">=</span><span class="m">30</span>
+<span class="nv">FAPILOG_CORE__SINK_CIRCUIT_BREAKER_FALLBACK_SINK</span><span class="o">=</span>rotating_file
+</pre></div>
+</div>
+</section>
+</section>
+<section id="fallback-routing">
+<h2>Fallback routing<a class="headerlink" href="#fallback-routing" title="Link to this heading"></a></h2>
+<p>Without a fallback sink, events are silently dropped when the circuit is open. With a fallback sink, events are rerouted so no data is lost.</p>
+<section id="common-fallback-patterns">
+<h3>Common fallback patterns<a class="headerlink" href="#common-fallback-patterns" title="Link to this heading"></a></h3>
+<p><strong>File fallback for remote sinks:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_http</span><span class="p">(</span><span class="s2">&quot;https://logs.example.com/ingest&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_circuit_breaker</span><span class="p">(</span>
+        <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">fallback_sink</span><span class="o">=</span><span class="s2">&quot;rotating_file&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+<span class="c1"># If HTTP sink fails → events go to rotating file</span>
+<span class="c1"># When HTTP recovers → events resume to HTTP</span>
+</pre></div>
+</div>
+<p><strong>Stdout fallback for file sinks:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="s2">&quot;logs/app&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;primary_file&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;console&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_circuit_breaker</span><span class="p">(</span>
+        <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">fallback_sink</span><span class="o">=</span><span class="s2">&quot;console&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">fallback_sink</span></code> value must match the name of a configured sink. If the name doesn’t match any sink, events are skipped when the circuit opens.</p>
+</section>
+</section>
+<section id="per-sink-circuit-breakers">
+<h2>Per-sink circuit breakers<a class="headerlink" href="#per-sink-circuit-breakers" title="Link to this heading"></a></h2>
+<p>Cloud sinks (CloudWatch, Loki, PostgreSQL) have their own built-in circuit breakers that can be configured independently:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">add_cloudwatch</span><span class="p">(</span>
+    <span class="s2">&quot;/myapp/prod&quot;</span><span class="p">,</span>
+    <span class="n">circuit_breaker</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">circuit_breaker_threshold</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>The global <code class="docutils literal notranslate"><span class="pre">with_circuit_breaker()</span></code> setting applies to all sinks that don’t have their own circuit breaker configuration.</p>
+</section>
+<section id="adaptive-pipeline-integration">
+<h2>Adaptive pipeline integration<a class="headerlink" href="#adaptive-pipeline-integration" title="Link to this heading"></a></h2>
+<p>When the adaptive pipeline is enabled, open circuit breakers contribute additional pressure to the escalation state machine via <code class="docutils literal notranslate"><span class="pre">circuit_pressure_boost</span></code> (default: 0.20 per open circuit). This means the pipeline proactively scales up workers and batch sizes when sinks are failing, even before the queue physically fills up.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_adaptive</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">circuit_pressure_boost</span><span class="o">=</span><span class="mf">0.30</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_circuit_breaker</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fallback_sink</span><span class="o">=</span><span class="s2">&quot;rotating_file&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="adaptive-pipeline.html"><span class="std std-doc">Adaptive Pipeline</span></a> for details on pressure monitoring.</p>
+</section>
+<section id="interaction-with-sink-routing">
+<h2>Interaction with sink routing<a class="headerlink" href="#interaction-with-sink-routing" title="Link to this heading"></a></h2>
+<p>Circuit breakers work with <a class="reference internal" href="sink-routing.html"><span class="std std-doc">level-based sink routing</span></a>. When a routed sink’s circuit opens, only events destined for that sink are rerouted to the fallback. Other sinks continue operating normally.</p>
+</section>
+<section id="related">
+<h2>Related<a class="headerlink" href="#related" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Keep rule lists small; routing is O(1) per event.</p></li>
-<li><p>Use overlap=true to send errors to multiple sinks (e.g., DB + webhook).</p></li>
-<li><p>Provide fallback_sinks to avoid accidental drops when rules change.</p></li>
-<li><p>Routing respects sink circuit breakers; open circuits are skipped automatically.</p></li>
+<li><p><a class="reference internal" href="adaptive-pipeline.html"><span class="std std-doc">Adaptive Pipeline</span></a> — Automatic scaling and pressure monitoring</p></li>
+<li><p><a class="reference internal" href="sink-routing.html"><span class="std std-doc">Sink Routing</span></a> — Level-based routing and fallback routing</p></li>
+<li><p><a class="reference internal" href="performance-tuning.html"><span class="std std-doc">Performance Tuning</span></a> — Manual tuning options</p></li>
+<li><p><a class="reference internal" href="../api-reference/builder.html"><span class="std std-doc">Builder API</span></a> — <code class="docutils literal notranslate"><span class="pre">with_circuit_breaker()</span></code> method reference</p></li>
 </ul>
 </section>
 </section>
@@ -392,8 +428,8 @@
           
 <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer" style="position: relative;">
-        <a href="rotating-file-sink.html" class="btn btn-neutral float-left" title="Rotating File Sink" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="circuit-breaker.html" class="btn btn-neutral float-right" title="Circuit Breaker" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="sink-routing.html" class="btn btn-neutral float-left" title="Sink routing by level" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="adaptive-pipeline.html" class="btn btn-neutral float-right" title="Adaptive Pipeline" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
       <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 50%; margin-top: -0.5em;">
         <a href="https://fapilog.dev">www.fapilog.dev</a>
       </div>

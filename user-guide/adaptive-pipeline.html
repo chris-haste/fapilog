@@ -1,0 +1,618 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adaptive Pipeline &mdash; fapilog latest documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=30646c52"></script>
+      <script src="../_static/custom.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Sampling Strategies" href="sampling.html" />
+    <link rel="prev" title="Circuit Breaker" href="circuit-breaker.html" />
+ 
+
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/adaptive-pipeline.html" />
+<meta name="robots" content="noindex, follow" />
+
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            fapilog
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/quickstart.html">Quickstart Tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/hello-world.html">Hello World Walkthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../why-fapilog.html">Why fapilog?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../features.html">Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../comparisons.html">Python Logging Library Comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../core-concepts/index.html">Core Concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/pipeline-architecture.html">Pipeline Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/envelope.html">Envelope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/batching-backpressure.html">Batching &amp; Backpressure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/metrics.html">Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html">Diagnostics Resilience</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../core-concepts/diagnostics-resilience.html#id1">Diagnostics &amp; Resilience</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="presets.html">Configuration Presets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="execution-modes.html">Execution Modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="builder-configuration.html">Configuring Fapilog with the Builder API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="environment-variables.html">Environment Variable Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="production-checklist.html">Production Checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using-logger.html">Using the Logger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="context-enrichment.html">Context Enrichment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rotating-file-sink.html">Rotating File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sink-routing.html">Sink routing by level</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-breaker.html">Circuit Breaker</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Adaptive Pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sampling.html">Sampling Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="graceful-shutdown.html">Graceful Shutdown</a></li>
+<li class="toctree-l2"><a class="reference internal" href="performance-tuning.html">Performance Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="benchmarks.html">Performance Benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration-guide.html">Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stdlib-bridge.html">stdlib Logging Bridge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fastapi.html">FastAPI / ASGI Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reliability-defaults.html">Reliability Defaults and Guardrails</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing-plugins.html">Testing Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webhook-security.html">Webhook Security</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../cookbook/index.html">Cookbook</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/fastapi-microservice-production.html">FastAPI Microservices in Production</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/fastapi-json-logging.html">FastAPI JSON logging to stdout (Uvicorn access logs included)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/fastapi-request-id-logging.html">FastAPI request_id logging (correlation ID middleware, concurrency-safe)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/django-structured-logging.html">Django Structured JSON Logging with Correlation IDs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/non-blocking-async-logging.html">Non-blocking logging in FastAPI (protect latency under slow sinks)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/dev-prod-logging-config.html">One FastAPI logging config for dev + prod (Uvicorn/Gunicorn)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/redacting-secrets-pii.html">Redacting secrets and PII in FastAPI logs (Authorization, tokens, fields)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/compliance-redaction.html">Compliance Redaction: What Works and What Doesn’t</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/safe-request-response-logging.html">Logging request/response bodies without hanging (safe patterns)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/skip-noisy-endpoints.html">Skipping health/metrics endpoints (noise reduction)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/log-sampling-rate-limiting.html">Log sampling and rate limiting for FastAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/adaptive-sampling-high-volume.html">Adaptive Sampling for High-Volume Services</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/graceful-shutdown-flush.html">Graceful shutdown &amp; flushing logs (don’t lose logs on deploy)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/exception-logging-request-context.html">Exception logging in FastAPI with request_id + structured context</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../cookbook/custom-log-levels.html">Custom log levels in Python (TRACE, VERBOSE, NOTICE)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples &amp; Recipes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/builder-configurations.html">Builder Configuration Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/fastapi-logging.html">FastAPI Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cli-tools.html">Logging in Scripts/CLIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/redacting-secrets.html">Redacting Secrets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/structured-error-logging.html">Structured Error Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/kubernetes-file-sink.html">Kubernetes File Sink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/prometheus-metrics.html">Prometheus Metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/sampling-debug-logs.html">Sampling Debug Logs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/size-limited-destinations.html">Handling Size-Limited Destinations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloudwatch_logging/index.html">CloudWatch Logging (LocalStack)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/cloud-sinks/index.html">Cloud Sink Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../redaction/index.html">Redaction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/presets.html">Redaction Presets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/configuration.html">Redaction Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/behavior.html">Redaction Behavior</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../redaction/testing.html">Testing Redaction</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../enterprise.html">Enterprise Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api-reference/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/top-level-functions.html">Top-Level Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/builder.html">Builder API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/logger-methods.html">Logger Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/context-binding.html">Context Binding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/audit-trail.html">Audit Trail</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/configuration-map.html">Configuration Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/types.html">Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/plugins/index.html">Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/lifecycle-results.html">Lifecycle &amp; Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api-reference/modules.html">API Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../plugins/index.html">Plugin Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/quickstart.html">Plugin Author Quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/authoring.html">Authoring Fapilog Plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/contracts-and-versioning.html">Plugin Contracts and API Versioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/redactors.html">Redactors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/sinks.html">Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/enrichers.html">Enrichers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/filters.html">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/processors.html">Processors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/testing.html">Plugin Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/configuration.html">Plugin Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/health-checks.html">Plugin Health Checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugins/error-handling.html">Plugin Error Handling</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../patterns.html">Integration Patterns</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../patterns/sdk-sinks.html">Building SDK-Based Sinks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../patterns/http-sinks.html">Building HTTP-Based Sinks</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../troubleshooting/index.html">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/logs-dropped-under-load.html">Logs Dropped Under Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/destination-size-limits.html">Logs Rejected by Destination Size Limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/context-values-missing.html">Context Values Missing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/file-sink-not-rotating.html">File Sink Not Rotating</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/serialization-errors.html">Serialization Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/pii-showing-despite-redaction.html">PII Showing Despite Redaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/cloudwatch-sink.html">CloudWatch Sink Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../troubleshooting/loki-sink.html">Loki Sink Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../appendices.html">Appendices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../env-vars.html">Environment Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../settings-guide.html">Settings Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-guide.html">Schema Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../schema-migration-v1.0-to-v1.1.html">Schema Migration Guide: v1.0 to v1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../plugin-guide.html">Plugin Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../security-operator-workflows.html">Security Remediation &amp; Approval Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quality-signals.html">Quality Signals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/settings-to-builder-migration.html">Migrating from Settings to Builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/migration-file-rotation.html">Migration Guide: Simplified Rotating File Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/tenacity-integration.html">Tenacity Integration Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/testing.html">Testing with Fapilog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/async-context.html">Async Context Propagation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../addons/tamper-evident-logging.html">Tamper-Evident Logging Add-on (Optional)</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">fapilog</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">User Guide</a></li>
+      <li class="breadcrumb-item active">Adaptive Pipeline</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/user-guide/adaptive-pipeline.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="adaptive-pipeline">
+<h1>Adaptive Pipeline<a class="headerlink" href="#adaptive-pipeline" title="Link to this heading"></a></h1>
+<p>The adaptive pipeline automatically scales workers, batch sizes, and queue capacity based on real-time queue pressure. Instead of manually tuning these parameters for peak load, the pipeline self-adjusts as traffic changes.</p>
+<section id="quick-start">
+<h2>Quick start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
+
+<span class="c1"># One-line setup</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;adaptive&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Or with the builder:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_adaptive</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_circuit_breaker</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fallback_sink</span><span class="o">=</span><span class="s2">&quot;rotating_file&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="how-it-works">
+<h2>How it works<a class="headerlink" href="#how-it-works" title="Link to this heading"></a></h2>
+<p>The adaptive pipeline has three components:</p>
+<ol class="arabic simple">
+<li><p><strong>Pressure Monitor</strong> — Samples queue fill ratio at regular intervals (default: every 0.25s)</p></li>
+<li><p><strong>Escalation State Machine</strong> — Computes the current pressure level based on fill ratio thresholds with hysteresis</p></li>
+<li><p><strong>Actuators</strong> — Respond to pressure level changes by adjusting pipeline parameters</p></li>
+</ol>
+<section id="pressure-levels">
+<h3>Pressure levels<a class="headerlink" href="#pressure-levels" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Level</p></th>
+<th class="head"><p>Fill Ratio</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>NORMAL</p></td>
+<td><p>&lt; 60%</p></td>
+<td><p>Pipeline is healthy, no adjustments</p></td>
+</tr>
+<tr class="row-odd"><td><p>ELEVATED</p></td>
+<td><p>&gt;= 60%</p></td>
+<td><p>Queue filling up, begin scaling</p></td>
+</tr>
+<tr class="row-even"><td><p>HIGH</p></td>
+<td><p>&gt;= 80%</p></td>
+<td><p>Significant pressure, aggressive scaling</p></td>
+</tr>
+<tr class="row-odd"><td><p>CRITICAL</p></td>
+<td><p>&gt;= 92%</p></td>
+<td><p>Near capacity, maximum response</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="hysteresis">
+<h3>Hysteresis<a class="headerlink" href="#hysteresis" title="Link to this heading"></a></h3>
+<p>To prevent oscillation between levels, de-escalation thresholds are lower than escalation thresholds:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Transition</p></th>
+<th class="head"><p>Escalate At</p></th>
+<th class="head"><p>De-escalate At</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>NORMAL / ELEVATED</p></td>
+<td><p>60%</p></td>
+<td><p>40%</p></td>
+</tr>
+<tr class="row-odd"><td><p>ELEVATED / HIGH</p></td>
+<td><p>80%</p></td>
+<td><p>60%</p></td>
+</tr>
+<tr class="row-even"><td><p>HIGH / CRITICAL</p></td>
+<td><p>92%</p></td>
+<td><p>75%</p></td>
+</tr>
+</tbody>
+</table>
+<p>This means the queue must drop well below the escalation threshold before the pipeline scales back down.</p>
+</section>
+<section id="actuators">
+<h3>Actuators<a class="headerlink" href="#actuators" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Actuator</p></th>
+<th class="head"><p>What It Does</p></th>
+<th class="head"><p>NORMAL</p></th>
+<th class="head"><p>ELEVATED</p></th>
+<th class="head"><p>HIGH</p></th>
+<th class="head"><p>CRITICAL</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Worker scaling</p></td>
+<td><p>Adds worker tasks</p></td>
+<td><p>Initial (2)</p></td>
+<td><p>+1</p></td>
+<td><p>+2</p></td>
+<td><p>Max (8)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Batch sizing</p></td>
+<td><p>Adjusts batch sizes (opt-in)</p></td>
+<td><p>Base (100)</p></td>
+<td><p>1.5x</p></td>
+<td><p>2x</p></td>
+<td><p>4x</p></td>
+</tr>
+<tr class="row-even"><td><p>Queue growth</p></td>
+<td><p>Expands queue capacity</p></td>
+<td><p>Base</p></td>
+<td><p>1.5x</p></td>
+<td><p>2x</p></td>
+<td><p>Up to 4x</p></td>
+</tr>
+<tr class="row-odd"><td><p>Filter tightening</p></td>
+<td><p>Raises effective log level</p></td>
+<td><p>None</p></td>
+<td><p>Soft</p></td>
+<td><p>Medium</p></td>
+<td><p>Aggressive</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="configuration-reference">
+<h2>Configuration reference<a class="headerlink" href="#configuration-reference" title="Link to this heading"></a></h2>
+<p>All settings live under the <code class="docutils literal notranslate"><span class="pre">adaptive</span></code> key:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">enabled</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>Enable adaptive pipeline controller</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">check_interval_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.25</span></code></p></td>
+<td><p>Seconds between queue pressure samples</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cooldown_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2.0</span></code></p></td>
+<td><p>Minimum seconds between pressure level transitions</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">escalate_to_elevated</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.60</span></code></p></td>
+<td><p>Fill ratio to escalate NORMAL to ELEVATED</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">escalate_to_high</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.80</span></code></p></td>
+<td><p>Fill ratio to escalate ELEVATED to HIGH</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">escalate_to_critical</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.92</span></code></p></td>
+<td><p>Fill ratio to escalate HIGH to CRITICAL</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">deescalate_from_elevated</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.40</span></code></p></td>
+<td><p>Fill ratio to de-escalate ELEVATED to NORMAL</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">deescalate_from_high</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.60</span></code></p></td>
+<td><p>Fill ratio to de-escalate HIGH to ELEVATED</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">deescalate_from_critical</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.75</span></code></p></td>
+<td><p>Fill ratio to de-escalate CRITICAL to HIGH</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max_workers</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">8</span></code></p></td>
+<td><p>Maximum workers when dynamic scaling is active</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_queue_growth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">4.0</span></code></p></td>
+<td><p>Maximum queue capacity multiplier</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">batch_sizing</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>Enable adaptive batch sizing</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">circuit_pressure_boost</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.20</span></code></p></td>
+<td><p>Pressure boost per open circuit breaker</p></td>
+</tr>
+</tbody>
+</table>
+<section id="environment-variables">
+<h3>Environment variables<a class="headerlink" href="#environment-variables" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">FAPILOG_ADAPTIVE__ENABLED</span><span class="o">=</span><span class="nb">true</span>
+<span class="nv">FAPILOG_ADAPTIVE__CHECK_INTERVAL_SECONDS</span><span class="o">=</span><span class="m">0</span>.25
+<span class="nv">FAPILOG_ADAPTIVE__COOLDOWN_SECONDS</span><span class="o">=</span><span class="m">2</span>.0
+<span class="nv">FAPILOG_ADAPTIVE__ESCALATE_TO_ELEVATED</span><span class="o">=</span><span class="m">0</span>.60
+<span class="nv">FAPILOG_ADAPTIVE__ESCALATE_TO_HIGH</span><span class="o">=</span><span class="m">0</span>.80
+<span class="nv">FAPILOG_ADAPTIVE__ESCALATE_TO_CRITICAL</span><span class="o">=</span><span class="m">0</span>.92
+<span class="nv">FAPILOG_ADAPTIVE__MAX_WORKERS</span><span class="o">=</span><span class="m">8</span>
+<span class="nv">FAPILOG_ADAPTIVE__MAX_QUEUE_GROWTH</span><span class="o">=</span><span class="m">4</span>.0
+<span class="nv">FAPILOG_ADAPTIVE__BATCH_SIZING</span><span class="o">=</span><span class="nb">true</span>
+<span class="nv">FAPILOG_ADAPTIVE__CIRCUIT_PRESSURE_BOOST</span><span class="o">=</span><span class="m">0</span>.20
+</pre></div>
+</div>
+</section>
+<section id="settings-based-configuration">
+<h3>Settings-based configuration<a class="headerlink" href="#settings-based-configuration" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">Settings</span>
+
+<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span><span class="n">adaptive</span><span class="o">=</span><span class="p">{</span>
+    <span class="s2">&quot;enabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s2">&quot;max_workers&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+    <span class="s2">&quot;max_queue_growth&quot;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>
+    <span class="s2">&quot;batch_sizing&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s2">&quot;check_interval_seconds&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+    <span class="s2">&quot;cooldown_seconds&quot;</span><span class="p">:</span> <span class="mf">3.0</span><span class="p">,</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="adaptive-batch-sizing">
+<h2>Adaptive batch sizing<a class="headerlink" href="#adaptive-batch-sizing" title="Link to this heading"></a></h2>
+<p>Adaptive batch sizing (<code class="docutils literal notranslate"><span class="pre">batch_sizing=True</span></code>) dynamically adjusts the worker drain batch size based on measured sink latency. It uses a proportional controller with EWMA smoothing — fast sinks get larger batches, slow sinks get smaller batches.</p>
+<p><strong>This is disabled by default</strong> because it operates globally across all sinks and only benefits sinks that accept batched writes.</p>
+<section id="when-to-enable-batch-sizing">
+<h3>When to enable batch sizing<a class="headerlink" href="#when-to-enable-batch-sizing" title="Link to this heading"></a></h3>
+<p>Enable <code class="docutils literal notranslate"><span class="pre">batch_sizing=True</span></code> when your pipeline includes <strong>batch-aware sinks</strong> that benefit from larger payloads:</p>
+<ul class="simple">
+<li><p><strong>CloudWatch Logs</strong> — PutLogEvents accepts up to 10,000 events per call</p></li>
+<li><p><strong>Grafana Loki</strong> — Push API accepts multiple log streams per request</p></li>
+<li><p><strong>PostgreSQL</strong> — Bulk INSERT is significantly faster than individual rows</p></li>
+<li><p><strong>HTTP sinks</strong> — Remote endpoints that accept batched payloads</p></li>
+</ul>
+</section>
+<section id="when-to-leave-it-disabled">
+<h3>When to leave it disabled<a class="headerlink" href="#when-to-leave-it-disabled" title="Link to this heading"></a></h3>
+<p>Leave <code class="docutils literal notranslate"><span class="pre">batch_sizing=False</span></code> (the default) when you only use sinks that process events individually:</p>
+<ul class="simple">
+<li><p><strong>stdout</strong> — Writes one JSON line per event</p></li>
+<li><p><strong>Rotating file</strong> — Writes one line per event</p></li>
+</ul>
+<p>For these sinks, growing the batch size just increases the time events sit in the worker buffer before being written, adding latency with no throughput benefit.</p>
+</section>
+<section id="enabling-batch-sizing">
+<h3>Enabling batch sizing<a class="headerlink" href="#enabling-batch-sizing" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Builder API</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;adaptive&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_adaptive</span><span class="p">(</span><span class="n">batch_sizing</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_cloudwatch</span><span class="p">(</span><span class="s2">&quot;/myapp/prod&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Environment variable</span>
+<span class="nv">FAPILOG_ADAPTIVE__BATCH_SIZING</span><span class="o">=</span><span class="nb">true</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p><strong>Note:</strong> Adaptive batch sizing controls the worker-level drain batch size, not individual sink batch sizes. Cloud sinks have their own <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> parameters (e.g., <code class="docutils literal notranslate"><span class="pre">add_cloudwatch(batch_size=200)</span></code>) that are configured independently.</p>
+</div></blockquote>
+</section>
+</section>
+<section id="threshold-validation">
+<h2>Threshold validation<a class="headerlink" href="#threshold-validation" title="Link to this heading"></a></h2>
+<p>Escalation thresholds must be strictly ascending, and each de-escalation threshold must be strictly below its corresponding escalation threshold:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">escalate_to_elevated</span> <span class="o">&lt;</span> <span class="n">escalate_to_high</span> <span class="o">&lt;</span> <span class="n">escalate_to_critical</span>
+<span class="n">deescalate_from_elevated</span> <span class="o">&lt;</span> <span class="n">escalate_to_elevated</span>
+<span class="n">deescalate_from_high</span> <span class="o">&lt;</span> <span class="n">escalate_to_high</span>
+<span class="n">deescalate_from_critical</span> <span class="o">&lt;</span> <span class="n">escalate_to_critical</span>
+</pre></div>
+</div>
+<p>Invalid threshold ordering raises a <code class="docutils literal notranslate"><span class="pre">ValidationError</span></code> at configuration time.</p>
+</section>
+<section id="circuit-breaker-integration">
+<h2>Circuit breaker integration<a class="headerlink" href="#circuit-breaker-integration" title="Link to this heading"></a></h2>
+<p>When a sink’s circuit breaker is open, the adaptive pipeline treats it as additional pressure. The <code class="docutils literal notranslate"><span class="pre">circuit_pressure_boost</span></code> setting (default: 0.20) is added to the effective fill ratio for each open circuit:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">effective_fill_ratio</span> <span class="o">=</span> <span class="n">actual_fill_ratio</span> <span class="o">+</span> <span class="p">(</span><span class="n">open_circuits</span> <span class="o">*</span> <span class="n">circuit_pressure_boost</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This ensures the pipeline responds proactively when sinks are failing, even if the queue isn’t physically full yet.</p>
+</section>
+<section id="tuning-guidelines">
+<h2>Tuning guidelines<a class="headerlink" href="#tuning-guidelines" title="Link to this heading"></a></h2>
+<p><strong>For latency-sensitive services:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_adaptive</span><span class="p">(</span>
+    <span class="n">max_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>          <span class="c1"># Cap worker scaling</span>
+    <span class="n">max_queue_growth</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>   <span class="c1"># Limit queue growth</span>
+    <span class="n">check_interval_seconds</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>  <span class="c1"># Faster response</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>For high-throughput batch processing:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_adaptive</span><span class="p">(</span>
+    <span class="n">max_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+    <span class="n">max_queue_growth</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span>
+    <span class="n">batch_sizing</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">cooldown_seconds</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>   <span class="c1"># Slower transitions to avoid oscillation</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Conservative escalation (fewer false alarms):</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Settings</span><span class="p">(</span><span class="n">adaptive</span><span class="o">=</span><span class="p">{</span>
+    <span class="s2">&quot;enabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s2">&quot;escalate_to_elevated&quot;</span><span class="p">:</span> <span class="mf">0.70</span><span class="p">,</span>
+    <span class="s2">&quot;escalate_to_high&quot;</span><span class="p">:</span> <span class="mf">0.85</span><span class="p">,</span>
+    <span class="s2">&quot;escalate_to_critical&quot;</span><span class="p">:</span> <span class="mf">0.95</span><span class="p">,</span>
+    <span class="s2">&quot;cooldown_seconds&quot;</span><span class="p">:</span> <span class="mf">5.0</span><span class="p">,</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+</section>
+<section id="the-adaptive-preset">
+<h2>The adaptive preset<a class="headerlink" href="#the-adaptive-preset" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">adaptive</span></code> preset (<code class="docutils literal notranslate"><span class="pre">get_logger(preset=&quot;adaptive&quot;)</span></code>) enables all adaptive features with sensible defaults:</p>
+<ul class="simple">
+<li><p>Production base settings (2 workers, batch size 100)</p></li>
+<li><p>Adaptive pipeline enabled (worker scaling, queue growth)</p></li>
+<li><p>Adaptive batch sizing disabled by default (enable with <code class="docutils literal notranslate"><span class="pre">with_adaptive(batch_sizing=True)</span></code> when using batch-aware sinks)</p></li>
+<li><p>Circuit breaker with rotating file fallback</p></li>
+<li><p>Protected levels: ERROR, CRITICAL, FATAL, AUDIT, SECURITY</p></li>
+<li><p>Credential redaction enabled</p></li>
+</ul>
+<p>See <a class="reference internal" href="presets.html"><span class="std std-doc">Presets</span></a> for a comparison of all available presets.</p>
+</section>
+<section id="related">
+<h2>Related<a class="headerlink" href="#related" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="performance-tuning.html"><span class="std std-doc">Performance Tuning</span></a> — Manual tuning options</p></li>
+<li><p><a class="reference internal" href="circuit-breaker.html"><span class="std std-doc">Circuit Breaker</span></a> — Sink fault isolation and fallback routing</p></li>
+<li><p><a class="reference internal" href="presets.html"><span class="std std-doc">Presets</span></a> — Preset comparison and selection guide</p></li>
+<li><p><a class="reference internal" href="../api-reference/builder.html"><span class="std std-doc">Builder API</span></a> — <code class="docutils literal notranslate"><span class="pre">with_adaptive()</span></code> method reference</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          
+<footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer" style="position: relative;">
+        <a href="circuit-breaker.html" class="btn btn-neutral float-left" title="Circuit Breaker" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="sampling.html" class="btn btn-neutral float-right" title="Sampling Strategies" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+      <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 50%; margin-top: -0.5em;">
+        <a href="https://fapilog.dev">www.fapilog.dev</a>
+      </div>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Chris Haste.
+      <span class="lastupdated">Last updated on February 12, 2026.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

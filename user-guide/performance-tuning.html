@@ -88,6 +88,8 @@
 <li class="toctree-l2"><a class="reference internal" href="context-enrichment.html">Context Enrichment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rotating-file-sink.html">Rotating File Sink</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sink-routing.html">Sink routing by level</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-breaker.html">Circuit Breaker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="adaptive-pipeline.html">Adaptive Pipeline</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sampling.html">Sampling Strategies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="graceful-shutdown.html">Graceful Shutdown</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Performance Tuning</a></li>
@@ -342,6 +344,82 @@
 <li><p>Set <code class="docutils literal notranslate"><span class="pre">[]</span></code> to disable priority dropping for strict FIFO behavior</p></li>
 <li><p>Leave default for most production workloads</p></li>
 </ul>
+</section>
+<section id="adaptive-pipeline-automatic-tuning">
+<h2>Adaptive pipeline (automatic tuning)<a class="headerlink" href="#adaptive-pipeline-automatic-tuning" title="Link to this heading"></a></h2>
+<p>Instead of manually tuning workers, batch sizes, and queue sizes, the adaptive pipeline monitors queue pressure and adjusts automatically.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggerBuilder</span>
+
+<span class="c1"># One-line setup with the adaptive preset</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;adaptive&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+<span class="c1"># Or enable adaptive on any preset</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_adaptive</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="c1"># Enable batch sizing when using batch-aware sinks (CloudWatch, Loki, PostgreSQL)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_adaptive</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">batch_sizing</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_cloudwatch</span><span class="p">(</span><span class="s2">&quot;/myapp/prod&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Via environment variables</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_ADAPTIVE__ENABLED</span><span class="o">=</span><span class="nb">true</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_ADAPTIVE__MAX_WORKERS</span><span class="o">=</span><span class="m">8</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FAPILOG_ADAPTIVE__BATCH_SIZING</span><span class="o">=</span><span class="nb">true</span>
+</pre></div>
+</div>
+<p><strong>What it adjusts:</strong></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Actuator</p></th>
+<th class="head"><p>Normal</p></th>
+<th class="head"><p>Elevated</p></th>
+<th class="head"><p>High</p></th>
+<th class="head"><p>Critical</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Workers</p></td>
+<td><p>Initial (2)</p></td>
+<td><p>+1</p></td>
+<td><p>+2</p></td>
+<td><p>Max (8)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Batch size (opt-in)</p></td>
+<td><p>Base (100)</p></td>
+<td><p>1.5x</p></td>
+<td><p>2x</p></td>
+<td><p>4x</p></td>
+</tr>
+<tr class="row-even"><td><p>Queue capacity</p></td>
+<td><p>Base</p></td>
+<td><p>1.5x</p></td>
+<td><p>2x</p></td>
+<td><p>Up to 4x</p></td>
+</tr>
+<tr class="row-odd"><td><p>Filter tightening</p></td>
+<td><p>None</p></td>
+<td><p>Soft</p></td>
+<td><p>Medium</p></td>
+<td><p>Aggressive</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>When to use adaptive vs manual:</strong></p>
+<ul class="simple">
+<li><p><strong>Adaptive</strong>: Variable workloads, microservices, deployments where traffic spikes are unpredictable</p></li>
+<li><p><strong>Manual</strong>: Steady-state services where you know exact throughput, latency-critical paths where you want deterministic behavior</p></li>
+</ul>
+<p>See <a class="reference internal" href="adaptive-pipeline.html"><span class="std std-doc">Adaptive Pipeline</span></a> for threshold configuration and detailed tuning.</p>
 </section>
 <section id="sampling-low-severity-logs">
 <h2>Sampling low-severity logs<a class="headerlink" href="#sampling-low-severity-logs" title="Link to this heading"></a></h2>
