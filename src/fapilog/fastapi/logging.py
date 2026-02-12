@@ -193,7 +193,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 "LoggingMiddleware requires logger in app.state. "
                 "Call setup_logging(app) before adding middleware, "
                 "or pass logger= parameter. "
-                "See: https://fapilog.readthedocs.io/en/latest/examples/fastapi-logging.html"
+                "See: https://docs.fapilog.dev/en/latest/examples/fastapi-logging.html"
             )
 
         async with self._logger_lock:

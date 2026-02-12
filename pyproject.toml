@@ -124,7 +124,7 @@ all = [
 
 [project.urls]
 Homepage = "https://fapilog.dev"
-Documentation = "https://fapilog.readthedocs.io/en/stable/"
+Documentation = "https://docs.fapilog.dev/en/stable/"
 Repository = "https://github.com/chris-haste/fapilog"
 "Bug Tracker" = "https://github.com/chris-haste/fapilog/issues"
 Discord = "https://discord.gg/gHaNsczWte"
