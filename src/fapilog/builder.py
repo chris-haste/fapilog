@@ -140,7 +140,7 @@ class LoggerBuilder:
         self._preset = preset
 
         # Apply CREDENTIALS redaction preset for security-focused presets
-        if preset in ("production", "fastapi", "serverless"):
+        if preset in ("production", "fastapi", "serverless", "adaptive"):
             self.with_redaction(preset="CREDENTIALS")
 
         # Apply comprehensive redaction presets for hardened mode
@@ -780,6 +780,50 @@ class LoggerBuilder:
         if parsed is None:
             raise ValueError(f"Invalid duration format: {value}")
         return parsed
+
+    def with_adaptive(
+        self,
+        *,
+        enabled: bool = True,
+        max_workers: int | None = None,
+        max_queue_growth: float | None = None,
+        batch_sizing: bool | None = None,
+        check_interval_seconds: float | None = None,
+        cooldown_seconds: float | None = None,
+        circuit_pressure_boost: float | None = None,
+    ) -> Self:
+        """Configure adaptive pipeline behavior.
+
+        Enables pressure monitoring, dynamic worker scaling, adaptive batch
+        sizing, and queue growth based on queue fill ratio.
+
+        Args:
+            enabled: Enable adaptive pipeline controller (default: True)
+            max_workers: Maximum workers when dynamic scaling is active
+            max_queue_growth: Maximum queue capacity multiplier
+            batch_sizing: Enable adaptive batch sizing
+            check_interval_seconds: Seconds between queue pressure samples
+            cooldown_seconds: Minimum seconds between pressure transitions
+            circuit_pressure_boost: Pressure boost per open circuit breaker
+
+        Example:
+            >>> builder.with_adaptive(max_workers=6, batch_sizing=True)
+        """
+        adaptive: dict[str, object] = {"enabled": enabled}
+        if max_workers is not None:
+            adaptive["max_workers"] = max_workers
+        if max_queue_growth is not None:
+            adaptive["max_queue_growth"] = max_queue_growth
+        if batch_sizing is not None:
+            adaptive["batch_sizing"] = batch_sizing
+        if check_interval_seconds is not None:
+            adaptive["check_interval_seconds"] = check_interval_seconds
+        if cooldown_seconds is not None:
+            adaptive["cooldown_seconds"] = cooldown_seconds
+        if circuit_pressure_boost is not None:
+            adaptive["circuit_pressure_boost"] = circuit_pressure_boost
+        self._config.setdefault("adaptive", {}).update(adaptive)
+        return self
 
     def with_circuit_breaker(
         self,

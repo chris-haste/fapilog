@@ -78,6 +78,22 @@ CORE_COVERAGE: dict[str, list[str]] = {
         "fallback_scrub_raw",
         "fallback_raw_max_bytes",
     ],
+    # Adaptive pipeline (Story 10.57)
+    "with_adaptive": [
+        "enabled",
+        "check_interval_seconds",
+        "cooldown_seconds",
+        "escalate_to_elevated",
+        "escalate_to_high",
+        "escalate_to_critical",
+        "deescalate_from_critical",
+        "deescalate_from_high",
+        "deescalate_from_elevated",
+        "batch_sizing",
+        "max_workers",
+        "max_queue_growth",
+        "circuit_pressure_boost",
+    ],
     # Graceful shutdown (Story 6.13)
     "with_atexit_drain": ["atexit_drain_enabled", "atexit_drain_timeout_seconds"],
     "with_signal_handlers": ["signal_handler_enabled"],

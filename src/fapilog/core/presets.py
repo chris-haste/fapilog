@@ -6,6 +6,7 @@ import copy
 from typing import Any, Literal
 
 PresetName = Literal[
+    "adaptive",
     "dev",
     "fastapi",
     "hardened",
@@ -17,6 +18,50 @@ PresetName = Literal[
 ]
 
 PRESETS: dict[str, dict[str, Any]] = {
+    "adaptive": {
+        "core": {
+            "log_level": "INFO",
+            "worker_count": 2,
+            "batch_max_size": 100,
+            "drop_on_full": True,
+            "redaction_fail_mode": "warn",
+            "sinks": ["stdout_json", "rotating_file"],
+            "enrichers": ["runtime_info", "context_vars"],
+            "redactors": ["field_mask", "regex_mask", "url_credentials"],
+            "protected_levels": ["ERROR", "CRITICAL", "FATAL", "AUDIT", "SECURITY"],
+            "sink_circuit_breaker_enabled": True,
+            "sink_circuit_breaker_fallback_sink": "rotating_file",
+        },
+        "adaptive": {
+            "enabled": True,
+            "max_workers": 8,
+            "max_queue_growth": 4.0,
+            "batch_sizing": True,
+            "circuit_pressure_boost": 0.20,
+        },
+        "sink_config": {
+            "rotating_file": {
+                "directory": "./logs",
+                "filename_prefix": "fapilog",
+                "max_bytes": 52_428_800,
+                "max_files": 10,
+                "compress_rotated": True,
+            },
+            "postgres": {
+                "create_table": False,
+            },
+        },
+        "enricher_config": {
+            "runtime_info": {},
+            "context_vars": {},
+        },
+        "redactor_config": {
+            "field_mask": {},
+            "regex_mask": {},
+            "url_credentials": {},
+        },
+        "_apply_credentials_preset": True,
+    },
     "dev": {
         "core": {
             "log_level": "DEBUG",

@@ -89,6 +89,8 @@ BUILDER_TO_CORE_FIELDS: dict[str, list[str]] = {
     "with_flush_on_critical": ["flush_on_critical"],
     # Story 1.37: Priority-aware queue
     "with_protected_levels": ["protected_levels"],
+    # Story 10.57: Adaptive pipeline
+    "with_adaptive": [],  # Covers AdaptiveSettings (nested model, not CoreSettings)
     # Story 4.54: Redaction fail mode, Story 4.59: Raw output hardening
     "with_fallback_redaction": [
         "fallback_redact_mode",
