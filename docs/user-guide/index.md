@@ -17,6 +17,8 @@ using-logger
 context-enrichment
 rotating-file-sink
 sink-routing
+circuit-breaker
+adaptive-pipeline
 sampling
 graceful-shutdown
 performance-tuning
