@@ -221,6 +221,7 @@ class TestPresetConsistency:
         This test ensures new presets get documented.
         """
         expected_presets = {
+            "adaptive",
             "dev",
             "production",
             "production-latency",

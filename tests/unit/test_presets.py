@@ -302,6 +302,7 @@ class TestPresetValidation:
     @pytest.mark.parametrize(
         "name",
         [
+            "adaptive",
             "dev",
             "high-volume",
             "production",
@@ -335,7 +336,7 @@ class TestPresetValidation:
         """Error message includes list of valid presets."""
         with pytest.raises(
             ValueError,
-            match="Valid presets: dev, fastapi, hardened, high-volume, minimal, production, production-latency, serverless",
+            match="Valid presets: adaptive, dev, fastapi, hardened, high-volume, minimal, production, production-latency, serverless",
         ):
             validate_preset("invalid")
 
@@ -380,6 +381,7 @@ class TestPresetToSettings:
     @pytest.mark.parametrize(
         "name",
         [
+            "adaptive",
             "dev",
             "high-volume",
             "production",
@@ -400,10 +402,11 @@ class TestPresetToSettings:
 class TestPresetList:
     """Test preset listing."""
 
-    def test_list_presets_returns_all_eight(self):
-        """list_presets returns all eight preset names."""
+    def test_list_presets_returns_all(self):
+        """list_presets returns all preset names."""
         presets = list_presets()
         assert set(presets) == {
+            "adaptive",
             "dev",
             "high-volume",
             "production",
@@ -702,7 +705,7 @@ class TestPresetNameLiteral:
         from fapilog import PresetName
 
         # Verify it's the same type, not an empty re-export
-        assert len(get_args(PresetName)) == 8
+        assert len(get_args(PresetName)) == 9
 
 
 class TestPresetImmutability:

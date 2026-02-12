@@ -644,6 +644,36 @@ class AdaptiveSettings(BaseModel):
         description="Fill ratio below which ELEVATED de-escalates to NORMAL",
     )
 
+    @model_validator(mode="after")
+    def validate_threshold_ordering(self) -> AdaptiveSettings:
+        """Ensure escalation thresholds are ascending and de-escalation below escalation."""
+        if self.escalate_to_elevated >= self.escalate_to_high:
+            raise ValueError(
+                f"escalate_to_elevated ({self.escalate_to_elevated}) "
+                f"must be less than escalate_to_high ({self.escalate_to_high})"
+            )
+        if self.escalate_to_high >= self.escalate_to_critical:
+            raise ValueError(
+                f"escalate_to_high ({self.escalate_to_high}) "
+                f"must be less than escalate_to_critical ({self.escalate_to_critical})"
+            )
+        if self.deescalate_from_elevated >= self.escalate_to_elevated:
+            raise ValueError(
+                f"deescalate_from_elevated ({self.deescalate_from_elevated}) "
+                f"must be less than escalate_to_elevated ({self.escalate_to_elevated})"
+            )
+        if self.deescalate_from_high >= self.escalate_to_high:
+            raise ValueError(
+                f"deescalate_from_high ({self.deescalate_from_high}) "
+                f"must be less than escalate_to_high ({self.escalate_to_high})"
+            )
+        if self.deescalate_from_critical >= self.escalate_to_critical:
+            raise ValueError(
+                f"deescalate_from_critical ({self.deescalate_from_critical}) "
+                f"must be less than escalate_to_critical ({self.escalate_to_critical})"
+            )
+        return self
+
 
 class SizeGuardSettings(BaseModel):
     """Per-plugin configuration for SizeGuardProcessor."""
