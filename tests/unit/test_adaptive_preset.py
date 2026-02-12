@@ -40,10 +40,10 @@ class TestAdaptivePresetContent:
         config = get_preset("adaptive")
         assert config["adaptive"]["enabled"] is True
 
-    def test_adaptive_preset_enables_batch_sizing(self) -> None:
-        """Adaptive preset enables adaptive.batch_sizing."""
+    def test_adaptive_preset_disables_batch_sizing_by_default(self) -> None:
+        """Adaptive preset disables batch_sizing (only useful for batch-aware sinks)."""
         config = get_preset("adaptive")
-        assert config["adaptive"]["batch_sizing"] is True
+        assert config["adaptive"]["batch_sizing"] is False
 
     def test_adaptive_preset_sets_max_workers(self) -> None:
         """Adaptive preset sets max_workers to 8."""
@@ -140,7 +140,7 @@ class TestAdaptivePresetToSettings:
         settings = Settings(**config)
         assert settings.core.log_level == "INFO"
         assert settings.adaptive.enabled is True
-        assert settings.adaptive.batch_sizing is True
+        assert settings.adaptive.batch_sizing is False
         assert settings.adaptive.max_workers == 8
 
     def test_adaptive_preset_returns_deep_copy(self) -> None:

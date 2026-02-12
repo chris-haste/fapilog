@@ -119,6 +119,38 @@ routing_sink = RoutingSink(
 )
 ```
 
+## Circuit breaker fallback routing
+
+When a sink's circuit breaker opens (after consecutive failures), events destined for that sink can be automatically rerouted to a fallback sink instead of being dropped.
+
+```python
+from fapilog import LoggerBuilder
+
+logger = (
+    LoggerBuilder()
+    .with_preset("production")
+    .add_http("https://logs.example.com/ingest")
+    .with_circuit_breaker(
+        enabled=True,
+        failure_threshold=5,
+        recovery_timeout="30s",
+        fallback_sink="rotating_file",
+    )
+    .build()
+)
+```
+
+In this example, if the HTTP sink fails 5 times in a row, the circuit opens and events are written to the rotating file sink instead. After 30 seconds, the circuit enters a half-open state and probes the HTTP sink with a single event to check recovery.
+
+The `adaptive` preset enables this automatically with `rotating_file` as the fallback:
+
+```python
+logger = get_logger(preset="adaptive")
+# Circuit breaker enabled with rotating_file fallback
+```
+
+See [Circuit Breaker](circuit-breaker.md) for a complete guide on configuring fallback routing patterns.
+
 ## Tips
 
 - Keep rule lists small; routing is O(1) per event.
