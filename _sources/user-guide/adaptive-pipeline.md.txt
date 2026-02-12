@@ -212,6 +212,32 @@ Settings(adaptive={
 })
 ```
 
+## Inspecting adaptive behavior
+
+After draining, `DrainResult.adaptive` contains a summary of what the adaptive system did during the logger's lifetime. This is useful for monitoring, alerting, and tuning your configuration.
+
+```python
+result = await logger.drain()
+
+if result.adaptive is not None:
+    summary = result.adaptive
+    print(f"Peak pressure: {summary.peak_pressure_level.value}")
+    print(f"Escalations: {summary.escalation_count}")
+    print(f"De-escalations: {summary.deescalation_count}")
+    print(f"Filters swapped: {summary.filters_swapped}")
+    print(f"Workers scaled: {summary.workers_scaled} (peak: {summary.peak_workers})")
+    print(f"Batch resizes: {summary.batch_resize_count}")
+    print(f"Queue growths: {summary.queue_growth_count} (peak: {summary.peak_queue_capacity})")
+
+    # Time breakdown by pressure level
+    for level, seconds in summary.time_at_level.items():
+        print(f"  {level.value}: {seconds:.1f}s")
+```
+
+When the adaptive pipeline is not enabled, `result.adaptive` is `None` and existing `DrainResult` fields are unchanged.
+
+See [Lifecycle & Results](../api-reference/lifecycle-results.md) for the full field reference.
+
 ## The adaptive preset
 
 The `adaptive` preset (`get_logger(preset="adaptive")`) enables all adaptive features with sensible defaults:

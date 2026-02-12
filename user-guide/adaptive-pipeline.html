@@ -553,6 +553,29 @@
 </pre></div>
 </div>
 </section>
+<section id="inspecting-adaptive-behavior">
+<h2>Inspecting adaptive behavior<a class="headerlink" href="#inspecting-adaptive-behavior" title="Link to this heading"></a></h2>
+<p>After draining, <code class="docutils literal notranslate"><span class="pre">DrainResult.adaptive</span></code> contains a summary of what the adaptive system did during the logger’s lifetime. This is useful for monitoring, alerting, and tuning your configuration.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">drain</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">adaptive</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">adaptive</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Peak pressure: </span><span class="si">{</span><span class="n">summary</span><span class="o">.</span><span class="n">peak_pressure_level</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Escalations: </span><span class="si">{</span><span class="n">summary</span><span class="o">.</span><span class="n">escalation_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;De-escalations: </span><span class="si">{</span><span class="n">summary</span><span class="o">.</span><span class="n">deescalation_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Filters swapped: </span><span class="si">{</span><span class="n">summary</span><span class="o">.</span><span class="n">filters_swapped</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Workers scaled: </span><span class="si">{</span><span class="n">summary</span><span class="o">.</span><span class="n">workers_scaled</span><span class="si">}</span><span class="s2"> (peak: </span><span class="si">{</span><span class="n">summary</span><span class="o">.</span><span class="n">peak_workers</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Batch resizes: </span><span class="si">{</span><span class="n">summary</span><span class="o">.</span><span class="n">batch_resize_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Queue growths: </span><span class="si">{</span><span class="n">summary</span><span class="o">.</span><span class="n">queue_growth_count</span><span class="si">}</span><span class="s2"> (peak: </span><span class="si">{</span><span class="n">summary</span><span class="o">.</span><span class="n">peak_queue_capacity</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Time breakdown by pressure level</span>
+    <span class="k">for</span> <span class="n">level</span><span class="p">,</span> <span class="n">seconds</span> <span class="ow">in</span> <span class="n">summary</span><span class="o">.</span><span class="n">time_at_level</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">level</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">seconds</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>When the adaptive pipeline is not enabled, <code class="docutils literal notranslate"><span class="pre">result.adaptive</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> and existing <code class="docutils literal notranslate"><span class="pre">DrainResult</span></code> fields are unchanged.</p>
+<p>See <a class="reference internal" href="../api-reference/lifecycle-results.html"><span class="std std-doc">Lifecycle &amp; Results</span></a> for the full field reference.</p>
+</section>
 <section id="the-adaptive-preset">
 <h2>The adaptive preset<a class="headerlink" href="#the-adaptive-preset" title="Link to this heading"></a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">adaptive</span></code> preset (<code class="docutils literal notranslate"><span class="pre">get_logger(preset=&quot;adaptive&quot;)</span></code>) enables all adaptive features with sensible defaults:</p>
