@@ -207,7 +207,7 @@ class TestParallelFanoutWriter:
         sink2 = MagicMock()
         sink2.write = AsyncMock()
 
-        write, _ = _fanout_writer([sink1, sink2])
+        write, _, _ = _fanout_writer([sink1, sink2])
         await write({"message": "test"})
 
         sink1.write.assert_called_once()
@@ -223,7 +223,7 @@ class TestParallelFanoutWriter:
         sink2 = MagicMock()
         sink2.write = AsyncMock()
 
-        write, _ = _fanout_writer(
+        write, _, _ = _fanout_writer(
             [sink1, sink2],
             parallel=True,
         )
@@ -242,7 +242,7 @@ class TestParallelFanoutWriter:
         sink2 = MagicMock()
         sink2.write = AsyncMock()
 
-        write, _ = _fanout_writer([sink1, sink2], parallel=True)
+        write, _, _ = _fanout_writer([sink1, sink2], parallel=True)
 
         # Should not raise, and sink2 should still be called
         await write({"message": "test"})
@@ -264,7 +264,7 @@ class TestParallelFanoutWriter:
         sink2.write = AsyncMock()
 
         config = SinkCircuitBreakerConfig(failure_threshold=2)
-        write, _ = _fanout_writer([sink1, sink2], circuit_config=config)
+        write, _, _ = _fanout_writer([sink1, sink2], circuit_config=config)
 
         # First two calls - circuit still closed, will try sink1
         await write({"message": "test1"})
@@ -289,7 +289,7 @@ class TestParallelFanoutWriter:
         sink1 = MagicMock()
         sink1.write = AsyncMock(side_effect=RuntimeError("fails"))
 
-        write, _ = _fanout_writer([sink1])
+        write, _, _ = _fanout_writer([sink1])
 
         # Without circuit breaker, each call tries the sink
         for _ in range(10):

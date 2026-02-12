@@ -146,6 +146,7 @@ class PressureMonitor:
         deescalate_from_elevated: float = 0.40,
         diagnostic_writer: DiagnosticWriter | None = None,
         metric_setter: MetricSetter | None = None,
+        circuit_pressure_boost: float = 0.20,
     ) -> None:
         self._queue = queue
         self._check_interval = check_interval_seconds
@@ -162,6 +163,8 @@ class PressureMonitor:
         self._diagnostic_writer = diagnostic_writer
         self._metric_setter = metric_setter
         self._stopped = False
+        self._circuit_boost: float = 0.0
+        self._circuit_boost_per_open: float = circuit_pressure_boost
 
     @property
     def pressure_level(self) -> PressureLevel:
@@ -170,6 +173,22 @@ class PressureMonitor:
     def on_level_change(self, callback: PressureCallback) -> None:
         """Register a callback invoked on pressure level changes."""
         self._callbacks.append(callback)
+
+    def on_circuit_state_change(self, sink_name: str, new_state: object) -> None:
+        """Adjust circuit pressure boost when a sink circuit changes state.
+
+        Called by SinkCircuitBreaker.on_state_change callback.
+        OPEN adds boost, CLOSED removes it.
+        """
+        # Import locally to avoid circular dependency at module level
+        from .circuit_breaker import CircuitState
+
+        if new_state == CircuitState.OPEN:
+            self._circuit_boost += self._circuit_boost_per_open
+        elif new_state == CircuitState.CLOSED:
+            self._circuit_boost = max(
+                0.0, self._circuit_boost - self._circuit_boost_per_open
+            )
 
     def stop(self) -> None:
         """Signal the monitor to stop after the current tick."""
@@ -186,7 +205,8 @@ class PressureMonitor:
         capacity = self._queue.capacity
         if capacity <= 0:
             return
-        fill_ratio = self._queue.qsize() / capacity
+        raw_fill = self._queue.qsize() / capacity
+        fill_ratio = min(1.0, raw_fill + self._circuit_boost)
 
         old_level = self._state_machine.current_level
         new_level = self._state_machine.evaluate(fill_ratio)
@@ -235,10 +255,11 @@ class PressureMonitor:
                 pass
 
 
-# Mark public API for vulture (Story 1.44)
+# Mark public API for vulture (Story 1.44, 4.73)
 _VULTURE_USED: tuple[object, ...] = (
     PressureMonitor.pressure_level,
     PressureMonitor.on_level_change,
+    PressureMonitor.on_circuit_state_change,
     PressureMonitor.stop,
     PressureMonitor.run,
     MetricSetter,

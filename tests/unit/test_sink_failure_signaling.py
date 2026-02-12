@@ -80,7 +80,7 @@ class TestFanoutWriterFailureHandling:
         mock_sink.write = failing_write
         mock_sink.write_serialized = AsyncMock()
 
-        write_fn, _ = _fanout_writer([mock_sink])
+        write_fn, _, _ = _fanout_writer([mock_sink])
 
         with patch(
             "fapilog.core.sink_writers.handle_sink_write_failure"
@@ -109,7 +109,7 @@ class TestFanoutWriterFailureHandling:
         mock_sink.write = failing_write
         mock_sink.write_serialized = AsyncMock()
 
-        write_fn, _ = _fanout_writer([mock_sink])
+        write_fn, _, _ = _fanout_writer([mock_sink])
 
         with patch(
             "fapilog.core.sink_writers.handle_sink_write_failure"
@@ -135,7 +135,7 @@ class TestFanoutWriterFailureHandling:
         mock_sink.write_serialized = AsyncMock()
 
         config = SinkCircuitBreakerConfig(enabled=True, failure_threshold=3)
-        write_fn, _ = _fanout_writer([mock_sink], circuit_config=config)
+        write_fn, _, _ = _fanout_writer([mock_sink], circuit_config=config)
 
         with patch(
             "fapilog.core.sink_writers.handle_sink_write_failure"
@@ -166,7 +166,7 @@ class TestFanoutWriterFailureHandling:
         mock_sink.write = ok_write
         mock_sink.write_serialized = AsyncMock()
 
-        write_fn, _ = _fanout_writer([mock_sink])
+        write_fn, _, _ = _fanout_writer([mock_sink])
 
         with patch(
             "fapilog.core.sink_writers.handle_sink_write_failure"
@@ -189,7 +189,7 @@ class TestFanoutWriterFailureHandling:
         mock_sink.write = ok_write
         mock_sink.write_serialized = AsyncMock()
 
-        write_fn, _ = _fanout_writer([mock_sink])
+        write_fn, _, _ = _fanout_writer([mock_sink])
 
         with patch(
             "fapilog.core.sink_writers.handle_sink_write_failure"
@@ -384,7 +384,7 @@ class TestFanoutWriterSerializedPath:
 
         mock_sink.write_serialized = failing_write_serialized
 
-        _, write_serialized_fn = _fanout_writer([mock_sink])
+        _, write_serialized_fn, _ = _fanout_writer([mock_sink])
 
         with patch(
             "fapilog.core.sink_writers.handle_sink_write_failure"
@@ -409,7 +409,7 @@ class TestFanoutWriterSerializedPath:
 
         mock_sink.write_serialized = failing_write_serialized
 
-        _, write_serialized_fn = _fanout_writer([mock_sink])
+        _, write_serialized_fn, _ = _fanout_writer([mock_sink])
 
         with patch(
             "fapilog.core.sink_writers.handle_sink_write_failure"
@@ -434,7 +434,7 @@ class TestFanoutWriterSerializedPath:
         mock_sink.write_serialized = failing_write_serialized
 
         config = SinkCircuitBreakerConfig(enabled=True, failure_threshold=2)
-        write_fn, write_serialized_fn = _fanout_writer(
+        write_fn, write_serialized_fn, _ = _fanout_writer(
             [mock_sink], circuit_config=config
         )
 
@@ -468,7 +468,7 @@ class TestFanoutWriterSerializedPath:
         mock_sink.write_serialized = ok_write_serialized
 
         config = SinkCircuitBreakerConfig(enabled=True, failure_threshold=3)
-        _, write_serialized_fn = _fanout_writer([mock_sink], circuit_config=config)
+        _, write_serialized_fn, _ = _fanout_writer([mock_sink], circuit_config=config)
 
         with patch(
             "fapilog.core.sink_writers.handle_sink_write_failure"
@@ -554,7 +554,7 @@ class TestFallbackExceptionContainment:
         mock_sink.write = failing_write
         mock_sink.write_serialized = AsyncMock(return_value=None)
 
-        write_fn, _ = _fanout_writer([mock_sink])
+        write_fn, _, _ = _fanout_writer([mock_sink])
 
         with patch(
             "fapilog.core.sink_writers.handle_sink_write_failure",
@@ -577,7 +577,7 @@ class TestFallbackExceptionContainment:
 
         mock_sink.write_serialized = failing_write_serialized
 
-        _, write_serialized_fn = _fanout_writer([mock_sink])
+        _, write_serialized_fn, _ = _fanout_writer([mock_sink])
 
         with patch(
             "fapilog.core.sink_writers.handle_sink_write_failure",
@@ -602,7 +602,7 @@ class TestFallbackExceptionContainment:
         mock_sink.write_serialized = failing_write_serialized
 
         config = SinkCircuitBreakerConfig(enabled=True, failure_threshold=2)
-        _, write_serialized_fn = _fanout_writer([mock_sink], circuit_config=config)
+        _, write_serialized_fn, _ = _fanout_writer([mock_sink], circuit_config=config)
 
         with patch(
             "fapilog.core.sink_writers.handle_sink_write_failure"
@@ -634,7 +634,7 @@ class TestFallbackExceptionContainment:
         mock_sink.write_serialized = failing_write_serialized
 
         config = SinkCircuitBreakerConfig(enabled=True, failure_threshold=2)
-        _, write_serialized_fn = _fanout_writer([mock_sink], circuit_config=config)
+        _, write_serialized_fn, _ = _fanout_writer([mock_sink], circuit_config=config)
 
         with patch(
             "fapilog.core.sink_writers.handle_sink_write_failure"

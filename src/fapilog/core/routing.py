@@ -134,6 +134,11 @@ class RoutingSinkWriter:
             except Exception:
                 pass
 
+    @property
+    def breakers(self) -> list[SinkCircuitBreaker]:
+        """Return all circuit breaker instances (Story 4.73 wiring)."""
+        return [e.breaker for e in self._sink_entries.values() if e.breaker is not None]
+
     def get_sinks_for_level(self, level: str) -> list[_SinkEntry]:
         norm = _normalize_level(level)
         if norm in self._level_to_entries:
@@ -250,8 +255,8 @@ def build_routing_writer(
     *,
     parallel: bool = False,
     circuit_config: Any | None = None,
-) -> tuple[Any, Any]:
-    """Return (write, write_serialized) callables honoring routing config."""
+) -> tuple[Any, Any, list[SinkCircuitBreaker]]:
+    """Return (write, write_serialized, breakers) honoring routing config."""
 
     rules = [
         ({lvl.upper() for lvl in rule.levels}, list(rule.sinks))
@@ -277,4 +282,4 @@ def build_routing_writer(
         level = getattr(view, "level", None)
         await writer.write_serialized(view, level=level)
 
-    return _write, _write_serialized
+    return _write, _write_serialized, writer.breakers

@@ -566,10 +566,10 @@ class TestConfigureLoggerCommon:
 
         def _fake_writer(
             sinks: list[object], cfg: object, circuit_config: object
-        ) -> tuple[object, object]:
+        ) -> tuple[object, object, list[object]]:
             writer_calls["sinks"] = list(sinks)
             writer_calls["circuit"] = circuit_config
-            return ("sink_write", "sink_write_serialized")
+            return ("sink_write", "sink_write_serialized", [])
 
         monkeypatch.setattr(fapilog, "_routing_or_fanout_writer", _fake_writer)
 
@@ -653,6 +653,7 @@ class TestGetLoggerCallsSharedSetup:
                 sink_write=lambda _: None,
                 sink_write_serialized=None,
                 circuit_config=None,
+                circuit_breakers=[],
                 level_gate=10,
             )
 
@@ -661,7 +662,7 @@ class TestGetLoggerCallsSharedSetup:
         monkeypatch.setattr(
             fapilog,
             "_routing_or_fanout_writer",
-            lambda sinks, cfg, circuit: (lambda _: None, None),
+            lambda sinks, cfg, circuit: (lambda _: None, None, []),
         )
         monkeypatch.setattr(
             fapilog,

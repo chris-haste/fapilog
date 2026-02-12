@@ -148,6 +148,11 @@ class SinkWriterGroup:
                 name = getattr(sink, "name", type(sink).__name__)
                 self._breakers[id(sink)] = SinkCircuitBreaker(name, circuit_config)
 
+    @property
+    def breakers(self) -> list[SinkCircuitBreaker]:
+        """Return all circuit breaker instances (Story 4.73 wiring)."""
+        return list(self._breakers.values())
+
     async def write(self, entry: dict[str, Any]) -> None:
         """Write entry to all sinks (parallel or sequential based on config).
 
@@ -385,5 +390,6 @@ class SinkWriterGroup:
 # Mark as referenced for static analyzers (vulture)
 _VULTURE_USED: tuple[object, ...] = (
     SinkWriterGroup,
+    SinkWriterGroup.breakers,
     make_sink_writer,
 )

@@ -42,7 +42,7 @@ async def test_routing_writer_routes_by_level() -> None:
         fallback_sinks=[],
         overlap=True,
     )
-    sink_write, _ = _build_writer(sinks=[error, info], routing_cfg=cfg)
+    sink_write, _, _ = _build_writer(sinks=[error, info], routing_cfg=cfg)
 
     await sink_write({"level": "ERROR", "message": "boom"})
 
@@ -62,7 +62,7 @@ async def test_routing_writer_overlap_sends_to_all_matches() -> None:
         fallback_sinks=[],
         overlap=True,
     )
-    sink_write, _ = _build_writer(sinks=[sink1, sink2], routing_cfg=cfg)
+    sink_write, _, _ = _build_writer(sinks=[sink1, sink2], routing_cfg=cfg)
 
     await sink_write({"level": "ERROR", "message": "boom"})
 
@@ -82,7 +82,7 @@ async def test_routing_writer_first_match_when_overlap_disabled() -> None:
         fallback_sinks=[],
         overlap=False,
     )
-    sink_write, _ = _build_writer(sinks=[sink1, sink2], routing_cfg=cfg)
+    sink_write, _, _ = _build_writer(sinks=[sink1, sink2], routing_cfg=cfg)
 
     await sink_write({"level": "ERROR", "message": "boom"})
 
@@ -100,7 +100,7 @@ async def test_routing_writer_fallback_when_no_match() -> None:
         fallback_sinks=["fallback"],
         overlap=True,
     )
-    sink_write, _ = _build_writer(sinks=[fallback], routing_cfg=cfg)
+    sink_write, _, _ = _build_writer(sinks=[fallback], routing_cfg=cfg)
 
     await sink_write({"level": "INFO", "message": "info"})
 
@@ -116,7 +116,9 @@ async def test_routing_writer_parallel_paths() -> None:
         fallback_sinks=[],
         overlap=True,
     )
-    sink_write, _ = _build_writer(sinks=[sink1, sink2], routing_cfg=cfg, parallel=True)
+    sink_write, _, _ = _build_writer(
+        sinks=[sink1, sink2], routing_cfg=cfg, parallel=True
+    )
 
     await sink_write({"level": "ERROR", "message": "boom"})
 
@@ -347,7 +349,7 @@ async def test_routing_writer_write_serialized() -> None:
         level = "ERROR"
         data = b'{"level": "ERROR", "message": "test"}'
 
-    _, sink_write_serialized = _build_writer(
+    _, sink_write_serialized, _ = _build_writer(
         sinks=[error_sink, info_sink],
         routing_cfg=SimpleNamespace(
             rules=[
@@ -483,7 +485,7 @@ async def test_routing_sink_plugin_no_overlap_mode(monkeypatch: pytest.MonkeyPat
     await sink.write({"level": "ERROR", "message": "test"})
     await sink.stop()
 
-    assert child.write_count >= 1
+    assert child.write_count >= 1  # noqa: WA002
 
 
 @pytest.mark.asyncio

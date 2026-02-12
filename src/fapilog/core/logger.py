@@ -182,6 +182,8 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._adaptive_filter_ladder: dict[Any, tuple[Any, ...]] | None = None
         # Dynamic worker pool (Story 1.46)
         self._worker_pool: Any | None = None
+        # Circuit breakers for pressure signal wiring (Story 4.73)
+        self._circuit_breakers: list[Any] = []
 
         # Drop/dedupe summary visibility (Story 12.20)
         self._emit_drop_summary = bool(emit_drop_summary)
@@ -452,6 +454,7 @@ class _LoggerMixin(_WorkerCountersMixin):
                         pass
 
             adaptive = self._cached_adaptive_settings
+            circuit_boost = getattr(adaptive, "circuit_pressure_boost", 0.20)
             monitor = PressureMonitor(
                 queue=self._queue,
                 check_interval_seconds=adaptive.check_interval_seconds,
@@ -464,8 +467,13 @@ class _LoggerMixin(_WorkerCountersMixin):
                 deescalate_from_elevated=adaptive.deescalate_from_elevated,
                 diagnostic_writer=_diag_writer,
                 metric_setter=_metric_setter,
+                circuit_pressure_boost=circuit_boost,
             )
             self._pressure_monitor = monitor
+
+            # Wire circuit breakers to pressure monitor (Story 4.73)
+            for breaker in self._circuit_breakers:
+                breaker.on_state_change = monitor.on_circuit_state_change
 
             # Build adaptive filter ladder and register swap callback (Story 1.45)
             try:
