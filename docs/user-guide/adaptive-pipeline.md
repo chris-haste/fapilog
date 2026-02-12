@@ -236,7 +236,7 @@ if result.adaptive is not None:
 
 When the adaptive pipeline is not enabled, `result.adaptive` is `None` and existing `DrainResult` fields are unchanged.
 
-See [Lifecycle & Results](../api-reference/lifecycle-results.md#adaptivedrainsummary) for the full field reference.
+See [Lifecycle & Results](../api-reference/lifecycle-results.md) for the full field reference.
 
 ## The adaptive preset
 
