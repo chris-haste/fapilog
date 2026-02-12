@@ -616,6 +616,14 @@ class AdaptiveSettings(BaseModel):
         description="Maximum queue capacity as a multiplier of initial capacity (grow-only)",
     )
 
+    # Circuit breaker pressure signal (Story 4.73)
+    circuit_pressure_boost: float = Field(
+        default=0.20,
+        ge=0,
+        le=1,
+        description="Effective fill ratio boost per open sink circuit breaker",
+    )
+
     # De-escalation thresholds (fill ratio < threshold triggers level decrease)
     deescalate_from_critical: float = Field(
         default=0.75,

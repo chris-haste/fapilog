@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import threading
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 
@@ -60,6 +61,7 @@ class SinkCircuitBreaker:
         self._failure_count = 0
         self._last_failure_time: float | None = None
         self._half_open_calls = 0
+        self.on_state_change: Callable[[str, CircuitState], None] | None = None
 
     @property
     def state(self) -> CircuitState:
@@ -116,7 +118,7 @@ class SinkCircuitBreaker:
                 self._emit_state_change("open")
 
     def _emit_state_change(self, new_state: str) -> None:
-        """Emit diagnostic for state change."""
+        """Emit diagnostic and invoke external callback for state change."""
         try:
             from .diagnostics import warn
 
@@ -128,3 +130,8 @@ class SinkCircuitBreaker:
             )
         except Exception:
             pass
+        if self.on_state_change is not None:
+            try:
+                self.on_state_change(self.sink_name, CircuitState(new_state))
+            except Exception:
+                pass

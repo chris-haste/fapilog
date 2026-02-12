@@ -326,7 +326,7 @@ def _fanout_writer(
     parallel: bool = False,
     circuit_config: _Any | None = None,
     fallback_writers: dict[int, tuple[_Any, _Any]] | None = None,
-) -> tuple[_Any, _Any]:
+) -> tuple[_Any, _Any, list[_Any]]:
     """Create fanout writer with optional parallelization and circuit breakers.
 
     Delegates to SinkWriterGroup for cleaner, class-based implementation.
@@ -336,6 +336,9 @@ def _fanout_writer(
         parallel: If True, write to sinks in parallel
         circuit_config: Optional SinkCircuitBreakerConfig for fault isolation
         fallback_writers: Resolved fallback writers for circuit-open routing
+
+    Returns:
+        Tuple of (write, write_serialized, breakers).
     """
     from .core.sink_writers import SinkWriterGroup
 
@@ -345,14 +348,14 @@ def _fanout_writer(
         circuit_config=circuit_config,
         fallback_writers=fallback_writers,
     )
-    return group.write, group.write_serialized
+    return group.write, group.write_serialized, group.breakers
 
 
 def _routing_or_fanout_writer(
     sinks: list[object],
     cfg_source: _Settings,
     circuit_config: _Any | None,
-) -> tuple[_Any, _Any]:
+) -> tuple[_Any, _Any, list[_Any]]:
     """Return sink writer honoring routing configuration when enabled."""
     fallback_writers = _resolve_fallback_writers(sinks, circuit_config)
 
@@ -393,6 +396,7 @@ class _LoggerSetup:
     sink_write: _Callable[[dict[str, _Any]], _Coroutine[_Any, _Any, None]]
     sink_write_serialized: _Callable[[object], _Coroutine[_Any, _Any, None]] | None
     circuit_config: _Any  # SinkCircuitBreakerConfig | None (lazy import)
+    circuit_breakers: list[_Any]  # list[SinkCircuitBreaker]
     level_gate: int | None
 
 
@@ -425,7 +429,7 @@ def _configure_logger_common(
             fallback_sink=cfg_source.core.sink_circuit_breaker_fallback_sink,
         )
 
-    sink_write, sink_write_serialized = _routing_or_fanout_writer(
+    sink_write, sink_write_serialized, circuit_breakers = _routing_or_fanout_writer(
         built_sinks,
         cfg_source,
         circuit_config,
@@ -448,6 +452,7 @@ def _configure_logger_common(
         sink_write=sink_write,
         sink_write_serialized=sink_write_serialized,
         circuit_config=circuit_config,
+        circuit_breakers=circuit_breakers,
         level_gate=level_gate,
     )
 
@@ -619,6 +624,7 @@ def _apply_logger_extras(
     logger._processors = _cast(list[_BaseProcessor], started_processors)  # noqa: SLF001
     logger._filters = started_filters  # noqa: SLF001
     logger._sinks = setup.sinks  # noqa: SLF001
+    logger._circuit_breakers = setup.circuit_breakers  # noqa: SLF001
 
     # Invalidate component caches after direct assignment (Story 1.40)
     logger._invalidate_redactors_cache()  # noqa: SLF001
