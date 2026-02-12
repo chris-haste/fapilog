@@ -84,6 +84,12 @@ print(f"Submitted: {result.submitted}")      # Total events submitted
 print(f"Processed: {result.processed}")      # Events successfully written
 print(f"Dropped: {result.dropped}")          # Events dropped (backpressure)
 print(f"Latency: {result.flush_latency_seconds:.3f}s")  # Time to flush
+
+# Adaptive pipeline summary (when using preset="adaptive")
+if result.adaptive is not None:
+    print(f"Peak pressure: {result.adaptive.peak_pressure_level.value}")
+    print(f"Escalations: {result.adaptive.escalation_count}")
+    print(f"Peak workers: {result.adaptive.peak_workers}")
 ```
 
 Use these stats to monitor shutdown health in your observability stack.
