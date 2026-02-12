@@ -43,6 +43,7 @@ CORE_COVERAGE: dict[str, list[str]] = {
         "sink_circuit_breaker_enabled",
         "sink_circuit_breaker_failure_threshold",
         "sink_circuit_breaker_recovery_timeout_seconds",
+        "sink_circuit_breaker_fallback_sink",
     ],
     "with_backpressure": ["backpressure_wait_ms", "drop_on_full"],
     "with_protected_levels": ["protected_levels"],

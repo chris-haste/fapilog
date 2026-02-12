@@ -787,6 +787,7 @@ class LoggerBuilder:
         enabled: bool = True,
         failure_threshold: int = 5,
         recovery_timeout: str | float = "30s",
+        fallback_sink: str | None = None,
     ) -> Self:
         """Configure sink circuit breaker for fault isolation.
 
@@ -794,9 +795,15 @@ class LoggerBuilder:
             enabled: Enable circuit breaker (default: True)
             failure_threshold: Consecutive failures before opening circuit
             recovery_timeout: Time before probing failed sink ("30s" or 30.0)
+            fallback_sink: Name of sink to route events to when circuit opens.
+                Must match a configured sink name. None means silent skip.
 
         Example:
-            >>> builder.with_circuit_breaker(enabled=True, failure_threshold=3)
+            >>> builder.with_circuit_breaker(
+            ...     enabled=True,
+            ...     failure_threshold=3,
+            ...     fallback_sink="rotating_file",
+            ... )
         """
         core = self._config.setdefault("core", {})
         core["sink_circuit_breaker_enabled"] = enabled
@@ -804,6 +811,8 @@ class LoggerBuilder:
         core["sink_circuit_breaker_recovery_timeout_seconds"] = self._parse_duration(
             recovery_timeout
         )
+        if fallback_sink is not None:
+            core["sink_circuit_breaker_fallback_sink"] = fallback_sink
         return self
 
     def with_backpressure(
