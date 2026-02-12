@@ -19,7 +19,7 @@ from fapilog import LoggerBuilder
 logger = (
     LoggerBuilder()
     .with_preset("production")
-    .with_adaptive(enabled=True, batch_sizing=True)
+    .with_adaptive(enabled=True)
     .with_circuit_breaker(enabled=True, fallback_sink="rotating_file")
     .build()
 )
@@ -59,7 +59,7 @@ This means the queue must drop well below the escalation threshold before the pi
 | Actuator | What It Does | NORMAL | ELEVATED | HIGH | CRITICAL |
 |----------|-------------|--------|----------|------|----------|
 | Worker scaling | Adds worker tasks | Initial (2) | +1 | +2 | Max (8) |
-| Batch sizing | Adjusts batch sizes | Base (100) | 1.5x | 2x | 4x |
+| Batch sizing | Adjusts batch sizes (opt-in) | Base (100) | 1.5x | 2x | 4x |
 | Queue growth | Expands queue capacity | Base | 1.5x | 2x | Up to 4x |
 | Filter tightening | Raises effective log level | None | Soft | Medium | Aggressive |
 
@@ -112,6 +112,50 @@ settings = Settings(adaptive={
     "cooldown_seconds": 3.0,
 })
 ```
+
+## Adaptive batch sizing
+
+Adaptive batch sizing (`batch_sizing=True`) dynamically adjusts the worker drain batch size based on measured sink latency. It uses a proportional controller with EWMA smoothing — fast sinks get larger batches, slow sinks get smaller batches.
+
+**This is disabled by default** because it operates globally across all sinks and only benefits sinks that accept batched writes.
+
+### When to enable batch sizing
+
+Enable `batch_sizing=True` when your pipeline includes **batch-aware sinks** that benefit from larger payloads:
+
+- **CloudWatch Logs** — PutLogEvents accepts up to 10,000 events per call
+- **Grafana Loki** — Push API accepts multiple log streams per request
+- **PostgreSQL** — Bulk INSERT is significantly faster than individual rows
+- **HTTP sinks** — Remote endpoints that accept batched payloads
+
+### When to leave it disabled
+
+Leave `batch_sizing=False` (the default) when you only use sinks that process events individually:
+
+- **stdout** — Writes one JSON line per event
+- **Rotating file** — Writes one line per event
+
+For these sinks, growing the batch size just increases the time events sit in the worker buffer before being written, adding latency with no throughput benefit.
+
+### Enabling batch sizing
+
+```python
+# Builder API
+logger = (
+    LoggerBuilder()
+    .with_preset("adaptive")
+    .with_adaptive(batch_sizing=True)
+    .add_cloudwatch("/myapp/prod")
+    .build()
+)
+```
+
+```bash
+# Environment variable
+FAPILOG_ADAPTIVE__BATCH_SIZING=true
+```
+
+> **Note:** Adaptive batch sizing controls the worker-level drain batch size, not individual sink batch sizes. Cloud sinks have their own `batch_size` parameters (e.g., `add_cloudwatch(batch_size=200)`) that are configured independently.
 
 ## Threshold validation
 
@@ -173,7 +217,8 @@ Settings(adaptive={
 The `adaptive` preset (`get_logger(preset="adaptive")`) enables all adaptive features with sensible defaults:
 
 - Production base settings (2 workers, batch size 100)
-- Adaptive pipeline enabled with batch sizing
+- Adaptive pipeline enabled (worker scaling, queue growth)
+- Adaptive batch sizing disabled by default (enable with `with_adaptive(batch_sizing=True)` when using batch-aware sinks)
 - Circuit breaker with rotating file fallback
 - Protected levels: ERROR, CRITICAL, FATAL, AUDIT, SECURITY
 - Credential redaction enabled

@@ -771,7 +771,7 @@ Configure adaptive pipeline behavior. Enables pressure monitoring, dynamic worke
 - `enabled` (bool): Enable adaptive pipeline controller (default: True)
 - `max_workers` (int | None): Maximum workers when dynamic scaling is active
 - `max_queue_growth` (float | None): Maximum queue capacity multiplier (e.g., 4.0 = queue can grow to 4x initial size)
-- `batch_sizing` (bool | None): Enable adaptive batch sizing
+- `batch_sizing` (bool | None): Enable adaptive batch sizing. Only beneficial with batch-aware sinks (CloudWatch, Loki, PostgreSQL). Disabled by default.
 - `check_interval_seconds` (float | None): Seconds between queue pressure samples
 - `cooldown_seconds` (float | None): Minimum seconds between pressure level transitions
 - `circuit_pressure_boost` (float | None): Pressure boost per open circuit breaker (0.0-1.0)
@@ -787,15 +787,15 @@ builder.with_adaptive()
 builder.with_adaptive(
     max_workers=6,
     max_queue_growth=2.0,
-    batch_sizing=True,
     check_interval_seconds=0.5,
 )
 
-# Combine with circuit breaker fallback
+# Enable batch sizing for batch-aware sinks (CloudWatch, Loki, PostgreSQL)
 logger = (
     LoggerBuilder()
     .with_preset("production")
     .with_adaptive(max_workers=8, batch_sizing=True)
+    .add_cloudwatch("/myapp/prod")
     .with_circuit_breaker(enabled=True, fallback_sink="rotating_file")
     .build()
 )

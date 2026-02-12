@@ -112,7 +112,16 @@ logger = LoggerBuilder().with_preset("adaptive").build()
 logger = (
     LoggerBuilder()
     .with_preset("production")
+    .with_adaptive(max_workers=8)
+    .build()
+)
+
+# Enable batch sizing when using batch-aware sinks (CloudWatch, Loki, PostgreSQL)
+logger = (
+    LoggerBuilder()
+    .with_preset("production")
     .with_adaptive(max_workers=8, batch_sizing=True)
+    .add_cloudwatch("/myapp/prod")
     .build()
 )
 ```
@@ -129,7 +138,7 @@ export FAPILOG_ADAPTIVE__BATCH_SIZING=true
 | Actuator | Normal | Elevated | High | Critical |
 |----------|--------|----------|------|----------|
 | Workers | Initial (2) | +1 | +2 | Max (8) |
-| Batch size | Base (100) | 1.5x | 2x | 4x |
+| Batch size (opt-in) | Base (100) | 1.5x | 2x | 4x |
 | Queue capacity | Base | 1.5x | 2x | Up to 4x |
 | Filter tightening | None | Soft | Medium | Aggressive |
 

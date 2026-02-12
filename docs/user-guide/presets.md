@@ -85,7 +85,7 @@ logger = (
 | `production` | 2 | 100 | 256 | runtime_info, context_vars |
 | `production-latency` | 2 | 100 | 256 | runtime_info, context_vars |
 | `high-volume` | 2 | 100 | 256 | runtime_info, context_vars |
-| `adaptive` | 2 (up to 8) | 100 (dynamic) | 256 (grows up to 4x) | runtime_info, context_vars |
+| `adaptive` | 2 (up to 8) | 100 | 256 (grows up to 4x) | runtime_info, context_vars |
 | `fastapi` | 2 | 50 | 256 | context_vars only |
 | `serverless` | 2 | 25 | 256 | runtime_info, context_vars |
 | `hardened` | 2 | 100 | 256 | runtime_info, context_vars |
@@ -234,7 +234,7 @@ logger = get_logger(preset="adaptive")
 
 **Settings:**
 - INFO level filters noise
-- Adaptive pipeline enabled: dynamic worker scaling (2-8), adaptive batch sizing, queue growth (up to 4x)
+- Adaptive pipeline enabled: dynamic worker scaling (2-8), queue growth (up to 4x)
 - Circuit breaker with rotating file fallback — failing sinks are isolated, events reroute to local files
 - File rotation: `./logs/fapilog-*.log`, 50MB max, 10 files, gzip compressed
 - `drop_on_full=True` — drops logs rather than block
@@ -251,8 +251,17 @@ For fine-grained control over adaptive behavior, use the builder:
 logger = (
     LoggerBuilder()
     .with_preset("adaptive")
-    .with_adaptive(max_workers=4, batch_sizing=True)
+    .with_adaptive(max_workers=4)
     .with_circuit_breaker(fallback_sink="rotating_file")
+    .build()
+)
+
+# Enable batch sizing when using batch-aware sinks (CloudWatch, Loki, PostgreSQL)
+logger = (
+    LoggerBuilder()
+    .with_preset("adaptive")
+    .with_adaptive(batch_sizing=True)
+    .add_cloudwatch("/myapp/prod")
     .build()
 )
 ```

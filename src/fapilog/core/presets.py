@@ -36,7 +36,7 @@ PRESETS: dict[str, dict[str, Any]] = {
             "enabled": True,
             "max_workers": 8,
             "max_queue_growth": 4.0,
-            "batch_sizing": True,
+            "batch_sizing": False,
             "circuit_pressure_boost": 0.20,
         },
         "sink_config": {
