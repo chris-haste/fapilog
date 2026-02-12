@@ -1013,6 +1013,22 @@ class LoggerBuilder:
         self._config.setdefault("core", {})["sink_parallel_writes"] = enabled
         return self
 
+    def with_sink_concurrency(self, limit: int = 1) -> Self:
+        """Configure max concurrent sink writes per worker per batch.
+
+        Unlike with_parallel_sink_writes (fan-out across multiple sinks),
+        this controls concurrency for multiple events to the same sink
+        within a single batch flush.
+
+        Args:
+            limit: Max concurrent sink writes (1 = serial, default: 1)
+
+        Example:
+            >>> builder.with_sink_concurrency(limit=8)
+        """
+        self._config.setdefault("core", {})["sink_concurrency"] = limit
+        return self
+
     def with_metrics(self, enabled: bool = True) -> Self:
         """Enable Prometheus-compatible metrics.
 
