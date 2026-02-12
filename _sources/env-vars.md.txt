@@ -60,6 +60,7 @@
 | `FAPILOG_CORE__SINKS` | list | PydanticUndefined | Sink plugins to use (by name); falls back to env-based default when empty |
 | `FAPILOG_CORE__SINK_CIRCUIT_BREAKER_ENABLED` | bool | False | Enable circuit breaker for sink fault isolation |
 | `FAPILOG_CORE__SINK_CIRCUIT_BREAKER_FAILURE_THRESHOLD` | int | 5 | Number of consecutive failures before opening circuit |
+| `FAPILOG_CORE__SINK_CIRCUIT_BREAKER_FALLBACK_SINK` | str | None | — | Name of fallback sink to route events to when a circuit breaker opens. Must match a configured sink name. None means silent skip (default). |
 | `FAPILOG_CORE__SINK_CIRCUIT_BREAKER_RECOVERY_TIMEOUT_SECONDS` | float | 30.0 | Seconds to wait before probing a failed sink |
 | `FAPILOG_CORE__SINK_PARALLEL_WRITES` | bool | False | Write to multiple sinks in parallel instead of sequentially |
 | `FAPILOG_CORE__STRICT_ENVELOPE_MODE` | bool | False | If True, drop emission when envelope cannot be produced; otherwise fallback to best-effort serialization with diagnostics |

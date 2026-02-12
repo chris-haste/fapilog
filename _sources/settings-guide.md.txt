@@ -44,6 +44,7 @@ This guide documents Settings groups and fields.
 | `core.sink_circuit_breaker_enabled` | bool | False | Enable circuit breaker for sink fault isolation |
 | `core.sink_circuit_breaker_failure_threshold` | int | 5 | Number of consecutive failures before opening circuit |
 | `core.sink_circuit_breaker_recovery_timeout_seconds` | float | 30.0 | Seconds to wait before probing a failed sink |
+| `core.sink_circuit_breaker_fallback_sink` | str | None | — | Name of fallback sink to route events to when a circuit breaker opens. Must match a configured sink name. None means silent skip (default). |
 | `core.sink_parallel_writes` | bool | False | Write to multiple sinks in parallel instead of sequentially |
 | `core.fallback_redact_mode` | Literal | minimal | Redaction mode for fallback stderr output: 'inherit' uses pipeline redactors, 'minimal' applies built-in sensitive field masking, 'none' writes unredacted (opt-in to legacy behavior) |
 | `core.redaction_fail_mode` | Literal | warn | Behavior when _apply_redactors() catches an unexpected exception: 'open' passes original event, 'closed' drops the event, 'warn' (default) passes event but emits diagnostic warning |
