@@ -63,6 +63,7 @@
 | `FAPILOG_CORE__SINK_CIRCUIT_BREAKER_FAILURE_THRESHOLD` | int | 5 | Number of consecutive failures before opening circuit |
 | `FAPILOG_CORE__SINK_CIRCUIT_BREAKER_FALLBACK_SINK` | str | None | — | Name of fallback sink to route events to when a circuit breaker opens. Must match a configured sink name. None means silent skip (default). |
 | `FAPILOG_CORE__SINK_CIRCUIT_BREAKER_RECOVERY_TIMEOUT_SECONDS` | float | 30.0 | Seconds to wait before probing a failed sink |
+| `FAPILOG_CORE__SINK_CONCURRENCY` | int | 1 | Max concurrent sink writes per worker per batch flush. Unlike sink_parallel_writes (fan-out across multiple sinks), this controls concurrency for multiple events to the same sink. |
 | `FAPILOG_CORE__SINK_PARALLEL_WRITES` | bool | False | Write to multiple sinks in parallel instead of sequentially |
 | `FAPILOG_CORE__STRICT_ENVELOPE_MODE` | bool | False | If True, drop emission when envelope cannot be produced; otherwise fallback to best-effort serialization with diagnostics |
 | `FAPILOG_CORE__WORKER_COUNT` | int | 1 | Number of worker tasks for flush processing |

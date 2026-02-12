@@ -197,6 +197,7 @@ class LoggerWorker:
         enqueue_event: asyncio.Event | None = None,
         adaptive_controller: AdaptiveController | None = None,
         batch_resize_reporter: Callable[[], None] | None = None,
+        sink_concurrency: int = 1,
     ) -> None:
         self._queue = queue
         self._batch_max_size = batch_max_size
@@ -224,6 +225,8 @@ class LoggerWorker:
         self._counters = counters
         self._redaction_fail_mode = redaction_fail_mode
         self._enqueue_event = enqueue_event
+        self._sink_concurrency = max(1, sink_concurrency)
+        self._sink_semaphore = asyncio.Semaphore(self._sink_concurrency)
 
     async def run(self, *, in_thread_mode: bool = False) -> None:
         batch: list[dict[str, Any]] = []
@@ -304,6 +307,11 @@ class LoggerWorker:
     async def _flush_batch(self, batch: list[dict[str, Any]]) -> None:
         """Flush a batch of log events through the processing pipeline.
 
+        Two-phase approach (Story 1.49):
+
+        Phase 1 (Prepare): Sequential filter/enrich/redact/serialize per event.
+        Phase 2 (Write): Concurrent sink writes bounded by semaphore.
+
         Pipeline Stage Order (with rationale):
 
         1. FILTERS: Applied first to drop unwanted events before any
@@ -318,11 +326,12 @@ class LoggerWorker:
         4. PROCESSORS: Applied fourth to transform final payload. Run on
            serialized bytes when serialize_in_flush is enabled.
 
-        5. SINK: Final stage writes to destination.
+        5. SINK: Final stage writes to destination (concurrent when
+           sink_concurrency > 1).
 
         Error Handling:
         - Stages 1-4: Errors contained; original event passed through
-        - Stage 5: Errors logged via diagnostics; event dropped
+        - Stage 5: Per-event error isolation; errors logged via diagnostics
 
         See: docs/architecture/pipeline-stages.md
         """
@@ -332,73 +341,103 @@ class LoggerWorker:
         batch_size = len(batch)
         processed_in_batch = 0
         dropped_in_batch = 0
-        try:
-            for entry in batch:
-                # Stage 1: FILTERS - drop unwanted events early
-                filtered = await self._apply_filters(entry)
-                if filtered is None:
-                    continue
-                # Stage 2: ENRICHERS - add contextual data
-                entry = await self._apply_enrichers(filtered)
-                # Stage 3: REDACTORS - mask sensitive data (including enriched fields)
-                redacted = await self._apply_redactors(entry)
-                if redacted is None:
-                    # Event dropped by fail-closed mode
+
+        # Phase 1: Prepare (sequential — fast, CPU-bound per event)
+        write_tasks: list[tuple[dict[str, Any], SerializedView | None]] = []
+        for entry in batch:
+            # Stage 1: FILTERS - drop unwanted events early
+            filtered = await self._apply_filters(entry)
+            if filtered is None:
+                continue
+            # Stage 2: ENRICHERS - add contextual data
+            entry = await self._apply_enrichers(filtered)
+            # Stage 3: REDACTORS - mask sensitive data (including enriched fields)
+            redacted = await self._apply_redactors(entry)
+            if redacted is None:
+                # Event dropped by fail-closed mode
+                dropped_in_batch += 1
+                if self._metrics is not None:
+                    await self._metrics.record_events_dropped(1)
+                continue
+            entry = redacted
+            if self._serialize_in_flush and self._sink_write_serialized is not None:
+                view, drop_entry = await self._try_serialize(entry)
+                if drop_entry:
                     dropped_in_batch += 1
                     if self._metrics is not None:
                         await self._metrics.record_events_dropped(1)
                     continue
-                entry = redacted
-                if self._serialize_in_flush and self._sink_write_serialized is not None:
-                    view, drop_entry = await self._try_serialize(entry)
-                    if drop_entry:
-                        dropped_in_batch += 1
-                        if self._metrics is not None:
-                            await self._metrics.record_events_dropped(1)
-                        continue
-                    if view is not None:
-                        # Stage 4: PROCESSORS - transform serialized bytes
-                        view = await self._apply_processors(view)
-                        try:
-                            # Stage 5: SINK - write to destination
-                            await self._sink_write_serialized(view)
-                            processed_in_batch += 1
-                            continue
-                        except Exception:
-                            # Fall back to default path on serialized sink errors
-                            pass
-                # Stage 5: SINK - write to destination (fallback or non-serialized path)
+                if view is not None:
+                    # Stage 4: PROCESSORS - transform serialized bytes
+                    view = await self._apply_processors(view)
+                    write_tasks.append((entry, view))
+                    continue
+            write_tasks.append((entry, None))
+
+        # Phase 2: Sink write (concurrent, bounded by semaphore)
+        if write_tasks:
+            processed, dropped = await self._write_concurrent(write_tasks)
+            processed_in_batch += processed
+            dropped_in_batch += dropped
+
+        # Atomically update shared counters at the end of batch processing
+        # to minimize the window for race conditions
+        self._counters["processed"] += processed_in_batch
+        self._counters["dropped"] += dropped_in_batch
+        latency_seconds = time.perf_counter() - start
+        await self._record_flush_metrics(batch_size, latency_seconds)
+        # Adaptive batch sizing: record latency and get next size (Story 1.47)
+        if self._adaptive_controller is not None and batch_size > 0:
+            ms_per_item = (latency_seconds * 1000) / batch_size
+            self._adaptive_controller.record_latency_sample(ms_per_item)
+            old_batch_max = self._current_batch_max
+            self._current_batch_max = self._adaptive_controller.advise_batch_size(
+                self._current_batch_max
+            )
+            if (
+                self._current_batch_max != old_batch_max
+                and self._batch_resize_reporter is not None
+            ):
+                self._batch_resize_reporter()
+        batch.clear()
+
+    async def _write_one_event(
+        self,
+        sem: asyncio.Semaphore,
+        entry: dict[str, Any],
+        view: SerializedView | None,
+    ) -> bool:
+        """Write a single event to sink. Returns True on success."""
+        async with sem:
+            try:
+                if view is not None and self._sink_write_serialized is not None:
+                    try:
+                        await self._sink_write_serialized(view)
+                        return True
+                    except Exception:
+                        # Fall back to default dict path (preserves worker.py behavior)
+                        pass
                 await self._sink_write(entry)
-                processed_in_batch += 1
-        except Exception as exc:
-            # Only count events that weren't already processed or explicitly dropped
-            # as dropped. This maintains the invariant: processed + dropped <= submitted
-            remaining = batch_size - processed_in_batch - dropped_in_batch
-            dropped_in_batch += remaining
-            if self._metrics is not None:
-                await self._record_sink_error()
-            self._emit_sink_flush_error(exc)
-        finally:
-            # Atomically update shared counters at the end of batch processing
-            # to minimize the window for race conditions
-            self._counters["processed"] += processed_in_batch
-            self._counters["dropped"] += dropped_in_batch
-            latency_seconds = time.perf_counter() - start
-            await self._record_flush_metrics(batch_size, latency_seconds)
-            # Adaptive batch sizing: record latency and get next size (Story 1.47)
-            if self._adaptive_controller is not None and batch_size > 0:
-                ms_per_item = (latency_seconds * 1000) / batch_size
-                self._adaptive_controller.record_latency_sample(ms_per_item)
-                old_batch_max = self._current_batch_max
-                self._current_batch_max = self._adaptive_controller.advise_batch_size(
-                    self._current_batch_max
-                )
-                if (
-                    self._current_batch_max != old_batch_max
-                    and self._batch_resize_reporter is not None
-                ):
-                    self._batch_resize_reporter()
-            batch.clear()
+                return True
+            except Exception as exc:
+                if self._metrics is not None:
+                    await self._record_sink_error()
+                self._emit_sink_flush_error(exc)
+                return False
+
+    async def _write_concurrent(
+        self,
+        tasks: list[tuple[dict[str, Any], SerializedView | None]],
+    ) -> tuple[int, int]:
+        """Write prepared events concurrently. Returns (processed, dropped)."""
+        sem = self._sink_semaphore
+        results = await asyncio.gather(
+            *[self._write_one_event(sem, entry, view) for entry, view in tasks],
+            return_exceptions=True,
+        )
+        processed = sum(1 for r in results if r is True)
+        dropped = len(results) - processed
+        return processed, dropped
 
     def _drain_queue(self, batch: list[dict[str, Any]]) -> None:
         while True:

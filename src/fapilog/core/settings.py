@@ -942,6 +942,15 @@ class CoreSettings(BaseModel):
         default=False,
         description=("Write to multiple sinks in parallel instead of sequentially"),
     )
+    sink_concurrency: int = Field(
+        default=1,
+        ge=1,
+        description=(
+            "Max concurrent sink writes per worker per batch flush. "
+            "Unlike sink_parallel_writes (fan-out across multiple sinks), "
+            "this controls concurrency for multiple events to the same sink."
+        ),
+    )
     # Fallback PII protection (Story 4.46)
     fallback_redact_mode: Literal["inherit", "minimal", "none"] = Field(
         default="minimal",

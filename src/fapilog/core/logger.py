@@ -210,6 +210,7 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._last_drop_summary_time: float = 0.0
 
         # Cache settings values at init to avoid per-call overhead (Story 1.23, 1.25)
+        self._cached_sink_concurrency: int = 1
         self._cached_adaptive_enabled: bool = False
         self._cached_adaptive_settings: Any | None = None
         self._cached_adaptive_batch_sizing: bool = False
@@ -235,6 +236,7 @@ class _LoggerMixin(_WorkerCountersMixin):
             )
             self._cached_error_dedupe_window = float(s.core.error_dedupe_window_seconds)
             self._cached_strict_envelope_mode = bool(s.core.strict_envelope_mode)
+            self._cached_sink_concurrency = max(1, int(s.core.sink_concurrency))
             # Cache adaptive settings for pressure monitor (Story 1.44)
             _adaptive = getattr(s, "adaptive", None)
             if _adaptive is not None:
@@ -671,6 +673,7 @@ class _LoggerMixin(_WorkerCountersMixin):
             counters=self._counters,
             adaptive_controller=adaptive_ctrl,
             batch_resize_reporter=batch_resize_reporter,
+            sink_concurrency=self._cached_sink_concurrency,
         )
         await worker.run(in_thread_mode=self._worker_thread is not None)
 
@@ -1086,6 +1089,7 @@ class _LoggerMixin(_WorkerCountersMixin):
             counters=self._counters,
             adaptive_controller=adaptive_ctrl,
             batch_resize_reporter=batch_resize_reporter,
+            sink_concurrency=self._cached_sink_concurrency,
         )
 
     async def _worker_main(self) -> None:

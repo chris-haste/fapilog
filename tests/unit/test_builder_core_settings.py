@@ -239,6 +239,32 @@ class TestWithParallelSinkWrites:
         assert core["sink_parallel_writes"] is True
 
 
+class TestWithSinkConcurrency:
+    """Tests for with_sink_concurrency() method."""
+
+    def test_with_sink_concurrency_sets_field(self) -> None:
+        """with_sink_concurrency() sets sink_concurrency."""
+        builder = LoggerBuilder()
+        builder.with_sink_concurrency(limit=4)
+
+        core = builder._config["core"]
+        assert core["sink_concurrency"] == 4
+
+    def test_with_sink_concurrency_returns_self(self) -> None:
+        """with_sink_concurrency() returns self for chaining."""
+        builder = LoggerBuilder()
+        result = builder.with_sink_concurrency(limit=2)
+        assert result is builder
+
+    def test_with_sink_concurrency_default_one(self) -> None:
+        """with_sink_concurrency() defaults to 1."""
+        builder = LoggerBuilder()
+        builder.with_sink_concurrency()
+
+        core = builder._config["core"]
+        assert core["sink_concurrency"] == 1
+
+
 class TestWithMetrics:
     """Tests for with_metrics() method."""
 

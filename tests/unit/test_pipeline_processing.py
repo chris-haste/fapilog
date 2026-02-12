@@ -233,7 +233,10 @@ class TestFailureModesAndRecovery:
         result = await logger.stop_and_drain()
 
         assert result.submitted == 3
-        assert result.dropped >= 3
+        # Per-event error isolation (Story 1.49): only the 2 failing writes
+        # are dropped; the 3rd event recovers and is processed.
+        assert result.dropped == 2
+        assert result.processed == 1
 
     @pytest.mark.asyncio
     async def test_serialization_failure_modes(self) -> None:

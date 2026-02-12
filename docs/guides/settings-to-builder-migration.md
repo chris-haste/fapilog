@@ -35,6 +35,7 @@ This guide helps you convert existing Settings-based configurations to the Build
 | `CoreSettings(drop_on_full=False)` | `.with_backpressure(drop_on_full=False)` |
 | `CoreSettings(enable_metrics=True)` | `.with_metrics(enabled=True)` |
 | `CoreSettings(sink_parallel_writes=True)` | `.with_parallel_sink_writes(True)` |
+| `CoreSettings(sink_concurrency=8)` | `.with_sink_concurrency(limit=8)` |
 
 ### Circuit Breaker
 

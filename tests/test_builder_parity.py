@@ -76,6 +76,7 @@ BUILDER_TO_CORE_FIELDS: dict[str, list[str]] = {
         "exceptions_max_stack_chars",
     ],
     "with_parallel_sink_writes": ["sink_parallel_writes"],
+    "with_sink_concurrency": ["sink_concurrency"],
     "with_metrics": ["enable_metrics"],
     "with_error_deduplication": ["error_dedupe_window_seconds"],
     "with_drop_summary": ["emit_drop_summary", "drop_summary_window_seconds"],

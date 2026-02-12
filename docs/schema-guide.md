@@ -371,6 +371,13 @@
       "title": "Sink Circuit Breaker Recovery Timeout Seconds",
       "type": "number"
     },
+    "sink_concurrency": {
+      "default": 1,
+      "description": "Max concurrent sink writes per worker per batch flush. Unlike sink_parallel_writes (fan-out across multiple sinks), this controls concurrency for multiple events to the same sink.",
+      "minimum": 1,
+      "title": "Sink Concurrency",
+      "type": "integer"
+    },
     "sink_parallel_writes": {
       "default": false,
       "description": "Write to multiple sinks in parallel instead of sequentially",
