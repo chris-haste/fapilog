@@ -174,7 +174,11 @@ class TestErrorDeduplication:
         """Test that duplicate errors are suppressed within time window."""
         out: list[dict[str, Any]] = []
         logger = _create_test_logger(
-            "dedup-test", out, queue_capacity=16, backpressure_wait_ms=0
+            "dedup-test",
+            out,
+            queue_capacity=16,
+            backpressure_wait_ms=0,
+            protected_levels=[],  # Disable protection so dedup fires on ERROR
         )
         logger.start()
 

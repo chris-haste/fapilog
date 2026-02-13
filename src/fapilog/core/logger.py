@@ -777,7 +777,7 @@ class _LoggerMixin(_WorkerCountersMixin):
                 return None
 
         try:
-            if level in {"ERROR", "CRITICAL"}:
+            if level in {"ERROR", "CRITICAL"} and level not in self._protected_levels:
                 window = self._cached_error_dedupe_window
                 if window > 0.0:
                     import time as _t

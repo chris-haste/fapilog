@@ -802,8 +802,8 @@ class TestPreparePayloadSharedBehavior:
         assert async_payload["data"]["user"] == "alice"
 
     def test_prepare_payload_dedupes_errors_per_facade(self) -> None:
-        """Error deduplication should work identically in both facades."""
-        logger = SyncLoggerFacade(**_logger_args())
+        """Error deduplication should work when level is not protected."""
+        logger = SyncLoggerFacade(**_logger_args(), protected_levels=[])
 
         first = logger._prepare_payload("ERROR", "boom")  # type: ignore[attr-defined]
         second = logger._prepare_payload("ERROR", "boom")  # type: ignore[attr-defined]
