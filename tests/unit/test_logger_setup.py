@@ -802,14 +802,24 @@ class TestPreparePayloadSharedBehavior:
         assert async_payload["data"]["user"] == "alice"
 
     def test_prepare_payload_dedupes_errors_per_facade(self) -> None:
-        """Error deduplication should work identically in both facades."""
-        logger = SyncLoggerFacade(**_logger_args())
+        """Error deduplication should work when level is not protected."""
+        logger = SyncLoggerFacade(**_logger_args(), protected_levels=[])
 
         first = logger._prepare_payload("ERROR", "boom")  # type: ignore[attr-defined]
         second = logger._prepare_payload("ERROR", "boom")  # type: ignore[attr-defined]
 
         assert first["message"] == "boom"
         assert second is None
+
+    def test_protected_error_bypasses_dedup(self) -> None:
+        """ERROR events in protected_levels must not be deduped."""
+        logger = SyncLoggerFacade(**_logger_args())  # default: ERROR is protected
+
+        first = logger._prepare_payload("ERROR", "boom")  # type: ignore[attr-defined]
+        second = logger._prepare_payload("ERROR", "boom")  # type: ignore[attr-defined]
+
+        assert first["message"] == "boom"  # type: ignore[index]
+        assert second["message"] == "boom"  # type: ignore[index]
 
     def test_prepare_payload_returns_dict(self) -> None:
         """_prepare_payload must return a dict, not a Mapping."""

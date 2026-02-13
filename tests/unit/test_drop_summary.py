@@ -132,6 +132,7 @@ class TestDedupeSummaryEmission:
             sink_write=lambda e: _collecting_sink(collected, e),
             emit_drop_summary=True,
             drop_summary_window_seconds=60.0,  # Long window (irrelevant here)
+            protected_levels=[],  # Disable protection so dedup fires on ERROR
         )
         # Set dedupe window via cached setting
         logger._cached_error_dedupe_window = 0.05  # 50ms window
@@ -179,6 +180,7 @@ class TestDedupeSummaryEmission:
             drop_on_full=True,
             sink_write=lambda e: _collecting_sink(collected, e),
             emit_drop_summary=False,  # Disabled
+            protected_levels=[],  # Disable protection so dedup fires on ERROR
         )
         logger._cached_error_dedupe_window = 0.05
         logger.start()
