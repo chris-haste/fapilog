@@ -4,6 +4,59 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-02-13
+
+### Added
+
+- **Core - Add priority-aware queue with protected levels:** Add PriorityAwareQueue with O(1) tombstone-based eviction. Protected levels (ERROR, CRITICAL, FATAL) survive queue pressure. Add with_protected_levels() builder method and priority eviction metrics.
+- **Core - Add AUDIT and SECURITY log levels:** Add AUDIT (60) and SECURITY (70) as standard levels above CRITICAL. Add logger.audit() and logger.security() methods to both facades. Include in default protected_levels.
+- **Core - Add sensitive container with auto-redaction at envelope time:** Handle sensitive= and pii= kwargs in build_envelope(), merging into data.sensitive with all values recursively masked before enqueue.
+- **Core - Add unsafe_debug escape hatch for raw diagnostic logging:** Add unsafe_debug() to SyncLoggerFacade and AsyncLoggerFacade. Use _UNSAFE_SENTINEL to prevent user kwargs from bypassing redaction. Skip redaction pipeline for tagged events.
+- **Core - Always emit correlation_id in envelope for stable schema:** Include correlation_id: null when no correlation context is active. Update JSON schema type from "string" to ["string", "null"].
+- **Core - Add Literal type hints for preset name parameters:** Define PresetName and RedactionPresetName type aliases for IDE autocomplete. Add sync-check tests to prevent Literal/registry drift.
+- **Core - Add pressure monitor and escalation state machine:** Implement PressureLevel enum and EscalationStateMachine with hysteresis. Add PressureMonitor asyncio task with callbacks, diagnostics, and metrics. Wire monitor lifecycle into logger start/drain with fail-open design.
+- **Core - Add adaptive filter tightening on pressure escalation:** Pre-build filter tuples per pressure level at logger startup. Swap filter snapshot via lock-free callback on pressure change.
+- **Core - Add dynamic worker scaling on pressure escalation:** Implement WorkerPool with scale_to() and per-worker stop flags. Register scaling callback with PressureMonitor.
+- **Core - Wire adaptive batch sizing into worker loop:** Accept AdaptiveController in LoggerWorker. Record per-item flush latency and adjust batch size after each flush.
+- **Core - Wire adaptive queue capacity growth on pressure escalation:** Add grow_capacity() to PriorityAwareQueue with grow-only semantics. Emit diagnostic on capacity growth events.
+- **Core - Add circuit breaker fallback sink routing:** Route events to configured fallback sink when circuit breaker opens. Add fallback_sink to SinkCircuitBreakerConfig, Prometheus metric, and builder API.
+- **Core - Add circuit breaker state as adaptive pressure signal:** Feed circuit breaker open/close events into PressureMonitor. Each open circuit boosts effective fill ratio by configurable amount.
+- **Core - Add adaptive preset and builder API:** Add "adaptive" preset with production base, adaptive features, circuit breaker, and rotating file fallback. Add LoggerBuilder.with_adaptive() for fine-grained configuration.
+- **Core - Add AdaptiveDrainSummary to DrainResult:** Surface adaptive pipeline metrics via DrainResult.adaptive field. Track escalation/de-escalation counts, time-at-level, peak pressure, and actuator counters.
+- **Core - Add concurrent sink writes within batch flush:** Split _flush_batch into prepare phase and concurrent write phase bounded by asyncio.Semaphore. Add sink_concurrency setting and with_sink_concurrency() builder method.
+- **Core - Cache component getter snapshots for worker access:** Add tuple snapshots for filters, enrichers, redactors, processors. Invalidate caches on enable/disable enricher and cleanup.
+- **Redactors - Add field_blocker redactor for high-risk field names:** Strip dangerous field names (body, payload, raw, etc.) anywhere in event tree. Emit policy_violation diagnostic when blocked fields are encountered.
+- **Redactors - Add redaction operational metrics counters:** Add fapilog_redacted_fields_total, fapilog_policy_violations_total, fapilog_sensitive_fields_total counters to MetricsCollector.
+- **Redactors - Honor core guardrails in UrlCredentialsRedactor:** Add core_max_depth and core_max_keys_scanned params with "more restrictive wins" logic.
+- **Redactors - Add per-field string truncation redactor:** Truncate string values exceeding configurable max_string_length with [truncated] marker. Wire into builder via with_redaction(max_string_length=4096).
+
+### Changed
+
+- **Redactors - Reduce allocations in field blocker traversal:** Replace per-key list path building with lazy string paths. Cache instance attributes as locals for tight loop.
+- **Core - Inline sensitive masking to reduce hot-path overhead:** Inline the dict comprehension directly in build_envelope() to eliminate function-call overhead.
+- **Redactors - Skip urlsplit for non-URL strings:** Add URL scheme prefix check to avoid parsing plain text.
+- **Sinks - Replace hardcoded field extraction with schema-aware resolution:** Add _FIELD_LOCATIONS map for v1.1 envelope field lookup paths. Fix event_payload missing nested fields when include_raw_json=False.
+
+### Fixed
+
+- **Core - Skip error dedup for protected-level events:** Protected_levels promises events MUST NOT be dropped, but error dedup silently suppresses duplicates. Skip the dedup check when the event's level is in protected_levels.
+- **Core - Disable batch_sizing by default in adaptive preset:** Adaptive batch sizing only benefits batch-aware sinks — not stdout or file sinks. Change adaptive preset default to batch_sizing=False.
+- **Sinks - Extract correlation_id from context in Postgres sink:** Read correlation_id from entry["context"] per v1.1 schema. Add contract test using build_envelope() to prevent schema drift.
+- **Core - Wire record_sensitive_fields() into envelope builder:** Call MetricsCollector.record_sensitive_fields() after build_envelope() when sensitive=/pii= containers produce masked fields.
+- **Redactors - Deep-copy events in redact_in_order for snapshot integrity:** Replace shallow dict() copy with orjson roundtrip deep copy. Prevent failing redactors from corrupting last good snapshot.
+- **Redactors - Align block_on_unredactable default across config layers:** Change RedactorFieldMaskSettings default from False to True to match FieldMaskConfig.
+- **Redactors - Align FieldMaskRedactor.redact() return type with protocol:** Return original event dict instead of None when drop guardrail fires.
+- **Core - Wrap metrics calls in try/except for resilience:** Ensure metrics failures don't affect enqueue success.
+
+### Documentation
+
+- **Docs - Add AdaptiveDrainSummary to API reference and guides:** Document AdaptiveDrainSummary fields in lifecycle-results.md. Add adaptive summary example to graceful-shutdown-flush.md.
+- **Docs - Add adaptive pipeline and circuit breaker documentation:** Add adaptive preset to presets guide. Create user guides for adaptive-pipeline.md and circuit-breaker.md. Add glossary terms and performance tuning sections.
+- **Redactors - Document field_blocker, string_truncate, unsafe_debug, and redaction metrics:** Add all 5 built-in redactors with config tables, examples, and builder shortcuts. Document redaction operational metrics with PromQL examples.
+- **Docs - Update documentation for AUDIT and SECURITY levels:** Update custom-log-levels cookbook. Change custom level examples from AUDIT to VERBOSE/NOTICE.
+- **Docs - Add priority queue metrics and tuning documentation:** Add Prometheus metrics reference table. Document priority queue metrics with alerting rules.
+- **Docs - Improve configuration and FastAPI documentation:** Add configuration hierarchy section. Update FastAPI preset example to use FastAPIBuilder pattern.
+
 ## [0.14.0] - 2026-02-02
 
 ### Added
