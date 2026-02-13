@@ -23,7 +23,7 @@ Fapilog is an async-first logging pipeline that keeps your app responsive even w
 
 Also suitable for **on-prem**, **desktop**, or **embedded** projects where structured, JSON-ready logging is needed.
 
-> **Save evaluation time:** [Independent technical assessments](docs/audits/) are available from multiple AI reviewers.
+> **Benchmarks:** For performance comparisons between fapilog, structlog, and loguru, check out the [benchmarks page](https://fapilog.dev/benchmarks).
 
 ## Why fapilog?
 
