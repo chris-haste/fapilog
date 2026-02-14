@@ -11,6 +11,7 @@ from typing import Any
 
 import pytest
 
+from conftest import get_test_timeout
 from fapilog.plugins.redactors import redact_in_order
 from fapilog.plugins.redactors.field_blocker import FieldBlockerRedactor
 from fapilog.plugins.redactors.field_mask import FieldMaskRedactor
@@ -101,9 +102,11 @@ class TestAC7FieldBlockerStandalone:
 
         # Use p95 rather than max — max captures GC/OS scheduling outliers
         # that are not representative of redactor performance.
-        assert result.p95_latency_ms <= 0.015, (
+        # Scale budget for CI runners which are slower than local machines.
+        budget_ms = get_test_timeout(0.015)
+        assert result.p95_latency_ms <= budget_ms, (
             f"AC7: field_blocker p95 latency {result.p95_latency_ms * 1000:.1f}us "
-            f"exceeds 15us budget (avg={result.avg_latency_ms * 1000:.1f}us, "
+            f"exceeds {budget_ms * 1000:.0f}us budget (avg={result.avg_latency_ms * 1000:.1f}us, "
             f"max={result.max_latency_ms * 1000:.1f}us)"
         )
 
