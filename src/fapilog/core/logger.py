@@ -600,11 +600,12 @@ class _LoggerMixin(_WorkerCountersMixin):
             max_growth: float = getattr(adaptive, "max_queue_growth", 4.0)
             ceiling = int(initial_capacity * max_growth)
 
+            g = max_growth
             growth_table: dict[Any, float] = {
                 PressureLevel.NORMAL: 1.0,
-                PressureLevel.ELEVATED: 1.25,
-                PressureLevel.HIGH: 1.5,
-                PressureLevel.CRITICAL: 2.0,
+                PressureLevel.ELEVATED: 1.0 + (g - 1.0) * 0.25,
+                PressureLevel.HIGH: 1.0 + (g - 1.0) * 0.50,
+                PressureLevel.CRITICAL: g,
             }
 
             def _on_capacity_change(old_level: Any, new_level: Any) -> None:

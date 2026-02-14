@@ -239,7 +239,9 @@ class TestLoggerMonitorWiring:
 
         logger.start()
         # Slow sink blocks worker after first dequeue — items stay queued
-        for i in range(70):
+        # Need enough items to stay above de-escalation threshold (0.40)
+        # even after queue grows to 175 at ELEVATED (1.75x with default 4.0)
+        for i in range(80):
             logger.info("fill", idx=i)
 
         # Give monitor time to sample the filled queue
