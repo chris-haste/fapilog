@@ -77,8 +77,8 @@ class TestCapacityGrowsOnEscalation:
         for cb in monitor._callbacks:
             cb(PressureLevel.NORMAL, PressureLevel.ELEVATED)
 
-        # ELEVATED = 1.25x initial → 125
-        assert queue.capacity == 125
+        # ELEVATED = 1.0 + (4.0-1.0)*0.25 = 1.75x initial → 175
+        assert queue.capacity == 175
 
         await logger.stop_and_drain()
 
@@ -97,8 +97,8 @@ class TestCapacityGrowsOnEscalation:
         for cb in monitor._callbacks:
             cb(PressureLevel.NORMAL, PressureLevel.HIGH)
 
-        # HIGH = 1.5x initial → 150
-        assert queue.capacity == 150
+        # HIGH = 1.0 + (4.0-1.0)*0.50 = 2.5x initial → 250
+        assert queue.capacity == 250
 
         await logger.stop_and_drain()
 
@@ -117,8 +117,8 @@ class TestCapacityGrowsOnEscalation:
         for cb in monitor._callbacks:
             cb(PressureLevel.NORMAL, PressureLevel.CRITICAL)
 
-        # CRITICAL = 2.0x initial → 200
-        assert queue.capacity == 200
+        # CRITICAL = max_queue_growth = 4.0x initial → 400
+        assert queue.capacity == 400
 
         await logger.stop_and_drain()
 
@@ -150,6 +150,71 @@ class TestCapacityCeiling:
         await logger.stop_and_drain()
 
 
+class TestGrowthAbove2xIsEffective:
+    """AC3: max_queue_growth > 2.0 produces proportionally higher capacity."""
+
+    @pytest.mark.asyncio
+    async def test_growth_above_2x_is_effective(self) -> None:
+        logger = _make_logger(queue_capacity=100)
+        logger._cached_adaptive_enabled = True
+        logger._cached_adaptive_settings = AdaptiveSettings(
+            enabled=True,
+            check_interval_seconds=0.01,
+            cooldown_seconds=0.0,
+            max_queue_growth=6.0,
+        )
+
+        logger.start()
+        queue = logger._queue
+
+        monitor = logger._pressure_monitor
+        for cb in monitor._callbacks:
+            cb(PressureLevel.NORMAL, PressureLevel.CRITICAL)
+
+        # CRITICAL = max_queue_growth = 6.0x → 600
+        assert queue.capacity == 600
+
+        await logger.stop_and_drain()
+
+
+class TestBackwardCompatibleAt2x:
+    """AC5: max_queue_growth=2.0 reproduces old hardcoded multipliers."""
+
+    @pytest.mark.asyncio
+    async def test_backward_compatible_at_2x(self) -> None:
+        logger = _make_logger(queue_capacity=100)
+        logger._cached_adaptive_enabled = True
+        logger._cached_adaptive_settings = AdaptiveSettings(
+            enabled=True,
+            check_interval_seconds=0.01,
+            cooldown_seconds=0.0,
+            max_queue_growth=2.0,
+        )
+
+        logger.start()
+        queue = logger._queue
+        assert isinstance(queue, PriorityAwareQueue)
+
+        monitor = logger._pressure_monitor
+
+        # ELEVATED = 1.0 + (2.0-1.0)*0.25 = 1.25 → 125
+        for cb in monitor._callbacks:
+            cb(PressureLevel.NORMAL, PressureLevel.ELEVATED)
+        assert queue.capacity == 125
+
+        # HIGH = 1.0 + (2.0-1.0)*0.50 = 1.5 → 150
+        for cb in monitor._callbacks:
+            cb(PressureLevel.NORMAL, PressureLevel.HIGH)
+        assert queue.capacity == 150
+
+        # CRITICAL = 2.0 → 200
+        for cb in monitor._callbacks:
+            cb(PressureLevel.NORMAL, PressureLevel.CRITICAL)
+        assert queue.capacity == 200
+
+        await logger.stop_and_drain()
+
+
 class TestCapacityDoesNotShrinkOnDeescalation:
     """AC6: Capacity stays at grown size when pressure drops."""
 
@@ -165,15 +230,15 @@ class TestCapacityDoesNotShrinkOnDeescalation:
         queue = logger._queue
 
         monitor = logger._pressure_monitor
-        # Escalate to CRITICAL → 200
+        # Escalate to CRITICAL → 400 (4.0x default)
         for cb in monitor._callbacks:
             cb(PressureLevel.NORMAL, PressureLevel.CRITICAL)
-        assert queue.capacity == 200
+        assert queue.capacity == 400
 
-        # De-escalate to NORMAL → capacity stays at 200 (grow-only)
+        # De-escalate to NORMAL → capacity stays at 400 (grow-only)
         for cb in monitor._callbacks:
             cb(PressureLevel.CRITICAL, PressureLevel.NORMAL)
-        assert queue.capacity == 200
+        assert queue.capacity == 400
 
         await logger.stop_and_drain()
 
