@@ -701,32 +701,23 @@
 </pre></div>
 </div>
 </section>
-<section id="adaptive-pipeline-in-bound-mode">
-<h2>Adaptive Pipeline in Bound Mode<a class="headerlink" href="#adaptive-pipeline-in-bound-mode" title="Link to this heading"></a></h2>
-<p>FastAPI shares its event loop with fapilog’s async workers. This means two adaptive actuators — <strong>worker scaling</strong> and <strong>queue growth</strong> — are counterproductive because they add coroutine contention without speeding drain.</p>
-<p>Disable them while keeping filter tightening (which reduces work under pressure):</p>
+<section id="adaptive-pipeline">
+<h2>Adaptive Pipeline<a class="headerlink" href="#adaptive-pipeline" title="Link to this heading"></a></h2>
+<p>The adaptive pipeline works out-of-the-box with all defaults. Because fapilog always runs workers on a dedicated background thread, sink I/O never blocks your HTTP handlers — all actuators cooperate without contention:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
     <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
         <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
-        <span class="o">.</span><span class="n">with_adaptive</span><span class="p">(</span>
-            <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">filter_tightening</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>   <span class="c1"># Drops low-priority events under pressure</span>
-            <span class="n">worker_scaling</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>     <span class="c1"># More coroutines compete for shared loop</span>
-            <span class="n">queue_growth</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>       <span class="c1"># Delays drops without speeding drain</span>
-        <span class="p">)</span>
+        <span class="o">.</span><span class="n">with_adaptive</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="o">.</span><span class="n">skip_paths</span><span class="p">([</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/healthz&quot;</span><span class="p">,</span> <span class="s2">&quot;/ready&quot;</span><span class="p">,</span> <span class="s2">&quot;/live&quot;</span><span class="p">,</span> <span class="s2">&quot;/metrics&quot;</span><span class="p">])</span>
         <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 </pre></div>
 </div>
-<p>Or via environment variables:</p>
+<p>Or via environment variable:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">FAPILOG_ADAPTIVE__ENABLED</span><span class="o">=</span><span class="nb">true</span>
-<span class="nv">FAPILOG_ADAPTIVE__FILTER_TIGHTENING</span><span class="o">=</span><span class="nb">true</span>
-<span class="nv">FAPILOG_ADAPTIVE__WORKER_SCALING</span><span class="o">=</span><span class="nb">false</span>
-<span class="nv">FAPILOG_ADAPTIVE__QUEUE_GROWTH</span><span class="o">=</span><span class="nb">false</span>
 </pre></div>
 </div>
-<p>For thread-mode deployments (separate event loop), all actuators work well together. See <a class="reference internal" href="../user-guide/adaptive-pipeline.html"><span class="std std-doc">Adaptive Pipeline</span></a> for full configuration reference.</p>
+<p>The dedicated thread’s event loop is independent of FastAPI’s, so worker scaling, queue growth, filter tightening, and batch sizing all work well together. See <a class="reference internal" href="../user-guide/adaptive-pipeline.html"><span class="std std-doc">Adaptive Pipeline</span></a> for full configuration reference.</p>
 </section>
 <section id="troubleshooting">
 <h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>

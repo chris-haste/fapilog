@@ -465,37 +465,27 @@ async def get_user(user_id: int, logger=Depends(get_request_logger)):
     return {"user_id": user_id, "name": "Example User"}
 ```
 
-## Adaptive Pipeline in Bound Mode
+## Adaptive Pipeline
 
-FastAPI shares its event loop with fapilog's async workers. This means two adaptive actuators — **worker scaling** and **queue growth** — are counterproductive because they add coroutine contention without speeding drain.
-
-Disable them while keeping filter tightening (which reduces work under pressure):
+The adaptive pipeline works out-of-the-box with all defaults. Because fapilog always runs workers on a dedicated background thread, sink I/O never blocks your HTTP handlers — all actuators cooperate without contention:
 
 ```python
 app = FastAPI(
     lifespan=FastAPIBuilder()
         .with_preset("fastapi")
-        .with_adaptive(
-            enabled=True,
-            filter_tightening=True,   # Drops low-priority events under pressure
-            worker_scaling=False,     # More coroutines compete for shared loop
-            queue_growth=False,       # Delays drops without speeding drain
-        )
+        .with_adaptive(enabled=True)
         .skip_paths(["/health", "/healthz", "/ready", "/live", "/metrics"])
         .build()
 )
 ```
 
-Or via environment variables:
+Or via environment variable:
 
 ```bash
 FAPILOG_ADAPTIVE__ENABLED=true
-FAPILOG_ADAPTIVE__FILTER_TIGHTENING=true
-FAPILOG_ADAPTIVE__WORKER_SCALING=false
-FAPILOG_ADAPTIVE__QUEUE_GROWTH=false
 ```
 
-For thread-mode deployments (separate event loop), all actuators work well together. See [Adaptive Pipeline](../user-guide/adaptive-pipeline.md) for full configuration reference.
+The dedicated thread's event loop is independent of FastAPI's, so worker scaling, queue growth, filter tightening, and batch sizing all work well together. See [Adaptive Pipeline](../user-guide/adaptive-pipeline.md) for full configuration reference.
 
 ## Troubleshooting
 

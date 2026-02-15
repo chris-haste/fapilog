@@ -116,9 +116,6 @@ settings = Settings(adaptive={
     "batch_sizing": True,
     "check_interval_seconds": 0.5,
     "cooldown_seconds": 3.0,
-    # Disable counterproductive actuators for bound mode (FastAPI)
-    "worker_scaling": False,
-    "queue_growth": False,
 })
 ```
 

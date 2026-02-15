@@ -233,48 +233,52 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="execution-modes">
 <h1>Execution Modes<a class="headerlink" href="#execution-modes" title="Link to this heading"></a></h1>
-<p>Fapilog automatically detects your execution context and chooses the optimal mode for background processing. Understanding these modes helps you achieve maximum throughput and avoid common pitfalls.</p>
+<p>Fapilog always runs its logging pipeline on a dedicated background thread. The only work performed on the caller thread is <code class="docutils literal notranslate"><span class="pre">try_enqueue()</span></code> — a fast, non-blocking put onto an async queue. Workers, batch flushers, and sink writes all run on the dedicated thread’s event loop.</p>
 <section id="quick-reference">
 <h2>Quick Reference<a class="headerlink" href="#quick-reference" title="Link to this heading"></a></h2>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p>Mode</p></th>
-<th class="head"><p>How to trigger</p></th>
-<th class="head"><p>Throughput</p></th>
+<tr class="row-odd"><th class="head"><p>Facade</p></th>
+<th class="head"><p>API style</p></th>
+<th class="head"><p>Caller-thread cost</p></th>
 <th class="head"><p>Best for</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><strong>Async</strong></p></td>
-<td><p>Use <code class="docutils literal notranslate"><span class="pre">AsyncLoggerFacade</span></code></p></td>
-<td><p>~100K+ events/sec</p></td>
+<tr class="row-even"><td><p><strong><code class="docutils literal notranslate"><span class="pre">AsyncLoggerFacade</span></code></strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">await</span> <span class="pre">logger.info()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">try_enqueue()</span></code></p></td>
 <td><p>FastAPI, aiohttp, async frameworks</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Bound loop</strong></p></td>
-<td><p>Start <code class="docutils literal notranslate"><span class="pre">SyncLoggerFacade</span></code> inside async context</p></td>
-<td><p>~100K+ events/sec</p></td>
-<td><p>Sync APIs called from async code</p></td>
-</tr>
-<tr class="row-even"><td><p><strong>Thread</strong></p></td>
-<td><p>Start <code class="docutils literal notranslate"><span class="pre">SyncLoggerFacade</span></code> outside async context</p></td>
-<td><p>~10-15K events/sec</p></td>
-<td><p>CLI tools, scripts, traditional frameworks</p></td>
+<tr class="row-odd"><td><p><strong><code class="docutils literal notranslate"><span class="pre">SyncLoggerFacade</span></code></strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">logger.info()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">try_enqueue()</span></code></p></td>
+<td><p>CLI tools, scripts, Django, Flask</p></td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="understanding-the-modes">
-<h2>Understanding the Modes<a class="headerlink" href="#understanding-the-modes" title="Link to this heading"></a></h2>
-<p><strong>Important:</strong> Regardless of mode, fapilog’s workers are <strong>asyncio tasks</strong>, not OS threads or processes. The <code class="docutils literal notranslate"><span class="pre">worker_count</span></code> setting creates multiple coroutines within an event loop for pipelined batch processing. The key difference between modes is <em>where</em> that event loop runs and how your code communicates with it.</p>
-<section id="async-mode-fastest">
-<h3>Async Mode (Fastest)<a class="headerlink" href="#async-mode-fastest" title="Link to this heading"></a></h3>
+<section id="architecture">
+<h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Caller thread                    Dedicated background thread
+─────────────                    ───────────────────────────
+logger.info(&quot;msg&quot;)               event loop
+  └─ build_envelope()              ├─ worker tasks (batch + flush)
+  └─ try_enqueue() ──queue──►      ├─ sink writes
+                                   └─ adaptive actuators
+</pre></div>
+</div>
+<p>Every <code class="docutils literal notranslate"><span class="pre">logger.info()</span></code> call builds the envelope synchronously, then enqueues it. The dedicated thread owns the event loop where workers drain the queue, batch events, and write to sinks. This keeps sink I/O completely off the caller thread.</p>
+</section>
+<section id="asyncloggerfacade">
+<h2>AsyncLoggerFacade<a class="headerlink" href="#asyncloggerfacade" title="Link to this heading"></a></h2>
 <p>Use <code class="docutils literal notranslate"><span class="pre">AsyncLoggerFacade</span></code> for native async integration:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_async_logger</span>
 
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
     <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
 
-    <span class="c1"># Each call is a coroutine - no blocking, no threads</span>
+    <span class="c1"># Each call is a coroutine - enqueue is non-blocking</span>
     <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Processing request&quot;</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="mi">123</span><span class="p">)</span>
     <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Something failed&quot;</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="s2">&quot;details&quot;</span><span class="p">)</span>
 
@@ -284,69 +288,14 @@
 <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
 </pre></div>
 </div>
-<p><strong>Why it’s fast:</strong> Log calls are coroutines that interact directly with the async queue. No thread synchronization, no blocking.</p>
 <p><strong>Use when:</strong></p>
 <ul class="simple">
 <li><p>Building FastAPI, Starlette, or aiohttp applications</p></li>
 <li><p>Writing async libraries or frameworks</p></li>
-<li><p>Maximum throughput is critical</p></li>
 </ul>
-</section>
-<section id="bound-loop-mode">
-<h3>Bound Loop Mode<a class="headerlink" href="#bound-loop-mode" title="Link to this heading"></a></h3>
-<p>When <code class="docutils literal notranslate"><span class="pre">SyncLoggerFacade</span></code> is started inside an async context, it binds to the current event loop:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
-
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-    <span class="c1"># Started INSIDE async context = bound loop mode</span>
-    <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
-
-    <span class="c1"># Sync API, but runs on the same event loop</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;This achieves ~100K events/sec&quot;</span><span class="p">)</span>
-
-    <span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">stop_and_drain</span><span class="p">()</span>
-
-<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
-</pre></div>
-</div>
-<p><strong>Why it’s fast:</strong> The logger detects the running event loop and creates worker tasks directly in it. No separate thread, no cross-thread synchronization.</p>
-<p><strong>Use when:</strong></p>
-<ul class="simple">
-<li><p>You have sync code that runs inside an async application</p></li>
-<li><p>You want the familiar sync <code class="docutils literal notranslate"><span class="pre">logger.info()</span></code> API</p></li>
-<li><p>You’re inside a FastAPI route handler or async middleware</p></li>
-</ul>
-</section>
-<section id="thread-mode">
-<h3>Thread Mode<a class="headerlink" href="#thread-mode" title="Link to this heading"></a></h3>
-<p>When <code class="docutils literal notranslate"><span class="pre">SyncLoggerFacade</span></code> is started outside any async context, it creates a background thread:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
-
-<span class="c1"># Started OUTSIDE async context = thread mode</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
-
-<span class="c1"># Each call synchronizes with the worker thread</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;This achieves ~10-15K events/sec&quot;</span><span class="p">)</span>
-
-<span class="c1"># Must drain before exit</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
-<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">stop_and_drain</span><span class="p">())</span>
-</pre></div>
-</div>
-<p><strong>Why it’s slower:</strong> Each <code class="docutils literal notranslate"><span class="pre">logger.info()</span></code> call must coordinate with the worker thread via <code class="docutils literal notranslate"><span class="pre">asyncio.run_coroutine_threadsafe()</span></code>. This cross-thread synchronization adds ~80-90µs per call. This is the only mode with true OS-level context switching overhead—the workers themselves are still asyncio tasks, but they run in a separate thread’s event loop.</p>
-<p><strong>Use when:</strong></p>
-<ul class="simple">
-<li><p>Building CLI tools or scripts</p></li>
-<li><p>Using traditional sync frameworks (Flask, Django without async)</p></li>
-<li><p>The ~10-15K events/sec throughput is sufficient</p></li>
-</ul>
-</section>
-</section>
-<section id="choosing-the-right-mode">
-<h2>Choosing the Right Mode<a class="headerlink" href="#choosing-the-right-mode" title="Link to this heading"></a></h2>
 <section id="fastapi-applications">
 <h3>FastAPI Applications<a class="headerlink" href="#fastapi-applications" title="Link to this heading"></a></h3>
-<p><strong>Recommended: Async mode with <code class="docutils literal notranslate"><span class="pre">FastAPIBuilder</span></code></strong></p>
+<p><strong>Recommended: <code class="docutils literal notranslate"><span class="pre">FastAPIBuilder</span></code></strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">FastAPI</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPIBuilder</span><span class="p">,</span> <span class="n">get_request_logger</span>
 
@@ -362,56 +311,37 @@
     <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">user_id</span><span class="p">}</span>
 </pre></div>
 </div>
-<p>This uses <code class="docutils literal notranslate"><span class="pre">AsyncLoggerFacade</span></code> under the hood for maximum throughput.</p>
+<p>This uses <code class="docutils literal notranslate"><span class="pre">AsyncLoggerFacade</span></code> under the hood. Sink I/O runs on the dedicated thread, so it never blocks HTTP handlers.</p>
 </section>
-<section id="sync-code-in-async-applications">
-<h3>Sync Code in Async Applications<a class="headerlink" href="#sync-code-in-async-applications" title="Link to this heading"></a></h3>
-<p><strong>Recommended: Bound loop mode</strong></p>
+</section>
+<section id="syncloggerfacade">
+<h2>SyncLoggerFacade<a class="headerlink" href="#syncloggerfacade" title="Link to this heading"></a></h2>
+<p>Use <code class="docutils literal notranslate"><span class="pre">SyncLoggerFacade</span></code> for synchronous code:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
-
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">async_handler</span><span class="p">():</span>
-    <span class="c1"># Logger started inside async context</span>
-    <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;handler&quot;</span><span class="p">)</span>
-
-    <span class="c1"># Sync API works, full async performance</span>
-    <span class="n">process_data</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">process_data</span><span class="p">(</span><span class="n">logger</span><span class="p">):</span>
-    <span class="c1"># This sync function can use the logger normally</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Processing...&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="cli-tools-and-scripts">
-<h3>CLI Tools and Scripts<a class="headerlink" href="#cli-tools-and-scripts" title="Link to this heading"></a></h3>
-<p><strong>Use: Thread mode (automatic)</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting batch job&quot;</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
-        <span class="n">process</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Processed item&quot;</span><span class="p">,</span> <span class="n">item_id</span><span class="o">=</span><span class="n">item</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Batch complete&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting batch job&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+    <span class="n">process</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Processed item&quot;</span><span class="p">,</span> <span class="n">item_id</span><span class="o">=</span><span class="n">item</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Batch complete&quot;</span><span class="p">)</span>
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">main</span><span class="p">()</span>
-    <span class="c1"># Ensure logs are flushed before exit</span>
-    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">stop_and_drain</span><span class="p">())</span>
+<span class="c1"># Ensure logs are flushed before exit</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">stop_and_drain</span><span class="p">())</span>
 </pre></div>
 </div>
-</section>
-<section id="django-flask-traditional-sync">
-<h3>Django / Flask (Traditional Sync)<a class="headerlink" href="#django-flask-traditional-sync" title="Link to this heading"></a></h3>
-<p><strong>Use: Thread mode</strong></p>
+<p><strong>Use when:</strong></p>
+<ul class="simple">
+<li><p>Building CLI tools or scripts</p></li>
+<li><p>Using traditional sync frameworks (Flask, Django)</p></li>
+</ul>
+<section id="django-flask">
+<h3>Django / Flask<a class="headerlink" href="#django-flask" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># settings.py or app initialization</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
 
-<span class="c1"># Started at module level (outside async) = thread mode</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
 
 <span class="c1"># In views/handlers</span>
@@ -420,112 +350,39 @@
     <span class="k">return</span> <span class="n">response</span>
 </pre></div>
 </div>
-<p>For Django with async views, consider initializing the logger inside the async view for bound loop mode.</p>
 </section>
 </section>
-<section id="performance-comparison">
-<h2>Performance Comparison<a class="headerlink" href="#performance-comparison" title="Link to this heading"></a></h2>
+<section id="performance">
+<h2>Performance<a class="headerlink" href="#performance" title="Link to this heading"></a></h2>
 <p>Measured on typical hardware with a no-op sink:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Mode              Throughput        Latency (p50)    Latency (p99)
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Facade              Throughput        Latency (p50)    Latency (p99)
 ─────────────────────────────────────────────────────────────────
-Async             ~120K events/sec  ~8µs             ~15µs
-Bound loop        ~100K events/sec  ~10µs            ~20µs
-Thread            ~12K events/sec   ~80µs            ~150µs
+AsyncLoggerFacade   ~120K events/sec  ~8us             ~15us
+SyncLoggerFacade    ~100K events/sec  ~10us            ~20us
 </pre></div>
 </div>
-<p>The ~10x difference in thread mode is due to OS-level cross-thread synchronization overhead—the only mode where true context switching occurs.</p>
+<p>Both facades have similar performance because the hot path is the same: <code class="docutils literal notranslate"><span class="pre">build_envelope()</span></code> + <code class="docutils literal notranslate"><span class="pre">try_enqueue()</span></code>. The dedicated thread handles all downstream work.</p>
 </section>
 <section id="common-pitfalls">
 <h2>Common Pitfalls<a class="headerlink" href="#common-pitfalls" title="Link to this heading"></a></h2>
-<section id="expecting-100k-events-sec-in-thread-mode">
-<h3>Expecting 100K events/sec in Thread Mode<a class="headerlink" href="#expecting-100k-events-sec-in-thread-mode" title="Link to this heading"></a></h3>
-<p><strong>Problem:</strong> You read “100K events/sec” and use <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> in a sync script, but only achieve ~10K.</p>
-<p><strong>Solution:</strong> This is expected behavior. For 100K+ throughput, use async mode or ensure you start the logger inside an async context.</p>
-</section>
-<section id="starting-logger-at-module-level-in-async-apps">
-<h3>Starting Logger at Module Level in Async Apps<a class="headerlink" href="#starting-logger-at-module-level-in-async-apps" title="Link to this heading"></a></h3>
-<p><strong>Problem:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># top of file - outside async context</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>  <span class="c1"># Thread mode!</span>
+<section id="not-draining-before-exit">
+<h3>Not Draining Before Exit<a class="headerlink" href="#not-draining-before-exit" title="Link to this heading"></a></h3>
+<p><strong>Problem:</strong> Your process exits before the background thread finishes flushing.</p>
+<p><strong>Solution:</strong> Always drain before shutdown:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Sync</span>
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">stop_and_drain</span><span class="p">())</span>
 
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">handler</span><span class="p">():</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>  <span class="c1"># ~10K events/sec, not 100K</span>
-</pre></div>
-</div>
-<p><strong>Solution:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Option 1: Initialize inside async context</span>
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">handler</span><span class="p">():</span>
-    <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>  <span class="c1"># Bound loop mode</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>
+<span class="c1"># Async</span>
+<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">drain</span><span class="p">()</span>
 
-<span class="c1"># Option 2: Use AsyncLoggerFacade</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="kc">None</span>
-
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">startup</span><span class="p">():</span>
-    <span class="k">global</span> <span class="n">logger</span>
-    <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">()</span>
+<span class="c1"># FastAPI - handled automatically by FastAPIBuilder lifespan</span>
 </pre></div>
 </div>
 </section>
-<section id="mixing-modes-unintentionally">
-<h3>Mixing Modes Unintentionally<a class="headerlink" href="#mixing-modes-unintentionally" title="Link to this heading"></a></h3>
-<p><strong>Problem:</strong> Different parts of your app initialize loggers differently, leading to inconsistent performance.</p>
+<section id="mixing-facades-unintentionally">
+<h3>Mixing Facades Unintentionally<a class="headerlink" href="#mixing-facades-unintentionally" title="Link to this heading"></a></h3>
+<p><strong>Problem:</strong> Different parts of your app use different facade types, leading to multiple logger instances.</p>
 <p><strong>Solution:</strong> Centralize logger initialization. In FastAPI, use <code class="docutils literal notranslate"><span class="pre">FastAPIBuilder</span></code>. In other frameworks, create a single initialization point.</p>
-</section>
-</section>
-<section id="checking-which-mode-youre-in">
-<h2>Checking Which Mode You’re In<a class="headerlink" href="#checking-which-mode-youre-in" title="Link to this heading"></a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-
-<span class="k">if</span> <span class="n">logger</span><span class="o">.</span><span class="n">_worker_thread</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Thread mode - ~10-15K events/sec&quot;</span><span class="p">)</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Bound loop mode - ~100K+ events/sec&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
-<section id="migration-tips">
-<h2>Migration Tips<a class="headerlink" href="#migration-tips" title="Link to this heading"></a></h2>
-<section id="from-thread-mode-to-bound-loop-mode">
-<h3>From Thread Mode to Bound Loop Mode<a class="headerlink" href="#from-thread-mode-to-bound-loop-mode" title="Link to this heading"></a></h3>
-<p>If your async application is accidentally using thread mode:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Before (thread mode - logger created at import time)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
-
-<span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">root</span><span class="p">():</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;hello&quot;</span><span class="p">)</span>
-
-<span class="c1"># After (bound loop mode - logger created inside async)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
-
-<span class="nd">@app</span><span class="o">.</span><span class="n">on_event</span><span class="p">(</span><span class="s2">&quot;startup&quot;</span><span class="p">)</span>
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">startup</span><span class="p">():</span>
-    <span class="k">global</span> <span class="n">logger</span>
-    <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
-
-<span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
-<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">root</span><span class="p">():</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;hello&quot;</span><span class="p">)</span>  <span class="c1"># Now ~100K events/sec</span>
-</pre></div>
-</div>
-</section>
-<section id="from-sync-logger-to-async-logger">
-<h3>From Sync Logger to Async Logger<a class="headerlink" href="#from-sync-logger-to-async-logger" title="Link to this heading"></a></h3>
-<p>For maximum performance in async applications:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Before</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;sync call&quot;</span><span class="p">)</span>
-
-<span class="c1"># After</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_async_logger</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">()</span>
-<span class="k">await</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;async call&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
 </section>
 </section>
 <section id="see-also">
