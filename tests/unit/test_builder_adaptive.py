@@ -93,3 +93,32 @@ class TestWithAdaptive:
         builder.with_preset("adaptive").with_adaptive(max_workers=4)
         # Builder config should have the override
         assert builder._config["adaptive"]["max_workers"] == 4
+
+    # Story 1.51: Per-actuator toggles
+
+    def test_with_adaptive_filter_tightening_param(self) -> None:
+        """with_adaptive(filter_tightening=False) sets the toggle."""
+        builder = LoggerBuilder()
+        builder.with_adaptive(filter_tightening=False)
+        assert builder._config["adaptive"]["filter_tightening"] is False
+
+    def test_with_adaptive_worker_scaling_param(self) -> None:
+        """with_adaptive(worker_scaling=False) sets the toggle."""
+        builder = LoggerBuilder()
+        builder.with_adaptive(worker_scaling=False)
+        assert builder._config["adaptive"]["worker_scaling"] is False
+
+    def test_with_adaptive_queue_growth_param(self) -> None:
+        """with_adaptive(queue_growth=False) sets the toggle."""
+        builder = LoggerBuilder()
+        builder.with_adaptive(queue_growth=False)
+        assert builder._config["adaptive"]["queue_growth"] is False
+
+    def test_with_adaptive_toggle_none_omitted(self) -> None:
+        """Toggle params default to None and are omitted from config."""
+        builder = LoggerBuilder()
+        builder.with_adaptive()
+        adaptive = builder._config["adaptive"]
+        assert "filter_tightening" not in adaptive
+        assert "worker_scaling" not in adaptive
+        assert "queue_growth" not in adaptive

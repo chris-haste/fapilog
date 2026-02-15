@@ -94,6 +94,9 @@ CORE_COVERAGE: dict[str, list[str]] = {
         "max_workers",
         "max_queue_growth",
         "circuit_pressure_boost",
+        "filter_tightening",
+        "worker_scaling",
+        "queue_growth",
     ],
     # Graceful shutdown (Story 6.13)
     "with_atexit_drain": ["atexit_drain_enabled", "atexit_drain_timeout_seconds"],

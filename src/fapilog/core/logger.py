@@ -496,40 +496,46 @@ class _LoggerMixin(_WorkerCountersMixin):
                 breaker.on_state_change = monitor.on_circuit_state_change
 
             # Build adaptive filter ladder and register swap callback (Story 1.45)
-            try:
-                from .filter_ladder import build_filter_ladder
+            # Gated on filter_tightening toggle (Story 1.51)
+            if adaptive.filter_tightening:
+                try:
+                    from .filter_ladder import build_filter_ladder
 
-                ladder = build_filter_ladder(
-                    base_filters=self._filters,
-                    protected_levels=self._protected_levels,
-                )
-                self._adaptive_filter_ladder = ladder
+                    ladder = build_filter_ladder(
+                        base_filters=self._filters,
+                        protected_levels=self._protected_levels,
+                    )
+                    self._adaptive_filter_ladder = ladder
 
-                def _on_filter_change(old_level: Any, new_level: Any) -> None:
-                    if self._adaptive_filter_ladder is not None:
-                        self._filters_snapshot = self._adaptive_filter_ladder[new_level]
-                        monitor.record_filter_swap()
-                        try:
-                            from .diagnostics import warn as _diag_warn
-                            from .pressure import _LEVELS
+                    def _on_filter_change(old_level: Any, new_level: Any) -> None:
+                        if self._adaptive_filter_ladder is not None:
+                            self._filters_snapshot = self._adaptive_filter_ladder[
+                                new_level
+                            ]
+                            monitor.record_filter_swap()
+                            try:
+                                from .diagnostics import warn as _diag_warn
+                                from .pressure import _LEVELS
 
-                            escalated = _LEVELS.index(new_level) > _LEVELS.index(
-                                old_level
-                            )
-                            msg = (
-                                "filters tightened" if escalated else "filters restored"
-                            )
-                            _diag_warn(
-                                "adaptive-controller",
-                                msg,
-                                pressure_level=new_level.value,
-                            )
-                        except Exception:
-                            pass
+                                escalated = _LEVELS.index(new_level) > _LEVELS.index(
+                                    old_level
+                                )
+                                msg = (
+                                    "filters tightened"
+                                    if escalated
+                                    else "filters restored"
+                                )
+                                _diag_warn(
+                                    "adaptive-controller",
+                                    msg,
+                                    pressure_level=new_level.value,
+                                )
+                            except Exception:
+                                pass
 
-                monitor.on_level_change(_on_filter_change)
-            except Exception:
-                pass  # Fail-open: ladder build failure shouldn't block monitor
+                    monitor.on_level_change(_on_filter_change)
+                except Exception:
+                    pass  # Fail-open: ladder build failure shouldn't block monitor
 
             # Build dynamic worker pool and register scaling callback (Story 1.46)
             self._maybe_start_worker_pool(monitor, loop, adaptive)
@@ -548,6 +554,8 @@ class _LoggerMixin(_WorkerCountersMixin):
         adaptive: Any,
     ) -> None:
         """Create WorkerPool and register scaling callback (Story 1.46)."""
+        if not adaptive.worker_scaling:
+            return
         try:
             from .worker_pool import WorkerPool
 
@@ -592,6 +600,8 @@ class _LoggerMixin(_WorkerCountersMixin):
         adaptive: Any,
     ) -> None:
         """Register queue capacity growth callback (Story 1.48)."""
+        if not adaptive.queue_growth:
+            return
         try:
             from .pressure import PressureLevel
 
