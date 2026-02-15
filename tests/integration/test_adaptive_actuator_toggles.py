@@ -16,6 +16,10 @@ async def _noop_sink(entry: dict[str, Any]) -> None:
     pass
 
 
+async def _slow_sink(entry: dict[str, Any]) -> None:
+    await asyncio.sleep(100.0)
+
+
 def _make_logger_with_adaptive(settings: AdaptiveSettings) -> SyncLoggerFacade:
     """Create a logger with pre-cached adaptive settings."""
     logger = SyncLoggerFacade(
@@ -122,20 +126,50 @@ class TestQueueGrowthToggle:
             check_interval_seconds=0.01,
             cooldown_seconds=0.0,
         )
-        logger = _make_logger_with_adaptive(settings)
+        # Use slow sink so worker blocks and items stay in queue
+        logger = SyncLoggerFacade(
+            name="t-toggle",
+            queue_capacity=100,
+            batch_max_size=1,
+            batch_timeout_seconds=0.01,
+            backpressure_wait_ms=10,
+            drop_on_full=True,
+            sink_write=_slow_sink,
+        )
+        logger._cached_adaptive_enabled = True
+        logger._cached_adaptive_settings = settings
         logger.start()
 
         initial_capacity = logger._queue.capacity
 
-        # Fill queue to trigger escalation
+        # Fill queue — slow sink blocks worker so items stay queued
         for _ in range(95):
             logger._queue.try_enqueue({"level": "INFO", "message": "fill"})
-        await asyncio.sleep(0.05)
+        await asyncio.sleep(0.1)
 
         # Queue capacity should have grown
         assert logger._queue.capacity > initial_capacity
 
-        await logger.stop_and_drain()
+        # Clean up: cancel worker tasks and stop loop
+        logger._stop_flag = True
+        loop = logger._worker_loop
+        if loop is not None:
+
+            async def _cancel_all() -> None:
+                if logger._pressure_monitor_task is not None:
+                    logger._pressure_monitor_task.cancel()
+                    try:
+                        await logger._pressure_monitor_task
+                    except (asyncio.CancelledError, Exception):
+                        pass
+                for task in logger._worker_tasks:
+                    task.cancel()
+                await asyncio.gather(*logger._worker_tasks, return_exceptions=True)
+                loop.call_soon(loop.stop)
+
+            asyncio.run_coroutine_threadsafe(_cancel_all(), loop)
+        if logger._worker_thread is not None:
+            logger._worker_thread.join(timeout=5.0)
 
 
 class TestFilterTighteningToggle:

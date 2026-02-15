@@ -447,26 +447,32 @@ class TestAsyncBackpressure:
     @pytest.mark.asyncio
     async def test_async_backpressure_drops_when_queue_full(self) -> None:
         """AsyncLoggerFacade drops messages immediately when queue full and wait=0."""
-        collected: list[dict[str, Any]] = []
+        import threading
 
-        async def sink(event: dict[str, Any]) -> None:
+        collected: list[dict[str, Any]] = []
+        slow_started = threading.Event()
+
+        async def slow_sink(event: dict[str, Any]) -> None:
+            slow_started.set()
+            await asyncio.sleep(5.0)  # Block so queue stays full
             collected.append(dict(event))
 
         logger = AsyncLoggerFacade(
             name="async-backpressure-test",
             queue_capacity=1,  # Very small queue
-            batch_max_size=1024,  # Large batch = slow drain
-            batch_timeout_seconds=0.2,
+            batch_max_size=1,
+            batch_timeout_seconds=0.01,
             backpressure_wait_ms=0,  # Immediate drop when full
             drop_on_full=True,
-            sink_write=sink,
+            sink_write=slow_sink,
         )
         logger.start()
 
-        # Fill queue with first message
+        # Fill queue — worker dequeues first message and blocks in slow sink
         await logger.info("seed")
+        slow_started.wait(timeout=2.0)
 
-        # Submit many more that should be dropped
+        # Submit many more that should be dropped (queue full, worker blocked)
         for _ in range(10):
             await logger.info("x")
 
@@ -474,7 +480,7 @@ class TestAsyncBackpressure:
 
         # All 11 messages submitted (1 seed + 10 flood)
         assert result.submitted == 11
-        # With queue_capacity=1, at most 2 can be processed (queue + in-flight)
+        # With queue_capacity=1 and worker blocked, most should be dropped
         assert result.dropped >= 9
         # Invariant: submitted = processed + dropped
         assert result.submitted == result.processed + result.dropped

@@ -73,25 +73,37 @@ class TestInLoopMode:
 
     @pytest.mark.asyncio
     async def test_in_loop_drop_when_full_nonblocking(self) -> None:
+        import threading
+
         collected: list[dict[str, Any]] = []
+        slow_started = threading.Event()
+
+        async def slow_sink(entry: dict[str, Any]) -> None:
+            slow_started.set()
+            await asyncio.sleep(5.0)  # Block worker so queue stays full
+            collected.append(dict(entry))
+
         logger = SyncLoggerFacade(
             name="t",
             queue_capacity=1,
-            batch_max_size=10,
-            batch_timeout_seconds=1.0,
+            batch_max_size=1,
+            batch_timeout_seconds=0.01,
             backpressure_wait_ms=100,
             drop_on_full=True,
-            sink_write=lambda e: _collecting_sink(collected, e),
+            sink_write=slow_sink,
         )
         logger.start()
-        # Enqueue two items quickly; second should drop on the loop thread
+        # First message: enqueues, worker dequeues it and blocks in slow sink
         logger.info("a")
+        slow_started.wait(timeout=2.0)
+        # Second message: fills queue (capacity=1)
         logger.info("b")
-        await asyncio.sleep(0.05)
+        # Third message: should drop — queue full and worker blocked
+        logger.info("c")
         res = await logger.stop_and_drain()
-        assert res.submitted == 2
-        assert res.processed == 1
-        assert res.dropped == res.submitted - res.processed
+        assert res.submitted == 3
+        assert res.dropped >= 1  # noqa: WA002 — async timing makes exact drop count non-deterministic
+        assert res.submitted == res.processed + res.dropped
 
 
 class TestThreadMode:

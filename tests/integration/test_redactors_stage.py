@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-import asyncio
 from typing import Any, cast
 
 import pytest
 
-from fapilog import get_logger
+from fapilog.core.logger import SyncLoggerFacade
 from fapilog.metrics.metrics import MetricsCollector
 from fapilog.plugins.enrichers import BaseEnricher
 from fapilog.plugins.redactors import BaseRedactor
@@ -60,32 +59,27 @@ async def _collecting_sink(
 async def test_redactors_ordering_and_integration() -> None:
     collected: list[dict[str, Any]] = []
 
-    logger = get_logger(name="redactors-test")
+    # Construct logger directly with sink at construction time
+    logger = SyncLoggerFacade(
+        name="redactors-test",
+        queue_capacity=100,
+        batch_max_size=1,
+        batch_timeout_seconds=0.01,
+        backpressure_wait_ms=1,
+        drop_on_full=True,
+        sink_write=lambda e: _collecting_sink(collected, e),
+    )
 
-    # Replace sink to capture output
-    async def _sink(entry: dict[str, Any]) -> None:
-        await _collecting_sink(collected, entry)
-
-    logger._sink_write = _sink  # type: ignore[attr-defined]
-
-    # Inject stub enricher and redactors
-    # Note: type ignores are expected; we are injecting test doubles
-    logger._enrichers = cast(
-        list[BaseEnricher],
-        [_StubEnricher()],
-    )  # type: ignore[attr-defined]
-    logger._invalidate_enrichers_cache()  # type: ignore[attr-defined]
+    # Inject stub enricher and redactors before starting
+    logger._enrichers = cast(list[BaseEnricher], [_StubEnricher()])
+    logger._invalidate_enrichers_cache()
     logger._redactors = cast(
         list[BaseRedactor],
-        [
-            _StubRedactorAdd10(),
-            _StubRedactorAdd100(),
-        ],
-    )  # type: ignore[attr-defined]
-    logger._invalidate_redactors_cache()  # type: ignore[attr-defined]
+        [_StubRedactorAdd10(), _StubRedactorAdd100()],
+    )
+    logger._invalidate_redactors_cache()
 
     logger.info("hello")
-    await asyncio.sleep(0)
     await logger.stop_and_drain()
 
     assert collected, "Expected at least one emitted entry"
@@ -101,34 +95,32 @@ async def test_redactors_ordering_and_integration() -> None:
 async def test_redactor_error_handling_no_drop() -> None:
     collected: list[dict[str, Any]] = []
 
-    logger = get_logger(name="redactors-error-test")
+    # Construct logger directly with sink at construction time
+    logger = SyncLoggerFacade(
+        name="redactors-error-test",
+        queue_capacity=100,
+        batch_max_size=1,
+        batch_timeout_seconds=0.01,
+        backpressure_wait_ms=1,
+        drop_on_full=True,
+        sink_write=lambda e: _collecting_sink(collected, e),
+    )
     # Enable metrics to exercise plugin_timer error path
-    logger._metrics = MetricsCollector(enabled=True)  # type: ignore[attr-defined]
+    logger._metrics = MetricsCollector(enabled=True)
 
-    async def _sink2(entry: dict[str, Any]) -> None:
-        await _collecting_sink(collected, entry)
-
-    logger._sink_write = _sink2  # type: ignore[attr-defined]
-    logger._enrichers = cast(
-        list[BaseEnricher],
-        [_StubEnricher()],
-    )  # type: ignore[attr-defined]
-    logger._invalidate_enrichers_cache()  # type: ignore[attr-defined]
+    logger._enrichers = cast(list[BaseEnricher], [_StubEnricher()])
+    logger._invalidate_enrichers_cache()
     logger._redactors = cast(
         list[BaseRedactor],
-        [
-            _StubRedactorBoom(),
-            _StubRedactorAdd10(),
-        ],
-    )  # type: ignore[attr-defined]
-    logger._invalidate_redactors_cache()  # type: ignore[attr-defined]
+        [_StubRedactorBoom(), _StubRedactorAdd10()],
+    )
+    logger._invalidate_redactors_cache()
 
     logger.info("x")
-    await asyncio.sleep(0)
     res = await logger.stop_and_drain()
 
-    assert res.submitted >= 1  # noqa: WA002
-    assert res.processed >= 1  # noqa: WA002
+    assert res.submitted == 1
+    assert res.processed == 1
     assert collected, "Event should not be dropped on redactor error"
     # boom redactor contained; at least enriched
     assert collected[0].get("value") in (1, 11)
