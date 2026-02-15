@@ -364,7 +364,7 @@
 </section>
 <section id="shutdown-timeout">
 <h2>Shutdown timeout<a class="headerlink" href="#shutdown-timeout" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">Settings.core.shutdown_timeout_seconds</span></code> controls how long the shutdown path will wait for background workers when bound to an event loop. Configure via env var <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SHUTDOWN_TIMEOUT_SECONDS</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Settings.core.shutdown_timeout_seconds</span></code> controls how long the shutdown path will wait for the background worker thread to complete. Configure via env var <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SHUTDOWN_TIMEOUT_SECONDS</span></code>.</p>
 <hr class="docutils" />
 <p><em>Use the lifecycle helpers to ensure buffered logs are flushed before your app exits.</em></p>
 </section>

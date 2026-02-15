@@ -279,7 +279,7 @@
 <li><p>Queue size barely matters - larger queues actually hurt slightly (memory overhead)</p></li>
 <li><p>Workers are the bottleneck with <code class="docutils literal notranslate"><span class="pre">worker_count=1</span></code> (serializes all processing)</p></li>
 </ul>
-<p><strong>Note on “context switching”:</strong> Workers are asyncio tasks, not OS threads. In async/bound loop mode, there’s no OS-level context switching—all workers run cooperatively in the same event loop. The “overhead” with 3+ workers is the asyncio scheduler managing more tasks, not kernel thread switching. True OS context switching only occurs in thread mode (see <a class="reference internal" href="execution-modes.html"><span class="std std-doc">Execution Modes</span></a>).</p>
+<p><strong>Note on “context switching”:</strong> Workers are asyncio tasks running in the dedicated background thread’s event loop, not OS threads. There’s no OS-level context switching between workers—they run cooperatively. The “overhead” with 3+ workers is the asyncio scheduler managing more tasks within the same thread. See <a class="reference internal" href="execution-modes.html"><span class="std std-doc">Execution Modes</span></a> for details.</p>
 <p><strong>When to use 1 worker:</strong></p>
 <ul class="simple">
 <li><p>Development/debugging (simpler log ordering)</p></li>

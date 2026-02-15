@@ -20,8 +20,7 @@ Fapilog is designed to contain errors and surface diagnostics without crashing a
 
 ## Shutdown behavior
 
-- `stop_and_drain()` waits for queued items up to `core.shutdown_timeout_seconds` (when bound to a running loop).
-- Threaded workers are signaled to stop and joined with timeouts to avoid hangs.
+- `stop_and_drain()` signals the dedicated worker thread to stop and joins it with a timeout (`core.shutdown_timeout_seconds`) to avoid hangs.
 
 ## Resilience tips
 

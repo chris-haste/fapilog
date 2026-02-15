@@ -308,13 +308,13 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__BACKPRESSURE_WAIT_MS</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.with_backpressure(wait_ms=50)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">50</span></code></p></td>
-<td><p>Milliseconds to wait for queue space</p></td>
+<td><p>Kept for backward compatibility; enqueue is always non-blocking</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.drop_on_full</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__DROP_ON_FULL</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.with_backpressure(drop_on_full=True)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
-<td><p>Drop events when queue is full after wait</p></td>
+<td><p>Drop events when queue is full (always non-blocking)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.enable_metrics</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__ENABLE_METRICS</span></code></p></td>

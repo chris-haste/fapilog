@@ -273,8 +273,7 @@
 <section id="settings">
 <h2>Settings<a class="headerlink" href="#settings" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">core.shutdown_timeout_seconds</span></code>: max wait when bound to a running loop.</p></li>
-<li><p>For threaded worker mode, the logger signals the worker thread to stop and joins with a timeout to avoid hangs.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">core.shutdown_timeout_seconds</span></code>: max wait for the worker thread to complete during shutdown. The logger signals the dedicated worker thread to stop and joins with this timeout to avoid hangs.</p></li>
 </ul>
 </section>
 </section>

@@ -245,9 +245,11 @@
 <section id="backpressure-policy">
 <h2>Backpressure policy<a class="headerlink" href="#backpressure-policy" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">core.backpressure_wait_ms</span></code> (env: <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__BACKPRESSURE_WAIT_MS</span></code>): wait for space before dropping.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">core.drop_on_full</span></code> (env: <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__DROP_ON_FULL</span></code>): when True, drop after wait timeout; when False, keep waiting.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">core.drop_on_full</span></code> (env: <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__DROP_ON_FULL</span></code>): when True (default), drop immediately when queue is full.</p></li>
 </ul>
+<blockquote>
+<div><p><strong>Note:</strong> With the dedicated thread architecture, enqueue is always non-blocking. Events are either enqueued or dropped immediately. The <code class="docutils literal notranslate"><span class="pre">backpressure_wait_ms</span></code> parameter is accepted for backward compatibility but has no functional effect. Size your queue (<code class="docutils literal notranslate"><span class="pre">core.max_queue_size</span></code>) to handle burst traffic.</p>
+</div></blockquote>
 </section>
 <section id="when-to-tune">
 <h2>When to tune<a class="headerlink" href="#when-to-tune" title="Link to this heading"></a></h2>

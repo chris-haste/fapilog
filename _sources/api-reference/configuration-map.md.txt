@@ -38,8 +38,8 @@ Settings path: `core.*`
 | `core.max_queue_size` | `FAPILOG_CORE__MAX_QUEUE_SIZE` | `.with_queue_size(10000)` | `10000` | Maximum in-memory queue size |
 | `core.batch_max_size` | `FAPILOG_CORE__BATCH_MAX_SIZE` | `.with_batch_size(256)` | `256` | Maximum events per batch |
 | `core.batch_timeout_seconds` | `FAPILOG_CORE__BATCH_TIMEOUT_SECONDS` | `.with_batch_timeout("0.25s")` | `0.25` | Max time before flushing partial batch |
-| `core.backpressure_wait_ms` | `FAPILOG_CORE__BACKPRESSURE_WAIT_MS` | `.with_backpressure(wait_ms=50)` | `50` | Milliseconds to wait for queue space |
-| `core.drop_on_full` | `FAPILOG_CORE__DROP_ON_FULL` | `.with_backpressure(drop_on_full=True)` | `True` | Drop events when queue is full after wait |
+| `core.backpressure_wait_ms` | `FAPILOG_CORE__BACKPRESSURE_WAIT_MS` | `.with_backpressure(wait_ms=50)` | `50` | Kept for backward compatibility; enqueue is always non-blocking |
+| `core.drop_on_full` | `FAPILOG_CORE__DROP_ON_FULL` | `.with_backpressure(drop_on_full=True)` | `True` | Drop events when queue is full (always non-blocking) |
 | `core.enable_metrics` | `FAPILOG_CORE__ENABLE_METRICS` | `.with_metrics(enabled=True)` | `False` | Enable Prometheus-compatible metrics |
 | `core.worker_count` | `FAPILOG_CORE__WORKER_COUNT` | `.with_workers(count=1)` | `1` | Number of worker tasks for flush processing (see Validation Limits below) |
 | `core.shutdown_timeout_seconds` | `FAPILOG_CORE__SHUTDOWN_TIMEOUT_SECONDS` | `.with_shutdown_timeout("3s")` | `3.0` | Maximum time to flush on shutdown |

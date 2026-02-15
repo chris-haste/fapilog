@@ -291,83 +291,40 @@ Request D → waiting...
 <h2>Configuring Backpressure<a class="headerlink" href="#configuring-backpressure" title="Link to this heading"></a></h2>
 <section id="drop-mode-latency-critical-services">
 <h3>Drop Mode (Latency-Critical Services)<a class="headerlink" href="#drop-mode-latency-critical-services" title="Link to this heading"></a></h3>
-<p>For APIs where response time matters more than log completeness:</p>
+<p>Fapilog uses a dedicated background thread for its logging pipeline. The only work on your caller thread is <code class="docutils literal notranslate"><span class="pre">try_enqueue()</span></code> — a non-blocking put that takes microseconds:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_async_logger</span><span class="p">,</span> <span class="n">Settings</span>
 
 <span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">()</span>
 <span class="n">settings</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">drop_on_full</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Drop logs if queue is full (default)</span>
-<span class="n">settings</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">backpressure_wait_ms</span> <span class="o">=</span> <span class="mi">100</span>  <span class="c1"># Wait up to 100ms before dropping</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>With these settings, <code class="docutils literal notranslate"><span class="pre">log.info()</span></code> will:</p>
+<p>With the dedicated thread architecture, <code class="docutils literal notranslate"><span class="pre">log.info()</span></code> will:</p>
 <ol class="arabic simple">
-<li><p>Try to enqueue immediately</p></li>
-<li><p>If the queue is full, wait up to 100ms for space</p></li>
-<li><p>If still full after 100ms, drop the log and return</p></li>
+<li><p>Try to enqueue immediately (non-blocking)</p></li>
+<li><p>If the queue is full, drop the log and return instantly</p></li>
 </ol>
-<p>Your request handler never blocks for more than 100ms on logging.</p>
-</section>
-<section id="block-mode-audit-critical-services">
-<h3>Block Mode (Audit-Critical Services)<a class="headerlink" href="#block-mode-audit-critical-services" title="Link to this heading"></a></h3>
-<p>For services where every log must be delivered (financial transactions, security events):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_async_logger</span><span class="p">,</span> <span class="n">Settings</span>
-
-<span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">()</span>
-<span class="n">settings</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">drop_on_full</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># Never drop, wait indefinitely</span>
-
-<span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">(</span><span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>With <code class="docutils literal notranslate"><span class="pre">drop_on_full=False</span></code>, log calls will wait as long as needed for queue space. This guarantees delivery but may add latency during sink slowdowns.</p>
+<p>Your request handler never blocks on logging.</p>
 </section>
 <section id="tuning-queue-size">
 <h3>Tuning Queue Size<a class="headerlink" href="#tuning-queue-size" title="Link to this heading"></a></h3>
-<p>The queue acts as a buffer between log emission and sink delivery:</p>
+<p>The queue acts as a buffer between log emission and sink delivery. Size it to absorb traffic spikes:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">settings</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">max_queue_size</span> <span class="o">=</span> <span class="mi">50_000</span>  <span class="c1"># Default: 10,000</span>
 </pre></div>
 </div>
-<p>A larger queue absorbs longer bursts but uses more memory. A smaller queue triggers backpressure sooner.</p>
+<p>A larger queue absorbs longer bursts but uses more memory. A smaller queue drops sooner under load.</p>
 </section>
+<section id="audit-critical-services">
+<h3>Audit-Critical Services<a class="headerlink" href="#audit-critical-services" title="Link to this heading"></a></h3>
+<p>For services where every log must be delivered (financial transactions, security events), use a large queue and protected levels:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">settings</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">max_queue_size</span> <span class="o">=</span> <span class="mi">100_000</span>  <span class="c1"># Large buffer</span>
+<span class="n">settings</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">protected_levels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ERROR&quot;</span><span class="p">,</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">,</span> <span class="s2">&quot;AUDIT&quot;</span><span class="p">,</span> <span class="s2">&quot;SECURITY&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Protected levels use priority eviction — when the queue is full, lower-priority events are evicted to make room for protected ones.</p>
+<p><strong>Default behavior</strong>: fapilog defaults to drop mode (<code class="docutils literal notranslate"><span class="pre">drop_on_full=True</span></code>) with non-blocking enqueue. This protects latency out of the box. Size your queue to match your burst traffic profile.</p>
 </section>
-<section id="choosing-the-right-mode">
-<h2>Choosing the Right Mode<a class="headerlink" href="#choosing-the-right-mode" title="Link to this heading"></a></h2>
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"><p>Scenario</p></th>
-<th class="head"><p>Recommended Mode</p></th>
-<th class="head"><p>Why</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>User-facing API</p></td>
-<td><p>Drop</p></td>
-<td><p>Users won’t wait for logs</p></td>
-</tr>
-<tr class="row-odd"><td><p>Background jobs</p></td>
-<td><p>Block</p></td>
-<td><p>No user waiting, logs are valuable</p></td>
-</tr>
-<tr class="row-even"><td><p>Financial transactions</p></td>
-<td><p>Block</p></td>
-<td><p>Audit trail must be complete</p></td>
-</tr>
-<tr class="row-odd"><td><p>High-throughput metrics</p></td>
-<td><p>Drop</p></td>
-<td><p>Volume matters more than completeness</p></td>
-</tr>
-<tr class="row-even"><td><p>Debug logging in production</p></td>
-<td><p>Drop</p></td>
-<td><p>Debug logs are nice-to-have</p></td>
-</tr>
-<tr class="row-odd"><td><p>Security event logging</p></td>
-<td><p>Block</p></td>
-<td><p>Security logs are critical</p></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Default behavior</strong>: fapilog defaults to drop mode (<code class="docutils literal notranslate"><span class="pre">drop_on_full=True</span></code>) with a 50ms wait (<code class="docutils literal notranslate"><span class="pre">backpressure_wait_ms=50</span></code>). This protects latency out of the box while giving sinks a brief chance to catch up.</p>
 </section>
 <section id="monitoring-backpressure">
 <h2>Monitoring Backpressure<a class="headerlink" href="#monitoring-backpressure" title="Link to this heading"></a></h2>
