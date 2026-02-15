@@ -149,8 +149,8 @@ class TestComplexAsyncWorkerLifecycle:
     """Test complex async worker lifecycle scenarios."""
 
     @pytest.mark.asyncio
-    async def test_worker_task_cancellation(self) -> None:
-        """Test worker task cancellation during shutdown."""
+    async def test_worker_lifecycle_start_log_drain(self) -> None:
+        """Test normal worker lifecycle: start, log, drain."""
         logger = AsyncLoggerFacade(
             name="cancel-test",
             queue_capacity=8,
@@ -331,7 +331,24 @@ class TestContextBindingAndMetadata:
 
         assert len(out) == 3
 
-        messages = [e.get("message") for e in out]
-        assert "message 1" in messages
-        assert "message 2" in messages
-        assert "message 3" in messages
+        # Index by message for order-independent lookup
+        by_msg = {e["message"]: e for e in out}
+
+        # message 1: all three bound fields present
+        ctx1 = by_msg["message 1"].get("context", {})
+        data1 = by_msg["message 1"].get("data", {})
+        assert ctx1.get("user_id") == "123"
+        assert ctx1.get("trace_id") == "xyz"
+        assert data1.get("session") == "abc"
+
+        # message 2: session unbound — should be absent
+        data2 = by_msg["message 2"].get("data", {})
+        assert "session" not in data2
+        assert by_msg["message 2"].get("context", {}).get("user_id") == "123"
+
+        # message 3: context cleared — no bound fields
+        ctx3 = by_msg["message 3"].get("context", {})
+        data3 = by_msg["message 3"].get("data", {})
+        assert "user_id" not in ctx3
+        assert "trace_id" not in ctx3
+        assert "session" not in data3

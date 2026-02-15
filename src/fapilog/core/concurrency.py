@@ -109,7 +109,8 @@ class PriorityAwareQueue(Generic[T]):
     @property
     def capacity(self) -> int:
         """Maximum live items the queue can hold."""
-        return self._capacity
+        with self._lock:
+            return self._capacity
 
     def grow_capacity(self, new_capacity: int) -> None:
         """Increase queue capacity. Grow-only — ignored if new_capacity <= current."""

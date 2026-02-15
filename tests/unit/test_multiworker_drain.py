@@ -22,16 +22,26 @@ from fapilog.core.logger import AsyncLoggerFacade, SyncLoggerFacade
 
 
 class TestMultiWorkerDrainProcessesAllMessages:
-    """Verify that multi-worker drain processes all queued messages."""
+    """Verify that multi-worker drain processes all queued messages.
+
+    Original bug: with worker_count=2, a single message would result in
+    processed=0 because the empty-batch worker would finish first and
+    trigger drain completion.
+    """
 
     @pytest.mark.asyncio
-    async def test_two_workers_process_single_message(self) -> None:
-        """With 2 workers and 1 message, drain should report processed=1.
-
-        This was the original bug: with worker_count=2, a single message
-        would result in processed=0 because the empty-batch worker would
-        finish first and trigger drain completion.
-        """
+    @pytest.mark.parametrize(
+        ("num_workers", "num_messages", "batch_max_size"),
+        [
+            pytest.param(2, 1, 10, id="2-workers-1-msg"),
+            pytest.param(2, 5, 10, id="2-workers-5-msgs"),
+            pytest.param(4, 20, 5, id="4-workers-20-msgs"),
+        ],
+    )
+    async def test_workers_process_all_messages(
+        self, num_workers: int, num_messages: int, batch_max_size: int
+    ) -> None:
+        """All queued messages should be processed regardless of worker count."""
         sink_calls: list[dict[str, Any]] = []
 
         async def sink_write(entry: dict[str, Any]) -> None:
@@ -40,79 +50,23 @@ class TestMultiWorkerDrainProcessesAllMessages:
         logger = AsyncLoggerFacade(
             name="test",
             queue_capacity=100,
-            batch_max_size=10,
+            batch_max_size=batch_max_size,
             batch_timeout_seconds=0.01,
             backpressure_wait_ms=10,
             drop_on_full=True,
             sink_write=sink_write,
-            num_workers=2,
+            num_workers=num_workers,
         )
         logger.start()
 
-        await logger.info("test message")
-        result = await logger.stop_and_drain()
-
-        assert result.submitted == 1
-        assert result.processed == 1
-        assert len(sink_calls) == 1
-
-    @pytest.mark.asyncio
-    async def test_two_workers_process_multiple_messages(self) -> None:
-        """With 2 workers and multiple messages, all should be processed."""
-        sink_calls: list[dict[str, Any]] = []
-
-        async def sink_write(entry: dict[str, Any]) -> None:
-            sink_calls.append(entry)
-
-        logger = AsyncLoggerFacade(
-            name="test",
-            queue_capacity=100,
-            batch_max_size=10,
-            batch_timeout_seconds=0.01,
-            backpressure_wait_ms=10,
-            drop_on_full=True,
-            sink_write=sink_write,
-            num_workers=2,
-        )
-        logger.start()
-
-        for i in range(5):
+        for i in range(num_messages):
             await logger.info(f"message {i}")
 
         result = await logger.stop_and_drain()
 
-        assert result.submitted == 5
-        assert result.processed == 5
-        assert len(sink_calls) == 5
-
-    @pytest.mark.asyncio
-    async def test_four_workers_process_all_messages(self) -> None:
-        """With 4 workers and many messages, all should be processed."""
-        sink_calls: list[dict[str, Any]] = []
-
-        async def sink_write(entry: dict[str, Any]) -> None:
-            sink_calls.append(entry)
-
-        logger = AsyncLoggerFacade(
-            name="test",
-            queue_capacity=100,
-            batch_max_size=5,
-            batch_timeout_seconds=0.01,
-            backpressure_wait_ms=10,
-            drop_on_full=True,
-            sink_write=sink_write,
-            num_workers=4,
-        )
-        logger.start()
-
-        for i in range(20):
-            await logger.info(f"message {i}")
-
-        result = await logger.stop_and_drain()
-
-        assert result.submitted == 20
-        assert result.processed == 20
-        assert len(sink_calls) == 20
+        assert result.submitted == num_messages
+        assert result.processed == num_messages
+        assert len(sink_calls) == num_messages
 
 
 class TestMultiWorkerDrainWaitsForAllWorkers:
@@ -361,6 +315,6 @@ class TestMultiWorkerDrainTimeout:
             timeout=10.0,
         )
 
-        # Drain completed, didn't hang
-        assert result is not None  # noqa: WA003
+        # Drain completed, didn't hang — message was submitted but stuck in sink
         assert result.submitted == 1
+        assert result.processed + result.dropped == 1

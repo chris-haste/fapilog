@@ -54,7 +54,7 @@ class TestAsyncLoggerFacade:
         logger.start()
         assert logger._worker_thread is not None  # noqa: WA003
         assert logger._worker_thread.is_alive()
-        assert logger._loop_thread_ident != threading.get_ident()
+        assert logger._worker_loop is not asyncio.get_running_loop()
 
         for i in range(10):
             await logger.info("m", i=i)

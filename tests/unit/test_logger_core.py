@@ -58,7 +58,7 @@ class TestInLoopMode:
         logger.start()
         assert logger._worker_thread is not None  # type: ignore[attr-defined] # noqa: WA003
         assert logger._worker_thread.is_alive()  # type: ignore[attr-defined]
-        assert logger._loop_thread_ident != threading.get_ident()  # type: ignore[attr-defined]
+        assert logger._worker_loop is not asyncio.get_running_loop()  # type: ignore[attr-defined]
 
         for i in range(10):
             logger.info("m", i=i)

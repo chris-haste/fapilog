@@ -151,7 +151,8 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._counters: dict[str, int] = {"processed": 0, "dropped": 0}
         self._batch_max_size = int(batch_max_size)
         self._batch_timeout_seconds = float(batch_timeout_seconds)
-        self._backpressure_wait_ms = int(backpressure_wait_ms)
+        # drop_on_full is used only for startup warnings in SyncLoggerFacade;
+        # the unified thread architecture always drops on full at the queue boundary.
         self._drop_on_full = bool(drop_on_full)
         self._sink_write = sink_write
         self._sink_write_serialized = sink_write_serialized
@@ -173,7 +174,6 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._worker_loop: asyncio.AbstractEventLoop | None = None
         self._worker_thread: threading.Thread | None = None
         self._thread_ready = threading.Event()
-        self._loop_thread_ident: int | None = None
         self._num_workers = max(1, int(num_workers))
         self._drained_event: asyncio.Event | None = None
         self._flush_event: asyncio.Event | None = None
@@ -364,7 +364,6 @@ class _LoggerMixin(_WorkerCountersMixin):
             # Create a fresh event loop owned by this thread
             loop_local = asyncio.new_event_loop()
             self._worker_loop = loop_local
-            self._loop_thread_ident = threading.get_ident()
             asyncio.set_event_loop(loop_local)
             self._drained_event = asyncio.Event()
             self._flush_event = asyncio.Event()

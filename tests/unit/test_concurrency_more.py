@@ -22,13 +22,6 @@ def test_ring_queue_try_enqueue_and_dequeue_edges() -> None:
     assert item is None
 
 
-def test_ring_queue_has_lock() -> None:
-    """Queue should have a threading.Lock for thread safety."""
-    q: NonBlockingRingQueue[int] = NonBlockingRingQueue(capacity=1)
-    assert hasattr(q, "_lock")
-    assert isinstance(q._lock, type(threading.Lock()))
-
-
 def test_concurrent_enqueue_dequeue() -> None:
     """Concurrent try_enqueue/try_dequeue from multiple threads should not lose items."""
     q: NonBlockingRingQueue[int] = NonBlockingRingQueue(capacity=100)

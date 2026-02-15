@@ -42,8 +42,10 @@ class TestTryEnqueueWithMetrics:
         """Enqueue returns False when queue is at capacity."""
         logger = _make_logger(queue_capacity=2)
 
-        logger._queue.try_enqueue({"level": "INFO", "message": "fill1"})
-        logger._queue.try_enqueue({"level": "INFO", "message": "fill2"})
+        # Fill via the method under test so watermark is also tracked
+        logger._try_enqueue_with_metrics({"level": "INFO", "message": "fill1"})
+        logger._try_enqueue_with_metrics({"level": "INFO", "message": "fill2"})
+        assert logger._queue_high_watermark == 2
 
         ok = logger._try_enqueue_with_metrics({"level": "INFO", "message": "overflow"})
 
@@ -54,7 +56,7 @@ class TestTryEnqueueWithMetrics:
         """High watermark only increases, never decreases."""
         logger = _make_logger(queue_capacity=10)
 
-        # Enqueue 3 items
+        # Enqueue 3 items — watermark rises to 3
         for i in range(3):
             logger._try_enqueue_with_metrics({"level": "INFO", "message": f"msg{i}"})
         assert logger._queue_high_watermark == 3
@@ -63,9 +65,14 @@ class TestTryEnqueueWithMetrics:
         logger._queue.try_dequeue()
         logger._queue.try_dequeue()
 
-        # Enqueue 1 more — watermark stays at 3
+        # Enqueue 1 more — qsize=2, watermark stays at 3 (doesn't decrease)
         logger._try_enqueue_with_metrics({"level": "INFO", "message": "new"})
         assert logger._queue_high_watermark == 3
+
+        # Enqueue 3 more — qsize=5, watermark rises past previous high
+        for i in range(3):
+            logger._try_enqueue_with_metrics({"level": "INFO", "message": f"extra{i}"})
+        assert logger._queue_high_watermark == 5
 
     def test_protected_level_eviction_counted_as_success(self) -> None:
         """Protected-level events that evict unprotected ones count as success."""
