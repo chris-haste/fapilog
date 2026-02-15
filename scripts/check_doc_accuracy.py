@@ -219,7 +219,7 @@ DOC_CHECKS: list[dict[str, Any]] = [
         "file": "docs/user-guide/reliability-defaults.md",
         "required": True,
         "must_contain": [
-            "same-thread",  # Must document same-thread drop behavior
+            "non-blocking",  # Must document non-blocking enqueue behavior
             "drop",  # Must mention drop semantics
             "backpressure",  # Must document backpressure
         ],

@@ -2,7 +2,7 @@
 
 **Adaptive Pipeline** — Self-tuning pipeline that monitors queue pressure and automatically adjusts workers, batch sizes, and queue capacity. Configured via `with_adaptive()` or the `adaptive` preset.
 
-**Backpressure** — Behavior when the queue is full; fapilog can wait or drop based on `drop_on_full` and `backpressure_wait_ms`.
+**Backpressure** — Behavior when the queue is full; fapilog drops events immediately when the queue is at capacity. Size the queue (`core.max_queue_size`) to absorb traffic spikes.
 
 **Batch** — Group of log entries drained together, bounded by `batch_max_size` or `batch_timeout_seconds`.
 

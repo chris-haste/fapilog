@@ -110,7 +110,7 @@ async def main():
 
 ## Shutdown timeout
 
-`Settings.core.shutdown_timeout_seconds` controls how long the shutdown path will wait for background workers when bound to an event loop. Configure via env var `FAPILOG_CORE__SHUTDOWN_TIMEOUT_SECONDS`.
+`Settings.core.shutdown_timeout_seconds` controls how long the shutdown path will wait for the background worker thread to complete. Configure via env var `FAPILOG_CORE__SHUTDOWN_TIMEOUT_SECONDS`.
 
 ---
 

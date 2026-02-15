@@ -456,6 +456,6 @@ logger = get_logger(settings=settings)
 
 ## Full reference
 
-- **[Execution Modes](execution-modes.md)** - Understanding async, bound loop, and thread modes for optimal throughput
+- **[Execution Modes](execution-modes.md)** - Understanding async and sync facades with dedicated thread architecture
 - **[Configuration Map](../api-reference/configuration-map.md)** - Complete reference mapping every setting to its env var and builder method
 - **[Environment Variables](environment-variables.md)** - Full matrix of env names and aliases (including short forms like `FAPILOG_CLOUDWATCH__REGION`)

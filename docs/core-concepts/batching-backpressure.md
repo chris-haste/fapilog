@@ -10,8 +10,9 @@ Control what happens when logs arrive faster than your sinks can handle them. Yo
 
 ## Backpressure policy
 
-- `core.backpressure_wait_ms` (env: `FAPILOG_CORE__BACKPRESSURE_WAIT_MS`): wait for space before dropping.
-- `core.drop_on_full` (env: `FAPILOG_CORE__DROP_ON_FULL`): when True, drop after wait timeout; when False, keep waiting.
+- `core.drop_on_full` (env: `FAPILOG_CORE__DROP_ON_FULL`): when True (default), drop immediately when queue is full.
+
+> **Note:** With the dedicated thread architecture, enqueue is always non-blocking. Events are either enqueued or dropped immediately. The `backpressure_wait_ms` parameter is accepted for backward compatibility but has no functional effect. Size your queue (`core.max_queue_size`) to handle burst traffic.
 
 ## When to tune
 

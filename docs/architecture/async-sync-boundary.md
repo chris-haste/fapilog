@@ -1,12 +1,10 @@
 # Async/Sync Boundary Design
 
-This document explains how fapilog handles the boundary between synchronous and asynchronous code, particularly around event loop detection and worker thread management.
+This document explains how fapilog handles the boundary between synchronous and asynchronous code, particularly around worker thread management.
 
 ## Overview
 
-Fapilog's core is async-first, but most users call it from synchronous code. This creates a fundamental challenge: async operations need an event loop, but sync code typically doesn't have one running.
-
-The solution involves detecting the caller's context and choosing the appropriate strategy:
+Fapilog's core is async-first, but most users call it from synchronous code. The logging pipeline always runs on a **dedicated background thread** with its own event loop, regardless of the caller's context. The only work on the caller's thread is `try_enqueue()` — a fast, non-blocking put onto a thread-safe queue.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -14,86 +12,48 @@ The solution involves detecting the caller's context and choosing the appropriat
 ├─────────────────────┬───────────────────────────────────────┤
 │   Sync Context      │         Async Context                 │
 │   (no event loop)   │    (event loop running)               │
-├─────────────────────┼───────────────────────────────────────┤
-│   Thread Loop Mode  │         Bound Loop Mode               │
-│   - New thread      │    - Use existing loop                │
-│   - Own event loop  │    - Tasks in caller's loop           │
-└─────────────────────┴───────────────────────────────────────┘
+├─────────────────────┴───────────────────────────────────────┤
+│              Dedicated Worker Thread                         │
+│              - Own event loop                                │
+│              - Worker tasks, sinks, monitors                 │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ## Key Locations
-
-Two functions contain the critical event loop handling logic:
 
 1. **`_start_plugins_sync()`** in `src/fapilog/__init__.py`
    - Handles plugin startup in sync contexts
    - Must work whether or not an event loop exists
 
-2. **`SyncLoggerFacade.start()`** in `src/fapilog/core/logger.py`
-   - Starts the background worker
-   - Chooses between bound loop and thread loop modes
+2. **`SyncLoggerFacade.start()` / `AsyncLoggerFacade.start()`** in `src/fapilog/core/logger.py`
+   - Always creates a dedicated background thread with its own event loop
+   - Worker tasks, pressure monitor, and sinks run on the thread's loop
 
-## Event Loop Detection
+## Dedicated Thread Architecture
 
-Both functions use the same detection pattern:
+**`start()` always:**
+- Creates a new `asyncio.new_event_loop()` in a background thread
+- Spawns worker tasks on that loop
+- Signals readiness via `threading.Event`
 
-```python
-try:
-    asyncio.get_running_loop()
-    # Loop IS running - we're in an async context
-except RuntimeError:
-    # No loop running - we're in a sync context
-```
+**Enqueue path:**
+- Both sync and async facades call `try_enqueue()` directly on the thread-safe queue
+- No `run_coroutine_threadsafe`, no `await` — microseconds per event
 
-This is the only reliable way to detect the current context. Other approaches like checking `asyncio.get_event_loop()` are deprecated and unreliable.
-
-## Mode 1: Bound Loop Mode
-
-**When:** Called from within a running event loop (async framework, Jupyter, etc.)
-
-**Behavior:**
-- Worker tasks are created directly in the existing loop
-- No new threads are spawned for the worker
-- Shutdown must happen while the loop is still running
-
-**Why it matters:**
-- Async frameworks expect all async work to happen in their loop
-- Using a separate thread would break integration with await-based shutdown
-- The caller's loop already handles scheduling and execution
+**Drain path:**
+- Sets the stop flag, waits for worker thread to join
+- `AsyncLoggerFacade` uses `asyncio.to_thread()` to call `_drain_thread_mode()`
 
 ```python
-# In SyncLoggerFacade.start():
-try:
-    loop = asyncio.get_running_loop()  # Success = bound mode
-    self._worker_loop = loop
-    task = loop.create_task(self._worker_main())
-    ...
-```
+# In start():
+def _run():
+    loop_local = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop_local)
+    # Create worker tasks, monitor, etc.
+    loop_local.run_forever()  # Until stopped
 
-## Mode 2: Thread Loop Mode
-
-**When:** Called from sync code with no event loop
-
-**Behavior:**
-- Creates a dedicated background thread
-- That thread creates and runs its own event loop
-- Thread runs until `stop_and_drain()` is called
-
-**Why it exists:**
-- Sync code (CLI tools, scripts) has no event loop
-- We need an event loop to run async sinks and workers
-- Solution: create our own in a background thread
-
-```python
-# In SyncLoggerFacade.start():
-except RuntimeError:  # No loop = thread mode
-    def _run():
-        loop_local = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop_local)
-        loop_local.run_forever()  # Until stopped
-
-    self._worker_thread = threading.Thread(target=_run, daemon=True)
-    self._worker_thread.start()
+self._worker_thread = threading.Thread(target=_run, daemon=True)
+self._worker_thread.start()
 ```
 
 ## Plugin Startup Edge Case
@@ -118,37 +78,31 @@ except RuntimeError:
 ## Thread/Loop Relationship Diagram
 
 ```
-Sync Caller (no loop)           Async Caller (has loop)
-       │                               │
-       ▼                               ▼
-┌─────────────────┐           ┌─────────────────┐
-│ SyncLoggerFacade│           │ SyncLoggerFacade│
-│    .start()     │           │    .start()     │
-└────────┬────────┘           └────────┬────────┘
-         │                             │
-         ▼                             ▼
-  Thread Loop Mode              Bound Loop Mode
-         │                             │
-         ▼                             ▼
-┌─────────────────┐           ┌─────────────────┐
-│ Worker Thread   │           │ Caller's Loop   │
-│ ┌─────────────┐ │           │ ┌─────────────┐ │
-│ │ Event Loop  │ │           │ │Worker Tasks │ │
-│ │ ┌─────────┐ │ │           │ └─────────────┘ │
-│ │ │ Worker  │ │ │           │ (shared with    │
-│ │ │ Tasks   │ │ │           │  caller's work) │
-│ │ └─────────┘ │ │           └─────────────────┘
-│ └─────────────┘ │
-└─────────────────┘
+Caller Thread                    Worker Thread
+     │                               │
+     ▼                               ▼
+┌─────────────────┐          ┌─────────────────┐
+│ SyncLoggerFacade│          │ Dedicated Loop   │
+│ or AsyncLogger  │          │ ┌─────────────┐ │
+│                 │ enqueue  │ │ Worker Tasks │ │
+│ try_enqueue() ──┼─────────►│ │ (dequeue,   │ │
+│   (µseconds)    │          │ │  process,   │ │
+│                 │          │ │  sink write) │ │
+└─────────────────┘          │ └─────────────┘ │
+                             │ ┌─────────────┐ │
+                             │ │ Monitor     │ │
+                             │ │ (pressure)  │ │
+                             │ └─────────────┘ │
+                             └─────────────────┘
 ```
 
 ## Common Debugging Scenarios
 
 ### "My logger isn't flushing on shutdown"
 
-**Cause:** In bound loop mode, shutdown must happen while the event loop is still running. If the loop exits before `stop_and_drain()` completes, logs may be lost.
+**Cause:** The worker thread needs time to process remaining items. If the process exits before `stop_and_drain()` completes, logs may be lost.
 
-**Solution:** Ensure `await logger.stop_and_drain()` completes before your async framework shuts down.
+**Solution:** Ensure `await logger.stop_and_drain()` (or the sync equivalent) completes before your application shuts down. Use `runtime()` / `runtime_async()` context managers for automatic cleanup.
 
 ### "Logger hangs during startup"
 
@@ -160,26 +114,22 @@ Sync Caller (no loop)           Async Caller (has loop)
 
 **Cause:** Calling sync fapilog APIs from within an async context where someone used `asyncio.run()` instead of the proper detection pattern.
 
-**Solution:** This is handled automatically by fapilog. If you see this error, it's likely in user code - use `await` instead of `asyncio.run()`.
+**Solution:** This is handled automatically by fapilog. If you see this error, it's likely in user code — use `await` instead of `asyncio.run()`.
 
 ### "Events dropped despite drop_on_full=False"
 
-**Cause:** When `SyncLoggerFacade._enqueue()` is called from the same thread as the worker loop (bound loop mode), events are dropped immediately if the queue is full—regardless of the `drop_on_full` setting.
+**Cause:** With the dedicated thread architecture, `try_enqueue()` is always non-blocking. The `drop_on_full=False` setting cannot be honored because the caller thread cannot block waiting for queue space on the worker thread's loop.
 
-**Why:** Blocking on the same thread would cause a deadlock. The thread cannot wait on its own event loop to drain the queue.
+**Diagnostic:** A warning is emitted at startup when `drop_on_full=False` is configured with `SyncLoggerFacade`.
 
-**Diagnostic:** A warning is emitted with `drop_on_full=False cannot be honored in same-thread context`.
-
-**Solution:** Use `AsyncLoggerFacade` in async contexts. The async facade avoids the same-thread issue entirely by integrating directly with the event loop via `await`.
-
-See also: [Reliability Defaults - Same-thread context behavior](../user-guide/reliability-defaults.md#same-thread-context-behavior)
+**Solution:** Size your queue appropriately (`core.max_queue_size`) to handle burst traffic without dropping.
 
 ## Design Principles
 
 1. **Fail-open for logging:** If plugin startup fails, continue with unstarted plugins. Logging should never crash the application.
 
-2. **Detect, don't assume:** Always use `get_running_loop()` to detect context rather than assuming based on the call site.
+2. **Isolation by default:** The logging pipeline always runs on its own thread, preventing sink I/O from affecting the caller's event loop.
 
-3. **Minimize thread creation:** Only create worker threads when necessary (sync context). Reuse the caller's loop when available.
+3. **Non-blocking hot path:** `try_enqueue()` never blocks the caller — it either succeeds or drops immediately.
 
 4. **Timeouts everywhere:** All cross-thread operations have timeouts to prevent deadlocks.

@@ -52,62 +52,45 @@ But what happens when logs arrive faster than the sink can process them? The que
 
 ### Drop Mode (Latency-Critical Services)
 
-For APIs where response time matters more than log completeness:
+Fapilog uses a dedicated background thread for its logging pipeline. The only work on your caller thread is `try_enqueue()` — a non-blocking put that takes microseconds:
 
 ```python
 from fapilog import get_async_logger, Settings
 
 settings = Settings()
 settings.core.drop_on_full = True  # Drop logs if queue is full (default)
-settings.core.backpressure_wait_ms = 100  # Wait up to 100ms before dropping
 
 logger = await get_async_logger(settings=settings)
 ```
 
-With these settings, `log.info()` will:
-1. Try to enqueue immediately
-2. If the queue is full, wait up to 100ms for space
-3. If still full after 100ms, drop the log and return
+With the dedicated thread architecture, `log.info()` will:
+1. Try to enqueue immediately (non-blocking)
+2. If the queue is full, drop the log and return instantly
 
-Your request handler never blocks for more than 100ms on logging.
-
-### Block Mode (Audit-Critical Services)
-
-For services where every log must be delivered (financial transactions, security events):
-
-```python
-from fapilog import get_async_logger, Settings
-
-settings = Settings()
-settings.core.drop_on_full = False  # Never drop, wait indefinitely
-
-logger = await get_async_logger(settings=settings)
-```
-
-With `drop_on_full=False`, log calls will wait as long as needed for queue space. This guarantees delivery but may add latency during sink slowdowns.
+Your request handler never blocks on logging.
 
 ### Tuning Queue Size
 
-The queue acts as a buffer between log emission and sink delivery:
+The queue acts as a buffer between log emission and sink delivery. Size it to absorb traffic spikes:
 
 ```python
 settings.core.max_queue_size = 50_000  # Default: 10,000
 ```
 
-A larger queue absorbs longer bursts but uses more memory. A smaller queue triggers backpressure sooner.
+A larger queue absorbs longer bursts but uses more memory. A smaller queue drops sooner under load.
 
-## Choosing the Right Mode
+### Audit-Critical Services
 
-| Scenario | Recommended Mode | Why |
-|----------|------------------|-----|
-| User-facing API | Drop | Users won't wait for logs |
-| Background jobs | Block | No user waiting, logs are valuable |
-| Financial transactions | Block | Audit trail must be complete |
-| High-throughput metrics | Drop | Volume matters more than completeness |
-| Debug logging in production | Drop | Debug logs are nice-to-have |
-| Security event logging | Block | Security logs are critical |
+For services where every log must be delivered (financial transactions, security events), use a large queue and protected levels:
 
-**Default behavior**: fapilog defaults to drop mode (`drop_on_full=True`) with a 50ms wait (`backpressure_wait_ms=50`). This protects latency out of the box while giving sinks a brief chance to catch up.
+```python
+settings.core.max_queue_size = 100_000  # Large buffer
+settings.core.protected_levels = ["ERROR", "CRITICAL", "AUDIT", "SECURITY"]
+```
+
+Protected levels use priority eviction — when the queue is full, lower-priority events are evicted to make room for protected ones.
+
+**Default behavior**: fapilog defaults to drop mode (`drop_on_full=True`) with non-blocking enqueue. This protects latency out of the box. Size your queue to match your burst traffic profile.
 
 ## Monitoring Backpressure
 

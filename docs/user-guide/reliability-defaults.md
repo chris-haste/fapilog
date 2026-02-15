@@ -4,20 +4,16 @@ This page summarizes the out-of-the-box behaviors that affect durability, backpr
 
 ## Backpressure and drops
 - Queue size: `core.max_queue_size=10000`
-- Wait before drop: `core.backpressure_wait_ms=50`
-- Drop policy: `core.drop_on_full=True` (wait up to 50 ms, then drop). **Set `core.drop_on_full=false` for production if you prefer waiting over dropping.**
+- Drop policy: `core.drop_on_full=True` (drop immediately when queue is full)
 - Batch flush: `core.batch_max_size=256`, `core.batch_timeout_seconds=0.25`
 
-### Same-thread context behavior
+### Non-blocking enqueue behavior
 
-When `SyncLoggerFacade` is called from the same thread as its internal worker loop, backpressure behavior differs from cross-thread calls:
+With the dedicated thread architecture, `try_enqueue()` is always non-blocking — it either succeeds or drops immediately. The `drop_on_full=False` setting cannot be honored because the caller thread cannot block waiting for queue space on the worker thread's loop.
 
-- **Same-thread**: Events are dropped immediately if the queue is full, regardless of the `drop_on_full` setting
-- **Cross-thread**: Events wait up to `backpressure_wait_ms` before dropping (respecting `drop_on_full`)
+When `drop_on_full=False` is configured with `SyncLoggerFacade`, a diagnostic warning is emitted at startup to alert you that blocking behavior is not supported.
 
-This is intentional—blocking on the same thread would cause a deadlock since the thread cannot wait on its own event loop. When a same-thread drop occurs with `drop_on_full=False`, a diagnostic warning is emitted to alert you that your backpressure configuration cannot be honored in that context.
-
-**Recommendation**: In async contexts (FastAPI routes, asyncio code), use `AsyncLoggerFacade` to avoid same-thread semantics entirely. The async facade integrates with the event loop without blocking.
+**Recommendation**: Size your queue appropriately (`core.max_queue_size`) to handle burst traffic without dropping. Both `SyncLoggerFacade` and `AsyncLoggerFacade` use the same non-blocking enqueue path.
 
 ## Redaction defaults
 
