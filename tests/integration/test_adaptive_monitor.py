@@ -249,21 +249,26 @@ class TestLoggerMonitorWiring:
         assert isinstance(logger._pressure_monitor, PressureMonitor)
         assert logger._pressure_monitor.pressure_level == PressureLevel.ELEVATED
 
-        # Stop monitor directly to avoid drain timeout with slow sink
-        logger._pressure_monitor.stop()
-        if logger._pressure_monitor_task is not None:
-            logger._pressure_monitor_task.cancel()
-            try:
-                await logger._pressure_monitor_task
-            except asyncio.CancelledError:
-                pass
-        # Cancel worker tasks to avoid slow sink blocking drain
-        for task in logger._worker_tasks:
-            task.cancel()
-        try:
-            await asyncio.gather(*logger._worker_tasks, return_exceptions=True)
-        except Exception:
-            pass
+        # Clean up: stop the worker thread
+        logger._stop_flag = True
+        loop = logger._worker_loop
+        if loop is not None:
+
+            async def _cancel_all() -> None:
+                if logger._pressure_monitor_task is not None:
+                    logger._pressure_monitor_task.cancel()
+                    try:
+                        await logger._pressure_monitor_task
+                    except (asyncio.CancelledError, Exception):
+                        pass
+                for task in logger._worker_tasks:
+                    task.cancel()
+                await asyncio.gather(*logger._worker_tasks, return_exceptions=True)
+                loop.call_soon(loop.stop)
+
+            asyncio.run_coroutine_threadsafe(_cancel_all(), loop)
+        if logger._worker_thread is not None:
+            logger._worker_thread.join(timeout=5.0)
 
     def test_thread_mode_drain_stops_monitor(self) -> None:
         """In thread mode, drain stops the pressure monitor."""

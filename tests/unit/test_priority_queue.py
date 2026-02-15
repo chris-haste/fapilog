@@ -395,168 +395,51 @@ class TestPriorityAwareQueueEdgeCases:
         assert None not in queue._dq
 
 
-class TestPriorityAwareQueueAsync:
-    """Tests for async await_enqueue and await_dequeue methods."""
+class TestPriorityAwareQueueThreadSafety:
+    """Tests for thread-safe queue operations."""
 
-    @pytest.mark.asyncio
-    async def test_await_enqueue_immediate_success(self) -> None:
-        """await_enqueue returns immediately when space available."""
-        queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
-            capacity=3, protected_levels={"ERROR"}
-        )
-        await queue.await_enqueue({"level": "INFO", "msg": "test"})
-        assert queue.qsize() == 1
-
-    @pytest.mark.asyncio
-    async def test_await_dequeue_immediate_success(self) -> None:
-        """await_dequeue returns immediately when data available."""
-        queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
-            capacity=3, protected_levels={"ERROR"}
-        )
-        queue.try_enqueue({"level": "INFO", "msg": "test"})
-
-        item = await queue.await_dequeue()
-        assert item == {"level": "INFO", "msg": "test"}
-
-    @pytest.mark.asyncio
-    async def test_await_enqueue_timeout_expired(self) -> None:
-        """await_enqueue raises TimeoutError when timeout expires."""
-        from fapilog.core.errors import TimeoutError
-
-        queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
-            capacity=1,
-            protected_levels=set(),  # No eviction possible
-        )
-        queue.try_enqueue({"level": "INFO", "msg": "fill"})
-        assert queue.is_full()
-
-        with pytest.raises(TimeoutError, match="Timed out waiting to enqueue"):
-            await queue.await_enqueue({"level": "INFO", "msg": "blocked"}, timeout=0.01)
-
-    @pytest.mark.asyncio
-    async def test_await_dequeue_timeout_expired(self) -> None:
-        """await_dequeue raises TimeoutError when timeout expires."""
-        from fapilog.core.errors import TimeoutError
+    def test_queue_has_lock(self) -> None:
+        """Queue should have a threading.Lock for thread safety."""
+        import threading
 
         queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
             capacity=3, protected_levels={"ERROR"}
         )
-        assert queue.is_empty()
+        assert hasattr(queue, "_lock")
+        assert isinstance(queue._lock, type(threading.Lock()))
 
-        with pytest.raises(TimeoutError, match="Timed out waiting to dequeue"):
-            await queue.await_dequeue(timeout=0.01)
-
-    @pytest.mark.asyncio
-    async def test_await_enqueue_waits_for_space(self) -> None:
-        """await_enqueue waits until space becomes available."""
-        import asyncio
+    def test_concurrent_enqueue_dequeue(self) -> None:
+        """Concurrent try_enqueue/try_dequeue from multiple threads."""
+        import threading
 
         queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
-            capacity=1, protected_levels=set()
+            capacity=50, protected_levels={"ERROR"}
         )
-        queue.try_enqueue({"level": "INFO", "msg": "fill"})
+        enqueued: list[int] = []
+        dequeued: list[int] = []
+        n_items = 200
 
-        async def consumer() -> None:
-            await asyncio.sleep(0.01)
-            queue.try_dequeue()
+        def enqueue_worker(start: int, count: int) -> None:
+            for i in range(start, start + count):
+                while not queue.try_enqueue({"level": "INFO", "msg": str(i)}):
+                    pass
+                enqueued.append(i)
 
-        async def producer() -> None:
-            await queue.await_enqueue({"level": "INFO", "msg": "new"}, timeout=1.0)
+        def dequeue_worker(count: int) -> None:
+            collected = 0
+            while collected < count:
+                ok, item = queue.try_dequeue()
+                if ok and item is not None:
+                    dequeued.append(int(item["msg"]))
+                    collected += 1
 
-        # Run both concurrently - consumer frees space, producer enqueues
-        await asyncio.gather(consumer(), producer())
-        assert queue.qsize() == 1
+        threads = [
+            threading.Thread(target=enqueue_worker, args=(0, n_items)),
+            threading.Thread(target=dequeue_worker, args=(n_items,)),
+        ]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join(timeout=10)
 
-    @pytest.mark.asyncio
-    async def test_await_dequeue_waits_for_data(self) -> None:
-        """await_dequeue waits until data becomes available."""
-        import asyncio
-
-        queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
-            capacity=3, protected_levels={"ERROR"}
-        )
-
-        async def producer() -> None:
-            await asyncio.sleep(0.01)
-            queue.try_enqueue({"level": "INFO", "msg": "data"})
-
-        async def consumer() -> dict[str, str]:
-            return await queue.await_dequeue(timeout=1.0)
-
-        # Run both concurrently
-        _, item = await asyncio.gather(producer(), consumer())
-        assert item == {"level": "INFO", "msg": "data"}
-
-    @pytest.mark.asyncio
-    async def test_await_enqueue_timeout_zero_remaining(self) -> None:
-        """await_enqueue raises when remaining time is zero or negative."""
-        from fapilog.core.errors import TimeoutError
-
-        queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
-            capacity=1, protected_levels=set()
-        )
-        queue.try_enqueue({"level": "INFO", "msg": "fill"})
-
-        # Very short timeout to trigger the remaining <= 0 check
-        with pytest.raises(TimeoutError, match="Timed out waiting to enqueue"):
-            await queue.await_enqueue(
-                {"level": "INFO", "msg": "blocked"}, timeout=0.0001
-            )
-
-    @pytest.mark.asyncio
-    async def test_await_dequeue_timeout_zero_remaining(self) -> None:
-        """await_dequeue raises when remaining time is zero or negative."""
-        from fapilog.core.errors import TimeoutError
-
-        queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
-            capacity=3, protected_levels={"ERROR"}
-        )
-
-        # Very short timeout to trigger the remaining <= 0 check
-        with pytest.raises(TimeoutError, match="Timed out waiting to dequeue"):
-            await queue.await_dequeue(timeout=0.0001)
-
-    @pytest.mark.asyncio
-    async def test_await_enqueue_retry_loop(self) -> None:
-        """await_enqueue retries when try_enqueue fails after wait."""
-        import asyncio
-
-        queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
-            capacity=1, protected_levels=set()
-        )
-        queue.try_enqueue({"level": "INFO", "msg": "fill"})
-
-        async def delayed_free() -> None:
-            # First wake-up won't free space, second will
-            await asyncio.sleep(0.01)
-            queue._space_available.set()  # Wake up waiter but don't dequeue
-            await asyncio.sleep(0.01)
-            queue.try_dequeue()  # Now actually free space
-
-        async def producer() -> None:
-            await queue.await_enqueue({"level": "INFO", "msg": "new"}, timeout=1.0)
-
-        await asyncio.gather(delayed_free(), producer())
-        assert queue.qsize() == 1
-
-    @pytest.mark.asyncio
-    async def test_await_dequeue_retry_loop(self) -> None:
-        """await_dequeue retries when try_dequeue fails after wait."""
-        import asyncio
-
-        queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
-            capacity=3, protected_levels={"ERROR"}
-        )
-
-        async def delayed_enqueue() -> None:
-            # First wake-up won't have data, second will
-            await asyncio.sleep(0.01)
-            queue._data_available.set()  # Wake up waiter but don't enqueue
-            await asyncio.sleep(0.01)
-            queue.try_enqueue({"level": "INFO", "msg": "data"})
-
-        async def consumer() -> dict[str, str]:
-            return await queue.await_dequeue(timeout=1.0)
-
-        _, item = await asyncio.gather(delayed_enqueue(), consumer())
-        assert item == {"level": "INFO", "msg": "data"}
+        assert len(dequeued) == n_items

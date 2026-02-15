@@ -27,7 +27,6 @@ from .levels import get_level_priority
 from .pressure import PressureLevel
 from .worker import (
     LoggerWorker,
-    enqueue_with_backpressure,
     stop_plugins,
 )
 
@@ -152,7 +151,8 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._counters: dict[str, int] = {"processed": 0, "dropped": 0}
         self._batch_max_size = int(batch_max_size)
         self._batch_timeout_seconds = float(batch_timeout_seconds)
-        self._backpressure_wait_ms = int(backpressure_wait_ms)
+        # drop_on_full is used only for startup warnings in SyncLoggerFacade;
+        # the unified thread architecture always drops on full at the queue boundary.
         self._drop_on_full = bool(drop_on_full)
         self._sink_write = sink_write
         self._sink_write_serialized = sink_write_serialized
@@ -174,7 +174,6 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._worker_loop: asyncio.AbstractEventLoop | None = None
         self._worker_thread: threading.Thread | None = None
         self._thread_ready = threading.Event()
-        self._loop_thread_ident: int | None = None
         self._num_workers = max(1, int(num_workers))
         self._drained_event: asyncio.Event | None = None
         self._flush_event: asyncio.Event | None = None
@@ -335,29 +334,14 @@ class _LoggerMixin(_WorkerCountersMixin):
                 pass
 
     def start(self) -> None:
-        """Start the background worker, choosing the appropriate mode.
+        """Start the logging pipeline in a dedicated background thread.
 
-        Determines the appropriate mode based on event loop state:
+        Always creates a dedicated thread with its own event loop for the
+        logging pipeline. This ensures logging I/O never competes with
+        the caller's event loop (e.g., HTTP request handling in FastAPI).
 
-        BOUND LOOP MODE (loop already running):
-            - Detected via asyncio.get_running_loop() succeeding
-            - Worker task runs in the existing loop
-            - Used when: running inside an async framework, Jupyter, etc.
-            - Shutdown: must happen while loop is still running
-
-        THREAD LOOP MODE (no running loop):
-            - Detected via asyncio.get_running_loop() raising RuntimeError
-            - Creates a dedicated background thread with its own event loop
-            - Used when: sync scripts, CLI tools, non-async web frameworks
-            - Shutdown: thread is signaled to stop, then joined
-
-        Why not always use thread mode?
-            - Existing event loops expect tasks to run in them
-            - Thread mode would prevent proper integration with async frameworks
-            - Bound mode allows drain() to work correctly with the caller's loop
-
-        See Also:
-            docs/architecture/async-sync-boundary.md for detailed explanation.
+        The only operation on the caller's thread is try_enqueue() —
+        microseconds per event.
         """
         if self._worker_loop is not None:
             return
@@ -373,73 +357,57 @@ class _LoggerMixin(_WorkerCountersMixin):
             register_logger(self)  # type: ignore[arg-type]
         except Exception:
             pass  # Fail-open: don't break startup if shutdown module fails
-        try:
-            # BOUND LOOP MODE: Use the caller's existing event loop
-            loop = asyncio.get_running_loop()
-            self._worker_loop = loop
-            self._loop_thread_ident = threading.get_ident()
+
+        self._thread_ready.clear()
+
+        def _run() -> None:
+            # Create a fresh event loop owned by this thread
+            loop_local = asyncio.new_event_loop()
+            self._worker_loop = loop_local
+            asyncio.set_event_loop(loop_local)
             self._drained_event = asyncio.Event()
             self._flush_event = asyncio.Event()
             self._flush_done_event = asyncio.Event()
             for _ in range(self._num_workers):
-                task = loop.create_task(self._worker_main())
-                self._worker_tasks.append(task)
-            self._maybe_start_pressure_monitor(loop)
-        except RuntimeError:
-            # THREAD LOOP MODE: No running loop, create dedicated thread
-            self._thread_ready.clear()
+                self._worker_tasks.append(loop_local.create_task(self._worker_main()))
+            self._maybe_start_pressure_monitor(loop_local)
 
-            def _run() -> None:  # pragma: no cover - thread-loop fallback
-                # Create a fresh event loop owned by this thread
-                loop_local = asyncio.new_event_loop()
-                self._worker_loop = loop_local
-                self._loop_thread_ident = threading.get_ident()
-                asyncio.set_event_loop(loop_local)
-                self._drained_event = asyncio.Event()
-                self._flush_event = asyncio.Event()
-                self._flush_done_event = asyncio.Event()
-                for _ in range(self._num_workers):
-                    self._worker_tasks.append(
-                        loop_local.create_task(self._worker_main())
-                    )
-                self._maybe_start_pressure_monitor(loop_local)
-
-                # Signal the main thread that we're ready to accept work
-                self._thread_ready.set()
+            # Signal the caller thread that we're ready to accept work
+            self._thread_ready.set()
+            try:
+                # Run until all workers complete. Workers complete when stop_flag
+                # is set and they finish draining/flushing. Using run_until_complete
+                # instead of run_forever ensures the loop stops only after ALL
+                # workers finish, fixing the multi-worker race condition.
+                loop_local.run_until_complete(
+                    asyncio.gather(*self._worker_tasks, return_exceptions=True)
+                )
+            finally:
+                # Cleanup: cancel pending tasks and close the loop
                 try:
-                    # Run until all workers complete. Workers complete when stop_flag
-                    # is set and they finish draining/flushing. Using run_until_complete
-                    # instead of run_forever ensures the loop stops only after ALL
-                    # workers finish, fixing the multi-worker race condition.
-                    loop_local.run_until_complete(
-                        asyncio.gather(*self._worker_tasks, return_exceptions=True)
-                    )
-                finally:
-                    # Cleanup: cancel pending tasks and close the loop
-                    try:
-                        pending = asyncio.all_tasks(loop_local)
-                        for t in pending:
-                            t.cancel()
-                        if pending:
-                            try:
-                                cleanup_coro = asyncio.wait_for(
-                                    asyncio.gather(*pending, return_exceptions=True),
-                                    timeout=3.0,
-                                )
-                                loop_local.run_until_complete(cleanup_coro)
-                            except Exception:
-                                pass
-                    finally:
+                    pending = asyncio.all_tasks(loop_local)
+                    for t in pending:
+                        t.cancel()
+                    if pending:
                         try:
-                            loop_local.close()
+                            cleanup_coro = asyncio.wait_for(
+                                asyncio.gather(*pending, return_exceptions=True),
+                                timeout=3.0,
+                            )
+                            loop_local.run_until_complete(cleanup_coro)
                         except Exception:
                             pass
+                finally:
+                    try:
+                        loop_local.close()
+                    except Exception:
+                        pass
 
-            # Start the worker thread (daemon=True so it won't block process exit)
-            self._worker_thread = threading.Thread(target=_run, daemon=True)
-            self._worker_thread.start()
-            # Wait for the thread to initialize before returning
-            self._thread_ready.wait(timeout=2.0)
+        # Start the worker thread (daemon=True so it won't block process exit)
+        self._worker_thread = threading.Thread(target=_run, daemon=True)
+        self._worker_thread.start()
+        # Wait for the thread to initialize before returning
+        self._thread_ready.wait(timeout=2.0)
 
     def _maybe_start_pressure_monitor(self, loop: asyncio.AbstractEventLoop) -> None:
         """Start PressureMonitor task if adaptive settings are enabled (Story 1.44)."""
@@ -686,7 +654,7 @@ class _LoggerMixin(_WorkerCountersMixin):
             batch_resize_reporter=batch_resize_reporter,
             sink_concurrency=self._cached_sink_concurrency,
         )
-        await worker.run(in_thread_mode=self._worker_thread is not None)
+        await worker.run(in_thread_mode=True)
 
     async def _stop_pressure_monitor(self) -> None:
         """Stop the PressureMonitor before draining workers (Story 1.44)."""
@@ -1105,7 +1073,7 @@ class _LoggerMixin(_WorkerCountersMixin):
 
     async def _worker_main(self) -> None:
         worker = self._make_worker()
-        await worker.run(in_thread_mode=self._worker_thread is not None)
+        await worker.run(in_thread_mode=True)
 
     async def _flush_batch(self, batch: list[dict[str, Any]]) -> None:
         worker = self._make_worker()
@@ -1145,33 +1113,19 @@ class _LoggerMixin(_WorkerCountersMixin):
             sinks=sink_list,
         )
 
-    async def _async_enqueue(
-        self,
-        payload: dict[str, Any],
-        *,
-        timeout: float,
-    ) -> bool:
-        """Async enqueue executed in the worker loop; returns True if enqueued.
+    def _try_enqueue_with_metrics(self, payload: dict[str, Any]) -> bool:
+        """Try to enqueue payload, updating high watermark on success.
 
-        When enqueue fails (returns False), this method handles dropped counting
-        internally. This ensures accurate accounting even when the caller times
-        out waiting for the result - the coroutine will still increment dropped
-        when it eventually completes.
+        This is the hot-path enqueue used by both sync and async facades.
+        It calls try_enqueue() on the thread-safe queue and updates the
+        high watermark counter if needed. Returns True if enqueued.
         """
-        ok, high_watermark = await enqueue_with_backpressure(
-            self._queue,
-            payload,
-            timeout=timeout,
-            drop_on_full=self._drop_on_full,
-            metrics=self._metrics,
-            current_high_watermark=self._queue_high_watermark,
-        )
-        self._queue_high_watermark = high_watermark
-        if not ok:
-            # Count dropped here so it's recorded even if caller timed out
-            self._dropped += 1
-            self._record_drop_for_summary(1)
-        return ok
+        if self._queue.try_enqueue(payload):
+            qsize = self._queue.qsize()
+            if qsize > self._queue_high_watermark:
+                self._queue_high_watermark = qsize
+            return True
+        return False
 
     def _schedule_metrics_call(self, fn: Any, *args: Any, **kwargs: Any) -> None:
         if self._metrics is None:
@@ -1192,64 +1146,6 @@ class _LoggerMixin(_WorkerCountersMixin):
                 return
 
         threading.Thread(target=_run, daemon=True).start()
-
-    async def _drain_on_loop(
-        self, *, timeout: float | None, warn_on_timeout: bool
-    ) -> DrainResult:
-        start = time.perf_counter()
-        # Capture adaptive snapshot before stopping monitor (Story 10.58)
-        adaptive_summary = (
-            self._pressure_monitor.snapshot()
-            if self._pressure_monitor is not None
-            else None
-        )
-        # Stop pressure monitor before workers (Story 1.44)
-        await self._stop_pressure_monitor()
-        self._stop_flag = True
-        # Collect all tasks: initial + dynamic from pool (Story 1.46)
-        all_tasks = self._worker_tasks
-        if self._worker_pool is not None:
-            all_tasks = self._worker_pool.drain_all()
-        # Wait for ALL worker tasks to complete, not just a single event.
-        # With multiple workers, each drains remaining queue items and flushes.
-        # We must wait for all to finish to ensure counters are accurate.
-        if all_tasks:
-            try:
-                if timeout is not None:
-                    await asyncio.wait_for(
-                        asyncio.gather(*all_tasks, return_exceptions=True),
-                        timeout=timeout,
-                    )
-                else:
-                    await asyncio.gather(*all_tasks, return_exceptions=True)
-            except asyncio.TimeoutError:
-                if warn_on_timeout:
-                    try:
-                        from .diagnostics import warn
-
-                        warn(
-                            "logger",
-                            "drain timeout waiting for worker tasks",
-                            timeout_seconds=timeout,
-                        )
-                    except Exception:
-                        pass
-            except Exception:
-                pass
-
-        await self._stop_enrichers_and_redactors()
-        self._cleanup_resources()
-        self._drained = True
-        flush_latency = time.perf_counter() - start
-        return DrainResult(
-            submitted=self._submitted,
-            processed=self._processed,
-            dropped=self._dropped,
-            retried=self._retried,
-            queue_depth_high_watermark=self._queue_high_watermark,
-            flush_latency_seconds=flush_latency,
-            adaptive=adaptive_summary,
-        )
 
     def _drain_thread_mode(self, *, warn_on_timeout: bool) -> DrainResult:
         start = time.perf_counter()
@@ -1435,10 +1331,10 @@ class SyncLoggerFacade(_LoggerMixin):
         )
 
     def start(self) -> None:
-        """Start the background worker with startup validation.
+        """Start the background worker in a dedicated thread.
 
         Emits a one-time warning if drop_on_full=False is configured,
-        since same-thread calls will still drop to prevent deadlock.
+        since enqueue is always non-blocking in the unified architecture.
         """
         # Emit one-time warning for drop_on_full=False configuration
         # Check _worker_loop is None to ensure warning only emits once
@@ -1458,25 +1354,9 @@ class SyncLoggerFacade(_LoggerMixin):
             except Exception:
                 pass
 
-        # Call parent implementation
         super().start()
 
     async def stop_and_drain(self) -> DrainResult:
-        try:
-            running_loop = asyncio.get_running_loop()
-        except RuntimeError:
-            running_loop = None
-
-        if (
-            running_loop is not None
-            and self._worker_thread is None
-            and self._drained_event is not None
-        ):
-            # Use timeout=None to ensure all queued events are processed.
-            # A fixed timeout (e.g., 10s) can cause data loss with slow sinks.
-            # Users can wrap with asyncio.wait_for() if timeout is needed.
-            return await self._drain_on_loop(timeout=None, warn_on_timeout=False)
-
         result = await asyncio.to_thread(self._drain_thread_mode, warn_on_timeout=False)
         await self._stop_enrichers_and_redactors()
         self._cleanup_resources()
@@ -1531,108 +1411,21 @@ class SyncLoggerFacade(_LoggerMixin):
 
         self._record_submitted(1)
         self.start()
-        wait_seconds = self._backpressure_wait_ms / 1000.0
-        loop = self._worker_loop
-        # If on the worker loop thread, do non-blocking enqueue only
-        if (
-            self._loop_thread_ident is not None
-            and self._loop_thread_ident == threading.get_ident()
-        ):
-            if self._queue.try_enqueue(payload):
-                qsize = self._queue.qsize()
-                if qsize > self._queue_high_watermark:
-                    self._queue_high_watermark = qsize
-            else:
-                self._dropped += 1
-                self._record_drop_for_summary(1)
-                # Throttled WARN for backpressure drop on same-thread path
-                try:
-                    from .diagnostics import warn
-
-                    # Note mismatch when drop_on_full=False (user expects blocking)
-                    message = "drop on full (same-thread)"
-                    if not self._drop_on_full:
-                        message += " - drop_on_full=False cannot be honored in same-thread context"
-
-                    warn(
-                        "backpressure",
-                        message,
-                        drop_total=self._dropped,
-                        drop_on_full_setting=self._drop_on_full,
-                        queue_hwm=self._queue_high_watermark,
-                        capacity=self._queue.capacity,
-                    )
-                except Exception:
-                    pass
-            return
-        # Cross-thread submission: schedule coroutine and wait up to timeout
-        if loop is not None:
+        if not self._try_enqueue_with_metrics(payload):
+            self._dropped += 1
+            self._record_drop_for_summary(1)
             try:
-                fut = asyncio.run_coroutine_threadsafe(
-                    self._async_enqueue(
-                        payload,
-                        timeout=wait_seconds,
-                    ),
-                    loop,
+                from .diagnostics import warn
+
+                warn(
+                    "backpressure",
+                    "drop on full",
+                    drop_total=self._dropped,
+                    queue_hwm=self._queue_high_watermark,
+                    capacity=self._queue.capacity,
                 )
-                result_timeout = None
-                if self._drop_on_full:
-                    result_timeout = wait_seconds + 0.05
-                ok = fut.result(timeout=result_timeout)
-                if not ok:
-                    # dropped counting done in _async_enqueue
-                    # Throttled WARN for backpressure drop on cross-thread path
-                    try:
-                        from .diagnostics import warn
-
-                        warn(
-                            "backpressure",
-                            "drop on full (cross-thread)",
-                            drop_total=self._dropped,
-                            queue_hwm=self._queue_high_watermark,
-                            capacity=self._queue.capacity,
-                        )
-                    except Exception:
-                        pass
-            except TimeoutError:
-                # fut.result() timed out, but the coroutine may still be running.
-                # The coroutine handles dropped counting internally when it returns
-                # ok=False, so we don't need to count here. Just try to get the
-                # result to log the warning, but don't duplicate counting.
-                import concurrent.futures
-
-                try:
-                    # Give it a tiny bit more time to see if it completes
-                    fut.result(timeout=0.01)
-                    # Got a result - dropped counting done in _async_enqueue if needed
-                except concurrent.futures.TimeoutError:
-                    # Still not done - coroutine will handle accounting when it completes
-                    pass
-                except concurrent.futures.CancelledError:
-                    # Future was cancelled before coroutine ran - count dropped here
-                    self._dropped += 1
-                    self._record_drop_for_summary(1)
-                except Exception:
-                    # Coroutine raised an exception - it didn't complete normally
-                    # so dropped wasn't counted; count it here
-                    self._dropped += 1
-                    self._record_drop_for_summary(1)
             except Exception:
-                self._dropped += 1
-                self._record_drop_for_summary(1)
-                try:
-                    from .diagnostics import warn
-
-                    warn(
-                        "backpressure",
-                        "enqueue exception (drop)",
-                        drop_total=self._dropped,
-                        queue_hwm=self._queue_high_watermark,
-                        capacity=self._queue.capacity,
-                    )
-                except Exception:
-                    pass
-            return
+                pass
 
     def info(
         self,
@@ -1917,18 +1710,6 @@ class AsyncLoggerFacade(_LoggerMixin):
         return await self.stop_and_drain()
 
     async def stop_and_drain(self) -> DrainResult:
-        try:
-            running_loop = asyncio.get_running_loop()
-        except RuntimeError:
-            running_loop = None
-
-        if (
-            running_loop is not None
-            and self._worker_thread is None
-            and self._drained_event is not None
-        ):
-            return await self._drain_on_loop(timeout=None, warn_on_timeout=False)
-
         result = await asyncio.to_thread(self._drain_thread_mode, warn_on_timeout=False)
         await self._stop_enrichers_and_redactors()
         self._cleanup_resources()
@@ -1962,19 +1743,15 @@ class AsyncLoggerFacade(_LoggerMixin):
 
         await self._record_submitted_async(1)
         self.start()
-        ok = await self._async_enqueue(
-            payload,
-            timeout=self._backpressure_wait_ms / 1000.0,
-        )
-        if not ok:
-            # dropped counting done in _async_enqueue
-            # Throttled WARN for backpressure drop on async path
+        if not self._try_enqueue_with_metrics(payload):
+            self._dropped += 1
+            self._record_drop_for_summary(1)
             try:
                 from .diagnostics import warn
 
                 warn(
                     "backpressure",
-                    "drop on full (async)",
+                    "drop on full",
                     drop_total=self._dropped,
                     queue_hwm=self._queue_high_watermark,
                     capacity=self._queue.capacity,

@@ -323,136 +323,6 @@ class TestCrossThreadSubmission:
         # Some messages should have been processed
         assert result.processed > 0 or result.dropped > 0
 
-    def test_timeout_with_future_done_and_enqueue_failed(self) -> None:
-        """When fut.result() times out but future completed with ok=False.
-
-        The dropped counting now happens inside _async_enqueue, not at the call site.
-        This test verifies the caller does NOT double-count when the coroutine
-        returns False (since the coroutine handles it internally).
-        """
-        from concurrent.futures import Future
-
-        collected: list[dict[str, Any]] = []
-        logger = SyncLoggerFacade(
-            name="timeout-done-failed",
-            queue_capacity=10,
-            batch_max_size=10,
-            batch_timeout_seconds=0.1,
-            backpressure_wait_ms=5,
-            drop_on_full=True,
-            sink_write=_create_collecting_sink(collected),
-        )
-        logger.start()
-
-        # Mock run_coroutine_threadsafe to return a future that times out then shows done
-        mock_future = MagicMock(spec=Future)
-        mock_future.result.side_effect = [
-            TimeoutError(),
-            False,
-        ]  # First times out, then returns False
-        mock_future.cancelled.return_value = False
-        mock_future.done.return_value = True
-
-        with patch("asyncio.run_coroutine_threadsafe", return_value=mock_future):
-            logger.info("test-message")
-
-        # Caller does NOT increment dropped - that's done in _async_enqueue.
-        # Since we mocked out the coroutine, dropped stays 0 (the real coroutine
-        # would have incremented it when returning False).
-        assert logger._dropped == 0
-
-        asyncio.run(logger.stop_and_drain())
-
-    def test_timeout_with_future_done_and_exception(self) -> None:
-        """When fut.result() times out and future raised exception, count as dropped."""
-        from concurrent.futures import Future
-
-        collected: list[dict[str, Any]] = []
-        logger = SyncLoggerFacade(
-            name="timeout-done-exception",
-            queue_capacity=10,
-            batch_max_size=10,
-            batch_timeout_seconds=0.1,
-            backpressure_wait_ms=5,
-            drop_on_full=True,
-            sink_write=_create_collecting_sink(collected),
-        )
-        logger.start()
-
-        # Mock run_coroutine_threadsafe to return a future that times out then raises
-        mock_future = MagicMock(spec=Future)
-        mock_future.result.side_effect = [
-            TimeoutError(),
-            RuntimeError("enqueue failed"),
-        ]
-        mock_future.cancelled.return_value = False
-        mock_future.done.return_value = True
-
-        with patch("asyncio.run_coroutine_threadsafe", return_value=mock_future):
-            logger.info("test-message")
-
-        # The event should be counted as dropped since future.result() raised
-        assert logger._dropped == 1
-
-        asyncio.run(logger.stop_and_drain())
-
-    def test_timeout_with_future_cancelled(self) -> None:
-        """When fut.result() times out and future was cancelled, count as dropped."""
-        from concurrent.futures import CancelledError, Future
-
-        collected: list[dict[str, Any]] = []
-        logger = SyncLoggerFacade(
-            name="timeout-cancelled",
-            queue_capacity=10,
-            batch_max_size=10,
-            batch_timeout_seconds=0.1,
-            backpressure_wait_ms=5,
-            drop_on_full=True,
-            sink_write=_create_collecting_sink(collected),
-        )
-        logger.start()
-
-        # Mock: first result() raises TimeoutError, retry raises CancelledError
-        mock_future = MagicMock(spec=Future)
-        mock_future.result.side_effect = [TimeoutError(), CancelledError()]
-
-        with patch("asyncio.run_coroutine_threadsafe", return_value=mock_future):
-            logger.info("test-message")
-
-        # The event should be counted as dropped since future was cancelled
-        assert logger._dropped == 1
-
-        asyncio.run(logger.stop_and_drain())
-
-    def test_timeout_with_future_still_running(self) -> None:
-        """When fut.result() times out repeatedly, don't count as dropped."""
-        from concurrent.futures import Future
-        from concurrent.futures import TimeoutError as FuturesTimeoutError
-
-        collected: list[dict[str, Any]] = []
-        logger = SyncLoggerFacade(
-            name="timeout-running",
-            queue_capacity=10,
-            batch_max_size=10,
-            batch_timeout_seconds=0.1,
-            backpressure_wait_ms=5,
-            drop_on_full=True,
-            sink_write=_create_collecting_sink(collected),
-        )
-        logger.start()
-
-        # Mock: both result() calls timeout (coroutine still running)
-        mock_future = MagicMock(spec=Future)
-        mock_future.result.side_effect = [TimeoutError(), FuturesTimeoutError()]
-
-        with patch("asyncio.run_coroutine_threadsafe", return_value=mock_future):
-            logger.info("test-message")
-
-        # The event should NOT be counted as dropped (may yet succeed)
-        assert logger._dropped == 0
-
-        asyncio.run(logger.stop_and_drain())
-
 
 class TestRapidStartStopCycles:
     """Test rapid start/stop cycles don't leak resources."""
@@ -577,26 +447,32 @@ class TestAsyncBackpressure:
     @pytest.mark.asyncio
     async def test_async_backpressure_drops_when_queue_full(self) -> None:
         """AsyncLoggerFacade drops messages immediately when queue full and wait=0."""
-        collected: list[dict[str, Any]] = []
+        import threading
 
-        async def sink(event: dict[str, Any]) -> None:
+        collected: list[dict[str, Any]] = []
+        slow_started = threading.Event()
+
+        async def slow_sink(event: dict[str, Any]) -> None:
+            slow_started.set()
+            await asyncio.sleep(5.0)  # Block so queue stays full
             collected.append(dict(event))
 
         logger = AsyncLoggerFacade(
             name="async-backpressure-test",
             queue_capacity=1,  # Very small queue
-            batch_max_size=1024,  # Large batch = slow drain
-            batch_timeout_seconds=0.2,
+            batch_max_size=1,
+            batch_timeout_seconds=0.01,
             backpressure_wait_ms=0,  # Immediate drop when full
             drop_on_full=True,
-            sink_write=sink,
+            sink_write=slow_sink,
         )
         logger.start()
 
-        # Fill queue with first message
+        # Fill queue — worker dequeues first message and blocks in slow sink
         await logger.info("seed")
+        slow_started.wait(timeout=2.0)
 
-        # Submit many more that should be dropped
+        # Submit many more that should be dropped (queue full, worker blocked)
         for _ in range(10):
             await logger.info("x")
 
@@ -604,7 +480,7 @@ class TestAsyncBackpressure:
 
         # All 11 messages submitted (1 seed + 10 flood)
         assert result.submitted == 11
-        # With queue_capacity=1, at most 2 can be processed (queue + in-flight)
+        # With queue_capacity=1 and worker blocked, most should be dropped
         assert result.dropped >= 9
         # Invariant: submitted = processed + dropped
         assert result.submitted == result.processed + result.dropped

@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-import asyncio
 import sys
 from typing import Any
 
 import pytest
 
-from fapilog import get_logger
 from fapilog.core.errors import serialize_exception
-from fapilog.core.settings import Settings
+from fapilog.core.logger import SyncLoggerFacade
 
 
 def test_serialize_exception_bounds() -> None:
@@ -25,23 +23,35 @@ def test_serialize_exception_bounds() -> None:
     assert len(frames) <= 2
 
 
+def _make_logger(name: str, sink: Any) -> SyncLoggerFacade:
+    """Create a SyncLoggerFacade with exceptions enabled and a capture sink."""
+    logger = SyncLoggerFacade(
+        name=name,
+        queue_capacity=16,
+        batch_max_size=8,
+        batch_timeout_seconds=0.05,
+        backpressure_wait_ms=10,
+        drop_on_full=True,
+        sink_write=sink,
+        exceptions_enabled=True,
+    )
+    logger.start()
+    return logger
+
+
 @pytest.mark.asyncio
 async def test_log_exception_and_exc_info_true() -> None:
     captured: list[dict[str, Any]] = []
-    s = Settings()
-    s.core.exceptions_enabled = True
-    logger = get_logger(name="exc-test", settings=s)
 
     async def capture(entry: dict[str, Any]) -> None:
         captured.append(entry)
 
-    logger._sink_write = capture  # type: ignore[attr-defined]
+    logger = _make_logger("exc-test", capture)
 
     try:
         raise ZeroDivisionError("x")
     except ZeroDivisionError:
         logger.exception("fail", op="zdx")
-    await asyncio.sleep(0)
     await logger.stop_and_drain()
     assert captured
     # v1.1 schema: exception data in diagnostics.exception
@@ -53,14 +63,11 @@ async def test_log_exception_and_exc_info_true() -> None:
 @pytest.mark.asyncio
 async def test_exc_and_exc_info_precedence() -> None:
     captured: list[dict[str, Any]] = []
-    s = Settings()
-    s.core.exceptions_enabled = True
-    logger = get_logger(name="prec-test", settings=s)
 
     async def capture(entry: dict[str, Any]) -> None:
         captured.append(entry)
 
-    logger._sink_write = capture  # type: ignore[attr-defined]
+    logger = _make_logger("prec-test", capture)
 
     try:
         raise RuntimeError("primary")
@@ -71,7 +78,6 @@ async def test_exc_and_exc_info_precedence() -> None:
             info = sys.exc_info()
         # exc takes precedence over exc_info when both provided
         logger.error("msg", exc=e1, exc_info=info)
-    await asyncio.sleep(0)
     await logger.stop_and_drain()
 
     # v1.1 schema: exception data in diagnostics.exception

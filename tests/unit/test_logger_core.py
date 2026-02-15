@@ -25,7 +25,6 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from fapilog import get_logger
 from fapilog.core import diagnostics as _diag_mod
 from fapilog.core.context import request_id_var
 from fapilog.core.diagnostics import _reset_for_tests, set_writer_for_tests
@@ -55,10 +54,11 @@ class TestInLoopMode:
             sink_write=lambda e: _collecting_sink(collected, e),
         )
 
-        # Start inside running loop: no thread should be used
+        # Start always creates a dedicated thread with its own event loop
         logger.start()
-        assert logger._worker_thread is None  # type: ignore[attr-defined]
-        assert logger._loop_thread_ident == threading.get_ident()  # type: ignore[attr-defined]
+        assert logger._worker_thread is not None  # type: ignore[attr-defined] # noqa: WA003
+        assert logger._worker_thread.is_alive()  # type: ignore[attr-defined]
+        assert logger._worker_loop is not asyncio.get_running_loop()  # type: ignore[attr-defined]
 
         for i in range(10):
             logger.info("m", i=i)
@@ -73,25 +73,37 @@ class TestInLoopMode:
 
     @pytest.mark.asyncio
     async def test_in_loop_drop_when_full_nonblocking(self) -> None:
+        import threading
+
         collected: list[dict[str, Any]] = []
+        slow_started = threading.Event()
+
+        async def slow_sink(entry: dict[str, Any]) -> None:
+            slow_started.set()
+            await asyncio.sleep(5.0)  # Block worker so queue stays full
+            collected.append(dict(entry))
+
         logger = SyncLoggerFacade(
             name="t",
             queue_capacity=1,
-            batch_max_size=10,
-            batch_timeout_seconds=1.0,
+            batch_max_size=1,
+            batch_timeout_seconds=0.01,
             backpressure_wait_ms=100,
             drop_on_full=True,
-            sink_write=lambda e: _collecting_sink(collected, e),
+            sink_write=slow_sink,
         )
         logger.start()
-        # Enqueue two items quickly; second should drop on the loop thread
+        # First message: enqueues, worker dequeues it and blocks in slow sink
         logger.info("a")
+        slow_started.wait(timeout=2.0)
+        # Second message: fills queue (capacity=1)
         logger.info("b")
-        await asyncio.sleep(0.05)
+        # Third message: should drop — queue full and worker blocked
+        logger.info("c")
         res = await logger.stop_and_drain()
-        assert res.submitted == 2
-        assert res.processed == 1
-        assert res.dropped == res.submitted - res.processed
+        assert res.submitted == 3
+        assert res.dropped >= 1  # noqa: WA002 — async timing makes exact drop count non-deterministic
+        assert res.submitted == res.processed + res.dropped
 
 
 class TestThreadMode:
@@ -153,7 +165,8 @@ class TestThreadMode:
                 sink_write=lambda e: _collecting_sink(collected2, e),
             )
             logger2.start()
-            assert logger2._worker_thread is None  # type: ignore[attr-defined]
+            assert logger2._worker_thread is not None  # type: ignore[attr-defined] # noqa: WA003
+            assert logger2._worker_thread.is_alive()  # type: ignore[attr-defined]
             # At least one worker task is created on this loop
             assert len(logger2._worker_tasks) > 0  # type: ignore[attr-defined]
             await logger2.stop_and_drain()
@@ -168,13 +181,19 @@ class TestCorrelationId:
     async def test_correlation_id_null_when_not_set(self) -> None:
         captured: list[dict[str, Any]] = []
 
-        logger = get_logger(name="test")
-
         async def fake_write(entry: dict[str, Any]) -> None:
             captured.append(entry)
 
-        # Replace sink_write on the logger (test-only replacement)
-        logger._sink_write = fake_write  # type: ignore[attr-defined]
+        logger = SyncLoggerFacade(
+            name="test",
+            queue_capacity=16,
+            batch_max_size=8,
+            batch_timeout_seconds=0.05,
+            backpressure_wait_ms=10,
+            drop_on_full=True,
+            sink_write=fake_write,
+        )
+        logger.start()
 
         logger.info("hello")
         await logger.stop_and_drain()
@@ -188,12 +207,20 @@ class TestCorrelationId:
     @pytest.mark.asyncio
     async def test_context_propagation_and_null_without(self) -> None:
         captured: list[dict[str, Any]] = []
-        logger = get_logger(name="ctx-test")
 
         async def fake_write(entry: dict[str, Any]) -> None:
             captured.append(entry)
 
-        logger._sink_write = fake_write  # type: ignore[attr-defined]
+        logger = SyncLoggerFacade(
+            name="ctx-test",
+            queue_capacity=16,
+            batch_max_size=8,
+            batch_timeout_seconds=0.05,
+            backpressure_wait_ms=10,
+            drop_on_full=True,
+            sink_write=fake_write,
+        )
+        logger.start()
 
         # Explicit request id via context var
         token = request_id_var.set("req-123")

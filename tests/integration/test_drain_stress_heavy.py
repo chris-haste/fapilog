@@ -4,14 +4,13 @@ These tests are designed to find breaking points and verify behavior under
 extreme load. They take several minutes to run and should be run manually
 or in dedicated performance testing environments.
 
-Throughput expectations by mode:
-    - Thread mode (SyncLoggerFacade outside async): ~10-15K events/sec
+Throughput expectations:
+    - SyncLoggerFacade (dedicated thread): ~10-15K events/sec
       (cross-thread synchronization overhead)
-    - Bound loop mode (SyncLoggerFacade inside async): ~100K+ events/sec
     - AsyncLoggerFacade: ~100K+ events/sec
 
-Most tests use thread mode for broad compatibility. The TestSustainedLoad class
-includes bound loop mode tests for async-context throughput validation.
+All modes use the unified dedicated-thread architecture where start() always
+creates a dedicated worker thread.
 
 Run with: pytest tests/integration/test_drain_stress_heavy.py -v -s
 The -s flag shows real-time progress output.
@@ -331,14 +330,14 @@ class TestSustainedLoad:
         assert metrics.missing == 0, f"Missing events: {metrics.missing}"
 
     @pytest.mark.asyncio
-    async def test_sustained_load_bound_loop_mode(self) -> None:
-        """Sustain high load in bound loop mode (async context)."""
+    async def test_sustained_load_dedicated_thread_from_async(self) -> None:
+        """Sustain high load with dedicated thread started from async context."""
         sink = LatencyTrackingSink(latency_ms=0.5, sample_latency=True)
         duration = STRESS_DURATION
         target_rate = 10_000
 
         logger = SyncLoggerFacade(
-            name="sustained_bound",
+            name="sustained_dedicated",
             queue_capacity=20_000,
             batch_max_size=200,
             batch_timeout_seconds=0.02,
@@ -351,13 +350,17 @@ class TestSustainedLoad:
         )
         logger.start()
 
-        assert logger._worker_thread is None, "Expected bound loop mode"
+        assert logger._worker_thread is not None, "Expected dedicated worker thread"  # noqa: WA003
+        assert logger._worker_thread.is_alive(), "Worker thread should be alive"
+        assert logger._worker_loop is not asyncio.get_running_loop(), (
+            "Worker loop should be separate from caller's loop"
+        )
 
         payload = generate_payload(256)
         metrics = StressMetrics()
 
         print(
-            f"\n  Sustaining ~{target_rate:,} events/sec for {duration}s (bound loop)..."
+            f"\n  Sustaining ~{target_rate:,} events/sec for {duration}s (dedicated thread)..."
         )
 
         start = time.perf_counter()
@@ -707,14 +710,14 @@ class TestAsyncHighThroughput:
         assert metrics.sink_count == metrics.processed
 
     @pytest.mark.asyncio
-    async def test_bound_loop_max_throughput(self) -> None:
-        """SyncLoggerFacade in bound loop mode should achieve 100K+ events/sec."""
+    async def test_dedicated_thread_max_throughput(self) -> None:
+        """SyncLoggerFacade with dedicated thread from async context."""
         sink = LatencyTrackingSink(latency_ms=0, sample_latency=True)
         num_events = int(100_000 * STRESS_SCALE)
 
-        # Start inside async context = bound loop mode
+        # Start inside async context - still creates dedicated thread
         logger = SyncLoggerFacade(
-            name="bound_throughput",
+            name="dedicated_throughput",
             queue_capacity=50_000,
             batch_max_size=1000,
             batch_timeout_seconds=0.01,
@@ -727,12 +730,13 @@ class TestAsyncHighThroughput:
         )
         logger.start()
 
-        assert logger._worker_thread is None, "Expected bound loop mode"
+        assert logger._worker_thread is not None, "Expected dedicated worker thread"  # noqa: WA003
+        assert logger._worker_thread.is_alive(), "Worker thread should be alive"
 
         payload = generate_payload(256)
         metrics = StressMetrics()
 
-        print(f"\n  Bound loop mode: {num_events:,} events...")
+        print(f"\n  Dedicated thread mode: {num_events:,} events...")
         start = time.perf_counter()
         for i in range(num_events):
             logger.info(f"event_{i}", extra={"payload": payload})

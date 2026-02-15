@@ -17,10 +17,9 @@ from typing import Any
 
 import pytest
 
-from fapilog import get_logger
 from fapilog.core.diagnostics import set_writer_for_tests
 from fapilog.core.errors import request_id_var
-from fapilog.core.settings import Settings
+from fapilog.core.logger import SyncLoggerFacade
 
 
 class TestCorrelationId:
@@ -29,12 +28,20 @@ class TestCorrelationId:
     @pytest.mark.asyncio
     async def test_correlation_id_uses_context_request_id(self) -> None:
         captured: list[dict[str, Any]] = []
-        logger = get_logger(name="corr")
 
         async def capture(entry: dict[str, Any]) -> None:
             captured.append(entry)
 
-        logger._sink_write = capture  # type: ignore[attr-defined]
+        logger = SyncLoggerFacade(
+            name="corr",
+            queue_capacity=16,
+            batch_max_size=8,
+            batch_timeout_seconds=0.05,
+            backpressure_wait_ms=10,
+            drop_on_full=True,
+            sink_write=capture,
+        )
+        logger.start()
 
         token = request_id_var.set("REQ-123")
         try:
@@ -58,13 +65,6 @@ class TestDiagnostics:
         # Enable internal diagnostics via env so Settings picks it up
         monkeypatch.setenv("FAPILOG_CORE__INTERNAL_LOGGING_ENABLED", "true")
 
-        # Build settings with small batch to force immediate flush
-        s = Settings()
-        s.core.batch_max_size = 2
-        s.core.batch_timeout_seconds = 0.1
-
-        logger = get_logger(name="diag", settings=s)
-
         # Capture diagnostics
         captured: list[dict[str, Any]] = []
 
@@ -77,8 +77,16 @@ class TestDiagnostics:
         async def failing_sink(entry: dict[str, Any]) -> None:  # noqa: ARG001
             raise RuntimeError("sink failure")
 
-        # Replace sink_write on the logger (test-only)
-        logger._sink_write = failing_sink  # type: ignore[attr-defined]
+        logger = SyncLoggerFacade(
+            name="diag",
+            queue_capacity=16,
+            batch_max_size=2,
+            batch_timeout_seconds=0.1,
+            backpressure_wait_ms=10,
+            drop_on_full=True,
+            sink_write=failing_sink,
+        )
+        logger.start()
 
         # Submit two events to form a batch and trigger flush
         logger.info("a")
