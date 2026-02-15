@@ -791,6 +791,9 @@ class LoggerBuilder:
         check_interval_seconds: float | None = None,
         cooldown_seconds: float | None = None,
         circuit_pressure_boost: float | None = None,
+        filter_tightening: bool | None = None,
+        worker_scaling: bool | None = None,
+        queue_growth: bool | None = None,
     ) -> Self:
         """Configure adaptive pipeline behavior.
 
@@ -805,9 +808,13 @@ class LoggerBuilder:
             check_interval_seconds: Seconds between queue pressure samples
             cooldown_seconds: Minimum seconds between pressure transitions
             circuit_pressure_boost: Pressure boost per open circuit breaker
+            filter_tightening: Enable adaptive filter tightening (default: True)
+            worker_scaling: Enable dynamic worker scaling (default: True)
+            queue_growth: Enable queue capacity growth (default: True)
 
         Example:
             >>> builder.with_adaptive(max_workers=6, batch_sizing=True)
+            >>> builder.with_adaptive(worker_scaling=False, queue_growth=False)
         """
         adaptive: dict[str, object] = {"enabled": enabled}
         if max_workers is not None:
@@ -822,6 +829,12 @@ class LoggerBuilder:
             adaptive["cooldown_seconds"] = cooldown_seconds
         if circuit_pressure_boost is not None:
             adaptive["circuit_pressure_boost"] = circuit_pressure_boost
+        if filter_tightening is not None:
+            adaptive["filter_tightening"] = filter_tightening
+        if worker_scaling is not None:
+            adaptive["worker_scaling"] = worker_scaling
+        if queue_growth is not None:
+            adaptive["queue_growth"] = queue_growth
         self._config.setdefault("adaptive", {}).update(adaptive)
         return self
 

@@ -596,6 +596,20 @@ class AdaptiveSettings(BaseModel):
         default=0.92, ge=0, le=1, description="Fill ratio to escalate HIGH to CRITICAL"
     )
 
+    # Per-actuator toggles (Story 1.51)
+    filter_tightening: bool = Field(
+        default=True,
+        description="Enable adaptive filter tightening based on pressure level",
+    )
+    worker_scaling: bool = Field(
+        default=True,
+        description="Enable dynamic worker scaling based on pressure level",
+    )
+    queue_growth: bool = Field(
+        default=True,
+        description="Enable queue capacity growth based on pressure level",
+    )
+
     # Adaptive batch sizing (Story 1.47)
     batch_sizing: bool = Field(
         default=False,
