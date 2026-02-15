@@ -149,6 +149,33 @@ If `batch_max_size` > `max_queue_size`, a warning is emitted because batches can
 
 ---
 
+## Adaptive Pipeline Settings
+
+Settings path: `adaptive.*`
+
+Short env var aliases are available (e.g., `FAPILOG_ADAPTIVE__ENABLED`).
+
+| Setting | Env Var | Builder Method | Default | Description |
+|---------|---------|----------------|---------|-------------|
+| `adaptive.enabled` | `FAPILOG_ADAPTIVE__ENABLED` | `.with_adaptive(enabled=True)` | `False` | Enable adaptive pipeline controller |
+| `adaptive.check_interval_seconds` | `FAPILOG_ADAPTIVE__CHECK_INTERVAL_SECONDS` | `.with_adaptive(check_interval_seconds=0.25)` | `0.25` | Seconds between queue pressure samples |
+| `adaptive.cooldown_seconds` | `FAPILOG_ADAPTIVE__COOLDOWN_SECONDS` | `.with_adaptive(cooldown_seconds=2.0)` | `2.0` | Minimum seconds between pressure level transitions |
+| `adaptive.escalate_to_elevated` | `FAPILOG_ADAPTIVE__ESCALATE_TO_ELEVATED` | Settings only | `0.60` | Fill ratio to escalate NORMAL to ELEVATED |
+| `adaptive.escalate_to_high` | `FAPILOG_ADAPTIVE__ESCALATE_TO_HIGH` | Settings only | `0.80` | Fill ratio to escalate ELEVATED to HIGH |
+| `adaptive.escalate_to_critical` | `FAPILOG_ADAPTIVE__ESCALATE_TO_CRITICAL` | Settings only | `0.92` | Fill ratio to escalate HIGH to CRITICAL |
+| `adaptive.deescalate_from_elevated` | `FAPILOG_ADAPTIVE__DEESCALATE_FROM_ELEVATED` | Settings only | `0.40` | Fill ratio to de-escalate ELEVATED to NORMAL |
+| `adaptive.deescalate_from_high` | `FAPILOG_ADAPTIVE__DEESCALATE_FROM_HIGH` | Settings only | `0.60` | Fill ratio to de-escalate HIGH to ELEVATED |
+| `adaptive.deescalate_from_critical` | `FAPILOG_ADAPTIVE__DEESCALATE_FROM_CRITICAL` | Settings only | `0.75` | Fill ratio to de-escalate CRITICAL to HIGH |
+| `adaptive.max_workers` | `FAPILOG_ADAPTIVE__MAX_WORKERS` | `.with_adaptive(max_workers=8)` | `8` | Maximum workers when dynamic scaling is active |
+| `adaptive.max_queue_growth` | `FAPILOG_ADAPTIVE__MAX_QUEUE_GROWTH` | `.with_adaptive(max_queue_growth=4.0)` | `4.0` | Maximum queue capacity multiplier |
+| `adaptive.batch_sizing` | `FAPILOG_ADAPTIVE__BATCH_SIZING` | `.with_adaptive(batch_sizing=True)` | `False` | Enable adaptive batch sizing |
+| `adaptive.circuit_pressure_boost` | `FAPILOG_ADAPTIVE__CIRCUIT_PRESSURE_BOOST` | `.with_adaptive(circuit_pressure_boost=0.20)` | `0.20` | Pressure boost per open circuit breaker |
+| `adaptive.filter_tightening` | `FAPILOG_ADAPTIVE__FILTER_TIGHTENING` | `.with_adaptive(filter_tightening=True)` | `True` | Enable adaptive filter tightening based on pressure level |
+| `adaptive.worker_scaling` | `FAPILOG_ADAPTIVE__WORKER_SCALING` | `.with_adaptive(worker_scaling=False)` | `True` | Enable dynamic worker scaling based on pressure level |
+| `adaptive.queue_growth` | `FAPILOG_ADAPTIVE__QUEUE_GROWTH` | `.with_adaptive(queue_growth=False)` | `True` | Enable queue capacity growth based on pressure level |
+
+---
+
 ## Sink Settings
 
 ### Rotating File Sink
