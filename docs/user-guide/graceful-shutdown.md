@@ -41,5 +41,4 @@ asyncio.run(logger.stop_and_drain())
 
 ## Settings
 
-- `core.shutdown_timeout_seconds`: max wait when bound to a running loop.
-- For threaded worker mode, the logger signals the worker thread to stop and joins with a timeout to avoid hangs.
+- `core.shutdown_timeout_seconds`: max wait for the worker thread to complete during shutdown. The logger signals the dedicated worker thread to stop and joins with this timeout to avoid hangs.

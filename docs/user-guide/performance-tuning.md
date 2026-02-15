@@ -34,7 +34,7 @@ export FAPILOG_CORE__WORKER_COUNT=2
 - Queue size barely matters - larger queues actually hurt slightly (memory overhead)
 - Workers are the bottleneck with `worker_count=1` (serializes all processing)
 
-**Note on "context switching":** Workers are asyncio tasks, not OS threads. In async/bound loop mode, there's no OS-level context switching—all workers run cooperatively in the same event loop. The "overhead" with 3+ workers is the asyncio scheduler managing more tasks, not kernel thread switching. True OS context switching only occurs in thread mode (see [Execution Modes](execution-modes.md)).
+**Note on "context switching":** Workers are asyncio tasks running in the dedicated background thread's event loop, not OS threads. There's no OS-level context switching between workers—they run cooperatively. The "overhead" with 3+ workers is the asyncio scheduler managing more tasks within the same thread. See [Execution Modes](execution-modes.md) for details.
 
 **When to use 1 worker:**
 - Development/debugging (simpler log ordering)
