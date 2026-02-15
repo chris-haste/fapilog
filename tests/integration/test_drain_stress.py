@@ -6,7 +6,9 @@ across different combinations of:
 - Queue capacities (small, medium, large)
 - Batch sizes (small, medium, large)
 - Sink latencies (fast, slow, very slow)
-- Logger modes (thread mode, bound loop mode)
+
+All tests use the unified dedicated-thread architecture where start() always
+creates a dedicated worker thread.
 
 Run with: pytest tests/integration/test_drain_stress.py -v
 Run in CI: These are marked @pytest.mark.slow for nightly runs only.
@@ -40,7 +42,7 @@ class DrainTestConfig:
     batch_max_size: int
     sink_latency_ms: float
     num_events: int
-    mode: str  # "thread" or "bound_loop"
+    mode: str  # "thread" or "dedicated" (always dedicated thread)
 
     @property
     def expected_drain_seconds(self) -> float:
@@ -138,11 +140,11 @@ def generate_thread_mode_configs() -> list[DrainTestConfig]:
     return configs
 
 
-def generate_bound_loop_configs() -> list[DrainTestConfig]:
-    """Generate test configurations for bound loop mode."""
+def generate_dedicated_thread_configs() -> list[DrainTestConfig]:
+    """Generate test configurations for dedicated thread mode (async context start)."""
     configs = []
 
-    # Subset of configurations for bound loop mode
+    # Subset of configurations for dedicated thread mode started from async context
     # (full matrix would be too slow)
     selected_combos = [
         (1, 100, 10, 0, "single_small_instant"),
@@ -163,13 +165,13 @@ def generate_bound_loop_configs() -> list[DrainTestConfig]:
 
         configs.append(
             DrainTestConfig(
-                name=f"bound_{name}",
+                name=f"dedicated_{name}",
                 num_workers=num_workers,
                 queue_capacity=queue_cap,
                 batch_max_size=batch_size,
                 sink_latency_ms=latency_ms,
                 num_events=events,
-                mode="bound_loop",
+                mode="dedicated",
             )
         )
 
@@ -178,8 +180,8 @@ def generate_bound_loop_configs() -> list[DrainTestConfig]:
 
 # Generate all test configurations
 THREAD_MODE_CONFIGS = generate_thread_mode_configs()
-BOUND_LOOP_CONFIGS = generate_bound_loop_configs()
-ALL_CONFIGS = THREAD_MODE_CONFIGS + BOUND_LOOP_CONFIGS
+DEDICATED_THREAD_CONFIGS = generate_dedicated_thread_configs()
+ALL_CONFIGS = THREAD_MODE_CONFIGS + DEDICATED_THREAD_CONFIGS
 
 
 # =============================================================================
@@ -252,26 +254,26 @@ def test_thread_mode_drain(config: DrainTestConfig) -> None:
 
 
 # =============================================================================
-# Bound Loop Mode Tests (logger started inside async context)
+# Dedicated Thread Mode Tests (logger started inside async context)
 # =============================================================================
 
 
 @pytest.mark.slow
 @pytest.mark.parametrize(
     "config",
-    BOUND_LOOP_CONFIGS,
-    ids=[c.name for c in BOUND_LOOP_CONFIGS],
+    DEDICATED_THREAD_CONFIGS,
+    ids=[c.name for c in DEDICATED_THREAD_CONFIGS],
 )
 @pytest.mark.asyncio
-async def test_bound_loop_mode_drain(config: DrainTestConfig) -> None:
-    """Test drain in bound loop mode with various configurations.
+async def test_dedicated_thread_mode_drain(config: DrainTestConfig) -> None:
+    """Test drain with dedicated thread started from an async context.
 
-    Bound loop mode: Logger is started inside an async context,
-    so it uses the caller's event loop for workers.
+    Unified architecture: start() always creates a dedicated worker thread,
+    even when called from within an async context.
     """
     sink = SinkTracker(latency_ms=config.sink_latency_ms)
 
-    # Create and start logger INSIDE async context = bound loop mode
+    # Create and start logger INSIDE async context - still creates dedicated thread
     logger = SyncLoggerFacade(
         name=f"stress_{config.name}",
         queue_capacity=config.queue_capacity,
@@ -286,7 +288,11 @@ async def test_bound_loop_mode_drain(config: DrainTestConfig) -> None:
     )
     logger.start()
 
-    assert logger._worker_thread is None, "Expected bound loop mode"
+    assert logger._worker_thread is not None, "Expected dedicated worker thread"  # noqa: WA003
+    assert logger._worker_thread.is_alive(), "Worker thread should be alive"
+    assert logger._worker_loop is not asyncio.get_running_loop(), (
+        "Worker loop should be separate from caller's loop"
+    )
 
     # Generate test payload
     payload = {"test": "x" * 100, "config": config.name}
@@ -544,11 +550,13 @@ def test_config_coverage_summary() -> None:
     """Verify test configuration coverage (meta-test)."""
     # Verify we have good coverage
     thread_configs = len(THREAD_MODE_CONFIGS)
-    bound_configs = len(BOUND_LOOP_CONFIGS)
+    dedicated_configs = len(DEDICATED_THREAD_CONFIGS)
 
     # Should have at least these many configurations
     assert thread_configs >= 36, f"Expected 36+ thread configs, got {thread_configs}"
-    assert bound_configs >= 6, f"Expected 6+ bound configs, got {bound_configs}"
+    assert dedicated_configs >= 6, (
+        f"Expected 6+ dedicated configs, got {dedicated_configs}"
+    )
 
     # Verify worker coverage
     worker_counts = {c.num_workers for c in ALL_CONFIGS}
@@ -558,6 +566,6 @@ def test_config_coverage_summary() -> None:
     latencies = {c.sink_latency_ms for c in ALL_CONFIGS}
     assert {0, 1, 5} <= latencies, f"Missing latencies: {latencies}"
 
-    # Verify mode coverage
+    # Verify mode coverage (both sync-context and async-context starts)
     modes = {c.mode for c in ALL_CONFIGS}
-    assert modes == {"thread", "bound_loop"}, f"Missing modes: {modes}"
+    assert modes == {"thread", "dedicated"}, f"Missing modes: {modes}"

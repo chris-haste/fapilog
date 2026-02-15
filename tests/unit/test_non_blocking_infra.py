@@ -17,20 +17,15 @@ async def test_non_blocking_ring_queue_basic():
     ok, v = q.try_dequeue()
     assert ok and v == 1
 
-    # Await variants
-    await q.await_enqueue(10)
-    val = await q.await_dequeue()
-    assert val == 10
 
-
-@pytest.mark.asyncio
-async def test_non_blocking_ring_queue_waits_then_times_out():
+def test_non_blocking_ring_queue_full_and_empty():
     q: NonBlockingRingQueue[int] = NonBlockingRingQueue(capacity=1)
-    assert q.try_enqueue(1)
-    from fapilog.core.errors import TimeoutError
-
-    with pytest.raises(TimeoutError):
-        await q.await_enqueue(2, timeout=0.01)
+    assert q.try_enqueue(1) is True
+    assert q.is_full()
+    assert q.try_enqueue(2) is False
+    ok, v = q.try_dequeue()
+    assert ok and v == 1
+    assert q.is_empty()
 
 
 @pytest.mark.asyncio

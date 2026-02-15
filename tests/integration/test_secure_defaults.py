@@ -21,11 +21,20 @@ from fapilog import Settings, get_logger
 pytestmark = [pytest.mark.integration, pytest.mark.security]
 
 
-async def _collecting_sink(
-    collected: list[dict[str, Any]], entry: dict[str, Any]
-) -> None:
-    """Helper sink that collects events for inspection."""
-    collected.append(dict(entry))
+class _CollectingSink:
+    """Sink object that collects events for inspection."""
+
+    def __init__(self) -> None:
+        self.collected: list[dict[str, Any]] = []
+
+    async def write(self, entry: dict[str, Any]) -> None:
+        self.collected.append(dict(entry))
+
+    async def start(self) -> None:
+        pass
+
+    async def stop(self) -> None:
+        pass
 
 
 @pytest.mark.asyncio
@@ -35,28 +44,23 @@ async def test_url_credentials_scrubbed_by_default() -> None:
     With no preset or explicit redactor config, URLs containing credentials
     should have those credentials removed from the output.
     """
-    collected: list[dict[str, Any]] = []
-
     # Default settings - no preset, no explicit config
     settings = Settings()
     assert settings.core.redactors == ["url_credentials"], (
         "Default should enable url_credentials"
     )
 
-    logger = get_logger(name="test-secure-default")
-
-    async def sink(entry: dict[str, Any]) -> None:
-        await _collecting_sink(collected, entry)
-
-    logger._sink_write = sink  # type: ignore[attr-defined]
+    # Provide sink at construction time via sinks parameter
+    collecting = _CollectingSink()
+    logger = get_logger(name="test-secure-default", sinks=[collecting], reuse=False)
 
     # Log with URL containing credentials
     logger.info("connecting", url="https://alice:secret@api.example.com/auth")
     await asyncio.sleep(0)
     await logger.stop_and_drain()
 
-    assert collected, "Expected at least one emitted entry"
-    event = collected[0]
+    assert collecting.collected, "Expected at least one emitted entry"
+    event = collecting.collected[0]
 
     # Check that credentials were scrubbed from data
     data = event.get("data", {})
@@ -77,18 +81,15 @@ async def test_opt_out_preserves_urls() -> None:
     Users can opt-out by setting redactors=[], which should preserve
     URLs exactly as provided.
     """
-    collected: list[dict[str, Any]] = []
-
     # Explicitly opt-out of redaction
     settings = Settings(core={"redactors": []})
     assert settings.core.redactors == [], "Explicit opt-out should work"
 
-    logger = get_logger(name="test-opt-out", settings=settings)
-
-    async def sink(entry: dict[str, Any]) -> None:
-        await _collecting_sink(collected, entry)
-
-    logger._sink_write = sink  # type: ignore[attr-defined]
+    # Provide sink at construction time via sinks parameter
+    collecting = _CollectingSink()
+    logger = get_logger(
+        name="test-opt-out", settings=settings, sinks=[collecting], reuse=False
+    )
 
     # Log with URL containing credentials
     test_url = "https://user:pass@example.com/path"
@@ -96,8 +97,8 @@ async def test_opt_out_preserves_urls() -> None:
     await asyncio.sleep(0)
     await logger.stop_and_drain()
 
-    assert collected, "Expected at least one emitted entry"
-    event = collected[0]
+    assert collecting.collected, "Expected at least one emitted entry"
+    event = collecting.collected[0]
 
     # Check that URL is preserved exactly
     data = event.get("data", {})
@@ -109,22 +110,19 @@ async def test_opt_out_preserves_urls() -> None:
 @pytest.mark.asyncio
 async def test_production_preset_has_full_redaction() -> None:
     """AC3: Production preset has all redactors enabled."""
-    collected: list[dict[str, Any]] = []
-
-    logger = get_logger(name="test-production", preset="production")
-
-    async def sink(entry: dict[str, Any]) -> None:
-        await _collecting_sink(collected, entry)
-
-    logger._sink_write = sink  # type: ignore[attr-defined]
+    # Provide sink at construction time via sinks parameter
+    collecting = _CollectingSink()
+    logger = get_logger(
+        name="test-production", preset="production", sinks=[collecting], reuse=False
+    )
 
     # Log with URL containing credentials
     logger.info("login", url="https://admin:password123@db.example.com/connect")
     await asyncio.sleep(0)
     await logger.stop_and_drain()
 
-    assert collected, "Expected at least one emitted entry"
-    event = collected[0]
+    assert collecting.collected, "Expected at least one emitted entry"
+    event = collecting.collected[0]
 
     data = event.get("data", {})
     url = data.get("url", "")
@@ -137,14 +135,9 @@ async def test_production_preset_has_full_redaction() -> None:
 @pytest.mark.asyncio
 async def test_dev_preset_opts_out() -> None:
     """AC3: Dev preset explicitly opts out of redaction."""
-    collected: list[dict[str, Any]] = []
-
-    logger = get_logger(name="test-dev", preset="dev")
-
-    async def sink(entry: dict[str, Any]) -> None:
-        await _collecting_sink(collected, entry)
-
-    logger._sink_write = sink  # type: ignore[attr-defined]
+    # Provide sink at construction time via sinks parameter
+    collecting = _CollectingSink()
+    logger = get_logger(name="test-dev", preset="dev", sinks=[collecting], reuse=False)
 
     # Log with URL containing credentials
     test_url = "https://dev:devpass@localhost/api"
@@ -152,8 +145,8 @@ async def test_dev_preset_opts_out() -> None:
     await asyncio.sleep(0)
     await logger.stop_and_drain()
 
-    assert collected, "Expected at least one emitted entry"
-    event = collected[0]
+    assert collecting.collected, "Expected at least one emitted entry"
+    event = collecting.collected[0]
 
     data = event.get("data", {})
     url = data.get("url", "")

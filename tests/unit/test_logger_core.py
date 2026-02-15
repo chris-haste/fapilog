@@ -25,7 +25,6 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from fapilog import get_logger
 from fapilog.core import diagnostics as _diag_mod
 from fapilog.core.context import request_id_var
 from fapilog.core.diagnostics import _reset_for_tests, set_writer_for_tests
@@ -55,10 +54,11 @@ class TestInLoopMode:
             sink_write=lambda e: _collecting_sink(collected, e),
         )
 
-        # Start inside running loop: no thread should be used
+        # Start always creates a dedicated thread with its own event loop
         logger.start()
-        assert logger._worker_thread is None  # type: ignore[attr-defined]
-        assert logger._loop_thread_ident == threading.get_ident()  # type: ignore[attr-defined]
+        assert logger._worker_thread is not None  # type: ignore[attr-defined] # noqa: WA003
+        assert logger._worker_thread.is_alive()  # type: ignore[attr-defined]
+        assert logger._loop_thread_ident != threading.get_ident()  # type: ignore[attr-defined]
 
         for i in range(10):
             logger.info("m", i=i)
@@ -153,7 +153,8 @@ class TestThreadMode:
                 sink_write=lambda e: _collecting_sink(collected2, e),
             )
             logger2.start()
-            assert logger2._worker_thread is None  # type: ignore[attr-defined]
+            assert logger2._worker_thread is not None  # type: ignore[attr-defined] # noqa: WA003
+            assert logger2._worker_thread.is_alive()  # type: ignore[attr-defined]
             # At least one worker task is created on this loop
             assert len(logger2._worker_tasks) > 0  # type: ignore[attr-defined]
             await logger2.stop_and_drain()
@@ -168,13 +169,19 @@ class TestCorrelationId:
     async def test_correlation_id_null_when_not_set(self) -> None:
         captured: list[dict[str, Any]] = []
 
-        logger = get_logger(name="test")
-
         async def fake_write(entry: dict[str, Any]) -> None:
             captured.append(entry)
 
-        # Replace sink_write on the logger (test-only replacement)
-        logger._sink_write = fake_write  # type: ignore[attr-defined]
+        logger = SyncLoggerFacade(
+            name="test",
+            queue_capacity=16,
+            batch_max_size=8,
+            batch_timeout_seconds=0.05,
+            backpressure_wait_ms=10,
+            drop_on_full=True,
+            sink_write=fake_write,
+        )
+        logger.start()
 
         logger.info("hello")
         await logger.stop_and_drain()
@@ -188,12 +195,20 @@ class TestCorrelationId:
     @pytest.mark.asyncio
     async def test_context_propagation_and_null_without(self) -> None:
         captured: list[dict[str, Any]] = []
-        logger = get_logger(name="ctx-test")
 
         async def fake_write(entry: dict[str, Any]) -> None:
             captured.append(entry)
 
-        logger._sink_write = fake_write  # type: ignore[attr-defined]
+        logger = SyncLoggerFacade(
+            name="ctx-test",
+            queue_capacity=16,
+            batch_max_size=8,
+            batch_timeout_seconds=0.05,
+            backpressure_wait_ms=10,
+            drop_on_full=True,
+            sink_write=fake_write,
+        )
+        logger.start()
 
         # Explicit request id via context var
         token = request_id_var.set("req-123")

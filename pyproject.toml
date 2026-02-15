@@ -414,6 +414,9 @@ exclude = [
     "src/fapilog/core/levels.py",  # Public API for custom level registration
     "src/fapilog/core/logger.py",  # API methods and context manager params
     "src/fapilog/core/presets.py",  # Public API functions for preset discovery
+    "src/fapilog/caching/cache.py",  # Cache interface methods used via protocol
+    "src/fapilog/core/concurrency.py",  # Queue interface methods used via protocol
+    "src/fapilog/core/errors.py",  # Public error classes used by consumers
     "src/fapilog/core/worker.py",  # Shared internal functions used across facades
     "src/fapilog/core/settings.py",  # Enum values and validator methods
     "src/fapilog/core/routing.py",  # Routing API methods (build_routing_writer, update_rules)
@@ -463,7 +466,7 @@ ignore_names = [
     "LoggerWorker",
     "flush_batch",
     "strict_envelope_mode_enabled",
-    "enqueue_with_backpressure",
+    "_try_enqueue_with_metrics",
     # Level filter backward compatibility
     "LEVEL_PRIORITY",
     
@@ -534,8 +537,7 @@ ignore_names = [
     "BackpressureError",
     "WAIT",
     "REJECT",
-    "await_enqueue",
-    "await_dequeue",
+    "_lock",
     "run_all",
     # Adaptive processing public API
     "AdaptiveBatchSizer",

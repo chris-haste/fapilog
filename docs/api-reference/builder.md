@@ -776,8 +776,8 @@ Configure adaptive pipeline behavior. Enables pressure monitoring, dynamic worke
 - `cooldown_seconds` (float | None): Minimum seconds between pressure level transitions
 - `circuit_pressure_boost` (float | None): Pressure boost per open circuit breaker (0.0-1.0)
 - `filter_tightening` (bool | None): Enable adaptive filter tightening based on pressure level (default: True). Set to False to prevent automatic filter escalation under load.
-- `worker_scaling` (bool | None): Enable dynamic worker scaling based on pressure level (default: True). Set to False in bound mode (shared event loop with FastAPI) where extra coroutines compete for the same loop.
-- `queue_growth` (bool | None): Enable queue capacity growth based on pressure level (default: True). Set to False in bound mode where delaying drops without speeding drain is counterproductive.
+- `worker_scaling` (bool | None): Enable dynamic worker scaling based on pressure level (default: True).
+- `queue_growth` (bool | None): Enable queue capacity growth based on pressure level (default: True).
 
 **Returns:** `Self`
 
@@ -791,12 +791,6 @@ builder.with_adaptive(
     max_workers=6,
     max_queue_growth=2.0,
     check_interval_seconds=0.5,
-)
-
-# Bound mode: only filter tightening (disable counterproductive actuators)
-builder.with_adaptive(
-    worker_scaling=False,
-    queue_growth=False,
 )
 
 # Enable batch sizing for batch-aware sinks (CloudWatch, Loki, PostgreSQL)
@@ -818,9 +812,6 @@ Settings(adaptive={
     "max_queue_growth": 2.0,
     "batch_sizing": True,
     "check_interval_seconds": 0.5,
-    "filter_tightening": True,
-    "worker_scaling": False,
-    "queue_growth": False,
 })
 ```
 
@@ -830,9 +821,6 @@ FAPILOG_ADAPTIVE__ENABLED=true
 FAPILOG_ADAPTIVE__MAX_WORKERS=6
 FAPILOG_ADAPTIVE__MAX_QUEUE_GROWTH=2.0
 FAPILOG_ADAPTIVE__BATCH_SIZING=true
-FAPILOG_ADAPTIVE__FILTER_TIGHTENING=true
-FAPILOG_ADAPTIVE__WORKER_SCALING=false
-FAPILOG_ADAPTIVE__QUEUE_GROWTH=false
 ```
 
 See [Adaptive Pipeline](../user-guide/adaptive-pipeline.md) for a detailed guide on pressure thresholds and actuators.

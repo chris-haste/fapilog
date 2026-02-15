@@ -2,10 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
-
-import pytest
-
 from fapilog.core.concurrency import PriorityAwareQueue
 
 
@@ -59,31 +55,20 @@ class TestGrowCapacity:
         assert queue.try_enqueue({"level": "INFO", "msg": "b"})
         assert queue.qsize() == 2
 
-    @pytest.mark.asyncio
-    async def test_grow_wakes_blocked_enqueuers(self) -> None:
+    def test_grow_allows_enqueue_after_full(self) -> None:
+        """After growing capacity, previously-full queue accepts new items."""
         queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
             capacity=1, protected_levels={"ERROR"}
         )
         queue.try_enqueue({"level": "INFO", "msg": "a"})
         assert queue.is_full()
 
-        enqueued = asyncio.Event()
+        # try_enqueue fails when full
+        assert not queue.try_enqueue({"level": "INFO", "msg": "b"})
 
-        async def blocked_enqueuer() -> None:
-            await queue.await_enqueue({"level": "INFO", "msg": "b"})
-            enqueued.set()
-
-        task = asyncio.create_task(blocked_enqueuer())
-
-        # Let the enqueuer block
-        await asyncio.sleep(0.05)
-        assert not enqueued.is_set()
-
-        # Grow capacity — should wake the blocked enqueuer
+        # Grow capacity
         queue.grow_capacity(2)
 
-        await asyncio.wait_for(enqueued.wait(), timeout=1.0)
-        assert enqueued.is_set()
+        # Now enqueue succeeds
+        assert queue.try_enqueue({"level": "INFO", "msg": "b"})
         assert queue.qsize() == 2
-
-        await task

@@ -25,7 +25,7 @@ from typing import Any, cast
 
 import pytest
 
-from fapilog import get_logger
+from fapilog.core.logger import SyncLoggerFacade
 from fapilog.plugins.redactors import BaseRedactor
 from fapilog.plugins.redactors.field_mask import FieldMaskRedactor
 
@@ -69,10 +69,18 @@ async def test_redaction_reaches_stdout_sink() -> None:
             }
         )
 
-        logger = get_logger(name="redaction-stdout-test")
-        logger._sink_write = sink.write  # type: ignore[attr-defined]
+        # Construct logger directly with sink to avoid post-start swap issues
+        logger = SyncLoggerFacade(
+            name="redaction-stdout-test",
+            queue_capacity=100,
+            batch_max_size=10,
+            batch_timeout_seconds=0.1,
+            backpressure_wait_ms=10,
+            drop_on_full=True,
+            sink_write=sink.write,
+        )
         logger._redactors = cast(list[BaseRedactor], [redactor])
-        logger._invalidate_redactors_cache()  # type: ignore[attr-defined]
+        logger._invalidate_redactors_cache()
 
         logger.info(
             "user_login",
@@ -146,10 +154,18 @@ async def test_redaction_reaches_file_sink(tmp_path: Path) -> None:
             }
         )
 
-        logger = get_logger(name="redaction-file-test")
-        logger._sink_write = sink.write  # type: ignore[attr-defined]
+        # Construct logger directly with sink at construction time
+        logger = SyncLoggerFacade(
+            name="redaction-file-test",
+            queue_capacity=100,
+            batch_max_size=10,
+            batch_timeout_seconds=0.1,
+            backpressure_wait_ms=10,
+            drop_on_full=True,
+            sink_write=sink.write,
+        )
         logger._redactors = cast(list[BaseRedactor], [redactor])
-        logger._invalidate_redactors_cache()  # type: ignore[attr-defined]
+        logger._invalidate_redactors_cache()
 
         logger.info(
             "api_call", api_key="sk-12345", token="bearer-xyz", endpoint="/users"
@@ -233,10 +249,18 @@ async def test_redaction_reaches_http_sink() -> None:
             }
         )
 
-        logger = get_logger(name="redaction-http-test")
-        logger._sink_write = sink.write  # type: ignore[attr-defined]
+        # Construct logger directly with sink at construction time
+        logger = SyncLoggerFacade(
+            name="redaction-http-test",
+            queue_capacity=100,
+            batch_max_size=10,
+            batch_timeout_seconds=0.1,
+            backpressure_wait_ms=10,
+            drop_on_full=True,
+            sink_write=sink.write,
+        )
         logger._redactors = cast(list[BaseRedactor], [redactor])
-        logger._invalidate_redactors_cache()  # type: ignore[attr-defined]
+        logger._invalidate_redactors_cache()
 
         logger.info("login", username="bob", password="hunter2", secret="abc123")
 
@@ -323,10 +347,18 @@ async def test_redaction_reaches_postgres_sink(redaction_postgres_pool: Any) -> 
             }
         )
 
-        logger = get_logger(name="redaction-postgres-test")
-        logger._sink_write = sink.write  # type: ignore[attr-defined]
+        # Construct logger directly with sink at construction time
+        logger = SyncLoggerFacade(
+            name="redaction-postgres-test",
+            queue_capacity=100,
+            batch_max_size=10,
+            batch_timeout_seconds=0.1,
+            backpressure_wait_ms=10,
+            drop_on_full=True,
+            sink_write=sink.write,
+        )
         logger._redactors = cast(list[BaseRedactor], [redactor])
-        logger._invalidate_redactors_cache()  # type: ignore[attr-defined]
+        logger._invalidate_redactors_cache()
 
         logger.info(
             "payment",
@@ -397,10 +429,18 @@ async def test_redaction_applies_to_all_log_levels() -> None:
         }
     )
 
-    logger = get_logger(name="redaction-levels-test")
-    logger._sink_write = collecting_sink  # type: ignore[attr-defined]
+    # Construct logger directly with sink at construction time
+    logger = SyncLoggerFacade(
+        name="redaction-levels-test",
+        queue_capacity=100,
+        batch_max_size=10,
+        batch_timeout_seconds=0.1,
+        backpressure_wait_ms=10,
+        drop_on_full=True,
+        sink_write=collecting_sink,
+    )
     logger._redactors = cast(list[BaseRedactor], [redactor])
-    logger._invalidate_redactors_cache()  # type: ignore[attr-defined]
+    logger._invalidate_redactors_cache()
 
     logger.debug("debug-msg", secret="debug-secret")
     logger.info("info-msg", secret="info-secret")
@@ -458,10 +498,18 @@ async def test_redaction_happens_before_serialization() -> None:
         }
     )
 
-    logger = get_logger(name="redaction-order-test")
-    logger._sink_write = capturing_sink  # type: ignore[attr-defined]
+    # Construct logger directly with sink at construction time
+    logger = SyncLoggerFacade(
+        name="redaction-order-test",
+        queue_capacity=100,
+        batch_max_size=10,
+        batch_timeout_seconds=0.1,
+        backpressure_wait_ms=10,
+        drop_on_full=True,
+        sink_write=capturing_sink,
+    )
     logger._redactors = cast(list[BaseRedactor], [redactor])
-    logger._invalidate_redactors_cache()  # type: ignore[attr-defined]
+    logger._invalidate_redactors_cache()
 
     logger.info("login", password="supersecret")
 

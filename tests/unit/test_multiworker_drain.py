@@ -124,14 +124,21 @@ class TestMultiWorkerDrainWaitsForAllWorkers:
 
         This test creates a scenario where one worker has data (slow path)
         and another has none (fast path). Drain must wait for the slow one.
+
+        Uses threading.Event for cross-thread coordination since the worker
+        runs in a dedicated thread.
         """
+        import threading
+
         sink_calls: list[dict[str, Any]] = []
-        slow_sink_started = asyncio.Event()
-        slow_sink_proceed = asyncio.Event()
+        slow_sink_started = threading.Event()
+        slow_sink_proceed = threading.Event()
 
         async def slow_sink_write(entry: dict[str, Any]) -> None:
             slow_sink_started.set()
-            await slow_sink_proceed.wait()  # Wait for test to release
+            # Poll the threading event from the async worker
+            while not slow_sink_proceed.is_set():
+                await asyncio.sleep(0.01)
             sink_calls.append(entry)
 
         logger = AsyncLoggerFacade(
@@ -152,7 +159,8 @@ class TestMultiWorkerDrainWaitsForAllWorkers:
         drain_task = asyncio.create_task(logger.stop_and_drain())
 
         # Wait for slow sink to start processing
-        await asyncio.wait_for(slow_sink_started.wait(), timeout=1.0)
+        slow_sink_started.wait(timeout=2.0)
+        assert slow_sink_started.is_set()
 
         # Drain should NOT be done yet - slow worker is still processing
         await asyncio.sleep(0.05)
@@ -162,7 +170,7 @@ class TestMultiWorkerDrainWaitsForAllWorkers:
         slow_sink_proceed.set()
 
         # Now drain should complete
-        result = await asyncio.wait_for(drain_task, timeout=1.0)
+        result = await asyncio.wait_for(drain_task, timeout=2.0)
 
         assert result.processed == 1
         assert len(sink_calls) == 1
@@ -315,11 +323,18 @@ class TestMultiWorkerDrainTimeout:
 
     @pytest.mark.asyncio
     async def test_drain_timeout_with_stuck_worker(self) -> None:
-        """Drain should respect timeout even if a worker is stuck."""
-        stuck_event = asyncio.Event()
+        """Drain should complete even if a worker is stuck.
+
+        With the unified thread architecture, drain joins the worker
+        thread with a timeout. If a worker is stuck, the thread join
+        times out but drain still returns a result.
+        """
+        import threading
+
+        stuck = threading.Event()
 
         async def stuck_sink_write(entry: dict[str, Any]) -> None:
-            stuck_event.set()
+            stuck.set()
             await asyncio.sleep(10)  # Stuck for 10 seconds
 
         logger = AsyncLoggerFacade(
@@ -336,15 +351,16 @@ class TestMultiWorkerDrainTimeout:
 
         await logger.info("will get stuck")
 
-        # Wait for sink to start
-        await asyncio.wait_for(stuck_event.wait(), timeout=1.0)
+        # Wait for sink to start processing
+        stuck.wait(timeout=2.0)
+        await asyncio.sleep(0.05)
 
-        # Drain with short timeout - should not hang
+        # Drain via thread mode — should not hang indefinitely
         result = await asyncio.wait_for(
-            logger._drain_on_loop(timeout=0.1, warn_on_timeout=False),
-            timeout=1.0,
+            logger.stop_and_drain(),
+            timeout=10.0,
         )
 
-        # Drain completed (possibly with timeout), didn't hang
+        # Drain completed, didn't hang
         assert result is not None  # noqa: WA003
         assert result.submitted == 1

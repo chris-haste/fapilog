@@ -162,17 +162,26 @@ class TestAdaptiveSummaryReflectsTransitions:
             PressureLevel.CRITICAL,
         )
 
-        # Clean up
-        logger._pressure_monitor.stop()
-        if logger._pressure_monitor_task is not None:
-            logger._pressure_monitor_task.cancel()
-            try:
-                await logger._pressure_monitor_task
-            except asyncio.CancelledError:
-                pass
-        for task in logger._worker_tasks:
-            task.cancel()
-        await asyncio.gather(*logger._worker_tasks, return_exceptions=True)
+        # Clean up: stop the worker thread
+        logger._stop_flag = True
+        loop = logger._worker_loop
+        if loop is not None:
+
+            async def _cancel_all() -> None:
+                if logger._pressure_monitor_task is not None:
+                    logger._pressure_monitor_task.cancel()
+                    try:
+                        await logger._pressure_monitor_task
+                    except (asyncio.CancelledError, Exception):
+                        pass
+                for task in logger._worker_tasks:
+                    task.cancel()
+                await asyncio.gather(*logger._worker_tasks, return_exceptions=True)
+                loop.call_soon(loop.stop)
+
+            asyncio.run_coroutine_threadsafe(_cancel_all(), loop)
+        if logger._worker_thread is not None:
+            logger._worker_thread.join(timeout=5.0)
 
     @pytest.mark.asyncio
     async def test_time_at_level_sums_to_approximate_lifetime(self) -> None:

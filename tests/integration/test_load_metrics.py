@@ -147,7 +147,6 @@ async def test_load_metrics_with_drops_and_stall_bounds(tmp_path) -> None:
     assert reg is not None
     dropped = _get_counter(reg, "fapilog_events_dropped_total")
     flush_count, flush_sum = _get_hist_count_sum(reg, "fapilog_flush_seconds")
-    q_hwm = _get_gauge(reg, "fapilog_queue_high_watermark")
 
     # Validate basic metrics and processing
     # Either drops occurred (backpressure tested) OR all events processed (high performance)
@@ -166,7 +165,9 @@ async def test_load_metrics_with_drops_and_stall_bounds(tmp_path) -> None:
         assert drain.processed == total
 
     assert flush_count > 0
-    assert 0 < q_hwm <= logger._queue.capacity
+    # Queue high watermark is tracked on the logger (DrainResult), not the
+    # Prometheus gauge.  Use the DrainResult value instead.
+    assert 0 < drain.queue_depth_high_watermark <= logger._queue.capacity
 
     # Average flush latency should be sane; allow override via env
     avg_flush = (flush_sum / flush_count) if flush_count else 0.0

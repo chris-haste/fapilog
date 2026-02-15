@@ -171,8 +171,8 @@ Short env var aliases are available (e.g., `FAPILOG_ADAPTIVE__ENABLED`).
 | `adaptive.batch_sizing` | `FAPILOG_ADAPTIVE__BATCH_SIZING` | `.with_adaptive(batch_sizing=True)` | `False` | Enable adaptive batch sizing |
 | `adaptive.circuit_pressure_boost` | `FAPILOG_ADAPTIVE__CIRCUIT_PRESSURE_BOOST` | `.with_adaptive(circuit_pressure_boost=0.20)` | `0.20` | Pressure boost per open circuit breaker |
 | `adaptive.filter_tightening` | `FAPILOG_ADAPTIVE__FILTER_TIGHTENING` | `.with_adaptive(filter_tightening=True)` | `True` | Enable adaptive filter tightening based on pressure level |
-| `adaptive.worker_scaling` | `FAPILOG_ADAPTIVE__WORKER_SCALING` | `.with_adaptive(worker_scaling=False)` | `True` | Enable dynamic worker scaling based on pressure level |
-| `adaptive.queue_growth` | `FAPILOG_ADAPTIVE__QUEUE_GROWTH` | `.with_adaptive(queue_growth=False)` | `True` | Enable queue capacity growth based on pressure level |
+| `adaptive.worker_scaling` | `FAPILOG_ADAPTIVE__WORKER_SCALING` | `.with_adaptive(worker_scaling=True)` | `True` | Enable dynamic worker scaling based on pressure level |
+| `adaptive.queue_growth` | `FAPILOG_ADAPTIVE__QUEUE_GROWTH` | `.with_adaptive(queue_growth=True)` | `True` | Enable queue capacity growth based on pressure level |
 
 ---
 

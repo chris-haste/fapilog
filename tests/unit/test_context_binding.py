@@ -4,18 +4,26 @@ from typing import Any, List
 import pytest
 
 from fapilog import get_logger, runtime_async
+from fapilog.core.logger import SyncLoggerFacade
 
 
 @pytest.mark.asyncio
 async def test_bind_and_precedence_and_unbind_and_clear() -> None:
     captured: List[dict[str, Any]] = []
-    logger = get_logger(name="bind-test")
 
     async def capture(entry: dict[str, Any]) -> None:
         captured.append(entry)
 
-    # Swap sink to capture outputs
-    logger._sink_write = capture  # type: ignore[attr-defined]
+    logger = SyncLoggerFacade(
+        name="bind-test",
+        queue_capacity=16,
+        batch_max_size=8,
+        batch_timeout_seconds=0.05,
+        backpressure_wait_ms=10,
+        drop_on_full=True,
+        sink_write=capture,
+    )
+    logger.start()
 
     # Bind some context - request_id and user_id are context fields (v1.1)
     logger.bind(request_id="abc", user_id="u1")
@@ -32,7 +40,6 @@ async def test_bind_and_precedence_and_unbind_and_clear() -> None:
     logger.clear_context()
     logger.info("done")
 
-    await asyncio.sleep(0)
     await logger.stop_and_drain()
 
     assert len(captured) >= 4
@@ -74,12 +81,20 @@ async def test_unbind_returns_logger_async_facade() -> None:
 @pytest.mark.asyncio
 async def test_isolation_across_tasks() -> None:
     captured: List[dict[str, Any]] = []
-    logger = get_logger(name="iso-test")
 
     async def capture(entry: dict[str, Any]) -> None:
         captured.append(entry)
 
-    logger._sink_write = capture  # type: ignore[attr-defined]
+    logger = SyncLoggerFacade(
+        name="iso-test",
+        queue_capacity=16,
+        batch_max_size=8,
+        batch_timeout_seconds=0.05,
+        backpressure_wait_ms=10,
+        drop_on_full=True,
+        sink_write=capture,
+    )
+    logger.start()
 
     async def task_a() -> None:
         logger.bind(req="A")

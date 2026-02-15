@@ -289,26 +289,13 @@ logger = (
 Enable automatic scaling based on queue pressure:
 
 ```python
-# Full adaptive pipeline (thread-mode / separate event loop)
+# Adaptive pipeline with all actuators (works in all contexts)
 logger = (
     LoggerBuilder()
     .with_adaptive(
         enabled=True,
         max_workers=8,
         max_queue_growth=4.0,
-    )
-    .add_stdout()
-    .build()
-)
-
-# Bound mode (FastAPI shared event loop) - disable counterproductive actuators
-logger = (
-    LoggerBuilder()
-    .with_adaptive(
-        enabled=True,
-        filter_tightening=True,   # Helpful: drops low-priority events
-        worker_scaling=False,     # Counterproductive: more coroutine contention
-        queue_growth=False,       # Counterproductive: delays drops
     )
     .add_stdout()
     .build()

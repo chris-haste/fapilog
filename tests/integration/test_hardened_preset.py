@@ -9,7 +9,6 @@ Tests verify that the hardened preset:
 
 from __future__ import annotations
 
-import asyncio
 from typing import Any
 
 import pytest
@@ -21,11 +20,20 @@ from fapilog.core.settings import Settings
 pytestmark = [pytest.mark.integration, pytest.mark.security]
 
 
-async def _collecting_sink(
-    collected: list[dict[str, Any]], entry: dict[str, Any]
-) -> None:
-    """Helper sink that collects events for inspection."""
-    collected.append(dict(entry))
+class _CollectingSink:
+    """Sink that collects events for inspection."""
+
+    def __init__(self) -> None:
+        self.collected: list[dict[str, Any]] = []
+
+    async def write(self, entry: dict[str, Any]) -> None:
+        self.collected.append(dict(entry))
+
+    async def start(self) -> None:
+        pass
+
+    async def stop(self) -> None:
+        pass
 
 
 class TestHardenedPresetDiscovery:
@@ -76,36 +84,29 @@ class TestHardenedPresetRedactionFields:
 @pytest.mark.asyncio
 async def test_hardened_preset_creates_working_logger():
     """AC1: Logger can be created with hardened preset and logs work."""
-    collected: list[dict[str, Any]] = []
+    sink = _CollectingSink()
 
-    logger = get_logger(name="test-hardened", preset="hardened")
-
-    async def sink(entry: dict[str, Any]) -> None:
-        await _collecting_sink(collected, entry)
-
-    logger._sink_write = sink  # type: ignore[attr-defined]
+    logger = get_logger(
+        name="test-hardened", preset="hardened", sinks=[sink], reuse=False
+    )
 
     # Log a test message
     logger.info("test message", user_id="12345")
-    await asyncio.sleep(0)
     await logger.stop_and_drain()
 
-    assert collected, "Expected at least one emitted entry"
-    event = collected[0]
+    assert sink.collected, "Expected at least one emitted entry"
+    event = sink.collected[0]
     assert event["message"] == "test message"
 
 
 @pytest.mark.asyncio
 async def test_hardened_preset_redacts_credentials():
     """Hardened preset redacts credential fields."""
-    collected: list[dict[str, Any]] = []
+    sink = _CollectingSink()
 
-    logger = get_logger(name="test-hardened-creds", preset="hardened")
-
-    async def sink(entry: dict[str, Any]) -> None:
-        await _collecting_sink(collected, entry)
-
-    logger._sink_write = sink  # type: ignore[attr-defined]
+    logger = get_logger(
+        name="test-hardened-creds", preset="hardened", sinks=[sink], reuse=False
+    )
 
     # Log with sensitive credential data
     logger.info(
@@ -113,11 +114,10 @@ async def test_hardened_preset_redacts_credentials():
         password="secret123",
         api_key="sk-1234567890",
     )
-    await asyncio.sleep(0)
     await logger.stop_and_drain()
 
-    assert collected, "Expected at least one emitted entry"
-    event = collected[0]
+    assert sink.collected, "Expected at least one emitted entry"
+    event = sink.collected[0]
     data = event.get("data", {})
 
     # Credentials should be redacted
@@ -131,14 +131,11 @@ async def test_hardened_preset_redacts_credentials():
 @pytest.mark.asyncio
 async def test_hardened_preset_redacts_pci_fields():
     """Hardened preset redacts PCI-DSS fields."""
-    collected: list[dict[str, Any]] = []
+    sink = _CollectingSink()
 
-    logger = get_logger(name="test-hardened-pci", preset="hardened")
-
-    async def sink(entry: dict[str, Any]) -> None:
-        await _collecting_sink(collected, entry)
-
-    logger._sink_write = sink  # type: ignore[attr-defined]
+    logger = get_logger(
+        name="test-hardened-pci", preset="hardened", sinks=[sink], reuse=False
+    )
 
     # Log with PCI-DSS sensitive data
     logger.info(
@@ -146,11 +143,10 @@ async def test_hardened_preset_redacts_pci_fields():
         card_number="4111111111111111",
         cvv="123",
     )
-    await asyncio.sleep(0)
     await logger.stop_and_drain()
 
-    assert collected, "Expected at least one emitted entry"
-    event = collected[0]
+    assert sink.collected, "Expected at least one emitted entry"
+    event = sink.collected[0]
     data = event.get("data", {})
 
     # PCI fields should be redacted
@@ -166,14 +162,11 @@ async def test_hardened_preset_redacts_pci_fields():
 @pytest.mark.asyncio
 async def test_hardened_preset_redacts_hipaa_fields():
     """Hardened preset redacts HIPAA PHI fields."""
-    collected: list[dict[str, Any]] = []
+    sink = _CollectingSink()
 
-    logger = get_logger(name="test-hardened-hipaa", preset="hardened")
-
-    async def sink(entry: dict[str, Any]) -> None:
-        await _collecting_sink(collected, entry)
-
-    logger._sink_write = sink  # type: ignore[attr-defined]
+    logger = get_logger(
+        name="test-hardened-hipaa", preset="hardened", sinks=[sink], reuse=False
+    )
 
     # Log with HIPAA PHI data
     logger.info(
@@ -181,11 +174,10 @@ async def test_hardened_preset_redacts_hipaa_fields():
         ssn="123-45-6789",
         mrn="MRN-001234",
     )
-    await asyncio.sleep(0)
     await logger.stop_and_drain()
 
-    assert collected, "Expected at least one emitted entry"
-    event = collected[0]
+    assert sink.collected, "Expected at least one emitted entry"
+    event = sink.collected[0]
     data = event.get("data", {})
 
     # HIPAA fields should be redacted

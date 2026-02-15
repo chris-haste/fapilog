@@ -50,10 +50,11 @@ class TestAsyncLoggerFacade:
             sink_write=lambda e: _collecting_sink(collected, e),
         )
 
-        # Start inside running loop: no thread should be used
+        # Unified architecture: always uses a dedicated thread
         logger.start()
-        assert logger._worker_thread is None
-        assert logger._loop_thread_ident == threading.get_ident()
+        assert logger._worker_thread is not None  # noqa: WA003
+        assert logger._worker_thread.is_alive()
+        assert logger._loop_thread_ident != threading.get_ident()
 
         for i in range(10):
             await logger.info("m", i=i)
@@ -364,7 +365,7 @@ class TestAsyncLoggerFacade:
 
         # Start workers
         logger.start()
-        assert logger._worker_loop is asyncio.get_running_loop()
+        assert logger._worker_loop is not asyncio.get_running_loop()
         assert len(logger._worker_tasks) > 0
 
         # Submit some work
@@ -461,7 +462,7 @@ class TestGetAsyncLogger:
 
         # Verify default name is used
         assert logger._name == "root"
-        assert logger._worker_loop is asyncio.get_running_loop()
+        assert logger._worker_loop is not asyncio.get_running_loop()
 
         # Test logging
         await logger.info("test message")
@@ -470,13 +471,13 @@ class TestGetAsyncLogger:
         await logger.drain()
 
     @pytest.mark.asyncio
-    async def test_get_async_logger_binds_to_running_loop(self) -> None:
-        """Ensure async factory binds workers to the current event loop."""
+    async def test_get_async_logger_uses_dedicated_thread_loop(self) -> None:
+        """Ensure async factory creates a dedicated thread with its own loop."""
         loop = asyncio.get_running_loop()
 
         logger = await get_async_logger("loop_bind", reuse=False)
 
-        assert logger._worker_loop is loop
+        assert logger._worker_loop is not loop
 
         await logger.info("hello")
         await logger.drain()
@@ -556,7 +557,7 @@ class TestGetAsyncLogger:
         logger = await get_async_logger("lifecycle_test", reuse=False)
 
         # Verify workers are started
-        assert logger._worker_loop is asyncio.get_running_loop()
+        assert logger._worker_loop is not asyncio.get_running_loop()
         assert len(logger._worker_tasks) > 0
 
         # Test logging
@@ -584,7 +585,7 @@ class TestRuntimeAsync:
 
             # Verify logger is properly configured
             assert logger._name == "root"
-            assert logger._worker_loop is asyncio.get_running_loop()
+            assert logger._worker_loop is not asyncio.get_running_loop()
 
         # Context manager should have automatically drained the logger
 

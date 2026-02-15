@@ -7,7 +7,6 @@ from typing import Any
 
 import pytest
 
-from conftest import get_test_timeout
 from fapilog.core.concurrency import NonBlockingRingQueue
 from fapilog.core.serialization import (
     convert_json_bytes_to_jsonl,
@@ -163,61 +162,41 @@ def test_rotating_file_sink_benchmark(benchmark: Any, tmp_path: Any) -> None:
     benchmark(run)
 
 
-# Story 12.23: Backpressure event signaling CPU benchmark
+# Thread-safe queue concurrent benchmark
 
 
-@pytest.mark.asyncio
-async def test_backpressure_event_signaling_low_cpu() -> None:
-    """Verify event-based waiting uses minimal CPU under sustained full-queue.
+def test_concurrent_queue_throughput(benchmark: Any) -> None:
+    """Benchmark concurrent try_enqueue/try_dequeue from multiple threads."""
+    import threading
 
-    This test validates AC4 from Story 12.23: CPU usage should be low when
-    enqueuers are blocked waiting on a full queue, because we use asyncio.Event
-    signaling instead of spin-waiting.
+    q: NonBlockingRingQueue[int] = NonBlockingRingQueue(capacity=1024)
+    n_items = 5000
 
-    The test runs multiple enqueuers waiting on a full queue and measures that
-    the event loop is not busy-spinning (it yields control properly).
-    """
-    q: NonBlockingRingQueue[int] = NonBlockingRingQueue(capacity=1)
-    # Fill the queue
-    assert q.try_enqueue(0) is True
+    def run() -> int:
+        enqueued = 0
+        dequeued = 0
 
-    n_waiters = 100
-    wait_duration = 0.1  # seconds
-    completed = 0
-    timed_out = 0
+        def enqueue_worker() -> None:
+            nonlocal enqueued
+            for i in range(n_items):
+                while not q.try_enqueue(i):
+                    pass
+                enqueued += 1
 
-    async def enqueue_waiter(value: int) -> None:
-        nonlocal completed, timed_out
-        try:
-            await q.await_enqueue(value, timeout=wait_duration)
-            completed += 1
-        except Exception:
-            timed_out += 1
+        def dequeue_worker() -> None:
+            nonlocal dequeued
+            while dequeued < n_items:
+                ok, _ = q.try_dequeue()
+                if ok:
+                    dequeued += 1
 
-    # Start many waiting enqueuers - they should all block efficiently
-    start = time.perf_counter()
-    tasks = [asyncio.create_task(enqueue_waiter(i)) for i in range(1, n_waiters + 1)]
+        t1 = threading.Thread(target=enqueue_worker)
+        t2 = threading.Thread(target=dequeue_worker)
+        t1.start()
+        t2.start()
+        t1.join()
+        t2.join()
+        return dequeued
 
-    # Let them wait for the duration
-    await asyncio.sleep(wait_duration + 0.05)
-
-    # All should have timed out (queue never has space)
-    await asyncio.gather(*tasks, return_exceptions=True)
-    elapsed = time.perf_counter() - start
-
-    # Key validation: elapsed time should be close to wait_duration
-    # If spin-waiting, elapsed would be much longer due to CPU contention
-    # With event signaling, the event loop can sleep efficiently
-    assert timed_out == n_waiters, (
-        f"Expected all {n_waiters} to timeout, got {timed_out}"
-    )
-    assert completed == 0, "No enqueue should have succeeded"
-
-    # Elapsed time should be reasonable (not spinning)
-    # Allow some overhead but should complete within 3x the wait duration
-    # Use get_test_timeout() to scale for CI environments
-    max_elapsed = get_test_timeout(wait_duration * 3)
-    assert elapsed < max_elapsed, (
-        f"Elapsed {elapsed:.3f}s >> expected <{max_elapsed:.3f}s. "
-        "Event signaling may not be working correctly."
-    )
+    result = benchmark(run)
+    assert result == n_items
