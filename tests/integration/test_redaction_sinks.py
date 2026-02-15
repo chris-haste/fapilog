@@ -16,6 +16,7 @@ The tests verify:
 
 from __future__ import annotations
 
+import asyncio
 import io
 import json
 import os
@@ -337,29 +338,36 @@ async def test_redaction_reaches_postgres_sink(redaction_postgres_pool: Any) -> 
             create_table=True,
         )
     )
-    await sink.start()
+
+    # Create redactor (v1.1 schema uses data.* paths)
+    redactor = FieldMaskRedactor(
+        config={
+            "fields_to_mask": ["data.password", "data.credit_card"],
+        }
+    )
+
+    # Construct logger directly with sink at construction time
+    logger = SyncLoggerFacade(
+        name="redaction-postgres-test",
+        queue_capacity=100,
+        batch_max_size=10,
+        batch_timeout_seconds=0.1,
+        backpressure_wait_ms=10,
+        drop_on_full=True,
+        sink_write=sink.write,
+    )
+    logger._redactors = cast(list[BaseRedactor], [redactor])
+    logger._invalidate_redactors_cache()
+
+    # Start logger first (creates dedicated worker thread), then start the
+    # sink ON the worker's event loop so asyncpg pool is bound to the right loop.
+    logger.start()
+    worker_loop = logger._worker_loop
+    assert worker_loop is not None  # noqa: WA003
+    fut = asyncio.run_coroutine_threadsafe(sink.start(), worker_loop)
+    fut.result(timeout=5.0)
 
     try:
-        # Create redactor (v1.1 schema uses data.* paths)
-        redactor = FieldMaskRedactor(
-            config={
-                "fields_to_mask": ["data.password", "data.credit_card"],
-            }
-        )
-
-        # Construct logger directly with sink at construction time
-        logger = SyncLoggerFacade(
-            name="redaction-postgres-test",
-            queue_capacity=100,
-            batch_max_size=10,
-            batch_timeout_seconds=0.1,
-            backpressure_wait_ms=10,
-            drop_on_full=True,
-            sink_write=sink.write,
-        )
-        logger._redactors = cast(list[BaseRedactor], [redactor])
-        logger._invalidate_redactors_cache()
-
         logger.info(
             "payment",
             user_id="u-123",
@@ -368,9 +376,14 @@ async def test_redaction_reaches_postgres_sink(redaction_postgres_pool: Any) -> 
             amount=99.99,
         )
 
-        await logger.stop_and_drain()
+        # Wait for the batch to be processed (batch_timeout=0.1s)
+        await asyncio.sleep(0.3)
+
+        # Stop sink on worker loop before drain shuts down the loop
+        stop_fut = asyncio.run_coroutine_threadsafe(sink.stop(), worker_loop)
+        stop_fut.result(timeout=5.0)
     finally:
-        await sink.stop()
+        await logger.stop_and_drain()
 
     # Query the database directly - sink stores full event in 'event' JSONB column
     async with redaction_postgres_pool.acquire() as conn:
