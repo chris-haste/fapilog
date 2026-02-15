@@ -996,8 +996,8 @@
 <p>See <a class="reference internal" href="../user-guide/circuit-breaker.html"><span class="std std-doc">Circuit Breaker</span></a> for a detailed guide on fallback routing patterns.</p>
 </section>
 <hr class="docutils" />
-<section id="with-adaptive-enabled-true-max-workers-none-max-queue-growth-none-batch-sizing-none-check-interval-seconds-none-cooldown-seconds-none-circuit-pressure-boost-none">
-<h3>with_adaptive(*, enabled=True, max_workers=None, max_queue_growth=None, batch_sizing=None, check_interval_seconds=None, cooldown_seconds=None, circuit_pressure_boost=None)<a class="headerlink" href="#with-adaptive-enabled-true-max-workers-none-max-queue-growth-none-batch-sizing-none-check-interval-seconds-none-cooldown-seconds-none-circuit-pressure-boost-none" title="Link to this heading"></a></h3>
+<section id="with-adaptive-enabled-true-max-workers-none-max-queue-growth-none-batch-sizing-none-check-interval-seconds-none-cooldown-seconds-none-circuit-pressure-boost-none-filter-tightening-none-worker-scaling-none-queue-growth-none">
+<h3>with_adaptive(*, enabled=True, max_workers=None, max_queue_growth=None, batch_sizing=None, check_interval_seconds=None, cooldown_seconds=None, circuit_pressure_boost=None, filter_tightening=None, worker_scaling=None, queue_growth=None)<a class="headerlink" href="#with-adaptive-enabled-true-max-workers-none-max-queue-growth-none-batch-sizing-none-check-interval-seconds-none-cooldown-seconds-none-circuit-pressure-boost-none-filter-tightening-none-worker-scaling-none-queue-growth-none" title="Link to this heading"></a></h3>
 <p>Configure adaptive pipeline behavior. Enables pressure monitoring, dynamic worker scaling, adaptive batch sizing, and queue growth based on queue fill ratio.</p>
 <p><strong>Parameters:</strong></p>
 <ul class="simple">
@@ -1008,6 +1008,9 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">check_interval_seconds</span></code> (float | None): Seconds between queue pressure samples</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">cooldown_seconds</span></code> (float | None): Minimum seconds between pressure level transitions</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">circuit_pressure_boost</span></code> (float | None): Pressure boost per open circuit breaker (0.0-1.0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filter_tightening</span></code> (bool | None): Enable adaptive filter tightening based on pressure level (default: True). Set to False to prevent automatic filter escalation under load.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">worker_scaling</span></code> (bool | None): Enable dynamic worker scaling based on pressure level (default: True). Set to False in bound mode (shared event loop with FastAPI) where extra coroutines compete for the same loop.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">queue_growth</span></code> (bool | None): Enable queue capacity growth based on pressure level (default: True). Set to False in bound mode where delaying drops without speeding drain is counterproductive.</p></li>
 </ul>
 <p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
 <p><strong>Example:</strong></p>
@@ -1019,6 +1022,12 @@
     <span class="n">max_workers</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
     <span class="n">max_queue_growth</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
     <span class="n">check_interval_seconds</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Bound mode: only filter tightening (disable counterproductive actuators)</span>
+<span class="n">builder</span><span class="o">.</span><span class="n">with_adaptive</span><span class="p">(</span>
+    <span class="n">worker_scaling</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">queue_growth</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="c1"># Enable batch sizing for batch-aware sinks (CloudWatch, Loki, PostgreSQL)</span>
@@ -1039,6 +1048,9 @@
     <span class="s2">&quot;max_queue_growth&quot;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>
     <span class="s2">&quot;batch_sizing&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
     <span class="s2">&quot;check_interval_seconds&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+    <span class="s2">&quot;filter_tightening&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s2">&quot;worker_scaling&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s2">&quot;queue_growth&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">})</span>
 </pre></div>
 </div>
@@ -1047,6 +1059,9 @@
 <span class="nv">FAPILOG_ADAPTIVE__MAX_WORKERS</span><span class="o">=</span><span class="m">6</span>
 <span class="nv">FAPILOG_ADAPTIVE__MAX_QUEUE_GROWTH</span><span class="o">=</span><span class="m">2</span>.0
 <span class="nv">FAPILOG_ADAPTIVE__BATCH_SIZING</span><span class="o">=</span><span class="nb">true</span>
+<span class="nv">FAPILOG_ADAPTIVE__FILTER_TIGHTENING</span><span class="o">=</span><span class="nb">true</span>
+<span class="nv">FAPILOG_ADAPTIVE__WORKER_SCALING</span><span class="o">=</span><span class="nb">false</span>
+<span class="nv">FAPILOG_ADAPTIVE__QUEUE_GROWTH</span><span class="o">=</span><span class="nb">false</span>
 </pre></div>
 </div>
 <p>See <a class="reference internal" href="../user-guide/adaptive-pipeline.html"><span class="std std-doc">Adaptive Pipeline</span></a> for a detailed guide on pressure thresholds and actuators.</p>
@@ -1522,7 +1537,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on February 14, 2026.
+      <span class="lastupdated">Last updated on February 15, 2026.
       </span></p>
   </div>
 

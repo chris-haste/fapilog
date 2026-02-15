@@ -503,6 +503,37 @@
 </pre></div>
 </div>
 </section>
+<section id="adaptive-pipeline">
+<h3>Adaptive Pipeline<a class="headerlink" href="#adaptive-pipeline" title="Link to this heading"></a></h3>
+<p>Enable automatic scaling based on queue pressure:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Full adaptive pipeline (thread-mode / separate event loop)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_adaptive</span><span class="p">(</span>
+        <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">max_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">max_queue_growth</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="c1"># Bound mode (FastAPI shared event loop) - disable counterproductive actuators</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">LoggerBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">with_adaptive</span><span class="p">(</span>
+        <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">filter_tightening</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>   <span class="c1"># Helpful: drops low-priority events</span>
+        <span class="n">worker_scaling</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>     <span class="c1"># Counterproductive: more coroutine contention</span>
+        <span class="n">queue_growth</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>       <span class="c1"># Counterproductive: delays drops</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="adaptive-pipeline.html"><span class="std std-doc">Adaptive Pipeline</span></a> for pressure levels, actuator behavior, and tuning guidelines.</p>
+</section>
 <section id="backpressure-configuration">
 <h3>Backpressure Configuration<a class="headerlink" href="#backpressure-configuration" title="Link to this heading"></a></h3>
 <p>Control behavior when queue is full:</p>
@@ -732,7 +763,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on February 14, 2026.
+      <span class="lastupdated">Last updated on February 15, 2026.
       </span></p>
   </div>
 

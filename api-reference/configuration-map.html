@@ -742,6 +742,120 @@
 </section>
 </section>
 <hr class="docutils" />
+<section id="adaptive-pipeline-settings">
+<h2>Adaptive Pipeline Settings<a class="headerlink" href="#adaptive-pipeline-settings" title="Link to this heading"></a></h2>
+<p>Settings path: <code class="docutils literal notranslate"><span class="pre">adaptive.*</span></code></p>
+<p>Short env var aliases are available (e.g., <code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__ENABLED</span></code>).</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Setting</p></th>
+<th class="head"><p>Env Var</p></th>
+<th class="head"><p>Builder Method</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.enabled</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__ENABLED</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_adaptive(enabled=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Enable adaptive pipeline controller</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.check_interval_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__CHECK_INTERVAL_SECONDS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_adaptive(check_interval_seconds=0.25)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.25</span></code></p></td>
+<td><p>Seconds between queue pressure samples</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.cooldown_seconds</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__COOLDOWN_SECONDS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_adaptive(cooldown_seconds=2.0)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2.0</span></code></p></td>
+<td><p>Minimum seconds between pressure level transitions</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.escalate_to_elevated</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__ESCALATE_TO_ELEVATED</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.60</span></code></p></td>
+<td><p>Fill ratio to escalate NORMAL to ELEVATED</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.escalate_to_high</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__ESCALATE_TO_HIGH</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.80</span></code></p></td>
+<td><p>Fill ratio to escalate ELEVATED to HIGH</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.escalate_to_critical</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__ESCALATE_TO_CRITICAL</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.92</span></code></p></td>
+<td><p>Fill ratio to escalate HIGH to CRITICAL</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.deescalate_from_elevated</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__DEESCALATE_FROM_ELEVATED</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.40</span></code></p></td>
+<td><p>Fill ratio to de-escalate ELEVATED to NORMAL</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.deescalate_from_high</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__DEESCALATE_FROM_HIGH</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.60</span></code></p></td>
+<td><p>Fill ratio to de-escalate HIGH to ELEVATED</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.deescalate_from_critical</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__DEESCALATE_FROM_CRITICAL</span></code></p></td>
+<td><p>Settings only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.75</span></code></p></td>
+<td><p>Fill ratio to de-escalate CRITICAL to HIGH</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.max_workers</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__MAX_WORKERS</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_adaptive(max_workers=8)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">8</span></code></p></td>
+<td><p>Maximum workers when dynamic scaling is active</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.max_queue_growth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__MAX_QUEUE_GROWTH</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_adaptive(max_queue_growth=4.0)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">4.0</span></code></p></td>
+<td><p>Maximum queue capacity multiplier</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.batch_sizing</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__BATCH_SIZING</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_adaptive(batch_sizing=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Enable adaptive batch sizing</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.circuit_pressure_boost</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__CIRCUIT_PRESSURE_BOOST</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_adaptive(circuit_pressure_boost=0.20)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">0.20</span></code></p></td>
+<td><p>Pressure boost per open circuit breaker</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.filter_tightening</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__FILTER_TIGHTENING</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_adaptive(filter_tightening=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Enable adaptive filter tightening based on pressure level</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.worker_scaling</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__WORKER_SCALING</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_adaptive(worker_scaling=False)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Enable dynamic worker scaling based on pressure level</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.queue_growth</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__QUEUE_GROWTH</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_adaptive(queue_growth=False)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+<td><p>Enable queue capacity growth based on pressure level</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<hr class="docutils" />
 <section id="sink-settings">
 <h2>Sink Settings<a class="headerlink" href="#sink-settings" title="Link to this heading"></a></h2>
 <section id="rotating-file-sink">
@@ -2047,7 +2161,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on February 14, 2026.
+      <span class="lastupdated">Last updated on February 15, 2026.
       </span></p>
   </div>
 

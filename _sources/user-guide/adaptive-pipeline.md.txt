@@ -82,6 +82,9 @@ All settings live under the `adaptive` key:
 | `max_queue_growth` | `4.0` | Maximum queue capacity multiplier |
 | `batch_sizing` | `false` | Enable adaptive batch sizing |
 | `circuit_pressure_boost` | `0.20` | Pressure boost per open circuit breaker |
+| `filter_tightening` | `true` | Enable adaptive filter tightening based on pressure level |
+| `worker_scaling` | `true` | Enable dynamic worker scaling based on pressure level |
+| `queue_growth` | `true` | Enable queue capacity growth based on pressure level |
 
 ### Environment variables
 
@@ -96,6 +99,9 @@ FAPILOG_ADAPTIVE__MAX_WORKERS=8
 FAPILOG_ADAPTIVE__MAX_QUEUE_GROWTH=4.0
 FAPILOG_ADAPTIVE__BATCH_SIZING=true
 FAPILOG_ADAPTIVE__CIRCUIT_PRESSURE_BOOST=0.20
+FAPILOG_ADAPTIVE__FILTER_TIGHTENING=true
+FAPILOG_ADAPTIVE__WORKER_SCALING=false
+FAPILOG_ADAPTIVE__QUEUE_GROWTH=false
 ```
 
 ### Settings-based configuration
@@ -110,6 +116,9 @@ settings = Settings(adaptive={
     "batch_sizing": True,
     "check_interval_seconds": 0.5,
     "cooldown_seconds": 3.0,
+    # Disable counterproductive actuators for bound mode (FastAPI)
+    "worker_scaling": False,
+    "queue_growth": False,
 })
 ```
 
