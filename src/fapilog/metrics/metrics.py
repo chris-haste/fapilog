@@ -132,6 +132,8 @@ class MetricsCollector:
         self._c_sensitive_fields: Any | None = None
         # Adaptive pressure monitoring (Story 1.44)
         self._g_pressure_level: Any | None = None
+        # Queue depth gauges (Story 1.52)
+        self._g_queue_depth: Any | None = None
         # Circuit breaker fallback routing (Story 4.72)
         self._c_fallback_writes: Any | None = None
         self._fallback_write_count: int = 0
@@ -308,6 +310,13 @@ class MetricsCollector:
                 "Current adaptive pressure level (0=NORMAL, 1=ELEVATED, 2=HIGH, 3=CRITICAL)",
                 registry=self._registry,
             )
+            # Queue depth gauges (Story 1.52)
+            self._g_queue_depth = Gauge(
+                "fapilog_queue_depth",
+                "Current queue depth by queue type",
+                ["queue"],
+                registry=self._registry,
+            )
             # Circuit breaker fallback routing (Story 4.72)
             self._c_fallback_writes = Counter(
                 "fapilog_circuit_breaker_fallback_writes_total",
@@ -400,6 +409,18 @@ class MetricsCollector:
             return
         if self._g_pressure_level is not None:
             self._g_pressure_level.set(level)
+
+    async def set_queue_depth(self, queue_label: str, depth: int) -> None:
+        """Set queue depth gauge for a specific queue (Story 1.52).
+
+        Args:
+            queue_label: Queue identifier ("main" or "protected").
+            depth: Current queue depth.
+        """
+        if not self._enabled:
+            return
+        if self._g_queue_depth is not None:
+            self._g_queue_depth.labels(queue=queue_label).set(depth)
 
     async def record_fallback_writes(
         self, *, primary_sink: str, fallback_sink: str, count: int = 1
@@ -663,5 +684,6 @@ _VULTURE_USED: tuple[object, ...] = (
     MetricsCollector.record_events_evicted,
     MetricsCollector.record_sensitive_fields,
     MetricsCollector.set_pressure_level,
+    MetricsCollector.set_queue_depth,
     MetricsCollector.record_fallback_writes,
 )

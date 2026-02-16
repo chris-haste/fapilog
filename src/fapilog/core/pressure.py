@@ -127,6 +127,9 @@ DiagnosticWriter = Callable[[dict[str, Any]], None]
 # Type alias for metric setter (sets gauge value)
 MetricSetter = Callable[[int], None]
 
+# Type alias for depth gauge setter (queue_label, depth)
+DepthGaugeSetter = Callable[[str, int], None]
+
 
 class PressureMonitor:
     """Asyncio task that samples queue fill ratio and dispatches pressure changes.
@@ -150,6 +153,7 @@ class PressureMonitor:
         diagnostic_writer: DiagnosticWriter | None = None,
         metric_setter: MetricSetter | None = None,
         circuit_pressure_boost: float = 0.20,
+        depth_gauge_setter: DepthGaugeSetter | None = None,
     ) -> None:
         self._queue = queue
         self._check_interval = check_interval_seconds
@@ -165,6 +169,7 @@ class PressureMonitor:
         self._callbacks: list[PressureCallback] = []
         self._diagnostic_writer = diagnostic_writer
         self._metric_setter = metric_setter
+        self._depth_gauge_setter = depth_gauge_setter
         self._stopped = False
         self._circuit_boost: float = 0.0
         self._circuit_boost_per_open: float = circuit_pressure_boost
@@ -223,7 +228,16 @@ class PressureMonitor:
         capacity = self._queue.capacity
         if capacity <= 0:
             return
-        raw_fill = self._queue.qsize() / capacity
+        # Use main_qsize() for DualQueue (Story 1.52) — protected queue
+        # depth is a separate signal, not part of adaptive pressure.
+        from .concurrency import DualQueue
+
+        if isinstance(self._queue, DualQueue):
+            depth = self._queue.main_qsize()
+            self._set_depth_gauges(depth, self._queue.protected_qsize())
+        else:
+            depth = self._queue.qsize()
+        raw_fill = depth / capacity
         fill_ratio = min(1.0, raw_fill + self._circuit_boost)
 
         old_level = self._state_machine.current_level
@@ -246,6 +260,16 @@ class PressureMonitor:
             self._emit_diagnostic(old_level, new_level, fill_ratio)
             self._update_metric(new_level)
             self._dispatch_callbacks(old_level, new_level)
+
+    def _set_depth_gauges(self, main_depth: int, protected_depth: int) -> None:
+        """Report queue depths to gauge setter if configured."""
+        if self._depth_gauge_setter is None:
+            return
+        try:
+            self._depth_gauge_setter("main", main_depth)
+            self._depth_gauge_setter("protected", protected_depth)
+        except Exception:
+            pass
 
     def _emit_diagnostic(
         self,
@@ -342,6 +366,7 @@ _VULTURE_USED: tuple[object, ...] = (
     PressureMonitor.record_batch_resize,
     PressureMonitor.snapshot,
     MetricSetter,
+    DepthGaugeSetter,
     DiagnosticWriter,
     PressureCallback,
 )

@@ -20,7 +20,7 @@ from ..metrics.metrics import MetricsCollector
 from ..plugins.enrichers import BaseEnricher
 from ..plugins.processors import BaseProcessor
 from ..plugins.redactors import BaseRedactor
-from .concurrency import PriorityAwareQueue
+from .concurrency import DualQueue
 from .envelope import build_envelope
 from .events import LogEvent
 from .levels import get_level_priority
@@ -135,7 +135,6 @@ class _LoggerMixin(_WorkerCountersMixin):
         )
 
         self._name = name or "root"
-        # Use priority-aware queue if protected_levels specified (Story 1.37)
         # Include AUDIT and SECURITY by default (Story 1.38)
         default_protected = ["ERROR", "CRITICAL", "FATAL", "AUDIT", "SECURITY"]
         actual_protected = (
@@ -144,8 +143,12 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._protected_levels: frozenset[str] = frozenset(
             lvl.upper() for lvl in actual_protected
         )
-        self._queue: PriorityAwareQueue[dict[str, Any]] = PriorityAwareQueue(
-            capacity=queue_capacity, protected_levels=self._protected_levels
+        # Use DualQueue for isolated protected-event handling (Story 1.52)
+        protected_capacity = max(100, queue_capacity // 10)
+        self._queue: DualQueue[dict[str, Any]] = DualQueue(
+            main_capacity=queue_capacity,
+            protected_capacity=protected_capacity,
+            protected_levels=self._protected_levels,
         )
         self._queue_high_watermark = 0
         self._counters: dict[str, int] = {"processed": 0, "dropped": 0}
@@ -443,6 +446,15 @@ class _LoggerMixin(_WorkerCountersMixin):
 
             adaptive = self._cached_adaptive_settings
             circuit_boost = getattr(adaptive, "circuit_pressure_boost", 0.20)
+            _depth_gauge_setter = None
+            _metrics_ref = self._metrics
+            if _metrics_ref is not None:
+
+                def _depth_gauge_setter(label: str, depth: int) -> None:
+                    self._schedule_metrics_call(
+                        _metrics_ref.set_queue_depth, label, depth
+                    )
+
             monitor = PressureMonitor(
                 queue=self._queue,
                 check_interval_seconds=adaptive.check_interval_seconds,
@@ -456,6 +468,7 @@ class _LoggerMixin(_WorkerCountersMixin):
                 diagnostic_writer=_diag_writer,
                 metric_setter=_metric_setter,
                 circuit_pressure_boost=circuit_boost,
+                depth_gauge_setter=_depth_gauge_setter,
             )
             self._pressure_monitor = monitor
 
@@ -1119,12 +1132,24 @@ class _LoggerMixin(_WorkerCountersMixin):
         This is the hot-path enqueue used by both sync and async facades.
         It calls try_enqueue() on the thread-safe queue and updates the
         high watermark counter if needed. Returns True if enqueued.
+        On drop, records protected/unprotected drop metric.
         """
         if self._queue.try_enqueue(payload):
             qsize = self._queue.qsize()
             if qsize > self._queue_high_watermark:
                 self._queue_high_watermark = qsize
             return True
+        # Record drop metric distinguished by protected status
+        if self._metrics is not None:
+            level = payload.get("level", "")
+            if isinstance(level, str) and level.upper() in self._protected_levels:
+                self._schedule_metrics_call(
+                    self._metrics.record_events_dropped_protected
+                )
+            else:
+                self._schedule_metrics_call(
+                    self._metrics.record_events_dropped_unprotected
+                )
         return False
 
     def _schedule_metrics_call(self, fn: Any, *args: Any, **kwargs: Any) -> None:

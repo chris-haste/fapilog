@@ -65,6 +65,13 @@ class NonBlockingRingQueue(Generic[T]):
             self._dq.append(item)
             return True
 
+    def grow_capacity(self, new_capacity: int) -> None:
+        """Increase queue capacity. Grow-only — ignored if new_capacity <= current."""
+        with self._lock:
+            if new_capacity <= self._capacity:
+                return
+            self._capacity = new_capacity
+
     def try_dequeue(self) -> tuple[bool, T | None]:
         with self._lock:
             if not self._dq:
@@ -75,6 +82,10 @@ class NonBlockingRingQueue(Generic[T]):
 
 class PriorityAwareQueue(Generic[T]):
     """Thread-safe bounded queue with priority-aware eviction for protected log levels.
+
+    .. deprecated:: 1.52
+        Use :class:`DualQueue` instead. ``PriorityAwareQueue`` will be removed
+        in a future release.
 
     When queue is full and a protected-level event arrives, an unprotected
     event is evicted to make room. Uses tombstoning for O(1) eviction.
@@ -232,12 +243,120 @@ class PriorityAwareQueue(Generic[T]):
             self._tombstone_count = 0
 
 
+class DualQueue(Generic[T]):
+    """Routes events to main or protected queue by level (Story 1.52).
+
+    Protected-level events go to a dedicated bounded queue, isolating them
+    from main queue pressure. Workers always drain the protected queue first.
+    """
+
+    def __init__(
+        self,
+        main_capacity: int,
+        protected_capacity: int,
+        protected_levels: frozenset[str],
+    ) -> None:
+        self._main = NonBlockingRingQueue[T](main_capacity)
+        self._protected = NonBlockingRingQueue[T](protected_capacity)
+        self._protected_levels = protected_levels
+        self._main_drops = 0
+        self._protected_drops = 0
+
+    def _is_protected(self, item: T) -> bool:
+        if not self._protected_levels:
+            return False
+        if isinstance(item, dict):
+            level = item.get("level", "INFO")
+            if isinstance(level, str):
+                return level.upper() in self._protected_levels
+        return False
+
+    def try_enqueue(self, item: T) -> bool:
+        if self._is_protected(item):
+            ok = self._protected.try_enqueue(item)
+            if not ok:
+                self._protected_drops += 1
+            return ok
+        ok = self._main.try_enqueue(item)
+        if not ok:
+            self._main_drops += 1
+        return ok
+
+    def try_dequeue(self) -> tuple[bool, T | None]:
+        ok, item = self._protected.try_dequeue()
+        if ok:
+            return ok, item
+        return self._main.try_dequeue()
+
+    def drain_into(self, batch: list[T]) -> None:
+        while True:
+            ok, item = self._protected.try_dequeue()
+            if not ok:
+                break
+            batch.append(item)  # type: ignore[arg-type]
+        while True:
+            ok, item = self._main.try_dequeue()
+            if not ok:
+                break
+            batch.append(item)  # type: ignore[arg-type]
+
+    # Size / state queries
+    def main_qsize(self) -> int:
+        return self._main.qsize()
+
+    def protected_qsize(self) -> int:
+        return self._protected.qsize()
+
+    def qsize(self) -> int:
+        return self._main.qsize() + self._protected.qsize()
+
+    def is_empty(self) -> bool:
+        return self._main.is_empty() and self._protected.is_empty()
+
+    def is_full(self) -> bool:
+        return self._main.is_full()
+
+    def main_is_full(self) -> bool:
+        return self._main.is_full()
+
+    def protected_is_full(self) -> bool:
+        return self._protected.is_full()
+
+    @property
+    def capacity(self) -> int:
+        return self._main.capacity
+
+    def grow_capacity(self, new_capacity: int) -> None:
+        """Grow main queue capacity only."""
+        self._main.grow_capacity(new_capacity)
+
+    @property
+    def main_drops(self) -> int:
+        return self._main_drops
+
+    @property
+    def protected_drops(self) -> int:
+        return self._protected_drops
+
+
 __all__ = [
     "BackpressurePolicy",
     "BackpressureError",
+    "DualQueue",
     "NonBlockingRingQueue",
     "PriorityAwareQueue",
 ]
 
-# Mark public API for vulture (Story 1.48)
-_VULTURE_USED: tuple[object, ...] = (PriorityAwareQueue.grow_capacity,)
+# Mark public API for vulture (Story 1.48, 1.52)
+_VULTURE_USED: tuple[object, ...] = (
+    NonBlockingRingQueue.grow_capacity,
+    PriorityAwareQueue.grow_capacity,
+    DualQueue.main_is_full,
+    DualQueue.protected_is_full,
+    DualQueue.main_drops,
+    DualQueue.protected_drops,
+    DualQueue.main_qsize,
+    DualQueue.protected_qsize,
+    DualQueue.drain_into,
+    DualQueue.grow_capacity,
+)

@@ -17,7 +17,7 @@ from ..plugins.filters import filter_in_order
 from ..plugins.processors import BaseProcessor
 from ..plugins.redactors import BaseRedactor, redact_in_order
 from .adaptive import AdaptiveController
-from .concurrency import NonBlockingRingQueue, PriorityAwareQueue
+from .concurrency import DualQueue, NonBlockingRingQueue, PriorityAwareQueue
 from .diagnostics import warn
 from .serialization import (
     SerializedView,
@@ -25,8 +25,12 @@ from .serialization import (
     serialize_mapping_to_json_bytes,
 )
 
-# Union type for both queue implementations
-LogQueue = NonBlockingRingQueue[dict[str, Any]] | PriorityAwareQueue[dict[str, Any]]
+# Union type for all queue implementations
+LogQueue = (
+    NonBlockingRingQueue[dict[str, Any]]
+    | PriorityAwareQueue[dict[str, Any]]
+    | DualQueue[dict[str, Any]]
+)
 
 
 def strict_envelope_mode_enabled() -> bool:
@@ -348,8 +352,12 @@ class LoggerWorker:
         return processed, dropped
 
     def _drain_queue(self, batch: list[dict[str, Any]]) -> None:
+        queue = self._queue
+        if isinstance(queue, DualQueue):
+            queue.drain_into(batch)
+            return
         while True:
-            ok, item = self._queue.try_dequeue()
+            ok, item = queue.try_dequeue()
             if not ok or item is None:
                 break
             batch.append(item)
