@@ -65,6 +65,13 @@ class NonBlockingRingQueue(Generic[T]):
             self._dq.append(item)
             return True
 
+    def grow_capacity(self, new_capacity: int) -> None:
+        """Increase queue capacity. Grow-only — ignored if new_capacity <= current."""
+        with self._lock:
+            if new_capacity <= self._capacity:
+                return
+            self._capacity = new_capacity
+
     def try_dequeue(self) -> tuple[bool, T | None]:
         with self._lock:
             if not self._dq:
@@ -321,10 +328,7 @@ class DualQueue(Generic[T]):
 
     def grow_capacity(self, new_capacity: int) -> None:
         """Grow main queue capacity only."""
-        with self._main._lock:
-            if new_capacity <= self._main._capacity:
-                return
-            self._main._capacity = new_capacity
+        self._main.grow_capacity(new_capacity)
 
     @property
     def main_drops(self) -> int:
@@ -345,6 +349,7 @@ __all__ = [
 
 # Mark public API for vulture (Story 1.48, 1.52)
 _VULTURE_USED: tuple[object, ...] = (
+    NonBlockingRingQueue.grow_capacity,
     PriorityAwareQueue.grow_capacity,
     DualQueue.main_is_full,
     DualQueue.protected_is_full,
