@@ -20,7 +20,7 @@ from ..metrics.metrics import MetricsCollector
 from ..plugins.enrichers import BaseEnricher
 from ..plugins.processors import BaseProcessor
 from ..plugins.redactors import BaseRedactor
-from .concurrency import PriorityAwareQueue
+from .concurrency import DualQueue
 from .envelope import build_envelope
 from .events import LogEvent
 from .levels import get_level_priority
@@ -135,7 +135,6 @@ class _LoggerMixin(_WorkerCountersMixin):
         )
 
         self._name = name or "root"
-        # Use priority-aware queue if protected_levels specified (Story 1.37)
         # Include AUDIT and SECURITY by default (Story 1.38)
         default_protected = ["ERROR", "CRITICAL", "FATAL", "AUDIT", "SECURITY"]
         actual_protected = (
@@ -144,8 +143,12 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._protected_levels: frozenset[str] = frozenset(
             lvl.upper() for lvl in actual_protected
         )
-        self._queue: PriorityAwareQueue[dict[str, Any]] = PriorityAwareQueue(
-            capacity=queue_capacity, protected_levels=self._protected_levels
+        # Use DualQueue for isolated protected-event handling (Story 1.52)
+        protected_capacity = max(100, queue_capacity // 10)
+        self._queue: DualQueue[dict[str, Any]] = DualQueue(
+            main_capacity=queue_capacity,
+            protected_capacity=protected_capacity,
+            protected_levels=self._protected_levels,
         )
         self._queue_high_watermark = 0
         self._counters: dict[str, int] = {"processed": 0, "dropped": 0}

@@ -11,7 +11,7 @@ from typing import Any
 
 import pytest
 
-from fapilog.core.concurrency import PriorityAwareQueue
+from fapilog.core.concurrency import DualQueue, PriorityAwareQueue
 from fapilog.core.pressure import PressureLevel, PressureMonitor
 from fapilog.core.settings import AdaptiveSettings
 
@@ -70,7 +70,7 @@ class TestCapacityGrowsOnEscalation:
 
         logger.start()
         queue = logger._queue
-        assert isinstance(queue, PriorityAwareQueue)
+        assert isinstance(queue, (PriorityAwareQueue, DualQueue))
         assert queue.capacity == 100
 
         monitor = logger._pressure_monitor
@@ -193,7 +193,7 @@ class TestBackwardCompatibleAt2x:
 
         logger.start()
         queue = logger._queue
-        assert isinstance(queue, PriorityAwareQueue)
+        assert isinstance(queue, (PriorityAwareQueue, DualQueue))
 
         monitor = logger._pressure_monitor
 

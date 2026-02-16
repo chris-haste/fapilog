@@ -223,7 +223,15 @@ class PressureMonitor:
         capacity = self._queue.capacity
         if capacity <= 0:
             return
-        raw_fill = self._queue.qsize() / capacity
+        # Use main_qsize() for DualQueue (Story 1.52) — protected queue
+        # depth is a separate signal, not part of adaptive pressure.
+        from .concurrency import DualQueue
+
+        if isinstance(self._queue, DualQueue):
+            depth = self._queue.main_qsize()
+        else:
+            depth = self._queue.qsize()
+        raw_fill = depth / capacity
         fill_ratio = min(1.0, raw_fill + self._circuit_boost)
 
         old_level = self._state_machine.current_level

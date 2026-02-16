@@ -94,7 +94,7 @@ class TestConfigValidationValidValues:
             batch_timeout_seconds=0.001,
             num_workers=1,
         )
-        assert logger._queue._capacity == 1
+        assert logger._queue.capacity == 1
         assert logger._batch_max_size == 1
         assert logger._num_workers == 1
 
@@ -106,7 +106,7 @@ class TestConfigValidationValidValues:
             batch_timeout_seconds=1.0,
             num_workers=8,
         )
-        assert logger._queue._capacity == 10_000
+        assert logger._queue.capacity == 10_000
         assert logger._batch_max_size == 500
         assert logger._num_workers == 8
 
@@ -117,7 +117,7 @@ class TestConfigValidationValidValues:
             batch_max_size=_LoggerMixin._WARN_BATCH_MAX_SIZE,
             num_workers=_LoggerMixin._WARN_NUM_WORKERS,
         )
-        assert logger._queue._capacity == _LoggerMixin._WARN_QUEUE_CAPACITY
+        assert logger._queue.capacity == _LoggerMixin._WARN_QUEUE_CAPACITY
         assert logger._batch_max_size == _LoggerMixin._WARN_BATCH_MAX_SIZE
         assert logger._num_workers == _LoggerMixin._WARN_NUM_WORKERS
 
@@ -129,7 +129,7 @@ class TestConfigValidationValidValues:
             batch_max_size=_LoggerMixin._WARN_BATCH_MAX_SIZE + 1,
             num_workers=_LoggerMixin._WARN_NUM_WORKERS + 1,
         )
-        assert logger._queue._capacity == _LoggerMixin._WARN_QUEUE_CAPACITY + 1
+        assert logger._queue.capacity == _LoggerMixin._WARN_QUEUE_CAPACITY + 1
         assert logger._batch_max_size == _LoggerMixin._WARN_BATCH_MAX_SIZE + 1
         assert logger._num_workers == _LoggerMixin._WARN_NUM_WORKERS + 1
 
@@ -141,13 +141,13 @@ class TestConfigValidationBatchQueueRelationship:
         """batch_max_size < queue_capacity is normal and accepted."""
         logger = make_logger(queue_capacity=100, batch_max_size=10)
         assert logger._batch_max_size == 10
-        assert logger._queue._capacity == 100
+        assert logger._queue.capacity == 100
 
     def test_batch_size_equal_to_queue_accepted(self) -> None:
         """batch_max_size == queue_capacity is accepted."""
         logger = make_logger(queue_capacity=100, batch_max_size=100)
         assert logger._batch_max_size == 100
-        assert logger._queue._capacity == 100
+        assert logger._queue.capacity == 100
 
     def test_batch_size_greater_than_queue_accepted_with_warning(self) -> None:
         """batch_max_size > queue_capacity is accepted but warns.
@@ -157,7 +157,7 @@ class TestConfigValidationBatchQueueRelationship:
         """
         logger = make_logger(queue_capacity=50, batch_max_size=100)
         assert logger._batch_max_size == 100
-        assert logger._queue._capacity == 50
+        assert logger._queue.capacity == 50
 
 
 class TestAsyncLoggerFacadeValidation:
