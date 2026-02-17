@@ -113,7 +113,7 @@ builder.with_preset("production")
 | `dev` | DEBUG | No | No | 1 (immediate) | 1 |
 | `minimal` | INFO | No | No | 256 | 1 |
 | `production` | INFO | Yes (50MB rotation) | Yes | 256 | 2 |
-| `adaptive` | INFO | Yes (50MB rotation) | Yes | 100 | 2 (up to 8) |
+| `adaptive` | INFO | Fallback only | Yes | 256 | 2 (up to 4) |
 | `serverless` | INFO | No | Yes | 25 | 2 |
 | `hardened` | INFO | Yes (50MB rotation) | Yes | 100 | 2 |
 

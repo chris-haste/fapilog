@@ -110,7 +110,7 @@ logger = get_logger(preset="minimal")            # Backwards compatible default
 | `dev` | No | No | No | Local development |
 | `minimal` | Default | No | No | Migration, explicit defaults |
 | `production` | Never | Yes | Yes | Audit trails, compliance |
-| `adaptive` | If needed | Yes | Yes | Auto-scaling under load |
+| `adaptive` | If needed | Fallback only | Yes | Auto-scaling under load |
 | `serverless` | If needed | No | Yes | Lambda/Cloud Functions |
 | `hardened` | Never | Yes | Yes (HIPAA+PCI) | Regulated environments |
 
