@@ -9,7 +9,7 @@ Presets provide pre-configured settings for common deployment scenarios. Choose 
 | `dev` | Local development | No | No | No |
 | `production` | Durable production | Never | Yes | Yes (CREDENTIALS) |
 | `serverless` | Lambda/Cloud Run | If needed | No | Yes (CREDENTIALS) |
-| `adaptive` | Auto-scaling production | If needed | Yes | Yes (CREDENTIALS) |
+| `adaptive` | Auto-scaling production | If needed | Fallback only | Yes (CREDENTIALS) |
 | `hardened` | Compliance (HIPAA/PCI) | Never | Yes | Yes (HIPAA + PCI + CREDENTIALS) |
 | `minimal` | Maximum control | Default | Default | No |
 
