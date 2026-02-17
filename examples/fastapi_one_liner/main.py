@@ -6,7 +6,7 @@ from fastapi import Depends, FastAPI
 
 from fapilog.fastapi import get_request_logger, setup_logging
 
-app = FastAPI(lifespan=setup_logging(preset="fastapi"))
+app = FastAPI(lifespan=setup_logging(preset="production"))
 
 
 @app.get("/")

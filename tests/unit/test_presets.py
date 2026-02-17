@@ -52,10 +52,10 @@ class TestPresetDefinitions:
         # Marker for automatic CREDENTIALS preset application
         assert config.get("_apply_credentials_preset") is True
 
-    def test_production_preset_has_batch_size_100(self):
-        """Production preset uses batch size 100 for throughput."""
+    def test_production_preset_has_batch_size_256(self):
+        """Production preset uses batch size 256 for throughput."""
         config = get_preset("production")
-        assert config["core"]["batch_max_size"] == 100
+        assert config["core"]["batch_max_size"] == 256
 
     def test_production_preset_disables_drop_on_full(self):
         """Production preset does not drop logs under pressure."""
@@ -77,53 +77,6 @@ class TestPresetDefinitions:
         config = get_preset("production")
         postgres_config = config.get("sink_config", {}).get("postgres", {})
         assert postgres_config.get("create_table") is False
-
-    def test_fastapi_preset_has_info_log_level(self):
-        """FastAPI preset sets log level to INFO."""
-        config = get_preset("fastapi")
-        assert config["core"]["log_level"] == "INFO"
-
-    def test_fastapi_preset_has_batch_size_50(self):
-        """FastAPI preset uses batch size 50."""
-        config = get_preset("fastapi")
-        assert config["core"]["batch_max_size"] == 50
-
-    def test_fastapi_preset_enables_context_vars(self):
-        """FastAPI preset enables context_vars enricher."""
-        config = get_preset("fastapi")
-        assert "context_vars" in config["core"]["enrichers"]
-
-    def test_fastapi_preset_enables_redactors(self):
-        """FastAPI preset enables redactors for security by default.
-
-        Story 10.21 AC1: FastAPI preset enables same redactors as production.
-        """
-        config = get_preset("fastapi")
-        assert config["core"]["redactors"] == [
-            "field_mask",
-            "regex_mask",
-            "url_credentials",
-        ]
-
-    def test_fastapi_preset_has_redactor_config(self):
-        """FastAPI preset has redactor_config section.
-
-        Story 10.21 AC1: Redactor config must be present.
-        """
-        config = get_preset("fastapi")
-        assert "redactor_config" in config
-        assert "field_mask" in config["redactor_config"]
-        assert "regex_mask" in config["redactor_config"]
-        assert "url_credentials" in config["redactor_config"]
-
-    def test_fastapi_preset_redactor_config_matches_production(self):
-        """FastAPI preset redactor_config matches production preset.
-
-        Story 10.21 AC1: FastAPI redactor config should match production.
-        """
-        fastapi_config = get_preset("fastapi")
-        production_config = get_preset("production")
-        assert fastapi_config["redactor_config"] == production_config["redactor_config"]
 
     def test_minimal_preset_opts_out_of_redaction(self):
         """Minimal preset explicitly opts out of redaction for minimal overhead.
@@ -304,10 +257,7 @@ class TestPresetValidation:
         [
             "adaptive",
             "dev",
-            "high-volume",
             "production",
-            "production-latency",
-            "fastapi",
             "minimal",
             "serverless",
             "hardened",
@@ -336,7 +286,7 @@ class TestPresetValidation:
         """Error message includes list of valid presets."""
         with pytest.raises(
             ValueError,
-            match="Valid presets: adaptive, dev, fastapi, hardened, high-volume, minimal, production, production-latency, serverless",
+            match="Valid presets: adaptive, dev, hardened, minimal, production, serverless",
         ):
             validate_preset("invalid")
 
@@ -358,13 +308,6 @@ class TestPresetToSettings:
         assert settings.core.log_level == "INFO"
         assert settings.sink_config.rotating_file.compress_rotated is True
 
-    def test_fastapi_preset_creates_valid_settings(self):
-        """FastAPI preset can be converted to Settings."""
-        config = get_preset("fastapi")
-        settings = Settings(**config)
-        assert settings.core.log_level == "INFO"
-        assert settings.core.batch_max_size == 50
-
     def test_minimal_preset_creates_valid_settings(self):
         """Minimal preset produces valid Settings with defaults."""
         config = get_preset("minimal")
@@ -383,10 +326,7 @@ class TestPresetToSettings:
         [
             "adaptive",
             "dev",
-            "high-volume",
             "production",
-            "production-latency",
-            "fastapi",
             "minimal",
             "serverless",
             "hardened",
@@ -408,10 +348,7 @@ class TestPresetList:
         assert set(presets) == {
             "adaptive",
             "dev",
-            "high-volume",
             "production",
-            "production-latency",
-            "fastapi",
             "minimal",
             "serverless",
             "hardened",
@@ -444,14 +381,6 @@ class TestPresetWorkerCount:
         config = get_preset("production")
         assert config["core"]["worker_count"] == 2
 
-    def test_fastapi_preset_has_two_workers(self):
-        """FastAPI preset sets worker_count to 2 for optimal throughput.
-
-        Story 10.44 AC1: fastapi preset sets worker_count: 2.
-        """
-        config = get_preset("fastapi")
-        assert config["core"]["worker_count"] == 2
-
     def test_serverless_preset_has_two_workers(self):
         """Serverless preset sets worker_count to 2 for optimal throughput.
 
@@ -466,14 +395,6 @@ class TestPresetWorkerCount:
         Story 10.44 AC1: hardened preset sets worker_count: 2.
         """
         config = get_preset("hardened")
-        assert config["core"]["worker_count"] == 2
-
-    def test_production_latency_preset_has_two_workers(self):
-        """Production-latency preset sets worker_count to 2 for throughput.
-
-        Story 10.45 AC2: worker_count == 2 for multi-worker throughput.
-        """
-        config = get_preset("production-latency")
         assert config["core"]["worker_count"] == 2
 
     def test_dev_preset_has_one_worker(self):
@@ -494,199 +415,6 @@ class TestPresetWorkerCount:
         assert "worker_count" not in config.get("core", {})
 
 
-class TestProductionLatencyPreset:
-    """Test production-latency preset for low-latency production deployments.
-
-    Story 10.45 AC2: A new `production-latency` preset is available that
-    prioritizes throughput over durability.
-    """
-
-    def test_production_latency_preset_exists(self):
-        """Production-latency preset is available via get_preset."""
-        config = get_preset("production-latency")
-        assert "core" in config
-
-    def test_production_latency_preset_in_list_presets(self):
-        """Production-latency preset appears in list_presets()."""
-        presets = list_presets()
-        assert "production-latency" in presets
-
-    def test_production_latency_preset_has_info_log_level(self):
-        """Production-latency preset sets log level to INFO."""
-        config = get_preset("production-latency")
-        assert config["core"]["log_level"] == "INFO"
-
-    def test_production_latency_preset_enables_drop_on_full(self):
-        """Production-latency preset enables drop_on_full for latency.
-
-        Story 10.45 AC2: Key setting - accept drops for latency.
-        """
-        config = get_preset("production-latency")
-        assert config["core"]["drop_on_full"] is True
-
-    def test_production_latency_preset_has_two_workers(self):
-        """Production-latency preset uses 2 workers for throughput."""
-        config = get_preset("production-latency")
-        assert config["core"]["worker_count"] == 2
-
-    def test_production_latency_preset_has_batch_size_100(self):
-        """Production-latency preset uses batch size >= 50."""
-        config = get_preset("production-latency")
-        assert config["core"]["batch_max_size"] >= 50
-
-    def test_production_latency_preset_uses_stdout_only(self):
-        """Production-latency preset uses stdout_json only, no file sink.
-
-        No file sink for minimal I/O latency.
-        """
-        config = get_preset("production-latency")
-        assert config["core"]["sinks"] == ["stdout_json"]
-
-    def test_production_latency_preset_has_redactors(self):
-        """Production-latency preset has production-grade redaction."""
-        config = get_preset("production-latency")
-        assert "field_mask" in config["core"]["redactors"]
-        assert "regex_mask" in config["core"]["redactors"]
-        assert "url_credentials" in config["core"]["redactors"]
-
-    def test_production_latency_preset_applies_credentials_preset(self):
-        """Production-latency preset applies CREDENTIALS preset."""
-        config = get_preset("production-latency")
-        assert config.get("_apply_credentials_preset") is True
-
-    def test_production_latency_preset_has_enrichers(self):
-        """Production-latency preset enables runtime_info and context_vars."""
-        config = get_preset("production-latency")
-        assert "runtime_info" in config["core"]["enrichers"]
-        assert "context_vars" in config["core"]["enrichers"]
-
-    def test_production_latency_preset_creates_valid_settings(self):
-        """Production-latency preset can be converted to Settings."""
-        config = get_preset("production-latency")
-        settings = Settings(**config)
-        assert settings.core.log_level == "INFO"
-        assert settings.core.drop_on_full is True
-        assert settings.core.worker_count == 2
-
-    def test_production_latency_vs_production_difference(self):
-        """Production-latency differs from production in key ways.
-
-        Verify the distinguishing characteristics:
-        - production: drop_on_full=False, has file sink
-        - production-latency: drop_on_full=True, no file sink
-        """
-        prod = get_preset("production")
-        prod_latency = get_preset("production-latency")
-
-        # The key behavioral difference
-        assert prod["core"]["drop_on_full"] is False
-        assert prod_latency["core"]["drop_on_full"] is True
-
-        # File sink difference
-        assert "rotating_file" in prod["core"]["sinks"]
-        assert "rotating_file" not in prod_latency["core"]["sinks"]
-
-
-class TestHighVolumePreset:
-    """Test high-volume preset for adaptive sampling use cases.
-
-    Story 10.49: Add high-volume preset with adaptive sampling for
-    cost-effective logging during normal operation with full visibility
-    during incidents.
-    """
-
-    def test_high_volume_preset_exists(self):
-        """High-volume preset is available via get_preset.
-
-        Story 10.49 AC1: Users can create logger with preset="high-volume".
-        """
-        config = get_preset("high-volume")
-        assert "core" in config
-
-    def test_high_volume_preset_in_list_presets(self):
-        """High-volume preset appears in list_presets()."""
-        presets = list_presets()
-        assert "high-volume" in presets
-
-    def test_high_volume_preset_has_no_filters(self):
-        """High-volume preset has no filters configured.
-
-        Story 1.37: Protected levels are handled via PriorityAwareQueue
-        (queue-based, not filter-based) for better hot-path performance.
-        """
-        config = get_preset("high-volume")
-        assert "filters" not in config["core"]
-
-    def test_high_volume_preset_enables_drop_on_full(self):
-        """High-volume preset enables drop_on_full for latency.
-
-        Story 10.49 AC2: drop_on_full=True to protect latency.
-        """
-        config = get_preset("high-volume")
-        assert config["core"]["drop_on_full"] is True
-
-    def test_high_volume_preset_has_two_workers(self):
-        """High-volume preset uses 2 workers for throughput.
-
-        Story 10.49 AC2: worker_count==2 for throughput.
-        """
-        config = get_preset("high-volume")
-        assert config["core"]["worker_count"] == 2
-
-    def test_high_volume_preset_has_info_log_level(self):
-        """High-volume preset sets log level to INFO."""
-        config = get_preset("high-volume")
-        assert config["core"]["log_level"] == "INFO"
-
-    def test_high_volume_preset_has_batch_size_100(self):
-        """High-volume preset uses batch size 100 for throughput."""
-        config = get_preset("high-volume")
-        assert config["core"]["batch_max_size"] == 100
-
-    def test_high_volume_preset_uses_stdout_json_sink(self):
-        """High-volume preset uses stdout_json sink."""
-        config = get_preset("high-volume")
-        assert "stdout_json" in config["core"]["sinks"]
-
-    def test_high_volume_preset_has_redactors(self):
-        """High-volume preset has production-grade redaction."""
-        config = get_preset("high-volume")
-        assert "field_mask" in config["core"]["redactors"]
-        assert "regex_mask" in config["core"]["redactors"]
-        assert "url_credentials" in config["core"]["redactors"]
-
-    def test_high_volume_preset_applies_credentials_preset(self):
-        """High-volume preset applies CREDENTIALS preset."""
-        config = get_preset("high-volume")
-        assert config.get("_apply_credentials_preset") is True
-
-    def test_high_volume_preset_has_enrichers(self):
-        """High-volume preset enables runtime_info and context_vars."""
-        config = get_preset("high-volume")
-        assert "runtime_info" in config["core"]["enrichers"]
-        assert "context_vars" in config["core"]["enrichers"]
-
-    def test_high_volume_preset_uses_queue_based_protection(self):
-        """High-volume preset relies on queue-based protected levels.
-
-        Story 1.37: Protected levels (ERROR, CRITICAL, FATAL) are handled
-        via PriorityAwareQueue with eviction, not via filter-based approach.
-        The queue protects these levels from being dropped under pressure.
-        """
-        config = get_preset("high-volume")
-        # No filter_config needed - protected_levels defaults to
-        # ["ERROR", "CRITICAL", "FATAL"] in CoreSettings
-        assert "filter_config" not in config
-
-    def test_high_volume_preset_creates_valid_settings(self):
-        """High-volume preset can be converted to Settings."""
-        config = get_preset("high-volume")
-        settings = Settings(**config)
-        assert settings.core.log_level == "INFO"
-        assert settings.core.drop_on_full is True
-        assert settings.core.worker_count == 2
-
-
 class TestPresetNameLiteral:
     """Test PresetName Literal type alias stays in sync with registry."""
 
@@ -705,7 +433,7 @@ class TestPresetNameLiteral:
         from fapilog import PresetName
 
         # Verify it's the same type, not an empty re-export
-        assert len(get_args(PresetName)) == 9
+        assert len(get_args(PresetName)) == 6
 
 
 class TestPresetImmutability:

@@ -650,7 +650,7 @@ def _prepare_logger(
 
     Args:
         name: Optional logger name (currently unused, passed for future use).
-        preset: Built-in preset name (dev, production, fastapi, minimal).
+        preset: Built-in preset name (dev, production, adaptive, minimal).
         format: Output format ("json", "pretty", "auto").
         settings: Explicit Settings object (mutually exclusive with preset/format).
         sinks: Custom sink instances (overrides configured sinks).
@@ -897,7 +897,7 @@ def get_logger(
     Args:
         name: Optional logger name. Loggers with the same name return the same
             cached instance by default (like stdlib logging.getLogger).
-        preset: Built-in preset name (dev, production, fastapi, minimal).
+        preset: Built-in preset name (dev, production, adaptive, minimal).
         format: Output format ("json", "pretty", "auto"); defaults to auto when
             no settings are provided.
         settings: Explicit Settings object (mutually exclusive with preset/format).
@@ -984,7 +984,7 @@ async def get_async_logger(
     Args:
         name: Optional logger name. Loggers with the same name return the same
             cached instance by default (like stdlib logging.getLogger).
-        preset: Built-in preset name (dev, production, fastapi, minimal).
+        preset: Built-in preset name (dev, production, adaptive, minimal).
         format: Output format ("json", "pretty", "auto"); defaults to auto when
             no settings are provided.
         settings: Explicit Settings object (mutually exclusive with preset/format).

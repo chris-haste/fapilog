@@ -7,7 +7,7 @@ Configure fapilog using presets for quick setup, environment variables, or the `
 | Situation | Recommended Approach | Why |
 |-----------|---------------------|-----|
 | **Just getting started** | `get_logger(preset="...")` | Zero config, sensible defaults |
-| **FastAPI app** | `FastAPIBuilder().with_preset("fastapi").build()` | Automatic middleware and request context |
+| **FastAPI app** | `FastAPIBuilder().with_preset("production").build()` | Automatic middleware and request context |
 | **Writing new code** | `LoggerBuilder()` | IDE autocomplete, type safety, discoverable API |
 | **Config from env/files** | `Settings` + environment variables | 12-factor apps, Kubernetes, external config |
 | **Need compliance presets** | `LoggerBuilder().with_redaction(preset="GDPR_PII")` | One-liner GDPR, HIPAA, PCI-DSS protection |
@@ -92,15 +92,15 @@ from fapilog import get_logger, get_async_logger
 # Choose the preset that matches your use case
 logger = get_logger(preset="dev")                # Local development
 logger = get_logger(preset="production")         # Durable production (never drops logs)
-logger = get_logger(preset="production-latency") # Low-latency production (prioritizes speed)
+logger = get_logger(preset="adaptive")           # Auto-scaling under load
 logger = get_logger(preset="serverless")         # Lambda, Cloud Run, Azure Functions
-logger = await get_async_logger(preset="fastapi")  # FastAPI apps
+logger = get_logger(preset="hardened")           # Regulated environments (HIPAA, PCI)
 logger = get_logger(preset="minimal")            # Backwards compatible default
 ```
 
 **See [Presets Guide](presets.md)** for complete documentation including:
 - Decision matrix for choosing the right preset
-- Detailed comparison of `production` vs `production-latency`
+- Detailed comparison of presets
 - Full settings tables and customization examples
 
 ### Quick Comparison
@@ -108,12 +108,11 @@ logger = get_logger(preset="minimal")            # Backwards compatible default
 | Preset | Drops Logs? | File Output | Redaction | Best For |
 |--------|-------------|-------------|-----------|----------|
 | `dev` | No | No | No | Local development |
+| `minimal` | Default | No | No | Migration, explicit defaults |
 | `production` | Never | Yes | Yes | Audit trails, compliance |
-| `production-latency` | If needed | No | Yes | High-throughput APIs |
-| `fastapi` | If needed | No | Yes | FastAPI applications |
+| `adaptive` | If needed | Yes | Yes | Auto-scaling under load |
 | `serverless` | If needed | No | Yes | Lambda/Cloud Functions |
 | `hardened` | Never | Yes | Yes (HIPAA+PCI) | Regulated environments |
-| `minimal` | Default | No | No | Migration, explicit defaults |
 
 ### FastAPI Integration
 
@@ -125,7 +124,7 @@ from fapilog.fastapi import FastAPIBuilder, get_request_logger
 
 app = FastAPI(
     lifespan=FastAPIBuilder()
-        .with_preset("fastapi")
+        .with_preset("production")
         .build()
 )
 

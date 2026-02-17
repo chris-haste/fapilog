@@ -21,7 +21,7 @@ from fapilog.fastapi import FastAPIBuilder, get_request_logger
 
 app = FastAPI(
     lifespan=FastAPIBuilder()
-        .with_preset("fastapi")  # Includes redaction by default
+        .with_preset("production")  # Includes redaction by default
         .skip_paths(["/health"])
         .sample_rate(0.1)
         .log_errors_on_skip(True)  # Log crashes on skipped paths (default)
@@ -43,7 +43,7 @@ from fastapi import FastAPI
 from fapilog.fastapi import FastAPIBuilder
 
 app = FastAPI()
-app.router.lifespan_context = FastAPIBuilder().with_preset("fastapi").build()
+app.router.lifespan_context = FastAPIBuilder().with_preset("production").build()
 ```
 
 Middleware order is fixed for correctness:
@@ -60,7 +60,7 @@ from fapilog.fastapi.logging import LoggingMiddleware
 
 app = FastAPI(
     lifespan=FastAPIBuilder()
-        .with_preset("fastapi")
+        .with_preset("production")
         .auto_middleware(False)
         .build()
 )
@@ -83,7 +83,7 @@ async def my_lifespan(app: FastAPI):
 
 app = FastAPI(
     lifespan=FastAPIBuilder()
-        .with_preset("fastapi")
+        .with_preset("production")
         .wrap_lifespan(my_lifespan)
         .build()
 )
@@ -108,7 +108,7 @@ from fapilog.fastapi.logging import LoggingMiddleware
 
 app = FastAPI(
     lifespan=FastAPIBuilder()
-        .with_preset("fastapi")
+        .with_preset("production")
         .auto_middleware(False)
         .build()
 )
@@ -146,14 +146,14 @@ After: builder pattern.
 ```python
 app = FastAPI(
     lifespan=FastAPIBuilder()
-        .with_preset("fastapi")
+        .with_preset("production")
         .build()
 )
 ```
 
 ## Redaction
 
-The `fastapi` preset enables automatic redaction of sensitive fields by default:
+The `production` preset enables automatic redaction of sensitive fields by default:
 - `password`, `api_key`, `token`, `secret`, `authorization`
 - `api_secret`, `private_key`, `ssn`, `credit_card`
 

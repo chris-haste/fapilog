@@ -30,7 +30,7 @@ Use `AsyncLoggerFacade` for native async integration:
 from fapilog import get_async_logger
 
 async def main():
-    logger = await get_async_logger(preset="fastapi")
+    logger = await get_async_logger(preset="production")
 
     # Each call is a coroutine - enqueue is non-blocking
     await logger.info("Processing request", user_id=123)

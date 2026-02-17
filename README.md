@@ -105,9 +105,9 @@ logger.debug("Debugging info")
 logger = get_logger(preset="production")
 logger.info("User login", password="secret")  # password auto-redacted
 
-# FastAPI: Optimized for async with context propagation
-logger = await get_async_logger(preset="fastapi")
-await logger.info("Request handled", request_id="abc-123")
+# Adaptive: Auto-scaling workers, queue growth, circuit breakers
+logger = get_logger(preset="adaptive")
+logger.info("Handling traffic spike", request_id="abc-123")
 
 # Minimal: Matches default behavior (backwards compatible)
 logger = get_logger(preset="minimal")
@@ -117,13 +117,12 @@ logger = get_logger(preset="minimal")
 |--------|-----------|-------------|-------------|-----------|-------------|
 | `dev` | DEBUG | No | No | No | See every log instantly while debugging locally |
 | `production` | INFO | Never | Yes | Yes | Audit trails, compliance—never lose logs |
-| `production-latency` | INFO | If needed | No | Yes | High-throughput APIs—prioritize response time |
-| `fastapi` | INFO | If needed | No | Yes | Async apps with redaction, no file overhead |
+| `adaptive` | INFO | If needed | Yes | Yes | High-throughput with auto-scaling workers and circuit breakers |
 | `serverless` | INFO | If needed | No | Yes | Lambda/Cloud Functions with fast flush |
 | `hardened` | INFO | Never | Yes | Yes (HIPAA+PCI) | Regulated environments (HIPAA, PCI-DSS) |
 | `minimal` | INFO | Default | No | No | Migrating from another logger—start here |
 
-> **Security Note:** By default, only URL credentials (`user:pass@host`) are stripped. For full field redaction (passwords, API keys, tokens), use a preset like `production`/`fastapi` or configure redactors manually. See [redaction docs](docs/redaction/index.md).
+> **Security Note:** By default, only URL credentials (`user:pass@host`) are stripped. For full field redaction (passwords, API keys, tokens), use a preset like `production` or configure redactors manually. See [redaction docs](docs/redaction/index.md).
 
 See [docs/user-guide/presets.md](docs/user-guide/presets.md) for the full presets guide including decision matrix and trade-off explanations.
 

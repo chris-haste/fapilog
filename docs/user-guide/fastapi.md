@@ -82,7 +82,7 @@ from fapilog.fastapi import get_request_logger, setup_logging
 
 app = FastAPI(
     lifespan=setup_logging(
-        preset="fastapi",
+        preset="production",
         skip_paths=["/health"],
         sample_rate=1.0,
         include_headers=True,  # Sensitive headers redacted by default
@@ -104,7 +104,7 @@ The `setup_logging` one-liner supports the same header options as `LoggingMiddle
 ```python
 app = FastAPI(
     lifespan=setup_logging(
-        preset="fastapi",
+        preset="production",
         include_headers=True,  # Enable header logging
         additional_redact_headers=["X-Internal-Token"],  # Add to default redactions
     )
@@ -116,7 +116,7 @@ Or use allowlist mode to log only specific headers:
 ```python
 app = FastAPI(
     lifespan=setup_logging(
-        preset="fastapi",
+        preset="production",
         include_headers=True,
         allow_headers=["Content-Type", "Accept", "User-Agent"],  # Only these headers
     )
@@ -130,7 +130,7 @@ from fapilog.fastapi import setup_logging
 from fapilog.fastapi.context import RequestContextMiddleware
 from fapilog.fastapi.logging import LoggingMiddleware
 
-app = FastAPI(lifespan=setup_logging(preset="fastapi", auto_middleware=False))
+app = FastAPI(lifespan=setup_logging(preset="production", auto_middleware=False))
 app.add_middleware(RequestContextMiddleware)
 app.add_middleware(LoggingMiddleware)
 ```

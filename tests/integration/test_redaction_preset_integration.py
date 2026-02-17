@@ -206,21 +206,6 @@ class TestPresetWithEnvironmentPreset:
         assert "data.token" in fields_to_mask
 
     @pytest.mark.asyncio
-    async def test_fastapi_preset_applies_credentials(self) -> None:
-        """FastAPI preset automatically applies CREDENTIALS redaction preset."""
-        from fapilog import LoggerBuilder
-
-        builder = LoggerBuilder()
-        builder.with_preset("fastapi")
-
-        redactor_config = builder._config.get("redactor_config", {})
-        field_mask_config = redactor_config.get("field_mask", {})
-        fields_to_mask = field_mask_config.get("fields_to_mask", [])
-
-        # From CREDENTIALS preset (automatically applied)
-        assert "data.password" in fields_to_mask
-
-    @pytest.mark.asyncio
     async def test_serverless_preset_applies_credentials(self) -> None:
         """Serverless preset automatically applies CREDENTIALS redaction preset."""
         from fapilog import LoggerBuilder

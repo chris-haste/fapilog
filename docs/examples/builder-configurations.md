@@ -228,7 +228,7 @@ from fapilog import AsyncLoggerBuilder
 async def create_logger():
     return await (
         AsyncLoggerBuilder()
-        .with_preset("fastapi")
+        .with_preset("production")
         .with_app_name("api-service")
 
         # Context for all requests

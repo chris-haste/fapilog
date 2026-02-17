@@ -29,7 +29,7 @@ app = FastAPI(
     title="FastAPI + Fapilog Production Template",
     version="1.0.0",
     lifespan=setup_logging(
-        preset="fastapi",
+        preset="production",
         skip_paths=["/health", "/metrics"],  # Don't log health/metrics requests
     ),
 )

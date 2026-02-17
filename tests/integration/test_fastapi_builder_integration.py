@@ -17,7 +17,7 @@ class TestFastAPIBuilderLifecycle:
 
     def test_full_app_lifecycle(self) -> None:
         """Test that app starts and stops correctly with builder-configured logging."""
-        lifespan = FastAPIBuilder().with_preset("fastapi").build()
+        lifespan = FastAPIBuilder().with_preset("production").build()
         app = FastAPI(lifespan=lifespan)
 
         @app.get("/test")
@@ -31,7 +31,7 @@ class TestFastAPIBuilderLifecycle:
     def test_skip_paths_applied(self) -> None:
         """Test that skip_paths configuration is applied to middleware."""
         lifespan = (
-            FastAPIBuilder().with_preset("fastapi").skip_paths(["/health"]).build()
+            FastAPIBuilder().with_preset("production").skip_paths(["/health"]).build()
         )
         app = FastAPI(lifespan=lifespan)
 
@@ -50,7 +50,7 @@ class TestFastAPIBuilderLifecycle:
 
     def test_sample_rate_applied(self) -> None:
         """Test that sample_rate configuration is applied to middleware."""
-        lifespan = FastAPIBuilder().with_preset("fastapi").sample_rate(0.5).build()
+        lifespan = FastAPIBuilder().with_preset("production").sample_rate(0.5).build()
         app = FastAPI(lifespan=lifespan)
 
         @app.get("/test")
@@ -70,7 +70,7 @@ class TestFastAPIBuilderWithParentMethods:
         """Test combining parent and FastAPI-specific methods."""
         lifespan = (
             FastAPIBuilder()
-            .with_preset("fastapi")
+            .with_preset("production")
             .with_level("DEBUG")
             .skip_paths(["/health"])
             .sample_rate(1.0)
@@ -97,7 +97,7 @@ class TestEnvVarOverrideIntegration:
         """Test that env vars override code-specified values at build time."""
         monkeypatch.setenv("FAPILOG_FASTAPI__SKIP_PATHS", "/override")
 
-        builder = FastAPIBuilder().with_preset("fastapi").skip_paths(["/code-value"])
+        builder = FastAPIBuilder().with_preset("production").skip_paths(["/code-value"])
         lifespan = builder.build()
 
         # The builder's config should now have the env var value
@@ -124,7 +124,7 @@ class TestDeprecationWarningIntegration:
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            lifespan = setup_logging(preset="fastapi")
+            lifespan = setup_logging(preset="production")
 
             assert len(w) == 1
             assert issubclass(w[0].category, DeprecationWarning)
@@ -184,7 +184,7 @@ class TestBuildWithCustomSinks:
 
     def test_lifecycle_with_custom_sink(self) -> None:
         """Test app starts with custom sink added via builder."""
-        lifespan = FastAPIBuilder().with_preset("fastapi").add_stdout().build()
+        lifespan = FastAPIBuilder().with_preset("production").add_stdout().build()
         app = FastAPI(lifespan=lifespan)
 
         @app.get("/test")

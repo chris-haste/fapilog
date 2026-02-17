@@ -38,7 +38,7 @@ class FastAPIBuilder(AsyncLoggerBuilder):
         >>> from fapilog.fastapi import FastAPIBuilder
         >>> app = FastAPI(
         ...     lifespan=FastAPIBuilder()
-        ...         .with_preset("fastapi")
+        ...         .with_preset("production")
         ...         .skip_paths(["/health", "/metrics"])
         ...         .include_headers(["content-type"])
         ...         .build()
@@ -210,7 +210,7 @@ class FastAPIBuilder(AsyncLoggerBuilder):
             Callable that accepts a FastAPI app and returns an async context manager.
 
         Example:
-            >>> lifespan = FastAPIBuilder().with_preset("fastapi").build()
+            >>> lifespan = FastAPIBuilder().with_preset("production").build()
             >>> app = FastAPI(lifespan=lifespan)
         """
         # Emit warnings for env var overrides (AC5)

@@ -49,7 +49,7 @@ complete deployment guidance.
 
 Modify `main.py` to:
 
-- Change the preset (`fastapi`, `production`, `serverless`)
+- Change the preset (`production`, `adaptive`, `serverless`)
 - Add custom enrichers or redactors
 - Configure additional sinks (CloudWatch, Loki, etc.)
 - Adjust middleware settings (sampling, header redaction)
