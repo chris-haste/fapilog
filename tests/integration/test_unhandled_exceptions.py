@@ -5,21 +5,38 @@ from typing import Any
 
 import pytest
 
-from fapilog import get_logger
+import fapilog.core.errors as _errors_mod
 from fapilog.core.errors import capture_unhandled_exceptions
+from fapilog.core.logger import SyncLoggerFacade
 
 pytestmark = pytest.mark.integration
+
+
+@pytest.fixture(autouse=True)
+def _reset_unhandled_flag() -> None:
+    """Reset the module-level guard so the hook installs fresh each test."""
+    _errors_mod._unhandled_installed = False
 
 
 @pytest.mark.asyncio
 async def test_unhandled_async_exception_is_captured() -> None:
     captured: list[dict[str, Any]] = []
-    logger = get_logger(name="unhandled-test")
 
     async def capture(entry: dict[str, Any]) -> None:
         captured.append(entry)
 
-    logger._sink_write = capture  # type: ignore[attr-defined]
+    logger = SyncLoggerFacade(
+        name="unhandled-test",
+        queue_capacity=100,
+        batch_max_size=10,
+        batch_timeout_seconds=0.05,
+        backpressure_wait_ms=5,
+        drop_on_full=True,
+        sink_write=capture,
+        enrichers=[],
+        metrics=None,
+    )
+    logger.start()
 
     # Install hooks
     capture_unhandled_exceptions(logger)

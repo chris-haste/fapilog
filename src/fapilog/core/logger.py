@@ -1217,6 +1217,19 @@ class _LoggerMixin(_WorkerCountersMixin):
 
             self._worker_thread = None
             self._worker_loop = None
+
+        # Count any events still in the queue as dropped.
+        # This can happen when events are enqueued concurrently with drain
+        # after workers have completed their final pass.
+        orphaned = 0
+        while True:
+            ok, _ = self._queue.try_dequeue()
+            if not ok:
+                break
+            orphaned += 1
+        if orphaned:
+            self._dropped += orphaned
+
         self._drained = True
         flush_latency = time.perf_counter() - start
         return DrainResult(
