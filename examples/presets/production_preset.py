@@ -4,7 +4,7 @@ The production preset is optimized for production with:
 - INFO log level
 - File rotation (50MB, 10 files, compressed)
 - Automatic redaction of sensitive fields
-- Optimized batching (batch_size=100)
+- Optimized batching (batch_size=256)
 - No log drops under pressure (drop_on_full=False)
 """
 

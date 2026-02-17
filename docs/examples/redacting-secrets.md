@@ -78,7 +78,7 @@ logger = LoggerBuilder().with_redaction(preset=["HIPAA_PHI", "PCI_DSS"]).build()
 
 Notes:
 - Default `get_logger()` only redacts URL credentials (`user:pass@host`)
-- Use `preset="production"` or `preset="fastapi"` for full field redaction
+- Use `preset="production"` or `preset="hardened"` for full field redaction
 - Configure custom fields with `.with_redaction(fields=[...])`
 - Use compliance presets for regulation-specific protection
 

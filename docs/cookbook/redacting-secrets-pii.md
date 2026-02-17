@@ -12,7 +12,7 @@ from fapilog.fastapi import FastAPIBuilder
 
 app = FastAPI(
     lifespan=FastAPIBuilder()
-        .with_preset("fastapi")
+        .with_preset("production")
         .build()
 )
 ```
@@ -45,7 +45,7 @@ The default configuration prioritizes safety without being overly aggressive. UR
 
 ### Full Protection with Presets
 
-The `production`, `fastapi`, and `serverless` presets automatically apply the `CREDENTIALS` redaction preset, which masks:
+The `production`, `adaptive`, and `serverless` presets automatically apply the `CREDENTIALS` redaction preset, which masks:
 
 - Passwords: `password`, `passwd`, `pwd`
 - API keys: `api_key`, `apikey`, `api_token`

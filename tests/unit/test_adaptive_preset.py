@@ -46,19 +46,54 @@ class TestAdaptivePresetContent:
         assert config["adaptive"]["batch_sizing"] is False
 
     def test_adaptive_preset_sets_max_workers(self) -> None:
-        """Adaptive preset sets max_workers to 8."""
+        """Adaptive preset sets max_workers to 4."""
         config = get_preset("adaptive")
-        assert config["adaptive"]["max_workers"] == 8
+        assert config["adaptive"]["max_workers"] == 4
 
     def test_adaptive_preset_sets_max_queue_growth(self) -> None:
-        """Adaptive preset sets max_queue_growth to 4.0."""
+        """Adaptive preset sets max_queue_growth to 3.0."""
         config = get_preset("adaptive")
-        assert config["adaptive"]["max_queue_growth"] == 4.0
+        assert config["adaptive"]["max_queue_growth"] == 3.0
 
     def test_adaptive_preset_sets_circuit_pressure_boost(self) -> None:
-        """Adaptive preset sets circuit_pressure_boost to 0.20."""
+        """Adaptive preset sets circuit_pressure_boost to 0.25."""
         config = get_preset("adaptive")
-        assert config["adaptive"]["circuit_pressure_boost"] == 0.20
+        assert config["adaptive"]["circuit_pressure_boost"] == 0.25
+
+    def test_adaptive_preset_sets_cooldown_seconds(self) -> None:
+        """Adaptive preset sets cooldown_seconds to 1.0."""
+        config = get_preset("adaptive")
+        assert config["adaptive"]["cooldown_seconds"] == 1.0
+
+    def test_adaptive_preset_sets_check_interval_seconds(self) -> None:
+        """Adaptive preset sets check_interval_seconds to 0.25."""
+        config = get_preset("adaptive")
+        assert config["adaptive"]["check_interval_seconds"] == 0.25
+
+    def test_adaptive_preset_has_batch_max_size_256(self) -> None:
+        """Adaptive preset sets batch_max_size to 256."""
+        config = get_preset("adaptive")
+        assert config["core"]["batch_max_size"] == 256
+
+    def test_adaptive_preset_has_max_queue_size_10000(self) -> None:
+        """Adaptive preset sets max_queue_size to 10000."""
+        config = get_preset("adaptive")
+        assert config["core"]["max_queue_size"] == 10000
+
+    def test_adaptive_preset_has_sink_concurrency_8(self) -> None:
+        """Adaptive preset sets sink_concurrency to 8."""
+        config = get_preset("adaptive")
+        assert config["core"]["sink_concurrency"] == 8
+
+    def test_adaptive_preset_has_shutdown_timeout_25(self) -> None:
+        """Adaptive preset sets shutdown_timeout_seconds to 25.0."""
+        config = get_preset("adaptive")
+        assert config["core"]["shutdown_timeout_seconds"] == 25.0
+
+    def test_adaptive_preset_has_batch_timeout_025(self) -> None:
+        """Adaptive preset sets batch_timeout_seconds to 0.25."""
+        config = get_preset("adaptive")
+        assert config["core"]["batch_timeout_seconds"] == 0.25
 
     def test_adaptive_preset_enables_drop_on_full(self) -> None:
         """Adaptive preset enables drop_on_full for latency."""
@@ -125,9 +160,9 @@ class TestAdaptivePresetProtectedLevels:
     """AC1: Protected levels configured."""
 
     def test_adaptive_preset_has_protected_levels(self) -> None:
-        """Adaptive preset protects ERROR, CRITICAL, FATAL, AUDIT, SECURITY."""
+        """Adaptive preset protects ERROR, CRITICAL."""
         config = get_preset("adaptive")
-        expected = ["ERROR", "CRITICAL", "FATAL", "AUDIT", "SECURITY"]
+        expected = ["ERROR", "CRITICAL"]
         assert config["core"]["protected_levels"] == expected
 
 
@@ -141,14 +176,18 @@ class TestAdaptivePresetToSettings:
         assert settings.core.log_level == "INFO"
         assert settings.adaptive.enabled is True
         assert settings.adaptive.batch_sizing is False
-        assert settings.adaptive.max_workers == 8
+        assert settings.adaptive.max_workers == 4
+        assert settings.adaptive.max_queue_growth == 3.0
+        assert settings.adaptive.circuit_pressure_boost == 0.25
+        assert settings.core.batch_max_size == 256
+        assert settings.core.shutdown_timeout_seconds == 25.0
 
     def test_adaptive_preset_returns_deep_copy(self) -> None:
         """get_preset returns a copy, not the original dict."""
         config1 = get_preset("adaptive")
         config2 = get_preset("adaptive")
         config1["adaptive"]["max_workers"] = 99
-        assert config2["adaptive"]["max_workers"] == 8
+        assert config2["adaptive"]["max_workers"] == 4
 
 
 class TestPresetNameLiteralIncludesAdaptive:

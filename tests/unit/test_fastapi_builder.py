@@ -20,7 +20,7 @@ class TestFastAPIBuilderInheritance:
 
     def test_inherits_with_preset_method(self) -> None:
         builder = FastAPIBuilder()
-        result = builder.with_preset("fastapi")
+        result = builder.with_preset("production")
         assert result is builder
 
     def test_inherits_with_level_method(self) -> None:
@@ -152,7 +152,7 @@ class TestBuildReturnsLifespan:
     """AC8: build() returns a callable that works as FastAPI lifespan."""
 
     def test_build_returns_callable(self) -> None:
-        builder = FastAPIBuilder().with_preset("fastapi")
+        builder = FastAPIBuilder().with_preset("production")
         lifespan = builder.build()
         assert callable(lifespan)
 
@@ -163,7 +163,7 @@ class TestMethodChaining:
     def test_full_chain(self) -> None:
         builder = (
             FastAPIBuilder()
-            .with_preset("fastapi")
+            .with_preset("production")
             .with_level("DEBUG")
             .skip_paths(["/health", "/metrics"])
             .include_headers(["content-type"])
@@ -253,7 +253,7 @@ class TestDeprecationWarning:
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            setup_logging(preset="fastapi")
+            setup_logging(preset="production")
             assert len(w) == 1
             assert issubclass(w[0].category, DeprecationWarning)
             assert "setup_logging() is deprecated" in str(w[0].message)
@@ -390,7 +390,7 @@ class TestBuildOverrideWarnings:
 
         monkeypatch.setattr("fapilog.fastapi.builder.warn", mock_warn)
 
-        builder = FastAPIBuilder().with_preset("fastapi").sample_rate(1.0)
+        builder = FastAPIBuilder().with_preset("production").sample_rate(1.0)
         builder.build()
 
         assert len(warnings_emitted) == 1
@@ -403,7 +403,7 @@ class TestBuildWithSinks:
 
     def test_build_with_sink_config(self) -> None:
         """Test that sinks are properly configured in build."""
-        builder = FastAPIBuilder().with_preset("fastapi").add_stdout()
+        builder = FastAPIBuilder().with_preset("production").add_stdout()
         lifespan = builder.build()
         assert callable(lifespan)
         # Verify sink was added to builder
@@ -411,7 +411,7 @@ class TestBuildWithSinks:
 
     def test_build_merges_sink_with_preset(self) -> None:
         """Test that custom sinks merge with preset sinks."""
-        builder = FastAPIBuilder().with_preset("fastapi")
+        builder = FastAPIBuilder().with_preset("production")
         # Add another stdout sink to trigger merge logic
         builder.add_stdout()
         lifespan = builder.build()
@@ -428,7 +428,7 @@ class TestLifespanExecution:
         """Test lifespan executes correctly with a preset."""
         from fastapi import FastAPI
 
-        builder = FastAPIBuilder().with_preset("fastapi")
+        builder = FastAPIBuilder().with_preset("production")
         lifespan = builder.build()
         app = FastAPI()
 
@@ -458,7 +458,7 @@ class TestLifespanExecution:
         """Test lifespan with custom sink configuration."""
         from fastapi import FastAPI
 
-        builder = FastAPIBuilder().with_preset("fastapi").add_stdout()
+        builder = FastAPIBuilder().with_preset("production").add_stdout()
         lifespan = builder.build()
         app = FastAPI()
 
@@ -472,7 +472,7 @@ class TestLifespanExecution:
         from fastapi import FastAPI
 
         # Create builder with preset and add sink with config
-        builder = FastAPIBuilder().with_preset("fastapi")
+        builder = FastAPIBuilder().with_preset("production")
         # Manually add a sink with config to test the merge path
         builder._sinks.append({"name": "stdout", "config": {"format": "json"}})
         lifespan = builder.build()
@@ -487,7 +487,7 @@ class TestLifespanExecution:
         """Test that lifespan drains logger on exit."""
         from fastapi import FastAPI
 
-        builder = FastAPIBuilder().with_preset("fastapi")
+        builder = FastAPIBuilder().with_preset("production")
         lifespan = builder.build()
         app = FastAPI()
 
@@ -505,7 +505,7 @@ class TestLifespanExecution:
 
         builder = (
             FastAPIBuilder()
-            .with_preset("fastapi")
+            .with_preset("production")
             .skip_paths(["/health"])
             .sample_rate(0.5)
             .log_errors_on_skip(False)
@@ -523,7 +523,7 @@ class TestLifespanExecution:
         """Test that lifespan clears middleware_stack for rebuild."""
         from fastapi import FastAPI
 
-        builder = FastAPIBuilder().with_preset("fastapi")
+        builder = FastAPIBuilder().with_preset("production")
         lifespan = builder.build()
         app = FastAPI()
         # Simulate existing middleware stack

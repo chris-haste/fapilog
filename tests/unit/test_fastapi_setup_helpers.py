@@ -261,12 +261,14 @@ def test_setup_logging_wraps_lifespan_and_drains(monkeypatch) -> None:
         yield
         events.append("user_stop")
 
-    app = FastAPI(lifespan=setup_logging(wrap_lifespan=user_lifespan, preset="fastapi"))
+    app = FastAPI(
+        lifespan=setup_logging(wrap_lifespan=user_lifespan, preset="production")
+    )
 
     with TestClient(app):
         pass
 
-    assert events == ["start:fastapi:fastapi", "user_start", "user_stop", "drain"]
+    assert events == ["start:fastapi:production", "user_start", "user_stop", "drain"]
 
 
 def test_setup_logging_auto_middleware_false_skips_wiring(monkeypatch) -> None:

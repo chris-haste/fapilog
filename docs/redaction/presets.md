@@ -79,14 +79,14 @@ logger = (
 
 ### Environment Presets with Redaction
 
-The `production`, `production-latency`, `fastapi`, and `serverless` environment presets automatically apply the `CREDENTIALS` preset:
+The `production`, `adaptive`, and `serverless` environment presets automatically apply the `CREDENTIALS` preset:
 
 ```python
 from fapilog import get_logger
 
 # Automatically redacts passwords, API keys, tokens
 logger = get_logger(preset="production")
-logger = get_logger(preset="production-latency")  # Same redaction, optimized for latency
+logger = get_logger(preset="adaptive")  # Same redaction, with auto-scaling
 ```
 
 The `hardened` preset applies comprehensive redaction from HIPAA_PHI, PCI_DSS, and CREDENTIALS presets:

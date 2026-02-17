@@ -18,7 +18,7 @@ When `drop_on_full=False` is configured with `SyncLoggerFacade`, a diagnostic wa
 ## Redaction defaults
 
 - **With no preset**: URL credential redaction is **enabled by default** (`core.redactors=["url_credentials"]`). This provides secure defaults by automatically scrubbing credentials from URLs in log output.
-- **With `preset="production"`, `preset="fastapi"`, or `preset="serverless"`**: Enables `field_mask`, `regex_mask`, and `url_credentials` in that order.
+- **With `preset="production"`, `preset="adaptive"`, or `preset="serverless"`**: Enables `field_mask`, `regex_mask`, and `url_credentials` in that order.
   - `field_mask`: Masks specific `data.*` fields (password, api_key, token, etc.)
   - `regex_mask`: Matches any field path containing sensitive keywords (password, secret, token, etc.)
   - `url_credentials`: Strips userinfo from URLs

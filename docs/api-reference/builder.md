@@ -37,7 +37,7 @@ from fapilog import AsyncLoggerBuilder
 
 logger = await (
     AsyncLoggerBuilder()
-    .with_preset("fastapi")
+    .with_preset("production")
     .add_stdout()
     .build_async()
 )
@@ -94,7 +94,7 @@ Settings(core=CoreSettings(log_level="INFO"))
 Apply a preset configuration. Preset is applied first, then subsequent methods override specific values.
 
 **Parameters:**
-- `preset` (str): Preset name - `"dev"`, `"production"`, `"production-latency"`, `"adaptive"`, `"fastapi"`, `"serverless"`, `"hardened"`, `"minimal"`
+- `preset` (str): Preset name - `"dev"`, `"minimal"`, `"production"`, `"adaptive"`, `"serverless"`, `"hardened"`
 
 **Returns:** `Self`
 
@@ -111,17 +111,15 @@ builder.with_preset("production")
 | Preset | Log Level | File Logging | Redaction | Batch Size | Workers |
 |--------|-----------|--------------|-----------|------------|---------|
 | `dev` | DEBUG | No | No | 1 (immediate) | 1 |
-| `production` | INFO | Yes (50MB rotation) | Yes | 100 | 2 |
-| `production-latency` | INFO | No | Yes | 100 | 2 |
+| `minimal` | INFO | No | No | 256 | 1 |
+| `production` | INFO | Yes (50MB rotation) | Yes | 256 | 2 |
 | `adaptive` | INFO | Yes (50MB rotation) | Yes | 100 | 2 (up to 8) |
-| `fastapi` | INFO | No | Yes | 50 | 2 |
 | `serverless` | INFO | No | Yes | 25 | 2 |
 | `hardened` | INFO | Yes (50MB rotation) | Yes | 100 | 2 |
-| `minimal` | INFO | No | No | 256 | 1 |
 
 > **Performance note:** Production-oriented presets use 2 workers for ~30x better throughput. See [Performance Tuning](../user-guide/performance-tuning.md) for details.
 >
-> **Choosing a preset:** See [Presets Guide](../user-guide/presets.md) for a decision matrix and detailed comparison of `production` vs `production-latency`.
+> **Choosing a preset:** See [Presets Guide](../user-guide/presets.md) for a decision matrix and detailed comparison of presets.
 
 ---
 
@@ -708,7 +706,7 @@ Set number of worker tasks for flush processing.
 | 1 | ~3,500/sec |
 | 2 | ~105,000/sec (+30x) |
 
-**Recommendation:** Use 2 workers for production. Production-oriented presets (`production`, `fastapi`, `serverless`, `hardened`) default to 2 workers automatically.
+**Recommendation:** Use 2 workers for production. Production-oriented presets (`production`, `adaptive`, `serverless`, `hardened`) default to 2 workers automatically.
 
 **Example:**
 ```python

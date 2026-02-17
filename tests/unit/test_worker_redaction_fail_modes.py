@@ -114,7 +114,7 @@ class TestRedactionFailModePresets:
         """FastAPI preset sets redaction_fail_mode to 'warn'."""
         from fapilog.core.presets import get_preset
 
-        preset = get_preset("fastapi")
+        preset = get_preset("production")
         assert preset["core"]["redaction_fail_mode"] == "warn"
 
     def test_serverless_preset_defaults_to_warn(self) -> None:

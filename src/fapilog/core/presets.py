@@ -8,12 +8,9 @@ from typing import Any, Literal
 PresetName = Literal[
     "adaptive",
     "dev",
-    "fastapi",
     "hardened",
-    "high-volume",
     "minimal",
     "production",
-    "production-latency",
     "serverless",
 ]
 
@@ -22,22 +19,28 @@ PRESETS: dict[str, dict[str, Any]] = {
         "core": {
             "log_level": "INFO",
             "worker_count": 2,
-            "batch_max_size": 100,
+            "batch_max_size": 256,
+            "max_queue_size": 10000,
+            "sink_concurrency": 8,
+            "shutdown_timeout_seconds": 25.0,
+            "batch_timeout_seconds": 0.25,
             "drop_on_full": True,
             "redaction_fail_mode": "warn",
             "sinks": ["stdout_json", "rotating_file"],
             "enrichers": ["runtime_info", "context_vars"],
             "redactors": ["field_mask", "regex_mask", "url_credentials"],
-            "protected_levels": ["ERROR", "CRITICAL", "FATAL", "AUDIT", "SECURITY"],
+            "protected_levels": ["ERROR", "CRITICAL"],
             "sink_circuit_breaker_enabled": True,
             "sink_circuit_breaker_fallback_sink": "rotating_file",
         },
         "adaptive": {
             "enabled": True,
-            "max_workers": 8,
-            "max_queue_growth": 4.0,
+            "max_workers": 4,
+            "max_queue_growth": 3.0,
             "batch_sizing": False,
-            "circuit_pressure_boost": 0.20,
+            "circuit_pressure_boost": 0.25,
+            "cooldown_seconds": 1.0,
+            "check_interval_seconds": 0.25,
         },
         "sink_config": {
             "rotating_file": {
@@ -83,7 +86,8 @@ PRESETS: dict[str, dict[str, Any]] = {
         "core": {
             "log_level": "INFO",
             "worker_count": 2,  # 30x throughput improvement over default (Story 10.44)
-            "batch_max_size": 100,
+            "batch_max_size": 256,
+            "shutdown_timeout_seconds": 25.0,
             "drop_on_full": False,
             "redaction_fail_mode": "warn",
             "sinks": ["stdout_json", "rotating_file"],
@@ -116,50 +120,6 @@ PRESETS: dict[str, dict[str, Any]] = {
         # Marker for automatic CREDENTIALS preset application
         "_apply_credentials_preset": True,
     },
-    "production-latency": {
-        "core": {
-            "log_level": "INFO",
-            "worker_count": 2,  # Multi-worker throughput
-            "batch_max_size": 100,
-            "drop_on_full": True,  # KEY DIFFERENCE: Accept drops for latency
-            "redaction_fail_mode": "warn",
-            "sinks": ["stdout_json"],  # No file sink for minimal I/O latency
-            "enrichers": ["runtime_info", "context_vars"],
-            "redactors": ["field_mask", "regex_mask", "url_credentials"],
-        },
-        "enricher_config": {
-            "runtime_info": {},
-            "context_vars": {},
-        },
-        "redactor_config": {
-            "field_mask": {},
-            "regex_mask": {},
-            "url_credentials": {},
-        },
-        "_apply_credentials_preset": True,
-    },
-    "fastapi": {
-        "core": {
-            "log_level": "INFO",
-            "worker_count": 2,  # 30x throughput improvement over default (Story 10.44)
-            "batch_max_size": 50,
-            "redaction_fail_mode": "warn",
-            "sinks": ["stdout_json"],
-            "enrichers": ["context_vars"],
-            "redactors": ["field_mask", "regex_mask", "url_credentials"],
-        },
-        "enricher_config": {
-            "context_vars": {},
-        },
-        "redactor_config": {
-            # Minimal config - CREDENTIALS preset applied automatically
-            # via with_preset("fastapi") -> with_redaction(preset="CREDENTIALS")
-            "field_mask": {},
-            "regex_mask": {},
-            "url_credentials": {},
-        },
-        "_apply_credentials_preset": True,
-    },
     "minimal": {
         "core": {
             "redactors": [],  # Explicit opt-out for minimal overhead
@@ -183,30 +143,6 @@ PRESETS: dict[str, dict[str, Any]] = {
         "redactor_config": {
             # Minimal config - CREDENTIALS preset applied automatically
             # via with_preset("serverless") -> with_redaction(preset="CREDENTIALS")
-            "field_mask": {},
-            "regex_mask": {},
-            "url_credentials": {},
-        },
-        "_apply_credentials_preset": True,
-    },
-    "high-volume": {
-        "core": {
-            "log_level": "INFO",
-            "worker_count": 2,  # Throughput for high-volume scenarios
-            "batch_max_size": 100,
-            "drop_on_full": True,  # Accept drops for latency (Story 10.49)
-            "redaction_fail_mode": "warn",
-            "sinks": ["stdout_json"],
-            "enrichers": ["runtime_info", "context_vars"],
-            "redactors": ["field_mask", "regex_mask", "url_credentials"],
-            # protected_levels defaults to ["ERROR", "CRITICAL", "FATAL"]
-            # handled via PriorityAwareQueue (queue-based, not filter-based)
-        },
-        "enricher_config": {
-            "runtime_info": {},
-            "context_vars": {},
-        },
-        "redactor_config": {
             "field_mask": {},
             "regex_mask": {},
             "url_credentials": {},
@@ -280,7 +216,7 @@ def get_preset(name: PresetName) -> dict[str, Any]:
     """Get preset configuration by name.
 
     Args:
-        name: Preset name (dev, production, fastapi, minimal, serverless)
+        name: Preset name (dev, production, adaptive, minimal, serverless, hardened)
 
     Returns:
         Settings-compatible configuration dict (deep copy)

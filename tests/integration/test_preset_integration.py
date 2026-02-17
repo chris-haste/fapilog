@@ -12,7 +12,7 @@ from typing import Any
 
 import pytest
 
-from fapilog import get_async_logger, get_logger
+from fapilog import get_logger
 
 
 def _swap_stdout_bytesio() -> tuple[io.BytesIO, Any]:
@@ -110,43 +110,6 @@ class TestDevPresetIntegration:
             sys.stdout = orig  # type: ignore[assignment]
 
 
-class TestFastAPIPresetIntegration:
-    """Test fastapi preset end-to-end behavior."""
-
-    @pytest.mark.asyncio
-    async def test_fastapi_preset_async_logger_works(self):
-        """FastAPI preset works with async logger."""
-        buf, orig = _swap_stdout_bytesio()
-        try:
-            logger = await get_async_logger(preset="fastapi")
-            await logger.info("async message from fastapi preset")
-            # Allow workers to pick up the message (worker_count=2)
-            await asyncio.sleep(0.3)
-            await logger.drain()
-            sys.stdout.flush()
-            output = buf.getvalue().decode("utf-8")
-            assert "async message from fastapi preset" in output
-        finally:
-            sys.stdout = orig  # type: ignore[assignment]
-
-    def test_fastapi_preset_sync_logger_works(self):
-        """FastAPI preset also works with sync logger."""
-        import time
-
-        buf, orig = _swap_stdout_bytesio()
-        try:
-            logger = get_logger(preset="fastapi")
-            logger.info("sync message from fastapi preset")
-            # Allow workers to pick up the message (worker_count=2)
-            time.sleep(0.3)
-            asyncio.run(logger.stop_and_drain())
-            sys.stdout.flush()
-            output = buf.getvalue().decode("utf-8")
-            assert "sync message from fastapi preset" in output
-        finally:
-            sys.stdout = orig  # type: ignore[assignment]
-
-
 class TestMinimalPresetIntegration:
     """Test minimal preset matches default behavior."""
 
@@ -209,16 +172,6 @@ class TestPresetWorkerCountIntegration:
         finally:
             os.chdir(original_cwd)
 
-    def test_fastapi_preset_spawns_two_workers(self):
-        """Logger built with fastapi preset has 2 workers."""
-        buf, orig = _swap_stdout_bytesio()
-        try:
-            logger = get_logger(preset="fastapi")
-            assert logger._num_workers == 2  # noqa: SLF001
-            asyncio.run(logger.stop_and_drain())
-        finally:
-            sys.stdout = orig  # type: ignore[assignment]
-
     def test_serverless_preset_spawns_two_workers(self):
         """Logger built with serverless preset has 2 workers."""
         buf, orig = _swap_stdout_bytesio()
@@ -270,93 +223,6 @@ class TestPresetWorkerCountIntegration:
             asyncio.run(logger.stop_and_drain())
         finally:
             os.chdir(original_cwd)
-
-
-class TestHighVolumePresetIntegration:
-    """Test high-volume preset end-to-end behavior.
-
-    Story 10.49: Add high-volume preset with adaptive sampling for
-    cost-effective logging during normal operation with full visibility
-    during incidents.
-    """
-
-    def test_high_volume_preset_creates_working_logger(self):
-        """High-volume preset creates a working logger.
-
-        Story 10.49 AC1: Users can create logger with preset="high-volume".
-        """
-        buf, orig = _swap_stdout_bytesio()
-        try:
-            logger = get_logger(preset="high-volume")
-            logger.info("high volume test message")
-            asyncio.run(logger.stop_and_drain())
-            sys.stdout.flush()
-            output = buf.getvalue().decode("utf-8")
-            assert "high volume test message" in output
-        finally:
-            sys.stdout = orig  # type: ignore[assignment]
-
-    def test_high_volume_preset_spawns_two_workers(self):
-        """Logger built with high-volume preset has 2 workers."""
-        buf, orig = _swap_stdout_bytesio()
-        try:
-            logger = get_logger(preset="high-volume")
-            assert logger._num_workers == 2  # noqa: SLF001
-            asyncio.run(logger.stop_and_drain())
-        finally:
-            sys.stdout = orig  # type: ignore[assignment]
-
-    def test_high_volume_preset_errors_always_pass(self):
-        """High-volume preset never drops ERROR or higher levels.
-
-        Story 1.37: Errors are protected via PriorityAwareQueue.
-        When queue is under pressure, protected levels (ERROR, CRITICAL, FATAL)
-        are preserved by evicting unprotected events.
-        """
-        buf, orig = _swap_stdout_bytesio()
-        try:
-            logger = get_logger(preset="high-volume")
-            # Log multiple error messages - they should all pass
-            for i in range(5):
-                logger.error(f"error message {i}")
-            asyncio.run(logger.stop_and_drain())
-            sys.stdout.flush()
-            output = buf.getvalue().decode("utf-8")
-            # All error messages should be present (protected from drops)
-            for i in range(5):
-                assert f"error message {i}" in output
-        finally:
-            sys.stdout = orig  # type: ignore[assignment]
-
-    def test_high_volume_preset_redacts_credentials(self):
-        """High-volume preset applies CREDENTIALS redaction preset."""
-        buf, orig = _swap_stdout_bytesio()
-        try:
-            logger = get_logger(preset="high-volume")
-            logger.info("api call", password="secret123", api_key="key456")
-            asyncio.run(logger.stop_and_drain())
-            sys.stdout.flush()
-            output = buf.getvalue().decode("utf-8")
-            # Credentials should be redacted
-            assert "secret123" not in output
-            assert "key456" not in output
-        finally:
-            sys.stdout = orig  # type: ignore[assignment]
-
-    @pytest.mark.asyncio
-    async def test_high_volume_preset_async_logger_works(self):
-        """High-volume preset works with async logger."""
-        buf, orig = _swap_stdout_bytesio()
-        try:
-            logger = await get_async_logger(preset="high-volume")
-            await logger.info("async high volume message")
-            await asyncio.sleep(0.3)  # Allow workers to process
-            await logger.drain()
-            sys.stdout.flush()
-            output = buf.getvalue().decode("utf-8")
-            assert "async high volume message" in output
-        finally:
-            sys.stdout = orig  # type: ignore[assignment]
 
 
 class TestPresetPerformance:

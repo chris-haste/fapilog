@@ -12,7 +12,7 @@ from fapilog.fastapi import FastAPIBuilder
 
 app = FastAPI(
     lifespan=FastAPIBuilder()
-        .with_preset("fastapi")
+        .with_preset("production")
         .skip_paths(["/health", "/healthz", "/ready", "/live", "/metrics"])
         .include_headers(["content-type", "accept", "user-agent", "x-request-id"])
         .build()
@@ -20,7 +20,7 @@ app = FastAPI(
 ```
 
 This configuration:
-- Uses the optimized `fastapi` preset (2 workers, JSON output, credential redaction)
+- Uses the optimized `production` preset (2 workers, JSON output, credential redaction)
 - Skips Kubernetes probes and Prometheus metrics
 - Logs only safe headers via allowlist (no accidental credential leaks)
 
@@ -30,17 +30,16 @@ Choose based on your traffic patterns and deployment environment:
 
 | Preset | Best For | Key Features |
 |--------|----------|--------------|
-| `fastapi` | Most microservices | Balanced throughput, JSON output, credential redaction |
-| `high-volume` | >1000 req/sec | Protected levels, drops for latency |
+| `production` | Most microservices | Balanced throughput, JSON output, credential redaction |
+| `adaptive` | >1000 req/sec | Protected levels, adaptive scaling, drops for latency |
 | `serverless` | Cloud Run, Lambda | Smaller batches, fast drain, drop-tolerant |
-| `production-latency` | Latency-critical APIs | Drops over blocking, no file I/O |
 
 ### Standard Microservice (100-1000 req/sec)
 
 ```python
 app = FastAPI(
     lifespan=FastAPIBuilder()
-        .with_preset("fastapi")
+        .with_preset("production")
         .skip_paths(["/health", "/healthz", "/ready", "/live", "/metrics"])
         .build()
 )
@@ -51,14 +50,14 @@ app = FastAPI(
 ```python
 app = FastAPI(
     lifespan=FastAPIBuilder()
-        .with_preset("high-volume")  # Protected levels survive queue pressure
+        .with_preset("adaptive")  # Protected levels survive queue pressure
         .with_adaptive_sampling(target_events_per_sec=100)  # Optional: add sampling
         .skip_paths(["/health", "/healthz", "/ready", "/live", "/metrics"])
         .build()
 )
 ```
 
-The `high-volume` preset protects ERROR/CRITICAL/FATAL from queue drops. Add `.with_adaptive_sampling()` for cost control during traffic spikes. See [Adaptive Sampling](adaptive-sampling-high-volume.md) for details.
+The `adaptive` preset protects ERROR/CRITICAL from queue drops. Add `.with_adaptive_sampling()` for cost control during traffic spikes. See [Adaptive Sampling](adaptive-sampling-high-volume.md) for details.
 
 ### Environment-Based Selection
 
@@ -67,7 +66,7 @@ import os
 from fastapi import FastAPI
 from fapilog.fastapi import FastAPIBuilder
 
-PRESET = os.getenv("FAPILOG_PRESET", "fastapi")
+PRESET = os.getenv("FAPILOG_PRESET", "production")
 
 app = FastAPI(
     lifespan=FastAPIBuilder()
@@ -83,10 +82,10 @@ Set via environment:
 FAPILOG_PRESET=dev
 
 # Standard production
-FAPILOG_PRESET=fastapi
+FAPILOG_PRESET=production
 
 # High-traffic periods
-FAPILOG_PRESET=high-volume
+FAPILOG_PRESET=adaptive
 ```
 
 ## Kubernetes Deployments
@@ -113,7 +112,7 @@ OBSERVABILITY_PATHS = [
 
 app = FastAPI(
     lifespan=FastAPIBuilder()
-        .with_preset("fastapi")
+        .with_preset("production")
         .skip_paths(KUBERNETES_PROBES + OBSERVABILITY_PATHS)
         .build()
 )
@@ -129,7 +128,7 @@ from fapilog import LoggerBuilder
 # For memory-constrained pods (256-512MB)
 logger = (
     LoggerBuilder()
-    .with_preset("fastapi")
+    .with_preset("production")
     .with_batch_size(25)      # Smaller batches
     .with_queue_size(1000)    # Limit memory usage
     .build()
@@ -138,7 +137,7 @@ logger = (
 # For larger pods (1GB+)
 logger = (
     LoggerBuilder()
-    .with_preset("fastapi")
+    .with_preset("production")
     .with_batch_size(100)
     .with_queue_size(10000)
     .build()
@@ -166,7 +165,7 @@ spec:
 The `FastAPIBuilder` lifespan handles drain automatically:
 ```python
 # No manual drain needed - handled by lifespan
-app = FastAPI(lifespan=FastAPIBuilder().with_preset("fastapi").build())
+app = FastAPI(lifespan=FastAPIBuilder().with_preset("production").build())
 ```
 
 ## Serverless Containers
@@ -320,7 +319,7 @@ Log only known-safe headers:
 ```python
 app = FastAPI(
     lifespan=FastAPIBuilder()
-        .with_preset("fastapi")
+        .with_preset("production")
         .include_headers([
             "content-type",
             "accept",
@@ -348,7 +347,7 @@ from fapilog.fastapi.logging import LoggingMiddleware
 
 app = FastAPI(
     lifespan=FastAPIBuilder()
-        .with_preset("fastapi")
+        .with_preset("production")
         .build()
 )
 app.add_middleware(
@@ -376,7 +375,7 @@ from fapilog import LoggerBuilder
 
 logger = (
     LoggerBuilder()
-    .with_preset("fastapi")
+    .with_preset("production")
     .add_loki(
         url="http://loki:3100/loki/api/v1/push",
         labels={"app": "my-service", "env": "production"},
@@ -393,7 +392,7 @@ from fapilog import LoggerBuilder
 
 logger = (
     LoggerBuilder()
-    .with_preset("fastapi")
+    .with_preset("production")
     .add_cloudwatch(
         log_group="/app/my-service",
         log_stream="production",
@@ -410,7 +409,7 @@ from fapilog import LoggerBuilder
 
 logger = (
     LoggerBuilder()
-    .with_preset("fastapi")
+    .with_preset("production")
     .add_stdout_json(
         # Datadog-compatible fields
         extra_fields={
@@ -432,7 +431,7 @@ from fastapi import FastAPI, Depends
 from fapilog.fastapi import FastAPIBuilder, get_request_logger
 
 # Configuration from environment
-PRESET = os.getenv("FAPILOG_PRESET", "fastapi")
+PRESET = os.getenv("FAPILOG_PRESET", "production")
 SKIP_PATHS = [
     "/health", "/healthz",
     "/ready", "/readiness",
@@ -472,7 +471,7 @@ The adaptive pipeline works out-of-the-box with all defaults. Because fapilog al
 ```python
 app = FastAPI(
     lifespan=FastAPIBuilder()
-        .with_preset("fastapi")
+        .with_preset("production")
         .with_adaptive(enabled=True)
         .skip_paths(["/health", "/healthz", "/ready", "/live", "/metrics"])
         .build()
@@ -499,7 +498,7 @@ The dedicated thread's event loop is independent of FastAPI's, so worker scaling
 
 Reduce buffer sizes:
 ```python
-logger = LoggerBuilder().with_preset("fastapi").with_queue_size(500).build()
+logger = LoggerBuilder().with_preset("production").with_queue_size(500).build()
 ```
 
 ### Slow Shutdown

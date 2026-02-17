@@ -26,11 +26,11 @@ def test_setup_logging_creates_logger_and_drains(monkeypatch) -> None:
 
     monkeypatch.setattr("fapilog.get_async_logger", fake_get_async_logger)
 
-    app = FastAPI(lifespan=setup_logging(preset="fastapi"))
+    app = FastAPI(lifespan=setup_logging(preset="production"))
 
     with TestClient(app):
         assert app.state.fapilog_logger is logger
-        assert "created:fastapi:fastapi" in events
+        assert "created:fastapi:production" in events
 
     assert "drain" in events
 
@@ -448,7 +448,7 @@ def test_setup_logging_defaults_unchanged(monkeypatch) -> None:
 
     monkeypatch.setattr("fapilog.get_async_logger", fake_get_async_logger)
 
-    app = FastAPI(lifespan=setup_logging(preset="fastapi"))
+    app = FastAPI(lifespan=setup_logging(preset="production"))
 
     @app.get("/test")
     async def test_endpoint() -> dict[str, str]:
@@ -480,7 +480,7 @@ def test_request_context_set_by_auto_middleware(monkeypatch) -> None:
 
     monkeypatch.setattr("fapilog.get_async_logger", fake_get_async_logger)
 
-    app = FastAPI(lifespan=setup_logging(preset="fastapi"))
+    app = FastAPI(lifespan=setup_logging(preset="production"))
 
     @app.get("/ctx")
     async def ctx(logger=Depends(get_request_logger)) -> dict[str, str]:

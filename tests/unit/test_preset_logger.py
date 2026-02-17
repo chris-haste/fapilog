@@ -19,11 +19,6 @@ class TestGetLoggerWithPreset:
         logger = get_logger(preset="production")
         assert callable(logger.info)
 
-    def test_preset_fastapi_creates_logger(self):
-        """FastAPI preset creates a working logger with info method."""
-        logger = get_logger(preset="fastapi")
-        assert callable(logger.info)
-
     def test_preset_minimal_creates_logger(self):
         """Minimal preset creates a working logger with info method."""
         logger = get_logger(preset="minimal")
@@ -47,13 +42,6 @@ class TestGetLoggerWithPreset:
 
 class TestAsyncLoggerWithPreset:
     """Test get_async_logger with preset parameter."""
-
-    @pytest.mark.asyncio
-    async def test_preset_fastapi_creates_async_logger(self):
-        """FastAPI preset works with async logger."""
-        logger = await get_async_logger(preset="fastapi")
-        assert callable(logger.info)
-        await logger.info("test message")
 
     @pytest.mark.asyncio
     async def test_preset_dev_creates_async_logger(self):
@@ -87,7 +75,7 @@ class TestMutualExclusivity:
     async def test_async_preset_and_settings_raises_value_error(self):
         """Using both preset and settings raises ValueError in async."""
         with pytest.raises(ValueError, match="Cannot specify both"):
-            await get_async_logger(preset="fastapi", settings=Settings())
+            await get_async_logger(preset="production", settings=Settings())
 
 
 class TestBackwardsCompatibility:
