@@ -62,10 +62,13 @@ class TestPresetDefinitions:
         config = get_preset("production")
         assert config["core"]["drop_on_full"] is False
 
-    def test_production_preset_uses_stdout_and_file_sinks(self):
-        """Production preset uses stdout_json and rotating_file sinks."""
+    def test_production_preset_uses_stdout_only_primary_sink(self):
+        """Production preset uses only stdout_json as primary sink (Story 1.53).
+
+        rotating_file is circuit breaker fallback only.
+        """
         config = get_preset("production")
-        assert config["core"]["sinks"] == ["stdout_json", "rotating_file"]
+        assert config["core"]["sinks"] == ["stdout_json"]
 
     def test_production_preset_disables_postgres_create_table(self):
         """Production preset disables Postgres auto table creation.
@@ -419,12 +422,14 @@ class TestPresetNameLiteral:
     """Test PresetName Literal type alias stays in sync with registry."""
 
     def test_preset_name_literal_matches_registry(self) -> None:
-        """PresetName Literal values must exactly match PRESETS dict keys."""
+        """PresetName Literal values must match PRESETS keys + deprecated aliases."""
         from typing import get_args
 
-        from fapilog.core.presets import PRESETS, PresetName
+        from fapilog.core.presets import _DEPRECATED_ALIASES, PRESETS, PresetName
 
-        assert set(get_args(PresetName)) == set(PRESETS.keys())
+        assert set(get_args(PresetName)) == set(PRESETS.keys()) | set(
+            _DEPRECATED_ALIASES.keys()
+        )
 
     def test_preset_name_exported_from_package(self) -> None:
         """PresetName is importable from top-level fapilog package."""

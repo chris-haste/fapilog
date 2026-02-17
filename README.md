@@ -105,10 +105,6 @@ logger.debug("Debugging info")
 logger = get_logger(preset="production")
 logger.info("User login", password="secret")  # password auto-redacted
 
-# Adaptive: Auto-scaling workers, queue growth, circuit breakers
-logger = get_logger(preset="adaptive")
-logger.info("Handling traffic spike", request_id="abc-123")
-
 # Minimal: Matches default behavior (backwards compatible)
 logger = get_logger(preset="minimal")
 ```
@@ -116,8 +112,7 @@ logger = get_logger(preset="minimal")
 | Preset | Log Level | Drops Logs? | File Output | Redaction | When to use |
 |--------|-----------|-------------|-------------|-----------|-------------|
 | `dev` | DEBUG | No | No | No | See every log instantly while debugging locally |
-| `production` | INFO | Never | Yes | Yes | Audit trails, compliance—never lose logs |
-| `adaptive` | INFO | If needed | Fallback only | Yes | High-throughput with auto-scaling workers and circuit breakers |
+| `production` | INFO | Backpressure retry | Fallback only | Yes | All production — adaptive scaling, circuit breaker, backpressure |
 | `serverless` | INFO | If needed | No | Yes | Lambda/Cloud Functions with fast flush |
 | `hardened` | INFO | Never | Yes | Yes (HIPAA+PCI) | Regulated environments (HIPAA, PCI-DSS) |
 | `minimal` | INFO | Default | No | No | Migrating from another logger—start here |

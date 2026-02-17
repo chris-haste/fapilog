@@ -69,6 +69,7 @@ class DrainResult:
     queue_depth_high_watermark: int
     flush_latency_seconds: float
     adaptive: AdaptiveDrainSummary | None = None
+    backpressure_retries: int = 0
 
 
 class _WorkerCountersMixin:
@@ -154,8 +155,6 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._counters: dict[str, int] = {"processed": 0, "dropped": 0}
         self._batch_max_size = int(batch_max_size)
         self._batch_timeout_seconds = float(batch_timeout_seconds)
-        # drop_on_full is used only for startup warnings in SyncLoggerFacade;
-        # the unified thread architecture always drops on full at the queue boundary.
         self._drop_on_full = bool(drop_on_full)
         self._sink_write = sink_write
         self._sink_write_serialized = sink_write_serialized
@@ -183,6 +182,8 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._flush_done_event: asyncio.Event | None = None
         self._submitted = 0
         self._retried = 0
+        self._backpressure_retries = 0
+        self._backpressure_wait_ms = int(backpressure_wait_ms)
         self._serialize_in_flush = bool(serialize_in_flush)
         self._exceptions_enabled = bool(exceptions_enabled)
         self._exceptions_max_frames = int(exceptions_max_frames)
@@ -1240,6 +1241,7 @@ class _LoggerMixin(_WorkerCountersMixin):
             queue_depth_high_watermark=self._queue_high_watermark,
             flush_latency_seconds=flush_latency,
             adaptive=adaptive_summary,
+            backpressure_retries=self._backpressure_retries,
         )
 
     def __del__(self) -> None:
@@ -1371,23 +1373,20 @@ class SyncLoggerFacade(_LoggerMixin):
     def start(self) -> None:
         """Start the background worker in a dedicated thread.
 
-        Emits a one-time warning if drop_on_full=False is configured,
-        since enqueue is always non-blocking in the unified architecture.
+        Emits a one-time diagnostic when drop_on_full=False is configured,
+        noting that backpressure retry adds caller-thread latency.
         """
-        # Emit one-time warning for drop_on_full=False configuration
-        # Check _worker_loop is None to ensure warning only emits once
         if not self._drop_on_full and self._worker_loop is None:
             try:
                 from .diagnostics import warn
 
                 warn(
                     "backpressure",
-                    "drop_on_full=False configured - note: same-thread calls "
-                    "will still drop immediately to prevent deadlock. "
-                    "Consider AsyncLoggerFacade for async contexts.",
+                    "drop_on_full=False configured - caller thread will "
+                    f"retry up to {self._backpressure_wait_ms}ms when queue is full",
                     _rate_limit_key="startup-drop-on-full-warning",
                     setting="drop_on_full=False",
-                    recommendation="Use AsyncLoggerFacade in async contexts",
+                    backpressure_wait_ms=self._backpressure_wait_ms,
                 )
             except Exception:
                 pass
@@ -1449,21 +1448,42 @@ class SyncLoggerFacade(_LoggerMixin):
 
         self._record_submitted(1)
         self.start()
-        if not self._try_enqueue_with_metrics(payload):
-            self._dropped += 1
-            self._record_drop_for_summary(1)
-            try:
-                from .diagnostics import warn
+        if self._try_enqueue_with_metrics(payload):
+            return
 
-                warn(
-                    "backpressure",
-                    "drop on full",
-                    drop_total=self._dropped,
-                    queue_hwm=self._queue_high_watermark,
-                    capacity=self._queue.capacity,
-                )
-            except Exception:
-                pass
+        # Bounded backpressure retry for non-protected events (Story 1.53)
+        if not self._drop_on_full:
+            level_str = payload.get("level", "")
+            is_protected = (
+                isinstance(level_str, str)
+                and level_str.upper() in self._protected_levels
+            )
+            if not is_protected:
+                budget_ms = self._backpressure_wait_ms
+                waited = 0.0
+                sleep_ms = 1.0
+                while waited < budget_ms:
+                    time.sleep(sleep_ms / 1000)
+                    waited += sleep_ms
+                    if self._try_enqueue_with_metrics(payload):
+                        self._backpressure_retries += 1
+                        return
+                    sleep_ms = min(sleep_ms * 2, 10.0)
+
+        self._dropped += 1
+        self._record_drop_for_summary(1)
+        try:
+            from .diagnostics import warn
+
+            warn(
+                "backpressure",
+                "drop on full",
+                drop_total=self._dropped,
+                queue_hwm=self._queue_high_watermark,
+                capacity=self._queue.capacity,
+            )
+        except Exception:
+            pass
 
     def info(
         self,

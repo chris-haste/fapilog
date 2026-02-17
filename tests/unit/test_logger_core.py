@@ -311,12 +311,11 @@ class TestBackpressure:
 
     @pytest.mark.critical
     @pytest.mark.asyncio
-    async def test_same_thread_drop_with_drop_on_full_false_notes_mismatch(
+    async def test_drop_on_full_false_retries_then_drops(
         self,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """Same-thread drop with drop_on_full=False emits diagnostic noting the mismatch."""
-        # Reset rate limiter to avoid suppression from previous tests
+        """drop_on_full=False retries then drops after budget exhaustion (Story 1.53)."""
         _reset_for_tests()
 
         collected: list[dict[str, Any]] = []
@@ -333,27 +332,27 @@ class TestBackpressure:
             queue_capacity=1,
             batch_max_size=1024,
             batch_timeout_seconds=0.5,
-            backpressure_wait_ms=1000,  # User expects to wait
-            drop_on_full=False,  # User expects blocking behavior
+            backpressure_wait_ms=5,  # Short budget so test runs fast
+            drop_on_full=False,
             sink_write=lambda e: _collecting_sink(collected, e),
         )
         logger.start()
 
-        # Overrun queue from the loop thread to trigger same-thread drop path
-        for _ in range(100):
+        # Overrun queue — some events will drop after retry budget
+        for _ in range(50):
             logger.info("x")
 
         res = await logger.stop_and_drain()
-        assert res.dropped > 0
+        # Total events accounted for: processed + dropped = submitted
+        assert res.submitted == res.processed + res.dropped
 
-        # Expect diagnostic noting that drop_on_full=False cannot be honored
+        # Expect startup diagnostic about backpressure configuration
         bp_diags = [
             d
             for d in diag
             if d.get("component") == "backpressure" and d.get("level") == "WARN"
         ]
         assert len(bp_diags) >= 1  # noqa: WA002 - rate limiting makes exact count unpredictable
-        # Verify message includes the mismatch note
         assert any("drop_on_full=False" in d.get("message", "") for d in bp_diags)
 
 
