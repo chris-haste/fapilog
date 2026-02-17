@@ -116,20 +116,21 @@ class TestAdaptivePresetCircuitBreaker:
 
 
 class TestAdaptivePresetSinks:
-    """AC5: Rotating file sink included for fallback."""
+    """AC5: Rotating file sink is circuit breaker fallback only."""
 
-    def test_adaptive_preset_includes_rotating_file_sink(self) -> None:
-        """Adaptive preset includes rotating_file in sinks list."""
+    def test_adaptive_preset_primary_sink_is_stdout_only(self) -> None:
+        """Adaptive preset uses only stdout_json as primary sink."""
         config = get_preset("adaptive")
-        assert "rotating_file" in config["core"]["sinks"]
+        assert config["core"]["sinks"] == ["stdout_json"]
 
-    def test_adaptive_preset_includes_stdout_json_sink(self) -> None:
-        """Adaptive preset includes stdout_json in sinks list."""
+    def test_adaptive_preset_rotating_file_is_fallback_only(self) -> None:
+        """Rotating file is configured as circuit breaker fallback, not primary."""
         config = get_preset("adaptive")
-        assert "stdout_json" in config["core"]["sinks"]
+        assert "rotating_file" not in config["core"]["sinks"]
+        assert config["core"]["sink_circuit_breaker_fallback_sink"] == "rotating_file"
 
     def test_adaptive_preset_has_file_rotation_config(self) -> None:
-        """Adaptive preset configures rotating file sink like production."""
+        """Adaptive preset configures rotating file sink for fallback use."""
         config = get_preset("adaptive")
         rf = config["sink_config"]["rotating_file"]
         assert rf["directory"] == "./logs"

@@ -26,7 +26,7 @@ PRESETS: dict[str, dict[str, Any]] = {
             "batch_timeout_seconds": 0.25,
             "drop_on_full": True,
             "redaction_fail_mode": "warn",
-            "sinks": ["stdout_json", "rotating_file"],
+            "sinks": ["stdout_json"],
             "enrichers": ["runtime_info", "context_vars"],
             "redactors": ["field_mask", "regex_mask", "url_credentials"],
             "protected_levels": ["ERROR", "CRITICAL"],

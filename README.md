@@ -117,7 +117,7 @@ logger = get_logger(preset="minimal")
 |--------|-----------|-------------|-------------|-----------|-------------|
 | `dev` | DEBUG | No | No | No | See every log instantly while debugging locally |
 | `production` | INFO | Never | Yes | Yes | Audit trails, compliance—never lose logs |
-| `adaptive` | INFO | If needed | Yes | Yes | High-throughput with auto-scaling workers and circuit breakers |
+| `adaptive` | INFO | If needed | Fallback only | Yes | High-throughput with auto-scaling workers and circuit breakers |
 | `serverless` | INFO | If needed | No | Yes | Lambda/Cloud Functions with fast flush |
 | `hardened` | INFO | Never | Yes | Yes (HIPAA+PCI) | Regulated environments (HIPAA, PCI-DSS) |
 | `minimal` | INFO | Default | No | No | Migrating from another logger—start here |
