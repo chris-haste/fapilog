@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-02-17
+
+### Added
+
+- **Core - Unify logging pipeline to always use dedicated thread:** Eliminate bound mode — `start()` always spawns a dedicated background thread with its own event loop, preventing logging from competing with the caller's HTTP event loop.
+- **Core - Add per-actuator adaptive toggles:** Add `filter_tightening`, `worker_scaling`, `queue_growth` fields to `AdaptiveSettings`. Gate filter ladder, WorkerPool, and capacity growth on respective toggles. Expose new params in `with_adaptive()` builder API.
+- **Core - Add DualQueue for isolated protected-event handling:** Replace `PriorityAwareQueue` with `DualQueue` in logger construction. Dedicated bounded queue for protected-level events (ERROR, CRITICAL, etc.). Workers drain protected queue first on each iteration and shutdown.
+
+### Changed
+
+- **Core - Consolidate presets from 9 to 6 with benchmark-corrected defaults:** Remove `fastapi`, `production-latency`, `high-volume` presets. Update adaptive preset with benchmark-corrected values (`batch_max_size=256`, `max_workers=4`, `max_queue_growth=3.0`, `protected_levels=[ERROR, CRITICAL]`). Update production preset (`batch_max_size=256`, `shutdown_timeout_seconds=25.0`).
+
+### Fixed
+
+- **Core - Wire DualQueue drop metrics and depth gauges:** Wire protected/unprotected drop counters to MetricsCollector on enqueue failure. Add `depth_gauge_setter` callback to PressureMonitor for per-tick queue depth sampling.
+- **Core - Address code review P1/P2 issues:** Strengthen test assertions, remove dead code (`_backpressure_wait_ms`, write-only `_loop_thread_ident`), lock-protect `PriorityAwareQueue.capacity` for thread safety.
+- **Core - Scale queue growth table from max_queue_growth setting:** Compute growth multipliers proportionally instead of hardcoding. CRITICAL now reaches full `max_queue_growth` (4.0x default, was 2.0x).
+
+### Documentation
+
+- **Align documentation with unified dedicated-thread architecture:** Rewrite async-sync-boundary.md, update reliability-defaults.md, backpressure docs, and non-blocking-async-logging cookbook.
+- **Add per-actuator toggle guidance to cookbook, config map, and builder guide.**
+- **Replace audit callout with benchmarks link in README.**
+
 ## [0.15.0] - 2026-02-13
 
 ### Added
