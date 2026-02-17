@@ -12,8 +12,8 @@ from typing import Any, cast
 
 import pytest
 
-from fapilog import get_logger
 from fapilog.core.envelope import build_envelope
+from fapilog.core.logger import SyncLoggerFacade
 from fapilog.core.serialization import serialize_envelope
 from fapilog.plugins.redactors import BaseRedactor, redact_in_order
 
@@ -46,8 +46,18 @@ class TestSensitiveFacade:
         async def _capture(entry: dict[str, Any]) -> None:
             collected.append(dict(entry))
 
-        logger = get_logger(name="sensitive-facade-test")
-        logger._sink_write = _capture  # type: ignore[attr-defined]
+        logger = SyncLoggerFacade(
+            name="sensitive-facade-test",
+            queue_capacity=100,
+            batch_max_size=10,
+            batch_timeout_seconds=0.05,
+            backpressure_wait_ms=5,
+            drop_on_full=True,
+            sink_write=_capture,
+            enrichers=[],
+            metrics=None,
+        )
+        logger.start()
 
         logger.info("signup", sensitive={"email": "alice@example.com"})
         await logger.stop_and_drain()
@@ -64,8 +74,18 @@ class TestSensitiveFacade:
         async def _capture(entry: dict[str, Any]) -> None:
             collected.append(dict(entry))
 
-        logger = get_logger(name="pii-facade-test")
-        logger._sink_write = _capture  # type: ignore[attr-defined]
+        logger = SyncLoggerFacade(
+            name="pii-facade-test",
+            queue_capacity=100,
+            batch_max_size=10,
+            batch_timeout_seconds=0.05,
+            backpressure_wait_ms=5,
+            drop_on_full=True,
+            sink_write=_capture,
+            enrichers=[],
+            metrics=None,
+        )
+        logger.start()
 
         logger.info("auth", pii={"token": "sk-secret-123"})
         await logger.stop_and_drain()

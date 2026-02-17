@@ -643,3 +643,50 @@ class TestLoggerWorkerDirect:
         assert sink_calls == [{"id": 99}]
         assert counters["processed"] == 1
         assert drained.is_set()
+
+
+class TestOrphanedQueueDrain:
+    """Verify events left in queue after workers finish are counted as dropped."""
+
+    @pytest.mark.asyncio
+    async def test_orphaned_events_counted_as_dropped(self) -> None:
+        """Events enqueued after stop_flag but before drain completes are dropped."""
+        written: list[dict[str, Any]] = []
+
+        async def slow_sink(entry: dict[str, Any]) -> None:
+            await asyncio.sleep(0.02)
+            written.append(entry)
+
+        logger = SyncLoggerFacade(
+            name="orphan-test",
+            queue_capacity=1000,
+            batch_max_size=10,
+            batch_timeout_seconds=0.05,
+            backpressure_wait_ms=5,
+            drop_on_full=True,
+            sink_write=slow_sink,
+            enrichers=[],
+            metrics=None,
+            num_workers=1,
+        )
+        logger.start()
+
+        # Submit initial events
+        for i in range(5):
+            logger.info(f"early_{i}")
+
+        # Start drain concurrently
+        drain_task = asyncio.create_task(logger.stop_and_drain())
+
+        # Submit late events while drain is in progress
+        await asyncio.sleep(0.01)
+        for i in range(10):
+            logger.info(f"late_{i}")
+
+        result = await drain_task
+
+        # Accounting invariant: submitted = processed + dropped
+        assert result.submitted == result.processed + result.dropped, (
+            f"submitted={result.submitted}, processed={result.processed}, "
+            f"dropped={result.dropped}"
+        )
