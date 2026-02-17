@@ -252,7 +252,7 @@
 <h2>Redaction defaults<a class="headerlink" href="#redaction-defaults" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p><strong>With no preset</strong>: URL credential redaction is <strong>enabled by default</strong> (<code class="docutils literal notranslate"><span class="pre">core.redactors=[&quot;url_credentials&quot;]</span></code>). This provides secure defaults by automatically scrubbing credentials from URLs in log output.</p></li>
-<li><p><strong>With <code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">preset=&quot;fastapi&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">preset=&quot;serverless&quot;</span></code></strong>: Enables <code class="docutils literal notranslate"><span class="pre">field_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code>, and <code class="docutils literal notranslate"><span class="pre">url_credentials</span></code> in that order.</p>
+<li><p><strong>With <code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">preset=&quot;adaptive&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">preset=&quot;serverless&quot;</span></code></strong>: Enables <code class="docutils literal notranslate"><span class="pre">field_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code>, and <code class="docutils literal notranslate"><span class="pre">url_credentials</span></code> in that order.</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">field_mask</span></code>: Masks specific <code class="docutils literal notranslate"><span class="pre">data.*</span></code> fields (password, api_key, token, etc.)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">regex_mask</span></code>: Matches any field path containing sensitive keywords (password, secret, token, etc.)</p></li>
@@ -317,7 +317,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on February 16, 2026.
+      <span class="lastupdated">Last updated on February 17, 2026.
       </span></p>
   </div>
 

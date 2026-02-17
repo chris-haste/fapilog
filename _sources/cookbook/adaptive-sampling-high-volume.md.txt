@@ -18,16 +18,16 @@ At $0.50/GB ingested (typical cloud pricing), a 4-hour sale event costs more tha
 - Full visibility during incidents
 - Errors never dropped, regardless of volume
 
-## The Solution: high-volume Preset + Adaptive Sampling
+## The Solution: adaptive Preset + Adaptive Sampling
 
-Combine the `high-volume` preset with adaptive sampling for intelligent cost control:
+Combine the `adaptive` preset with adaptive sampling for intelligent cost control:
 
 ```python
 from fapilog import LoggerBuilder
 
 logger = (
     LoggerBuilder()
-    .with_preset("high-volume")
+    .with_preset("adaptive")
     .with_adaptive_sampling(target_events_per_sec=100)
     .build()
 )
@@ -39,7 +39,7 @@ logger = (
 
 ### Why Two Layers of Protection?
 
-The `high-volume` preset provides **queue-level protection** via `protected_levels`:
+The `adaptive` preset provides **queue-level protection** via `protected_levels`:
 - ERROR/CRITICAL/FATAL events survive queue pressure
 - Under extreme load, unprotected events may be evicted to make room for protected ones
 - This is a last-resort safety net
@@ -118,7 +118,7 @@ logger = LoggerBuilder().with_sampling(rate=0.1).add_stdout().build()
 # Problem 3: No automatic adjustment
 ```
 
-### After: Adaptive Sampling with high-volume
+### After: Adaptive Sampling with adaptive
 
 ```python
 from fapilog import LoggerBuilder
@@ -126,7 +126,7 @@ from fapilog import LoggerBuilder
 # Adaptive sampling - responds to actual traffic
 logger = (
     LoggerBuilder()
-    .with_preset("high-volume")
+    .with_preset("adaptive")
     .with_adaptive_sampling(target_events_per_sec=100)
     .build()
 )
@@ -139,7 +139,7 @@ logger = (
 
 ### Cost Comparison
 
-| Scenario | Fixed 10% | high-volume + adaptive |
+| Scenario | Fixed 10% | adaptive + sampling |
 |----------|-----------|------------------------|
 | Quiet (50/sec) | 5/sec | 50/sec (full visibility) |
 | Normal (500/sec) | 50/sec | 100/sec |
@@ -158,7 +158,7 @@ from fapilog import LoggerBuilder
 # Higher target for services that need more visibility
 logger = (
     LoggerBuilder()
-    .with_preset("high-volume")
+    .with_preset("adaptive")
     .with_adaptive_sampling(target_events_per_sec=500)  # Override target
     .build()
 )
@@ -166,7 +166,7 @@ logger = (
 # Lower minimum rate for extremely high-volume services
 logger = (
     LoggerBuilder()
-    .with_preset("high-volume")
+    .with_preset("adaptive")
     .with_adaptive_sampling(min_rate=0.001)  # 0.1% minimum
     .build()
 )
@@ -174,24 +174,23 @@ logger = (
 # Add a cloud sink while keeping preset configuration
 logger = (
     LoggerBuilder()
-    .with_preset("high-volume")
+    .with_preset("adaptive")
     .add_cloudwatch(log_group="/app/production")
     .build()
 )
 ```
 
-## When to Use high-volume vs Other Presets
+## When to Use adaptive vs Other Presets
 
 | Preset | Use When |
 |--------|----------|
-| `high-volume` | Traffic varies widely, cost is a concern, errors must never be missed |
+| `adaptive` | Traffic varies widely, cost is a concern, errors must never be missed |
 | `production` | Moderate traffic, durability matters more than cost |
-| `production-latency` | Low latency critical, willing to drop logs under pressure |
 | `serverless` | Lambda/Cloud Functions with short execution time |
 
 ### Decision Guide
 
-**Choose `high-volume` when:**
+**Choose `adaptive` when:**
 - Your service handles 100+ requests/second regularly
 - Traffic is spiky or unpredictable
 - Log storage/ingestion costs are a concern
@@ -211,7 +210,7 @@ from fapilog import LoggerBuilder
 
 logger = (
     LoggerBuilder()
-    .with_preset("high-volume")
+    .with_preset("adaptive")
     .with_metrics(enabled=True)
     .build()
 )

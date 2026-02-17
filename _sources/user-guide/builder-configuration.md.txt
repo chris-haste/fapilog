@@ -36,7 +36,7 @@ from fapilog import AsyncLoggerBuilder
 async def main():
     logger = await (
         AsyncLoggerBuilder()
-        .with_preset("fastapi")
+        .with_preset("production")
         .add_stdout()
         .build_async()
     )
@@ -424,27 +424,6 @@ logger = LoggerBuilder().with_preset("production").build()
 - Automatic redaction of 9 sensitive fields
 - `drop_on_full=False` ensures no log loss
 - Larger batch size for efficiency
-
-### `fastapi` - FastAPI Applications
-
-```python
-from fapilog.fastapi import FastAPIBuilder
-from fastapi import FastAPI
-
-app = FastAPI(
-    lifespan=FastAPIBuilder()
-        .with_preset("fastapi")
-        .skip_paths(["/health", "/metrics"])
-        .build()
-)
-```
-
-- INFO level
-- Container-friendly stdout JSON
-- Balanced batch size (50)
-- Automatic redaction enabled
-- `context_vars` enricher only (reduced overhead)
-- FastAPI-specific methods: `skip_paths()`, `include_headers()`, `sample_rate()`
 
 ### `minimal` - Backwards Compatible
 

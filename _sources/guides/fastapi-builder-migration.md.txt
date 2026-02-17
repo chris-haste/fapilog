@@ -24,7 +24,7 @@ from fapilog.fastapi import setup_logging
 
 app = FastAPI(
     lifespan=setup_logging(
-        preset="fastapi",
+        preset="production",
         skip_paths=["/health", "/metrics"],
         sample_rate=0.1,
         include_headers=True,
@@ -41,7 +41,7 @@ from fapilog.fastapi import FastAPIBuilder
 
 app = FastAPI(
     lifespan=FastAPIBuilder()
-        .with_preset("fastapi")
+        .with_preset("production")
         .skip_paths(["/health", "/metrics"])
         .sample_rate(0.1)
         .include_headers(["content-type", "user-agent"])
@@ -54,7 +54,7 @@ app = FastAPI(
 
 | setup_logging() parameter | FastAPIBuilder method |
 |---------------------------|----------------------|
-| `preset="fastapi"` | `.with_preset("fastapi")` |
+| `preset="production"` | `.with_preset("production")` |
 | `skip_paths=[...]` | `.skip_paths([...])` |
 | `sample_rate=0.1` | `.sample_rate(0.1)` |
 | `include_headers=True` | Not needed (use `.include_headers()`) |
@@ -70,7 +70,7 @@ With `FastAPIBuilder`, you now have access to all core fapilog options:
 ```python
 app = FastAPI(
     lifespan=FastAPIBuilder()
-        .with_preset("fastapi")
+        .with_preset("production")
         # FastAPI-specific
         .skip_paths(["/health"])
         .sample_rate(0.1)

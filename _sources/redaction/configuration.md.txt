@@ -207,7 +207,6 @@ export FAPILOG_CORE__REDACTION_MAX_KEYS_SCANNED=1000
 | `preset="dev"` | No | No | No | No | No |
 | `preset="production"` | Yes | Yes | Yes | No | No |
 | `preset="serverless"` | Yes | Yes | Yes | No | No |
-| `preset="fastapi"` | Yes | Yes | Yes | No | No |
 | `preset="hardened"` | Yes | Yes | Yes | **Yes** | No |
 | `preset="minimal"` | No | No | No | No | No |
 

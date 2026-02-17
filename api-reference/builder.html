@@ -267,7 +267,7 @@
 
 <span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="p">(</span>
     <span class="n">AsyncLoggerBuilder</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
     <span class="o">.</span><span class="n">build_async</span><span class="p">()</span>
 <span class="p">)</span>
@@ -318,7 +318,7 @@
 <p>Apply a preset configuration. Preset is applied first, then subsequent methods override specific values.</p>
 <p><strong>Parameters:</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">preset</span></code> (str): Preset name - <code class="docutils literal notranslate"><span class="pre">&quot;dev&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;production&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;production-latency&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;adaptive&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;fastapi&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;serverless&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;hardened&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;minimal&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">preset</span></code> (str): Preset name - <code class="docutils literal notranslate"><span class="pre">&quot;dev&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;minimal&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;production&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;adaptive&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;serverless&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;hardened&quot;</span></code></p></li>
 </ul>
 <p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
 <p><strong>Raises:</strong></p>
@@ -348,18 +348,18 @@
 <td><p>1 (immediate)</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">production</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
+<td><p>INFO</p></td>
+<td><p>No</p></td>
+<td><p>No</p></td>
+<td><p>256</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">production</span></code></p></td>
 <td><p>INFO</p></td>
 <td><p>Yes (50MB rotation)</p></td>
 <td><p>Yes</p></td>
-<td><p>100</p></td>
-<td><p>2</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">production-latency</span></code></p></td>
-<td><p>INFO</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-<td><p>100</p></td>
+<td><p>256</p></td>
 <td><p>2</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive</span></code></p></td>
@@ -369,39 +369,25 @@
 <td><p>100</p></td>
 <td><p>2 (up to 8)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
-<td><p>INFO</p></td>
-<td><p>No</p></td>
-<td><p>Yes</p></td>
-<td><p>50</p></td>
-<td><p>2</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
 <td><p>INFO</p></td>
 <td><p>No</p></td>
 <td><p>Yes</p></td>
 <td><p>25</p></td>
 <td><p>2</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
 <td><p>INFO</p></td>
 <td><p>Yes (50MB rotation)</p></td>
 <td><p>Yes</p></td>
 <td><p>100</p></td>
 <td><p>2</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
-<td><p>INFO</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-<td><p>256</p></td>
-<td><p>1</p></td>
-</tr>
 </tbody>
 </table>
 <blockquote>
 <div><p><strong>Performance note:</strong> Production-oriented presets use 2 workers for ~30x better throughput. See <a class="reference internal" href="../user-guide/performance-tuning.html"><span class="std std-doc">Performance Tuning</span></a> for details.</p>
-<p><strong>Choosing a preset:</strong> See <a class="reference internal" href="../user-guide/presets.html"><span class="std std-doc">Presets Guide</span></a> for a decision matrix and detailed comparison of <code class="docutils literal notranslate"><span class="pre">production</span></code> vs <code class="docutils literal notranslate"><span class="pre">production-latency</span></code>.</p>
+<p><strong>Choosing a preset:</strong> See <a class="reference internal" href="../user-guide/presets.html"><span class="std std-doc">Presets Guide</span></a> for a decision matrix and detailed comparison of presets.</p>
 </div></blockquote>
 </section>
 <hr class="docutils" />
@@ -948,7 +934,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Recommendation:</strong> Use 2 workers for production. Production-oriented presets (<code class="docutils literal notranslate"><span class="pre">production</span></code>, <code class="docutils literal notranslate"><span class="pre">fastapi</span></code>, <code class="docutils literal notranslate"><span class="pre">serverless</span></code>, <code class="docutils literal notranslate"><span class="pre">hardened</span></code>) default to 2 workers automatically.</p>
+<p><strong>Recommendation:</strong> Use 2 workers for production. Production-oriented presets (<code class="docutils literal notranslate"><span class="pre">production</span></code>, <code class="docutils literal notranslate"><span class="pre">adaptive</span></code>, <code class="docutils literal notranslate"><span class="pre">serverless</span></code>, <code class="docutils literal notranslate"><span class="pre">hardened</span></code>) default to 2 workers automatically.</p>
 <p><strong>Example:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_workers</span><span class="p">(</span><span class="n">count</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># Recommended for production</span>
 </pre></div>
@@ -1525,7 +1511,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on February 16, 2026.
+      <span class="lastupdated">Last updated on February 17, 2026.
       </span></p>
   </div>
 

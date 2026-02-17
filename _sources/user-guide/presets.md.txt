@@ -8,9 +8,6 @@ Presets provide pre-configured settings for common deployment scenarios. Choose 
 |--------|----------|-------------|-------------|-----------|
 | `dev` | Local development | No | No | No |
 | `production` | Durable production | Never | Yes | Yes (CREDENTIALS) |
-| `production-latency` | Low-latency production | If needed | No | Yes (CREDENTIALS) |
-| `high-volume` | Cost-effective high traffic | If needed | No | Yes (CREDENTIALS) |
-| `fastapi` | FastAPI applications | If needed | No | Yes (CREDENTIALS) |
 | `serverless` | Lambda/Cloud Run | If needed | No | Yes (CREDENTIALS) |
 | `adaptive` | Auto-scaling production | If needed | Yes | Yes (CREDENTIALS) |
 | `hardened` | Compliance (HIPAA/PCI) | Never | Yes | Yes (HIPAA + PCI + CREDENTIALS) |
@@ -25,32 +22,30 @@ Is this for local development?
          ├─ Yes → serverless
          └─ No → Do you need HIPAA/PCI compliance?
                   ├─ Yes → hardened
-                  └─ No → Are you using FastAPI?
-                           ├─ Yes → fastapi
-                           └─ No → Do you need auto-scaling under load?
-                                    ├─ Yes → adaptive (dynamic workers, batch sizing, circuit breaker)
-                                    └─ No → Is traffic high-volume (100+ req/s) with cost concerns?
-                                             ├─ Yes → high-volume (protected levels)
-                                             └─ No → Is log durability critical?
-                                                      ├─ Yes → production (never drops)
-                                                      └─ No → production-latency (prioritizes speed)
+                  └─ No → Do you need auto-scaling under load?
+                           ├─ Yes → adaptive (dynamic workers, batch sizing, circuit breaker)
+                           └─ No → Is this a production deployment?
+                                    ├─ Yes → production (never drops, file + stdout)
+                                    └─ No → minimal (maximum control)
 ```
 
-### Key Decision: `production` vs `production-latency`
+### Key Decision: `production` vs `adaptive`
 
-Both presets are production-ready with automatic redaction. The difference is in the latency vs durability trade-off:
+Both presets are production-ready with automatic redaction. The difference is in scaling behavior:
 
-| Aspect | `production` | `production-latency` |
-|--------|--------------|---------------------|
-| **Philosophy** | Never lose logs | Don't block the app |
+| Aspect | `production` | `adaptive` |
+|--------|--------------|------------|
+| **Philosophy** | Never lose logs | Auto-scale under load |
 | **`drop_on_full`** | `False` | `True` |
-| **File sink** | Yes (50MB rotation) | No |
-| **Best for** | Audit trails, debugging, compliance | High-throughput APIs, latency-sensitive |
-| **Trade-off** | May briefly block under extreme load | May drop logs under extreme load |
+| **File sink** | Yes (50MB rotation) | Yes (50MB rotation) |
+| **Workers** | 2 (fixed) | 2-4 (dynamic) |
+| **Best for** | Audit trails, debugging, compliance | Variable load, self-tuning services |
+| **Trade-off** | May briefly block under extreme load | May drop non-protected logs under extreme load |
 
 **Recommendation:**
 - Use `production` when every log matters (audit trails, compliance, debugging production issues)
-- Use `production-latency` when response time matters more than capturing every log (high-throughput APIs, user-facing latency SLOs)
+- Use `adaptive` when you need automatic resilience under variable load (high-throughput APIs, microservices)
+- For latency-sensitive production, use `production` with `.with_backpressure(drop_on_full=True)` to avoid blocking
 
 ## Usage
 
@@ -63,7 +58,7 @@ logger = get_logger(preset="production")
 # Builder API
 logger = (
     LoggerBuilder()
-    .with_preset("production-latency")
+    .with_preset("production")
     .build()
 )
 
@@ -82,13 +77,10 @@ logger = (
 | Preset | Workers | Batch Size | Queue Size | Enrichers |
 |--------|---------|------------|------------|-----------|
 | `dev` | 1 | 1 | 256 | runtime_info, context_vars |
-| `production` | 2 | 100 | 256 | runtime_info, context_vars |
-| `production-latency` | 2 | 100 | 256 | runtime_info, context_vars |
-| `high-volume` | 2 | 100 | 256 | runtime_info, context_vars |
-| `adaptive` | 2 (up to 8) | 100 | 256 (grows up to 4x) | runtime_info, context_vars |
-| `fastapi` | 2 | 50 | 256 | context_vars only |
+| `production` | 2 | 256 | 256 | runtime_info, context_vars |
+| `adaptive` | 2 (up to 4) | 256 | 10000 (grows up to 3x) | runtime_info, context_vars |
 | `serverless` | 2 | 25 | 256 | runtime_info, context_vars |
-| `hardened` | 2 | 100 | 256 | runtime_info, context_vars |
+| `hardened` | 2 | 256 | 256 | runtime_info, context_vars |
 | `minimal` | 1 | 256 | 256 | runtime_info, context_vars |
 
 > **Performance note:** Production-oriented presets use 2 workers for ~30x better throughput compared to single-worker defaults. See [Performance Tuning](performance-tuning.md) for details.
@@ -99,10 +91,7 @@ logger = (
 |--------|----------------|----------------------|----------------------|---------------|
 | `dev` | N/A | N/A | `False` | None |
 | `production` | `False` | `warn` | `False` | 50MB × 10, gzip |
-| `production-latency` | `True` | `warn` | `False` | None |
-| `high-volume` | `True` | `warn` | `False` | None |
 | `adaptive` | `True` | `warn` | `False` | 50MB × 10, gzip |
-| `fastapi` | `True` | `warn` | `False` | None |
 | `serverless` | `True` | `warn` | `False` | None |
 | `hardened` | `False` | `closed` | `True` | 50MB × 10, gzip |
 | `minimal` | `True` | N/A | `False` | None |
@@ -120,10 +109,7 @@ See [Reliability Defaults](reliability-defaults.md) for detailed backpressure be
 |--------|---------------------|----------------------|---------------------|
 | `dev` | None | N/A | N/A |
 | `production` | CREDENTIALS | `minimal` | `False` |
-| `production-latency` | CREDENTIALS | `minimal` | `False` |
-| `high-volume` | CREDENTIALS | `minimal` | `False` |
 | `adaptive` | CREDENTIALS | `minimal` | `False` |
-| `fastapi` | CREDENTIALS | `minimal` | `False` |
 | `serverless` | CREDENTIALS | `minimal` | `False` |
 | `hardened` | HIPAA_PHI + PCI_DSS + CREDENTIALS | `inherit` | `True` |
 | `minimal` | None | N/A | N/A |
@@ -164,6 +150,7 @@ logger = get_logger(preset="production")
 
 **Settings:**
 - INFO level filters noise
+- `batch_max_size=256`, `shutdown_timeout_seconds=25.0`
 - File rotation: `./logs/fapilog-*.log`, 50MB max, 10 files, gzip compressed
 - `drop_on_full=False` — logs block briefly rather than drop
 - Automatic redaction of credentials
@@ -172,57 +159,6 @@ logger = get_logger(preset="production")
 **Use when:** Audit trails matter, debugging production issues, compliance requirements, post-incident analysis.
 
 **Trade-off:** Under extreme load, logging may briefly block the application to ensure no log loss.
-
-### production-latency
-
-Production deployments where application latency is critical.
-
-```python
-logger = get_logger(preset="production-latency")
-```
-
-**Settings:**
-- INFO level filters noise
-- Stdout-only (no file I/O latency)
-- `drop_on_full=True` — drops logs rather than block
-- Automatic redaction of credentials
-- 2 workers for 30x throughput improvement
-
-**Use when:** High-throughput APIs, latency-sensitive services, user-facing endpoints with strict SLOs.
-
-**Trade-off:** Under extreme load, some log events may be dropped to maintain application throughput.
-
-### high-volume
-
-Cost-effective logging for high-traffic services.
-
-```python
-logger = get_logger(preset="high-volume")
-```
-
-**Settings:**
-- INFO level filters noise
-- `drop_on_full=True` — drops logs rather than block
-- `protected_levels=["ERROR", "CRITICAL", "FATAL"]` — protected from queue drops via priority queue
-- Automatic redaction of credentials
-- 2 workers for throughput
-
-**Use when:** High-traffic services (100+ req/s), cost-conscious deployments, traffic spikes expected, need full visibility on errors.
-
-**Trade-off:** INFO/DEBUG logs may be dropped under extreme queue pressure. ERROR/CRITICAL/FATAL are protected by the priority queue.
-
-For adaptive sampling on top of the preset, use `.with_adaptive_sampling()`:
-
-```python
-logger = (
-    LoggerBuilder()
-    .with_preset("high-volume")
-    .with_adaptive_sampling(target_events_per_sec=100)
-    .build()
-)
-```
-
-See [Adaptive Sampling for High-Volume Services](../cookbook/adaptive-sampling-high-volume.md) for detailed configuration.
 
 ### adaptive
 
@@ -234,11 +170,14 @@ logger = get_logger(preset="adaptive")
 
 **Settings:**
 - INFO level filters noise
-- Adaptive pipeline enabled: dynamic worker scaling (2-8), queue growth (up to 4x)
+- `batch_max_size=256`, `batch_timeout_seconds=0.25`
+- `max_queue_size=10000`, `sink_concurrency=8`, `shutdown_timeout_seconds=25.0`
+- Adaptive pipeline enabled: dynamic worker scaling (2-4), queue growth (up to 3x)
+- `adaptive.circuit_pressure_boost=0.25`, `adaptive.cooldown_seconds=1.0`, `adaptive.check_interval_seconds=0.25`
 - Circuit breaker with rotating file fallback — failing sinks are isolated, events reroute to local files
 - File rotation: `./logs/fapilog-*.log`, 50MB max, 10 files, gzip compressed
 - `drop_on_full=True` — drops logs rather than block
-- Protected levels: ERROR, CRITICAL, FATAL, AUDIT, SECURITY
+- Protected levels: ERROR, CRITICAL
 - Automatic redaction of credentials
 
 **Use when:** Services with variable load, microservices that need self-tuning, deployments where you want automatic resilience without manual capacity planning.
@@ -267,30 +206,6 @@ logger = (
 ```
 
 See [Adaptive Pipeline](adaptive-pipeline.md) for a detailed guide on tuning thresholds and actuators.
-
-### fastapi
-
-Optimized for async FastAPI applications.
-
-```python
-from fastapi import FastAPI
-from fapilog.fastapi import FastAPIBuilder
-
-app = FastAPI(
-    lifespan=FastAPIBuilder()
-        .with_preset("fastapi")
-        .build()
-)
-```
-
-**Settings:**
-- INFO level
-- `context_vars` enricher only (reduced overhead for high-throughput)
-- Container-friendly stdout JSON output
-- Automatic redaction of credentials
-- 2 workers for throughput
-
-**Use when:** FastAPI applications, async workloads, container deployments.
 
 ### serverless
 
@@ -386,7 +301,7 @@ The fundamental trade-off in production logging:
 
 - **Durability-first** (`production`, `hardened`): Set `drop_on_full=False`. The logging pipeline will briefly block if the queue fills up, ensuring no log events are lost. Best for audit trails and debugging.
 
-- **Latency-first** (`production-latency`, `fastapi`, `serverless`): Set `drop_on_full=True`. Events are dropped if the queue is full, ensuring the application never blocks on logging. Best for latency-sensitive workloads.
+- **Latency-first** (`adaptive`, `serverless`): Set `drop_on_full=True`. Events are dropped if the queue is full, ensuring the application never blocks on logging. Best for latency-sensitive workloads. For production with latency priority, use `production` with `.with_backpressure(drop_on_full=True)`.
 
 ### Worker Count Impact
 
@@ -408,7 +323,7 @@ All production-oriented presets default to 2 workers. See [Performance Tuning](p
 from fapilog import list_presets
 
 print(list_presets())
-# ['adaptive', 'dev', 'fastapi', 'hardened', 'high-volume', 'minimal', 'production', 'production-latency', 'serverless']
+# ['adaptive', 'dev', 'hardened', 'minimal', 'production', 'serverless']
 ```
 
 ## Related

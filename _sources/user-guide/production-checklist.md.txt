@@ -9,7 +9,7 @@ Pre-deployment checklist for fapilog in production environments.
 | Approach | When to Use |
 |----------|-------------|
 | `preset="production"` | General backend services |
-| `preset="fastapi"` | FastAPI applications |
+| `preset="adaptive"` | High-throughput services |
 | `preset="serverless"` | AWS Lambda, Cloud Functions |
 | `auto_detect=True` | Let fapilog detect environment |
 | Custom `Settings()` | Fine-grained control needed |

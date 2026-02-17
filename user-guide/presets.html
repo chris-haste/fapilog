@@ -258,43 +258,25 @@
 <td><p>Yes</p></td>
 <td><p>Yes (CREDENTIALS)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">production-latency</span></code></p></td>
-<td><p>Low-latency production</p></td>
-<td><p>If needed</p></td>
-<td><p>No</p></td>
-<td><p>Yes (CREDENTIALS)</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">high-volume</span></code></p></td>
-<td><p>Cost-effective high traffic</p></td>
-<td><p>If needed</p></td>
-<td><p>No</p></td>
-<td><p>Yes (CREDENTIALS)</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
-<td><p>FastAPI applications</p></td>
-<td><p>If needed</p></td>
-<td><p>No</p></td>
-<td><p>Yes (CREDENTIALS)</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
 <td><p>Lambda/Cloud Run</p></td>
 <td><p>If needed</p></td>
 <td><p>No</p></td>
 <td><p>Yes (CREDENTIALS)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive</span></code></p></td>
 <td><p>Auto-scaling production</p></td>
 <td><p>If needed</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes (CREDENTIALS)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
 <td><p>Compliance (HIPAA/PCI)</p></td>
 <td><p>Never</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes (HIPAA + PCI + CREDENTIALS)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
 <td><p>Maximum control</p></td>
 <td><p>Default</p></td>
 <td><p>Default</p></td>
@@ -311,31 +293,27 @@
          ├─ Yes → serverless
          └─ No → Do you need HIPAA/PCI compliance?
                   ├─ Yes → hardened
-                  └─ No → Are you using FastAPI?
-                           ├─ Yes → fastapi
-                           └─ No → Do you need auto-scaling under load?
-                                    ├─ Yes → adaptive (dynamic workers, batch sizing, circuit breaker)
-                                    └─ No → Is traffic high-volume (100+ req/s) with cost concerns?
-                                             ├─ Yes → high-volume (protected levels)
-                                             └─ No → Is log durability critical?
-                                                      ├─ Yes → production (never drops)
-                                                      └─ No → production-latency (prioritizes speed)
+                  └─ No → Do you need auto-scaling under load?
+                           ├─ Yes → adaptive (dynamic workers, batch sizing, circuit breaker)
+                           └─ No → Is this a production deployment?
+                                    ├─ Yes → production (never drops, file + stdout)
+                                    └─ No → minimal (maximum control)
 </pre></div>
 </div>
-<section id="key-decision-production-vs-production-latency">
-<h3>Key Decision: <code class="docutils literal notranslate"><span class="pre">production</span></code> vs <code class="docutils literal notranslate"><span class="pre">production-latency</span></code><a class="headerlink" href="#key-decision-production-vs-production-latency" title="Link to this heading"></a></h3>
-<p>Both presets are production-ready with automatic redaction. The difference is in the latency vs durability trade-off:</p>
+<section id="key-decision-production-vs-adaptive">
+<h3>Key Decision: <code class="docutils literal notranslate"><span class="pre">production</span></code> vs <code class="docutils literal notranslate"><span class="pre">adaptive</span></code><a class="headerlink" href="#key-decision-production-vs-adaptive" title="Link to this heading"></a></h3>
+<p>Both presets are production-ready with automatic redaction. The difference is in scaling behavior:</p>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Aspect</p></th>
 <th class="head"><p><code class="docutils literal notranslate"><span class="pre">production</span></code></p></th>
-<th class="head"><p><code class="docutils literal notranslate"><span class="pre">production-latency</span></code></p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">adaptive</span></code></p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><strong>Philosophy</strong></p></td>
 <td><p>Never lose logs</p></td>
-<td><p>Don’t block the app</p></td>
+<td><p>Auto-scale under load</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong><code class="docutils literal notranslate"><span class="pre">drop_on_full</span></code></strong></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
@@ -343,22 +321,27 @@
 </tr>
 <tr class="row-even"><td><p><strong>File sink</strong></p></td>
 <td><p>Yes (50MB rotation)</p></td>
-<td><p>No</p></td>
+<td><p>Yes (50MB rotation)</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Best for</strong></p></td>
+<tr class="row-odd"><td><p><strong>Workers</strong></p></td>
+<td><p>2 (fixed)</p></td>
+<td><p>2-4 (dynamic)</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Best for</strong></p></td>
 <td><p>Audit trails, debugging, compliance</p></td>
-<td><p>High-throughput APIs, latency-sensitive</p></td>
+<td><p>Variable load, self-tuning services</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Trade-off</strong></p></td>
+<tr class="row-odd"><td><p><strong>Trade-off</strong></p></td>
 <td><p>May briefly block under extreme load</p></td>
-<td><p>May drop logs under extreme load</p></td>
+<td><p>May drop non-protected logs under extreme load</p></td>
 </tr>
 </tbody>
 </table>
 <p><strong>Recommendation:</strong></p>
 <ul class="simple">
 <li><p>Use <code class="docutils literal notranslate"><span class="pre">production</span></code> when every log matters (audit trails, compliance, debugging production issues)</p></li>
-<li><p>Use <code class="docutils literal notranslate"><span class="pre">production-latency</span></code> when response time matters more than capturing every log (high-throughput APIs, user-facing latency SLOs)</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">adaptive</span></code> when you need automatic resilience under variable load (high-throughput APIs, microservices)</p></li>
+<li><p>For latency-sensitive production, use <code class="docutils literal notranslate"><span class="pre">production</span></code> with <code class="docutils literal notranslate"><span class="pre">.with_backpressure(drop_on_full=True)</span></code> to avoid blocking</p></li>
 </ul>
 </section>
 </section>
@@ -372,7 +355,7 @@
 <span class="c1"># Builder API</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">LoggerBuilder</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production-latency&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 
@@ -407,47 +390,29 @@
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">production</span></code></p></td>
 <td><p>2</p></td>
-<td><p>100</p></td>
 <td><p>256</p></td>
-<td><p>runtime_info, context_vars</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">production-latency</span></code></p></td>
-<td><p>2</p></td>
-<td><p>100</p></td>
-<td><p>256</p></td>
-<td><p>runtime_info, context_vars</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">high-volume</span></code></p></td>
-<td><p>2</p></td>
-<td><p>100</p></td>
 <td><p>256</p></td>
 <td><p>runtime_info, context_vars</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive</span></code></p></td>
-<td><p>2 (up to 8)</p></td>
-<td><p>100</p></td>
-<td><p>256 (grows up to 4x)</p></td>
+<td><p>2 (up to 4)</p></td>
+<td><p>256</p></td>
+<td><p>10000 (grows up to 3x)</p></td>
 <td><p>runtime_info, context_vars</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
-<td><p>2</p></td>
-<td><p>50</p></td>
-<td><p>256</p></td>
-<td><p>context_vars only</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
 <td><p>2</p></td>
 <td><p>25</p></td>
 <td><p>256</p></td>
 <td><p>runtime_info, context_vars</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
 <td><p>2</p></td>
-<td><p>100</p></td>
+<td><p>256</p></td>
 <td><p>256</p></td>
 <td><p>runtime_info, context_vars</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
 <td><p>1</p></td>
 <td><p>256</p></td>
 <td><p>256</p></td>
@@ -483,43 +448,25 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
 <td><p>50MB × 10, gzip</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">production-latency</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">warn</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
-<td><p>None</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">high-volume</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">warn</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
-<td><p>None</p></td>
-</tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">warn</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
 <td><p>50MB × 10, gzip</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">warn</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
 <td><p>None</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">warn</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
-<td><p>None</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">closed</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
 <td><p>50MB × 10, gzip</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
 <td><p>N/A</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
@@ -557,37 +504,22 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">production-latency</span></code></p></td>
-<td><p>CREDENTIALS</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">high-volume</span></code></p></td>
-<td><p>CREDENTIALS</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
-</tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive</span></code></p></td>
 <td><p>CREDENTIALS</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
 <td><p>CREDENTIALS</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
-<td><p>CREDENTIALS</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hardened</span></code></p></td>
 <td><p>HIPAA_PHI + PCI_DSS + CREDENTIALS</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">inherit</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
 <td><p>None</p></td>
 <td><p>N/A</p></td>
 <td><p>N/A</p></td>
@@ -629,6 +561,7 @@
 <p><strong>Settings:</strong></p>
 <ul class="simple">
 <li><p>INFO level filters noise</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">batch_max_size=256</span></code>, <code class="docutils literal notranslate"><span class="pre">shutdown_timeout_seconds=25.0</span></code></p></li>
 <li><p>File rotation: <code class="docutils literal notranslate"><span class="pre">./logs/fapilog-*.log</span></code>, 50MB max, 10 files, gzip compressed</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">drop_on_full=False</span></code> — logs block briefly rather than drop</p></li>
 <li><p>Automatic redaction of credentials</p></li>
@@ -636,50 +569,6 @@
 </ul>
 <p><strong>Use when:</strong> Audit trails matter, debugging production issues, compliance requirements, post-incident analysis.</p>
 <p><strong>Trade-off:</strong> Under extreme load, logging may briefly block the application to ensure no log loss.</p>
-</section>
-<section id="production-latency">
-<h3>production-latency<a class="headerlink" href="#production-latency" title="Link to this heading"></a></h3>
-<p>Production deployments where application latency is critical.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production-latency&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p><strong>Settings:</strong></p>
-<ul class="simple">
-<li><p>INFO level filters noise</p></li>
-<li><p>Stdout-only (no file I/O latency)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">drop_on_full=True</span></code> — drops logs rather than block</p></li>
-<li><p>Automatic redaction of credentials</p></li>
-<li><p>2 workers for 30x throughput improvement</p></li>
-</ul>
-<p><strong>Use when:</strong> High-throughput APIs, latency-sensitive services, user-facing endpoints with strict SLOs.</p>
-<p><strong>Trade-off:</strong> Under extreme load, some log events may be dropped to maintain application throughput.</p>
-</section>
-<section id="high-volume">
-<h3>high-volume<a class="headerlink" href="#high-volume" title="Link to this heading"></a></h3>
-<p>Cost-effective logging for high-traffic services.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;high-volume&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p><strong>Settings:</strong></p>
-<ul class="simple">
-<li><p>INFO level filters noise</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">drop_on_full=True</span></code> — drops logs rather than block</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">protected_levels=[&quot;ERROR&quot;,</span> <span class="pre">&quot;CRITICAL&quot;,</span> <span class="pre">&quot;FATAL&quot;]</span></code> — protected from queue drops via priority queue</p></li>
-<li><p>Automatic redaction of credentials</p></li>
-<li><p>2 workers for throughput</p></li>
-</ul>
-<p><strong>Use when:</strong> High-traffic services (100+ req/s), cost-conscious deployments, traffic spikes expected, need full visibility on errors.</p>
-<p><strong>Trade-off:</strong> INFO/DEBUG logs may be dropped under extreme queue pressure. ERROR/CRITICAL/FATAL are protected by the priority queue.</p>
-<p>For adaptive sampling on top of the preset, use <code class="docutils literal notranslate"><span class="pre">.with_adaptive_sampling()</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">LoggerBuilder</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;high-volume&quot;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">with_adaptive_sampling</span><span class="p">(</span><span class="n">target_events_per_sec</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-<p>See <a class="reference internal" href="../cookbook/adaptive-sampling-high-volume.html"><span class="std std-doc">Adaptive Sampling for High-Volume Services</span></a> for detailed configuration.</p>
 </section>
 <section id="adaptive">
 <h3>adaptive<a class="headerlink" href="#adaptive" title="Link to this heading"></a></h3>
@@ -690,11 +579,14 @@
 <p><strong>Settings:</strong></p>
 <ul class="simple">
 <li><p>INFO level filters noise</p></li>
-<li><p>Adaptive pipeline enabled: dynamic worker scaling (2-8), queue growth (up to 4x)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">batch_max_size=256</span></code>, <code class="docutils literal notranslate"><span class="pre">batch_timeout_seconds=0.25</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_queue_size=10000</span></code>, <code class="docutils literal notranslate"><span class="pre">sink_concurrency=8</span></code>, <code class="docutils literal notranslate"><span class="pre">shutdown_timeout_seconds=25.0</span></code></p></li>
+<li><p>Adaptive pipeline enabled: dynamic worker scaling (2-4), queue growth (up to 3x)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">adaptive.circuit_pressure_boost=0.25</span></code>, <code class="docutils literal notranslate"><span class="pre">adaptive.cooldown_seconds=1.0</span></code>, <code class="docutils literal notranslate"><span class="pre">adaptive.check_interval_seconds=0.25</span></code></p></li>
 <li><p>Circuit breaker with rotating file fallback — failing sinks are isolated, events reroute to local files</p></li>
 <li><p>File rotation: <code class="docutils literal notranslate"><span class="pre">./logs/fapilog-*.log</span></code>, 50MB max, 10 files, gzip compressed</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">drop_on_full=True</span></code> — drops logs rather than block</p></li>
-<li><p>Protected levels: ERROR, CRITICAL, FATAL, AUDIT, SECURITY</p></li>
+<li><p>Protected levels: ERROR, CRITICAL</p></li>
 <li><p>Automatic redaction of credentials</p></li>
 </ul>
 <p><strong>Use when:</strong> Services with variable load, microservices that need self-tuning, deployments where you want automatic resilience without manual capacity planning.</p>
@@ -719,29 +611,6 @@
 </pre></div>
 </div>
 <p>See <a class="reference internal" href="adaptive-pipeline.html"><span class="std std-doc">Adaptive Pipeline</span></a> for a detailed guide on tuning thresholds and actuators.</p>
-</section>
-<section id="fastapi">
-<h3>fastapi<a class="headerlink" href="#fastapi" title="Link to this heading"></a></h3>
-<p>Optimized for async FastAPI applications.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPIBuilder</span>
-
-<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
-    <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
-        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
-        <span class="o">.</span><span class="n">build</span><span class="p">()</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-<p><strong>Settings:</strong></p>
-<ul class="simple">
-<li><p>INFO level</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">context_vars</span></code> enricher only (reduced overhead for high-throughput)</p></li>
-<li><p>Container-friendly stdout JSON output</p></li>
-<li><p>Automatic redaction of credentials</p></li>
-<li><p>2 workers for throughput</p></li>
-</ul>
-<p><strong>Use when:</strong> FastAPI applications, async workloads, container deployments.</p>
 </section>
 <section id="serverless">
 <h3>serverless<a class="headerlink" href="#serverless" title="Link to this heading"></a></h3>
@@ -833,7 +702,7 @@
 <p>The fundamental trade-off in production logging:</p>
 <ul class="simple">
 <li><p><strong>Durability-first</strong> (<code class="docutils literal notranslate"><span class="pre">production</span></code>, <code class="docutils literal notranslate"><span class="pre">hardened</span></code>): Set <code class="docutils literal notranslate"><span class="pre">drop_on_full=False</span></code>. The logging pipeline will briefly block if the queue fills up, ensuring no log events are lost. Best for audit trails and debugging.</p></li>
-<li><p><strong>Latency-first</strong> (<code class="docutils literal notranslate"><span class="pre">production-latency</span></code>, <code class="docutils literal notranslate"><span class="pre">fastapi</span></code>, <code class="docutils literal notranslate"><span class="pre">serverless</span></code>): Set <code class="docutils literal notranslate"><span class="pre">drop_on_full=True</span></code>. Events are dropped if the queue is full, ensuring the application never blocks on logging. Best for latency-sensitive workloads.</p></li>
+<li><p><strong>Latency-first</strong> (<code class="docutils literal notranslate"><span class="pre">adaptive</span></code>, <code class="docutils literal notranslate"><span class="pre">serverless</span></code>): Set <code class="docutils literal notranslate"><span class="pre">drop_on_full=True</span></code>. Events are dropped if the queue is full, ensuring the application never blocks on logging. Best for latency-sensitive workloads. For production with latency priority, use <code class="docutils literal notranslate"><span class="pre">production</span></code> with <code class="docutils literal notranslate"><span class="pre">.with_backpressure(drop_on_full=True)</span></code>.</p></li>
 </ul>
 </section>
 <section id="worker-count-impact">
@@ -871,7 +740,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">list_presets</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">list_presets</span><span class="p">())</span>
-<span class="c1"># [&#39;adaptive&#39;, &#39;dev&#39;, &#39;fastapi&#39;, &#39;hardened&#39;, &#39;high-volume&#39;, &#39;minimal&#39;, &#39;production&#39;, &#39;production-latency&#39;, &#39;serverless&#39;]</span>
+<span class="c1"># [&#39;adaptive&#39;, &#39;dev&#39;, &#39;hardened&#39;, &#39;minimal&#39;, &#39;production&#39;, &#39;serverless&#39;]</span>
 </pre></div>
 </div>
 </section>
@@ -906,7 +775,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on February 16, 2026.
+      <span class="lastupdated">Last updated on February 17, 2026.
       </span></p>
   </div>
 

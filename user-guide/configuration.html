@@ -249,7 +249,7 @@
 <td><p>Zero config, sensible defaults</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>FastAPI app</strong></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">FastAPIBuilder().with_preset(&quot;fastapi&quot;).build()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FastAPIBuilder().with_preset(&quot;production&quot;).build()</span></code></p></td>
 <td><p>Automatic middleware and request context</p></td>
 </tr>
 <tr class="row-even"><td><p><strong>Writing new code</strong></p></td>
@@ -335,16 +335,16 @@
 <span class="c1"># Choose the preset that matches your use case</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;dev&quot;</span><span class="p">)</span>                <span class="c1"># Local development</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>         <span class="c1"># Durable production (never drops logs)</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production-latency&quot;</span><span class="p">)</span> <span class="c1"># Low-latency production (prioritizes speed)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;adaptive&quot;</span><span class="p">)</span>           <span class="c1"># Auto-scaling under load</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;serverless&quot;</span><span class="p">)</span>         <span class="c1"># Lambda, Cloud Run, Azure Functions</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_async_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>  <span class="c1"># FastAPI apps</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;hardened&quot;</span><span class="p">)</span>           <span class="c1"># Regulated environments (HIPAA, PCI)</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;minimal&quot;</span><span class="p">)</span>            <span class="c1"># Backwards compatible default</span>
 </pre></div>
 </div>
 <p><strong>See <a class="reference internal" href="presets.html"><span class="std std-doc">Presets Guide</span></a></strong> for complete documentation including:</p>
 <ul class="simple">
 <li><p>Decision matrix for choosing the right preset</p></li>
-<li><p>Detailed comparison of <code class="docutils literal notranslate"><span class="pre">production</span></code> vs <code class="docutils literal notranslate"><span class="pre">production-latency</span></code></p></li>
+<li><p>Detailed comparison of presets</p></li>
 <li><p>Full settings tables and customization examples</p></li>
 </ul>
 <section id="quick-comparison">
@@ -365,23 +365,23 @@
 <td><p>No</p></td>
 <td><p>Local development</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">production</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
+<td><p>Default</p></td>
+<td><p>No</p></td>
+<td><p>No</p></td>
+<td><p>Migration, explicit defaults</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">production</span></code></p></td>
 <td><p>Never</p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>Audit trails, compliance</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">production-latency</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive</span></code></p></td>
 <td><p>If needed</p></td>
-<td><p>No</p></td>
 <td><p>Yes</p></td>
-<td><p>High-throughput APIs</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
-<td><p>If needed</p></td>
-<td><p>No</p></td>
 <td><p>Yes</p></td>
-<td><p>FastAPI applications</p></td>
+<td><p>Auto-scaling under load</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
 <td><p>If needed</p></td>
@@ -395,12 +395,6 @@
 <td><p>Yes (HIPAA+PCI)</p></td>
 <td><p>Regulated environments</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">minimal</span></code></p></td>
-<td><p>Default</p></td>
-<td><p>No</p></td>
-<td><p>No</p></td>
-<td><p>Migration, explicit defaults</p></td>
-</tr>
 </tbody>
 </table>
 </section>
@@ -412,7 +406,7 @@
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
     <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
-        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
         <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 
@@ -762,7 +756,7 @@ interval settings and represent fixed intervals (not wall-clock boundaries).</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on February 16, 2026.
+      <span class="lastupdated">Last updated on February 17, 2026.
       </span></p>
   </div>
 

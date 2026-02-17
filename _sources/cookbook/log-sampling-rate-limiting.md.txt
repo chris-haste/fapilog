@@ -27,7 +27,7 @@ from fapilog.fastapi import FastAPIBuilder
 
 app = FastAPI(
     lifespan=FastAPIBuilder()
-        .with_preset("fastapi")
+        .with_preset("production")
         .sample_rate(0.1)  # Log 10% of successful requests
         .build()
 )
@@ -217,7 +217,7 @@ When using `FastAPIBuilder` with `sample_rate()`, errors bypass sampling:
 ```python
 app = FastAPI(
     lifespan=FastAPIBuilder()
-        .with_preset("fastapi")
+        .with_preset("production")
         .sample_rate(0.1)  # 10% of successful requests
         # Errors (5xx, unhandled exceptions) always logged
         .build()

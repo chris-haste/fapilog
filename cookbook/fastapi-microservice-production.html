@@ -242,7 +242,7 @@
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
     <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
-        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
         <span class="o">.</span><span class="n">skip_paths</span><span class="p">([</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/healthz&quot;</span><span class="p">,</span> <span class="s2">&quot;/ready&quot;</span><span class="p">,</span> <span class="s2">&quot;/live&quot;</span><span class="p">,</span> <span class="s2">&quot;/metrics&quot;</span><span class="p">])</span>
         <span class="o">.</span><span class="n">include_headers</span><span class="p">([</span><span class="s2">&quot;content-type&quot;</span><span class="p">,</span> <span class="s2">&quot;accept&quot;</span><span class="p">,</span> <span class="s2">&quot;user-agent&quot;</span><span class="p">,</span> <span class="s2">&quot;x-request-id&quot;</span><span class="p">])</span>
         <span class="o">.</span><span class="n">build</span><span class="p">()</span>
@@ -251,7 +251,7 @@
 </div>
 <p>This configuration:</p>
 <ul class="simple">
-<li><p>Uses the optimized <code class="docutils literal notranslate"><span class="pre">fastapi</span></code> preset (2 workers, JSON output, credential redaction)</p></li>
+<li><p>Uses the optimized <code class="docutils literal notranslate"><span class="pre">production</span></code> preset (2 workers, JSON output, credential redaction)</p></li>
 <li><p>Skips Kubernetes probes and Prometheus metrics</p></li>
 <li><p>Logs only safe headers via allowlist (no accidental credential leaks)</p></li>
 </ul>
@@ -267,21 +267,17 @@
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">production</span></code></p></td>
 <td><p>Most microservices</p></td>
 <td><p>Balanced throughput, JSON output, credential redaction</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">high-volume</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive</span></code></p></td>
 <td><p>&gt;1000 req/sec</p></td>
-<td><p>Protected levels, drops for latency</p></td>
+<td><p>Protected levels, adaptive scaling, drops for latency</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
 <td><p>Cloud Run, Lambda</p></td>
 <td><p>Smaller batches, fast drain, drop-tolerant</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">production-latency</span></code></p></td>
-<td><p>Latency-critical APIs</p></td>
-<td><p>Drops over blocking, no file I/O</p></td>
 </tr>
 </tbody>
 </table>
@@ -289,7 +285,7 @@
 <h3>Standard Microservice (100-1000 req/sec)<a class="headerlink" href="#standard-microservice-100-1000-req-sec" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
     <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
-        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
         <span class="o">.</span><span class="n">skip_paths</span><span class="p">([</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/healthz&quot;</span><span class="p">,</span> <span class="s2">&quot;/ready&quot;</span><span class="p">,</span> <span class="s2">&quot;/live&quot;</span><span class="p">,</span> <span class="s2">&quot;/metrics&quot;</span><span class="p">])</span>
         <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
@@ -300,14 +296,14 @@
 <h3>High-Volume Service (&gt;1000 req/sec)<a class="headerlink" href="#high-volume-service-1000-req-sec" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
     <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
-        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;high-volume&quot;</span><span class="p">)</span>  <span class="c1"># Protected levels survive queue pressure</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;adaptive&quot;</span><span class="p">)</span>  <span class="c1"># Protected levels survive queue pressure</span>
         <span class="o">.</span><span class="n">with_adaptive_sampling</span><span class="p">(</span><span class="n">target_events_per_sec</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>  <span class="c1"># Optional: add sampling</span>
         <span class="o">.</span><span class="n">skip_paths</span><span class="p">([</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/healthz&quot;</span><span class="p">,</span> <span class="s2">&quot;/ready&quot;</span><span class="p">,</span> <span class="s2">&quot;/live&quot;</span><span class="p">,</span> <span class="s2">&quot;/metrics&quot;</span><span class="p">])</span>
         <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">high-volume</span></code> preset protects ERROR/CRITICAL/FATAL from queue drops. Add <code class="docutils literal notranslate"><span class="pre">.with_adaptive_sampling()</span></code> for cost control during traffic spikes. See <a class="reference internal" href="adaptive-sampling-high-volume.html"><span class="std std-doc">Adaptive Sampling</span></a> for details.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">adaptive</span></code> preset protects ERROR/CRITICAL from queue drops. Add <code class="docutils literal notranslate"><span class="pre">.with_adaptive_sampling()</span></code> for cost control during traffic spikes. See <a class="reference internal" href="adaptive-sampling-high-volume.html"><span class="std std-doc">Adaptive Sampling</span></a> for details.</p>
 </section>
 <section id="environment-based-selection">
 <h3>Environment-Based Selection<a class="headerlink" href="#environment-based-selection" title="Link to this heading"></a></h3>
@@ -315,7 +311,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPIBuilder</span>
 
-<span class="n">PRESET</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;FAPILOG_PRESET&quot;</span><span class="p">,</span> <span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+<span class="n">PRESET</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;FAPILOG_PRESET&quot;</span><span class="p">,</span> <span class="s2">&quot;production&quot;</span><span class="p">)</span>
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
     <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
@@ -330,10 +326,10 @@
 <span class="nv">FAPILOG_PRESET</span><span class="o">=</span>dev
 
 <span class="c1"># Standard production</span>
-<span class="nv">FAPILOG_PRESET</span><span class="o">=</span>fastapi
+<span class="nv">FAPILOG_PRESET</span><span class="o">=</span>production
 
 <span class="c1"># High-traffic periods</span>
-<span class="nv">FAPILOG_PRESET</span><span class="o">=</span>high-volume
+<span class="nv">FAPILOG_PRESET</span><span class="o">=</span>adaptive
 </pre></div>
 </div>
 </section>
@@ -360,7 +356,7 @@
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
     <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
-        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
         <span class="o">.</span><span class="n">skip_paths</span><span class="p">(</span><span class="n">KUBERNETES_PROBES</span> <span class="o">+</span> <span class="n">OBSERVABILITY_PATHS</span><span class="p">)</span>
         <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
@@ -375,7 +371,7 @@
 <span class="c1"># For memory-constrained pods (256-512MB)</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">LoggerBuilder</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">with_batch_size</span><span class="p">(</span><span class="mi">25</span><span class="p">)</span>      <span class="c1"># Smaller batches</span>
     <span class="o">.</span><span class="n">with_queue_size</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>    <span class="c1"># Limit memory usage</span>
     <span class="o">.</span><span class="n">build</span><span class="p">()</span>
@@ -384,7 +380,7 @@
 <span class="c1"># For larger pods (1GB+)</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">LoggerBuilder</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">with_batch_size</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
     <span class="o">.</span><span class="n">with_queue_size</span><span class="p">(</span><span class="mi">10000</span><span class="p">)</span>
     <span class="o">.</span><span class="n">build</span><span class="p">()</span>
@@ -410,7 +406,7 @@
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">FastAPIBuilder</span></code> lifespan handles drain automatically:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># No manual drain needed - handled by lifespan</span>
-<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">())</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">())</span>
 </pre></div>
 </div>
 </section>
@@ -553,7 +549,7 @@
 <p>Log only known-safe headers:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
     <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
-        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
         <span class="o">.</span><span class="n">include_headers</span><span class="p">([</span>
             <span class="s2">&quot;content-type&quot;</span><span class="p">,</span>
             <span class="s2">&quot;accept&quot;</span><span class="p">,</span>
@@ -581,7 +577,7 @@
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
     <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
-        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
         <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 <span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span>
@@ -611,7 +607,7 @@
 
 <span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">LoggerBuilder</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_loki</span><span class="p">(</span>
         <span class="n">url</span><span class="o">=</span><span class="s2">&quot;http://loki:3100/loki/api/v1/push&quot;</span><span class="p">,</span>
         <span class="n">labels</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;app&quot;</span><span class="p">:</span> <span class="s2">&quot;my-service&quot;</span><span class="p">,</span> <span class="s2">&quot;env&quot;</span><span class="p">:</span> <span class="s2">&quot;production&quot;</span><span class="p">},</span>
@@ -628,7 +624,7 @@
 
 <span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">LoggerBuilder</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_cloudwatch</span><span class="p">(</span>
         <span class="n">log_group</span><span class="o">=</span><span class="s2">&quot;/app/my-service&quot;</span><span class="p">,</span>
         <span class="n">log_stream</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">,</span>
@@ -645,7 +641,7 @@
 
 <span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">LoggerBuilder</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_stdout_json</span><span class="p">(</span>
         <span class="c1"># Datadog-compatible fields</span>
         <span class="n">extra_fields</span><span class="o">=</span><span class="p">{</span>
@@ -667,7 +663,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPIBuilder</span><span class="p">,</span> <span class="n">get_request_logger</span>
 
 <span class="c1"># Configuration from environment</span>
-<span class="n">PRESET</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;FAPILOG_PRESET&quot;</span><span class="p">,</span> <span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+<span class="n">PRESET</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;FAPILOG_PRESET&quot;</span><span class="p">,</span> <span class="s2">&quot;production&quot;</span><span class="p">)</span>
 <span class="n">SKIP_PATHS</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/healthz&quot;</span><span class="p">,</span>
     <span class="s2">&quot;/ready&quot;</span><span class="p">,</span> <span class="s2">&quot;/readiness&quot;</span><span class="p">,</span>
@@ -706,7 +702,7 @@
 <p>The adaptive pipeline works out-of-the-box with all defaults. Because fapilog always runs workers on a dedicated background thread, sink I/O never blocks your HTTP handlers — all actuators cooperate without contention:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
     <span class="n">lifespan</span><span class="o">=</span><span class="n">FastAPIBuilder</span><span class="p">()</span>
-        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span>
         <span class="o">.</span><span class="n">with_adaptive</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="o">.</span><span class="n">skip_paths</span><span class="p">([</span><span class="s2">&quot;/health&quot;</span><span class="p">,</span> <span class="s2">&quot;/healthz&quot;</span><span class="p">,</span> <span class="s2">&quot;/ready&quot;</span><span class="p">,</span> <span class="s2">&quot;/live&quot;</span><span class="p">,</span> <span class="s2">&quot;/metrics&quot;</span><span class="p">])</span>
         <span class="o">.</span><span class="n">build</span><span class="p">()</span>
@@ -732,7 +728,7 @@
 <section id="high-memory-usage">
 <h3>High Memory Usage<a class="headerlink" href="#high-memory-usage" title="Link to this heading"></a></h3>
 <p>Reduce buffer sizes:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;fastapi&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">with_queue_size</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">logger</span> <span class="o">=</span> <span class="n">LoggerBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">with_preset</span><span class="p">(</span><span class="s2">&quot;production&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">with_queue_size</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
 </pre></div>
 </div>
 </section>
@@ -781,7 +777,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on February 16, 2026.
+      <span class="lastupdated">Last updated on February 17, 2026.
       </span></p>
   </div>
 

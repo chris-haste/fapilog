@@ -327,7 +327,7 @@ See the <a class="reference internal" href="../guides/fastapi-builder-migration.
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
     <span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span>
-        <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">,</span>
+        <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">,</span>
         <span class="n">skip_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;/health&quot;</span><span class="p">],</span>
         <span class="n">sample_rate</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
         <span class="n">include_headers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Sensitive headers redacted by default</span>
@@ -348,7 +348,7 @@ See the <a class="reference internal" href="../guides/fastapi-builder-migration.
 <p>The <code class="docutils literal notranslate"><span class="pre">setup_logging</span></code> one-liner supports the same header options as <code class="docutils literal notranslate"><span class="pre">LoggingMiddleware</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
     <span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span>
-        <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">,</span>
+        <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">,</span>
         <span class="n">include_headers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Enable header logging</span>
         <span class="n">additional_redact_headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;X-Internal-Token&quot;</span><span class="p">],</span>  <span class="c1"># Add to default redactions</span>
     <span class="p">)</span>
@@ -358,7 +358,7 @@ See the <a class="reference internal" href="../guides/fastapi-builder-migration.
 <p>Or use allowlist mode to log only specific headers:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span>
     <span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span>
-        <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">,</span>
+        <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">,</span>
         <span class="n">include_headers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">allow_headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">,</span> <span class="s2">&quot;Accept&quot;</span><span class="p">,</span> <span class="s2">&quot;User-Agent&quot;</span><span class="p">],</span>  <span class="c1"># Only these headers</span>
     <span class="p">)</span>
@@ -370,7 +370,7 @@ See the <a class="reference internal" href="../guides/fastapi-builder-migration.
 <span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi.context</span><span class="w"> </span><span class="kn">import</span> <span class="n">RequestContextMiddleware</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fapilog.fastapi.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggingMiddleware</span>
 
-<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;fastapi&quot;</span><span class="p">,</span> <span class="n">auto_middleware</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">setup_logging</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;production&quot;</span><span class="p">,</span> <span class="n">auto_middleware</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
 <span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span><span class="n">RequestContextMiddleware</span><span class="p">)</span>
 <span class="n">app</span><span class="o">.</span><span class="n">add_middleware</span><span class="p">(</span><span class="n">LoggingMiddleware</span><span class="p">)</span>
 </pre></div>
@@ -691,7 +691,7 @@ Request ends → LoggingMiddleware logs: {&quot;method&quot;: &quot;GET&quot;, &
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on February 16, 2026.
+      <span class="lastupdated">Last updated on February 17, 2026.
       </span></p>
   </div>
 
