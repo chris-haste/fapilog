@@ -821,6 +821,22 @@ class CoreSettings(BaseModel):
             " message; 0 disables deduplication"
         ),
     )
+    error_dedupe_max_entries: int = Field(
+        default=1000,
+        ge=1,
+        description=(
+            "Maximum number of entries in the error deduplication dict;"
+            " oldest entries are evicted when the cap is reached"
+        ),
+    )
+    error_dedupe_ttl_multiplier: float = Field(
+        default=10.0,
+        gt=0.0,
+        description=(
+            "Multiplier applied to error_dedupe_window_seconds to determine"
+            " TTL for periodic sweep of stale dedupe entries"
+        ),
+    )
     # Shutdown behavior
     shutdown_timeout_seconds: float = Field(
         default=3.0,

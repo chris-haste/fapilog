@@ -1054,18 +1054,27 @@ class LoggerBuilder:
         self._config.setdefault("core", {})["enable_metrics"] = enabled
         return self
 
-    def with_error_deduplication(self, window_seconds: float = 5.0) -> Self:
+    def with_error_deduplication(
+        self,
+        window_seconds: float = 5.0,
+        *,
+        max_entries: int = 1000,
+        ttl_multiplier: float = 10.0,
+    ) -> Self:
         """Configure error log deduplication.
 
         Args:
             window_seconds: Seconds to suppress duplicate errors (0 disables)
+            max_entries: Max entries in dedupe dict before LRU eviction
+            ttl_multiplier: Multiplier on window for stale entry TTL sweep
 
         Example:
-            >>> builder.with_error_deduplication(window_seconds=10.0)
+            >>> builder.with_error_deduplication(window_seconds=10.0, max_entries=500)
         """
-        self._config.setdefault("core", {})["error_dedupe_window_seconds"] = (
-            window_seconds
-        )
+        core = self._config.setdefault("core", {})
+        core["error_dedupe_window_seconds"] = window_seconds
+        core["error_dedupe_max_entries"] = max_entries
+        core["error_dedupe_ttl_multiplier"] = ttl_multiplier
         return self
 
     def with_drop_summary(

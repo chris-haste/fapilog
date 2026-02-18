@@ -21,6 +21,8 @@ This guide documents Settings groups and fields.
 | `core.internal_logging_enabled` | bool | False | Emit DEBUG/WARN diagnostics for internal errors |
 | `core.diagnostics_output` | Literal | stderr | Output stream for internal diagnostics: stderr (default, Unix convention) or stdout (backward compat) |
 | `core.error_dedupe_window_seconds` | float | 5.0 | Seconds to suppress duplicate ERROR logs with the same message; 0 disables deduplication |
+| `core.error_dedupe_max_entries` | int | 1000 | Maximum number of entries in the error deduplication dict; oldest entries are evicted when the cap is reached |
+| `core.error_dedupe_ttl_multiplier` | float | 10.0 | Multiplier applied to error_dedupe_window_seconds to determine TTL for periodic sweep of stale dedupe entries |
 | `core.shutdown_timeout_seconds` | float | 3.0 | Maximum time to flush on shutdown signals |
 | `core.worker_count` | int | 1 | Number of worker tasks for flush processing |
 | `core.sensitive_fields_policy` | list | PydanticUndefined | Optional list of dotted paths for sensitive fields policy; warning if no redactors configured |

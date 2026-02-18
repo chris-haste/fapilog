@@ -37,6 +37,8 @@
 | `FAPILOG_CORE__ENABLE_METRICS` | bool | False | Enable Prometheus-compatible metrics |
 | `FAPILOG_CORE__ENABLE_REDACTORS` | bool | True | Enable redactors stage between enrichers and sink emission |
 | `FAPILOG_CORE__ENRICHERS` | list | PydanticUndefined | Enricher plugins to use (by name) |
+| `FAPILOG_CORE__ERROR_DEDUPE_MAX_ENTRIES` | int | 1000 | Maximum number of entries in the error deduplication dict; oldest entries are evicted when the cap is reached |
+| `FAPILOG_CORE__ERROR_DEDUPE_TTL_MULTIPLIER` | float | 10.0 | Multiplier applied to error_dedupe_window_seconds to determine TTL for periodic sweep of stale dedupe entries |
 | `FAPILOG_CORE__ERROR_DEDUPE_WINDOW_SECONDS` | float | 5.0 | Seconds to suppress duplicate ERROR logs with the same message; 0 disables deduplication |
 | `FAPILOG_CORE__EXCEPTIONS_ENABLED` | bool | True | Enable structured exception serialization for log calls |
 | `FAPILOG_CORE__EXCEPTIONS_MAX_FRAMES` | int | 10 | Maximum number of stack frames to capture for exceptions |
