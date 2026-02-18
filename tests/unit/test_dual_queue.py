@@ -243,30 +243,6 @@ class TestDualQueueSizeAndEmpty:
         assert dq.capacity == 500
 
 
-class TestDualQueueGrowCapacity:
-    """Grow capacity applies to main queue only."""
-
-    def test_grow_capacity_main_only(self) -> None:
-        dq = DualQueue(
-            main_capacity=10,
-            protected_capacity=5,
-            protected_levels=frozenset({"ERROR"}),
-        )
-        dq.grow_capacity(20)
-        assert dq.capacity == 20
-        # Protected capacity unchanged
-        assert dq._protected.capacity == 5
-
-    def test_grow_capacity_ignores_shrink(self) -> None:
-        dq = DualQueue(
-            main_capacity=10,
-            protected_capacity=5,
-            protected_levels=frozenset({"ERROR"}),
-        )
-        dq.grow_capacity(5)
-        assert dq.capacity == 10
-
-
 class TestDualQueueConcurrency:
     """AC8: Concurrent enqueue routing correctness."""
 

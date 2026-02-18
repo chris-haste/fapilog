@@ -49,10 +49,10 @@ class TestProductionPresetAdaptiveFeatures:
         config = get_preset("production")
         assert config["adaptive"]["max_workers"] == 4
 
-    def test_production_preset_adaptive_max_queue_growth(self) -> None:
-        """Production preset sets max_queue_growth=3.0."""
+    def test_production_preset_no_queue_growth_settings(self) -> None:
+        """Production preset has no queue growth settings (Story 1.56)."""
         config = get_preset("production")
-        assert config["adaptive"]["max_queue_growth"] == 3.0
+        assert "max_queue_growth" not in config["adaptive"]
 
     def test_production_preset_stdout_only_primary_sink(self) -> None:
         """Production preset uses only stdout_json as primary sink (PR #580)."""

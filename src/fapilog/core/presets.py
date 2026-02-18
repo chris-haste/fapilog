@@ -54,7 +54,6 @@ PRESETS: dict[str, dict[str, Any]] = {
         "adaptive": {
             "enabled": True,
             "max_workers": 4,
-            "max_queue_growth": 3.0,
             "batch_sizing": False,
             "circuit_pressure_boost": 0.25,
             "cooldown_seconds": 1.0,

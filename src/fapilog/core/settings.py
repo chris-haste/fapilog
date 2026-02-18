@@ -596,6 +596,8 @@ class AdaptiveSettings(BaseModel):
         default=0.92, ge=0, le=1, description="Fill ratio to escalate HIGH to CRITICAL"
     )
 
+    model_config = ConfigDict(extra="ignore")
+
     # Per-actuator toggles (Story 1.51)
     filter_tightening: bool = Field(
         default=True,
@@ -604,10 +606,6 @@ class AdaptiveSettings(BaseModel):
     worker_scaling: bool = Field(
         default=True,
         description="Enable dynamic worker scaling based on pressure level",
-    )
-    queue_growth: bool = Field(
-        default=True,
-        description="Enable queue capacity growth based on pressure level",
     )
 
     # Adaptive batch sizing (Story 1.47)
@@ -621,20 +619,6 @@ class AdaptiveSettings(BaseModel):
         default=8,
         ge=1,
         description="Maximum number of workers when dynamic scaling is active",
-    )
-
-    # Queue capacity growth (Story 1.48)
-    max_queue_growth: float = Field(
-        default=4.0,
-        ge=1.0,
-        description="Maximum queue capacity as a multiplier of initial capacity (grow-only)",
-    )
-
-    # Queue capacity decay cooldown (Story 1.54)
-    capacity_cooldown_seconds: float = Field(
-        default=60.0,
-        ge=0,
-        description="Seconds of sustained NORMAL pressure before stepping down queue capacity",
     )
 
     # Circuit breaker pressure signal (Story 4.73)
@@ -664,6 +648,26 @@ class AdaptiveSettings(BaseModel):
         le=1,
         description="Fill ratio below which ELEVATED de-escalates to NORMAL",
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def _warn_deprecated_queue_growth(cls, data: Any) -> Any:
+        """Emit deprecation warning for removed queue growth fields (Story 1.56)."""
+        import warnings
+
+        if not isinstance(data, dict):
+            return data
+        _deprecated = {"max_queue_growth", "capacity_cooldown_seconds", "queue_growth"}
+        for field in _deprecated:
+            if field in data:
+                warnings.warn(
+                    f"AdaptiveSettings.{field} is deprecated and ignored. "
+                    "Queue capacity is now fixed at startup. "
+                    "Use with_queue_budget() or with_queue_size() instead.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+        return data
 
     @model_validator(mode="after")
     def validate_threshold_ordering(self) -> AdaptiveSettings:
@@ -757,6 +761,11 @@ class CoreSettings(BaseModel):
         default=10_000,
         ge=1,
         description=("Maximum in-memory queue size for async processing"),
+    )
+    protected_queue_size: int | None = Field(
+        default=None,
+        ge=1,
+        description="Protected queue capacity in entries; None uses default derivation",
     )
     batch_max_size: int = Field(
         default=256,

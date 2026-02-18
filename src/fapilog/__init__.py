@@ -863,6 +863,7 @@ def _create_and_start_facade(
         num_workers=cfg.core.worker_count,
         level_gate=setup.level_gate,
         protected_levels=cfg.core.protected_levels,
+        protected_queue_size=cfg.core.protected_queue_size,
     )
 
     # Add dynamic methods for custom levels (Story 10.47 AC5)

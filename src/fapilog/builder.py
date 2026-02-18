@@ -10,6 +10,16 @@ from typing_extensions import Self
 from .core.presets import PresetName
 from .redaction.presets import RedactionPresetName
 
+# Average envelope size estimate (dict with ~15 keys, strings, timestamps).
+# Conservative: assumes moderate metadata, no large stack traces.
+_AVG_EVENT_BYTES = 2048  # 2KB per event
+
+
+def _mb_to_entries(mb: float) -> int:
+    """Convert MB budget to approximate entry count."""
+    return max(100, int(mb * 1024 * 1024 / _AVG_EVENT_BYTES))
+
+
 if TYPE_CHECKING:
     from .core.logger import AsyncLoggerFacade, SyncLoggerFacade
 
@@ -725,13 +735,48 @@ class LoggerBuilder:
 
         return self
 
-    def with_queue_size(self, size: int) -> Self:
-        """Set max queue size.
+    def with_queue_size(
+        self,
+        size: int,
+        *,
+        protected_entries: int | None = None,
+    ) -> Self:
+        """Set queue size in entries.
 
         Args:
-            size: Maximum queue size
+            size: Main queue capacity in entries
+            protected_entries: Protected queue capacity; None uses default derivation
+
+        Example:
+            >>> builder.with_queue_size(25_000, protected_entries=5_000)
         """
-        self._config.setdefault("core", {})["max_queue_size"] = size
+        core = self._config.setdefault("core", {})
+        core["max_queue_size"] = size
+        if protected_entries is not None:
+            core["protected_queue_size"] = protected_entries
+        return self
+
+    def with_queue_budget(
+        self,
+        *,
+        main_mb: float = 20.0,
+        protected_mb: float = 5.0,
+    ) -> Self:
+        """Set queue memory budget.
+
+        Computes entry counts from an average event size estimate (~2KB).
+        For precise control, use with_queue_size() instead.
+
+        Args:
+            main_mb: Memory budget for the main queue (INFO/DEBUG events)
+            protected_mb: Memory budget for the protected queue (ERROR/CRITICAL/AUDIT)
+
+        Example:
+            >>> builder.with_queue_budget(main_mb=50, protected_mb=10)
+        """
+        core = self._config.setdefault("core", {})
+        core["max_queue_size"] = _mb_to_entries(main_mb)
+        core["protected_queue_size"] = _mb_to_entries(protected_mb)
         return self
 
     def with_batch_size(self, size: int) -> Self:
@@ -786,41 +831,35 @@ class LoggerBuilder:
         *,
         enabled: bool = True,
         max_workers: int | None = None,
-        max_queue_growth: float | None = None,
         batch_sizing: bool | None = None,
         check_interval_seconds: float | None = None,
         cooldown_seconds: float | None = None,
         circuit_pressure_boost: float | None = None,
         filter_tightening: bool | None = None,
         worker_scaling: bool | None = None,
-        queue_growth: bool | None = None,
     ) -> Self:
         """Configure adaptive pipeline behavior.
 
-        Enables pressure monitoring, dynamic worker scaling, adaptive batch
-        sizing, and queue growth based on queue fill ratio.
+        Enables pressure monitoring, dynamic worker scaling, and adaptive batch
+        sizing based on queue fill ratio.
 
         Args:
             enabled: Enable adaptive pipeline controller (default: True)
             max_workers: Maximum workers when dynamic scaling is active
-            max_queue_growth: Maximum queue capacity multiplier
             batch_sizing: Enable adaptive batch sizing
             check_interval_seconds: Seconds between queue pressure samples
             cooldown_seconds: Minimum seconds between pressure transitions
             circuit_pressure_boost: Pressure boost per open circuit breaker
             filter_tightening: Enable adaptive filter tightening (default: True)
             worker_scaling: Enable dynamic worker scaling (default: True)
-            queue_growth: Enable queue capacity growth (default: True)
 
         Example:
             >>> builder.with_adaptive(max_workers=6, batch_sizing=True)
-            >>> builder.with_adaptive(worker_scaling=False, queue_growth=False)
+            >>> builder.with_adaptive(worker_scaling=False)
         """
         adaptive: dict[str, object] = {"enabled": enabled}
         if max_workers is not None:
             adaptive["max_workers"] = max_workers
-        if max_queue_growth is not None:
-            adaptive["max_queue_growth"] = max_queue_growth
         if batch_sizing is not None:
             adaptive["batch_sizing"] = batch_sizing
         if check_interval_seconds is not None:
@@ -833,8 +872,6 @@ class LoggerBuilder:
             adaptive["filter_tightening"] = filter_tightening
         if worker_scaling is not None:
             adaptive["worker_scaling"] = worker_scaling
-        if queue_growth is not None:
-            adaptive["queue_growth"] = queue_growth
         self._config.setdefault("adaptive", {}).update(adaptive)
         return self
 
