@@ -9,6 +9,7 @@ AC6: backpressure_retries counter tracked in DrainResult
 from __future__ import annotations
 
 import asyncio
+import threading
 import time
 from typing import Any
 from unittest.mock import AsyncMock
@@ -61,17 +62,20 @@ class TestBackpressureRetry:
             sink_write=_blocking_sink(),
         )
 
-        # Fill the queue BEFORE starting (no worker to drain)
+        # Prevent worker from draining the queue
+        logger.start = lambda: None  # type: ignore[assignment]
+
         for i in range(2):
             logger._queue.try_enqueue({"level": "INFO", "message": f"fill_{i}"})
 
-        # _enqueue will call start() then try to enqueue into full queue
         start = time.monotonic()
         logger._enqueue("INFO", "backpressure_event")
         elapsed_ms = (time.monotonic() - start) * 1000
 
-        # Should have waited at least a few ms (not instant drop)
-        assert elapsed_ms >= 1.0  # noqa: WA002 - timing assertion, not count
+        # Should have waited at least the budget (not instant drop)
+        assert elapsed_ms >= 20  # noqa: WA002 - timing assertion, not count
+        # Event should be dropped after budget exhausted
+        assert logger._dropped == 1
 
     def test_retry_bounded_by_backpressure_wait_ms(self) -> None:
         """Retry loop does not exceed backpressure_wait_ms budget."""
@@ -81,7 +85,9 @@ class TestBackpressureRetry:
             sink_write=_blocking_sink(),
         )
 
-        # Fill queue before start
+        # Prevent worker from draining the queue
+        logger.start = lambda: None  # type: ignore[assignment]
+
         for i in range(2):
             logger._queue.try_enqueue({"level": "INFO", "message": f"fill_{i}"})
 
@@ -91,20 +97,34 @@ class TestBackpressureRetry:
 
         # Should not exceed budget by more than one sleep interval (10ms cap + tolerance)
         assert elapsed_ms < 50
+        # But should have actually waited (not instant)
+        assert elapsed_ms >= 15  # noqa: WA002 - timing assertion, not count
 
     def test_event_enqueued_after_retry_succeeds(self) -> None:
-        """If space opens during retry, event is enqueued."""
-        logger = _make_logger(queue_capacity=2, backpressure_wait_ms=100)
+        """If space opens during retry, event is enqueued and counter incremented."""
+        logger = _make_logger(queue_capacity=2, backpressure_wait_ms=200)
 
-        # Fill queue then free one slot
+        # Prevent worker from starting
+        logger.start = lambda: None  # type: ignore[assignment]
+
+        # Fill queue completely
         logger._queue.try_enqueue({"level": "INFO", "message": "fill_0"})
         logger._queue.try_enqueue({"level": "INFO", "message": "fill_1"})
-        logger._queue.try_dequeue()
+
+        # Free a slot after 20ms so retry succeeds mid-loop
+        def _free_slot() -> None:
+            time.sleep(0.02)
+            logger._queue.try_dequeue()
+
+        t = threading.Thread(target=_free_slot)
+        t.start()
 
         logger._enqueue("INFO", "retry_event")
+        t.join()
 
-        # Event should have been enqueued (not dropped)
+        # Event should have been enqueued via retry (not dropped)
         assert logger._dropped == 0
+        assert logger._backpressure_retries == 1
 
 
 class TestDropOnFullTrue:
@@ -146,6 +166,9 @@ class TestProtectedLevelsBypassRetry:
             protected_levels=["ERROR", "CRITICAL"],
             sink_write=_blocking_sink(),
         )
+
+        # Prevent worker from draining the queue
+        logger.start = lambda: None  # type: ignore[assignment]
 
         # Fill the MAIN queue
         for i in range(2):
