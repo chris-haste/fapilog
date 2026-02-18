@@ -642,19 +642,47 @@ builder.with_redaction_guardrails(max_depth=10, max_keys=10000)
 
 ## Performance & Reliability
 
-### with_queue_size(size)
+### with_queue_size(size, *, protected_entries=None)
 
-Set maximum queue size for buffering log events.
+Set queue size in entries.
 
 **Parameters:**
-- `size` (int): Maximum queue size
+- `size` (int): Main queue capacity in entries
+- `protected_entries` (int | None): Protected queue capacity; `None` uses default derivation (`max(100, size // 10)`)
 
 **Returns:** `Self`
 
 **Example:**
 ```python
-builder.with_queue_size(10000)
+# Set main queue size (protected queue derived automatically)
+builder.with_queue_size(25_000)
+
+# Set both main and protected queue sizes independently
+builder.with_queue_size(25_000, protected_entries=5_000)
 ```
+
+---
+
+### with_queue_budget(*, main_mb=20.0, protected_mb=5.0)
+
+Set queue memory budget. Computes entry counts from an average event size estimate (~2KB per event). For precise control, use `with_queue_size()` instead.
+
+**Parameters:**
+- `main_mb` (float): Memory budget for the main queue in MB (INFO/DEBUG events). Default: 20.0
+- `protected_mb` (float): Memory budget for the protected queue in MB (ERROR/CRITICAL/AUDIT). Default: 5.0
+
+**Returns:** `Self`
+
+**Example:**
+```python
+# Set memory budgets (recommended for container deployments)
+builder.with_queue_budget(main_mb=50, protected_mb=10)
+
+# Equivalent to approximately:
+# main: 25,600 entries, protected: 5,120 entries
+```
+
+**Note:** The ~2KB estimate assumes moderate metadata without large stack traces. If your events are significantly larger, use `with_queue_size()` for precise control.
 
 ---
 
@@ -761,21 +789,19 @@ See [Circuit Breaker](../user-guide/circuit-breaker.md) for a detailed guide on 
 
 ---
 
-### with_adaptive(*, enabled=True, max_workers=None, max_queue_growth=None, batch_sizing=None, check_interval_seconds=None, cooldown_seconds=None, circuit_pressure_boost=None, filter_tightening=None, worker_scaling=None, queue_growth=None)
+### with_adaptive(*, enabled=True, max_workers=None, batch_sizing=None, check_interval_seconds=None, cooldown_seconds=None, circuit_pressure_boost=None, filter_tightening=None, worker_scaling=None)
 
-Configure adaptive pipeline behavior. Enables pressure monitoring, dynamic worker scaling, adaptive batch sizing, and queue growth based on queue fill ratio.
+Configure adaptive pipeline behavior. Enables pressure monitoring, dynamic worker scaling, adaptive batch sizing, and filter tightening based on queue fill ratio. Queue capacity is fixed at startup — use `with_queue_budget()` or `with_queue_size()` to set queue sizes.
 
 **Parameters:**
 - `enabled` (bool): Enable adaptive pipeline controller (default: True)
 - `max_workers` (int | None): Maximum workers when dynamic scaling is active
-- `max_queue_growth` (float | None): Maximum queue capacity multiplier (e.g., 4.0 = queue can grow to 4x initial size)
 - `batch_sizing` (bool | None): Enable adaptive batch sizing. Only beneficial with batch-aware sinks (CloudWatch, Loki, PostgreSQL). Disabled by default.
 - `check_interval_seconds` (float | None): Seconds between queue pressure samples
 - `cooldown_seconds` (float | None): Minimum seconds between pressure level transitions
 - `circuit_pressure_boost` (float | None): Pressure boost per open circuit breaker (0.0-1.0)
 - `filter_tightening` (bool | None): Enable adaptive filter tightening based on pressure level (default: True). Set to False to prevent automatic filter escalation under load.
 - `worker_scaling` (bool | None): Enable dynamic worker scaling based on pressure level (default: True).
-- `queue_growth` (bool | None): Enable queue capacity growth based on pressure level (default: True).
 
 **Returns:** `Self`
 
@@ -787,7 +813,6 @@ builder.with_adaptive()
 # Fine-tune adaptive parameters
 builder.with_adaptive(
     max_workers=6,
-    max_queue_growth=2.0,
     check_interval_seconds=0.5,
 )
 
@@ -807,7 +832,6 @@ logger = (
 Settings(adaptive={
     "enabled": True,
     "max_workers": 6,
-    "max_queue_growth": 2.0,
     "batch_sizing": True,
     "check_interval_seconds": 0.5,
 })
@@ -817,7 +841,6 @@ Settings(adaptive={
 ```bash
 FAPILOG_ADAPTIVE__ENABLED=true
 FAPILOG_ADAPTIVE__MAX_WORKERS=6
-FAPILOG_ADAPTIVE__MAX_QUEUE_GROWTH=2.0
 FAPILOG_ADAPTIVE__BATCH_SIZING=true
 ```
 
@@ -1134,7 +1157,8 @@ logger = await AsyncLoggerBuilder().add_stdout().build_async()
 | `with_regex_mask()` | Redaction | Configure regex masking |
 | `with_url_credential_redaction()` | Redaction | Configure URL credential scrubbing |
 | `with_redaction_guardrails()` | Redaction | Configure redaction limits |
-| `with_queue_size()` | Performance | Set queue size |
+| `with_queue_size()` | Performance | Set queue size in entries |
+| `with_queue_budget()` | Performance | Set queue memory budget in MB |
 | `with_batch_size()` | Performance | Set batch size |
 | `with_batch_timeout()` | Performance | Set batch timeout |
 | `with_workers()` | Performance | Set worker count |

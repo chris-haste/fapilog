@@ -295,8 +295,8 @@ logger = (
     .with_adaptive(
         enabled=True,
         max_workers=8,
-        max_queue_growth=4.0,
     )
+    .with_queue_budget(main_mb=50, protected_mb=10)
     .add_stdout()
     .build()
 )

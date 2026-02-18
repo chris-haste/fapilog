@@ -1,6 +1,6 @@
 # Adaptive Pipeline
 
-The adaptive pipeline automatically scales workers, batch sizes, and queue capacity based on real-time queue pressure. Instead of manually tuning these parameters for peak load, the pipeline self-adjusts as traffic changes.
+The adaptive pipeline automatically scales workers, batch sizes, and filter levels based on real-time queue pressure. Instead of manually tuning these parameters for peak load, the pipeline self-adjusts as traffic changes. Queue capacity is fixed at startup — use `with_queue_budget()` or `with_queue_size()` to set your memory ceiling.
 
 ## Quick start
 
@@ -58,10 +58,9 @@ This means the queue must drop well below the escalation threshold before the pi
 
 | Actuator | What It Does | NORMAL | ELEVATED | HIGH | CRITICAL |
 |----------|-------------|--------|----------|------|----------|
+| Filter tightening | Raises effective log level | None | Soft | Medium | Aggressive |
 | Worker scaling | Adds worker tasks | Initial (2) | +1 | +2 | Max (8) |
 | Batch sizing | Adjusts batch sizes (opt-in) | Base (100) | 1.5x | 2x | 4x |
-| Queue growth | Expands queue capacity | Base | 1.5x | 2x | Up to 4x |
-| Filter tightening | Raises effective log level | None | Soft | Medium | Aggressive |
 
 ## Configuration reference
 
@@ -79,12 +78,10 @@ All settings live under the `adaptive` key:
 | `deescalate_from_high` | `0.60` | Fill ratio to de-escalate HIGH to ELEVATED |
 | `deescalate_from_critical` | `0.75` | Fill ratio to de-escalate CRITICAL to HIGH |
 | `max_workers` | `8` | Maximum workers when dynamic scaling is active |
-| `max_queue_growth` | `4.0` | Maximum queue capacity multiplier |
 | `batch_sizing` | `false` | Enable adaptive batch sizing |
 | `circuit_pressure_boost` | `0.20` | Pressure boost per open circuit breaker |
 | `filter_tightening` | `true` | Enable adaptive filter tightening based on pressure level |
 | `worker_scaling` | `true` | Enable dynamic worker scaling based on pressure level |
-| `queue_growth` | `true` | Enable queue capacity growth based on pressure level |
 
 ### Environment variables
 
@@ -96,12 +93,10 @@ FAPILOG_ADAPTIVE__ESCALATE_TO_ELEVATED=0.60
 FAPILOG_ADAPTIVE__ESCALATE_TO_HIGH=0.80
 FAPILOG_ADAPTIVE__ESCALATE_TO_CRITICAL=0.92
 FAPILOG_ADAPTIVE__MAX_WORKERS=8
-FAPILOG_ADAPTIVE__MAX_QUEUE_GROWTH=4.0
 FAPILOG_ADAPTIVE__BATCH_SIZING=true
 FAPILOG_ADAPTIVE__CIRCUIT_PRESSURE_BOOST=0.20
 FAPILOG_ADAPTIVE__FILTER_TIGHTENING=true
 FAPILOG_ADAPTIVE__WORKER_SCALING=false
-FAPILOG_ADAPTIVE__QUEUE_GROWTH=false
 ```
 
 ### Settings-based configuration
@@ -112,7 +107,6 @@ from fapilog import Settings
 settings = Settings(adaptive={
     "enabled": True,
     "max_workers": 6,
-    "max_queue_growth": 2.0,
     "batch_sizing": True,
     "check_interval_seconds": 0.5,
     "cooldown_seconds": 3.0,
@@ -191,20 +185,18 @@ This ensures the pipeline responds proactively when sinks are failing, even if t
 **For latency-sensitive services:**
 ```python
 builder.with_adaptive(
-    max_workers=4,          # Cap worker scaling
-    max_queue_growth=1.5,   # Limit queue growth
-    check_interval_seconds=0.1,  # Faster response
-)
+    max_workers=4,                # Cap worker scaling
+    check_interval_seconds=0.1,   # Faster response
+).with_queue_budget(main_mb=20, protected_mb=5)  # Fixed memory ceiling
 ```
 
 **For high-throughput batch processing:**
 ```python
 builder.with_adaptive(
     max_workers=8,
-    max_queue_growth=4.0,
     batch_sizing=True,
     cooldown_seconds=5.0,   # Slower transitions to avoid oscillation
-)
+).with_queue_budget(main_mb=100, protected_mb=20)  # Generous buffer
 ```
 
 **Conservative escalation (fewer false alarms):**
@@ -233,7 +225,6 @@ if result.adaptive is not None:
     print(f"Filters swapped: {summary.filters_swapped}")
     print(f"Workers scaled: {summary.workers_scaled} (peak: {summary.peak_workers})")
     print(f"Batch resizes: {summary.batch_resize_count}")
-    print(f"Queue growths: {summary.queue_growth_count} (peak: {summary.peak_queue_capacity})")
 
     # Time breakdown by pressure level
     for level, seconds in summary.time_at_level.items():
@@ -249,7 +240,7 @@ See [Lifecycle & Results](../api-reference/lifecycle-results.md) for the full fi
 The `adaptive` preset (`get_logger(preset="adaptive")`) enables all adaptive features with sensible defaults:
 
 - Production base settings (2 workers, batch size 100)
-- Adaptive pipeline enabled (worker scaling, queue growth)
+- Adaptive pipeline enabled (worker scaling, filter tightening)
 - Adaptive batch sizing disabled by default (enable with `with_adaptive(batch_sizing=True)` when using batch-aware sinks)
 - Circuit breaker with rotating file fallback
 - Protected levels: ERROR, CRITICAL, FATAL, AUDIT, SECURITY
