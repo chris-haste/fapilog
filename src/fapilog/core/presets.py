@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import warnings
 from typing import Any, Literal
 
 PresetName = Literal[
@@ -15,7 +16,24 @@ PresetName = Literal[
 ]
 
 PRESETS: dict[str, dict[str, Any]] = {
-    "adaptive": {
+    "dev": {
+        "core": {
+            "log_level": "DEBUG",
+            "internal_logging_enabled": True,
+            "batch_max_size": 1,
+            "sinks": ["stdout_pretty"],
+            "enrichers": ["runtime_info", "context_vars"],
+            "redactors": [],  # Explicit opt-out for development visibility
+        },
+        "enricher_config": {
+            "runtime_info": {},
+            "context_vars": {},
+        },
+        "redactor_config": {
+            "field_mask": {"fields_to_mask": []},
+        },
+    },
+    "production": {
         "core": {
             "log_level": "INFO",
             "worker_count": 2,
@@ -24,7 +42,7 @@ PRESETS: dict[str, dict[str, Any]] = {
             "sink_concurrency": 8,
             "shutdown_timeout_seconds": 25.0,
             "batch_timeout_seconds": 0.25,
-            "drop_on_full": True,
+            "drop_on_full": False,
             "redaction_fail_mode": "warn",
             "sinks": ["stdout_json"],
             "enrichers": ["runtime_info", "context_vars"],
@@ -63,61 +81,6 @@ PRESETS: dict[str, dict[str, Any]] = {
             "regex_mask": {},
             "url_credentials": {},
         },
-        "_apply_credentials_preset": True,
-    },
-    "dev": {
-        "core": {
-            "log_level": "DEBUG",
-            "internal_logging_enabled": True,
-            "batch_max_size": 1,
-            "sinks": ["stdout_pretty"],
-            "enrichers": ["runtime_info", "context_vars"],
-            "redactors": [],  # Explicit opt-out for development visibility
-        },
-        "enricher_config": {
-            "runtime_info": {},
-            "context_vars": {},
-        },
-        "redactor_config": {
-            "field_mask": {"fields_to_mask": []},
-        },
-    },
-    "production": {
-        "core": {
-            "log_level": "INFO",
-            "worker_count": 2,  # 30x throughput improvement over default (Story 10.44)
-            "batch_max_size": 256,
-            "shutdown_timeout_seconds": 25.0,
-            "drop_on_full": False,
-            "redaction_fail_mode": "warn",
-            "sinks": ["stdout_json", "rotating_file"],
-            "enrichers": ["runtime_info", "context_vars"],
-            "redactors": ["field_mask", "regex_mask", "url_credentials"],
-        },
-        "sink_config": {
-            "rotating_file": {
-                "directory": "./logs",
-                "filename_prefix": "fapilog",
-                "max_bytes": 52_428_800,
-                "max_files": 10,
-                "compress_rotated": True,
-            },
-            "postgres": {
-                "create_table": False,  # Require explicit table provisioning in production
-            },
-        },
-        "enricher_config": {
-            "runtime_info": {},
-            "context_vars": {},
-        },
-        "redactor_config": {
-            # Minimal config - CREDENTIALS preset applied automatically
-            # via with_preset("production") -> with_redaction(preset="CREDENTIALS")
-            "field_mask": {},
-            "regex_mask": {},
-            "url_credentials": {},
-        },
-        # Marker for automatic CREDENTIALS preset application
         "_apply_credentials_preset": True,
     },
     "minimal": {
@@ -198,6 +161,12 @@ PRESETS: dict[str, dict[str, Any]] = {
 }
 
 
+# Deprecated aliases that resolve to another preset
+_DEPRECATED_ALIASES: dict[str, str] = {
+    "adaptive": "production",
+}
+
+
 def validate_preset(name: PresetName) -> None:
     """Validate preset name.
 
@@ -207,8 +176,8 @@ def validate_preset(name: PresetName) -> None:
     Raises:
         ValueError: If preset name is invalid
     """
-    if name not in PRESETS:
-        valid = ", ".join(sorted(PRESETS.keys()))
+    if name not in PRESETS and name not in _DEPRECATED_ALIASES:
+        valid = ", ".join(sorted(set(PRESETS.keys()) | set(_DEPRECATED_ALIASES.keys())))
         raise ValueError(f"Invalid preset '{name}'. Valid presets: {valid}")
 
 
@@ -225,9 +194,18 @@ def get_preset(name: PresetName) -> dict[str, Any]:
         ValueError: If preset name is invalid
     """
     validate_preset(name)
+    if name in _DEPRECATED_ALIASES:
+        target = _DEPRECATED_ALIASES[name]
+        warnings.warn(
+            f"The '{name}' preset is deprecated. "
+            f"Use '{target}' instead — it now includes all adaptive features.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return copy.deepcopy(PRESETS[target])
     return copy.deepcopy(PRESETS[name])
 
 
 def list_presets() -> list[str]:
-    """Return sorted list of available preset names."""
-    return sorted(PRESETS.keys())
+    """Return sorted list of available preset names (includes deprecated aliases)."""
+    return sorted(set(PRESETS.keys()) | set(_DEPRECATED_ALIASES.keys()))

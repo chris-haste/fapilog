@@ -67,7 +67,7 @@ class TestSyncFacadeStartupWarning:
         assert len(startup_warnings) == 1
         warning = startup_warnings[0]
         assert warning["level"] == "WARN"
-        assert "same-thread" in warning["message"]
+        assert "retry" in warning["message"]
 
     def test_sync_facade_no_warn_on_drop_on_full_true(
         self,
@@ -125,12 +125,12 @@ class TestSyncFacadeStartupWarning:
         ]
         assert len(startup_warnings) == 1
 
-    def test_startup_warning_includes_recommendation(
+    def test_startup_warning_includes_backpressure_budget(
         self,
         captured_diagnostics: list[dict[str, Any]],
         mock_sink: AsyncMock,
     ) -> None:
-        """AC4: Warning includes AsyncLoggerFacade recommendation."""
+        """AC4: Warning includes backpressure wait budget."""
         logger = SyncLoggerFacade(
             name="test",
             queue_capacity=100,
@@ -150,8 +150,8 @@ class TestSyncFacadeStartupWarning:
         ]
         assert len(startup_warnings) == 1
         warning = startup_warnings[0]
-        assert "AsyncLoggerFacade" in warning["message"]
-        assert "async context" in warning["message"].lower()
+        assert "50ms" in warning["message"]
+        assert "retry" in warning["message"]
 
 
 class TestStartupWarningExceptionHandling:

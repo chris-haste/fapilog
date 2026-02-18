@@ -195,8 +195,9 @@ class TestPresetConsistency:
 
         This test ensures new presets get documented.
         """
+        from fapilog.core.presets import _DEPRECATED_ALIASES
+
         expected_presets = {
-            "adaptive",
             "dev",
             "production",
             "minimal",
@@ -209,6 +210,8 @@ class TestPresetConsistency:
             f"Preset mismatch - update docs if presets changed. "
             f"Expected: {expected_presets}, Got: {actual_presets}"
         )
+        # adaptive is a deprecated alias, not a standalone preset
+        assert "adaptive" in _DEPRECATED_ALIASES
 
 
 class TestBlockOnUnredactableConsistency:

@@ -95,10 +95,10 @@ class TestAdaptivePresetContent:
         config = get_preset("adaptive")
         assert config["core"]["batch_timeout_seconds"] == 0.25
 
-    def test_adaptive_preset_enables_drop_on_full(self) -> None:
-        """Adaptive preset enables drop_on_full for latency."""
+    def test_adaptive_preset_disables_drop_on_full(self) -> None:
+        """Adaptive preset (now aliased to production) uses drop_on_full=False."""
         config = get_preset("adaptive")
-        assert config["core"]["drop_on_full"] is True
+        assert config["core"]["drop_on_full"] is False
 
 
 class TestAdaptivePresetCircuitBreaker:
@@ -195,9 +195,11 @@ class TestPresetNameLiteralIncludesAdaptive:
     """PresetName Literal type includes 'adaptive'."""
 
     def test_preset_name_literal_matches_registry(self) -> None:
-        """PresetName Literal values match PRESETS dict keys."""
+        """PresetName Literal values match PRESETS keys + deprecated aliases."""
         from typing import get_args
 
-        from fapilog.core.presets import PRESETS, PresetName
+        from fapilog.core.presets import _DEPRECATED_ALIASES, PRESETS, PresetName
 
-        assert set(get_args(PresetName)) == set(PRESETS.keys())
+        assert set(get_args(PresetName)) == set(PRESETS.keys()) | set(
+            _DEPRECATED_ALIASES.keys()
+        )
