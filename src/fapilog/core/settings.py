@@ -630,6 +630,13 @@ class AdaptiveSettings(BaseModel):
         description="Maximum queue capacity as a multiplier of initial capacity (grow-only)",
     )
 
+    # Queue capacity decay cooldown (Story 1.54)
+    capacity_cooldown_seconds: float = Field(
+        default=60.0,
+        ge=0,
+        description="Seconds of sustained NORMAL pressure before stepping down queue capacity",
+    )
+
     # Circuit breaker pressure signal (Story 4.73)
     circuit_pressure_boost: float = Field(
         default=0.20,

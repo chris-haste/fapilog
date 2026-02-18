@@ -4,6 +4,7 @@
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
 | `FAPILOG_ADAPTIVE__BATCH_SIZING` | bool | False | Enable adaptive batch sizing based on sink latency feedback |
+| `FAPILOG_ADAPTIVE__CAPACITY_COOLDOWN_SECONDS` | float | 60.0 | Seconds of sustained NORMAL pressure before stepping down queue capacity |
 | `FAPILOG_ADAPTIVE__CHECK_INTERVAL_SECONDS` | float | 0.25 | Seconds between queue pressure samples |
 | `FAPILOG_ADAPTIVE__CIRCUIT_PRESSURE_BOOST` | float | 0.2 | Effective fill ratio boost per open sink circuit breaker |
 | `FAPILOG_ADAPTIVE__COOLDOWN_SECONDS` | float | 2.0 | Minimum seconds between pressure level transitions |
