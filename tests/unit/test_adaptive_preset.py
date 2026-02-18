@@ -50,11 +50,6 @@ class TestAdaptivePresetContent:
         config = get_preset("adaptive")
         assert config["adaptive"]["max_workers"] == 4
 
-    def test_adaptive_preset_sets_max_queue_growth(self) -> None:
-        """Adaptive preset sets max_queue_growth to 3.0."""
-        config = get_preset("adaptive")
-        assert config["adaptive"]["max_queue_growth"] == 3.0
-
     def test_adaptive_preset_sets_circuit_pressure_boost(self) -> None:
         """Adaptive preset sets circuit_pressure_boost to 0.25."""
         config = get_preset("adaptive")
@@ -178,7 +173,6 @@ class TestAdaptivePresetToSettings:
         assert settings.adaptive.enabled is True
         assert settings.adaptive.batch_sizing is False
         assert settings.adaptive.max_workers == 4
-        assert settings.adaptive.max_queue_growth == 3.0
         assert settings.adaptive.circuit_pressure_boost == 0.25
         assert settings.core.batch_max_size == 256
         assert settings.core.shutdown_timeout_seconds == 25.0

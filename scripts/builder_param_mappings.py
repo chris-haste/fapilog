@@ -32,7 +32,8 @@ SINK_EXCLUSIONS: set[str] = {
 
 CORE_COVERAGE: dict[str, list[str]] = {
     "with_level": ["log_level"],
-    "with_queue_size": ["max_queue_size"],
+    "with_queue_size": ["max_queue_size", "protected_queue_size"],
+    "with_queue_budget": ["max_queue_size", "protected_queue_size"],
     "with_batch_size": ["batch_max_size"],
     "with_batch_timeout": ["batch_timeout_seconds"],
     "with_context": ["default_bound_context"],
@@ -96,11 +97,9 @@ CORE_COVERAGE: dict[str, list[str]] = {
         "deescalate_from_elevated",
         "batch_sizing",
         "max_workers",
-        "max_queue_growth",
         "circuit_pressure_boost",
         "filter_tightening",
         "worker_scaling",
-        "queue_growth",
     ],
     # Graceful shutdown (Story 6.13)
     "with_atexit_drain": ["atexit_drain_enabled", "atexit_drain_timeout_seconds"],

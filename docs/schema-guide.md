@@ -256,6 +256,20 @@
       "title": "Protected Levels",
       "type": "array"
     },
+    "protected_queue_size": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Protected queue capacity in entries; None uses default derivation",
+      "title": "Protected Queue Size"
+    },
     "redaction_fail_mode": {
       "default": "warn",
       "description": "Behavior when _apply_redactors() catches an unexpected exception: 'open' passes original event, 'closed' drops the event, 'warn' (default) passes event but emits diagnostic warning",

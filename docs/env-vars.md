@@ -4,7 +4,6 @@
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
 | `FAPILOG_ADAPTIVE__BATCH_SIZING` | bool | False | Enable adaptive batch sizing based on sink latency feedback |
-| `FAPILOG_ADAPTIVE__CAPACITY_COOLDOWN_SECONDS` | float | 60.0 | Seconds of sustained NORMAL pressure before stepping down queue capacity |
 | `FAPILOG_ADAPTIVE__CHECK_INTERVAL_SECONDS` | float | 0.25 | Seconds between queue pressure samples |
 | `FAPILOG_ADAPTIVE__CIRCUIT_PRESSURE_BOOST` | float | 0.2 | Effective fill ratio boost per open sink circuit breaker |
 | `FAPILOG_ADAPTIVE__COOLDOWN_SECONDS` | float | 2.0 | Minimum seconds between pressure level transitions |
@@ -16,9 +15,7 @@
 | `FAPILOG_ADAPTIVE__ESCALATE_TO_ELEVATED` | float | 0.6 | Fill ratio to escalate NORMAL to ELEVATED |
 | `FAPILOG_ADAPTIVE__ESCALATE_TO_HIGH` | float | 0.8 | Fill ratio to escalate ELEVATED to HIGH |
 | `FAPILOG_ADAPTIVE__FILTER_TIGHTENING` | bool | True | Enable adaptive filter tightening based on pressure level |
-| `FAPILOG_ADAPTIVE__MAX_QUEUE_GROWTH` | float | 4.0 | Maximum queue capacity as a multiplier of initial capacity (grow-only) |
 | `FAPILOG_ADAPTIVE__MAX_WORKERS` | int | 8 | Maximum number of workers when dynamic scaling is active |
-| `FAPILOG_ADAPTIVE__QUEUE_GROWTH` | bool | True | Enable queue capacity growth based on pressure level |
 | `FAPILOG_ADAPTIVE__WORKER_SCALING` | bool | True | Enable dynamic worker scaling based on pressure level |
 | `FAPILOG_CORE__APP_NAME` | str | fapilog | Logical application name |
 | `FAPILOG_CORE__ATEXIT_DRAIN_ENABLED` | bool | True | Register atexit handler to drain pending logs on normal process exit |
@@ -53,6 +50,7 @@
 | `FAPILOG_CORE__MAX_QUEUE_SIZE` | int | 10000 | Maximum in-memory queue size for async processing |
 | `FAPILOG_CORE__PROCESSORS` | list | PydanticUndefined | Processor plugins to use (by name) |
 | `FAPILOG_CORE__PROTECTED_LEVELS` | list | PydanticUndefined | Log levels protected from queue-pressure dropping. When queue is full and a protected-level event arrives, an unprotected event is evicted. Set to [] to disable priority dropping (all events treated equally). |
+| `FAPILOG_CORE__PROTECTED_QUEUE_SIZE` | int | None | — | Protected queue capacity in entries; None uses default derivation |
 | `FAPILOG_CORE__REDACTION_FAIL_MODE` | Literal | warn | Behavior when _apply_redactors() catches an unexpected exception: 'open' passes original event, 'closed' drops the event, 'warn' (default) passes event but emits diagnostic warning |
 | `FAPILOG_CORE__REDACTION_MAX_DEPTH` | int | None | 6 | Optional max depth guardrail for nested redaction |
 | `FAPILOG_CORE__REDACTION_MAX_KEYS_SCANNED` | int | None | 5000 | Optional max keys scanned guardrail for redaction |

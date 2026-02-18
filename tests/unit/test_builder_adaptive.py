@@ -24,12 +24,6 @@ class TestWithAdaptive:
         builder.with_adaptive(max_workers=6)
         assert builder._config["adaptive"]["max_workers"] == 6
 
-    def test_with_adaptive_sets_max_queue_growth(self) -> None:
-        """with_adaptive(max_queue_growth=2.0) sets adaptive.max_queue_growth."""
-        builder = LoggerBuilder()
-        builder.with_adaptive(max_queue_growth=2.0)
-        assert builder._config["adaptive"]["max_queue_growth"] == 2.0
-
     def test_with_adaptive_sets_batch_sizing(self) -> None:
         """with_adaptive(batch_sizing=True) sets adaptive.batch_sizing."""
         builder = LoggerBuilder()
@@ -107,12 +101,6 @@ class TestWithAdaptive:
         builder = LoggerBuilder()
         builder.with_adaptive(worker_scaling=False)
         assert builder._config["adaptive"]["worker_scaling"] is False
-
-    def test_with_adaptive_queue_growth_param(self) -> None:
-        """with_adaptive(queue_growth=False) sets the toggle."""
-        builder = LoggerBuilder()
-        builder.with_adaptive(queue_growth=False)
-        assert builder._config["adaptive"]["queue_growth"] is False
 
     def test_with_adaptive_toggle_none_omitted(self) -> None:
         """Toggle params default to None and are omitted from config."""

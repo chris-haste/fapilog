@@ -10,6 +10,7 @@ This guide documents Settings groups and fields.
 | `core.app_name` | str | fapilog | Logical application name |
 | `core.log_level` | Literal | INFO | Default log level |
 | `core.max_queue_size` | int | 10000 | Maximum in-memory queue size for async processing |
+| `core.protected_queue_size` | int | None | — | Protected queue capacity in entries; None uses default derivation |
 | `core.batch_max_size` | int | 256 | Maximum number of events per batch before a flush is triggered |
 | `core.batch_timeout_seconds` | float | 0.25 | Maximum time to wait before flushing a partial batch |
 | `core.backpressure_wait_ms` | int | 50 | Milliseconds to wait for queue space before dropping |

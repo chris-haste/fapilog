@@ -53,7 +53,7 @@ def get_builder_methods() -> set[str]:
 # Mapping of builder methods to the CoreSettings fields they cover
 BUILDER_TO_CORE_FIELDS: dict[str, list[str]] = {
     "with_level": ["log_level"],
-    "with_queue_size": ["max_queue_size"],
+    "with_queue_size": ["max_queue_size", "protected_queue_size"],
     "with_batch_size": ["batch_max_size"],
     "with_batch_timeout": ["batch_timeout_seconds"],
     "with_context": ["default_bound_context"],

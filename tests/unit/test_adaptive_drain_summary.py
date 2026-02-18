@@ -19,8 +19,6 @@ class TestAdaptiveDrainSummary:
             workers_scaled=0,
             peak_workers=1,
             batch_resize_count=0,
-            queue_growth_count=0,
-            peak_queue_capacity=1000,
         )
         with pytest.raises(AttributeError):
             summary.escalation_count = 5  # type: ignore[misc]
@@ -44,8 +42,6 @@ class TestAdaptiveDrainSummary:
             workers_scaled=2,
             peak_workers=6,
             batch_resize_count=8,
-            queue_growth_count=1,
-            peak_queue_capacity=4000,
         )
         assert summary.peak_pressure_level == PressureLevel.HIGH
         assert summary.escalation_count == 3
@@ -55,8 +51,6 @@ class TestAdaptiveDrainSummary:
         assert summary.workers_scaled == 2
         assert summary.peak_workers == 6
         assert summary.batch_resize_count == 8
-        assert summary.queue_growth_count == 1
-        assert summary.peak_queue_capacity == 4000
 
 
 class TestDrainResultAdaptiveField:
@@ -81,8 +75,6 @@ class TestDrainResultAdaptiveField:
             workers_scaled=0,
             peak_workers=2,
             batch_resize_count=0,
-            queue_growth_count=0,
-            peak_queue_capacity=2000,
         )
         result = DrainResult(
             submitted=5,
