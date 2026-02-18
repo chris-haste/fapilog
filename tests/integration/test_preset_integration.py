@@ -26,8 +26,10 @@ def _swap_stdout_bytesio() -> tuple[io.BytesIO, Any]:
 class TestProductionPresetIntegration:
     """Test production preset end-to-end behavior."""
 
-    def test_production_preset_creates_log_directory(self, tmp_path: Path):
-        """Production preset creates ./logs directory when writing."""
+    def test_production_preset_does_not_create_log_directory_by_default(
+        self, tmp_path: Path
+    ):
+        """Production preset uses stdout_json only; rotating_file is fallback only."""
         import time
 
         original_cwd = os.getcwd()
@@ -38,10 +40,12 @@ class TestProductionPresetIntegration:
             # Allow workers to pick up the message before draining
             # (with worker_count=2, work distribution is async)
             time.sleep(0.3)
-            # Drain to ensure file sink writes
+            # Drain to ensure sink writes complete
             asyncio.run(logger.stop_and_drain())
-            # The logs directory should exist after draining
-            assert (tmp_path / "logs").exists(), "Logs directory should be created"
+            # No logs directory — rotating_file is circuit breaker fallback only
+            assert not (tmp_path / "logs").exists(), (
+                "Logs directory should not be created during normal operation"
+            )
         finally:
             os.chdir(original_cwd)
 
