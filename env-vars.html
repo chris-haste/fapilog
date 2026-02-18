@@ -413,6 +413,16 @@
 <td><p>PydanticUndefined</p></td>
 <td><p>Enricher plugins to use (by name)</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__ERROR_DEDUPE_MAX_ENTRIES</span></code></p></td>
+<td><p>int</p></td>
+<td><p>1000</p></td>
+<td><p>Maximum number of entries in the error deduplication dict; oldest entries are evicted when the cap is reached</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__ERROR_DEDUPE_TTL_MULTIPLIER</span></code></p></td>
+<td><p>float</p></td>
+<td><p>10.0</p></td>
+<td><p>Multiplier applied to error_dedupe_window_seconds to determine TTL for periodic sweep of stale dedupe entries</p></td>
+</tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__ERROR_DEDUPE_WINDOW_SECONDS</span></code></p></td>
 <td><p>float</p></td>
 <td><p>5.0</p></td>
