@@ -12,6 +12,7 @@ import contextvars
 import threading
 import time
 import warnings
+from collections import OrderedDict
 from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any, cast
@@ -273,7 +274,8 @@ class _LoggerMixin(_WorkerCountersMixin):
             contextvars.ContextVar("fapilog_bound_context", default=None)
         )
         self._level_gate: int | None = level_gate
-        self._error_dedupe: dict[str, tuple[float, int]] = {}
+        self._error_dedupe: OrderedDict[str, tuple[float, int]] = OrderedDict()
+        self._dedupe_check_count: int = 0
         self._drained: bool = False  # Track if drain() was called (Story 10.29)
         self._started: bool = False  # Track if workers were started (Story 10.29)
 
@@ -304,6 +306,8 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._cached_sampling_filters: set[str] = set()
         self._cached_sampling_configured: bool = False
         self._cached_error_dedupe_window: float = 0.0
+        self._cached_error_dedupe_max_entries: int = 1000
+        self._cached_error_dedupe_ttl_multiplier: float = 10.0
         self._cached_strict_envelope_mode: bool = False
         try:
             from .settings import Settings
@@ -321,6 +325,10 @@ class _LoggerMixin(_WorkerCountersMixin):
                 & {"sampling", "adaptive_sampling", "trace_sampling"}
             )
             self._cached_error_dedupe_window = float(s.core.error_dedupe_window_seconds)
+            self._cached_error_dedupe_max_entries = int(s.core.error_dedupe_max_entries)
+            self._cached_error_dedupe_ttl_multiplier = float(
+                s.core.error_dedupe_ttl_multiplier
+            )
             self._cached_strict_envelope_mode = bool(s.core.strict_envelope_mode)
             self._cached_sink_concurrency = max(1, int(s.core.sink_concurrency))
             # Cache adaptive settings for pressure monitor (Story 1.44)
@@ -875,9 +883,27 @@ class _LoggerMixin(_WorkerCountersMixin):
                     import time as _t
 
                     now = _t.monotonic()
+                    max_entries = self._cached_error_dedupe_max_entries
+
+                    # Periodic TTL sweep (Story 1.55)
+                    self._dedupe_check_count += 1
+                    if self._dedupe_check_count >= 100:
+                        self._dedupe_check_count = 0
+                        ttl = window * self._cached_error_dedupe_ttl_multiplier
+                        cutoff = now - ttl
+                        while self._error_dedupe:
+                            oldest_key, (oldest_ts, _) = next(
+                                iter(self._error_dedupe.items())
+                            )
+                            if oldest_ts >= cutoff:
+                                break
+                            del self._error_dedupe[oldest_key]
+
                     existing = self._error_dedupe.get(message)
                     if existing is None:
                         self._error_dedupe[message] = (now, 0)
+                        if len(self._error_dedupe) > max_entries:
+                            self._error_dedupe.popitem(last=False)
                     else:
                         first_ts, count = existing
                         if now - first_ts <= window:
@@ -902,6 +928,9 @@ class _LoggerMixin(_WorkerCountersMixin):
                                     message, count, window
                                 )
                         self._error_dedupe[message] = (now, 0)
+                        self._error_dedupe.move_to_end(message)
+                        if len(self._error_dedupe) > max_entries:
+                            self._error_dedupe.popitem(last=False)
         except Exception:
             pass
 

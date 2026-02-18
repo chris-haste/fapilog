@@ -129,6 +129,20 @@
       "title": "Enrichers",
       "type": "array"
     },
+    "error_dedupe_max_entries": {
+      "default": 1000,
+      "description": "Maximum number of entries in the error deduplication dict; oldest entries are evicted when the cap is reached",
+      "minimum": 1,
+      "title": "Error Dedupe Max Entries",
+      "type": "integer"
+    },
+    "error_dedupe_ttl_multiplier": {
+      "default": 10.0,
+      "description": "Multiplier applied to error_dedupe_window_seconds to determine TTL for periodic sweep of stale dedupe entries",
+      "exclusiveMinimum": 0.0,
+      "title": "Error Dedupe Ttl Multiplier",
+      "type": "number"
+    },
     "error_dedupe_window_seconds": {
       "default": 5.0,
       "description": "Seconds to suppress duplicate ERROR logs with the same message; 0 disables deduplication",
