@@ -36,6 +36,7 @@ Settings path: `core.*`
 | `core.app_name` | `FAPILOG_CORE__APP_NAME` | `.with_app_name("name")` | `"fapilog"` | Logical application name |
 | `core.log_level` | `FAPILOG_CORE__LOG_LEVEL` | `.with_level("INFO")` | `"INFO"` | Default log level (DEBUG, INFO, WARNING, ERROR) |
 | `core.max_queue_size` | `FAPILOG_CORE__MAX_QUEUE_SIZE` | `.with_queue_size(10000)` | `10000` | Maximum in-memory queue size |
+| `core.protected_queue_size` | `FAPILOG_CORE__PROTECTED_QUEUE_SIZE` | `.with_queue_size(10000, protected_entries=2000)` | `None` | Protected queue capacity; None derives from main |
 | `core.batch_max_size` | `FAPILOG_CORE__BATCH_MAX_SIZE` | `.with_batch_size(256)` | `256` | Maximum events per batch |
 | `core.batch_timeout_seconds` | `FAPILOG_CORE__BATCH_TIMEOUT_SECONDS` | `.with_batch_timeout("0.25s")` | `0.25` | Max time before flushing partial batch |
 | `core.backpressure_wait_ms` | `FAPILOG_CORE__BACKPRESSURE_WAIT_MS` | `.with_backpressure(wait_ms=50)` | `50` | Kept for backward compatibility; enqueue is always non-blocking |
@@ -167,12 +168,10 @@ Short env var aliases are available (e.g., `FAPILOG_ADAPTIVE__ENABLED`).
 | `adaptive.deescalate_from_high` | `FAPILOG_ADAPTIVE__DEESCALATE_FROM_HIGH` | Settings only | `0.60` | Fill ratio to de-escalate HIGH to ELEVATED |
 | `adaptive.deescalate_from_critical` | `FAPILOG_ADAPTIVE__DEESCALATE_FROM_CRITICAL` | Settings only | `0.75` | Fill ratio to de-escalate CRITICAL to HIGH |
 | `adaptive.max_workers` | `FAPILOG_ADAPTIVE__MAX_WORKERS` | `.with_adaptive(max_workers=8)` | `8` | Maximum workers when dynamic scaling is active |
-| `adaptive.max_queue_growth` | `FAPILOG_ADAPTIVE__MAX_QUEUE_GROWTH` | `.with_adaptive(max_queue_growth=4.0)` | `4.0` | Maximum queue capacity multiplier |
 | `adaptive.batch_sizing` | `FAPILOG_ADAPTIVE__BATCH_SIZING` | `.with_adaptive(batch_sizing=True)` | `False` | Enable adaptive batch sizing |
 | `adaptive.circuit_pressure_boost` | `FAPILOG_ADAPTIVE__CIRCUIT_PRESSURE_BOOST` | `.with_adaptive(circuit_pressure_boost=0.20)` | `0.20` | Pressure boost per open circuit breaker |
 | `adaptive.filter_tightening` | `FAPILOG_ADAPTIVE__FILTER_TIGHTENING` | `.with_adaptive(filter_tightening=True)` | `True` | Enable adaptive filter tightening based on pressure level |
 | `adaptive.worker_scaling` | `FAPILOG_ADAPTIVE__WORKER_SCALING` | `.with_adaptive(worker_scaling=True)` | `True` | Enable dynamic worker scaling based on pressure level |
-| `adaptive.queue_growth` | `FAPILOG_ADAPTIVE__QUEUE_GROWTH` | `.with_adaptive(queue_growth=True)` | `True` | Enable queue capacity growth based on pressure level |
 
 ---
 

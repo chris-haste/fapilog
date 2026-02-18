@@ -292,49 +292,55 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">10000</span></code></p></td>
 <td><p>Maximum in-memory queue size</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.batch_max_size</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.protected_queue_size</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__PROTECTED_QUEUE_SIZE</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_queue_size(10000,</span> <span class="pre">protected_entries=2000)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Protected queue capacity; None derives from main</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.batch_max_size</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__BATCH_MAX_SIZE</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.with_batch_size(256)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">256</span></code></p></td>
 <td><p>Maximum events per batch</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.batch_timeout_seconds</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.batch_timeout_seconds</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__BATCH_TIMEOUT_SECONDS</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.with_batch_timeout(&quot;0.25s&quot;)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">0.25</span></code></p></td>
 <td><p>Max time before flushing partial batch</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.backpressure_wait_ms</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.backpressure_wait_ms</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__BACKPRESSURE_WAIT_MS</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.with_backpressure(wait_ms=50)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">50</span></code></p></td>
 <td><p>Kept for backward compatibility; enqueue is always non-blocking</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.drop_on_full</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.drop_on_full</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__DROP_ON_FULL</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.with_backpressure(drop_on_full=True)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
 <td><p>Drop events when queue is full (always non-blocking)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.enable_metrics</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.enable_metrics</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__ENABLE_METRICS</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.with_metrics(enabled=True)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
 <td><p>Enable Prometheus-compatible metrics</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.worker_count</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.worker_count</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__WORKER_COUNT</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.with_workers(count=1)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
 <td><p>Number of worker tasks for flush processing (see Validation Limits below)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.shutdown_timeout_seconds</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.shutdown_timeout_seconds</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__SHUTDOWN_TIMEOUT_SECONDS</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.with_shutdown_timeout(&quot;3s&quot;)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">3.0</span></code></p></td>
 <td><p>Maximum time to flush on shutdown</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">core.error_dedupe_window_seconds</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">core.error_dedupe_window_seconds</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__ERROR_DEDUPE_WINDOW_SECONDS</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.with_error_deduplication(5.0)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">5.0</span></code></p></td>
@@ -816,41 +822,29 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">8</span></code></p></td>
 <td><p>Maximum workers when dynamic scaling is active</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.max_queue_growth</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__MAX_QUEUE_GROWTH</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">.with_adaptive(max_queue_growth=4.0)</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">4.0</span></code></p></td>
-<td><p>Maximum queue capacity multiplier</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.batch_sizing</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.batch_sizing</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__BATCH_SIZING</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.with_adaptive(batch_sizing=True)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
 <td><p>Enable adaptive batch sizing</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.circuit_pressure_boost</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.circuit_pressure_boost</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__CIRCUIT_PRESSURE_BOOST</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.with_adaptive(circuit_pressure_boost=0.20)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">0.20</span></code></p></td>
 <td><p>Pressure boost per open circuit breaker</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.filter_tightening</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.filter_tightening</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__FILTER_TIGHTENING</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.with_adaptive(filter_tightening=True)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
 <td><p>Enable adaptive filter tightening based on pressure level</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.worker_scaling</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.worker_scaling</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__WORKER_SCALING</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">.with_adaptive(worker_scaling=True)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
 <td><p>Enable dynamic worker scaling based on pressure level</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">adaptive.queue_growth</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">FAPILOG_ADAPTIVE__QUEUE_GROWTH</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">.with_adaptive(queue_growth=True)</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
-<td><p>Enable queue capacity growth based on pressure level</p></td>
 </tr>
 </tbody>
 </table>
