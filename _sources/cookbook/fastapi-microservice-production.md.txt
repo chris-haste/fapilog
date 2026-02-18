@@ -484,7 +484,7 @@ Or via environment variable:
 FAPILOG_ADAPTIVE__ENABLED=true
 ```
 
-The dedicated thread's event loop is independent of FastAPI's, so worker scaling, queue growth, filter tightening, and batch sizing all work well together. See [Adaptive Pipeline](../user-guide/adaptive-pipeline.md) for full configuration reference.
+The dedicated thread's event loop is independent of FastAPI's, so worker scaling, filter tightening, and batch sizing all work well together. See [Adaptive Pipeline](../user-guide/adaptive-pipeline.md) for full configuration reference.
 
 ## Troubleshooting
 

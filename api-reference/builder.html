@@ -868,18 +868,43 @@
 <hr class="docutils" />
 <section id="performance-reliability">
 <h2>Performance &amp; Reliability<a class="headerlink" href="#performance-reliability" title="Link to this heading"></a></h2>
-<section id="with-queue-size-size">
-<h3>with_queue_size(size)<a class="headerlink" href="#with-queue-size-size" title="Link to this heading"></a></h3>
-<p>Set maximum queue size for buffering log events.</p>
+<section id="with-queue-size-size-protected-entries-none">
+<h3>with_queue_size(size, *, protected_entries=None)<a class="headerlink" href="#with-queue-size-size-protected-entries-none" title="Link to this heading"></a></h3>
+<p>Set queue size in entries.</p>
 <p><strong>Parameters:</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code> (int): Maximum queue size</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code> (int): Main queue capacity in entries</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">protected_entries</span></code> (int | None): Protected queue capacity; <code class="docutils literal notranslate"><span class="pre">None</span></code> uses default derivation (<code class="docutils literal notranslate"><span class="pre">max(100,</span> <span class="pre">size</span> <span class="pre">//</span> <span class="pre">10)</span></code>)</p></li>
 </ul>
 <p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
 <p><strong>Example:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_queue_size</span><span class="p">(</span><span class="mi">10000</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set main queue size (protected queue derived automatically)</span>
+<span class="n">builder</span><span class="o">.</span><span class="n">with_queue_size</span><span class="p">(</span><span class="mi">25_000</span><span class="p">)</span>
+
+<span class="c1"># Set both main and protected queue sizes independently</span>
+<span class="n">builder</span><span class="o">.</span><span class="n">with_queue_size</span><span class="p">(</span><span class="mi">25_000</span><span class="p">,</span> <span class="n">protected_entries</span><span class="o">=</span><span class="mi">5_000</span><span class="p">)</span>
 </pre></div>
 </div>
+</section>
+<hr class="docutils" />
+<section id="with-queue-budget-main-mb-20-0-protected-mb-5-0">
+<h3>with_queue_budget(*, main_mb=20.0, protected_mb=5.0)<a class="headerlink" href="#with-queue-budget-main-mb-20-0-protected-mb-5-0" title="Link to this heading"></a></h3>
+<p>Set queue memory budget. Computes entry counts from an average event size estimate (~2KB per event). For precise control, use <code class="docutils literal notranslate"><span class="pre">with_queue_size()</span></code> instead.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">main_mb</span></code> (float): Memory budget for the main queue in MB (INFO/DEBUG events). Default: 20.0</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">protected_mb</span></code> (float): Memory budget for the protected queue in MB (ERROR/CRITICAL/AUDIT). Default: 5.0</p></li>
+</ul>
+<p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set memory budgets (recommended for container deployments)</span>
+<span class="n">builder</span><span class="o">.</span><span class="n">with_queue_budget</span><span class="p">(</span><span class="n">main_mb</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">protected_mb</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="c1"># Equivalent to approximately:</span>
+<span class="c1"># main: 25,600 entries, protected: 5,120 entries</span>
+</pre></div>
+</div>
+<p><strong>Note:</strong> The ~2KB estimate assumes moderate metadata without large stack traces. If your events are significantly larger, use <code class="docutils literal notranslate"><span class="pre">with_queue_size()</span></code> for precise control.</p>
 </section>
 <hr class="docutils" />
 <section id="with-batch-size-size">
@@ -982,21 +1007,19 @@
 <p>See <a class="reference internal" href="../user-guide/circuit-breaker.html"><span class="std std-doc">Circuit Breaker</span></a> for a detailed guide on fallback routing patterns.</p>
 </section>
 <hr class="docutils" />
-<section id="with-adaptive-enabled-true-max-workers-none-max-queue-growth-none-batch-sizing-none-check-interval-seconds-none-cooldown-seconds-none-circuit-pressure-boost-none-filter-tightening-none-worker-scaling-none-queue-growth-none">
-<h3>with_adaptive(*, enabled=True, max_workers=None, max_queue_growth=None, batch_sizing=None, check_interval_seconds=None, cooldown_seconds=None, circuit_pressure_boost=None, filter_tightening=None, worker_scaling=None, queue_growth=None)<a class="headerlink" href="#with-adaptive-enabled-true-max-workers-none-max-queue-growth-none-batch-sizing-none-check-interval-seconds-none-cooldown-seconds-none-circuit-pressure-boost-none-filter-tightening-none-worker-scaling-none-queue-growth-none" title="Link to this heading"></a></h3>
-<p>Configure adaptive pipeline behavior. Enables pressure monitoring, dynamic worker scaling, adaptive batch sizing, and queue growth based on queue fill ratio.</p>
+<section id="with-adaptive-enabled-true-max-workers-none-batch-sizing-none-check-interval-seconds-none-cooldown-seconds-none-circuit-pressure-boost-none-filter-tightening-none-worker-scaling-none">
+<h3>with_adaptive(*, enabled=True, max_workers=None, batch_sizing=None, check_interval_seconds=None, cooldown_seconds=None, circuit_pressure_boost=None, filter_tightening=None, worker_scaling=None)<a class="headerlink" href="#with-adaptive-enabled-true-max-workers-none-batch-sizing-none-check-interval-seconds-none-cooldown-seconds-none-circuit-pressure-boost-none-filter-tightening-none-worker-scaling-none" title="Link to this heading"></a></h3>
+<p>Configure adaptive pipeline behavior. Enables pressure monitoring, dynamic worker scaling, adaptive batch sizing, and filter tightening based on queue fill ratio. Queue capacity is fixed at startup — use <code class="docutils literal notranslate"><span class="pre">with_queue_budget()</span></code> or <code class="docutils literal notranslate"><span class="pre">with_queue_size()</span></code> to set queue sizes.</p>
 <p><strong>Parameters:</strong></p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">enabled</span></code> (bool): Enable adaptive pipeline controller (default: True)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">max_workers</span></code> (int | None): Maximum workers when dynamic scaling is active</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">max_queue_growth</span></code> (float | None): Maximum queue capacity multiplier (e.g., 4.0 = queue can grow to 4x initial size)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">batch_sizing</span></code> (bool | None): Enable adaptive batch sizing. Only beneficial with batch-aware sinks (CloudWatch, Loki, PostgreSQL). Disabled by default.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">check_interval_seconds</span></code> (float | None): Seconds between queue pressure samples</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">cooldown_seconds</span></code> (float | None): Minimum seconds between pressure level transitions</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">circuit_pressure_boost</span></code> (float | None): Pressure boost per open circuit breaker (0.0-1.0)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">filter_tightening</span></code> (bool | None): Enable adaptive filter tightening based on pressure level (default: True). Set to False to prevent automatic filter escalation under load.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">worker_scaling</span></code> (bool | None): Enable dynamic worker scaling based on pressure level (default: True).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">queue_growth</span></code> (bool | None): Enable queue capacity growth based on pressure level (default: True).</p></li>
 </ul>
 <p><strong>Returns:</strong> <code class="docutils literal notranslate"><span class="pre">Self</span></code></p>
 <p><strong>Example:</strong></p>
@@ -1006,7 +1029,6 @@
 <span class="c1"># Fine-tune adaptive parameters</span>
 <span class="n">builder</span><span class="o">.</span><span class="n">with_adaptive</span><span class="p">(</span>
     <span class="n">max_workers</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
-    <span class="n">max_queue_growth</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
     <span class="n">check_interval_seconds</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
 <span class="p">)</span>
 
@@ -1025,7 +1047,6 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Settings</span><span class="p">(</span><span class="n">adaptive</span><span class="o">=</span><span class="p">{</span>
     <span class="s2">&quot;enabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
     <span class="s2">&quot;max_workers&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
-    <span class="s2">&quot;max_queue_growth&quot;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>
     <span class="s2">&quot;batch_sizing&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
     <span class="s2">&quot;check_interval_seconds&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
 <span class="p">})</span>
@@ -1034,7 +1055,6 @@
 <p><strong>Environment Variables:</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">FAPILOG_ADAPTIVE__ENABLED</span><span class="o">=</span><span class="nb">true</span>
 <span class="nv">FAPILOG_ADAPTIVE__MAX_WORKERS</span><span class="o">=</span><span class="m">6</span>
-<span class="nv">FAPILOG_ADAPTIVE__MAX_QUEUE_GROWTH</span><span class="o">=</span><span class="m">2</span>.0
 <span class="nv">FAPILOG_ADAPTIVE__BATCH_SIZING</span><span class="o">=</span><span class="nb">true</span>
 </pre></div>
 </div>
@@ -1403,89 +1423,93 @@
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_queue_size()</span></code></p></td>
 <td><p>Performance</p></td>
-<td><p>Set queue size</p></td>
+<td><p>Set queue size in entries</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_batch_size()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_queue_budget()</span></code></p></td>
+<td><p>Performance</p></td>
+<td><p>Set queue memory budget in MB</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_batch_size()</span></code></p></td>
 <td><p>Performance</p></td>
 <td><p>Set batch size</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_batch_timeout()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_batch_timeout()</span></code></p></td>
 <td><p>Performance</p></td>
 <td><p>Set batch timeout</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_workers()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_workers()</span></code></p></td>
 <td><p>Performance</p></td>
 <td><p>Set worker count</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_circuit_breaker()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_circuit_breaker()</span></code></p></td>
 <td><p>Reliability</p></td>
 <td><p>Configure circuit breaker</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_adaptive()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_adaptive()</span></code></p></td>
 <td><p>Reliability</p></td>
 <td><p>Configure adaptive pipeline</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_backpressure()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_backpressure()</span></code></p></td>
 <td><p>Reliability</p></td>
 <td><p>Configure backpressure</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_shutdown_timeout()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_shutdown_timeout()</span></code></p></td>
 <td><p>Reliability</p></td>
 <td><p>Set shutdown timeout</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_parallel_sink_writes()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_parallel_sink_writes()</span></code></p></td>
 <td><p>Performance</p></td>
 <td><p>Enable parallel writes</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_routing()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_routing()</span></code></p></td>
 <td><p>Routing</p></td>
 <td><p>Configure sink routing</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_enrichers()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_enrichers()</span></code></p></td>
 <td><p>Enrichers</p></td>
 <td><p>Enable enrichers</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">configure_enricher()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">configure_enricher()</span></code></p></td>
 <td><p>Enrichers</p></td>
 <td><p>Configure enricher</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_context()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_context()</span></code></p></td>
 <td><p>Enrichers</p></td>
 <td><p>Set default context</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_exceptions()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_exceptions()</span></code></p></td>
 <td><p>Advanced</p></td>
 <td><p>Configure exception handling</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_metrics()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_metrics()</span></code></p></td>
 <td><p>Advanced</p></td>
 <td><p>Enable metrics</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_error_deduplication()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_error_deduplication()</span></code></p></td>
 <td><p>Advanced</p></td>
 <td><p>Configure error dedup</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_diagnostics()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_diagnostics()</span></code></p></td>
 <td><p>Advanced</p></td>
 <td><p>Configure diagnostics</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_strict_mode()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_strict_mode()</span></code></p></td>
 <td><p>Advanced</p></td>
 <td><p>Enable strict mode</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_unhandled_exception_capture()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_unhandled_exception_capture()</span></code></p></td>
 <td><p>Advanced</p></td>
 <td><p>Capture unhandled exceptions</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_plugins()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_plugins()</span></code></p></td>
 <td><p>Advanced</p></td>
 <td><p>Configure plugin loading</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">build()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">build()</span></code></p></td>
 <td><p>Build</p></td>
 <td><p>Build sync logger</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">build_async()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">build_async()</span></code></p></td>
 <td><p>Build</p></td>
 <td><p>Build async logger</p></td>
 </tr>

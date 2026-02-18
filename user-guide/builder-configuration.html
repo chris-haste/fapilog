@@ -512,8 +512,8 @@
     <span class="o">.</span><span class="n">with_adaptive</span><span class="p">(</span>
         <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">max_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
-        <span class="n">max_queue_growth</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span>
     <span class="p">)</span>
+    <span class="o">.</span><span class="n">with_queue_budget</span><span class="p">(</span><span class="n">main_mb</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">protected_mb</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
     <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
     <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>

@@ -56,8 +56,6 @@ class AdaptiveDrainSummary:
     workers_scaled: int
     peak_workers: int
     batch_resize_count: int
-    queue_growth_count: int
-    peak_queue_capacity: int
 ```
 
 Available on `DrainResult.adaptive` when the adaptive pipeline is enabled. Provides a post-drain summary of adaptive pipeline activity.
@@ -72,8 +70,6 @@ Available on `DrainResult.adaptive` when the adaptive pipeline is enabled. Provi
 | `workers_scaled` | Number of worker scaling events |
 | `peak_workers` | Maximum concurrent workers reached |
 | `batch_resize_count` | Number of adaptive batch size changes |
-| `queue_growth_count` | Number of queue capacity expansions |
-| `peak_queue_capacity` | Maximum queue capacity reached |
 
 ### Example
 

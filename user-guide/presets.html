@@ -279,7 +279,7 @@
 </tbody>
 </table>
 <blockquote>
-<div><p><strong>Note:</strong> The <code class="docutils literal notranslate"><span class="pre">adaptive</span></code> preset name is deprecated. Use <code class="docutils literal notranslate"><span class="pre">production</span></code> instead — it now includes all adaptive features (dynamic worker scaling, queue growth, circuit breaker).</p>
+<div><p><strong>Note:</strong> The <code class="docutils literal notranslate"><span class="pre">adaptive</span></code> preset name is deprecated. Use <code class="docutils literal notranslate"><span class="pre">production</span></code> instead — it now includes all adaptive features (dynamic worker scaling, filter tightening, circuit breaker).</p>
 </div></blockquote>
 </section>
 <section id="choosing-a-preset">
@@ -342,7 +342,7 @@
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">production</span></code></p></td>
 <td><p>2 (up to 4)</p></td>
 <td><p>256</p></td>
-<td><p>10000 (grows up to 3x)</p></td>
+<td><p>10000 (fixed)</p></td>
 <td><p>runtime_info, context_vars</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">serverless</span></code></p></td>
@@ -497,7 +497,7 @@
 <li><p>INFO level filters noise</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">batch_max_size=256</span></code>, <code class="docutils literal notranslate"><span class="pre">batch_timeout_seconds=0.25</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">max_queue_size=10000</span></code>, <code class="docutils literal notranslate"><span class="pre">sink_concurrency=8</span></code>, <code class="docutils literal notranslate"><span class="pre">shutdown_timeout_seconds=25.0</span></code></p></li>
-<li><p>Adaptive pipeline enabled: dynamic worker scaling (2-4), queue growth (up to 3x)</p></li>
+<li><p>Adaptive pipeline enabled: dynamic worker scaling (2-4), filter tightening, fixed queue capacity</p></li>
 <li><p>Circuit breaker with rotating file fallback — failing sinks are isolated, events reroute to local files</p></li>
 <li><p>File rotation: <code class="docutils literal notranslate"><span class="pre">./logs/fapilog-*.log</span></code>, 50MB max, 10 files, gzip compressed (fallback only)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">drop_on_full=False</span></code> — bounded backpressure retry before dropping</p></li>

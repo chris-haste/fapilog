@@ -285,8 +285,6 @@
     <span class="n">workers_scaled</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">peak_workers</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">batch_resize_count</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">queue_growth_count</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">peak_queue_capacity</span><span class="p">:</span> <span class="nb">int</span>
 </pre></div>
 </div>
 <p>Available on <code class="docutils literal notranslate"><span class="pre">DrainResult.adaptive</span></code> when the adaptive pipeline is enabled. Provides a post-drain summary of adaptive pipeline activity.</p>
@@ -320,12 +318,6 @@
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">batch_resize_count</span></code></p></td>
 <td><p>Number of adaptive batch size changes</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">queue_growth_count</span></code></p></td>
-<td><p>Number of queue capacity expansions</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">peak_queue_capacity</span></code></p></td>
-<td><p>Maximum queue capacity reached</p></td>
 </tr>
 </tbody>
 </table>

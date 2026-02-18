@@ -233,7 +233,7 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="adaptive-pipeline">
 <h1>Adaptive Pipeline<a class="headerlink" href="#adaptive-pipeline" title="Link to this heading"></a></h1>
-<p>The adaptive pipeline automatically scales workers, batch sizes, and queue capacity based on real-time queue pressure. Instead of manually tuning these parameters for peak load, the pipeline self-adjusts as traffic changes.</p>
+<p>The adaptive pipeline automatically scales workers, batch sizes, and filter levels based on real-time queue pressure. Instead of manually tuning these parameters for peak load, the pipeline self-adjusts as traffic changes. Queue capacity is fixed at startup — use <code class="docutils literal notranslate"><span class="pre">with_queue_budget()</span></code> or <code class="docutils literal notranslate"><span class="pre">with_queue_size()</span></code> to set your memory ceiling.</p>
 <section id="quick-start">
 <h2>Quick start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fapilog</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_logger</span>
@@ -332,33 +332,26 @@
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Worker scaling</p></td>
+<tr class="row-even"><td><p>Filter tightening</p></td>
+<td><p>Raises effective log level</p></td>
+<td><p>None</p></td>
+<td><p>Soft</p></td>
+<td><p>Medium</p></td>
+<td><p>Aggressive</p></td>
+</tr>
+<tr class="row-odd"><td><p>Worker scaling</p></td>
 <td><p>Adds worker tasks</p></td>
 <td><p>Initial (2)</p></td>
 <td><p>+1</p></td>
 <td><p>+2</p></td>
 <td><p>Max (8)</p></td>
 </tr>
-<tr class="row-odd"><td><p>Batch sizing</p></td>
+<tr class="row-even"><td><p>Batch sizing</p></td>
 <td><p>Adjusts batch sizes (opt-in)</p></td>
 <td><p>Base (100)</p></td>
 <td><p>1.5x</p></td>
 <td><p>2x</p></td>
 <td><p>4x</p></td>
-</tr>
-<tr class="row-even"><td><p>Queue growth</p></td>
-<td><p>Expands queue capacity</p></td>
-<td><p>Base</p></td>
-<td><p>1.5x</p></td>
-<td><p>2x</p></td>
-<td><p>Up to 4x</p></td>
-</tr>
-<tr class="row-odd"><td><p>Filter tightening</p></td>
-<td><p>Raises effective log level</p></td>
-<td><p>None</p></td>
-<td><p>Soft</p></td>
-<td><p>Medium</p></td>
-<td><p>Aggressive</p></td>
 </tr>
 </tbody>
 </table>
@@ -415,29 +408,21 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">8</span></code></p></td>
 <td><p>Maximum workers when dynamic scaling is active</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_queue_growth</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">4.0</span></code></p></td>
-<td><p>Maximum queue capacity multiplier</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">batch_sizing</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">batch_sizing</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
 <td><p>Enable adaptive batch sizing</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">circuit_pressure_boost</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">circuit_pressure_boost</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">0.20</span></code></p></td>
 <td><p>Pressure boost per open circuit breaker</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">filter_tightening</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">filter_tightening</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
 <td><p>Enable adaptive filter tightening based on pressure level</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">worker_scaling</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">worker_scaling</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
 <td><p>Enable dynamic worker scaling based on pressure level</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">queue_growth</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
-<td><p>Enable queue capacity growth based on pressure level</p></td>
 </tr>
 </tbody>
 </table>
@@ -450,12 +435,10 @@
 <span class="nv">FAPILOG_ADAPTIVE__ESCALATE_TO_HIGH</span><span class="o">=</span><span class="m">0</span>.80
 <span class="nv">FAPILOG_ADAPTIVE__ESCALATE_TO_CRITICAL</span><span class="o">=</span><span class="m">0</span>.92
 <span class="nv">FAPILOG_ADAPTIVE__MAX_WORKERS</span><span class="o">=</span><span class="m">8</span>
-<span class="nv">FAPILOG_ADAPTIVE__MAX_QUEUE_GROWTH</span><span class="o">=</span><span class="m">4</span>.0
 <span class="nv">FAPILOG_ADAPTIVE__BATCH_SIZING</span><span class="o">=</span><span class="nb">true</span>
 <span class="nv">FAPILOG_ADAPTIVE__CIRCUIT_PRESSURE_BOOST</span><span class="o">=</span><span class="m">0</span>.20
 <span class="nv">FAPILOG_ADAPTIVE__FILTER_TIGHTENING</span><span class="o">=</span><span class="nb">true</span>
 <span class="nv">FAPILOG_ADAPTIVE__WORKER_SCALING</span><span class="o">=</span><span class="nb">false</span>
-<span class="nv">FAPILOG_ADAPTIVE__QUEUE_GROWTH</span><span class="o">=</span><span class="nb">false</span>
 </pre></div>
 </div>
 </section>
@@ -466,7 +449,6 @@
 <span class="n">settings</span> <span class="o">=</span> <span class="n">Settings</span><span class="p">(</span><span class="n">adaptive</span><span class="o">=</span><span class="p">{</span>
     <span class="s2">&quot;enabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
     <span class="s2">&quot;max_workers&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
-    <span class="s2">&quot;max_queue_growth&quot;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>
     <span class="s2">&quot;batch_sizing&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
     <span class="s2">&quot;check_interval_seconds&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
     <span class="s2">&quot;cooldown_seconds&quot;</span><span class="p">:</span> <span class="mf">3.0</span><span class="p">,</span>
@@ -542,19 +524,17 @@
 <h2>Tuning guidelines<a class="headerlink" href="#tuning-guidelines" title="Link to this heading"></a></h2>
 <p><strong>For latency-sensitive services:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_adaptive</span><span class="p">(</span>
-    <span class="n">max_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>          <span class="c1"># Cap worker scaling</span>
-    <span class="n">max_queue_growth</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>   <span class="c1"># Limit queue growth</span>
-    <span class="n">check_interval_seconds</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>  <span class="c1"># Faster response</span>
-<span class="p">)</span>
+    <span class="n">max_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>                <span class="c1"># Cap worker scaling</span>
+    <span class="n">check_interval_seconds</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>   <span class="c1"># Faster response</span>
+<span class="p">)</span><span class="o">.</span><span class="n">with_queue_budget</span><span class="p">(</span><span class="n">main_mb</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">protected_mb</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>  <span class="c1"># Fixed memory ceiling</span>
 </pre></div>
 </div>
 <p><strong>For high-throughput batch processing:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">with_adaptive</span><span class="p">(</span>
     <span class="n">max_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
-    <span class="n">max_queue_growth</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span>
     <span class="n">batch_sizing</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">cooldown_seconds</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>   <span class="c1"># Slower transitions to avoid oscillation</span>
-<span class="p">)</span>
+<span class="p">)</span><span class="o">.</span><span class="n">with_queue_budget</span><span class="p">(</span><span class="n">main_mb</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">protected_mb</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>  <span class="c1"># Generous buffer</span>
 </pre></div>
 </div>
 <p><strong>Conservative escalation (fewer false alarms):</strong></p>
@@ -581,7 +561,6 @@
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Filters swapped: </span><span class="si">{</span><span class="n">summary</span><span class="o">.</span><span class="n">filters_swapped</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Workers scaled: </span><span class="si">{</span><span class="n">summary</span><span class="o">.</span><span class="n">workers_scaled</span><span class="si">}</span><span class="s2"> (peak: </span><span class="si">{</span><span class="n">summary</span><span class="o">.</span><span class="n">peak_workers</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Batch resizes: </span><span class="si">{</span><span class="n">summary</span><span class="o">.</span><span class="n">batch_resize_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Queue growths: </span><span class="si">{</span><span class="n">summary</span><span class="o">.</span><span class="n">queue_growth_count</span><span class="si">}</span><span class="s2"> (peak: </span><span class="si">{</span><span class="n">summary</span><span class="o">.</span><span class="n">peak_queue_capacity</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
 
     <span class="c1"># Time breakdown by pressure level</span>
     <span class="k">for</span> <span class="n">level</span><span class="p">,</span> <span class="n">seconds</span> <span class="ow">in</span> <span class="n">summary</span><span class="o">.</span><span class="n">time_at_level</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -596,7 +575,7 @@
 <p>The <code class="docutils literal notranslate"><span class="pre">adaptive</span></code> preset (<code class="docutils literal notranslate"><span class="pre">get_logger(preset=&quot;adaptive&quot;)</span></code>) enables all adaptive features with sensible defaults:</p>
 <ul class="simple">
 <li><p>Production base settings (2 workers, batch size 100)</p></li>
-<li><p>Adaptive pipeline enabled (worker scaling, queue growth)</p></li>
+<li><p>Adaptive pipeline enabled (worker scaling, filter tightening)</p></li>
 <li><p>Adaptive batch sizing disabled by default (enable with <code class="docutils literal notranslate"><span class="pre">with_adaptive(batch_sizing=True)</span></code> when using batch-aware sinks)</p></li>
 <li><p>Circuit breaker with rotating file fallback</p></li>
 <li><p>Protected levels: ERROR, CRITICAL, FATAL, AUDIT, SECURITY</p></li>
