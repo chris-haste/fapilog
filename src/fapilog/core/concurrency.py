@@ -39,6 +39,7 @@ class NonBlockingRingQueue(Generic[T]):
         if capacity <= 0:
             raise ValueError("capacity must be > 0")
         self._capacity = int(capacity)
+        self._initial_capacity = self._capacity
         self._dq: deque[T] = deque()
         self._lock = threading.Lock()
 
@@ -71,6 +72,18 @@ class NonBlockingRingQueue(Generic[T]):
             if new_capacity <= self._capacity:
                 return
             self._capacity = new_capacity
+
+    def shrink_capacity(self, new_capacity: int) -> None:
+        """Reduce queue capacity. Clamps to max(new_capacity, current qsize).
+
+        Never shrinks below the value the queue was constructed with.
+        """
+        with self._lock:
+            target = max(self._initial_capacity, new_capacity)
+            target = max(target, len(self._dq))
+            if target >= self._capacity:
+                return
+            self._capacity = target
 
     def try_dequeue(self) -> tuple[bool, T | None]:
         with self._lock:
@@ -330,6 +343,10 @@ class DualQueue(Generic[T]):
         """Grow main queue capacity only."""
         self._main.grow_capacity(new_capacity)
 
+    def shrink_capacity(self, new_capacity: int) -> None:
+        """Shrink main queue capacity only."""
+        self._main.shrink_capacity(new_capacity)
+
     @property
     def main_drops(self) -> int:
         return self._main_drops
@@ -350,6 +367,7 @@ __all__ = [
 # Mark public API for vulture (Story 1.48, 1.52)
 _VULTURE_USED: tuple[object, ...] = (
     NonBlockingRingQueue.grow_capacity,
+    NonBlockingRingQueue.shrink_capacity,
     PriorityAwareQueue.grow_capacity,
     DualQueue.main_is_full,
     DualQueue.protected_is_full,
@@ -359,4 +377,5 @@ _VULTURE_USED: tuple[object, ...] = (
     DualQueue.protected_qsize,
     DualQueue.drain_into,
     DualQueue.grow_capacity,
+    DualQueue.shrink_capacity,
 )

@@ -36,6 +36,87 @@ from .worker import (
 _UNSAFE_SENTINEL = object()
 
 
+def _diag_warn_for_decay(source: str, message: str, **kwargs: Any) -> None:
+    """Emit a diagnostic warning for capacity decay. Patchable for tests."""
+    try:
+        from .diagnostics import warn as _warn
+
+        _warn(source, message, **kwargs)
+    except Exception:  # pragma: no cover - diagnostic failure
+        pass
+
+
+def _next_decay_target(
+    current_capacity: int,
+    initial_capacity: int,
+    growth_table: dict[Any, float],
+) -> int:
+    """Compute the next step-down capacity from the growth table.
+
+    Walks the sorted multipliers in descending order and returns the
+    first tier whose capacity is strictly below ``current_capacity``.
+    """
+    tiers = sorted(
+        (int(initial_capacity * mult) for mult in growth_table.values()),
+        reverse=True,
+    )
+    for tier in tiers:
+        if tier < current_capacity:
+            return tier
+    return initial_capacity
+
+
+def _make_capacity_decay_callback(
+    *,
+    queue: Any,
+    initial_capacity: int,
+    growth_table: dict[Any, float],
+    cooldown_seconds: float,
+) -> tuple[Any, Any]:
+    """Build a capacity change callback with hysteresis decay (Story 1.54).
+
+    Returns:
+        (callback, get_decay_task) — the callback to register on level
+        changes and a getter for the current decay task (for testing).
+    """
+    _decay_task: dict[str, asyncio.Task[None] | None] = {"task": None}
+
+    async def _decay_after_cooldown() -> None:
+        """Step down queue capacity after sustained NORMAL pressure."""
+        while queue.capacity > initial_capacity:
+            await asyncio.sleep(cooldown_seconds)
+            old_cap = queue.capacity
+            target = _next_decay_target(old_cap, initial_capacity, growth_table)
+            queue.shrink_capacity(target)
+            if queue.capacity < old_cap:
+                _diag_warn_for_decay(
+                    "adaptive-controller",
+                    "queue capacity shrunk",
+                    old_capacity=old_cap,
+                    new_capacity=queue.capacity,
+                )
+
+    def _on_capacity_change(old_level: Any, new_level: Any) -> None:
+        if new_level != PressureLevel.NORMAL:
+            # Cancel pending decay on any escalation
+            task = _decay_task["task"]
+            if task is not None and not task.done():
+                task.cancel()
+                _decay_task["task"] = None
+            return
+
+        # NORMAL reached — schedule decay if not already running
+        task = _decay_task["task"]
+        if task is None or task.done():
+            loop = asyncio.get_running_loop()
+            _decay_task["task"] = loop.create_task(_decay_after_cooldown())
+
+    def _get_decay_task() -> asyncio.Task[None] | None:
+        return _decay_task["task"]
+
+    return _on_capacity_change, _get_decay_task
+
+
 class AsyncLogger:
     """Minimal async logger facade used by the core pipeline tests."""
 
@@ -205,6 +286,8 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._worker_pool: Any | None = None
         # Circuit breakers for pressure signal wiring (Story 4.73)
         self._circuit_breakers: list[Any] = []
+        # Capacity decay task getter (Story 1.54)
+        self._capacity_decay_task_getter: Any | None = None
 
         # Drop/dedupe summary visibility (Story 12.20)
         self._emit_drop_summary = bool(emit_drop_summary)
@@ -581,12 +664,10 @@ class _LoggerMixin(_WorkerCountersMixin):
         monitor: Any,
         adaptive: Any,
     ) -> None:
-        """Register queue capacity growth callback (Story 1.48)."""
+        """Register queue capacity growth and decay callbacks (Story 1.48, 1.54)."""
         if not adaptive.queue_growth:
             return
         try:
-            from .pressure import PressureLevel
-
             queue = self._queue
             initial_capacity = queue.capacity
             max_growth: float = getattr(adaptive, "max_queue_growth", 4.0)
@@ -599,6 +680,16 @@ class _LoggerMixin(_WorkerCountersMixin):
                 PressureLevel.HIGH: 1.0 + (g - 1.0) * 0.50,
                 PressureLevel.CRITICAL: g,
             }
+
+            # Decay callback for hysteresis cooldown (Story 1.54)
+            cooldown: float = getattr(adaptive, "capacity_cooldown_seconds", 60.0)
+            decay_callback, get_decay_task = _make_capacity_decay_callback(
+                queue=queue,
+                initial_capacity=initial_capacity,
+                growth_table=growth_table,
+                cooldown_seconds=cooldown,
+            )
+            self._capacity_decay_task_getter = get_decay_task
 
             def _on_capacity_change(old_level: Any, new_level: Any) -> None:
                 multiplier = growth_table.get(new_level, 1.0)
@@ -619,6 +710,8 @@ class _LoggerMixin(_WorkerCountersMixin):
                         )
                     except Exception:  # pragma: no cover - diagnostic failure
                         pass
+                # Delegate decay scheduling/cancellation (Story 1.54)
+                decay_callback(old_level, new_level)
 
             monitor.on_level_change(_on_capacity_change)
         except Exception:  # pragma: no cover - fail-open
@@ -720,6 +813,12 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._pressure_monitor_task = None
         self._adaptive_filter_ladder = None
         self._worker_pool = None
+        # Cancel decay task if running (Story 1.54)
+        if self._capacity_decay_task_getter is not None:
+            task = self._capacity_decay_task_getter()
+            if task is not None and not task.done():
+                task.cancel()
+        self._capacity_decay_task_getter = None
         self._enrichers.clear()
         self._processors.clear()
         self._filters.clear()
