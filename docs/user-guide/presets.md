@@ -12,7 +12,7 @@ Presets provide pre-configured settings for common deployment scenarios. Choose 
 | `hardened` | Compliance (HIPAA/PCI) | Never | Yes | Yes (HIPAA + PCI + CREDENTIALS) |
 | `minimal` | Maximum control | Default | Default | No |
 
-> **Note:** The `adaptive` preset name is deprecated. Use `production` instead — it now includes all adaptive features (dynamic worker scaling, queue growth, circuit breaker).
+> **Note:** The `adaptive` preset name is deprecated. Use `production` instead — it now includes all adaptive features (dynamic worker scaling, filter tightening, circuit breaker).
 
 ## Choosing a Preset
 
@@ -58,7 +58,7 @@ logger = (
 | Preset | Workers | Batch Size | Queue Size | Enrichers |
 |--------|---------|------------|------------|-----------|
 | `dev` | 1 | 1 | 256 | runtime_info, context_vars |
-| `production` | 2 (up to 4) | 256 | 10000 (grows up to 3x) | runtime_info, context_vars |
+| `production` | 2 (up to 4) | 256 | 10000 (fixed) | runtime_info, context_vars |
 | `serverless` | 2 | 25 | 256 | runtime_info, context_vars |
 | `hardened` | 2 | 256 | 256 | runtime_info, context_vars |
 | `minimal` | 1 | 256 | 256 | runtime_info, context_vars |
@@ -130,7 +130,7 @@ logger = get_logger(preset="production")
 - INFO level filters noise
 - `batch_max_size=256`, `batch_timeout_seconds=0.25`
 - `max_queue_size=10000`, `sink_concurrency=8`, `shutdown_timeout_seconds=25.0`
-- Adaptive pipeline enabled: dynamic worker scaling (2-4), queue growth (up to 3x)
+- Adaptive pipeline enabled: dynamic worker scaling (2-4), filter tightening, fixed queue capacity
 - Circuit breaker with rotating file fallback — failing sinks are isolated, events reroute to local files
 - File rotation: `./logs/fapilog-*.log`, 50MB max, 10 files, gzip compressed (fallback only)
 - `drop_on_full=False` — bounded backpressure retry before dropping

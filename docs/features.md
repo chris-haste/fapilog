@@ -29,7 +29,7 @@ A comprehensive overview of what fapilog offers.
 | **Backpressure handling** | Choose between dropping logs (protect latency) or blocking (protect durability) when the queue fills |
 | **Batching** | Logs are batched before writing to reduce I/O overhead |
 | **Zero-copy processing** | `ZeroCopyProcessor` avoids unnecessary memory copies during serialization |
-| **Adaptive pipeline** | Automatic worker scaling, batch sizing, and queue growth based on real-time pressure monitoring |
+| **Adaptive pipeline** | Automatic worker scaling, batch sizing, and filter tightening based on real-time pressure monitoring |
 
 ## Structured Output
 
