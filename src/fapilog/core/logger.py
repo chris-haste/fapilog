@@ -57,8 +57,6 @@ class AdaptiveDrainSummary:
     workers_scaled: int
     peak_workers: int
     batch_resize_count: int
-    queue_growth_count: int
-    peak_queue_capacity: int
 
 
 @dataclass

@@ -28,8 +28,6 @@ class TestInitialCounters:
         assert snapshot.workers_scaled == 0
         assert snapshot.peak_workers == 0
         assert snapshot.batch_resize_count == 0
-        assert snapshot.queue_growth_count == 0
-        assert snapshot.peak_queue_capacity == 0
 
 
 class TestEscalationCounting:
@@ -137,16 +135,6 @@ class TestActuatorRecordMethods:
         snapshot = monitor.snapshot()
         assert snapshot.workers_scaled == 3
         assert snapshot.peak_workers == 6
-
-    def test_record_queue_growth_tracks_peak_capacity(self) -> None:
-        queue = _make_queue()
-        monitor = PressureMonitor(queue=queue, cooldown_seconds=0.0)
-        monitor.record_queue_growth(2000)
-        monitor.record_queue_growth(4000)
-        monitor.record_queue_growth(3000)
-        snapshot = monitor.snapshot()
-        assert snapshot.queue_growth_count == 3
-        assert snapshot.peak_queue_capacity == 4000
 
     def test_record_batch_resize_increments(self) -> None:
         queue = _make_queue()

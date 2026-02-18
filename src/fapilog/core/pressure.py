@@ -186,8 +186,6 @@ class PressureMonitor:
         self._workers_scaled = 0
         self._peak_workers: int = 0
         self._batch_resize_count = 0
-        self._queue_growth_count = 0
-        self._peak_queue_capacity: int = 0
 
     @property
     def pressure_level(self) -> PressureLevel:
@@ -321,12 +319,6 @@ class PressureMonitor:
         if count > self._peak_workers:
             self._peak_workers = count
 
-    def record_queue_growth(self, new_capacity: int) -> None:
-        """Record a queue growth event and track peak capacity."""
-        self._queue_growth_count += 1
-        if new_capacity > self._peak_queue_capacity:
-            self._peak_queue_capacity = new_capacity
-
     def record_batch_resize(self) -> None:
         """Increment batch resize counter."""
         self._batch_resize_count += 1
@@ -348,8 +340,6 @@ class PressureMonitor:
             workers_scaled=self._workers_scaled,
             peak_workers=self._peak_workers,
             batch_resize_count=self._batch_resize_count,
-            queue_growth_count=self._queue_growth_count,
-            peak_queue_capacity=self._peak_queue_capacity,
         )
 
 
@@ -362,7 +352,6 @@ _VULTURE_USED: tuple[object, ...] = (
     PressureMonitor.run,
     PressureMonitor.record_filter_swap,
     PressureMonitor.record_worker_scaling,
-    PressureMonitor.record_queue_growth,
     PressureMonitor.record_batch_resize,
     PressureMonitor.snapshot,
     MetricSetter,
