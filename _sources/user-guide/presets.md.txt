@@ -7,11 +7,12 @@ Presets provide pre-configured settings for common deployment scenarios. Choose 
 | Preset | Use Case | Drops Logs? | File Output | Redaction |
 |--------|----------|-------------|-------------|-----------|
 | `dev` | Local development | No | No | No |
-| `production` | Durable production | Never | Yes | Yes (CREDENTIALS) |
+| `production` | Production with adaptive scaling | Backpressure retry | Fallback only | Yes (CREDENTIALS) |
 | `serverless` | Lambda/Cloud Run | If needed | No | Yes (CREDENTIALS) |
-| `adaptive` | Auto-scaling production | If needed | Fallback only | Yes (CREDENTIALS) |
 | `hardened` | Compliance (HIPAA/PCI) | Never | Yes | Yes (HIPAA + PCI + CREDENTIALS) |
 | `minimal` | Maximum control | Default | Default | No |
+
+> **Note:** The `adaptive` preset name is deprecated. Use `production` instead — it now includes all adaptive features (dynamic worker scaling, queue growth, circuit breaker).
 
 ## Choosing a Preset
 
@@ -22,30 +23,10 @@ Is this for local development?
          ├─ Yes → serverless
          └─ No → Do you need HIPAA/PCI compliance?
                   ├─ Yes → hardened
-                  └─ No → Do you need auto-scaling under load?
-                           ├─ Yes → adaptive (dynamic workers, batch sizing, circuit breaker)
-                           └─ No → Is this a production deployment?
-                                    ├─ Yes → production (never drops, file + stdout)
-                                    └─ No → minimal (maximum control)
+                  └─ No → Is this a production deployment?
+                           ├─ Yes → production (adaptive scaling, backpressure, circuit breaker)
+                           └─ No → minimal (maximum control)
 ```
-
-### Key Decision: `production` vs `adaptive`
-
-Both presets are production-ready with automatic redaction. The difference is in scaling behavior:
-
-| Aspect | `production` | `adaptive` |
-|--------|--------------|------------|
-| **Philosophy** | Never lose logs | Auto-scale under load |
-| **`drop_on_full`** | `False` | `True` |
-| **File sink** | Yes (50MB rotation) | Yes (50MB rotation) |
-| **Workers** | 2 (fixed) | 2-4 (dynamic) |
-| **Best for** | Audit trails, debugging, compliance | Variable load, self-tuning services |
-| **Trade-off** | May briefly block under extreme load | May drop non-protected logs under extreme load |
-
-**Recommendation:**
-- Use `production` when every log matters (audit trails, compliance, debugging production issues)
-- Use `adaptive` when you need automatic resilience under variable load (high-throughput APIs, microservices)
-- For latency-sensitive production, use `production` with `.with_backpressure(drop_on_full=True)` to avoid blocking
 
 ## Usage
 
@@ -77,8 +58,7 @@ logger = (
 | Preset | Workers | Batch Size | Queue Size | Enrichers |
 |--------|---------|------------|------------|-----------|
 | `dev` | 1 | 1 | 256 | runtime_info, context_vars |
-| `production` | 2 | 256 | 256 | runtime_info, context_vars |
-| `adaptive` | 2 (up to 4) | 256 | 10000 (grows up to 3x) | runtime_info, context_vars |
+| `production` | 2 (up to 4) | 256 | 10000 (grows up to 3x) | runtime_info, context_vars |
 | `serverless` | 2 | 25 | 256 | runtime_info, context_vars |
 | `hardened` | 2 | 256 | 256 | runtime_info, context_vars |
 | `minimal` | 1 | 256 | 256 | runtime_info, context_vars |
@@ -90,16 +70,15 @@ logger = (
 | Preset | `drop_on_full` | `redaction_fail_mode` | `strict_envelope_mode` | File Rotation |
 |--------|----------------|----------------------|----------------------|---------------|
 | `dev` | N/A | N/A | `False` | None |
-| `production` | `False` | `warn` | `False` | 50MB × 10, gzip |
-| `adaptive` | `True` | `warn` | `False` | 50MB × 10, gzip |
+| `production` | `False` | `warn` | `False` | Fallback only (50MB x 10, gzip) |
 | `serverless` | `True` | `warn` | `False` | None |
-| `hardened` | `False` | `closed` | `True` | 50MB × 10, gzip |
+| `hardened` | `False` | `closed` | `True` | 50MB x 10, gzip |
 | `minimal` | `True` | N/A | `False` | None |
 
 ### Understanding `drop_on_full`
 
-- **`False`**: Queue blocks briefly when full, ensuring no log loss. May add latency under extreme load.
-- **`True`**: Drops events when queue is full, maintaining application throughput. Events may be lost under extreme load.
+- **`False`** (production, hardened): The caller thread retries with exponential backoff up to `backpressure_wait_ms` (default 50ms) before dropping. This ensures durability with bounded latency impact.
+- **`True`** (serverless, minimal): Drops events immediately when queue is full, maintaining application throughput. Events may be lost under extreme load.
 
 See [Reliability Defaults](reliability-defaults.md) for detailed backpressure behavior.
 
@@ -109,7 +88,6 @@ See [Reliability Defaults](reliability-defaults.md) for detailed backpressure be
 |--------|---------------------|----------------------|---------------------|
 | `dev` | None | N/A | N/A |
 | `production` | CREDENTIALS | `minimal` | `False` |
-| `adaptive` | CREDENTIALS | `minimal` | `False` |
 | `serverless` | CREDENTIALS | `minimal` | `False` |
 | `hardened` | HIPAA_PHI + PCI_DSS + CREDENTIALS | `inherit` | `True` |
 | `minimal` | None | N/A | N/A |
@@ -142,7 +120,7 @@ logger = get_logger(preset="dev")
 
 ### production
 
-Production deployments where log durability is critical.
+Production deployment with adaptive scaling, backpressure retry, and circuit breaker fallback.
 
 ```python
 logger = get_logger(preset="production")
@@ -150,47 +128,26 @@ logger = get_logger(preset="production")
 
 **Settings:**
 - INFO level filters noise
-- `batch_max_size=256`, `shutdown_timeout_seconds=25.0`
-- File rotation: `./logs/fapilog-*.log`, 50MB max, 10 files, gzip compressed
-- `drop_on_full=False` — logs block briefly rather than drop
-- Automatic redaction of credentials
-- 2 workers for 30x throughput improvement
-
-**Use when:** Audit trails matter, debugging production issues, compliance requirements, post-incident analysis.
-
-**Trade-off:** Under extreme load, logging may briefly block the application to ensure no log loss.
-
-### adaptive
-
-Production deployment with automatic scaling under load. Extends `production` with adaptive pipeline features.
-
-```python
-logger = get_logger(preset="adaptive")
-```
-
-**Settings:**
-- INFO level filters noise
 - `batch_max_size=256`, `batch_timeout_seconds=0.25`
 - `max_queue_size=10000`, `sink_concurrency=8`, `shutdown_timeout_seconds=25.0`
 - Adaptive pipeline enabled: dynamic worker scaling (2-4), queue growth (up to 3x)
-- `adaptive.circuit_pressure_boost=0.25`, `adaptive.cooldown_seconds=1.0`, `adaptive.check_interval_seconds=0.25`
 - Circuit breaker with rotating file fallback — failing sinks are isolated, events reroute to local files
-- File rotation: `./logs/fapilog-*.log`, 50MB max, 10 files, gzip compressed
-- `drop_on_full=True` — drops logs rather than block
-- Protected levels: ERROR, CRITICAL
+- File rotation: `./logs/fapilog-*.log`, 50MB max, 10 files, gzip compressed (fallback only)
+- `drop_on_full=False` — bounded backpressure retry before dropping
+- Protected levels: ERROR, CRITICAL (routed to dedicated queue)
 - Automatic redaction of credentials
 
-**Use when:** Services with variable load, microservices that need self-tuning, deployments where you want automatic resilience without manual capacity planning.
+**Use when:** Any production deployment — audit trails, high-throughput APIs, microservices, variable-load workloads.
 
-**Trade-off:** Slightly higher baseline resource usage from pressure monitoring. Under sustained high load, the pipeline auto-scales workers and batch sizes to maintain throughput.
+**Trade-off:** Under extreme load, logging may briefly retry (up to 50ms default) on the caller thread to ensure durability. For latency-sensitive workloads, override with `.with_backpressure(drop_on_full=True)`.
 
 For fine-grained control over adaptive behavior, use the builder:
 
 ```python
 logger = (
     LoggerBuilder()
-    .with_preset("adaptive")
-    .with_adaptive(max_workers=4)
+    .with_preset("production")
+    .with_adaptive(max_workers=6)
     .with_circuit_breaker(fallback_sink="rotating_file")
     .build()
 )
@@ -198,7 +155,7 @@ logger = (
 # Enable batch sizing when using batch-aware sinks (CloudWatch, Loki, PostgreSQL)
 logger = (
     LoggerBuilder()
-    .with_preset("adaptive")
+    .with_preset("production")
     .with_adaptive(batch_sizing=True)
     .add_cloudwatch("/myapp/prod")
     .build()
@@ -261,6 +218,22 @@ logger = get_logger(preset="minimal")
 
 **Use when:** Migrating from another logging library, gradual adoption, explicit "no preset" behavior.
 
+## Migration: `adaptive` to `production`
+
+The `adaptive` preset name is deprecated as of Story 1.53. All adaptive features are now included in the `production` preset.
+
+**Before:**
+```python
+logger = get_logger(preset="adaptive")  # DeprecationWarning
+```
+
+**After:**
+```python
+logger = get_logger(preset="production")  # Same features, no warning
+```
+
+The `adaptive` name continues to work as an alias but emits a `DeprecationWarning`.
+
 ## Customizing Presets
 
 Presets are applied first, then builder methods override specific values:
@@ -283,12 +256,12 @@ logger = (
 Sinks are merged, not replaced:
 
 ```python
-# Production preset has stdout_json + rotating_file
+# Production preset has stdout_json (primary) + rotating_file (fallback)
 # This adds CloudWatch without removing those
 logger = (
     LoggerBuilder()
     .with_preset("production")
-    .add_cloudwatch("/myapp/prod")  # Now has 3 sinks
+    .add_cloudwatch("/myapp/prod")  # Now has 2 primary sinks + fallback
     .build()
 )
 ```
@@ -299,9 +272,9 @@ logger = (
 
 The fundamental trade-off in production logging:
 
-- **Durability-first** (`production`, `hardened`): Set `drop_on_full=False`. The logging pipeline will briefly block if the queue fills up, ensuring no log events are lost. Best for audit trails and debugging.
+- **Durability-first** (`production`, `hardened`): Set `drop_on_full=False`. The caller thread retries with bounded backpressure (exponential backoff up to `backpressure_wait_ms`) before dropping. Best for audit trails and debugging.
 
-- **Latency-first** (`adaptive`, `serverless`): Set `drop_on_full=True`. Events are dropped if the queue is full, ensuring the application never blocks on logging. Best for latency-sensitive workloads. For production with latency priority, use `production` with `.with_backpressure(drop_on_full=True)`.
+- **Latency-first** (`serverless`): Set `drop_on_full=True`. Events are dropped if the queue is full, ensuring the application never blocks on logging. Best for latency-sensitive workloads. For production with latency priority, use `production` with `.with_backpressure(drop_on_full=True)`.
 
 ### Worker Count Impact
 
