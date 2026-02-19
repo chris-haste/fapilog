@@ -734,6 +734,7 @@ class TestGetLoggerCallsSharedSetup:
                 level_gate: int | None,
                 protected_levels: list[str] | None = None,
                 protected_queue_size: int | None = None,
+                settings: object | None = None,
             ) -> None:
                 self.name = name
                 self.enrichers = enrichers or []
@@ -745,6 +746,7 @@ class TestGetLoggerCallsSharedSetup:
                 self.started = False
                 self.protected_levels = protected_levels or []
                 self.protected_queue_size = protected_queue_size
+                self.settings = settings
 
             def bind(self, **context: object) -> _StubLogger:
                 self.bound_context = context

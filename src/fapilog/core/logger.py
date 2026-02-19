@@ -126,6 +126,7 @@ class _LoggerMixin(_WorkerCountersMixin):
         drop_summary_window_seconds: float = 60.0,
         protected_levels: list[str] | None = None,
         protected_queue_size: int | None = None,
+        settings: Any | None = None,
     ) -> None:
         # Validate configuration parameters
         self._validate_config(
@@ -232,7 +233,7 @@ class _LoggerMixin(_WorkerCountersMixin):
         try:
             from .settings import Settings
 
-            s = Settings()
+            s = settings if settings is not None else Settings()
             self._cached_sampling_rate = float(s.observability.logging.sampling_rate)
             filters = getattr(getattr(s, "core", None), "filters", []) or []
             self._cached_sampling_filters = {
@@ -1327,6 +1328,7 @@ class SyncLoggerFacade(_LoggerMixin):
         drop_summary_window_seconds: float = 60.0,
         protected_levels: list[str] | None = None,
         protected_queue_size: int | None = None,
+        settings: Any | None = None,
     ) -> None:
         self._common_init(
             name=name,
@@ -1351,6 +1353,7 @@ class SyncLoggerFacade(_LoggerMixin):
             drop_summary_window_seconds=drop_summary_window_seconds,
             protected_levels=protected_levels,
             protected_queue_size=protected_queue_size,
+            settings=settings,
         )
 
     def start(self) -> None:
@@ -1683,6 +1686,7 @@ class AsyncLoggerFacade(_LoggerMixin):
         drop_summary_window_seconds: float = 60.0,
         protected_levels: list[str] | None = None,
         protected_queue_size: int | None = None,
+        settings: Any | None = None,
     ) -> None:
         self._common_init(
             name=name,
@@ -1707,6 +1711,7 @@ class AsyncLoggerFacade(_LoggerMixin):
             drop_summary_window_seconds=drop_summary_window_seconds,
             protected_levels=protected_levels,
             protected_queue_size=protected_queue_size,
+            settings=settings,
         )
 
     async def start_async(self) -> None:
