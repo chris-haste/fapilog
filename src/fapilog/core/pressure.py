@@ -154,6 +154,8 @@ class PressureMonitor:
         metric_setter: MetricSetter | None = None,
         circuit_pressure_boost: float = 0.20,
         depth_gauge_setter: DepthGaugeSetter | None = None,
+        shed_threshold: float = 0.70,
+        recover_threshold: float = 0.30,
     ) -> None:
         self._queue = queue
         self._check_interval = check_interval_seconds
@@ -186,6 +188,12 @@ class PressureMonitor:
         self._workers_scaled = 0
         self._peak_workers: int = 0
         self._batch_resize_count = 0
+        # Protected queue shedding (Story 1.59)
+        self._shed_threshold = shed_threshold
+        self._recover_threshold = recover_threshold
+        self._shed_activations = 0
+        self._shed_total_seconds: float = 0.0
+        self._shed_started_at: float = 0.0
 
     @property
     def pressure_level(self) -> PressureLevel:
@@ -259,6 +267,62 @@ class PressureMonitor:
             self._update_metric(new_level)
             self._dispatch_callbacks(old_level, new_level)
 
+        # Protected queue shedding (Story 1.59)
+        self._evaluate_shedding()
+
+    def _evaluate_shedding(self) -> None:
+        """Evaluate protected queue fill ratio for shedding (Story 1.59)."""
+        from .concurrency import DualQueue
+
+        if not isinstance(self._queue, DualQueue):
+            return
+        p_cap = self._queue.protected_capacity
+        if p_cap <= 0:
+            return
+        p_fill = self._queue.protected_qsize() / p_cap
+        if not self._queue.is_shedding and p_fill >= self._shed_threshold:
+            self._queue.activate_shedding()
+            self._shed_activations += 1
+            self._shed_started_at = time.monotonic()
+            self._emit_shed_diagnostic(p_fill, activated=True)
+        elif self._queue.is_shedding and p_fill < self._recover_threshold:
+            duration = time.monotonic() - self._shed_started_at
+            self._shed_total_seconds += duration
+            self._queue.deactivate_shedding()
+            self._emit_shed_diagnostic(p_fill, activated=False, duration=duration)
+
+    def _emit_shed_diagnostic(
+        self,
+        fill_ratio: float,
+        *,
+        activated: bool,
+        duration: float | None = None,
+    ) -> None:
+        """Emit diagnostic event for shed state transitions (Story 1.59)."""
+        if self._diagnostic_writer is None:
+            return
+        from .concurrency import DualQueue
+
+        payload: dict[str, Any] = {
+            "component": "adaptive-controller",
+        }
+        if activated:
+            payload["message"] = "protected shedding activated"
+            payload["protected_fill_ratio"] = round(fill_ratio, 4)
+            if isinstance(self._queue, DualQueue):
+                payload["protected_qsize"] = self._queue.protected_qsize()
+                payload["protected_capacity"] = self._queue.protected_capacity
+                payload["main_qsize"] = self._queue.main_qsize()
+        else:
+            payload["message"] = "protected shedding deactivated"
+            payload["protected_fill_ratio"] = round(fill_ratio, 4)
+            if duration is not None:
+                payload["shed_duration_seconds"] = round(duration, 4)
+        try:
+            self._diagnostic_writer(payload)
+        except Exception:
+            pass
+
     def _set_depth_gauges(self, main_depth: int, protected_depth: int) -> None:
         """Report queue depths to gauge setter if configured."""
         if self._depth_gauge_setter is None:
@@ -331,6 +395,13 @@ class PressureMonitor:
         now = time.monotonic()
         time_at_level = dict(self._time_at_level)
         time_at_level[self._state_machine.current_level] += now - self._level_entered_at
+        # Finalize shed time if currently shedding (Story 1.59)
+        shed_total = self._shed_total_seconds
+        from .concurrency import DualQueue
+
+        if isinstance(self._queue, DualQueue) and self._queue.is_shedding:
+            shed_total += now - self._shed_started_at
+
         return AdaptiveDrainSummary(
             peak_pressure_level=self._peak_level,
             escalation_count=self._escalation_count,
@@ -340,6 +411,8 @@ class PressureMonitor:
             workers_scaled=self._workers_scaled,
             peak_workers=self._peak_workers,
             batch_resize_count=self._batch_resize_count,
+            shed_activations=self._shed_activations,
+            shed_total_seconds=shed_total,
         )
 
 

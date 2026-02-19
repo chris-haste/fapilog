@@ -100,6 +100,7 @@ def render_settings_guide(settings: Settings) -> str:
     # Top-level groups only (skip the root scalar fields)
     groups = [
         ("core", settings.core),
+        ("adaptive", settings.adaptive),
         ("security", settings.security),
         ("observability", settings.observability),
         ("plugins", settings.plugins),
