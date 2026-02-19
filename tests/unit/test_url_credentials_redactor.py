@@ -88,6 +88,89 @@ class TestUrlSchemeOptimization:
             ),
             # Protocol-relative URLs
             ("//", "//user:pass@cdn.example.com/asset", "//cdn.example.com/asset"),
+            # Databases (Story 4.74)
+            (
+                "postgres",
+                "postgres://admin:s3cret@db.prod:5432/app",
+                "postgres://db.prod:5432/app",
+            ),
+            (
+                "postgresql",
+                "postgresql://u:p@host/db",
+                "postgresql://host/db",
+            ),
+            (
+                "mysql",
+                "mysql://root:pw@localhost:3306/mydb",
+                "mysql://localhost:3306/mydb",
+            ),
+            (
+                "mongodb",
+                "mongodb://user:pass@cluster0.abc.mongodb.net/db",
+                "mongodb://cluster0.abc.mongodb.net/db",
+            ),
+            (
+                "mongodb+srv",
+                "mongodb+srv://user:pass@cluster0.abc.mongodb.net/db",
+                "mongodb+srv://cluster0.abc.mongodb.net/db",
+            ),
+            (
+                "mssql",
+                "mssql://sa:pw@sqlserver.local/master",
+                "mssql://sqlserver.local/master",
+            ),
+            (
+                "cockroachdb",
+                "cockroachdb://root:pw@crdb:26257/bank",
+                "cockroachdb://crdb:26257/bank",
+            ),
+            # Caches / Message Brokers (Story 4.74)
+            (
+                "redis",
+                "redis://default:pw@redis.prod:6379/0",
+                "redis://redis.prod:6379/0",
+            ),
+            (
+                "rediss",
+                "rediss://default:pw@redis.prod:6380/0",
+                "rediss://redis.prod:6380/0",
+            ),
+            (
+                "amqp",
+                "amqp://guest:guest@rabbit:5672/vhost",
+                "amqp://rabbit:5672/vhost",
+            ),
+            (
+                "amqps",
+                "amqps://user:pw@broker:5671/",
+                "amqps://broker:5671/",
+            ),
+            (
+                "nats",
+                "nats://token:secret@nats.prod:4222",
+                "nats://nats.prod:4222",
+            ),
+            # Directory / Mail (Story 4.74)
+            (
+                "ldap",
+                "ldap://cn=admin:pw@ldap.corp:389/dc=corp",
+                "ldap://ldap.corp:389/dc=corp",
+            ),
+            (
+                "ldaps",
+                "ldaps://cn=admin:pw@ldap.corp:636/dc=corp",
+                "ldaps://ldap.corp:636/dc=corp",
+            ),
+            (
+                "smtp",
+                "smtp://relay:pw@mail.corp:587/",
+                "smtp://mail.corp:587/",
+            ),
+            (
+                "smtps",
+                "smtps://relay:pw@mail.corp:465/",
+                "smtps://mail.corp:465/",
+            ),
         ],
     )
     def test_url_schemes_trigger_parsing(
@@ -104,6 +187,12 @@ class TestUrlSchemeOptimization:
             "https://example.com:8080/path?query=1",
             "ftp://files.example.com/",
             "ssh://github.com/repo",
+            # Infrastructure schemes without credentials (Story 4.74)
+            "postgres://db.prod:5432/app",
+            "redis://redis.prod:6379/0",
+            "amqp://rabbit:5672/vhost",
+            "mongodb://cluster0.abc.mongodb.net/db",
+            "mysql://localhost:3306/mydb",
         ],
     )
     def test_urls_without_credentials_unchanged(self, url: str) -> None:
@@ -139,6 +228,7 @@ class TestUrlSchemeOptimization:
     def test_url_schemes_constant_contains_required_schemes(self) -> None:
         """The _URL_SCHEMES constant should contain all credential-bearing schemes."""
         required_schemes = (
+            # Web / VCS
             "http://",
             "https://",
             "ftp://",
@@ -147,6 +237,25 @@ class TestUrlSchemeOptimization:
             "git://",
             "svn://",
             "//",
+            # Databases (Story 4.74)
+            "postgres://",
+            "postgresql://",
+            "mysql://",
+            "mongodb://",
+            "mongodb+srv://",
+            "mssql://",
+            "cockroachdb://",
+            # Caches / Message Brokers (Story 4.74)
+            "redis://",
+            "rediss://",
+            "amqp://",
+            "amqps://",
+            "nats://",
+            # Directory / Mail (Story 4.74)
+            "ldap://",
+            "ldaps://",
+            "smtp://",
+            "smtps://",
         )
         for scheme in required_schemes:
             assert scheme in _URL_SCHEMES, f"Missing scheme: {scheme}"
