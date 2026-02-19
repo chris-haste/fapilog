@@ -189,6 +189,7 @@ class _LoggerMixin(_WorkerCountersMixin):
         self._retried = 0
         self._backpressure_retries = 0
         self._backpressure_wait_ms = int(backpressure_wait_ms)
+        self._warned_event_loop_backpressure = False
         self._serialize_in_flush = bool(serialize_in_flush)
         self._exceptions_enabled = bool(exceptions_enabled)
         self._exceptions_max_frames = int(exceptions_max_frames)
@@ -1385,6 +1386,23 @@ class SyncLoggerFacade(_LoggerMixin):
         self._cleanup_resources()
         return result
 
+    def _warn_async_backpressure(self) -> None:
+        """Emit a one-time warning when backpressure is skipped on an event loop."""
+        if self._warned_event_loop_backpressure:
+            return
+        self._warned_event_loop_backpressure = True
+        try:
+            from .diagnostics import warn
+
+            warn(
+                "backpressure",
+                "event loop detected — skipping time.sleep() backpressure; "
+                "use AsyncLoggerFacade or set drop_on_full=True",
+                _rate_limit_key="event-loop-backpressure-skip",
+            )
+        except Exception:
+            pass
+
     # Public sync API
     def _enqueue(
         self,
@@ -1437,7 +1455,7 @@ class SyncLoggerFacade(_LoggerMixin):
         if self._try_enqueue_with_metrics(payload):
             return
 
-        # Bounded backpressure retry for non-protected events (Story 1.53)
+        # Bounded backpressure retry for non-protected events (Story 1.53, 1.58)
         if not self._drop_on_full:
             level_str = payload.get("level", "")
             is_protected = (
@@ -1445,16 +1463,29 @@ class SyncLoggerFacade(_LoggerMixin):
                 and level_str.upper() in self._protected_levels
             )
             if not is_protected:
-                budget_ms = self._backpressure_wait_ms
-                waited = 0.0
-                sleep_ms = 1.0
-                while waited < budget_ms:
-                    time.sleep(sleep_ms / 1000)
-                    waited += sleep_ms
-                    if self._try_enqueue_with_metrics(payload):
-                        self._backpressure_retries += 1
-                        return
-                    sleep_ms = min(sleep_ms * 2, 10.0)
+                # Story 1.58: detect running event loop to avoid blocking with
+                # time.sleep(). asyncio.get_running_loop() is a C-level call
+                # (~50ns) and only runs on this rare path (queue full + retry).
+                _on_event_loop = False
+                try:
+                    asyncio.get_running_loop()
+                    _on_event_loop = True
+                except RuntimeError:
+                    pass
+
+                if _on_event_loop:
+                    self._warn_async_backpressure()
+                else:
+                    budget_ms = self._backpressure_wait_ms
+                    waited = 0.0
+                    sleep_ms = 1.0
+                    while waited < budget_ms:
+                        time.sleep(sleep_ms / 1000)
+                        waited += sleep_ms
+                        if self._try_enqueue_with_metrics(payload):
+                            self._backpressure_retries += 1
+                            return
+                        sleep_ms = min(sleep_ms * 2, 10.0)
 
         self._dropped += 1
         self._record_drop_for_summary(1)
@@ -1791,21 +1822,42 @@ class AsyncLoggerFacade(_LoggerMixin):
 
         await self._record_submitted_async(1)
         self.start()
-        if not self._try_enqueue_with_metrics(payload):
-            self._dropped += 1
-            self._record_drop_for_summary(1)
-            try:
-                from .diagnostics import warn
+        if self._try_enqueue_with_metrics(payload):
+            return
 
-                warn(
-                    "backpressure",
-                    "drop on full",
-                    drop_total=self._dropped,
-                    queue_hwm=self._queue_high_watermark,
-                    capacity=self._queue.capacity,
-                )
-            except Exception:
-                pass
+        # Async backpressure retry for non-protected events (Story 1.58)
+        if not self._drop_on_full:
+            level_str = payload.get("level", "")
+            is_protected = (
+                isinstance(level_str, str)
+                and level_str.upper() in self._protected_levels
+            )
+            if not is_protected:
+                budget_ms = self._backpressure_wait_ms
+                waited = 0.0
+                sleep_ms = 1.0
+                while waited < budget_ms:
+                    await asyncio.sleep(sleep_ms / 1000)
+                    waited += sleep_ms
+                    if self._try_enqueue_with_metrics(payload):
+                        self._backpressure_retries += 1
+                        return
+                    sleep_ms = min(sleep_ms * 2, 10.0)
+
+        self._dropped += 1
+        self._record_drop_for_summary(1)
+        try:
+            from .diagnostics import warn
+
+            warn(
+                "backpressure",
+                "drop on full",
+                drop_total=self._dropped,
+                queue_hwm=self._queue_high_watermark,
+                capacity=self._queue.capacity,
+            )
+        except Exception:
+            pass
 
     async def info(
         self,

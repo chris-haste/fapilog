@@ -1,9 +1,11 @@
-"""Tests for bounded backpressure retry (Story 1.53).
+"""Tests for bounded backpressure retry (Story 1.53, 1.58).
 
 AC1: drop_on_full=False retries with bounded sleep before dropping
 AC2: Protected levels bypass backpressure
 AC3: drop_on_full=True drops instantly (no retry)
 AC6: backpressure_retries counter tracked in DrainResult
+Story 1.58 AC1: Sync logger detects event loop and skips blocking sleep
+Story 1.58 AC7: Diagnostic warning on event-loop detection
 """
 
 from __future__ import annotations
@@ -218,3 +220,96 @@ class TestBackpressureRetryCounter:
 
         result = await logger.stop_and_drain()
         assert result.backpressure_retries == 42
+
+
+class TestSyncEventLoopDetection:
+    """Story 1.58 AC1: Sync logger detects event loop and skips blocking sleep."""
+
+    @pytest.mark.asyncio
+    async def test_sync_enqueue_skips_sleep_on_event_loop(self) -> None:
+        """When called from a running event loop, sync _enqueue drops instantly."""
+        logger = _make_logger(
+            queue_capacity=2,
+            backpressure_wait_ms=100,
+            sink_write=_blocking_sink(),
+        )
+        logger.start = lambda: None  # type: ignore[assignment]
+
+        for i in range(2):
+            logger._queue.try_enqueue({"level": "INFO", "message": f"fill_{i}"})
+
+        start = asyncio.get_event_loop().time()
+        logger._enqueue("INFO", "from_async_context")
+        elapsed_ms = (asyncio.get_event_loop().time() - start) * 1000
+
+        # Should NOT sleep — event loop detected
+        assert elapsed_ms < 10
+        assert logger._dropped == 1
+
+    @pytest.mark.asyncio
+    async def test_sync_enqueue_still_retries_without_event_loop(self) -> None:
+        """When called from a plain thread (no event loop), sync _enqueue retries."""
+        logger = _make_logger(
+            queue_capacity=2,
+            backpressure_wait_ms=30,
+            sink_write=_blocking_sink(),
+        )
+        logger.start = lambda: None  # type: ignore[assignment]
+
+        for i in range(2):
+            logger._queue.try_enqueue({"level": "INFO", "message": f"fill_{i}"})
+
+        # Run _enqueue in a plain thread — should still sleep
+        result: dict[str, float] = {}
+
+        def _call_from_thread() -> None:
+            start = time.monotonic()
+            logger._enqueue("INFO", "from_sync_context")
+            result["elapsed_ms"] = (time.monotonic() - start) * 1000
+
+        t = threading.Thread(target=_call_from_thread)
+        t.start()
+        t.join()
+
+        assert result["elapsed_ms"] >= 20  # noqa: WA002 - timing assertion
+        assert logger._dropped == 1
+
+    @pytest.mark.asyncio
+    async def test_event_loop_detection_emits_diagnostic_warning(self) -> None:
+        """First event-loop detection emits a one-time diagnostic warning."""
+        logger = _make_logger(
+            queue_capacity=2,
+            backpressure_wait_ms=100,
+            sink_write=_blocking_sink(),
+        )
+        logger.start = lambda: None  # type: ignore[assignment]
+
+        for i in range(2):
+            logger._queue.try_enqueue({"level": "INFO", "message": f"fill_{i}"})
+
+        logger._enqueue("INFO", "trigger_warning")
+
+        # Warning flag should be set after first detection
+        assert logger._warned_event_loop_backpressure is True
+
+    @pytest.mark.asyncio
+    async def test_event_loop_warning_emitted_only_once(self) -> None:
+        """Diagnostic warning is emitted only on first occurrence."""
+        logger = _make_logger(
+            queue_capacity=2,
+            backpressure_wait_ms=100,
+            sink_write=_blocking_sink(),
+        )
+        logger.start = lambda: None  # type: ignore[assignment]
+
+        for i in range(2):
+            logger._queue.try_enqueue({"level": "INFO", "message": f"fill_{i}"})
+
+        # Trigger twice
+        logger._enqueue("INFO", "first")
+        logger._enqueue("INFO", "second")
+
+        # Flag should still be True (set once)
+        assert logger._warned_event_loop_backpressure is True
+        # Both events should be dropped (not retried)
+        assert logger._dropped == 2
