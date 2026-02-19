@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import statistics
 import time
 
 import pytest
@@ -152,26 +153,30 @@ class TestPriorityAwareQueue:
     def test_eviction_latency_constant_across_queue_sizes(self) -> None:
         """Eviction is O(1) - latency doesn't scale with queue size."""
         # This test verifies AC5: O(1) performance
-        timings = []
+        samples = 15
+        median_timings = []
 
         for queue_size in [100, 1000, 5000]:
-            queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
-                capacity=queue_size, protected_levels={"ERROR"}
-            )
-            # Fill with DEBUG events
-            for i in range(queue_size):
-                queue.try_enqueue({"level": "DEBUG", "msg": str(i)})
+            run_timings = []
+            for _ in range(samples):
+                queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
+                    capacity=queue_size, protected_levels={"ERROR"}
+                )
+                # Fill with DEBUG events
+                for i in range(queue_size):
+                    queue.try_enqueue({"level": "DEBUG", "msg": str(i)})
 
-            # Measure eviction latency
-            start = time.perf_counter_ns()
-            queue.try_enqueue({"level": "ERROR", "msg": "important"})
-            elapsed = time.perf_counter_ns() - start
-            timings.append(elapsed)
+                # Measure eviction latency
+                start = time.perf_counter_ns()
+                queue.try_enqueue({"level": "ERROR", "msg": "important"})
+                elapsed = time.perf_counter_ns() - start
+                run_timings.append(elapsed)
+            median_timings.append(statistics.median(run_timings))
 
-        # Latency should be roughly constant (within 10x of smallest)
-        # Allow generous margin for test stability
-        assert timings[-1] < timings[0] * 20, (
-            f"Eviction latency scaled with queue size: {timings}"
+        # Latency should be roughly constant (within 20x of smallest)
+        # Median of multiple samples absorbs GC/scheduling noise
+        assert median_timings[-1] < median_timings[0] * 20, (
+            f"Eviction latency scaled with queue size: {median_timings}"
         )
 
     def test_empty_protected_levels_disables_eviction(self) -> None:
