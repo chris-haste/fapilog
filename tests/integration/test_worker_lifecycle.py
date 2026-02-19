@@ -710,10 +710,14 @@ async def test_drop_on_full_false_still_drops_on_sync_facade() -> None:
         # Enqueue when full - should drop despite drop_on_full=False
         logger._enqueue("INFO", "overflow-event")
 
-    # Should have backpressure drop diagnostic
+    # Should have backpressure diagnostics:
+    # 1. Event-loop detection warning (Story 1.58 — skips time.sleep())
+    # 2. Drop-on-full diagnostic
     bp_diagnostics = [d for d in diagnostics if d["component"] == "backpressure"]
-    assert len(bp_diagnostics) == 1
-    assert "drop" in bp_diagnostics[0]["message"].lower()
+    assert len(bp_diagnostics) == 2
+    bp_messages = [d["message"].lower() for d in bp_diagnostics]
+    assert any("event loop" in m for m in bp_messages)
+    assert any("drop" in m for m in bp_messages)
 
     # Verify the event was dropped
     assert logger._dropped >= 1  # noqa: WA002
