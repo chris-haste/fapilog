@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 from collections import OrderedDict
 from unittest.mock import patch
 
@@ -69,7 +70,10 @@ class TestErrorDedupeBoundedMemory:
 
     def test_dict_never_exceeds_max_entries(self, logger) -> None:
         """AC1: _error_dedupe never exceeds error_dedupe_max_entries."""
-        with patch("time.monotonic", side_effect=[float(i) for i in range(30)]):
+        # Use inexhaustible counter to avoid StopIteration when background
+        # threads from other tests also call time.monotonic() (CI flake).
+        counter = itertools.count()
+        with patch("time.monotonic", side_effect=lambda: float(next(counter))):
             # Each message is unique, window is 5s, new timestamp each time
             for i in range(20):
                 logger._prepare_payload("ERROR", f"unique-error-{i}")
@@ -78,9 +82,11 @@ class TestErrorDedupeBoundedMemory:
 
     def test_oldest_entry_evicted_first(self, logger) -> None:
         """AC2: When cap is reached, oldest first-seen entry is removed."""
-        # Insert messages 0-9 (fills cap)
-        timestamps = list(range(20))
-        with patch("time.monotonic", side_effect=[float(t) for t in timestamps]):
+        # Use inexhaustible counter to avoid StopIteration when background
+        # threads from other tests also call time.monotonic() (CI flake).
+        counter = itertools.count()
+        with patch("time.monotonic", side_effect=lambda: float(next(counter))):
+            # Insert messages 0-9 (fills cap)
             for i in range(10):
                 logger._prepare_payload("ERROR", f"unique-error-{i}")
 

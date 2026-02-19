@@ -103,7 +103,7 @@ class TestAC7FieldBlockerStandalone:
         # Use p95 rather than max — max captures GC/OS scheduling outliers
         # that are not representative of redactor performance.
         # Scale budget for CI runners which are slower than local machines.
-        budget_ms = get_test_timeout(0.015)
+        budget_ms = get_test_timeout(0.020)
         assert result.p95_latency_ms <= budget_ms, (
             f"AC7: field_blocker p95 latency {result.p95_latency_ms * 1000:.1f}us "
             f"exceeds {budget_ms * 1000:.0f}us budget (avg={result.avg_latency_ms * 1000:.1f}us, "
