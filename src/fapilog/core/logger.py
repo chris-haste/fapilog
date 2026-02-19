@@ -57,6 +57,8 @@ class AdaptiveDrainSummary:
     workers_scaled: int
     peak_workers: int
     batch_resize_count: int
+    shed_activations: int = 0
+    shed_total_seconds: float = 0.0
 
 
 @dataclass
@@ -469,6 +471,8 @@ class _LoggerMixin(_WorkerCountersMixin):
                         _metrics_ref.set_queue_depth, label, depth
                     )
 
+            shed_threshold = getattr(adaptive, "protected_shed_threshold", 0.70)
+            recover_threshold = getattr(adaptive, "protected_recover_threshold", 0.30)
             monitor = PressureMonitor(
                 queue=self._queue,
                 check_interval_seconds=adaptive.check_interval_seconds,
@@ -483,6 +487,8 @@ class _LoggerMixin(_WorkerCountersMixin):
                 metric_setter=_metric_setter,
                 circuit_pressure_boost=circuit_boost,
                 depth_gauge_setter=_depth_gauge_setter,
+                shed_threshold=shed_threshold,
+                recover_threshold=recover_threshold,
             )
             self._pressure_monitor = monitor
 

@@ -16,6 +16,8 @@
 | `FAPILOG_ADAPTIVE__ESCALATE_TO_HIGH` | float | 0.8 | Fill ratio to escalate ELEVATED to HIGH |
 | `FAPILOG_ADAPTIVE__FILTER_TIGHTENING` | bool | True | Enable adaptive filter tightening based on pressure level |
 | `FAPILOG_ADAPTIVE__MAX_WORKERS` | int | 8 | Maximum number of workers when dynamic scaling is active |
+| `FAPILOG_ADAPTIVE__PROTECTED_RECOVER_THRESHOLD` | float | 0.3 | Protected queue fill ratio that deactivates shedding |
+| `FAPILOG_ADAPTIVE__PROTECTED_SHED_THRESHOLD` | float | 0.7 | Protected queue fill ratio that activates shedding |
 | `FAPILOG_ADAPTIVE__WORKER_SCALING` | bool | True | Enable dynamic worker scaling based on pressure level |
 | `FAPILOG_CORE__APP_NAME` | str | fapilog | Logical application name |
 | `FAPILOG_CORE__ATEXIT_DRAIN_ENABLED` | bool | True | Register atexit handler to drain pending logs on normal process exit |

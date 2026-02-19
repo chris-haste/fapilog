@@ -629,6 +629,20 @@ class AdaptiveSettings(BaseModel):
         description="Effective fill ratio boost per open sink circuit breaker",
     )
 
+    # Protected queue shedding thresholds (Story 1.59)
+    protected_shed_threshold: float = Field(
+        default=0.70,
+        ge=0.0,
+        le=1.0,
+        description="Protected queue fill ratio that activates shedding",
+    )
+    protected_recover_threshold: float = Field(
+        default=0.30,
+        ge=0.0,
+        le=1.0,
+        description="Protected queue fill ratio that deactivates shedding",
+    )
+
     # De-escalation thresholds (fill ratio < threshold triggers level decrease)
     deescalate_from_critical: float = Field(
         default=0.75,
@@ -696,6 +710,13 @@ class AdaptiveSettings(BaseModel):
             raise ValueError(
                 f"deescalate_from_critical ({self.deescalate_from_critical}) "
                 f"must be less than escalate_to_critical ({self.escalate_to_critical})"
+            )
+        # Validate protected shedding thresholds (Story 1.59)
+        if self.protected_shed_threshold <= self.protected_recover_threshold:
+            raise ValueError(
+                f"protected_shed_threshold ({self.protected_shed_threshold}) "
+                f"must be greater than protected_recover_threshold "
+                f"({self.protected_recover_threshold})"
             )
         return self
 

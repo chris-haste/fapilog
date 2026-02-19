@@ -875,6 +875,33 @@ class LoggerBuilder:
         self._config.setdefault("adaptive", {}).update(adaptive)
         return self
 
+    def with_protected_shedding(
+        self,
+        *,
+        shed_at: float = 0.70,
+        recover_at: float = 0.30,
+    ) -> Self:
+        """Configure protected queue pressure shedding.
+
+        When the protected queue fill ratio reaches ``shed_at``, workers stop
+        dequeuing from the main queue until the ratio drops below ``recover_at``.
+        Requires adaptive pipeline to be enabled.
+
+        The default gap between thresholds (0.70 / 0.30) provides wide hysteresis
+        to prevent rapid toggling.
+
+        Args:
+            shed_at: Fill ratio to activate shedding (default: 0.70)
+            recover_at: Fill ratio to deactivate shedding (default: 0.30)
+
+        Example:
+            >>> builder.with_adaptive().with_protected_shedding(shed_at=0.80, recover_at=0.20)
+        """
+        adaptive = self._config.setdefault("adaptive", {})
+        adaptive["protected_shed_threshold"] = shed_at
+        adaptive["protected_recover_threshold"] = recover_at
+        return self
+
     def with_circuit_breaker(
         self,
         *,

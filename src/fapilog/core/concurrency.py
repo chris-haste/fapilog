@@ -247,6 +247,7 @@ class DualQueue(Generic[T]):
         self._protected_levels = protected_levels
         self._main_drops = 0
         self._protected_drops = 0
+        self._shedding = False
 
     def _is_protected(self, item: T) -> bool:
         if not self._protected_levels:
@@ -256,6 +257,20 @@ class DualQueue(Generic[T]):
             if isinstance(level, str):
                 return level.upper() in self._protected_levels
         return False
+
+    @property
+    def protected_capacity(self) -> int:
+        return self._protected.capacity
+
+    @property
+    def is_shedding(self) -> bool:
+        return self._shedding
+
+    def activate_shedding(self) -> None:
+        self._shedding = True
+
+    def deactivate_shedding(self) -> None:
+        self._shedding = False
 
     def try_enqueue(self, item: T) -> bool:
         if self._is_protected(item):
@@ -272,6 +287,8 @@ class DualQueue(Generic[T]):
         ok, item = self._protected.try_dequeue()
         if ok:
             return ok, item
+        if self._shedding:
+            return False, None
         return self._main.try_dequeue()
 
     def drain_into(self, batch: list[T]) -> None:
@@ -338,4 +355,8 @@ _VULTURE_USED: tuple[object, ...] = (
     DualQueue.main_qsize,
     DualQueue.protected_qsize,
     DualQueue.drain_into,
+    DualQueue.protected_capacity,
+    DualQueue.is_shedding,
+    DualQueue.activate_shedding,
+    DualQueue.deactivate_shedding,
 )
