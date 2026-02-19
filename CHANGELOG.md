@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-02-18
+
+### Added
+
+- **Core - Restore backpressure retry and merge adaptive into production preset:** Add bounded retry loop in `SyncLoggerFacade._enqueue()` when `drop_on_full=False` with exponential backoff up to `backpressure_wait_ms` budget. Merge adaptive features into production preset (10k queue, circuit breaker, adaptive pipeline). Deprecate `adaptive` preset name as alias with `DeprecationWarning`.
+- **Core - Add queue capacity decay with hysteresis cooldown:** Add `shrink_capacity()` to `NonBlockingRingQueue` and `DualQueue` with floor/fill clamping. Add `capacity_cooldown_seconds` setting for gradual step-down decay following growth table in reverse. Cancel decay task on pressure re-escalation to prevent thrashing.
+- **Core - Add bounded memory for error deduplication dict:** Cap `_error_dedupe` at configurable `max_entries` with FIFO eviction using `OrderedDict`. Add periodic TTL sweep to prune stale entries every 100 checks.
+- **Core - Add fixed dual-queue memory budget and remove queue growth:** Add `with_queue_budget()` for MB-based queue sizing and `protected_queue_size` for independent protected queue control. Remove dynamic queue growth/shrink machinery in favor of fixed memory budgets. Deprecate `max_queue_growth`, `capacity_cooldown_seconds`, and `queue_growth` settings.
+
+### Fixed
+
+- **Core - Remove rotating_file as primary sink from adaptive preset:** Keep rotating file only as circuit breaker fallback, not primary sink. File I/O on the hot path contradicts drop-tolerant throughput design.
+- **Core - Remove dead queue growth tracking from pressure monitor:** Remove unused `record_queue_growth()`, `_queue_growth_count`, and `_peak_queue_capacity` from `PressureMonitor` and `AdaptiveDrainSummary`.
+
+### Documentation
+
+- **Core - Remove outdated queue growth references from documentation:** Update builder, adaptive pipeline, presets, features, and cookbook documentation to reflect fixed queue model and 3-actuator adaptive pipeline.
+
 ## [0.16.0] - 2026-02-17
 
 ### Added
