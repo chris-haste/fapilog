@@ -62,6 +62,27 @@ This guide documents Settings groups and fields.
 | `core.fallback_raw_max_bytes` | int | None | — | Optional limit for raw fallback output bytes; payloads exceeding this are truncated with '[truncated]' marker |
 | `core.benchmark_file_path` | str | None | — | Optional path used by performance benchmarks |
 
+## adaptive
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `adaptive.enabled` | bool | False | Enable adaptive pressure monitoring task |
+| `adaptive.check_interval_seconds` | float | 0.25 | Seconds between queue pressure samples |
+| `adaptive.cooldown_seconds` | float | 2.0 | Minimum seconds between pressure level transitions |
+| `adaptive.escalate_to_elevated` | float | 0.6 | Fill ratio to escalate NORMAL to ELEVATED |
+| `adaptive.escalate_to_high` | float | 0.8 | Fill ratio to escalate ELEVATED to HIGH |
+| `adaptive.escalate_to_critical` | float | 0.92 | Fill ratio to escalate HIGH to CRITICAL |
+| `adaptive.filter_tightening` | bool | True | Enable adaptive filter tightening based on pressure level |
+| `adaptive.worker_scaling` | bool | True | Enable dynamic worker scaling based on pressure level |
+| `adaptive.batch_sizing` | bool | False | Enable adaptive batch sizing based on sink latency feedback |
+| `adaptive.max_workers` | int | 8 | Maximum number of workers when dynamic scaling is active |
+| `adaptive.circuit_pressure_boost` | float | 0.2 | Effective fill ratio boost per open sink circuit breaker |
+| `adaptive.protected_shed_threshold` | float | 0.7 | Protected queue fill ratio that activates shedding |
+| `adaptive.protected_recover_threshold` | float | 0.3 | Protected queue fill ratio that deactivates shedding |
+| `adaptive.deescalate_from_critical` | float | 0.75 | Fill ratio below which CRITICAL de-escalates to HIGH |
+| `adaptive.deescalate_from_high` | float | 0.6 | Fill ratio below which HIGH de-escalates to ELEVATED |
+| `adaptive.deescalate_from_elevated` | float | 0.4 | Fill ratio below which ELEVATED de-escalates to NORMAL |
+
 ## security
 
 | Field | Type | Default | Description |
