@@ -11,14 +11,36 @@ from ..utils import parse_plugin_config
 # URL schemes that may contain credentials - used for early exit optimization.
 # Strings not starting with one of these skip the urlsplit() call entirely.
 _URL_SCHEMES = (
+    # Web
     "http://",
     "https://",
     "ftp://",
     "ftps://",
+    # VCS
     "ssh://",
     "git://",
     "svn://",
-    "//",  # Protocol-relative URLs
+    # Databases
+    "postgres://",
+    "postgresql://",
+    "mysql://",
+    "mongodb+srv://",
+    "mongodb://",
+    "mssql://",
+    "cockroachdb://",
+    # Caches / Message Brokers
+    "redis://",
+    "rediss://",
+    "amqp://",
+    "amqps://",
+    "nats://",
+    # Directory / Mail
+    "ldap://",
+    "ldaps://",
+    "smtp://",
+    "smtps://",
+    # Protocol-relative
+    "//",
 )
 
 
