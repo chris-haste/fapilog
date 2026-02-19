@@ -168,11 +168,13 @@ def benchmark(
         fapi_peak_off = _run_memory(fapi_call_off, iterations)
         fapi_peak_on = _run_memory(fapi_call_on, iterations)
 
-        # Ensure sinks flush
+        # Drain worker threads so files are released before tmpdir cleanup
+        import asyncio as _asyncio_drain
+
         with contextlib.suppress(Exception):
-            fapi_logger_off.close()
+            _asyncio_drain.run(fapi_logger_off.stop_and_drain())
         with contextlib.suppress(Exception):
-            fapi_logger_on.close()
+            _asyncio_drain.run(fapi_logger_on.stop_and_drain())
         for h in list(std_logger.handlers):
             with contextlib.suppress(Exception):
                 h.flush()
