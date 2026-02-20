@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## [0.18.1] - 2026-02-19
+
+### Fixed
+
+- **Release - Re-release of v0.18.0:** No code changes. Version bump for PyPI package re-upload.
+
 ## [0.18.0] - 2026-02-19
 
 ### Added
