@@ -7,17 +7,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Reliability Defaults and Guardrails &mdash; fapilog 0.18.1 documentation</title>
+  <title>Reliability Defaults and Guardrails &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
   
-    <link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/reliability-defaults.html" />
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=1e56ff10"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -30,6 +29,9 @@
     <link rel="prev" title="FastAPI / ASGI Integration" href="fastapi.html" />
  
 
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/reliability-defaults.html" />
+<meta name="robots" content="noindex, follow" />
 
 
 </head>
@@ -235,7 +237,7 @@
 <section id="backpressure-and-drops">
 <h2>Backpressure and drops<a class="headerlink" href="#backpressure-and-drops" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Queue size: <code class="docutils literal notranslate"><span class="pre">core.max_queue_size=10000</span></code></p></li>
+<li><p>Queue budget: ~20 MB default (<code class="docutils literal notranslate"><span class="pre">core.max_queue_size=10000</span></code> at ~2 KB/event)</p></li>
 <li><p>Drop policy: <code class="docutils literal notranslate"><span class="pre">core.drop_on_full=True</span></code> (drop immediately when queue is full)</p></li>
 <li><p>Batch flush: <code class="docutils literal notranslate"><span class="pre">core.batch_max_size=256</span></code>, <code class="docutils literal notranslate"><span class="pre">core.batch_timeout_seconds=0.25</span></code></p></li>
 </ul>
@@ -243,7 +245,7 @@
 <h3>Non-blocking enqueue behavior<a class="headerlink" href="#non-blocking-enqueue-behavior" title="Link to this heading"></a></h3>
 <p>With the dedicated thread architecture, <code class="docutils literal notranslate"><span class="pre">try_enqueue()</span></code> is always non-blocking — it either succeeds or drops immediately. The <code class="docutils literal notranslate"><span class="pre">drop_on_full=False</span></code> setting cannot be honored because the caller thread cannot block waiting for queue space on the worker thread’s loop.</p>
 <p>When <code class="docutils literal notranslate"><span class="pre">drop_on_full=False</span></code> is configured with <code class="docutils literal notranslate"><span class="pre">SyncLoggerFacade</span></code>, a diagnostic warning is emitted at startup to alert you that blocking behavior is not supported.</p>
-<p><strong>Recommendation</strong>: Size your queue appropriately (<code class="docutils literal notranslate"><span class="pre">core.max_queue_size</span></code>) to handle burst traffic without dropping. Both <code class="docutils literal notranslate"><span class="pre">SyncLoggerFacade</span></code> and <code class="docutils literal notranslate"><span class="pre">AsyncLoggerFacade</span></code> use the same non-blocking enqueue path.</p>
+<p><strong>Recommendation</strong>: Size your queue appropriately (<code class="docutils literal notranslate"><span class="pre">.with_queue_budget()</span></code> or <code class="docutils literal notranslate"><span class="pre">core.max_queue_size</span></code>) to handle burst traffic without dropping. Both <code class="docutils literal notranslate"><span class="pre">SyncLoggerFacade</span></code> and <code class="docutils literal notranslate"><span class="pre">AsyncLoggerFacade</span></code> use the same non-blocking enqueue path.</p>
 </section>
 </section>
 <section id="redaction-defaults">

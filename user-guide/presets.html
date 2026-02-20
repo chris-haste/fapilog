@@ -7,17 +7,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Configuration Presets &mdash; fapilog 0.18.1 documentation</title>
+  <title>Configuration Presets &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
   
-    <link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/presets.html" />
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=1e56ff10"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -30,6 +29,9 @@
     <link rel="prev" title="Configuration" href="configuration.html" />
  
 
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/presets.html" />
+<meta name="robots" content="noindex, follow" />
 
 
 </head>
@@ -494,7 +496,7 @@
 <ul class="simple">
 <li><p>INFO level filters noise</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">batch_max_size=256</span></code>, <code class="docutils literal notranslate"><span class="pre">batch_timeout_seconds=0.25</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">max_queue_size=10000</span></code>, <code class="docutils literal notranslate"><span class="pre">sink_concurrency=8</span></code>, <code class="docutils literal notranslate"><span class="pre">shutdown_timeout_seconds=25.0</span></code></p></li>
+<li><p>~20 MB queue budget (<code class="docutils literal notranslate"><span class="pre">max_queue_size=10000</span></code> at ~2 KB/event), <code class="docutils literal notranslate"><span class="pre">sink_concurrency=8</span></code>, <code class="docutils literal notranslate"><span class="pre">shutdown_timeout_seconds=25.0</span></code></p></li>
 <li><p>Adaptive pipeline enabled: dynamic worker scaling (2-4), filter tightening, fixed queue capacity</p></li>
 <li><p>Circuit breaker with rotating file fallback — failing sinks are isolated, events reroute to local files</p></li>
 <li><p>File rotation: <code class="docutils literal notranslate"><span class="pre">./logs/fapilog-*.log</span></code>, 50MB max, 10 files, gzip compressed (fallback only)</p></li>

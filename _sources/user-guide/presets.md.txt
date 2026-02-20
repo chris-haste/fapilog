@@ -129,7 +129,7 @@ logger = get_logger(preset="production")
 **Settings:**
 - INFO level filters noise
 - `batch_max_size=256`, `batch_timeout_seconds=0.25`
-- `max_queue_size=10000`, `sink_concurrency=8`, `shutdown_timeout_seconds=25.0`
+- ~20 MB queue budget (`max_queue_size=10000` at ~2 KB/event), `sink_concurrency=8`, `shutdown_timeout_seconds=25.0`
 - Adaptive pipeline enabled: dynamic worker scaling (2-4), filter tightening, fixed queue capacity
 - Circuit breaker with rotating file fallback — failing sinks are isolated, events reroute to local files
 - File rotation: `./logs/fapilog-*.log`, 50MB max, 10 files, gzip compressed (fallback only)

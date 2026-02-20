@@ -7,17 +7,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Configuring Fapilog with the Builder API &mdash; fapilog 0.18.1 documentation</title>
+  <title>Configuring Fapilog with the Builder API &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
   
-    <link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/builder-configuration.html" />
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=1e56ff10"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -30,6 +29,9 @@
     <link rel="prev" title="Execution Modes" href="execution-modes.html" />
  
 
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/builder-configuration.html" />
+<meta name="robots" content="noindex, follow" />
 
 
 </head>
@@ -481,7 +483,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># High-throughput configuration</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">LoggerBuilder</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">with_queue_size</span><span class="p">(</span><span class="mi">10000</span><span class="p">)</span>       <span class="c1"># Large buffer</span>
+    <span class="o">.</span><span class="n">with_queue_budget</span><span class="p">(</span><span class="n">main_mb</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">protected_mb</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>  <span class="c1"># Memory ceiling</span>
     <span class="o">.</span><span class="n">with_batch_size</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span>         <span class="c1"># Large batches</span>
     <span class="o">.</span><span class="n">with_batch_timeout</span><span class="p">(</span><span class="s2">&quot;1s&quot;</span><span class="p">)</span>     <span class="c1"># Flush every second</span>
     <span class="o">.</span><span class="n">with_workers</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>              <span class="c1"># Parallel processing</span>
@@ -492,9 +494,9 @@
 <span class="c1"># Low-latency configuration</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">LoggerBuilder</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">with_queue_size</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">with_batch_size</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>          <span class="c1"># Small batches</span>
-    <span class="o">.</span><span class="n">with_batch_timeout</span><span class="p">(</span><span class="s2">&quot;100ms&quot;</span><span class="p">)</span>  <span class="c1"># Flush quickly</span>
+    <span class="o">.</span><span class="n">with_queue_budget</span><span class="p">(</span><span class="n">main_mb</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># Small buffer</span>
+    <span class="o">.</span><span class="n">with_batch_size</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>           <span class="c1"># Small batches</span>
+    <span class="o">.</span><span class="n">with_batch_timeout</span><span class="p">(</span><span class="s2">&quot;100ms&quot;</span><span class="p">)</span>   <span class="c1"># Flush quickly</span>
     <span class="o">.</span><span class="n">add_stdout</span><span class="p">()</span>
     <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
@@ -586,7 +588,7 @@
     <span class="o">.</span><span class="n">with_shutdown_timeout</span><span class="p">(</span><span class="s2">&quot;10s&quot;</span><span class="p">)</span>
 
     <span class="c1"># Performance</span>
-    <span class="o">.</span><span class="n">with_queue_size</span><span class="p">(</span><span class="mi">10000</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">with_queue_budget</span><span class="p">(</span><span class="n">main_mb</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">protected_mb</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
     <span class="o">.</span><span class="n">with_batch_size</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
     <span class="o">.</span><span class="n">with_workers</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 

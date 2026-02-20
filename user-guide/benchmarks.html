@@ -7,17 +7,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Performance Benchmarks &mdash; fapilog 0.18.1 documentation</title>
+  <title>Performance Benchmarks &mdash; fapilog latest documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css" />
 
   
-    <link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/benchmarks.html" />
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=1e56ff10"></script>
+      <script src="../_static/documentation_options.js?v=c6e86fd7"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -30,6 +29,9 @@
     <link rel="prev" title="Performance Tuning" href="performance-tuning.html" />
  
 
+
+<link rel="canonical" href="https://docs.fapilog.dev/en/stable/user-guide/benchmarks.html" />
+<meta name="robots" content="noindex, follow" />
 
 
 </head>
@@ -419,7 +421,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Interpretation:</strong> fapilog uses more memory due to its queue, batching buffers, and async infrastructure. This is a deliberate trade-off for non-blocking behavior. Configure <code class="docutils literal notranslate"><span class="pre">max_queue_size</span></code> based on available memory.</p>
+<p><strong>Interpretation:</strong> fapilog uses more memory due to its queue, batching buffers, and async infrastructure. This is a deliberate trade-off for non-blocking behavior. Use <code class="docutils literal notranslate"><span class="pre">.with_queue_budget()</span></code> to set a memory ceiling, or configure <code class="docutils literal notranslate"><span class="pre">max_queue_size</span></code> directly.</p>
 </section>
 <section id="worker-count-impact">
 <h3>Worker Count Impact<a class="headerlink" href="#worker-count-impact" title="Link to this heading"></a></h3>
