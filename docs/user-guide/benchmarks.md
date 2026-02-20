@@ -88,7 +88,7 @@ Peak memory during throughput test:
 | stdlib | 85,719 |
 | fapilog | 10,670,043 |
 
-**Interpretation:** fapilog uses more memory due to its queue, batching buffers, and async infrastructure. This is a deliberate trade-off for non-blocking behavior. Configure `max_queue_size` based on available memory.
+**Interpretation:** fapilog uses more memory due to its queue, batching buffers, and async infrastructure. This is a deliberate trade-off for non-blocking behavior. Use `.with_queue_budget()` to set a memory ceiling, or configure `max_queue_size` directly.
 
 ### Worker Count Impact
 

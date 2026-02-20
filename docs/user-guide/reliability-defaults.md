@@ -3,7 +3,7 @@
 This page summarizes the out-of-the-box behaviors that affect durability, backpressure, and data protection.
 
 ## Backpressure and drops
-- Queue size: `core.max_queue_size=10000`
+- Queue budget: ~20 MB default (`core.max_queue_size=10000` at ~2 KB/event)
 - Drop policy: `core.drop_on_full=True` (drop immediately when queue is full)
 - Batch flush: `core.batch_max_size=256`, `core.batch_timeout_seconds=0.25`
 
@@ -13,7 +13,7 @@ With the dedicated thread architecture, `try_enqueue()` is always non-blocking â
 
 When `drop_on_full=False` is configured with `SyncLoggerFacade`, a diagnostic warning is emitted at startup to alert you that blocking behavior is not supported.
 
-**Recommendation**: Size your queue appropriately (`core.max_queue_size`) to handle burst traffic without dropping. Both `SyncLoggerFacade` and `AsyncLoggerFacade` use the same non-blocking enqueue path.
+**Recommendation**: Size your queue appropriately (`.with_queue_budget()` or `core.max_queue_size`) to handle burst traffic without dropping. Both `SyncLoggerFacade` and `AsyncLoggerFacade` use the same non-blocking enqueue path.
 
 ## Redaction defaults
 
