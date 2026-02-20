@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file. This change
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-02-19
+
+### Added
+
+- **Core - Add protected queue pressure shedding:** Add shedding flag to DualQueue that skips main queue dequeue when active. Add shed/recover threshold evaluation to PressureMonitor. Add protected_shed_threshold and protected_recover_threshold to AdaptiveSettings. Include shed_activations and shed_total_seconds in AdaptiveDrainSummary. Emit diagnostic events on shed state transitions.
+- **Core - Add async-safe backpressure for event loop contexts:** Detect running event loop in SyncLoggerFacade._enqueue() and skip time.sleep() to avoid blocking the loop. Implement async backpressure retry in AsyncLoggerFacade._enqueue() using asyncio.sleep() with exponential backoff. Protected levels bypass async backpressure matching sync behavior.
+- **Redactors - Extend url credential redaction to infrastructure schemes:** Add 16 database, cache, broker, directory, and mail URI schemes. Cover postgres, mysql, mongodb, redis, amqp, nats, ldap, smtp and variants. Prevents credential leaks from connection strings in log output.
+
+### Fixed
+
+- **Core - Thread preset settings into cached fields:** Pass resolved Settings object from _create_and_start_facade() through facade constructors into _common_init() so preset values are honored. Fixes sink_concurrency, adaptive.enabled, and all other _cached_* fields being silently ignored when using get_logger(preset="production").
+
 ## [0.17.0] - 2026-02-18
 
 ### Added
