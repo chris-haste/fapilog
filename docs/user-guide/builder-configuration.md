@@ -265,7 +265,7 @@ Optimize for throughput or latency:
 # High-throughput configuration
 logger = (
     LoggerBuilder()
-    .with_queue_size(10000)       # Large buffer
+    .with_queue_budget(main_mb=50, protected_mb=10)  # Memory ceiling
     .with_batch_size(500)         # Large batches
     .with_batch_timeout("1s")     # Flush every second
     .with_workers(4)              # Parallel processing
@@ -276,9 +276,9 @@ logger = (
 # Low-latency configuration
 logger = (
     LoggerBuilder()
-    .with_queue_size(1000)
-    .with_batch_size(10)          # Small batches
-    .with_batch_timeout("100ms")  # Flush quickly
+    .with_queue_budget(main_mb=2)  # Small buffer
+    .with_batch_size(10)           # Small batches
+    .with_batch_timeout("100ms")   # Flush quickly
     .add_stdout()
     .build()
 )
@@ -375,7 +375,7 @@ logger = (
     .with_shutdown_timeout("10s")
 
     # Performance
-    .with_queue_size(10000)
+    .with_queue_budget(main_mb=20, protected_mb=5)
     .with_batch_size(100)
     .with_workers(2)
 
