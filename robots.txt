@@ -1,0 +1,9 @@
+# GitHub Pages mirror of fapilog documentation
+# Canonical documentation: https://docs.fapilog.dev/
+#
+# This mirror provides preview access to unreleased documentation changes.
+# To avoid duplicate content SEO penalties, search engine indexing is discouraged.
+# Users can still browse this site normally.
+
+User-agent: *
+Disallow: /
