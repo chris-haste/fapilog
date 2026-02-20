@@ -7,16 +7,17 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Release Notes &mdash; fapilog latest documentation</title>
+  <title>Release Notes &mdash; fapilog 0.18.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
       <link rel="stylesheet" type="text/css" href="_static/custom.css" />
 
   
+    <link rel="canonical" href="https://docs.fapilog.dev/en/stable/release-notes.html" />
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=c6e86fd7"></script>
+      <script src="_static/documentation_options.js?v=ba2e7b09"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -27,9 +28,6 @@
     <link rel="search" title="Search" href="search.html" />
  
 
-
-<link rel="canonical" href="https://docs.fapilog.dev/en/stable/release-notes.html" />
-<meta name="robots" content="noindex, follow" />
 
 
 </head>
@@ -235,9 +233,26 @@
 <h2>[Unreleased]<a class="headerlink" href="#unreleased" title="Link to this heading"></a></h2>
 </section>
 <section id="id1">
-<h2>[0.17.0] - 2026-02-18<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<h2>[0.18.0] - 2026-02-19<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
 <section id="added">
 <h3>Added<a class="headerlink" href="#added" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Core - Add protected queue pressure shedding:</strong> Add shedding flag to DualQueue that skips main queue dequeue when active. Add shed/recover threshold evaluation to PressureMonitor. Add protected_shed_threshold and protected_recover_threshold to AdaptiveSettings. Include shed_activations and shed_total_seconds in AdaptiveDrainSummary. Emit diagnostic events on shed state transitions.</p></li>
+<li><p><strong>Core - Add async-safe backpressure for event loop contexts:</strong> Detect running event loop in SyncLoggerFacade._enqueue() and skip time.sleep() to avoid blocking the loop. Implement async backpressure retry in AsyncLoggerFacade._enqueue() using asyncio.sleep() with exponential backoff. Protected levels bypass async backpressure matching sync behavior.</p></li>
+<li><p><strong>Redactors - Extend url credential redaction to infrastructure schemes:</strong> Add 16 database, cache, broker, directory, and mail URI schemes. Cover postgres, mysql, mongodb, redis, amqp, nats, ldap, smtp and variants. Prevents credential leaks from connection strings in log output.</p></li>
+</ul>
+</section>
+<section id="fixed">
+<h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Core - Thread preset settings into cached fields:</strong> Pass resolved Settings object from _create_and_start_facade() through facade constructors into _common_init() so preset values are honored. Fixes sink_concurrency, adaptive.enabled, and all other <em>cached</em>* fields being silently ignored when using get_logger(preset=“production”).</p></li>
+</ul>
+</section>
+</section>
+<section id="id2">
+<h2>[0.17.0] - 2026-02-18<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
+<section id="id3">
+<h3>Added<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Core - Restore backpressure retry and merge adaptive into production preset:</strong> Add bounded retry loop in <code class="docutils literal notranslate"><span class="pre">SyncLoggerFacade._enqueue()</span></code> when <code class="docutils literal notranslate"><span class="pre">drop_on_full=False</span></code> with exponential backoff up to <code class="docutils literal notranslate"><span class="pre">backpressure_wait_ms</span></code> budget. Merge adaptive features into production preset (10k queue, circuit breaker, adaptive pipeline). Deprecate <code class="docutils literal notranslate"><span class="pre">adaptive</span></code> preset name as alias with <code class="docutils literal notranslate"><span class="pre">DeprecationWarning</span></code>.</p></li>
 <li><p><strong>Core - Add queue capacity decay with hysteresis cooldown:</strong> Add <code class="docutils literal notranslate"><span class="pre">shrink_capacity()</span></code> to <code class="docutils literal notranslate"><span class="pre">NonBlockingRingQueue</span></code> and <code class="docutils literal notranslate"><span class="pre">DualQueue</span></code> with floor/fill clamping. Add <code class="docutils literal notranslate"><span class="pre">capacity_cooldown_seconds</span></code> setting for gradual step-down decay following growth table in reverse. Cancel decay task on pressure re-escalation to prevent thrashing.</p></li>
@@ -245,8 +260,8 @@
 <li><p><strong>Core - Add fixed dual-queue memory budget and remove queue growth:</strong> Add <code class="docutils literal notranslate"><span class="pre">with_queue_budget()</span></code> for MB-based queue sizing and <code class="docutils literal notranslate"><span class="pre">protected_queue_size</span></code> for independent protected queue control. Remove dynamic queue growth/shrink machinery in favor of fixed memory budgets. Deprecate <code class="docutils literal notranslate"><span class="pre">max_queue_growth</span></code>, <code class="docutils literal notranslate"><span class="pre">capacity_cooldown_seconds</span></code>, and <code class="docutils literal notranslate"><span class="pre">queue_growth</span></code> settings.</p></li>
 </ul>
 </section>
-<section id="fixed">
-<h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading"></a></h3>
+<section id="id4">
+<h3>Fixed<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Core - Remove rotating_file as primary sink from adaptive preset:</strong> Keep rotating file only as circuit breaker fallback, not primary sink. File I/O on the hot path contradicts drop-tolerant throughput design.</p></li>
 <li><p><strong>Core - Remove dead queue growth tracking from pressure monitor:</strong> Remove unused <code class="docutils literal notranslate"><span class="pre">record_queue_growth()</span></code>, <code class="docutils literal notranslate"><span class="pre">_queue_growth_count</span></code>, and <code class="docutils literal notranslate"><span class="pre">_peak_queue_capacity</span></code> from <code class="docutils literal notranslate"><span class="pre">PressureMonitor</span></code> and <code class="docutils literal notranslate"><span class="pre">AdaptiveDrainSummary</span></code>.</p></li>
@@ -259,10 +274,10 @@
 </ul>
 </section>
 </section>
-<section id="id2">
-<h2>[0.16.0] - 2026-02-17<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
-<section id="id3">
-<h3>Added<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<section id="id5">
+<h2>[0.16.0] - 2026-02-17<a class="headerlink" href="#id5" title="Link to this heading"></a></h2>
+<section id="id6">
+<h3>Added<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Core - Unify logging pipeline to always use dedicated thread:</strong> Eliminate bound mode — <code class="docutils literal notranslate"><span class="pre">start()</span></code> always spawns a dedicated background thread with its own event loop, preventing logging from competing with the caller’s HTTP event loop.</p></li>
 <li><p><strong>Core - Add per-actuator adaptive toggles:</strong> Add <code class="docutils literal notranslate"><span class="pre">filter_tightening</span></code>, <code class="docutils literal notranslate"><span class="pre">worker_scaling</span></code>, <code class="docutils literal notranslate"><span class="pre">queue_growth</span></code> fields to <code class="docutils literal notranslate"><span class="pre">AdaptiveSettings</span></code>. Gate filter ladder, WorkerPool, and capacity growth on respective toggles. Expose new params in <code class="docutils literal notranslate"><span class="pre">with_adaptive()</span></code> builder API.</p></li>
@@ -275,16 +290,16 @@
 <li><p><strong>Core - Consolidate presets from 9 to 6 with benchmark-corrected defaults:</strong> Remove <code class="docutils literal notranslate"><span class="pre">fastapi</span></code>, <code class="docutils literal notranslate"><span class="pre">production-latency</span></code>, <code class="docutils literal notranslate"><span class="pre">high-volume</span></code> presets. Update adaptive preset with benchmark-corrected values (<code class="docutils literal notranslate"><span class="pre">batch_max_size=256</span></code>, <code class="docutils literal notranslate"><span class="pre">max_workers=4</span></code>, <code class="docutils literal notranslate"><span class="pre">max_queue_growth=3.0</span></code>, <code class="docutils literal notranslate"><span class="pre">protected_levels=[ERROR,</span> <span class="pre">CRITICAL]</span></code>). Update production preset (<code class="docutils literal notranslate"><span class="pre">batch_max_size=256</span></code>, <code class="docutils literal notranslate"><span class="pre">shutdown_timeout_seconds=25.0</span></code>).</p></li>
 </ul>
 </section>
-<section id="id4">
-<h3>Fixed<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<section id="id7">
+<h3>Fixed<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Core - Wire DualQueue drop metrics and depth gauges:</strong> Wire protected/unprotected drop counters to MetricsCollector on enqueue failure. Add <code class="docutils literal notranslate"><span class="pre">depth_gauge_setter</span></code> callback to PressureMonitor for per-tick queue depth sampling.</p></li>
 <li><p><strong>Core - Address code review P1/P2 issues:</strong> Strengthen test assertions, remove dead code (<code class="docutils literal notranslate"><span class="pre">_backpressure_wait_ms</span></code>, write-only <code class="docutils literal notranslate"><span class="pre">_loop_thread_ident</span></code>), lock-protect <code class="docutils literal notranslate"><span class="pre">PriorityAwareQueue.capacity</span></code> for thread safety.</p></li>
 <li><p><strong>Core - Scale queue growth table from max_queue_growth setting:</strong> Compute growth multipliers proportionally instead of hardcoding. CRITICAL now reaches full <code class="docutils literal notranslate"><span class="pre">max_queue_growth</span></code> (4.0x default, was 2.0x).</p></li>
 </ul>
 </section>
-<section id="id5">
-<h3>Documentation<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<section id="id8">
+<h3>Documentation<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Align documentation with unified dedicated-thread architecture:</strong> Rewrite async-sync-boundary.md, update reliability-defaults.md, backpressure docs, and non-blocking-async-logging cookbook.</p></li>
 <li><p><strong>Add per-actuator toggle guidance to cookbook, config map, and builder guide.</strong></p></li>
@@ -292,10 +307,10 @@
 </ul>
 </section>
 </section>
-<section id="id6">
-<h2>[0.15.0] - 2026-02-13<a class="headerlink" href="#id6" title="Link to this heading"></a></h2>
-<section id="id7">
-<h3>Added<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<section id="id9">
+<h2>[0.15.0] - 2026-02-13<a class="headerlink" href="#id9" title="Link to this heading"></a></h2>
+<section id="id10">
+<h3>Added<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Core - Add priority-aware queue with protected levels:</strong> Add PriorityAwareQueue with O(1) tombstone-based eviction. Protected levels (ERROR, CRITICAL, FATAL) survive queue pressure. Add with_protected_levels() builder method and priority eviction metrics.</p></li>
 <li><p><strong>Core - Add AUDIT and SECURITY log levels:</strong> Add AUDIT (60) and SECURITY (70) as standard levels above CRITICAL. Add logger.audit() and logger.security() methods to both facades. Include in default protected_levels.</p></li>
@@ -320,8 +335,8 @@
 <li><p><strong>Redactors - Add per-field string truncation redactor:</strong> Truncate string values exceeding configurable max_string_length with [truncated] marker. Wire into builder via with_redaction(max_string_length=4096).</p></li>
 </ul>
 </section>
-<section id="id8">
-<h3>Changed<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<section id="id11">
+<h3>Changed<a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Redactors - Reduce allocations in field blocker traversal:</strong> Replace per-key list path building with lazy string paths. Cache instance attributes as locals for tight loop.</p></li>
 <li><p><strong>Core - Inline sensitive masking to reduce hot-path overhead:</strong> Inline the dict comprehension directly in build_envelope() to eliminate function-call overhead.</p></li>
@@ -329,8 +344,8 @@
 <li><p><strong>Sinks - Replace hardcoded field extraction with schema-aware resolution:</strong> Add _FIELD_LOCATIONS map for v1.1 envelope field lookup paths. Fix event_payload missing nested fields when include_raw_json=False.</p></li>
 </ul>
 </section>
-<section id="id9">
-<h3>Fixed<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<section id="id12">
+<h3>Fixed<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Core - Skip error dedup for protected-level events:</strong> Protected_levels promises events MUST NOT be dropped, but error dedup silently suppresses duplicates. Skip the dedup check when the event’s level is in protected_levels.</p></li>
 <li><p><strong>Core - Disable batch_sizing by default in adaptive preset:</strong> Adaptive batch sizing only benefits batch-aware sinks — not stdout or file sinks. Change adaptive preset default to batch_sizing=False.</p></li>
@@ -342,8 +357,8 @@
 <li><p><strong>Core - Wrap metrics calls in try/except for resilience:</strong> Ensure metrics failures don’t affect enqueue success.</p></li>
 </ul>
 </section>
-<section id="id10">
-<h3>Documentation<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
+<section id="id13">
+<h3>Documentation<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Docs - Add AdaptiveDrainSummary to API reference and guides:</strong> Document AdaptiveDrainSummary fields in lifecycle-results.md. Add adaptive summary example to graceful-shutdown-flush.md.</p></li>
 <li><p><strong>Docs - Add adaptive pipeline and circuit breaker documentation:</strong> Add adaptive preset to presets guide. Create user guides for adaptive-pipeline.md and circuit-breaker.md. Add glossary terms and performance tuning sections.</p></li>
@@ -354,16 +369,16 @@
 </ul>
 </section>
 </section>
-<section id="id11">
-<h2>[0.14.0] - 2026-02-02<a class="headerlink" href="#id11" title="Link to this heading"></a></h2>
-<section id="id12">
-<h3>Added<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
+<section id="id14">
+<h2>[0.14.0] - 2026-02-02<a class="headerlink" href="#id14" title="Link to this heading"></a></h2>
+<section id="id15">
+<h3>Added<a class="headerlink" href="#id15" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>FastAPI - Add FastAPIBuilder for unified integration:</strong> Extend AsyncLoggerBuilder with FastAPI-specific methods. Add skip_paths, include_headers, sample_rate, log_errors_on_skip. Support env var overrides with warning emission. Deprecate setup_logging() in favor of FastAPIBuilder.</p></li>
 </ul>
 </section>
-<section id="id13">
-<h3>Documentation<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
+<section id="id16">
+<h3>Documentation<a class="headerlink" href="#id16" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>FastAPI - Update documentation for FastAPIBuilder:</strong> Update user guide with FastAPIBuilder as recommended approach. Create migration guide from setup_logging() to FastAPIBuilder. Update cookbook entries to use FastAPIBuilder pattern. Mark deprecated sections in documentation.</p></li>
 <li><p><strong>FastAPI - Update all documentation to use FastAPIBuilder:</strong> Update all cookbook entries to use FastAPIBuilder instead of setup_logging(). Update user guide pages (configuration, execution-modes, presets). Update integrations/fastapi.md and examples/fastapi-logging.md. Update why-fapilog.md, features.md, context-binding.md.</p></li>
@@ -371,10 +386,10 @@
 </ul>
 </section>
 </section>
-<section id="id14">
-<h2>[0.13.0] - 2026-02-01<a class="headerlink" href="#id14" title="Link to this heading"></a></h2>
-<section id="id15">
-<h3>Added<a class="headerlink" href="#id15" title="Link to this heading"></a></h3>
+<section id="id17">
+<h2>[0.13.0] - 2026-02-01<a class="headerlink" href="#id17" title="Link to this heading"></a></h2>
+<section id="id18">
+<h3>Added<a class="headerlink" href="#id18" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>FastAPI - Expose header options in setup_logging:</strong> Add include_headers, additional_redact_headers, allow_headers params. Pass header options through to _configure_middleware and LoggingMiddleware.</p></li>
 <li><p><strong>Core - Add high-volume preset with adaptive sampling:</strong> Enable cost-effective logging for high-traffic services via preset=“high-volume”. Configure adaptive sampling to target ~100 events/sec with 1-100% dynamic range. Ensure ERROR/CRITICAL/FATAL always pass through (never sampled out).</p></li>
@@ -384,14 +399,14 @@
 <li><p><strong>Core - Add custom sink names to builder API:</strong> Add optional name parameter to all add_* sink methods. Enable multiple sinks of same type with unique names for routing.</p></li>
 </ul>
 </section>
-<section id="id16">
-<h3>Fixed<a class="headerlink" href="#id16" title="Link to this heading"></a></h3>
+<section id="id19">
+<h3>Fixed<a class="headerlink" href="#id19" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>FastAPI - Preserve default header redactions in setup_logging:</strong> Pass redact_headers=None instead of [] to LoggingMiddleware. Allows DEFAULT_REDACT_HEADERS to apply when include_headers=True.</p></li>
 </ul>
 </section>
-<section id="id17">
-<h3>Documentation<a class="headerlink" href="#id17" title="Link to this heading"></a></h3>
+<section id="id20">
+<h3>Documentation<a class="headerlink" href="#id20" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Cookbook - Add FastAPI microservice production guide:</strong> Cover preset selection for different traffic patterns. Include Kubernetes probe skip paths. Document serverless containers (Cloud Run, Fargate, Lambda).</p></li>
 <li><p><strong>Features - Add features page with comprehensive feature list:</strong> Add features.md with categorized feature tables and benefits.</p></li>
@@ -401,24 +416,24 @@
 </ul>
 </section>
 </section>
-<section id="id18">
-<h2>[0.12.0] - 2026-01-30<a class="headerlink" href="#id18" title="Link to this heading"></a></h2>
-<section id="id19">
-<h3>Added<a class="headerlink" href="#id19" title="Link to this heading"></a></h3>
+<section id="id21">
+<h2>[0.12.0] - 2026-01-30<a class="headerlink" href="#id21" title="Link to this heading"></a></h2>
+<section id="id22">
+<h3>Added<a class="headerlink" href="#id22" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Core - Add message_id field:</strong> message_id uniquely identifies each log entry (always present). correlation_id now only appears when set via context variable, clarifying semantics: message_id per-entry vs correlation_id per-request.</p></li>
 <li><p><strong>Core - Add critical() log level method:</strong> Add critical() method to SyncLoggerFacade and AsyncLoggerFacade. Update stdlib bridge to call critical() directly instead of error() with extras.</p></li>
 </ul>
 </section>
-<section id="id20">
-<h3>Fixed<a class="headerlink" href="#id20" title="Link to this heading"></a></h3>
+<section id="id23">
+<h3>Fixed<a class="headerlink" href="#id23" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Core - Resolve race condition in cross-thread dropped counter:</strong> Move dropped counting into _async_enqueue so it executes even when caller times out. Remove duplicate counting from sync and async callers. Ensures accurate accounting when fut.result() times out but coroutine completes.</p></li>
 <li><p><strong>Docs - Add presets.md to toctree:</strong> Add presets.md to docs/user-guide/index.md toctree. Update test_all_presets_documented to include production-latency.</p></li>
 </ul>
 </section>
-<section id="id21">
-<h3>Documentation<a class="headerlink" href="#id21" title="Link to this heading"></a></h3>
+<section id="id24">
+<h3>Documentation<a class="headerlink" href="#id24" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Security - Update supported versions:</strong> Remove marketing tagline (not appropriate for security policy). Update version table to reflect current releases.</p></li>
 <li><p><strong>Security - Add tagline for brand consistency.</strong></p></li>
@@ -429,111 +444,111 @@
 </ul>
 </section>
 </section>
-<section id="id22">
-<h2>[0.11.0] - 2026-01-30<a class="headerlink" href="#id22" title="Link to this heading"></a></h2>
-<section id="id23">
-<h3>Added<a class="headerlink" href="#id23" title="Link to this heading"></a></h3>
+<section id="id25">
+<h2>[0.11.0] - 2026-01-30<a class="headerlink" href="#id25" title="Link to this heading"></a></h2>
+<section id="id26">
+<h3>Added<a class="headerlink" href="#id26" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Core - Add configuration validation:</strong> Validate configuration with hard limits (reject invalid) and soft limits (warn on high values) for queue_capacity, batch_max_size, batch_timeout_seconds, and num_workers.</p></li>
 </ul>
 </section>
-<section id="id24">
-<h3>Documentation<a class="headerlink" href="#id24" title="Link to this heading"></a></h3>
+<section id="id27">
+<h3>Documentation<a class="headerlink" href="#id27" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Core - Add execution modes guide:</strong> Document execution modes (async, bound loop, thread) with throughput expectations and usage patterns in README and new user guide. Update troubleshooting docs with worker_count tuning guidance.</p></li>
 <li><p><strong>Docs - Fix broken cross-reference links:</strong> Remove link to async-sync-boundary.md and replace anchor link with plain text reference for validation limits.</p></li>
 </ul>
 </section>
 </section>
-<section id="id25">
-<h2>[0.10.2] - 2026-01-30<a class="headerlink" href="#id25" title="Link to this heading"></a></h2>
-<section id="id26">
-<h3>Fixed<a class="headerlink" href="#id26" title="Link to this heading"></a></h3>
+<section id="id28">
+<h2>[0.10.2] - 2026-01-30<a class="headerlink" href="#id28" title="Link to this heading"></a></h2>
+<section id="id29">
+<h3>Fixed<a class="headerlink" href="#id29" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Core - Wait for all workers to complete during drain:</strong> Fix race condition where drain returned before all workers finished. Workers sharing single drained_event caused first-to-finish to win. Use asyncio.gather() to wait for all worker tasks instead.</p></li>
 </ul>
 </section>
 </section>
-<section id="id27">
-<h2>[0.10.1] - 2026-01-29<a class="headerlink" href="#id27" title="Link to this heading"></a></h2>
-<section id="id28">
-<h3>Fixed<a class="headerlink" href="#id28" title="Link to this heading"></a></h3>
+<section id="id30">
+<h2>[0.10.1] - 2026-01-29<a class="headerlink" href="#id30" title="Link to this heading"></a></h2>
+<section id="id31">
+<h3>Fixed<a class="headerlink" href="#id31" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Core - Merge builder sinks with preset sinks instead of replacing:</strong> Fix bug where <code class="docutils literal notranslate"><span class="pre">with_preset('production').add_file()</span></code> caused messages to be submitted but never processed (processed=0). Merge sink names preserving preset sinks (e.g., stdout_json). Deep-merge sink configs to preserve preset defaults.</p></li>
 <li><p><strong>Tests - Use CI timeout multiplier for backpressure timing test:</strong> Apply <code class="docutils literal notranslate"><span class="pre">get_test_timeout()</span></code> to scale timing threshold for CI environments. Prevents flaky failures from 1% timing variance.</p></li>
 </ul>
 </section>
 </section>
-<section id="id29">
-<h2>[0.10.0] - 2026-01-29<a class="headerlink" href="#id29" title="Link to this heading"></a></h2>
-<section id="id30">
-<h3>Added<a class="headerlink" href="#id30" title="Link to this heading"></a></h3>
+<section id="id32">
+<h2>[0.10.0] - 2026-01-29<a class="headerlink" href="#id32" title="Link to this heading"></a></h2>
+<section id="id33">
+<h3>Added<a class="headerlink" href="#id33" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Core - Default production presets to worker_count=2:</strong> Add worker_count: 2 to production, fastapi, serverless, hardened presets. Provides ~30x throughput improvement (3,500 → 105,000 events/sec). Keep dev/minimal presets at 1 worker for simpler debugging.</p></li>
 </ul>
 </section>
-<section id="id31">
-<h3>Fixed<a class="headerlink" href="#id31" title="Link to this heading"></a></h3>
+<section id="id34">
+<h3>Fixed<a class="headerlink" href="#id34" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Core - Align filter builder config keys with plugin fields:</strong> Fix with_adaptive_sampling() to use min_sample_rate, max_sample_rate, target_eps. Fix with_trace_sampling() to use sample_rate, remove honor_upstream. Add contract tests verifying builder configs load via _build_pipeline.</p></li>
 <li><p><strong>Core - Rename max_entries to max_keys in with_first_occurrence():</strong> Fix parameter name mismatch causing silent filter loading failure. Add max_entries as deprecated alias with DeprecationWarning.</p></li>
 <li><p><strong>Core - Enable serialize_in_flush for size_guard processor:</strong> with_size_guard() now sets serialize_in_flush=True automatically. Respects explicit user setting if already configured.</p></li>
 </ul>
 </section>
-<section id="id32">
-<h3>Documentation<a class="headerlink" href="#id32" title="Link to this heading"></a></h3>
+<section id="id35">
+<h3>Documentation<a class="headerlink" href="#id35" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Docs - Use correct logo green and make logo clickable:</strong> Update badge color from #84CC16 to #9FE17B to match logo. Wrap logo image in link to fapilog.dev.</p></li>
 </ul>
 </section>
 </section>
-<section id="id33">
-<h2>[0.9.0] - 2026-01-29<a class="headerlink" href="#id33" title="Link to this heading"></a></h2>
-<section id="id34">
-<h3>Added<a class="headerlink" href="#id34" title="Link to this heading"></a></h3>
+<section id="id36">
+<h2>[0.9.0] - 2026-01-29<a class="headerlink" href="#id36" title="Link to this heading"></a></h2>
+<section id="id37">
+<h3>Added<a class="headerlink" href="#id37" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Core - Add reuse() method to LoggerBuilder:</strong> Expose reuse parameter for controlling logger caching behavior. Pass reuse through build() and build_async() to underlying functions. Enable test isolation by allowing non-cached logger instances.</p></li>
 </ul>
 </section>
-<section id="id35">
-<h3>Changed<a class="headerlink" href="#id35" title="Link to this heading"></a></h3>
+<section id="id38">
+<h3>Changed<a class="headerlink" href="#id38" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Core - Use Self return type for LoggerBuilder methods:</strong> Change 44 builder methods from -&gt; LoggerBuilder to -&gt; Self. Enable correct type inference for AsyncLoggerBuilder chaining.</p></li>
 </ul>
 </section>
-<section id="id36">
-<h3>Fixed<a class="headerlink" href="#id36" title="Link to this heading"></a></h3>
+<section id="id39">
+<h3>Fixed<a class="headerlink" href="#id39" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Core - Flatten data={} kwarg in envelope building:</strong> When logging with <code class="docutils literal notranslate"><span class="pre">data={...}</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">logger.info(&quot;msg&quot;,</span> <span class="pre">data={&quot;password&quot;:</span> <span class="pre">&quot;secret&quot;})</span></code>), the dict contents are now flattened into the envelope’s <code class="docutils literal notranslate"><span class="pre">data</span></code> section instead of being nested under <code class="docutils literal notranslate"><span class="pre">data.data</span></code>. This fixes a security footgun where redaction rules for fields like <code class="docutils literal notranslate"><span class="pre">password</span></code> would fail silently because the actual path was <code class="docutils literal notranslate"><span class="pre">data.data.password</span></code>. Explicit kwargs override <code class="docutils literal notranslate"><span class="pre">data</span></code> dict values on collision. Non-dict <code class="docutils literal notranslate"><span class="pre">data</span></code> values are preserved as nested.</p></li>
 <li><p><strong>Core - Fix flaky thread mode drain counter test:</strong> Track batch counters locally to prevent race condition. Accumulate processed/dropped counts within batch before updating shared counters. Only count unprocessed events as dropped when sink fails mid-batch.</p></li>
 </ul>
 </section>
-<section id="id37">
-<h3>Documentation<a class="headerlink" href="#id37" title="Link to this heading"></a></h3>
+<section id="id40">
+<h3>Documentation<a class="headerlink" href="#id40" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Fapilog - Document field routing in with_context() docstring:</strong> The <code class="docutils literal notranslate"><span class="pre">with_context()</span></code> builder method docstring now explains that known context fields (<code class="docutils literal notranslate"><span class="pre">request_id</span></code>, <code class="docutils literal notranslate"><span class="pre">user_id</span></code>, <code class="docutils literal notranslate"><span class="pre">tenant_id</span></code>, <code class="docutils literal notranslate"><span class="pre">trace_id</span></code>, <code class="docutils literal notranslate"><span class="pre">span_id</span></code>) are routed to <code class="docutils literal notranslate"><span class="pre">log.context</span></code> while custom fields go to <code class="docutils literal notranslate"><span class="pre">log.data</span></code>.</p></li>
 </ul>
 </section>
 </section>
-<section id="id38">
-<h2>[0.8.1] - 2026-01-29<a class="headerlink" href="#id38" title="Link to this heading"></a></h2>
-<section id="id39">
-<h3>Added<a class="headerlink" href="#id39" title="Link to this heading"></a></h3>
+<section id="id41">
+<h2>[0.8.1] - 2026-01-29<a class="headerlink" href="#id41" title="Link to this heading"></a></h2>
+<section id="id42">
+<h3>Added<a class="headerlink" href="#id42" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Stdout sink capture mode for testing:</strong> <code class="docutils literal notranslate"><span class="pre">StdoutJsonSink</span></code> now accepts a <code class="docutils literal notranslate"><span class="pre">capture_mode=True</span></code> parameter that disables <code class="docutils literal notranslate"><span class="pre">os.writev()</span></code> optimization, allowing output to be captured via <code class="docutils literal notranslate"><span class="pre">sys.stdout</span></code> replacement in tests. The builder API also supports this: <code class="docutils literal notranslate"><span class="pre">add_stdout(capture_mode=True)</span></code>. See <code class="docutils literal notranslate"><span class="pre">docs/guides/testing.md</span></code> for usage patterns.</p></li>
 <li><p><strong>Duration parser supports milliseconds and decimals:</strong> The duration string parser now accepts <code class="docutils literal notranslate"><span class="pre">ms</span></code> suffix for milliseconds (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;100ms&quot;</span></code>) and decimal values with any unit (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;0.5s&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;1.5h&quot;</span></code>). Error messages now list all valid formats. Builder methods like <code class="docutils literal notranslate"><span class="pre">with_circuit_breaker(recovery_timeout=&quot;500ms&quot;)</span></code> benefit automatically.</p></li>
 <li><p><strong>Doc-accuracy CI check for redaction_fail_mode:</strong> The <code class="docutils literal notranslate"><span class="pre">scripts/check_doc_accuracy.py</span></code> script now validates that <code class="docutils literal notranslate"><span class="pre">docs/redaction/behavior.md</span></code> accurately documents the <code class="docutils literal notranslate"><span class="pre">redaction_fail_mode</span></code> default value from <code class="docutils literal notranslate"><span class="pre">CoreSettings</span></code>. This prevents documentation drift for security-sensitive settings.</p></li>
 </ul>
 </section>
-<section id="id40">
-<h3>Fixed<a class="headerlink" href="#id40" title="Link to this heading"></a></h3>
+<section id="id43">
+<h3>Fixed<a class="headerlink" href="#id43" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Logger resource cleanup on drain:</strong> Internal data structures (<code class="docutils literal notranslate"><span class="pre">_error_dedupe</span></code>, <code class="docutils literal notranslate"><span class="pre">_plugin_stats</span></code>, <code class="docutils literal notranslate"><span class="pre">_worker_tasks</span></code>, plugin lists) are now cleared after <code class="docutils literal notranslate"><span class="pre">stop_and_drain()</span></code> completes. This prevents memory leaks in long-running applications that create and destroy loggers.</p></li>
 </ul>
 </section>
 </section>
-<section id="id41">
-<h2>[0.8.0] - 2026-01-28<a class="headerlink" href="#id41" title="Link to this heading"></a></h2>
+<section id="id44">
+<h2>[0.8.0] - 2026-01-28<a class="headerlink" href="#id44" title="Link to this heading"></a></h2>
 <section id="breaking-changes">
 <h3>Breaking Changes<a class="headerlink" href="#breaking-changes" title="Link to this heading"></a></h3>
 <ul>
@@ -563,8 +578,8 @@
 </li>
 </ul>
 </section>
-<section id="id42">
-<h3>Changed<a class="headerlink" href="#id42" title="Link to this heading"></a></h3>
+<section id="id45">
+<h3>Changed<a class="headerlink" href="#id45" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Production preset disables Postgres auto-DDL:</strong> The <code class="docutils literal notranslate"><span class="pre">production</span></code> preset now sets <code class="docutils literal notranslate"><span class="pre">create_table=False</span></code> for Postgres sink configuration, requiring explicit table provisioning via migrations. This prevents unexpected DDL execution in regulated environments.</p></li>
 <li><p><strong>Worker event-based wakeup:</strong> The background worker loop now uses <code class="docutils literal notranslate"><span class="pre">asyncio.Event</span></code> signaling instead of fixed 1ms polling when an enqueue event is provided, reducing CPU wakeups when the queue is empty.</p></li>
@@ -572,23 +587,23 @@
 <li><p><strong>Doc accuracy CI now fails on missing critical files:</strong> The <code class="docutils literal notranslate"><span class="pre">scripts/check_doc_accuracy.py</span></code> script now fails when required documentation files are missing, instead of silently skipping them. This prevents security-sensitive documentation from drifting without CI catching it.</p></li>
 </ul>
 </section>
-<section id="id43">
-<h3>Added<a class="headerlink" href="#id43" title="Link to this heading"></a></h3>
+<section id="id46">
+<h3>Added<a class="headerlink" href="#id46" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>FastAPI middleware <code class="docutils literal notranslate"><span class="pre">require_logger</span></code> parameter:</strong> <code class="docutils literal notranslate"><span class="pre">LoggingMiddleware</span></code> now accepts <code class="docutils literal notranslate"><span class="pre">require_logger=True</span></code> to fail fast with a clear error if no logger is in <code class="docutils literal notranslate"><span class="pre">app.state</span></code>. This avoids latency spikes from lazy logger creation on cold-start requests. Default is <code class="docutils literal notranslate"><span class="pre">False</span></code> for backward compatibility.</p></li>
 <li><p><strong>Fallback sink raw output hardening:</strong> When JSON parsing fails for serialized payloads on the fallback path, fapilog now applies keyword scrubbing to mask common secret patterns (<code class="docutils literal notranslate"><span class="pre">password=</span></code>, <code class="docutils literal notranslate"><span class="pre">token=</span></code>, <code class="docutils literal notranslate"><span class="pre">api_key=</span></code>, <code class="docutils literal notranslate"><span class="pre">authorization:</span></code>) before writing to stderr. Optional truncation via <code class="docutils literal notranslate"><span class="pre">core.fallback_raw_max_bytes</span></code> limits output size. Scrubbing is enabled by default; set <code class="docutils literal notranslate"><span class="pre">FAPILOG_CORE__FALLBACK_SCRUB_RAW=false</span></code> to disable for debugging.</p></li>
 </ul>
 </section>
-<section id="id44">
-<h3>Fixed<a class="headerlink" href="#id44" title="Link to this heading"></a></h3>
+<section id="id47">
+<h3>Fixed<a class="headerlink" href="#id47" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Core redaction guardrails now functional:</strong> The <code class="docutils literal notranslate"><span class="pre">redaction_max_depth</span></code> and <code class="docutils literal notranslate"><span class="pre">redaction_max_keys_scanned</span></code> settings in <code class="docutils literal notranslate"><span class="pre">CoreSettings</span></code> were previously defined but never applied (dead code). They are now passed to <code class="docutils literal notranslate"><span class="pre">FieldMaskRedactor</span></code> and <code class="docutils literal notranslate"><span class="pre">RegexMaskRedactor</span></code> during initialization and act as outer limits that override per-redactor settings when more restrictive.</p></li>
 <li><p><strong>Silent data loss in <code class="docutils literal notranslate"><span class="pre">write_serialized</span></code>:</strong> Fixed correctness issue where HTTP, Webhook, Loki, CloudWatch, and PostgreSQL sinks silently replaced log data with placeholder values (e.g., <code class="docutils literal notranslate"><span class="pre">{&quot;message&quot;:</span> <span class="pre">&quot;fallback&quot;}</span></code>) when deserialization failed. All sinks now raise <code class="docutils literal notranslate"><span class="pre">SinkWriteError</span></code> with diagnostics, enabling proper fallback and circuit breaker handling.</p></li>
 <li><p><strong>Plugin metadata version default:</strong> Changed <code class="docutils literal notranslate"><span class="pre">create_plugin_metadata()</span></code> default <code class="docutils literal notranslate"><span class="pre">min_fapilog_version</span></code> from <code class="docutils literal notranslate"><span class="pre">&quot;3.0.0&quot;</span></code> to <code class="docutils literal notranslate"><span class="pre">&quot;0.1.0&quot;</span></code>. The previous default was incorrect for a 0.x project and caused compatibility check failures for plugin authors.</p></li>
 </ul>
 </section>
-<section id="id45">
-<h3>Documentation<a class="headerlink" href="#id45" title="Link to this heading"></a></h3>
+<section id="id48">
+<h3>Documentation<a class="headerlink" href="#id48" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Backpressure API documentation accuracy:</strong> Fixed incorrect examples showing non-existent <code class="docutils literal notranslate"><span class="pre">policy=&quot;wait&quot;</span></code> parameter and <code class="docutils literal notranslate"><span class="pre">discard_oldest</span></code> policy. Documentation now correctly shows actual <code class="docutils literal notranslate"><span class="pre">with_backpressure(wait_ms=...,</span> <span class="pre">drop_on_full=...)</span></code> API with behavior table explaining parameter combinations.</p></li>
 <li><p><strong>Architecture documentation accuracy:</strong> Removed stale references to non-existent components (<code class="docutils literal notranslate"><span class="pre">ComplianceEngine</span></code>, <code class="docutils literal notranslate"><span class="pre">UniversalSettings</span></code>, <code class="docutils literal notranslate"><span class="pre">EventCategory</span></code>) and deleted outdated monolithic <code class="docutils literal notranslate"><span class="pre">docs/architecture.md</span></code>.</p></li>
@@ -599,10 +614,10 @@
 </ul>
 </section>
 </section>
-<section id="id46">
-<h2>[0.7.0] - 2026-01-27<a class="headerlink" href="#id46" title="Link to this heading"></a></h2>
-<section id="id47">
-<h3>Breaking Changes<a class="headerlink" href="#id47" title="Link to this heading"></a></h3>
+<section id="id49">
+<h2>[0.7.0] - 2026-01-27<a class="headerlink" href="#id49" title="Link to this heading"></a></h2>
+<section id="id50">
+<h3>Breaking Changes<a class="headerlink" href="#id50" title="Link to this heading"></a></h3>
 <ul>
 <li><p><strong>Unified Redaction API:</strong> The following methods have been removed and consolidated into <code class="docutils literal notranslate"><span class="pre">with_redaction()</span></code>:</p>
 <ul class="simple">
@@ -626,8 +641,8 @@
 <li><p><strong>Production/FastAPI/Serverless presets now apply CREDENTIALS preset:</strong> Security-focused presets (<code class="docutils literal notranslate"><span class="pre">production</span></code>, <code class="docutils literal notranslate"><span class="pre">fastapi</span></code>, <code class="docutils literal notranslate"><span class="pre">serverless</span></code>) automatically apply the <code class="docutils literal notranslate"><span class="pre">CREDENTIALS</span></code> redaction preset for comprehensive secret protection. Custom credential fields are no longer hardcoded in these presets.</p></li>
 </ul>
 </section>
-<section id="id48">
-<h3>Added<a class="headerlink" href="#id48" title="Link to this heading"></a></h3>
+<section id="id51">
+<h3>Added<a class="headerlink" href="#id51" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Unified <code class="docutils literal notranslate"><span class="pre">with_redaction()</span></code> API:</strong> Single method for all redaction configuration with preset support, URL credentials, guardrails, and custom fields/patterns.</p></li>
 <li><p><strong>Preset discovery methods:</strong> <code class="docutils literal notranslate"><span class="pre">LoggerBuilder.list_redaction_presets()</span></code> and <code class="docutils literal notranslate"><span class="pre">LoggerBuilder.get_redaction_preset_info(name)</span></code> for discovering available redaction presets.</p></li>
@@ -635,14 +650,14 @@
 <li><p><strong>Composable redaction presets:</strong> One-liner compliance protection via <code class="docutils literal notranslate"><span class="pre">with_redaction(preset=&quot;GDPR_PII&quot;)</span></code>. Includes presets for GDPR, CCPA, HIPAA, PCI-DSS, and CREDENTIALS with inheritance support and metadata filtering.</p></li>
 </ul>
 </section>
-<section id="id49">
-<h3>Changed<a class="headerlink" href="#id49" title="Link to this heading"></a></h3>
+<section id="id52">
+<h3>Changed<a class="headerlink" href="#id52" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">with_redaction()</span></code> is now additive by default:</strong> Calling <code class="docutils literal notranslate"><span class="pre">with_redaction()</span></code> multiple times merges fields/patterns instead of replacing. Use <code class="docutils literal notranslate"><span class="pre">replace=True</span></code> to restore the previous overwrite behavior.</p></li>
 </ul>
 </section>
-<section id="id50">
-<h3>Documentation<a class="headerlink" href="#id50" title="Link to this heading"></a></h3>
+<section id="id53">
+<h3>Documentation<a class="headerlink" href="#id53" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>New dedicated <code class="docutils literal notranslate"><span class="pre">/redaction/</span></code> documentation section with presets reference, configuration guide, behavior documentation, and testing guide.</p></li>
 <li><p>Added compliance redaction cookbook explaining what field-name matching covers and its limitations.</p></li>
@@ -652,17 +667,17 @@
 </ul>
 </section>
 </section>
-<section id="id51">
-<h2>[0.6.0] - 2026-01-26<a class="headerlink" href="#id51" title="Link to this heading"></a></h2>
-<section id="id52">
-<h3>Added<a class="headerlink" href="#id52" title="Link to this heading"></a></h3>
+<section id="id54">
+<h2>[0.6.0] - 2026-01-26<a class="headerlink" href="#id54" title="Link to this heading"></a></h2>
+<section id="id55">
+<h3>Added<a class="headerlink" href="#id55" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Graceful log drain on shutdown:</strong> Loggers now automatically flush pending logs during application shutdown via <code class="docutils literal notranslate"><span class="pre">atexit</span></code> handlers. This ensures logs are not lost when processes terminate.</p></li>
 <li><p><strong>Regex ReDoS protection:</strong> <code class="docutils literal notranslate"><span class="pre">RegexMaskRedactor</span></code> now validates patterns at config time to prevent catastrophic backtracking. Patterns with nested quantifiers, overlapping alternation, or wildcards in bounded repetition are rejected. Use <code class="docutils literal notranslate"><span class="pre">allow_unsafe_patterns=True</span></code> to bypass validation if needed.</p></li>
 </ul>
 </section>
-<section id="id53">
-<h3>Changed<a class="headerlink" href="#id53" title="Link to this heading"></a></h3>
+<section id="id56">
+<h3>Changed<a class="headerlink" href="#id56" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Secure header redaction by default:</strong> <code class="docutils literal notranslate"><span class="pre">LoggingMiddleware</span></code> now redacts sensitive headers (Authorization, Cookie, X-API-Key, etc.) by default when <code class="docutils literal notranslate"><span class="pre">include_headers=True</span></code>. This prevents accidental credential leakage in logs.</p>
 <ul>
@@ -673,8 +688,8 @@
 </li>
 </ul>
 </section>
-<section id="id54">
-<h3>Documentation<a class="headerlink" href="#id54" title="Link to this heading"></a></h3>
+<section id="id57">
+<h3>Documentation<a class="headerlink" href="#id57" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Added Django structured logging cookbook entry.</p></li>
 <li><p>Added library comparison pages (why-fapilog, alternative library comparisons).</p></li>
@@ -682,16 +697,16 @@
 </ul>
 </section>
 </section>
-<section id="id55">
-<h2>[0.5.1] - 2026-01-21<a class="headerlink" href="#id55" title="Link to this heading"></a></h2>
-<section id="id56">
-<h3>Added<a class="headerlink" href="#id56" title="Link to this heading"></a></h3>
+<section id="id58">
+<h2>[0.5.1] - 2026-01-21<a class="headerlink" href="#id58" title="Link to this heading"></a></h2>
+<section id="id59">
+<h3>Added<a class="headerlink" href="#id59" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>FastAPI <code class="docutils literal notranslate"><span class="pre">log_errors_on_skip</span></code> parameter:</strong> <code class="docutils literal notranslate"><span class="pre">LoggingMiddleware</span></code> and <code class="docutils literal notranslate"><span class="pre">setup_logging()</span></code> now accept <code class="docutils literal notranslate"><span class="pre">log_errors_on_skip</span></code> (default: True) to log unhandled exceptions on skipped paths. This ensures visibility into crashes on health endpoints while still skipping routine success logs.</p></li>
 </ul>
 </section>
-<section id="id57">
-<h3>Documentation<a class="headerlink" href="#id57" title="Link to this heading"></a></h3>
+<section id="id60">
+<h3>Documentation<a class="headerlink" href="#id60" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Added 10 cookbook recipes for common FastAPI logging patterns:</p>
 <ul>
@@ -711,18 +726,18 @@
 <li><p>Fixed documentation accuracy and cross-reference issues.</p></li>
 </ul>
 </section>
-<section id="id58">
-<h3>Changed<a class="headerlink" href="#id58" title="Link to this heading"></a></h3>
+<section id="id61">
+<h3>Changed<a class="headerlink" href="#id61" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Updated PyPI description to be more concrete.</p></li>
 <li><p>Organized audit assessment files into versioned directories.</p></li>
 </ul>
 </section>
 </section>
-<section id="id59">
-<h2>[0.5.0] - 2026-01-21<a class="headerlink" href="#id59" title="Link to this heading"></a></h2>
-<section id="id60">
-<h3>Breaking Changes<a class="headerlink" href="#id60" title="Link to this heading"></a></h3>
+<section id="id62">
+<h2>[0.5.0] - 2026-01-21<a class="headerlink" href="#id62" title="Link to this heading"></a></h2>
+<section id="id63">
+<h3>Breaking Changes<a class="headerlink" href="#id63" title="Link to this heading"></a></h3>
 <ul>
 <li><p><strong>Logger instance caching enabled by default:</strong> <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> and <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> now cache instances by name, matching stdlib <code class="docutils literal notranslate"><span class="pre">logging.getLogger()</span></code> behavior. This prevents resource exhaustion from unbounded logger creation.</p>
 <p><strong>Migration:</strong> Code that relied on fresh instances per call should add <code class="docutils literal notranslate"><span class="pre">reuse=False</span></code>:</p>
@@ -750,8 +765,8 @@
 </li>
 </ul>
 </section>
-<section id="id61">
-<h3>Added<a class="headerlink" href="#id61" title="Link to this heading"></a></h3>
+<section id="id64">
+<h3>Added<a class="headerlink" href="#id64" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Logger instance caching: <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> and <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> now cache instances by name (like stdlib <code class="docutils literal notranslate"><span class="pre">logging.getLogger()</span></code>), preventing resource exhaustion from unbounded logger creation.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">reuse</span></code> parameter for <code class="docutils literal notranslate"><span class="pre">get_logger()</span></code> and <code class="docutils literal notranslate"><span class="pre">get_async_logger()</span></code> to opt out of caching when needed (e.g., tests).</p></li>
@@ -771,18 +786,18 @@
 <li><p>Builder API parity enforcement via CI to prevent configuration drift.</p></li>
 </ul>
 </section>
-<section id="id62">
-<h3>Documentation<a class="headerlink" href="#id62" title="Link to this heading"></a></h3>
+<section id="id65">
+<h3>Documentation<a class="headerlink" href="#id65" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Comprehensive builder API documentation with examples for all methods.</p></li>
 <li><p>Logger caching documentation explaining lifecycle and cache management.</p></li>
 </ul>
 </section>
 </section>
-<section id="id63">
-<h2>[0.4.0] - 2026-01-19<a class="headerlink" href="#id63" title="Link to this heading"></a></h2>
-<section id="id64">
-<h3>Breaking Changes<a class="headerlink" href="#id64" title="Link to this heading"></a></h3>
+<section id="id66">
+<h2>[0.4.0] - 2026-01-19<a class="headerlink" href="#id66" title="Link to this heading"></a></h2>
+<section id="id67">
+<h3>Breaking Changes<a class="headerlink" href="#id67" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">fastapi</span></code> preset now enables redaction by default (<code class="docutils literal notranslate"><span class="pre">field_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">regex_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">url_credentials</span></code>), matching <code class="docutils literal notranslate"><span class="pre">production</span></code> preset security posture. Use <code class="docutils literal notranslate"><span class="pre">dev</span></code> preset for debugging or explicitly set <code class="docutils literal notranslate"><span class="pre">redactors=[]</span></code> to disable.</p></li>
 <li><p>Log schema v1.1 with semantic field groupings (<code class="docutils literal notranslate"><span class="pre">context</span></code>, <code class="docutils literal notranslate"><span class="pre">diagnostics</span></code>, <code class="docutils literal notranslate"><span class="pre">data</span></code>); <code class="docutils literal notranslate"><span class="pre">metadata</span></code> renamed to <code class="docutils literal notranslate"><span class="pre">data</span></code>, <code class="docutils literal notranslate"><span class="pre">correlation_id</span></code> moved to <code class="docutils literal notranslate"><span class="pre">context.correlation_id</span></code>, timestamp now RFC3339 string. See <code class="docutils literal notranslate"><span class="pre">docs/schema-migration-v1.0-to-v1.1.md</span></code>.</p></li>
@@ -791,8 +806,8 @@
 <li><p>External plugins now blocked by default; use <code class="docutils literal notranslate"><span class="pre">plugins.allow_external=true</span></code> or <code class="docutils literal notranslate"><span class="pre">plugins.allowlist</span></code> for explicit opt-in.</p></li>
 </ul>
 </section>
-<section id="id65">
-<h3>Added<a class="headerlink" href="#id65" title="Link to this heading"></a></h3>
+<section id="id68">
+<h3>Added<a class="headerlink" href="#id68" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Fluent builder API (<code class="docutils literal notranslate"><span class="pre">LoggerBuilder</span></code>, <code class="docutils literal notranslate"><span class="pre">AsyncLoggerBuilder</span></code>) for chainable logger configuration with IDE autocomplete support.</p></li>
 <li><p>Pretty console output (<code class="docutils literal notranslate"><span class="pre">stdout_pretty</span></code>) and <code class="docutils literal notranslate"><span class="pre">format</span></code> selection for stdout logging.</p></li>
@@ -807,8 +822,8 @@
 <li><p>Production tip callout in README for <code class="docutils literal notranslate"><span class="pre">preset=&quot;production&quot;</span></code> guidance.</p></li>
 </ul>
 </section>
-<section id="id66">
-<h3>Changed<a class="headerlink" href="#id66" title="Link to this heading"></a></h3>
+<section id="id69">
+<h3>Changed<a class="headerlink" href="#id69" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Serialization path cleanup - <code class="docutils literal notranslate"><span class="pre">serialize_envelope()</span></code> now trusts upstream v1.1 schema compliance and only fails for non-JSON-serializable objects; exception-driven fallback is now truly exceptional, not the normal path; <code class="docutils literal notranslate"><span class="pre">strict_envelope_mode</span></code> now works correctly.</p></li>
 <li><p>Internal diagnostics now write to stderr by default (Unix convention); add <code class="docutils literal notranslate"><span class="pre">core.diagnostics_output=&quot;stdout&quot;</span></code> for backward compatibility.</p></li>
@@ -819,8 +834,8 @@
 <li><p>Split large test files into focused modules: <code class="docutils literal notranslate"><span class="pre">test_error_handling.py</span></code> → 4 files, <code class="docutils literal notranslate"><span class="pre">test_high_performance_lru_cache.py</span></code> → 3 files, <code class="docutils literal notranslate"><span class="pre">test_logger_pipeline.py</span></code> → 3 files, <code class="docutils literal notranslate"><span class="pre">test_rotating_file_sink.py</span></code> → 3 files (total test count preserved at 1704).</p></li>
 </ul>
 </section>
-<section id="id67">
-<h3>Fixed<a class="headerlink" href="#id67" title="Link to this heading"></a></h3>
+<section id="id70">
+<h3>Fixed<a class="headerlink" href="#id70" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Benchmark script key alignment in <code class="docutils literal notranslate"><span class="pre">derive_verdicts()</span></code> to match actual output keys from <code class="docutils literal notranslate"><span class="pre">benchmark()</span></code>.</p></li>
 <li><p>Strict mode serialization drops now correctly increment the <code class="docutils literal notranslate"><span class="pre">dropped</span></code> counter and record metrics; previously these drops were silently unaccounted.</p></li>
@@ -844,8 +859,8 @@
 <li><p>Cache sampling rate, filter config, and error dedupe window at logger initialization to avoid <code class="docutils literal notranslate"><span class="pre">Settings()</span></code> instantiation on every log call.</p></li>
 </ul>
 </section>
-<section id="id68">
-<h3>Documentation<a class="headerlink" href="#id68" title="Link to this heading"></a></h3>
+<section id="id71">
+<h3>Documentation<a class="headerlink" href="#id71" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Added performance benchmarks page with methodology, results, and reproduction instructions.</p></li>
 <li><p>Added <code class="docutils literal notranslate"><span class="pre">redaction-guarantee.md</span></code> documenting exact redaction behavior per preset; fixed inaccurate claims in <code class="docutils literal notranslate"><span class="pre">reliability-defaults.md</span></code>.</p></li>
@@ -855,31 +870,31 @@
 </ul>
 </section>
 </section>
-<section id="id69">
-<h2>[0.3.5] - 2026-01-01<a class="headerlink" href="#id69" title="Link to this heading"></a></h2>
-<section id="id70">
-<h3>Added<a class="headerlink" href="#id70" title="Link to this heading"></a></h3>
+<section id="id72">
+<h2>[0.3.5] - 2026-01-01<a class="headerlink" href="#id72" title="Link to this heading"></a></h2>
+<section id="id73">
+<h3>Added<a class="headerlink" href="#id73" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Hash-chain integrity for AuditTrail.</p></li>
 </ul>
 </section>
-<section id="id71">
-<h3>Changed<a class="headerlink" href="#id71" title="Link to this heading"></a></h3>
+<section id="id74">
+<h3>Changed<a class="headerlink" href="#id74" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">unbind()</span></code> now returns self for method chaining.</p></li>
 </ul>
 </section>
-<section id="id72">
-<h3>Fixed<a class="headerlink" href="#id72" title="Link to this heading"></a></h3>
+<section id="id75">
+<h3>Fixed<a class="headerlink" href="#id75" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>GitHub release workflow now handles existing releases.</p></li>
 </ul>
 </section>
 </section>
-<section id="id73">
-<h2>[0.3.4] - 2025-12-30<a class="headerlink" href="#id73" title="Link to this heading"></a></h2>
-<section id="id74">
-<h3>Added<a class="headerlink" href="#id74" title="Link to this heading"></a></h3>
+<section id="id76">
+<h2>[0.3.4] - 2025-12-30<a class="headerlink" href="#id76" title="Link to this heading"></a></h2>
+<section id="id77">
+<h3>Added<a class="headerlink" href="#id77" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Enterprise key management for tamper-evident plugin.</p></li>
 <li><p>Verification API and CLI for tamper-evident plugin.</p></li>
@@ -887,8 +902,8 @@
 <li><p>Configurable worker count for logging pipeline.</p></li>
 </ul>
 </section>
-<section id="id75">
-<h3>Fixed<a class="headerlink" href="#id75" title="Link to this heading"></a></h3>
+<section id="id78">
+<h3>Fixed<a class="headerlink" href="#id78" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>PYTHONPATH passing to subprocess in CLI test.</p></li>
 <li><p>fapilog-tamper tests now skip gracefully if package not available.</p></li>
@@ -897,8 +912,8 @@
 </ul>
 </section>
 </section>
-<section id="id76">
-<h2>[0.3.3] - 2025-12-22<a class="headerlink" href="#id76" title="Link to this heading"></a></h2>
+<section id="id79">
+<h2>[0.3.3] - 2025-12-22<a class="headerlink" href="#id79" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Project status upgraded from Alpha to Beta classification.</p></li>
 <li><p>Fixed plugin catalog generation to exclude failed plugin entries.</p></li>
@@ -907,8 +922,8 @@
 <li><p>Removed placeholder Discord and Plugin Marketplace links from PyPI metadata.</p></li>
 </ul>
 </section>
-<section id="id77">
-<h2>[0.3.2] - 2025-12-22<a class="headerlink" href="#id77" title="Link to this heading"></a></h2>
+<section id="id80">
+<h2>[0.3.2] - 2025-12-22<a class="headerlink" href="#id80" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Backpressure configuration now honored: <code class="docutils literal notranslate"><span class="pre">drop_on_full</span></code> waits instead of dropping when set to false; sink/enricher/redactor failures emit diagnostics.</p></li>
 <li><p>FastAPI request/response logging middleware added (sampling, header redaction, skip paths) and exported alongside context middleware.</p></li>
@@ -941,7 +956,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2024, Chris Haste.
-      <span class="lastupdated">Last updated on February 19, 2026.
+      <span class="lastupdated">Last updated on February 20, 2026.
       </span></p>
   </div>
 
