@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-import statistics
-import time
-
 import pytest
 
 from fapilog.core.concurrency import PriorityAwareQueue
@@ -151,33 +148,29 @@ class TestPriorityAwareQueue:
         assert sum(1 for i in items if i["level"] == "DEBUG") == 1
 
     def test_eviction_latency_constant_across_queue_sizes(self) -> None:
-        """Eviction is O(1) - latency doesn't scale with queue size."""
-        # This test verifies AC5: O(1) performance
-        samples = 15
-        median_timings = []
-
+        """Eviction is O(1) - constant work regardless of queue size."""
+        # This test verifies AC5: O(1) performance by checking that
+        # eviction performs exactly one tombstone + one append, with no
+        # iteration over the queue. Structural verification is immune
+        # to CI timing noise that plagues nanosecond-scale benchmarks.
         for queue_size in [100, 1000, 5000]:
-            run_timings = []
-            for _ in range(samples):
-                queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
-                    capacity=queue_size, protected_levels={"ERROR"}
-                )
-                # Fill with DEBUG events
-                for i in range(queue_size):
-                    queue.try_enqueue({"level": "DEBUG", "msg": str(i)})
+            queue: PriorityAwareQueue[dict[str, str]] = PriorityAwareQueue(
+                capacity=queue_size, protected_levels={"ERROR"}
+            )
+            for i in range(queue_size):
+                queue.try_enqueue({"level": "DEBUG", "msg": str(i)})
 
-                # Measure eviction latency
-                start = time.perf_counter_ns()
-                queue.try_enqueue({"level": "ERROR", "msg": "important"})
-                elapsed = time.perf_counter_ns() - start
-                run_timings.append(elapsed)
-            median_timings.append(statistics.median(run_timings))
+            dq_len_before = len(queue._dq)
+            unprotected_before = len(queue._unprotected_refs)
 
-        # Latency should be roughly constant (within 20x of smallest)
-        # Median of multiple samples absorbs GC/scheduling noise
-        assert median_timings[-1] < median_timings[0] * 20, (
-            f"Eviction latency scaled with queue size: {median_timings}"
-        )
+            result = queue.try_enqueue({"level": "ERROR", "msg": "important"})
+
+            # O(1) eviction: exactly one tombstone, one append, one popleft
+            assert result is True
+            assert queue._tombstone_count == 1
+            assert len(queue._dq) == dq_len_before + 1
+            assert len(queue._unprotected_refs) == unprotected_before - 1
+            assert queue.qsize() == queue_size
 
     def test_empty_protected_levels_disables_eviction(self) -> None:
         """With empty protected_levels, no eviction occurs (rollback behavior)."""

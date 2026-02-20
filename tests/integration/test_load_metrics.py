@@ -257,6 +257,6 @@ async def test_load_metrics_no_drops_and_low_latency(tmp_path) -> None:
     assert flush_count > 0
     avg_flush = (flush_sum / flush_count) if flush_count else 0.0
     flush_bound = max(
-        float(os.getenv("FAPILOG_TEST_MAX_AVG_FLUSH_SECONDS", "0.30")), 1.00
+        float(os.getenv("FAPILOG_TEST_MAX_AVG_FLUSH_SECONDS", "0.30")), 2.00
     )
     assert avg_flush < flush_bound

@@ -169,8 +169,6 @@ class PriorityAwareQueue(Generic[T]):
                 # Enqueue the protected event
                 self._dq.append(item)
 
-                # Compact if tombstone ratio is high
-                self._compact_if_needed()
                 return True
 
             # No eviction possible - drop the event
@@ -202,7 +200,8 @@ class PriorityAwareQueue(Generic[T]):
 
                 return True, item
 
-            # Queue is empty
+            # Queue is empty — compact before returning
+            self._compact_if_needed()
             return False, None
 
     def _compact_if_needed(self) -> None:
