@@ -86,7 +86,7 @@ postgres = [
 
 # Testing utilities for plugin authors
 testing = [
-    "pytest>=8.0.0",
+    "pytest>=8.4.0",
 ]
 
 # Development tools
